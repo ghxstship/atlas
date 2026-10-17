@@ -30,6 +30,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
+  "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
 };
 
 /**

@@ -1,7 +1,9 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { ErrorState, Skeleton } from "@xos/ui";
 import { useTranslations } from "next-intl";
+import { useEffect } from "react";
 
 /**
  * The loading and error states of every Credentials and Safety incident page (Section 11.10): a
@@ -30,6 +32,9 @@ export function CollectionError({
   reset: () => void;
 }) {
   const t = useTranslations("credentials.common");
+  useEffect(() => {
+    reportClientError(error);
+  }, [error]);
   return (
     <ErrorState
       title={t("errorTitle")}

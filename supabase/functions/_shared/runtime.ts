@@ -10,6 +10,7 @@ import {
   supabaseDb,
   type PlatformDb,
 } from "../_vendor/xos-platform.js";
+import { observeFunction } from "./observability.ts";
 
 /** A required environment variable, or a thrown error naming it. */
 export function env(name: string): string {
@@ -47,13 +48,18 @@ export function hasBearer(request: Request, secret: string): boolean {
 }
 
 /**
- * Wraps a handler so an unexpected error becomes a 500 problem carrying only a request id (A22-013).
- * The error itself is logged with that id through the infra/observability redactor, never returned.
+ * Serves a handler wrapped with `observeFunction` (ADR 0025): every request is traced and logged
+ * once, and an unexpected error becomes a 500 problem carrying only a request id (A22-013), with the
+ * error logged through the infra/observability redactor and sent to Sentry when `SENTRY_DSN` is
+ * set, never returned. The function name comes from the first request's URL; the outer catch keeps
+ * the 500 guarantee should the wrapper itself fail.
  */
 export function serve(handler: (request: Request) => Promise<Response>): void {
+  let observed: ((request: Request) => Promise<Response>) | undefined;
   Deno.serve(async (request) => {
     try {
-      return await handler(request);
+      observed ??= observeFunction(edgeFunctionName(request.url), handler);
+      return await observed(request);
     } catch (error) {
       const fn = edgeFunctionName(request.url);
       const logger = createLogger(identityFromEnv(`edge.${fn}`, Deno.env.toObject()));

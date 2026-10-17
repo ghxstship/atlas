@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { atlasFatal } from "@xos/i18n/extracts";
 import { defaultLocale } from "@xos/i18n/locales";
 import { useEffect } from "react";
@@ -13,6 +14,7 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
   const copy = atlasFatal[defaultLocale];
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <html lang={defaultLocale}>

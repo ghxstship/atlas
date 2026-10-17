@@ -30833,11 +30833,11 @@ async function kioskPunch(db, input) {
 }
 //#endregion
 //#region src/http/failure.ts
-var REQUEST_ID = /^[A-Za-z0-9._:-]{8,128}$/;
+var REQUEST_ID$1 = /^[A-Za-z0-9._:-]{8,128}$/;
 /** The caller's X-Request-Id when it is well formed, otherwise a new UUID. */
 function requestIdFor(request, generate = () => crypto.randomUUID()) {
   const given = request.headers.get("X-Request-Id");
-  return given !== null && REQUEST_ID.test(given) ? given : generate();
+  return given !== null && REQUEST_ID$1.test(given) ? given : generate();
 }
 /** The function name from an Edge Function URL (`/functions/v1/<name>/...` or `/<name>/...`). */
 function edgeFunctionName(url) {
@@ -31812,6 +31812,27 @@ function redactError(error, walk, depth) {
   if (error.cause !== void 0) out["cause"] = walk(error.cause, depth + 1);
   return out;
 }
+/** Redacts a flat attribute map for OpenTelemetry spans, dropping values that are not attributes. */
+function redactAttributes(attributes, options = {}) {
+  const allow = new Set((options.allowKeys ?? []).map(normalizeKey));
+  const out = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    if (value === null || value === void 0) continue;
+    if (!allow.has(normalizeKey(key)) && isSensitiveKey(key)) {
+      out[key] = REDACTED;
+      continue;
+    }
+    if (typeof value === "string") out[key] = redactString(value, 1024);
+    else if (typeof value === "number" || typeof value === "boolean") out[key] = value;
+    else if (Array.isArray(value) && value.every((item) => typeof item === "string"))
+      out[key] = value.map((item) => redactString(item, 1024));
+    else if (Array.isArray(value) && value.every((item) => typeof item === "number"))
+      out[key] = value;
+    else if (Array.isArray(value) && value.every((item) => typeof item === "boolean"))
+      out[key] = value;
+  }
+  return out;
+}
 //#endregion
 //#region ../../infra/observability/src/logger.ts
 /**
@@ -31825,6 +31846,10 @@ var LEVEL_RANK = {
   warn: 30,
   error: 40,
 };
+var LOG_LEVELS = ["debug", "info", "warn", "error"];
+function isLogLevel(value) {
+  return typeof value === "string" && LOG_LEVELS.includes(value);
+}
 /** Keys the logger owns; caller fields with these names are nested under `fields` instead. */
 var RESERVED = /* @__PURE__ */ new Set([
   "timestamp",
@@ -31911,6 +31936,558 @@ function identityFromEnv(service, env) {
     ...(release ? { release } : {}),
     ...(region ? { region } : {}),
   };
+}
+//#endregion
+//#region ../../infra/observability/src/errors.ts
+function createErrorReporter(options) {
+  const reported = /* @__PURE__ */ new WeakSet();
+  return {
+    report(error, context = {}) {
+      if (typeof error === "object" && error !== null) {
+        if (reported.has(error)) return;
+        reported.add(error);
+      }
+      const tags = { ...context.tags };
+      const extra = redact(context.extra ?? {});
+      options.logger.error("unhandled error", {
+        error,
+        tags,
+        ...extra,
+      });
+      if (!options.sink) return;
+      try {
+        options.sink.captureException(error, {
+          tags,
+          extra,
+          ...(context.user ? { user: { id: context.user.id } } : {}),
+        });
+      } catch (sinkError) {
+        options.logger.warn("error sink rejected an event", { error: sinkError });
+      }
+    },
+    wasReported(error) {
+      return typeof error === "object" && error !== null && reported.has(error);
+    },
+  };
+}
+/** Request headers kept on error events; every other header is dropped. */
+var KEPT_HEADERS = /* @__PURE__ */ new Set([
+  "accept",
+  "content-type",
+  "content-length",
+  "traceparent",
+  "x-request-id",
+  "x-vercel-id",
+  "sb-request-id",
+]);
+/**
+ * Sentry `beforeSend` hook. Returns the same event object with personal data removed, so it can
+ * be passed to `Sentry.init({ beforeSend: scrubEvent, beforeSendTransaction: scrubEvent })`.
+ */
+function scrubEvent(event) {
+  if (event.message) event.message = redactString(event.message);
+  for (const value of event.exception?.values ?? [])
+    if (value.value) value.value = redactString(value.value);
+  if (event.request) {
+    const req = event.request;
+    if (req.url) req.url = redactUrl(req.url);
+    delete req.cookies;
+    delete req.query_string;
+    delete req.env;
+    if (req.data !== void 0) req.data = REDACTED;
+    if (req.headers) {
+      const kept = {};
+      for (const [name, value] of Object.entries(req.headers))
+        if (KEPT_HEADERS.has(name.toLowerCase())) kept[name] = redactString(value);
+      req.headers = kept;
+    }
+  }
+  if (event.user) {
+    const id = event.user.id;
+    event.user = id === void 0 ? {} : { id };
+  }
+  if (event.breadcrumbs)
+    event.breadcrumbs = event.breadcrumbs.map((crumb) => {
+      const next = { ...crumb };
+      if (next.message) next.message = redactString(next.message);
+      if (next.data) next.data = redact(next.data);
+      return next;
+    });
+  if (event.extra) event.extra = redact(event.extra);
+  if (event.contexts) event.contexts = redact(event.contexts);
+  if (event.tags) event.tags = redact(event.tags);
+  if (event.transaction) event.transaction = redactUrl(event.transaction);
+  delete event.server_name;
+  return event;
+}
+//#endregion
+//#region ../../infra/observability/src/trace-context.ts
+var TRACEPARENT = /^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/;
+var ZERO_TRACE = "0".repeat(32);
+var ZERO_SPAN = "0".repeat(16);
+function randomHex(bytes) {
+  const buf = new Uint8Array(bytes);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+function newTraceId() {
+  let id = randomHex(16);
+  while (id === ZERO_TRACE) id = randomHex(16);
+  return id;
+}
+function newSpanId() {
+  let id = randomHex(8);
+  while (id === ZERO_SPAN) id = randomHex(8);
+  return id;
+}
+/** Parses a traceparent header. Returns null for a missing, malformed or all-zero value. */
+function parseTraceparent(header) {
+  if (!header) return null;
+  const match = TRACEPARENT.exec(header.trim().toLowerCase());
+  if (!match) return null;
+  const [, version, traceId, spanId, flags] = match;
+  if (version === "ff" || traceId === ZERO_TRACE || spanId === ZERO_SPAN) return null;
+  return {
+    traceId,
+    spanId,
+    sampled: (Number.parseInt(flags, 16) & 1) === 1,
+  };
+}
+function formatTraceparent(context) {
+  return `00-${context.traceId}-${context.spanId}-${context.sampled ? "01" : "00"}`;
+}
+/**
+ * The context for work done on behalf of an incoming request: the caller's trace id when it sent
+ * one, otherwise a new trace, always with a new span id for this hop.
+ */
+function continueTrace(header, sampled = true) {
+  const parent = parseTraceparent(header);
+  return {
+    traceId: parent?.traceId ?? newTraceId(),
+    spanId: newSpanId(),
+    sampled: parent?.sampled ?? sampled,
+  };
+}
+var REQUEST_ID = /^[A-Za-z0-9:._-]{8,128}$/;
+/**
+ * A request id for correlation: the platform's id when present and well formed (Vercel sends
+ * `x-vercel-id`, Supabase sends `sb-request-id`), otherwise a new one.
+ */
+function requestIdFrom(headers) {
+  for (const name of ["x-request-id", "x-vercel-id", "sb-request-id", "cf-ray"]) {
+    const value = headers.get(name);
+    if (value && REQUEST_ID.test(value)) return value;
+  }
+  return crypto.randomUUID();
+}
+//#endregion
+//#region ../../infra/observability/src/tracing.ts
+/**
+ * Tracing over the OpenTelemetry API (`@opentelemetry/api` 1.9.1, ADR 0001).
+ *
+ * The types below are the structural subset of the OpenTelemetry `Tracer` and `Span` this module
+ * calls, so `trace.getTracer("atlas")` from the pinned API package is accepted as is, and this
+ * module itself stays free of runtime dependencies (Supabase Edge Functions import it under Deno).
+ * Without a tracer, `withSpan` still issues W3C ids so logs and error reports correlate.
+ * Attributes are redacted before they reach the span.
+ */
+/** OpenTelemetry `SpanStatusCode`. */
+var SpanStatus = {
+  UNSET: 0,
+  OK: 1,
+  ERROR: 2,
+};
+/** OpenTelemetry `SpanKind`. */
+var SpanKind = {
+  INTERNAL: 0,
+  SERVER: 1,
+  CLIENT: 2,
+  PRODUCER: 3,
+  CONSUMER: 4,
+};
+/** A span that records nothing but carries real ids, used when no tracer is configured. */
+function detachedSpan(parent) {
+  const context = {
+    traceId: parent?.traceId ?? newTraceId(),
+    spanId: parent?.spanId ?? newSpanId(),
+    traceFlags: parent?.sampled === false ? 0 : 1,
+  };
+  return {
+    setAttribute: () => void 0,
+    setStatus: () => void 0,
+    recordException: () => void 0,
+    end: () => void 0,
+    spanContext: () => context,
+  };
+}
+/**
+ * Runs `fn` inside a span. A thrown error or rejected promise is recorded on the span, which ends
+ * with status ERROR; the error is rethrown unchanged.
+ */
+async function withSpan(name, options, fn) {
+  const attributes = redactAttributes(options.attributes ?? {});
+  const run = async (span) => {
+    try {
+      return await fn(span);
+    } catch (error) {
+      recordError(span, error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  };
+  if (!options.tracer) return run(detachedSpan(options.parent));
+  return options.tracer.startActiveSpan(
+    name,
+    {
+      attributes,
+      kind: options.kind ?? SpanKind.INTERNAL,
+    },
+    (span) => run(span),
+  );
+}
+function recordError(span, error) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  span.recordException({
+    name: err.name,
+    message: redactString(err.message),
+    ...(err.stack ? { stack: redactString(err.stack, 8192) } : {}),
+  });
+  span.setStatus({
+    code: SpanStatus.ERROR,
+    message: redactString(err.message, 256),
+  });
+}
+function setSpanAttributes(span, attributes) {
+  for (const [key, value] of Object.entries(redactAttributes(attributes)))
+    span.setAttribute(key, value);
+}
+function observe(handler, options) {
+  const now = options.now ?? (() => performance.now());
+  return async (request, ...rest) => {
+    const started = now();
+    const trace = continueTrace(request.headers.get("traceparent"));
+    const requestId = requestIdFrom(request.headers);
+    const path = redactUrl(new URL(request.url).pathname);
+    const method = request.method.toUpperCase();
+    const logger = options.logger.child({
+      request_id: requestId,
+      trace_id: trace.traceId,
+      span_id: trace.spanId,
+      http_route: options.route,
+    });
+    const attributes = {
+      "http.request.method": method,
+      "http.route": options.route,
+      "url.path": path,
+      "xos.request_id": requestId,
+    };
+    return withSpan(
+      `${method} ${options.route}`,
+      {
+        tracer: options.tracer,
+        kind: SpanKind.SERVER,
+        attributes,
+        parent: trace,
+      },
+      async (span) => {
+        const active = span.spanContext();
+        const scopeTrace = {
+          traceId: active.traceId,
+          spanId: active.spanId,
+          sampled: trace.sampled,
+        };
+        const scopedLogger =
+          active.traceId === trace.traceId && active.spanId === trace.spanId
+            ? logger
+            : logger.child({
+                trace_id: active.traceId,
+                span_id: active.spanId,
+              });
+        try {
+          const response = await handler(
+            request,
+            {
+              logger: scopedLogger,
+              trace: scopeTrace,
+              requestId,
+            },
+            ...rest,
+          );
+          const status = response.status;
+          setSpanAttributes(span, { "http.response.status_code": status });
+          if (status >= 500) span.setStatus({ code: SpanStatus.ERROR });
+          const durationMs = Math.round(now() - started);
+          const fields = {
+            method,
+            path,
+            status,
+            duration_ms: durationMs,
+          };
+          if (status >= 500) scopedLogger.error("request failed", fields);
+          else if (durationMs > 800) scopedLogger.warn("request slow", fields);
+          else scopedLogger.info("request completed", fields);
+          return withCorrelationHeaders(response, scopeTrace, requestId);
+        } catch (error) {
+          options.errors.report(error, {
+            tags: {
+              route: options.route,
+              method,
+            },
+            extra: {
+              path,
+              request_id: requestId,
+              trace_id: scopeTrace.traceId,
+            },
+          });
+          scopedLogger.error("request threw", {
+            method,
+            path,
+            duration_ms: Math.round(now() - started),
+          });
+          throw error;
+        }
+      },
+    );
+  };
+}
+/** Adds `traceparent` and `x-request-id`; copies the response when its headers are immutable. */
+function withCorrelationHeaders(response, trace, requestId) {
+  const traceparent = formatTraceparent(trace);
+  try {
+    response.headers.set("traceparent", traceparent);
+    response.headers.set("x-request-id", requestId);
+    return response;
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    const headers = new Headers(response.headers);
+    headers.set("traceparent", traceparent);
+    headers.set("x-request-id", requestId);
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+}
+//#endregion
+//#region ../../infra/observability/src/sentry.ts
+/**
+ * Sentry configuration shared by every runtime.
+ *
+ * `sentryInitOptions` is what Atlas and Gateway pass to `Sentry.init` from `@sentry/nextjs` on the
+ * Node and Edge runtimes. Without a DSN it returns `undefined`, and the apps skip `Sentry.init`, so
+ * local runs, tests and CI make no network calls.
+ *
+ * `createSentryEnvelopeSink` is the error sink for Supabase Edge Functions. No Sentry Deno SDK is
+ * pinned in ADR 0001, so the sink posts one event per error to the project's envelope endpoint
+ * with `fetch`, after `scrubEvent` has removed personal data. It has no dependencies, so Deno loads
+ * it from the vendored platform bundle.
+ */
+/** The server DSN: `SENTRY_DSN`, else the public `NEXT_PUBLIC_SENTRY_DSN`. Blank counts as unset. */
+function sentryDsn(env) {
+  for (const name of ["SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN"]) {
+    const value = env[name]?.trim();
+    if (value) return value;
+  }
+}
+function parseDsn(dsn) {
+  let url;
+  try {
+    url = new URL(dsn);
+  } catch (error) {
+    if (error instanceof TypeError) return void 0;
+    throw error;
+  }
+  const projectId = url.pathname.split("/").filter(Boolean).pop();
+  if (url.protocol !== "https:" || !url.username || !projectId || !/^\d+$/.test(projectId)) return;
+  return {
+    key: url.username,
+    origin: url.origin,
+    projectId,
+  };
+}
+var SDK_NAME = "xos.envelope";
+var SDK_VERSION = "1.0.0";
+function newEventId() {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+function frames(stack) {
+  if (!stack) return void 0;
+  const parsed = [];
+  for (const line of stack.split("\n")) {
+    const match = /^\s*at (?:(.+?) \()?(.+?):(\d+):(\d+)\)?$/.exec(line);
+    if (!match) continue;
+    const [, fn, file, lineno, colno] = match;
+    parsed.push({
+      function: fn ?? "?",
+      filename: redactString(file ?? "?", 512),
+      lineno: Number(lineno),
+      colno: Number(colno),
+      in_app: !(file ?? "").includes("node_modules"),
+    });
+  }
+  return parsed.length > 0 ? parsed.reverse() : void 0;
+}
+/**
+ * An error sink that sends scrubbed events to Sentry over HTTP. Returns `undefined` without a valid
+ * DSN, so callers pass the result straight to `createObservability({ errorSink })`.
+ */
+function createSentryEnvelopeSink(options) {
+  const dsnText = sentryDsn(options.env);
+  const dsn = dsnText === void 0 ? void 0 : parseDsn(dsnText);
+  if (dsn === void 0 || dsnText === void 0) return void 0;
+  const send = options.fetch ?? fetch;
+  const now = options.now ?? (() => /* @__PURE__ */ new Date());
+  const identity = identityFromEnv(options.service, options.env);
+  const endpoint = `${dsn.origin}/api/${dsn.projectId}/envelope/`;
+  const auth = `Sentry sentry_version=7, sentry_key=${dsn.key}, sentry_client=${SDK_NAME}/${SDK_VERSION}`;
+  const pending = /* @__PURE__ */ new Set();
+  return {
+    captureException(exception, hint) {
+      const error = exception instanceof Error ? exception : new Error(String(exception));
+      const stacktrace = frames(error.stack);
+      const scrubbed = scrubEvent({
+        event_id: newEventId(),
+        timestamp: now().getTime() / 1e3,
+        platform: "javascript",
+        level: "error",
+        logger: identity.service,
+        environment: identity.environment,
+        ...(identity.release ? { release: identity.release } : {}),
+        exception: {
+          values: [
+            {
+              type: error.name,
+              value: error.message,
+              ...(stacktrace ? { stacktrace: { frames: stacktrace } } : {}),
+            },
+          ],
+        },
+        tags: {
+          service: identity.service,
+          ...hint?.tags,
+        },
+        extra: redact(hint?.extra ?? {}),
+        ...(hint?.user ? { user: { id: hint.user.id } } : {}),
+        sdk: {
+          name: SDK_NAME,
+          version: SDK_VERSION,
+        },
+      });
+      const body = [
+        JSON.stringify({
+          event_id: scrubbed["event_id"],
+          sent_at: now().toISOString(),
+        }),
+        JSON.stringify({ type: "event" }),
+        JSON.stringify(scrubbed),
+      ].join("\n");
+      const request = send(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-sentry-envelope",
+          "X-Sentry-Auth": auth,
+        },
+        body,
+      }).then(
+        (response) => {
+          if (!response.ok)
+            options.onSendError?.(/* @__PURE__ */ new Error(`Sentry answered ${response.status}`));
+        },
+        (error) => options.onSendError?.(error),
+      );
+      pending.add(request);
+      request.finally(() => pending.delete(request));
+      return scrubbed["event_id"];
+    },
+    async flush(timeoutMs = 2e3) {
+      if (pending.size === 0) return true;
+      let timer;
+      const timeout = new Promise((resolve) => {
+        timer = setTimeout(() => resolve(false), timeoutMs);
+      });
+      const settled = Promise.allSettled([...pending]).then(() => true);
+      const done = await Promise.race([settled, timeout]);
+      clearTimeout(timer);
+      return done;
+    },
+  };
+}
+//#endregion
+//#region ../../infra/observability/src/index.ts
+/**
+ * @xos/infra/observability: structured logs, traces and error reports with personal data redaction
+ * for Atlas, Gateway, the public API and the Supabase Edge Functions.
+ */
+/**
+ * One call per process: a logger tagged with the service identity, an error reporter that writes
+ * to it and to the error sink, and the tracer. `XOS_LOG_LEVEL` sets the threshold (default info).
+ */
+function createObservability(options) {
+  const level = options.env["XOS_LOG_LEVEL"];
+  const logger = createLogger({
+    ...identityFromEnv(options.service, options.env),
+    ...(isLogLevel(level) ? { level } : {}),
+    ...(options.sink ? { sink: options.sink } : {}),
+  });
+  return {
+    logger,
+    errors: createErrorReporter({
+      logger,
+      sink: options.errorSink,
+    }),
+    tracer: options.tracer,
+  };
+}
+//#endregion
+//#region ../../infra/observability/src/edge.ts
+/**
+ * Supabase Edge Function instrumentation (Deno). `observeEdgeFunction` wraps a handler with
+ * `observe` under the service `edge.<fn>` and the route `/<fn>`, and turns an unexpected error into
+ * the caller's failure response (the generic 500 problem of A22-013) after reporting it once: to
+ * the structured log through `failure`, and to Sentry through the envelope sink when `SENTRY_DSN`
+ * is set. Without the secret nothing leaves the function but the log.
+ */
+function observeEdgeFunction(handler, options) {
+  const service = `edge.${options.fn}`;
+  const observability = createObservability({
+    service,
+    env: options.env,
+    ...(options.logSink ? { sink: options.logSink } : {}),
+  });
+  const sink = createSentryEnvelopeSink({
+    service,
+    env: options.env,
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+    onSendError: (error) => observability.logger.warn("sentry event not sent", { error }),
+  });
+  return observe(
+    async (request, scope) => {
+      try {
+        return await handler(request);
+      } catch (error) {
+        if (sink) {
+          sink.captureException(error, {
+            tags: {
+              function: options.fn,
+              runtime: "edge-function",
+            },
+            extra: {
+              request_id: scope.requestId,
+              trace_id: scope.trace.traceId,
+            },
+          });
+          await sink.flush(options.flushMs ?? 2e3);
+        }
+        return options.failure(error, scope);
+      }
+    },
+    {
+      ...observability,
+      route: `/${options.fn}`,
+    },
+  );
 }
 //#endregion
 //#region ../data/src/result.ts
@@ -32649,7 +33226,9 @@ function reportRunLabels(locale) {
  * bundled here, with every npm package left external and mapped to an npm: specifier in deno.json.
  * The plan registry is embedded from packages/schemas/plans.yaml, its single source. The structured
  * logger with personal data redaction comes from infra/observability, so every function logs through
- * the same redactor as Atlas and the API (A22-013).
+ * the same redactor as Atlas and the API (A22-013). Requests are observed (`observe`) and errors go
+ * to Sentry through the dependency-free envelope sink when the function has a `SENTRY_DSN` secret
+ * (ADR 0025).
  */
 /** The plan registry the bundle was built from. */
 var planRegistry = parsePlanRegistry(plans_default);
@@ -32674,6 +33253,7 @@ export {
   clamavScanner,
   createCheckoutSession,
   createLogger,
+  createObservability,
   createPortalSession,
   createStripeClient,
   createTransport,
@@ -32690,6 +33270,8 @@ export {
   localPartFor,
   lookupKeyFor,
   notificationStore,
+  observe,
+  observeEdgeFunction,
   parseClamdReply,
   planForLookupKey,
   planRegistry,

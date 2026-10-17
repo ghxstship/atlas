@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { ErrorState, Skeleton } from "@xos/ui";
 import { useEffect } from "react";
 import { useCopy } from "./action-ui";
@@ -34,6 +35,7 @@ export function ModuleError({
   const t = useCopy("work");
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <ErrorState

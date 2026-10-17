@@ -1,15 +1,19 @@
 # Observability wiring
 
-`@xos/infra/observability` gives every XOS runtime the same three signals, all redacted before they leave the process:
+`@xos/infra/observability` gives every XOS runtime the same signals, all redacted before they leave the process:
 
-| Signal          | Where it goes                                                                                  | Module                           |
-| --------------- | ---------------------------------------------------------------------------------------------- | -------------------------------- |
-| Structured logs | One JSON line per event on stdout, collected by Vercel runtime logs and Supabase function logs | `logger.ts`                      |
-| Traces          | OpenTelemetry API spans; the Sentry SDK registers the tracer provider and exports them         | `tracing.ts`, `trace-context.ts` |
-| Errors          | Sentry (`@sentry/nextjs` 11.5.0), scrubbed by `scrubEvent`, and the structured log             | `errors.ts`                      |
-| Correlation     | W3C `traceparent` and `x-request-id`, continued from the caller and echoed on every response   | `http.ts`                        |
+| Signal          | Where it goes                                                                                        | Module                           |
+| --------------- | ---------------------------------------------------------------------------------------------------- | -------------------------------- |
+| Structured logs | One JSON line per event on stdout, collected by Vercel runtime logs and Supabase function logs       | `logger.ts`                      |
+| Traces          | OpenTelemetry API spans; the Sentry server SDK registers the tracer provider and exports them        | `tracing.ts`, `trace-context.ts` |
+| Server errors   | Sentry (`@sentry/nextjs` 11.5.0), scrubbed by `scrubEvent`, and the structured log                   | `errors.ts`, `sentry.ts`         |
+| Browser errors  | A 1 KB reporter posts to a same-origin route, which forwards through the server Sentry client        | `browser.ts`, `client-errors.ts` |
+| Edge Functions  | `observe` per request; errors to Sentry over HTTP through the envelope sink when `SENTRY_DSN` is set | `edge.ts`, `sentry.ts`           |
+| Correlation     | W3C `traceparent` and `x-request-id`, continued from the caller and echoed on every response         | `http.ts`                        |
 
-The modules have no runtime dependencies and import each other with explicit `.ts` extensions, so Node (Atlas, Gateway), the Next.js Edge runtime and Deno (Supabase Edge Functions) load the same files.
+The modules have no runtime dependencies and import each other with explicit `.ts` extensions, so Node (Atlas, Gateway), the Next.js Edge runtime and Deno (Supabase Edge Functions) load the same files. `@xos/infra/observability` is the server entry; `@xos/infra/observability/browser` is the only module client code may import.
+
+**No DSN, no network.** Every Sentry path is off unless a DSN is set: the apps skip `Sentry.init` and pass no error sink or tracer, and the Edge Functions build no envelope sink. Local runs, tests and CI make no request to Sentry; errors reach the structured log only.
 
 ## Redaction rules
 
@@ -17,128 +21,87 @@ The modules have no runtime dependencies and import each other with explicit `.t
 - **Values.** Every string is scanned for JWTs, bearer and basic credentials, `xos_live_` and Stripe keys, secrets in query strings, emails, SSNs, card numbers that pass the Luhn check, E.164 and North American phone numbers, and IPv4 and IPv6 addresses.
 - **URLs.** Paths are logged without their query string or fragment.
 - **Kept.** UUIDs (org, person, request ids), route templates, status codes, durations. They are pseudonymous and needed for incident response.
-- **Sentry.** `scrubEvent` keeps only the user id, drops cookies, the query string, the request body, the server name and every header except content negotiation and correlation headers.
+- **Sentry.** `scrubEvent` keeps only the user id, drops cookies, the query string, the request body, the server name and every header except content negotiation and correlation headers. `sendDefaultPii` is off everywhere. There is no Session Replay anywhere: it records screens that show personal data.
 
-## Dependencies to approve (orchestrator)
+## Server runtimes (Atlas and Gateway)
 
-All are already pinned in ADR 0001; none is installed yet.
+Both apps depend on `@sentry/nextjs` 11.5.0, `@opentelemetry/api` 1.9.1 and `@xos/infra` (`workspace:*`), and list `@xos/infra` in `transpilePackages`.
 
-| Workspace      | Package              | Version       | Why                                            |
-| -------------- | -------------------- | ------------- | ---------------------------------------------- |
-| `apps/atlas`   | `@opentelemetry/api` | 1.9.1         | `trace.getTracer("atlas")` passed to `observe` |
-| `apps/atlas`   | `@sentry/nextjs`     | 11.5.0        | Error sink and OpenTelemetry tracer provider   |
-| `apps/atlas`   | `@xos/infra`         | `workspace:*` | This package                                   |
-| `apps/gateway` | `@opentelemetry/api` | 1.9.1         | Same as Atlas                                  |
-| `apps/gateway` | `@sentry/nextjs`     | 11.5.0        | Same as Atlas                                  |
-| `apps/gateway` | `@xos/infra`         | `workspace:*` | This package                                   |
-
-`pnpm-workspace.yaml` needs `- infra` under `packages` so the apps can depend on `@xos/infra` and `pnpm verify` runs this package's lint, typecheck and tests. Both apps add `@xos/infra` to `transpilePackages`.
-
-## Atlas (owner A06)
-
-`apps/atlas/lib/observability.ts`:
+`apps/<app>/lib/observability.ts` builds the process's logger, error reporter and tracer. The error sink and tracer exist only when a DSN is configured:
 
 ```ts
-import * as Sentry from "@sentry/nextjs";
-import { trace } from "@opentelemetry/api";
-import { createObservability } from "@xos/infra/observability";
+export const sentryEnabled = sentryDsn(process.env) !== undefined; // SENTRY_DSN ?? NEXT_PUBLIC_SENTRY_DSN
 
 export const observability = createObservability({
   service: "atlas",
   env: process.env,
-  tracer: trace.getTracer("atlas"),
-  errorSink: Sentry,
+  tracer: sentryEnabled ? trace.getTracer("atlas") : undefined,
+  errorSink: sentryEnabled ? Sentry : undefined,
 });
 ```
 
-`apps/atlas/instrumentation.ts` gains Sentry initialization and the request error hook:
+`apps/<app>/instrumentation.ts` starts the server client on the Node and Edge runtimes and exports the request error hook:
 
 ```ts
-import * as Sentry from "@sentry/nextjs";
-import { createOnRequestError, scrubEvent } from "@xos/infra/observability";
-
 export async function register(): Promise<void> {
-  if (process.env["NEXT_RUNTIME"] === "nodejs") {
-    const { env } = await import("./lib/env");
-    env();
-  }
-  Sentry.init({
-    dsn: process.env["SENTRY_DSN"],
-    environment: process.env["VERCEL_ENV"] ?? "development",
-    release: process.env["VERCEL_GIT_COMMIT_SHA"],
-    tracesSampleRate: Number(process.env["XOS_TRACES_SAMPLE_RATE"] ?? "0.05"),
-    sendDefaultPii: false,
-    beforeSend: scrubEvent,
-    beforeSendTransaction: scrubEvent,
-  });
+  // ...environment validation...
+  const options = sentryInitOptions("atlas", process.env); // undefined without a DSN
+  if (options) Sentry.init(options);
 }
 
-export const onRequestError = async (
-  ...args: Parameters<ReturnType<typeof createOnRequestError>>
-) => {
-  const { observability } = await import("./lib/observability");
-  return createOnRequestError(observability.errors)(...args);
+export const onRequestError = async (...args) => {
+  const { observability, flushErrors } = await import("./lib/observability");
+  await createOnRequestError(observability.errors)(...args);
+  await flushErrors();
 };
 ```
 
-`apps/atlas/instrumentation-client.ts` initializes the browser SDK with the same `beforeSend`, `sendDefaultPii: false`, no Session Replay (it records screens that show personal data) and `tracesSampleRate` 0.05. The `SENTRY_DSN` in the browser comes from `NEXT_PUBLIC_SENTRY_DSN`; a DSN is a public ingest address, not a secret.
+`sentryInitOptions` sets `dsn`, `environment` (`XOS_ENVIRONMENT`, `VERCEL_ENV` or `NODE_ENV`), `release` (`VERCEL_GIT_COMMIT_SHA`), `tracesSampleRate` from `XOS_TRACES_SAMPLE_RATE` (default 0.05, out-of-range values fall back to it), `sendDefaultPii: false`, and `scrubEvent` as both `beforeSend` and `beforeSendTransaction`. `flushErrors` waits up to 2 seconds for queued events, so a serverless instance frozen after the response loses none.
 
-The public API route handler (`app/api/v1/[[...path]]/route.ts`, owner A04 with A06) wraps the Hono fetch handler:
+The public API route handler (`apps/atlas/app/api/v1/[...path]/route.ts`) wraps the Hono fetch handler with `observe` under the route `/api/v1`, and the Hono app's `onError` reports every 500 through `observability.errors` with its request id. Hono middleware can set the precise route template on the span through `c.req.routePath` later.
 
-```ts
-import { observe } from "@xos/infra/observability";
-import { observability } from "@/lib/observability";
+Gateway token flow pages must never pass a token into a log field or span attribute; the redactor replaces `token` and `token_hash` query values regardless.
 
-const handle = observe((request) => app.fetch(request), { ...observability, route: "/api/v1" });
-export { handle as GET, handle as POST, handle as PATCH, handle as PUT, handle as DELETE };
-```
+## Browser errors, without the Sentry browser SDK
 
-Hono middleware sets the precise route template on the span through `c.req.routePath` when A04 adds it.
+The Sentry browser SDK costs about 30 KB gzip on every page. The route JavaScript budgets of ADR 0027 leave 1 to 3 KB of headroom on the pages over budget, so the browser SDK is not installed, and a check enforces that (below). Browser errors take this path instead:
 
-The Content Security Policy in `lib/security/headers.ts` adds the Sentry ingest origin (`https://*.ingest.us.sentry.io`) to `connect-src`.
+1. **Reporter** (`browser.ts`, about 1 KB gzip, no imports). `apps/<app>/instrumentation-client.ts` installs it before hydration with the endpoint, the app's route templates (`lib/client-error-routes.ts`) and the release (`NEXT_PUBLIC_XOS_RELEASE`, inlined from `VERCEL_GIT_COMMIT_SHA` by `next.config.ts`). It listens for `error` and `unhandledrejection` on `window`, ignoring errors from other origins and opaque `Script error.` events. Every `error.tsx` boundary (and the shared segment error components) calls `reportClientError(error)`; a boundary error that carries a `digest` came from a server render, which `onRequestError` already reported, so it is skipped.
+2. **Payload.** `message` (`Name: message`, at most 300 characters), `stack` (frame lines only, at most 15), `route` (the template, such as `/[org]/p/[projectKey]/work`, never the concrete path), `source` (`window`, `promise` or `boundary`), `release`, and `userId` only when the page has called `setReporterUser` with the person's UUID. Before it leaves the browser the reporter strips query strings and fragments, JWTs, bearer and basic credentials, emails, runs of 32 or more token characters and, in the message, digit runs that look like phone or account numbers. Form values, cookies, headers and the URL are never read. At most five distinct reports leave per page load, each once.
+3. **Delivery.** `navigator.sendBeacon` to `/api/client-errors` on the same origin, so the Content Security Policy's `connect-src 'self'` already covers it and no Sentry origin is added. Nothing in the browser calls Sentry.
+4. **Route** (`apps/<app>/app/api/client-errors/route.ts`, built on `createClientErrorHandler` in `client-errors.ts`). In order: 403 unless the `Origin` header is the request's own origin or the site origin (Gateway's custom domains are their own origin); 413 over 8 KB; 429 past 10 reports a minute per caller or 300 per server instance (in-memory fixed window, keyed by the forwarded address, which is never logged); 400 unless the strict zod schema (`lib/client-errors.ts`) accepts it, which refuses unknown fields, a route with a query string and a user id that is not a UUID. The message and stack then pass the server redactor again, and the error is reported through `observability.errors` as a `BrowserError` tagged `runtime:browser`, `source`, `route` and `browser_release`, with the user id as the Sentry user. Without a DSN it reaches only the structured log. The route answers 204 and echoes nothing.
+5. **Enforcement.** `pnpm --filter @xos/testing budget:js` fails when any script under `apps/<app>/.next/static` carries the Sentry SDK (`packages/testing/src/client-chunk-audit.ts`), so the `route-js-budget` CI job catches a browser SDK on the next push.
 
-## Gateway (owner A27)
+What this gives up against the browser SDK: breadcrumbs, browser performance traces, automatic source map resolution of minified browser frames, and Session Replay (which stays off by policy). Frames arrive minified; upload of source maps is a separate decision (see Environment variables).
 
-Same three files as Atlas with `service: "gateway"` and `trace.getTracer("gateway")`. Token flow pages must never pass a token into a log field or span attribute; the redactor replaces `token` and `token_hash` query values regardless.
+## Supabase Edge Functions
 
-## Supabase Edge Functions (owner A18)
+The Edge runtime loads only files inside `supabase/functions`, so the functions take these modules from the vendored platform bundle (`supabase/functions/_vendor/xos-platform.js`, generated by `pnpm --filter @xos/platform bundle:edge` from `packages/platform/edge/entry.ts`, which exports `observeEdgeFunction`, `createObservability` and `observe`).
 
-Edge Functions import the module by relative path from the repository (`supabase/functions/_shared/observability.ts` re-exports `../../../infra/observability/src/index.ts`), or through an import map entry when the functions move to their own deploy bundle:
+`supabase/functions/_shared/runtime.ts` `serve()` wraps every handler with `observeFunction` from `_shared/observability.ts`, which calls `observeEdgeFunction` with the function name from the first request's URL:
 
-```ts
-import { createObservability, observe } from "../_shared/observability.ts";
+- `observe` under the service `edge.<function>` and the route `/<function>`: the caller's trace continues, the logger carries the request and trace ids, one completion record is written per request, and `traceparent` and `x-request-id` are echoed.
+- An unexpected error becomes the generic 500 problem of A22-013 (`internalErrorResponse`, logged with the request id). When the function has a `SENTRY_DSN` secret, one scrubbed event also goes to Sentry through `createSentryEnvelopeSink`: a dependency-free client of Sentry's envelope endpoint (`https://<host>/api/<project>/envelope/`) that runs `scrubEvent` and redacts the extra fields before sending, and the request waits up to 2 seconds for it. A send failure is logged as a warning and never changes the response.
+- Without the secret no sink is built and nothing leaves the function but the log.
 
-const observability = createObservability({
-  service: "edge.send-notification",
-  env: Deno.env.toObject(),
-});
+No Sentry Deno SDK is pinned in ADR 0001; the envelope sink covers errors, and Edge Function tracing stays in the structured log. `@sentry/deno` remains a later decision.
 
-Deno.serve(
-  observe(
-    async (request, { logger }) => {
-      logger.info("delivery queued", { notification_id: id });
-      return new Response(null, { status: 202 });
-    },
-    { ...observability, route: "/send-notification" },
-  ),
-);
-```
+## Environment variables (owner sets them in Vercel and Supabase)
 
-Without a Sentry Deno SDK (not pinned in ADR 0001) Edge Function errors reach the structured log, which Supabase keeps in its log explorer. `@sentry/deno` is a later decision.
+| Name                     | Atlas    | Gateway  | Edge Functions | Value                                                                                     |
+| ------------------------ | -------- | -------- | -------------- | ----------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SENTRY_DSN` | yes, set | yes, set | no             | DSN of the Sentry project `xos-atlas` or `xos-gateway`; the server falls back to it       |
+| `SENTRY_DSN`             | optional | optional | secret         | Overrides the server DSN; for Edge Functions, the DSN of their project (owner sets later) |
+| `XOS_TRACES_SAMPLE_RATE` | yes      | yes      | no             | `0.05` production, `1` preview and staging                                                |
+| `XOS_LOG_LEVEL`          | yes      | yes      | yes            | `info` production, `debug` preview                                                        |
+| `XOS_ENVIRONMENT`        | no       | no       | yes            | `staging` or `production`                                                                 |
+| `VERCEL_GIT_COMMIT_SHA`  | system   | system   | no             | Release on server events and, inlined at build, on browser reports                        |
+| `SENTRY_AUTH_TOKEN`      | not used | not used | no             | Only needed if source map upload (`withSentryConfig`) is adopted later                    |
 
-## Environment variables (orchestrator sets them in Vercel and Supabase)
-
-| Name                     | Atlas | Gateway | Edge Functions | Value                                       |
-| ------------------------ | ----- | ------- | -------------- | ------------------------------------------- |
-| `SENTRY_DSN`             | yes   | yes     | no             | DSN of the Sentry project for that app      |
-| `NEXT_PUBLIC_SENTRY_DSN` | yes   | yes     | no             | Same DSN, for the browser SDK               |
-| `SENTRY_AUTH_TOKEN`      | build | build   | no             | Source map upload at build; a Vercel secret |
-| `XOS_TRACES_SAMPLE_RATE` | yes   | yes     | no             | `0.05` production, `1` preview and staging  |
-| `XOS_LOG_LEVEL`          | yes   | yes     | yes            | `info` production, `debug` preview          |
-| `XOS_ENVIRONMENT`        | no    | no      | yes            | `staging` or `production`                   |
+The legacy Sentry project `atlvs` is not used by anything in this repository.
 
 ## Free tier fit
 
-- Sentry Developer plan: one seat, 5,000 errors and 10,000 performance units a month. Two projects (`atlas`, `gateway`) with a 5 percent trace sample stay inside it at staging volume. Spike protection on; no paid add-ons.
+- Sentry Developer plan: one seat, 5,000 errors and 10,000 performance units a month. Two projects (`xos-atlas`, `xos-gateway`) with a 5 percent trace sample stay inside it at staging volume. Browser reports are capped at five per page load and 10 a minute per caller, which bounds what a looping page can spend. Spike protection on; no paid add-ons.
 - Vercel runtime logs and Supabase logs are included in the current plans.
 - Log drains (Section 5: Supabase log drains) are a paid add-on on both Vercel and Supabase. They are listed as a blocked item in the A26 completion report.

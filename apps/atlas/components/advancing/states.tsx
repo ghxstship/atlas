@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { ErrorState, Skeleton } from "@xos/ui";
 import { useEffect } from "react";
 import { useCopy } from "./use-copy";
@@ -29,6 +30,7 @@ export function AdvancingError({
   const t = useCopy("advancing.common.error");
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <ErrorState

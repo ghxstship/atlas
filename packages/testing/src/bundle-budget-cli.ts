@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { checkRouteBudgets, kb } from "./bundle-budget.ts";
+import { findForbiddenClientCode } from "./client-chunk-audit.ts";
 
 /**
  * Route JavaScript budget check for CI: run after `next build` of Atlas, Gateway and docs.
@@ -39,3 +40,12 @@ if (over.length > 0) {
   process.exit(1);
 }
 console.log(`All ${rows.length} key pages within the route JavaScript budget.`);
+
+// The Sentry browser SDK must never ship to a browser (ADR 0025): errors go through the reporter.
+const audit = findForbiddenClientCode(repoRoot);
+for (const hit of audit.hits) console.error(`FORBIDDEN ${hit.app} ${hit.file}: ${hit.name}`);
+if (audit.hits.length > 0) {
+  console.error(`${audit.hits.length} client chunk(s) carry code that must stay on the server.`);
+  process.exit(1);
+}
+console.log(`No Sentry SDK in the client chunks of ${audit.scanned.join(", ")}.`);
