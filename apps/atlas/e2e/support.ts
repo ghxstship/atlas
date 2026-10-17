@@ -18,7 +18,13 @@ export async function expectAccessible(page: Page): Promise<void> {
   // colors instead (hover contrast is tracked separately, finding A24-004).
   await page.mouse.move(0, 0);
   // Drawers and dialogs fade in; Firefox runs the fade even under reduced motion, and axe would
-  // sample the half-faded colors (finding A24-008). Finite animations finish first.
+  // sample the half-faded colors (finding A24-008). The page goes quiet and paints twice, so a
+  // drawer that just mounted has started its fade, and finite animations finish first.
+  await page.waitForLoadState("networkidle");
+  await page.evaluate(
+    () =>
+      new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+  );
   await page.waitForFunction(() =>
     document
       .getAnimations()

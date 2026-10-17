@@ -1,4 +1,4 @@
-import { test as base } from "@playwright/test";
+import { test as base, type Browser, type Page } from "@playwright/test";
 
 export * from "@playwright/test";
 
@@ -6,25 +6,47 @@ export * from "@playwright/test";
 const INTERRUPTED = /NS_BINDING_ABORTED|interrupted by another navigation|frame was detached/;
 
 /**
- * The journeys' `test`, the same in every engine (finding A24-008). A server action ends with Next
+ * Makes `page.goto` the same in every engine (finding A24-008). A server action ends with Next
  * refreshing the route; Chromium lets a following `page.goto` win, while Firefox aborts it
- * (NS_BINDING_ABORTED) and WebKit reports it interrupted. `page.goto` here first lets the page go
+ * (NS_BINDING_ABORTED) and WebKit reports it interrupted. The patched `goto` first lets the page go
  * quiet, then navigates, and repeats the navigation once if that refresh still cut it off. Any
- * other navigation error is thrown as before.
+ * other navigation error is thrown as before. Use it on pages from extra browser contexts.
  */
-export const test = base.extend({
-  page: async ({ page }, provide) => {
-    const goto = page.goto.bind(page);
-    page.goto = async (url, options) => {
+export function settledGoto(page: Page): Page {
+  const goto = page.goto.bind(page);
+  page.goto = async (url, options) => {
+    await page.waitForLoadState("networkidle");
+    try {
+      return await goto(url, options);
+    } catch (error) {
+      if (!INTERRUPTED.test(String(error))) throw error;
       await page.waitForLoadState("networkidle");
-      try {
-        return await goto(url, options);
-      } catch (error) {
-        if (!INTERRUPTED.test(String(error))) throw error;
-        await page.waitForLoadState("networkidle");
-        return goto(url, options);
-      }
-    };
-    await provide(page);
+      return goto(url, options);
+    }
+  };
+  return page;
+}
+
+/**
+ * The journeys' `test`: its `page`, and every page of a context a spec opens for another person
+ * with `browser.newContext`, navigates with `settledGoto`.
+ */
+export const test = base.extend<object, { browser: Browser }>({
+  page: async ({ page }, provide) => {
+    await provide(settledGoto(page));
   },
+  browser: [
+    async ({ browser }, provide) => {
+      const newContext = browser.newContext.bind(browser);
+      browser.newContext = async (options) => {
+        const context = await newContext(options);
+        context.on("page", (page) => {
+          settledGoto(page);
+        });
+        return context;
+      };
+      await provide(browser);
+    },
+    { scope: "worker" },
+  ],
 });
