@@ -1,0 +1,54 @@
+appId: pro.ghxstship.compass
+name: Journey 19, look up, check out and return an asset by scan, see the custody ledger
+---
+# The gear desk (the Producer, whose asset reach is the whole org) handles AUD-0042, tagged with GTIN
+# 09501101530003 in seed 0217. The simulator has no camera, so codes are typed into the manual entry.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-lookup"
+- tapOn:
+    id: "scan-manual"
+- inputText: "09501101530003"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "AUD-0042 found"
+# A bad check digit never resolves to a unit.
+- tapOn:
+    id: "scan-manual"
+- inputText: "4006381333932"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "That barcode did not read correctly. Scan it again."
+# Asset mode hands the unit over: the first scan checks it out, the second returns it.
+- tapOn:
+    id: "scan-mode-asset"
+- tapOn:
+    id: "scan-manual"
+- inputText: "AUD-0042"
+- tapOn:
+    id: "scan-manual-submit"
+- assertVisible: "AUD-0042 found"
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 30000
+- tapOn:
+    id: "scan-manual"
+- inputText: "AUD-0042"
+- tapOn:
+    id: "scan-manual-submit"
+- extendedWaitUntil:
+    notVisible:
+      id: "sync-queued"
+    timeout: 30000
+- runScript:
+    file: ../scripts/custody-ledger.js
+    env:
+      EMAIL: producer@example.com
+      TAG: "AUD-0042"
+- assertTrue: ${output.ledger.status == 200 && output.ledger.events >= 2 && output.ledger.lastReturned}

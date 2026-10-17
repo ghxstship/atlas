@@ -36,8 +36,12 @@ export function Screen({
 }: ScreenProps): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // Without scrolling the body fills the screen, so a flex child (the scan sheet's camera) gets the room
+  // left; it collapsed to nothing before, and its Done button drew over the manual entry.
   const body = (
-    <View style={{ padding: theme.space["16"], gap: theme.space["16"] }}>
+    <View
+      style={{ padding: theme.space["16"], gap: theme.space["16"], ...(scroll ? {} : { flex: 1 }) }}
+    >
       {title ? (
         <Text variant="heading24" heading>
           {title}

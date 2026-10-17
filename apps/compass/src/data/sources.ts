@@ -181,7 +181,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "asset_units",
     schema: "app",
     relation: "asset_units",
-    select: "id,org_id,asset_class_id,asset_tag,asset_state",
+    select: "id,org_id,asset_class_id,asset_tag,asset_state,updated_at",
   },
   {
     table: "asset_identifiers",

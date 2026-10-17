@@ -31,6 +31,7 @@ const DYNAMIC = [
   "template-",
   "incident-type-",
   "shift-",
+  "batch-",
 ];
 
 function ids(node: unknown, out: string[] = []): string[] {

@@ -268,7 +268,13 @@
     "assetFound": "{tag} encontrado",
     "assetNotYours": "Este equipo no está asignado a ti. Entrégalo a su responsable.",
     "receivingAck": "Entrega confirmada",
-    "review": "Revisar",
+    "review": {
+      "title": "Revisar {count} escaneados",
+      "count": "{count} escaneados",
+      "removeOne": "Quitar uno de {code}",
+      "save": "Guardar {count} artículos",
+      "keep": "Seguir escaneando"
+    },
     "remove": "Quitar uno",
     "badgeTitle": "Mi credencial",
     "badgeEmpty": "Aún no tienes credencial para este proyecto. Tu organización las emite antes del show.",

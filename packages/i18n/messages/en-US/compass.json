@@ -268,7 +268,13 @@
     "assetFound": "{tag} found",
     "assetNotYours": "This item is not assigned to you. Hand it to its custodian.",
     "receivingAck": "Delivery acknowledged",
-    "review": "Review",
+    "review": {
+      "title": "Review {count} scanned",
+      "count": "{count} scanned",
+      "removeOne": "Remove one {code}",
+      "save": "Save {count} Items",
+      "keep": "Keep Scanning"
+    },
     "remove": "Remove one",
     "badgeTitle": "My Badge",
     "badgeEmpty": "No badge is issued to you for this project yet. Your organization issues badges before the show.",

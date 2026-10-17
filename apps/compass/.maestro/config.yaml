@@ -15,6 +15,8 @@ executionOrder:
     - field-incident-report
     - field-inspection-walk
     - field-gate-scan
+    - field-receive-batch
+    - desk-asset-custody
     - field-run-of-show
     - supervisor-kiosk
     - crew-external-today

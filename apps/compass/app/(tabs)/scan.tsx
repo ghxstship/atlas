@@ -4,7 +4,7 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { Keyboard, View } from "react-native";
 import {
   access,
   operationalEngagements,
@@ -39,10 +39,12 @@ import {
   Card,
   CredentialBadge,
   EmptyState,
+  IconButton,
   ListRow,
   ScanSheet,
   Screen,
   SegmentedControl,
+  Sheet,
   Text,
   TextField,
   useTheme,
@@ -97,6 +99,7 @@ function ManualEntry({
           label={t("compass.scan.enterCode")}
           value={code}
           onChangeText={setCode}
+          autoComplete="off"
         />
       </View>
       <Button
@@ -115,6 +118,8 @@ function ManualEntry({
               : "code128",
           );
           setCode("");
+          // The result and count sit below the camera; close the keyboard so they show.
+          Keyboard.dismiss();
         }}
       />
     </View>
@@ -362,13 +367,21 @@ function LiveScan({
       code: raw,
     });
   };
+  // Journey 53: a receiving batch is reviewed before it saves; each line can lose a miscounted unit.
+  const [reviewing, setReviewing] = useState(false);
   const done = () => {
-    if (grant.mode === "receiving") {
-      for (const item of batch.current.items())
-        for (let i = 0; i < item.count; i += 1) intake(item.code, item.symbology);
-      batch.current = new ContinuousScan();
-      setCount(0);
+    if (grant.mode === "receiving" && batch.current.total > 0) {
+      setReviewing(true);
+      return;
     }
+    router.navigate("/today");
+  };
+  const saveBatch = () => {
+    for (const item of batch.current.items())
+      for (let i = 0; i < item.count; i += 1) intake(item.code, item.symbology);
+    batch.current = new ContinuousScan();
+    setCount(0);
+    setReviewing(false);
     router.navigate("/today");
   };
   return (
@@ -387,6 +400,8 @@ function LiveScan({
           />
         </View>
       ) : null}
+      {/* Above the camera, so the keyboard never covers what is typed (it hid the field below the sheet). */}
+      <ManualEntry onCode={onCode} theme={theme} />
       <View style={{ flex: 1 }}>
         <ScanSheet
           testID="scan-sheet"
@@ -401,7 +416,50 @@ function LiveScan({
           {...(modes && onModeChange ? { modes, onModeChange } : {})}
         />
       </View>
-      <ManualEntry onCode={onCode} theme={theme} />
+      <Sheet
+        open={reviewing}
+        title={t("compass.scan.review.title", { count })}
+        closeLabel={t("compass.scan.review.keep")}
+        onClose={() => setReviewing(false)}
+      >
+        <View testID="batch-review" style={{ gap: theme.space["8"] }}>
+          {batch.current.items().map((item) => (
+            <ListRow
+              key={item.code}
+              testID={`batch-item-${item.code}`}
+              icon="package"
+              title={item.code}
+              subtitle={t("compass.scan.review.count", { count: item.count })}
+              trailing={
+                <IconButton
+                  testID={`batch-remove-${item.code}`}
+                  icon="minus"
+                  label={t("compass.scan.review.removeOne", { code: item.code })}
+                  onPress={() => {
+                    batch.current.decrement(item.code);
+                    setCount(batch.current.total);
+                    if (batch.current.total === 0) setReviewing(false);
+                  }}
+                />
+              }
+            />
+          ))}
+          <Button
+            testID="batch-save"
+            size="lg"
+            block
+            label={t("compass.scan.review.save", { count })}
+            onPress={saveBatch}
+          />
+          <Button
+            testID="batch-keep"
+            variant="secondary"
+            block
+            label={t("compass.scan.review.keep")}
+            onPress={() => setReviewing(false)}
+          />
+        </View>
+      </Sheet>
     </View>
   );
 }
