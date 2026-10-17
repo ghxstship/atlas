@@ -3472,6 +3472,33 @@ export interface Components {
     valid_from: string;
     document_uri?: string | null;
   };
+  InsuranceCertificateInsured: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    certificate_id: string;
+    insured_name: string;
+    endorsement_kind:
+      "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+  };
+  InsuranceCertificateInsuredCreate: {
+    certificate_id: string;
+    insured_name: string;
+    endorsement_kind:
+      "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+  };
+  InsuranceCertificateInsuredPage: {
+    data: Array<Components["InsuranceCertificateInsured"]>;
+    next_cursor: string | null;
+  };
+  InsuranceCertificateInsuredUpdate: {
+    insured_name?: string;
+    endorsement_kind?:
+      "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+  };
   InsuranceCertificatePage: {
     data: Array<Components["InsuranceCertificate"]>;
     next_cursor: string | null;
@@ -5925,6 +5952,33 @@ export interface Components {
   RepresentationPage: { data: Array<Components["Representation"]>; next_cursor: string | null };
   RepresentationScope: "Offers" | "Advance" | "Settlement" | "Documents";
   RepresentationUpdate: { scopes?: Array<Components["RepresentationScope"]>; expires_on?: string };
+  RequiredAdditionalInsured: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string | null;
+    insured_name: string;
+    endorsement_kind:
+      "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+  };
+  RequiredAdditionalInsuredCreate: {
+    project_id?: string | null;
+    insured_name: string;
+    endorsement_kind:
+      "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+  };
+  RequiredAdditionalInsuredPage: {
+    data: Array<Components["RequiredAdditionalInsured"]>;
+    next_cursor: string | null;
+  };
+  RequiredAdditionalInsuredUpdate: {
+    insured_name?: string;
+    endorsement_kind?:
+      "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+  };
   Requirement: {
     id: string;
     org_id: string;
@@ -22129,6 +22183,108 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["GuestListEntry"] };
   };
+  "insuranceCertificateInsureds.list": {
+    module: "Vendors";
+    method: "get";
+    path: "/insurance-certificate-insureds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["InsuranceCertificateInsuredPage"] };
+  };
+  "insuranceCertificateInsureds.create": {
+    module: "Vendors";
+    method: "post";
+    path: "/insurance-certificate-insureds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["InsuranceCertificateInsuredCreate"];
+    responses: { 201: Components["InsuranceCertificateInsured"] };
+  };
+  "insuranceCertificateInsureds.get": {
+    module: "Vendors";
+    method: "get";
+    path: "/insurance-certificate-insureds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["InsuranceCertificateInsured"] };
+  };
+  "insuranceCertificateInsureds.update": {
+    module: "Vendors";
+    method: "patch";
+    path: "/insurance-certificate-insureds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InsuranceCertificateInsuredUpdate"];
+    responses: { 200: Components["InsuranceCertificateInsured"] };
+  };
+  "insuranceCertificateInsureds.delete": {
+    module: "Vendors";
+    method: "delete";
+    path: "/insurance-certificate-insureds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "requiredAdditionalInsureds.list": {
+    module: "Vendors";
+    method: "get";
+    path: "/required-additional-insureds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["RequiredAdditionalInsuredPage"] };
+  };
+  "requiredAdditionalInsureds.create": {
+    module: "Vendors";
+    method: "post";
+    path: "/required-additional-insureds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["RequiredAdditionalInsuredCreate"];
+    responses: { 201: Components["RequiredAdditionalInsured"] };
+  };
+  "requiredAdditionalInsureds.get": {
+    module: "Vendors";
+    method: "get";
+    path: "/required-additional-insureds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["RequiredAdditionalInsured"] };
+  };
+  "requiredAdditionalInsureds.update": {
+    module: "Vendors";
+    method: "patch";
+    path: "/required-additional-insureds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["RequiredAdditionalInsuredUpdate"];
+    responses: { 200: Components["RequiredAdditionalInsured"] };
+  };
+  "requiredAdditionalInsureds.delete": {
+    module: "Vendors";
+    method: "delete";
+    path: "/required-additional-insureds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
   "aurora.status": {
     module: "Settings";
     method: "get";
@@ -25095,7 +25251,17 @@ export interface ModuleOperations {
     | "sponsorEntitlements.update"
     | "sponsorEntitlements.delete"
     | "sponsorEntitlements.fulfill"
-    | "sponsorEntitlements.reopen";
+    | "sponsorEntitlements.reopen"
+    | "insuranceCertificateInsureds.list"
+    | "insuranceCertificateInsureds.create"
+    | "insuranceCertificateInsureds.get"
+    | "insuranceCertificateInsureds.update"
+    | "insuranceCertificateInsureds.delete"
+    | "requiredAdditionalInsureds.list"
+    | "requiredAdditionalInsureds.create"
+    | "requiredAdditionalInsureds.get"
+    | "requiredAdditionalInsureds.update"
+    | "requiredAdditionalInsureds.delete";
   Safety:
     | "inspectionTemplates.list"
     | "inspectionTemplates.create"

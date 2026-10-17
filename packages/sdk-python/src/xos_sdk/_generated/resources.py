@@ -601,6 +601,10 @@ if TYPE_CHECKING:
         InspectionUpdate,
         InsuranceCertificate,
         InsuranceCertificateCreate,
+        InsuranceCertificateInsured,
+        InsuranceCertificateInsuredCreate,
+        InsuranceCertificateInsuredPage,
+        InsuranceCertificateInsuredUpdate,
         InsuranceCertificatePage,
         InsuranceCertificateUpdate,
         Integration,
@@ -976,6 +980,10 @@ if TYPE_CHECKING:
         RepresentationCreate,
         RepresentationPage,
         RepresentationUpdate,
+        RequiredAdditionalInsured,
+        RequiredAdditionalInsuredCreate,
+        RequiredAdditionalInsuredPage,
+        RequiredAdditionalInsuredUpdate,
         Requirement,
         RequirementCreate,
         RequirementPage,
@@ -31388,6 +31396,220 @@ class GuestListEntriesResource(Resource):
         Requires the capability ``advancing.rider.write``.
         """
         return self._client.request(OPERATIONS["guestListEntries.checkIn"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class InsuranceCertificateInsuredsResource(Resource):
+    """Operations on ``insuranceCertificateInsureds``, in the Vendors module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[InsuranceCertificateInsured]:
+        """List insurance certificate insured rows
+
+        A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns a cursor page of insurance certificate insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /insurance-certificate-insureds`` (operation ``insuranceCertificateInsureds.list``).
+        Requires the capability ``vendors.vendor.read``.
+        """
+        return self._client.request_page(OPERATIONS["insuranceCertificateInsureds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[InsuranceCertificateInsured]:
+        """List insurance certificate insured rows
+
+        A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns a cursor page of insurance certificate insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /insurance-certificate-insureds`` (operation ``insuranceCertificateInsureds.list``).
+        Requires the capability ``vendors.vendor.read``.
+        """
+        return self._client.paginate(OPERATIONS["insuranceCertificateInsureds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: InsuranceCertificateInsuredCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InsuranceCertificateInsured]:
+        """Create an insurance certificate insured
+
+        A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Creates an insurance certificate insured. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /insurance-certificate-insureds`` (operation ``insuranceCertificateInsureds.create``).
+        Requires the capability ``vendors.coi.write``.
+        """
+        return self._client.request(OPERATIONS["insuranceCertificateInsureds.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InsuranceCertificateInsured]:
+        """Get an insurance certificate insured
+
+        A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns one insurance certificate insured with its `ETag`. A insurance certificate insured the caller may not see returns 404.
+
+        ``GET /insurance-certificate-insureds/{id}`` (operation ``insuranceCertificateInsureds.get``).
+        Requires the capability ``vendors.vendor.read``.
+        """
+        return self._client.request(OPERATIONS["insuranceCertificateInsureds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: InsuranceCertificateInsuredUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InsuranceCertificateInsured]:
+        """Update an insurance certificate insured
+
+        A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /insurance-certificate-insureds/{id}`` (operation ``insuranceCertificateInsureds.update``).
+        Requires the capability ``vendors.coi.write``.
+        """
+        return self._client.request(OPERATIONS["insuranceCertificateInsureds.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an insurance certificate insured
+
+        A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Soft-deletes the insurance certificate insured: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /insurance-certificate-insureds/{id}`` (operation ``insuranceCertificateInsureds.delete``).
+        Requires the capability ``vendors.coi.write``.
+        """
+        return self._client.request(OPERATIONS["insuranceCertificateInsureds.delete"], path={"id": id}, options=options)
+
+
+class RequiredAdditionalInsuredsResource(Resource):
+    """Operations on ``requiredAdditionalInsureds``, in the Vendors module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[RequiredAdditionalInsured]:
+        """List required additional insured rows
+
+        A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns a cursor page of required additional insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /required-additional-insureds`` (operation ``requiredAdditionalInsureds.list``).
+        Requires the capability ``vendors.vendor.read``.
+        """
+        return self._client.request_page(OPERATIONS["requiredAdditionalInsureds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[RequiredAdditionalInsured]:
+        """List required additional insured rows
+
+        A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns a cursor page of required additional insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /required-additional-insureds`` (operation ``requiredAdditionalInsureds.list``).
+        Requires the capability ``vendors.vendor.read``.
+        """
+        return self._client.paginate(OPERATIONS["requiredAdditionalInsureds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: RequiredAdditionalInsuredCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RequiredAdditionalInsured]:
+        """Create a required additional insured
+
+        A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Creates a required additional insured. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /required-additional-insureds`` (operation ``requiredAdditionalInsureds.create``).
+        Requires the capability ``vendors.coi.write``.
+        """
+        return self._client.request(OPERATIONS["requiredAdditionalInsureds.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RequiredAdditionalInsured]:
+        """Get a required additional insured
+
+        A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns one required additional insured with its `ETag`. A required additional insured the caller may not see returns 404.
+
+        ``GET /required-additional-insureds/{id}`` (operation ``requiredAdditionalInsureds.get``).
+        Requires the capability ``vendors.vendor.read``.
+        """
+        return self._client.request(OPERATIONS["requiredAdditionalInsureds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: RequiredAdditionalInsuredUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[RequiredAdditionalInsured]:
+        """Update a required additional insured
+
+        A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /required-additional-insureds/{id}`` (operation ``requiredAdditionalInsureds.update``).
+        Requires the capability ``vendors.coi.write``.
+        """
+        return self._client.request(OPERATIONS["requiredAdditionalInsureds.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a required additional insured
+
+        A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Soft-deletes the required additional insured: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /required-additional-insureds/{id}`` (operation ``requiredAdditionalInsureds.delete``).
+        Requires the capability ``vendors.coi.write``.
+        """
+        return self._client.request(OPERATIONS["requiredAdditionalInsureds.delete"], path={"id": id}, options=options)
 
 
 class AuroraResource(Resource):

@@ -178,8 +178,11 @@
       "XOS_ENG_5": "La regla de horas extra está por debajo del mínimo legal aquí. Elige una tarifa que lo cumpla.",
       "XOS_ENG_6": "El tipo de tu organización no permite esa clasificación laboral.",
       "plan_limit_exceeded": "Se alcanzó el límite mensual de contrataciones externas de tu plan. Mejora el plan o espera al mes siguiente.",
-      "transition_reason_required": "Indica un motivo para el cambio."
-    }
+      "transition_reason_required": "Indica un motivo para el cambio.",
+      "insureds_none_required": "La organización no exige asegurados adicionales para este proyecto. Agréguelos en Proveedores, Certificados de seguro, Asegurados exigidos.",
+      "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización."
+    },
+    "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado."
   },
   "requisitions": {
     "title": "Requisiciones",
@@ -620,5 +623,18 @@
     "misleadingInformation": "Información engañosa",
     "missingPayRange": "Falta el rango de pago",
     "safety": "Seguridad"
+  },
+  "insureds": {
+    "title": "Asegurados adicionales",
+    "loadFailed": "No se pudieron verificar los asegurados adicionales. Vuelva a cargar la página.",
+    "named": "Nombrado en un certificado vigente",
+    "missing": "Falta",
+    "verify": "Verificar asegurados adicionales de {item}",
+    "verified": "Todos los asegurados exigidos están nombrados. El elemento se aprueba.",
+    "endorsements": {
+      "AdditionalInsured": "Asegurado adicional",
+      "PrimaryandNoncontributory": "Primario y no contributivo",
+      "WaiverofSubrogation": "Renuncia de subrogación"
+    }
   }
 }

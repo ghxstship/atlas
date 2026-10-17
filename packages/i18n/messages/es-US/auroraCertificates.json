@@ -35,5 +35,10 @@
     "currency_code": "Moneda",
     "valid_from": "Válido desde",
     "valid_to": "Válido hasta"
-  }
+  },
+  "insuredsTitle": "Asegurados adicionales leídos",
+  "insuredsNone": "Aurora no leyó asegurados adicionales. Si el certificado nombra alguno, agréguelo después de guardarlo.",
+  "insuredNotRead": "Una parte nombrada que Aurora no pudo leer. No se guarda.",
+  "insuredLine": "{name}, {endorsement}",
+  "insuredsFailed": "El certificado se guardó, pero sus asegurados adicionales no: {detail}. Agréguelos en el certificado."
 }

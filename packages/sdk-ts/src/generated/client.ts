@@ -337,6 +337,8 @@ import {
   TemplatesResource,
   TemplateApplicationsResource,
   GuestListEntriesResource,
+  InsuranceCertificateInsuredsResource,
+  RequiredAdditionalInsuredsResource,
   AuroraResource,
   AiSuggestionsResource,
   AiRequestsResource,
@@ -1155,6 +1157,12 @@ export class XosClient extends XosClientCore {
   );
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
+  /** Vendors: operations on `insuranceCertificateInsureds`. */
+  readonly insuranceCertificateInsureds: InsuranceCertificateInsuredsResource =
+    new InsuranceCertificateInsuredsResource(this);
+  /** Vendors: operations on `requiredAdditionalInsureds`. */
+  readonly requiredAdditionalInsureds: RequiredAdditionalInsuredsResource =
+    new RequiredAdditionalInsuredsResource(this);
   /** Settings: operations on `aurora`. */
   readonly aurora: AuroraResource = new AuroraResource(this);
   /** Settings: operations on `aiSuggestions`. */

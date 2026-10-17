@@ -210,7 +210,10 @@
       "expired": "Vencido",
       "prequalification": "Precalificación",
       "validTo": "Vigente hasta {date}",
-      "items": "Pasos de cumplimiento"
+      "items": "Pasos de cumplimiento",
+      "insureds": "Asegurados adicionales nombrados",
+      "noInsureds": "Este certificado no nombra asegurados adicionales registrados. Si la organización exige alguno, envíe un certificado que los nombre.",
+      "insuredLine": "{name}, {endorsement}"
     },
     "approvals": {
       "empty": "Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.",
@@ -714,6 +717,11 @@
     "travelMode": {
       "flight": "Vuelo",
       "ground": "Transporte terrestre"
+    },
+    "endorsementKind": {
+      "additionalInsured": "Asegurado adicional",
+      "primaryAndNoncontributory": "Primario y no contributivo",
+      "waiverOfSubrogation": "Renuncia de subrogación"
     }
   },
   "explore": {

@@ -7,6 +7,7 @@ import {
   invoiceByNumber,
   payInvoice,
   PEOPLE,
+  requiredInsured,
   requirements,
   sentDocument,
   sentPurchaseOrder,
@@ -24,10 +25,12 @@ import { expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./s
  *   43  W-9 in Gateway, verified in Atlas; certificate of insurance on file; dock check-in; invoice;
  *       lien waiver signed; scorecard in Atlas
  *   56  the invoice followed from Submitted to Paid on the Money tracker
+ * Journey 43's certificate step names its additional insureds (migration 1130, finding A38-001):
+ * the Producer's check fails while the certificate misses the party the org requires, passes once
+ * the party is named in Atlas, and the vendor sees the named party on Compliance.
  * Device halves: the dock check-in is the Compass gate scan, covered here by its server call as the
- * Field lead at the dock; push notifications need a device, and external parties have no
- * notification fan-out yet (finding A38-002). Additional insureds on a certificate have no schema
- * to verify (finding A38-001).
+ * Field lead at the dock; the push itself needs a device (its delivery record is asserted in
+ * invoice-notifications.spec.ts).
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(240_000);
@@ -75,15 +78,28 @@ test("journeys 43 and 56: vendor onboarding to close, and the invoice followed t
   page,
   browser,
 }) => {
-  const w9 = await requirements("Vendor", [{ name: `Vendor W-9 ${suffix()}`, kind: "Tax Form" }]);
+  const coiName = `Certificate of Insurance ${suffix()}`;
+  const packet = await requirements("Vendor", [
+    { name: `Vendor W-9 ${suffix()}`, kind: "Tax Form" },
+    { name: coiName, kind: "Document Upload" },
+  ]);
+  const insured = await requiredInsured(INSURED);
   try {
-    await vendorOnboardingToClose(page, browser);
+    await vendorOnboardingToClose(page, browser, coiName);
   } finally {
-    await w9.retire();
+    await packet.retire();
+    await insured.retire();
   }
 });
 
-async function vendorOnboardingToClose(page: Page, browser: Browser): Promise<void> {
+/** The party the demo org requires every vendor certificate to name. */
+const INSURED = "Demo Productions LLC";
+
+async function vendorOnboardingToClose(
+  page: Page,
+  browser: Browser,
+  coiName: string,
+): Promise<void> {
   const engagement = await vendorEngagement();
   const certificate = await vendorCertificate();
 
@@ -118,13 +134,52 @@ async function vendorOnboardingToClose(page: Page, browser: Browser): Promise<vo
   await moveTo.getByLabel("Reason").fill("Ready for the show.");
   await moveTo.getByRole("button", { name: "Move" }).click();
   await expect(atlas.page.getByText("Every blocking onboarding item must pass")).toBeVisible();
-  await atlas.page.getByRole("button", { name: "Record verification" }).first().click();
-  await expect(atlas.page.getByText("Passes", { exact: true }).first()).toBeVisible();
+  const w9Item = atlas.page.getByRole("listitem").filter({ hasText: "Vendor W-9" });
+  await w9Item.getByRole("button", { name: "Record verification" }).click();
+  await expect(w9Item.getByText("Passes", { exact: true })).toBeVisible();
+
+  // Journey 43's additional insureds step: the certificate does not name the required party yet.
+  const insureds = atlas.page.getByRole("region", { name: "Additional insureds" });
+  await expect(insureds.getByText(INSURED)).toBeVisible();
+  await expect(insureds.getByText("Missing", { exact: true })).toBeVisible();
+  await insureds.getByRole("button", { name: `Check additional insureds for ${coiName}` }).click();
+  await expect(
+    insureds.getByText(`No current certificate names: ${INSURED} (Additional Insured)`),
+  ).toBeVisible();
+  const coiItem = atlas.page.getByRole("listitem").filter({ hasText: coiName });
+  await expect(coiItem.getByText("Failed", { exact: true }).first()).toBeVisible();
+  await expectAccessible(atlas.page);
+
+  // The Producer names the party on the certificate in Atlas, then the check passes.
+  await atlas.page.goto(`/${ORG}/vendors/insurance-certificates?peek=${certificate.id}&full=1`);
+  const named = atlas.page.getByRole("region", { name: "Additional insureds" });
+  await named.getByLabel("Party named").fill(INSURED);
+  await named.getByRole("button", { name: "Add insured" }).click();
+  await expect(named.getByRole("listitem").filter({ hasText: INSURED })).toBeVisible();
+  await expect(
+    named.getByText("Names every additional insured the organization requires."),
+  ).toBeVisible();
+  await expectAccessible(atlas.page);
+  await atlas.page.goto(`/${ORG}/opportunities/engagements?id=${engagement.id}`);
+  await atlas.page
+    .getByRole("region", { name: "Additional insureds" })
+    .getByRole("button", { name: `Check additional insureds for ${coiName}` })
+    .click();
+  await expect(coiItem.getByText("Passes", { exact: true })).toBeVisible();
   await moveTo.getByLabel("Next state").selectOption("Active");
-  await moveTo.getByLabel("Reason").fill("W-9 verified.");
+  await moveTo.getByLabel("Reason").fill("W-9 and insureds verified.");
   await moveTo.getByRole("button", { name: "Move" }).click();
   await expect(atlas.page.getByText("Active").first()).toBeVisible();
   await expectAccessible(atlas.page);
+
+  // The vendor sees the party its certificate names on Compliance.
+  await page.goto(`/work/engagements/${engagement.key}/compliance`);
+  await expect(
+    page
+      .getByRole("listitem")
+      .filter({ hasText: certificate.policy })
+      .getByText(`${INSURED}, Additional Insured`),
+  ).toBeVisible();
 
   // Dock: the slot shows on the vendor's Deliveries tab; the dock checks the truck in (Compass).
   const slot = await vendorDockSlot(engagement.id);

@@ -1210,6 +1210,14 @@ __all__ = [
     "GuestListEntryCreate",
     "GuestListEntryUpdate",
     "GuestDecisionRequest",
+    "InsuranceCertificateInsuredPage",
+    "InsuranceCertificateInsured",
+    "InsuranceCertificateInsuredCreate",
+    "InsuranceCertificateInsuredUpdate",
+    "RequiredAdditionalInsuredPage",
+    "RequiredAdditionalInsured",
+    "RequiredAdditionalInsuredCreate",
+    "RequiredAdditionalInsuredUpdate",
     "AuroraStatus",
     "AiFeature",
     "AuroraResult",
@@ -19140,6 +19148,113 @@ class GuestDecisionRequest(TypedDict):
 
     #: Approved or Declined.
     outcome: Literal["Approved", "Declined"]
+
+
+class InsuranceCertificateInsuredPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[InsuranceCertificateInsured]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class InsuranceCertificateInsured(TypedDict):
+    """A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409)."""
+
+    #: Identifier of the insurance certificate insured.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the certificate naming the party.
+    certificate_id: str
+    #: Party named, as printed.
+    insured_name: str
+    #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+    endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class InsuranceCertificateInsuredCreate(TypedDict):
+    """Fields accepted when creating a InsuranceCertificateInsured."""
+
+    #: Identifier of the certificate naming the party.
+    certificate_id: str
+    #: Party named, as printed.
+    insured_name: str
+    #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+    endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class InsuranceCertificateInsuredUpdate(TypedDict, total=False):
+    """Fields accepted when updating a InsuranceCertificateInsured. Omitted fields are unchanged."""
+
+    #: Party named, as printed.
+    insured_name: str
+    #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+    endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class RequiredAdditionalInsuredPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[RequiredAdditionalInsured]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class RequiredAdditionalInsured(TypedDict):
+    """A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them."""
+
+    #: Identifier of the required additional insured.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the requirement adds to; null for every project.
+    project_id: Optional[str]
+    #: Party that must be named.
+    insured_name: str
+    #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+    endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class _RequiredAdditionalInsuredCreateRequired(TypedDict):
+    #: Party that must be named.
+    insured_name: str
+    #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+    endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class RequiredAdditionalInsuredCreate(_RequiredAdditionalInsuredCreateRequired, total=False):
+    """Fields accepted when creating a RequiredAdditionalInsured."""
+
+    #: Identifier of the project the requirement adds to; null for every project.
+    project_id: Optional[str]
+
+
+class RequiredAdditionalInsuredUpdate(TypedDict, total=False):
+    """Fields accepted when updating a RequiredAdditionalInsured. Omitted fields are unchanged."""
+
+    #: Party that must be named.
+    insured_name: str
+    #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+    endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
 
 
 class AuroraStatus(TypedDict):

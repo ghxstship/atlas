@@ -210,7 +210,10 @@
       "expired": "Expired",
       "prequalification": "Prequalification",
       "validTo": "Valid to {date}",
-      "items": "Compliance steps"
+      "items": "Compliance steps",
+      "insureds": "Additional insureds named",
+      "noInsureds": "This certificate names no additional insureds on file. If the organization requires some, send a certificate that names them.",
+      "insuredLine": "{name}, {endorsement}"
     },
     "approvals": {
       "empty": "Nothing waits for your approval. Requests from the organization appear here.",
@@ -714,6 +717,11 @@
     "travelMode": {
       "flight": "Flight",
       "ground": "Ground transport"
+    },
+    "endorsementKind": {
+      "additionalInsured": "Additional Insured",
+      "primaryAndNoncontributory": "Primary and Noncontributory",
+      "waiverOfSubrogation": "Waiver of Subrogation"
     }
   },
   "explore": {

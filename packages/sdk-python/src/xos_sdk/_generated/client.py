@@ -343,6 +343,8 @@ from .resources import (
     TemplatesResource,
     TemplateApplicationsResource,
     GuestListEntriesResource,
+    InsuranceCertificateInsuredsResource,
+    RequiredAdditionalInsuredsResource,
     AuroraResource,
     AiSuggestionsResource,
     AiRequestsResource,
@@ -745,6 +747,8 @@ class XosClient(XosClientCore):
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
     guest_list_entries: GuestListEntriesResource
+    insurance_certificate_insureds: InsuranceCertificateInsuredsResource
+    required_additional_insureds: RequiredAdditionalInsuredsResource
     aurora: AuroraResource
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
@@ -1135,6 +1139,8 @@ class XosClient(XosClientCore):
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
+        self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
+        self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
         self.aurora = AuroraResource(self)
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
