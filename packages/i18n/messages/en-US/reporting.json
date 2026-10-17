@@ -1,0 +1,103 @@
+{
+  "file": {
+    "unpriced": "Unpriced rows",
+    "subtitle": "Run {date}. Rows: {rows}. Rows with an unpriced amount, left out of their total: {unpriced}.",
+    "truncated": "This file stops at the row limit. Narrow the report's filters to see every row."
+  },
+  "email": {
+    "subject": "{report} from {org}",
+    "body": "Your scheduled report {report} from {org} is attached. It has {rows} rows; {unpriced} carry an unpriced amount, left out of their totals. It ran with your own access, so it shows only what you may see."
+  },
+  "dashboards": {
+    "count": "{count, plural, =0 {No dashboards} one {# dashboard} other {# dashboards}}",
+    "empty": "No dashboards yet. Create one, then add saved reports to it from Saved reports.",
+    "emptyAction": "Open saved reports",
+    "loadError": "The dashboards could not load. Reload the page; if it keeps failing, open Saved reports.",
+    "refusal": "Dashboards need the report read capability. Ask an Owner or Admin for access to Reports.",
+    "create": "New dashboard",
+    "createSubmit": "Create dashboard",
+    "name": "Dashboard name",
+    "nameHint": "For example Show Week",
+    "created": "Dashboard created.",
+    "open": "Open",
+    "tiles": "{count, plural, =0 {No tiles} one {# tile} other {# tiles}}",
+    "team": "Team dashboard",
+    "personal": "Yours",
+    "noTiles": "This dashboard has no tiles yet. Open a saved report and add it here.",
+    "addFromSaved": "Add a saved report",
+    "removeTile": "Remove tile",
+    "deleteDashboard": "Delete dashboard",
+    "tileError": "This report could not load. You may no longer be able to read its source.",
+    "tileEmpty": "No rows match this report yet.",
+    "unpricedNote": "{count, plural, one {# row has} other {# rows have}} an unpriced amount, left out of the total.",
+    "truncated": "Showing the first rows; open the report for the full set.",
+    "back": "All dashboards",
+    "grid": "Dashboard tiles"
+  },
+  "tile": {
+    "title": "Add to a dashboard",
+    "dashboard": "Dashboard",
+    "chooseDashboard": "Choose a dashboard",
+    "width": "Width",
+    "widths": {
+      "4": "A third",
+      "6": "Half",
+      "12": "Full width"
+    },
+    "submit": "Add to dashboard",
+    "added": "Added to the dashboard.",
+    "noDashboards": "You have no dashboard yet. Create one on the Dashboards page first."
+  },
+  "schedule": {
+    "title": "Schedule by email",
+    "sentence": "Email this report to members of the organization. Each recipient gets it run with their own access, so they see only what they may.",
+    "cadence": "How often",
+    "cadences": {
+      "Daily": "Daily",
+      "Weekly": "Weekly",
+      "Monthly": "Monthly"
+    },
+    "weekday": "Day of the week",
+    "weekdays": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+    },
+    "monthDay": "Day of the month",
+    "monthDayHelp": "From 1 to 28, so every month has it.",
+    "hour": "Hour",
+    "timeZone": "Time zone",
+    "format": "Attach as",
+    "recipients": "Recipients",
+    "recipientsHelp": "Choose at least one member.",
+    "submit": "Schedule email",
+    "scheduled": "Scheduled. The first email goes out at the next delivery time.",
+    "none": "This report is not scheduled.",
+    "summary": "{cadence} at {hour}:00 {timeZone}, as {format}, to {count, plural, one {# member} other {# members}}. Next: {next}.",
+    "paused": "Paused",
+    "pause": "Pause",
+    "resume": "Resume",
+    "remove": "Stop schedule",
+    "deliveries": "Recent emails",
+    "deliveryStatus": {
+      "Queued": "Queued",
+      "Sent": "Sent",
+      "Failed": "Failed"
+    },
+    "needsCapability": "Scheduling needs the schedule capability and a report you own.",
+    "noMembers": "No members can be listed. Ask an Owner or Admin to schedule this report."
+  },
+  "errors": {
+    "name": "Give the dashboard a name of up to 100 characters.",
+    "dashboardId": "Choose a dashboard.",
+    "recipients": "Choose at least one recipient.",
+    "localHour": "Choose an hour from 0 to 23.",
+    "weekday": "Choose the day of the week.",
+    "monthDay": "Choose a day of the month from 1 to 28.",
+    "timeZone": "Choose a time zone."
+  }
+}

@@ -113,7 +113,8 @@
     "title": "Título",
     "validDays": "Días de validez",
     "visibility": "Visibilidad",
-    "when": "Cuándo"
+    "when": "Cuándo",
+    "isRemote": "El trabajo se puede hacer a distancia"
   },
   "fieldErrors": {
     "required": "Completa este campo para continuar.",
@@ -401,7 +402,10 @@
     "reengagement": "Nueva contratación",
     "addToPool": "Añadir al grupo",
     "noPools": "Aún no hay un grupo adecuado. Crea uno en la página Grupos.",
-    "poolNeedsWrite": "Una persona con acceso a grupos registra la nueva contratación."
+    "poolNeedsWrite": "Una persona con acceso a grupos registra la nueva contratación.",
+    "milestoneFee": "Tarifa: {amount}. La autofacturación la cobra cuando se acepta el hito.",
+    "milestoneFeeLabel": "Tarifa ({currency})",
+    "setFee": "Fijar tarifa"
   },
   "ratings": {
     "title": "Valoraciones",

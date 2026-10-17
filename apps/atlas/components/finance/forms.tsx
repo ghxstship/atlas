@@ -7,6 +7,7 @@ import {
   createFxRateAction,
   createJournalEntryAction,
   createPeriodAction,
+  exportForm1099Action,
   exportUplAction,
   saveBudgetAction,
   saveChangeOrderAction,
@@ -15,6 +16,7 @@ import {
   saveExpenseAction,
   saveInvoiceAction,
   saveInvoiceLineAction,
+  recordInvoicePaymentAction,
   savePaymentAction,
   saveSettlementAction,
   saveSettlementLineAction,
@@ -1273,6 +1275,100 @@ export function SelfBillForm({
       </div>
       <ActionFeedback state={state} />
       <Submit label={t("invoices.selfBillSubmit")} pending={pending} />
+    </form>
+  );
+}
+
+/** Records that an approved invoice was paid (A38-007): a blank amount pays the whole balance. */
+export function RecordPaymentForm({
+  org,
+  invoiceId,
+  currency,
+  today,
+}: {
+  org: string;
+  invoiceId: string;
+  currency: string;
+  today: string;
+}) {
+  const t = useFinanceT();
+  const [state, action, pending] = useActionState(recordInvoicePaymentAction, INITIAL);
+  useAfterSave(state, "pay");
+  return (
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-16"
+      noValidate
+    >
+      <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="invoiceId" value={invoiceId} />
+      <input type="hidden" name="currency" value={currency} />
+      <p className="m-0 text-text-13 text-text-secondary">{t("invoices.recordPaymentSentence")}</p>
+      <div className="flex flex-wrap gap-12">
+        <Input
+          id="pay-amount"
+          name="amount"
+          inputMode="decimal"
+          label={t("invoices.fields.paymentAmount", { currency })}
+          help={t("invoices.paymentAmountHint")}
+          error={fieldError(t, state, "amount")}
+        />
+        <Input
+          id="pay-date"
+          name="paidOn"
+          type="date"
+          required
+          defaultValue={today}
+          label={t("payments.fields.paidOn")}
+          error={fieldError(t, state, "paidOn")}
+        />
+      </div>
+      <Input
+        id="pay-reference"
+        name="reference"
+        label={t("payments.fields.reference")}
+        help={t("invoices.paymentReferenceHint")}
+        error={fieldError(t, state, "reference")}
+      />
+      <ActionFeedback state={state} />
+      <Submit label={t("invoices.recordPaymentSubmit")} pending={pending} />
+    </form>
+  );
+}
+
+/** Downloads the 1099-NEC file of a tax year; the database asks for step-up first (A38-006). */
+export function Form1099ExportForm({ org, year }: { org: string; year: number }) {
+  const t = useFinanceT();
+  const [state, action, pending] = useActionState(exportForm1099Action, INITIAL);
+  useEffect(() => {
+    if (!state.csv || !state.filename) return;
+    const url = URL.createObjectURL(new Blob([state.csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = state.filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [state.at, state.csv, state.filename]);
+  return (
+    <form
+      action={action}
+      className="flex flex-col gap-8"
+      noValidate
+      aria-label={t("yearEnd.export")}
+    >
+      <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="year" value={year} />
+      <p className="m-0 text-text-13 text-text-secondary">{t("yearEnd.exportSentence")}</p>
+      <div>
+        <Button type="submit" variant="primary" icon="Download" loading={pending}>
+          {t("yearEnd.export")}
+        </Button>
+      </div>
+      <ActionFeedback
+        state={state}
+        {...(state.filename ? { success: t("yearEnd.exported", { file: state.filename }) } : {})}
+      />
     </form>
   );
 }

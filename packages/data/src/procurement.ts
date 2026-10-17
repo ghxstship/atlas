@@ -936,7 +936,9 @@ export async function listPayableInvoices(
   db: XosClient,
   orgId: string,
 ): Promise<
-  Result<{ id: string; label: string; projectId: string; counterpartyId: string; state: string }[]>
+  Result<
+    { id: string; label: string; projectId: string; counterpartyId: string | null; state: string }[]
+  >
 > {
   return readRows(
     db

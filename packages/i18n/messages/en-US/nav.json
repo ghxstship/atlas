@@ -125,7 +125,8 @@
         "periods": "Periods",
         "universalPostingLineExport": "Universal Posting Line Export",
         "chartOfAccounts": "Chart of Accounts",
-        "costCenters": "Cost Centers"
+        "costCenters": "Cost Centers",
+        "yearEnd": "Year-End"
       },
       "procurement": {
         "rfqs": "RFQs",
@@ -160,7 +161,8 @@
         "incidents": "Incidents",
         "finalCostReport": "Final Cost Report",
         "savedReports": "Saved Reports",
-        "builder": "Report Builder"
+        "builder": "Report Builder",
+        "dashboards": "Dashboards"
       },
       "canon": {
         "departments": "Departments",

@@ -407,29 +407,13 @@ export async function changeOrderForClient(
 }
 
 /**
- * A pay-transparency rule on the demo project's jurisdiction for the length of one journey.
- * `private.pay_transparency_rules` is platform legal reference data and ships empty (finding
- * A38-006); this local test row stands in for a real rule and `remove()` deletes it.
- */
-export async function temporaryPayTransparencyRule(): Promise<{ remove: () => Promise<void> }> {
-  const citation = `Journey 44 local test rule ${suffix()}`;
-  await sql(
-    `insert into private.pay_transparency_rules (jurisdiction_id, requires_pay_range, effective_from, citation)
-     values ('US-FL-MIAMI-DADE', true, current_date - 1, $1)`,
-    [citation],
-  );
-  return {
-    remove: async () => {
-      await sql(`delete from private.pay_transparency_rules where citation = $1`, [citation]);
-    },
-  };
-}
-
-/**
  * A Draft Contractor opportunity with no pay range, made from an Approved contractor requisition
- * on the demo project (journey 44): scoped work, a lighting design package.
+ * on the demo project (journey 44): scoped work, a lighting design package. A remote posting falls
+ * under the pay transparency rules that ship with the platform and cover remote roles (1125).
  */
-export async function draftContractorOpportunity(): Promise<{ id: string; title: string }> {
+export async function draftContractorOpportunity(
+  options: { readonly remote?: boolean } = {},
+): Promise<{ id: string; title: string }> {
   const title = `Lighting Design Package ${suffix()}`;
   const [req] = await sql<{ id: string }>(
     `insert into app.requisitions (project_id, role_type, role_code, worker_classification, pay_basis, arrangement,
@@ -449,11 +433,11 @@ export async function draftContractorOpportunity(): Promise<{ id: string; title:
   );
   const [opp] = await sql<{ id: string }>(
     `insert into app.opportunities (project_id, requisition_id, role_type, role_code, title, description, visibility,
-       rate_type, currency_code, starts_on, ends_on, deadline_at)
+       rate_type, currency_code, starts_on, ends_on, deadline_at, is_remote)
      values ($1, $2, 'Contractor', '9000.50.03', $3, 'Lighting plot and cue design in two milestones.', 'Invited',
-       'Milestone', 'USD', '2027-05-01', '2027-06-06', now() + interval '30 days')
+       'Milestone', 'USD', '2027-05-01', '2027-06-06', now() + interval '30 days', $4)
      returning id`,
-    [PROJECT, req?.id, title],
+    [PROJECT, req?.id, title, options.remote === true],
     PEOPLE.owner,
   );
   return { id: opp?.id as string, title };
@@ -639,9 +623,10 @@ export async function workedShift(
       [PROJECT, kind, shiftId, engagementId],
     );
   }
+  // The punches land today, so the timesheet covers today: its approved day is what pay bills.
   const [ts] = await sql<{ id: string }>(
     `insert into app.timesheets (project_id, engagement_id, period_start, period_end)
-     values ($1, $2, '2027-06-05', '2027-06-05') returning id`,
+     values ($1, $2, current_date, current_date) returning id`,
     [PROJECT, engagementId],
     PEOPLE.owner,
   );

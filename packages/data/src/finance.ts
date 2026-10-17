@@ -1565,7 +1565,12 @@ export interface Invoice {
   readonly id: string;
   readonly projectId: string;
   readonly direction: MoneyDirection;
-  readonly counterpartyId: string;
+  /** The external account billed or billing; null when a person engaged as an individual is the payee. */
+  readonly counterpartyId: string | null;
+  /** The person billing as an individual (A38-007); exactly one of counterpartyId and payeePersonId is set. */
+  readonly payeePersonId: string | null;
+  readonly payeeName: string | null;
+  readonly engagementId: string | null;
   readonly number: string | null;
   readonly issuedOn: string | null;
   readonly dueOn: string | null;
@@ -1597,7 +1602,7 @@ export async function listInvoices(
   let query = db
     .from("invoices")
     .select(
-      "id, project_id, direction, counterparty_id, invoice_number, issued_on, due_on, currency_code, invoice_state, created_at",
+      "id, project_id, direction, counterparty_id, payee_person_id, engagement_id, invoice_number, issued_on, due_on, currency_code, invoice_state, created_at, payee:people!invoices_payee_person_id_fkey(full_name)",
     )
     .eq("org_id", input.orgId)
     .is("deleted_at", null)
@@ -1627,7 +1632,10 @@ export async function listInvoices(
         id: str(i["id"]),
         projectId: str(i["project_id"]),
         direction: str(i["direction"]) as MoneyDirection,
-        counterpartyId: str(i["counterparty_id"]),
+        counterpartyId: strOrNull(i["counterparty_id"]),
+        payeePersonId: strOrNull(i["payee_person_id"]),
+        payeeName: strOrNull(obj(i["payee"])?.["full_name"]),
+        engagementId: strOrNull(i["engagement_id"]),
         number: strOrNull(i["invoice_number"]),
         issuedOn: strOrNull(i["issued_on"]),
         dueOn: strOrNull(i["due_on"]),
@@ -1807,7 +1815,10 @@ export async function transitionInvoice(
 
 export interface Payment {
   readonly id: string;
-  readonly counterpartyId: string;
+  /** Counterparty paid or paying; null for a payment to a person engaged as an individual. */
+  readonly counterpartyId: string | null;
+  readonly payeePersonId: string | null;
+  readonly payeeName: string | null;
   readonly direction: MoneyDirection;
   readonly amountMinor: number;
   readonly currency: string;
@@ -1831,7 +1842,7 @@ export async function listPayments(db: XosClient, orgId: string): Promise<Result
     db
       .from("payments")
       .select(
-        "id, counterparty_id, direction, amount_minor, currency_code, paid_on, reference_identifier, payment_state, created_at, payment_applications(amount_minor, deleted_at)",
+        "id, counterparty_id, payee_person_id, direction, amount_minor, currency_code, paid_on, reference_identifier, payment_state, created_at, payment_applications(amount_minor, deleted_at), payee:people!payments_payee_person_id_fkey(full_name)",
       )
       .eq("org_id", orgId)
       .is("deleted_at", null)
@@ -1840,7 +1851,9 @@ export async function listPayments(db: XosClient, orgId: string): Promise<Result
       const apps = (r["payment_applications"] as Raw[] | null) ?? [];
       return {
         id: str(r["id"]),
-        counterpartyId: str(r["counterparty_id"]),
+        counterpartyId: strOrNull(r["counterparty_id"]),
+        payeePersonId: strOrNull(r["payee_person_id"]),
+        payeeName: strOrNull(obj(r["payee"])?.["full_name"]),
         direction: str(r["direction"]) as MoneyDirection,
         amountMinor: num(r["amount_minor"]),
         currency: str(r["currency_code"]).trim(),
@@ -1949,6 +1962,79 @@ export async function removePaymentApplication(
   return done(
     db.from("payment_applications").update({ deleted_at: now() }).eq("id", applicationId),
   );
+}
+
+/**
+ * Records that an approved payable (or issued receivable) was paid: a Proposed payment of the
+ * invoice's payee (its counterparty, or the person engaged as an individual), applied to the
+ * invoice, for the whole balance when no amount is given (app.record_invoice_payment, 1123). Another
+ * eligible person approves it with approvePayment.
+ */
+export async function recordInvoicePayment(
+  db: XosClient,
+  input: {
+    readonly invoiceId: string;
+    readonly amountMinor: number | null;
+    readonly paidOn: string;
+    readonly reference: string | null;
+  },
+): Promise<Result<{ id: string }>> {
+  const r = await rpcValue<string>(
+    db.rpc("record_invoice_payment", {
+      p_invoice_id: input.invoiceId,
+      p_paid_on: input.paidOn,
+      ...(input.amountMinor === null ? {} : { p_amount_minor: input.amountMinor }),
+      ...(input.reference?.trim() ? { p_reference: input.reference.trim() } : {}),
+    }),
+  );
+  return r.ok ? ok({ id: r.data }) : r;
+}
+
+/**
+ * The port a payout provider plugs into (Section 4.4.5): XOS never holds funds, and executing a
+ * payout is the org's decision on its own rails or provider. A provider moves the money and returns
+ * its remittance reference, which is recorded with recordInvoicePayment. The only provider shipped
+ * is ManualPayout: the org pays outside XOS and types the reference it got from its bank.
+ */
+export interface PayoutProvider {
+  readonly name: string;
+  /**
+   * Moves `amountMinor` (the invoice's whole balance when null) to the payee and answers the
+   * provider's reference for the remittance.
+   */
+  pay(request: {
+    readonly invoiceId: string;
+    readonly amountMinor: number | null;
+    readonly currency: string;
+  }): Promise<{ readonly reference: string | null }>;
+}
+
+/** Payouts made outside XOS: nothing moves here, the reference is the one the org entered. */
+export function manualPayout(reference: string | null): PayoutProvider {
+  return {
+    name: "manual",
+    pay: async () => ({ reference: reference?.trim() || null }),
+  };
+}
+
+/** Pays through `provider`, then records the payment against the invoice. */
+export async function payInvoice(
+  db: XosClient,
+  provider: PayoutProvider,
+  input: {
+    readonly invoiceId: string;
+    readonly amountMinor: number | null;
+    readonly currency: string;
+    readonly paidOn: string;
+  },
+): Promise<Result<{ id: string }>> {
+  const payout = await provider.pay(input);
+  return recordInvoicePayment(db, {
+    invoiceId: input.invoiceId,
+    amountMinor: input.amountMinor,
+    paidOn: input.paidOn,
+    reference: payout.reference,
+  });
 }
 
 // Accounting periods -----------------------------------------------------------------------------------

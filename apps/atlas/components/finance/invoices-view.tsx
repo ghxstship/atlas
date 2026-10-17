@@ -19,7 +19,7 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { saveInvoiceLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
-import { InvoiceForm, InvoiceLineForm, SelfBillForm } from "./forms";
+import { InvoiceForm, InvoiceLineForm, RecordPaymentForm, SelfBillForm } from "./forms";
 import { EditButton, FormSheet, InlineActionButton, TransitionBar, type Row } from "./kit";
 import { RecordActivity, RecordCollab } from "./record";
 
@@ -73,6 +73,14 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const partyName = new Map(
     counterparties.data.map((p) => [p.id, p.name ?? t("finance.common.unnamedCounterparty")]),
   );
+  /** The payee: the counterparty, or the person engaged as an individual (A38-007). */
+  const payee = (i: Invoice) =>
+    i.counterpartyId !== null
+      ? (partyName.get(i.counterpartyId) ?? "")
+      : i.payeeName
+        ? t("finance.payments.individualPayee", { name: i.payeeName })
+        : t("finance.invoices.individual");
+  const canPay = access.can("finance.payment.write");
   const keyOf = (i: Invoice) =>
     i.number ??
     `${projectKey.get(i.projectId) ?? ""} · ${t(`finance.invoices.directionShort.${i.direction}`)}`;
@@ -84,14 +92,14 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       (!direction || i.direction === direction) &&
       (term === null ||
         (i.number ?? "").toLowerCase().includes(term) ||
-        (partyName.get(i.counterpartyId) ?? "").toLowerCase().includes(term)),
+        payee(i).toLowerCase().includes(term)),
   );
   const balance = (i: Invoice) => (i.totalMinor === null ? null : i.totalMinor - i.appliedMinor);
   const rows: Row[] = shown.map((i) => ({
     id: i.id,
     number: i.number ?? "",
     direction: t(`finance.invoices.directionShort.${i.direction}`),
-    party: partyName.get(i.counterpartyId) ?? "",
+    party: payee(i),
     project: projectKey.get(i.projectId) ?? "",
     issued: c.date(i.issuedOn),
     due: c.date(i.dueOn),
@@ -111,6 +119,12 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
     return moves[i.state].filter((n) => (n === "Approved" ? canApprove : canWrite));
   };
 
+  /** Money can be recorded against an approved payable or an issued receivable with a balance. */
+  const payable = (i: Invoice) =>
+    canPay &&
+    (i.state === "Approved" || i.state === "Issued") &&
+    i.totalMinor !== null &&
+    i.totalMinor - i.appliedMinor > 0;
   const peek = query.peek ? invoices.data.find((i) => i.id === query.peek) : undefined;
   let detail: RecordDetail | null = null;
   if (peek) {
@@ -123,7 +137,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
     detail = {
       kindLabel: t(`finance.invoices.kind.${peek.direction}`),
       recordKey: keyOf(peek),
-      title: partyName.get(peek.counterpartyId) ?? keyOf(peek),
+      title: payee(peek) || keyOf(peek),
       state: iconState(peek.state),
       stateLabel: c.state("invoice", peek.state),
       propertiesLabel: t("finance.common.properties"),
@@ -159,6 +173,14 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
               allowed={nextFor(peek)}
             />
             {editable ? <EditButton label={t("finance.common.edit")} /> : null}
+            {payable(peek) ? (
+              <Link
+                className="inline-flex items-center text-text-13 text-accent-text underline"
+                href={withQuery(page, { pay: "1" }) as Route}
+              >
+                {t("finance.invoices.recordPayment")}
+              </Link>
+            ) : null}
           </div>
           <p className="m-0 text-text-12 text-text-secondary">
             {t(
@@ -260,18 +282,27 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
         />
       </FormSheet>
     );
+  } else if (query.extra["pay"] === "1" && peek && payable(peek)) {
+    sheet = (
+      <FormSheet title={t("finance.invoices.recordPayment")} flag="pay">
+        <RecordPaymentForm
+          org={ctx.org.slug}
+          invoiceId={peek.id}
+          currency={peek.currency}
+          today={new Date().toISOString().slice(0, 10)}
+        />
+      </FormSheet>
+    );
   } else if (query.extra["selfbill"] === "1" && canWrite) {
     const engagements = await listEngagementRefs(db, scope);
     sheet = (
       <FormSheet title={t("finance.invoices.selfBill")} flag="selfbill">
         <SelfBillForm
           org={ctx.org.slug}
-          engagements={(engagements.ok ? engagements.data : [])
-            .filter((e) => e.counterpartyId !== null)
-            .map((e) => ({
-              value: e.id,
-              label: `${projectKey.get(e.projectId) ?? ""} · ${partyName.get(e.counterpartyId ?? "") ?? e.personName ?? ""} · ${e.roleType}`,
-            }))}
+          engagements={(engagements.ok ? engagements.data : []).map((e) => ({
+            value: e.id,
+            label: `${projectKey.get(e.projectId) ?? ""} · ${partyName.get(e.counterpartyId ?? "") ?? e.personName ?? ""} · ${e.roleType}`,
+          }))}
         />
       </FormSheet>
     );
@@ -323,7 +354,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       listItems={shown.map((i) => ({
         id: i.id,
         recordKey: keyOf(i),
-        title: partyName.get(i.counterpartyId) ?? keyOf(i),
+        title: payee(i) || keyOf(i),
         state: iconState(i.state),
         stateLabel: c.state("invoice", i.state),
         next: c.money(i.totalMinor, i.currency),
@@ -335,7 +366,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
           .filter((i) => i.state === s)
           .map((i) => ({
             key: i.id,
-            title: `${keyOf(i)} · ${partyName.get(i.counterpartyId) ?? ""}`,
+            title: `${keyOf(i)} · ${payee(i)}`,
             meta: c.money(i.totalMinor, i.currency),
           })),
       }))}

@@ -331,6 +331,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
     },
     { name: "payMin", label: t("fields.payMin"), kind: "text", help: t("postings.payHelp") },
     { name: "payMax", label: t("fields.payMax"), kind: "text" },
+    { name: "isRemote", label: t("fields.isRemote"), kind: "checkbox" },
     {
       name: "currencyCode",
       label: t("fields.currency"),

@@ -9,13 +9,15 @@ import {
   type Aggregate,
   type ReportDefinition,
 } from "./report-builder.ts";
+import { renderReportPdf, renderReportXlsx, type ReportFileInput } from "./report-files.ts";
 
 /**
  * The report.run worker (A35, RRR-79; migration 1050). A18 queues a report.run job for every run
  * (app.run_report); this worker claims them from the 0510 job queue and, for each, reads the source
  * rows as the person the run is for (app.report_run_rows switches to their identity, so their row
- * level security applies), aggregates them exactly as the builder preview does, stores the CSV in the
- * private report-results bucket and records the outcome. A failed attempt goes back to Queued while
+ * level security applies), aggregates them exactly as the builder preview does, stores the file in
+ * the run's format (CSV, .xlsx or PDF, migration 1126) in the private report-results bucket and
+ * records the outcome. A failed attempt goes back to Queued while
  * the job has attempts left, then the run is marked Failed with its error.
  */
 export const REPORT_RUN_JOB = "report.run";
@@ -62,13 +64,24 @@ export interface ReportRunStore {
 }
 
 export interface ResultStorage {
-  upload(bucket: string, name: string, body: string, contentType: string): Promise<void>;
+  upload(
+    bucket: string,
+    name: string,
+    body: string | Uint8Array,
+    contentType: string,
+  ): Promise<void>;
 }
 
 /** Column headers of a run file, in the person's language where the caller knows it. */
 export interface RunLabels {
   field(sourceCode: string, key: string): string;
   column(sourceCode: string, key: string, aggregate: Aggregate): string;
+  /** Header of the unpriced count column in .xlsx and PDF files. */
+  readonly unpriced?: string;
+  /** The line under the title of an .xlsx or PDF file. */
+  subtitle?(input: { readonly rows: number; readonly unpriced: number; readonly at: Date }): string;
+  /** The note under a table cut at the row limit. */
+  readonly truncated?: string;
 }
 
 export interface ReportRunResult {
@@ -78,23 +91,29 @@ export interface ReportRunResult {
   readonly error?: string;
 }
 
-/** The object name of a run's CSV, the same as private.report_result_path. */
-export function resultPath(orgId: string, runId: string): string {
-  return `${orgId}/${runId}.csv`;
+/** Media type of each run format. */
+export const RESULT_CONTENT_TYPES = {
+  CSV: "text/csv",
+  XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  PDF: "application/pdf",
+} as const;
+
+/** The object name of a run's file, the same as private.report_result_path. */
+export function resultPath(
+  orgId: string,
+  runId: string,
+  format: ReportRunRecord["exportFormat"] = "CSV",
+): string {
+  return `${orgId}/${runId}.${format.toLowerCase()}`;
 }
 
-/** Builds the CSV of one running run, as its person; throws an Error whose message is for the person. */
+/** Builds the file of one running run, as its person; throws an Error whose message is for the person. */
 async function renderRun(
   store: ReportRunStore,
   labels: RunLabels,
   runId: string,
   run: ReportRunRecord,
-): Promise<{ csv: string; rowCount: number; unpricedCount: number }> {
-  if (run.exportFormat !== "CSV") {
-    throw new Error(
-      `${run.exportFormat} report files are not available yet. Run the report as CSV.`,
-    );
-  }
+): Promise<{ body: string | Uint8Array; rowCount: number; unpricedCount: number }> {
   const definition = await store.definition(run.reportDefinitionId, run.membershipId);
   if (!definition) throw new Error("The report no longer exists.");
   const plan = planReport(definition);
@@ -105,16 +124,31 @@ async function renderRun(
   const truncated = rows.length > RUN_ROW_LIMIT;
   const summary = summarizeReport(plan, truncated ? rows.slice(0, RUN_ROW_LIMIT) : rows, truncated);
   const code = definition.sourceCode;
-  const csv = previewCsv(
-    summary,
-    summary.columns.map((c) =>
-      c.aggregate === "None"
-        ? labels.field(code, c.field)
-        : labels.column(code, c.field, c.aggregate),
-    ),
-    plan.group ? labels.field(code, plan.group) : null,
+  const headers = summary.columns.map((c) =>
+    c.aggregate === "None"
+      ? labels.field(code, c.field)
+      : labels.column(code, c.field, c.aggregate),
   );
-  return { csv, rowCount: summary.rows.length, unpricedCount: unpricedRows(summary) };
+  const groupHeader = plan.group ? labels.field(code, plan.group) : null;
+  const rowCount = summary.rows.length;
+  const unpricedCount = unpricedRows(summary);
+  if (run.exportFormat === "CSV") {
+    return { body: previewCsv(summary, headers, groupHeader), rowCount, unpricedCount };
+  }
+  const file: ReportFileInput = {
+    title: definition.name,
+    subtitle:
+      labels.subtitle?.({ rows: rowCount, unpriced: unpricedCount, at: new Date() }) ??
+      `${rowCount} rows, ${unpricedCount} unpriced`,
+    preview: summary,
+    headers,
+    groupHeader,
+    unpricedHeader: labels.unpriced ?? "Unpriced",
+    truncatedNote: truncated ? (labels.truncated ?? null) : null,
+  };
+  const body =
+    run.exportFormat === "XLSX" ? await renderReportXlsx(file) : await renderReportPdf(file);
+  return { body, rowCount, unpricedCount };
 }
 
 /** One pass of the worker: claims ready report.run jobs and runs one attempt of each. */
@@ -139,8 +173,13 @@ export async function runReportJobs(options: {
     await store.start(job.runId);
     try {
       const out = await renderRun(store, labels, job.runId, run);
-      const path = resultPath(run.orgId, job.runId);
-      await storage.upload(REPORT_RESULTS_BUCKET, path, out.csv, "text/csv");
+      const path = resultPath(run.orgId, job.runId, run.exportFormat);
+      await storage.upload(
+        REPORT_RESULTS_BUCKET,
+        path,
+        out.body,
+        RESULT_CONTENT_TYPES[run.exportFormat],
+      );
       await store.finish(job.runId, {
         status: "Succeeded",
         path,
@@ -248,7 +287,14 @@ export function supabaseResultStorage(client: SupabaseClient): ResultStorage {
     async upload(bucket, name, body, contentType) {
       const { error } = await client.storage
         .from(bucket)
-        .upload(name, new Blob([body], { type: contentType }), { contentType, upsert: true });
+        .upload(
+          name,
+          new Blob([typeof body === "string" ? body : new Uint8Array(body)], { type: contentType }),
+          {
+            contentType,
+            upsert: true,
+          },
+        );
       if (error) throw new Error(`storage ${bucket}: ${error.message}`);
     },
   };

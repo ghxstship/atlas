@@ -1,0 +1,57 @@
+{
+  "invoice": {
+    "detail": "{count, plural, one {Mostrar # línea} other {Mostrar # líneas}}",
+    "linesCaption": "Líneas de la factura {number}",
+    "description": "Concepto facturado",
+    "quantity": "Cantidad",
+    "amount": "Importe"
+  },
+  "payTransparency": {
+    "title": "Reglas de transparencia salarial",
+    "description": "Donde aplican estas reglas, no se puede publicar una oferta de Contratista, Equipo o Personal sin un rango de pago. Una regla cubre su jurisdicción y cada lugar dentro de ella; una oferta remota sigue las reglas de su país que cubren puestos remotos. La plataforma mantiene esta lista.",
+    "caption": "Reglas de transparencia salarial por jurisdicción",
+    "loadError": "No se pudieron cargar las reglas de transparencia salarial. Vuelve a cargar la página; la publicación las sigue verificando.",
+    "empty": "No hay reglas de transparencia salarial cargadas, así que ninguna oferta se rechaza por falta de rango de pago.",
+    "counselPending": "{count, plural, one {# regla aún no está confirmada} other {# reglas aún no están confirmadas}} con asesoría legal. Tómalas como la lectura de la ley que hace la plataforma hasta que lo estén.",
+    "needsReview": "Requiere revisión legal",
+    "confirmed": "Confirmada",
+    "remote": {
+      "covered": "Cubre puestos remotos",
+      "onSiteOnly": "Solo presencial"
+    },
+    "columns": {
+      "jurisdiction": "Jurisdicción",
+      "effective": "Vigente desde",
+      "remote": "Puestos remotos",
+      "citation": "Ley",
+      "review": "Revisión"
+    }
+  },
+  "w9": {
+    "title": "Nombre y dirección postal del W-9",
+    "body": "Cada organización que te paga $600 o más en un año presenta un 1099-NEC con el nombre y la dirección de tu W-9. Mantenlos al día aquí.",
+    "formFor": "W-9 para {org}, termina en {last4}",
+    "missing": "Aún no hay dirección postal. Agrégala para que la organización pueda presentar tu 1099-NEC.",
+    "add": "Agregar la dirección",
+    "edit": "Cambiar la dirección",
+    "formTitle": "Nombre y dirección postal del W-9",
+    "legalName": "Nombre como aparece en tu W-9",
+    "legalNameHelp": "Déjalo en blanco para usar el nombre de tu perfil.",
+    "street": "Dirección",
+    "locality": "Ciudad",
+    "region": "Estado",
+    "postal": "Código postal",
+    "submit": "Guardar dirección",
+    "done": "Dirección guardada.",
+    "errors": {
+      "legalName": "Limita el nombre a 200 caracteres.",
+      "streetAddress": "Escribe la dirección como aparece en tu W-9.",
+      "locality": "Escribe la ciudad.",
+      "regionCode": "Escribe el código de estado de dos letras, por ejemplo CA.",
+      "postalCode": "Escribe un código postal de cinco dígitos, o ZIP+4 como 33101-2040."
+    }
+  },
+  "milestone": {
+    "fee": "Tarifa {amount}"
+  }
+}

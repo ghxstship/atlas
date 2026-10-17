@@ -127,6 +127,10 @@ const opportunitySchema = z
     startsOn: optionalDate,
     endsOn: optionalDate,
     deadlineAt: optionalInstant,
+    isRemote: z
+      .string()
+      .default("")
+      .transform((s) => s === "true"),
   })
   .transform((v, ctx) => {
     const min = parseMoney(v.payMin, v.currencyCode);
@@ -157,6 +161,7 @@ export const createOpportunityAction: Action = action(opportunitySchema, (ctx, v
     startsOn: v.startsOn,
     endsOn: v.endsOn,
     deadlineAt: v.deadlineAt,
+    isRemote: v.isRemote,
   });
 });
 
@@ -503,6 +508,27 @@ export const decideDeliverableAction: Action = action(
     reason: optionalText(2000),
   }),
   (ctx, v) => repo.decideDeliverable(ctx.viewer.db, v.deliverableId, v.decision, v.reason),
+);
+
+/** Prices a milestone (A38-007): a blank fee leaves it unpriced; an accepted milestone keeps its fee. */
+export const setDeliverableFeeAction: Action = action(
+  z
+    .object({
+      deliverableId: uuid,
+      fee: z.string().default(""),
+      currencyCode: z
+        .string()
+        .trim()
+        .toUpperCase()
+        .regex(/^[A-Z]{3}$/)
+        .default("USD"),
+    })
+    .transform((v, ctx) => {
+      const fee = parseMoney(v.fee, v.currencyCode);
+      if (Number.isNaN(fee)) ctx.addIssue({ code: "custom", path: ["fee"], message: "invalid" });
+      return { deliverableId: v.deliverableId, fee };
+    }),
+  (ctx, v) => repo.setDeliverableFee(ctx.viewer.db, v.deliverableId, v.fee),
 );
 
 export const rateAction: Action = action(

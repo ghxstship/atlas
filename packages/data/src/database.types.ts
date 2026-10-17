@@ -553,11 +553,13 @@ export type Database = {
       };
       deliverables: {
         Row: {
+          currency_code: string | null;
           decided_at: string | null;
           deliverable_state: Database["app"]["Enums"]["deliverable_state"] | null;
           document_id: string | null;
           due_at: string | null;
           engagement_id: string | null;
+          fee_minor: number | null;
           id: string | null;
           record_id: string | null;
           record_kind: string | null;
@@ -902,6 +904,7 @@ export type Database = {
           direction: Database["app"]["Enums"]["money_direction"] | null;
           disputed_at: string | null;
           due_on: string | null;
+          engagement_id: string | null;
           id: string | null;
           invoice_number: string | null;
           invoice_state: Database["app"]["Enums"]["invoice_state"] | null;
@@ -910,8 +913,11 @@ export type Database = {
           last_paid_on: string | null;
           org_id: string | null;
           org_name: string | null;
+          payee_person_id: string | null;
           project_id: string | null;
           project_name: string | null;
+          scheduled_minor: number | null;
+          scheduled_on: string | null;
           submitted_at: string | null;
           total_minor: number | null;
         };
@@ -923,6 +929,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "my_accounts";
             referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "invoices_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
           },
           {
             foreignKeyName: "invoices_org_id_fkey";
@@ -1610,6 +1623,7 @@ export type Database = {
           org_id: string | null;
           org_name: string | null;
           paid_on: string | null;
+          payee_person_id: string | null;
           payment_state: Database["app"]["Enums"]["payment_state"] | null;
           reference_identifier: string | null;
         };
@@ -2276,10 +2290,15 @@ export type Database = {
           foreign_performer_withholding: boolean | null;
           form_kind: Database["app"]["Enums"]["tax_form_kind"] | null;
           id: string | null;
+          legal_name: string | null;
+          locality: string | null;
           org_id: string | null;
           org_name: string | null;
           person_id: string | null;
+          postal_code: string | null;
+          region_code: string | null;
           signed_at: string | null;
+          street_address: string | null;
           tin_last4: string | null;
         };
         ComputedFields: never;
@@ -13421,6 +13440,7 @@ export type Database = {
           deliverable_state: Database["app"]["Enums"]["deliverable_state"];
           document_id: string | null;
           engagement_id: string;
+          fee_minor: number | null;
           id: string;
           org_id: string;
           record_id: string;
@@ -13441,6 +13461,7 @@ export type Database = {
           deliverable_state?: Database["app"]["Enums"]["deliverable_state"];
           document_id?: string | null;
           engagement_id: string;
+          fee_minor?: number | null;
           id?: string;
           org_id: string;
           record_id: string;
@@ -13460,6 +13481,7 @@ export type Database = {
           deliverable_state?: Database["app"]["Enums"]["deliverable_state"];
           document_id?: string | null;
           engagement_id?: string;
+          fee_minor?: number | null;
           id?: string;
           org_id?: string;
           record_id?: string;
@@ -21301,53 +21323,59 @@ export type Database = {
       };
       invoices: {
         Row: {
-          counterparty_id: string;
+          counterparty_id: string | null;
           created_at: string;
           created_by: string | null;
           currency_code: string;
           deleted_at: string | null;
           direction: Database["app"]["Enums"]["money_direction"];
           due_on: string | null;
+          engagement_id: string | null;
           id: string;
           invoice_number: string | null;
           invoice_state: Database["app"]["Enums"]["invoice_state"];
           issued_on: string | null;
           org_id: string;
+          payee_person_id: string | null;
           project_id: string;
           updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
-          counterparty_id: string;
+          counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency_code: string;
           deleted_at?: string | null;
           direction: Database["app"]["Enums"]["money_direction"];
           due_on?: string | null;
+          engagement_id?: string | null;
           id?: string;
           invoice_number?: string | null;
           invoice_state?: Database["app"]["Enums"]["invoice_state"];
           issued_on?: string | null;
           org_id: string;
+          payee_person_id?: string | null;
           project_id: string;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
-          counterparty_id?: string;
+          counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency_code?: string;
           deleted_at?: string | null;
           direction?: Database["app"]["Enums"]["money_direction"];
           due_on?: string | null;
+          engagement_id?: string | null;
           id?: string;
           invoice_number?: string | null;
           invoice_state?: Database["app"]["Enums"]["invoice_state"];
           issued_on?: string | null;
           org_id?: string;
+          payee_person_id?: string | null;
           project_id?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -21375,10 +21403,38 @@ export type Database = {
             referencedColumns: ["currency_code"];
           },
           {
+            foreignKeyName: "invoices_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "invoices_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_resolved";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "invoices_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagements";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "invoices_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_payee_person_id_fkey";
+            columns: ["payee_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
@@ -24534,6 +24590,7 @@ export type Database = {
           description: string | null;
           ends_on: string | null;
           id: string;
+          is_remote: boolean;
           jurisdiction_id: string | null;
           minimum_age: number | null;
           opportunity_state: Database["app"]["Enums"]["opportunity_state"];
@@ -24564,6 +24621,7 @@ export type Database = {
           description?: string | null;
           ends_on?: string | null;
           id?: string;
+          is_remote?: boolean;
           jurisdiction_id?: string | null;
           minimum_age?: number | null;
           opportunity_state?: Database["app"]["Enums"]["opportunity_state"];
@@ -24593,6 +24651,7 @@ export type Database = {
           description?: string | null;
           ends_on?: string | null;
           id?: string;
+          is_remote?: boolean;
           jurisdiction_id?: string | null;
           minimum_age?: number | null;
           opportunity_state?: Database["app"]["Enums"]["opportunity_state"];
@@ -26975,7 +27034,7 @@ export type Database = {
       payments: {
         Row: {
           amount_minor: number;
-          counterparty_id: string;
+          counterparty_id: string | null;
           created_at: string;
           created_by: string | null;
           currency_code: string;
@@ -26984,6 +27043,7 @@ export type Database = {
           id: string;
           org_id: string;
           paid_on: string;
+          payee_person_id: string | null;
           payment_state: Database["app"]["Enums"]["payment_state"];
           reference_identifier: string | null;
           updated_at: string;
@@ -26992,7 +27052,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           amount_minor: number;
-          counterparty_id: string;
+          counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency_code: string;
@@ -27001,6 +27061,7 @@ export type Database = {
           id?: string;
           org_id: string;
           paid_on: string;
+          payee_person_id?: string | null;
           payment_state?: Database["app"]["Enums"]["payment_state"];
           reference_identifier?: string | null;
           updated_at?: string;
@@ -27008,7 +27069,7 @@ export type Database = {
         };
         Update: {
           amount_minor?: number;
-          counterparty_id?: string;
+          counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency_code?: string;
@@ -27017,6 +27078,7 @@ export type Database = {
           id?: string;
           org_id?: string;
           paid_on?: string;
+          payee_person_id?: string | null;
           payment_state?: Database["app"]["Enums"]["payment_state"];
           reference_identifier?: string | null;
           updated_at?: string;
@@ -27049,6 +27111,13 @@ export type Database = {
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "payments_payee_person_id_fkey";
+            columns: ["payee_person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
@@ -34518,6 +34587,104 @@ export type Database = {
           },
         ];
       };
+      report_deliveries: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          delivery_status: string;
+          id: string;
+          last_error: string | null;
+          membership_id: string;
+          org_id: string;
+          provider_message_id: string | null;
+          report_run_id: string;
+          report_schedule_id: string;
+          scheduled_for: string;
+          sent_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_status?: string;
+          id?: string;
+          last_error?: string | null;
+          membership_id: string;
+          org_id: string;
+          provider_message_id?: string | null;
+          report_run_id: string;
+          report_schedule_id: string;
+          scheduled_for: string;
+          sent_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_status?: string;
+          id?: string;
+          last_error?: string | null;
+          membership_id?: string;
+          org_id?: string;
+          provider_message_id?: string | null;
+          report_run_id?: string;
+          report_schedule_id?: string;
+          scheduled_for?: string;
+          sent_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "report_deliveries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_deliveries_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_deliveries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_deliveries_report_run_id_fkey";
+            columns: ["report_run_id"];
+            isOneToOne: false;
+            referencedRelation: "report_runs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_deliveries_report_schedule_id_fkey";
+            columns: ["report_schedule_id"];
+            isOneToOne: false;
+            referencedRelation: "report_schedules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "report_deliveries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       report_fields: {
         Row: {
           aggregate: Database["app"]["Enums"]["report_aggregate"];
@@ -37673,6 +37840,79 @@ export type Database = {
             columns: ["venue_id"];
             isOneToOne: false;
             referencedRelation: "venues";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      self_billed_deliverables: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          engagement_deliverable_id: string;
+          id: string;
+          invoice_line_id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_deliverable_id: string;
+          id?: string;
+          invoice_line_id: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          engagement_deliverable_id?: string;
+          id?: string;
+          invoice_line_id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "self_billed_deliverables_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billed_deliverables_engagement_deliverable_id_fkey";
+            columns: ["engagement_deliverable_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_deliverables";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billed_deliverables_invoice_line_id_fkey";
+            columns: ["invoice_line_id"];
+            isOneToOne: true;
+            referencedRelation: "invoice_lines";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billed_deliverables_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "self_billed_deliverables_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
             referencedColumns: ["id"];
           },
         ];
@@ -42144,10 +42384,15 @@ export type Database = {
           foreign_performer_withholding: boolean;
           form_kind: Database["app"]["Enums"]["tax_form_kind"];
           id: string;
+          legal_name: string | null;
+          locality: string | null;
           org_id: string;
           organization_id: string | null;
           person_id: string | null;
+          postal_code: string | null;
+          region_code: string | null;
           signed_at: string;
+          street_address: string | null;
           tin_encrypted: string;
           tin_last4: string;
           updated_at: string;
@@ -42161,10 +42406,15 @@ export type Database = {
           foreign_performer_withholding?: boolean;
           form_kind: Database["app"]["Enums"]["tax_form_kind"];
           id?: string;
+          legal_name?: string | null;
+          locality?: string | null;
           org_id: string;
           organization_id?: string | null;
           person_id?: string | null;
+          postal_code?: string | null;
+          region_code?: string | null;
           signed_at?: string;
+          street_address?: string | null;
           tin_encrypted: string;
           tin_last4: string;
           updated_at?: string;
@@ -42177,10 +42427,15 @@ export type Database = {
           foreign_performer_withholding?: boolean;
           form_kind?: Database["app"]["Enums"]["tax_form_kind"];
           id?: string;
+          legal_name?: string | null;
+          locality?: string | null;
           org_id?: string;
           organization_id?: string | null;
           person_id?: string | null;
+          postal_code?: string | null;
+          region_code?: string | null;
           signed_at?: string;
+          street_address?: string | null;
           tin_encrypted?: string;
           tin_last4?: string;
           updated_at?: string;
@@ -49554,22 +49809,28 @@ export type Database = {
       };
       pay_transparency_rules: {
         Row: {
+          applies_to_remote: boolean | null;
           citation: string | null;
           effective_from: string | null;
           jurisdiction_id: string | null;
+          needs_counsel_review: boolean | null;
           requires_pay_range: boolean | null;
         };
         ComputedFields: never;
         Insert: {
+          applies_to_remote?: boolean | null;
           citation?: string | null;
           effective_from?: string | null;
           jurisdiction_id?: string | null;
+          needs_counsel_review?: boolean | null;
           requires_pay_range?: boolean | null;
         };
         Update: {
+          applies_to_remote?: boolean | null;
           citation?: string | null;
           effective_from?: string | null;
           jurisdiction_id?: string | null;
+          needs_counsel_review?: boolean | null;
           requires_pay_range?: boolean | null;
         };
         Relationships: [];
@@ -51826,6 +52087,15 @@ export type Database = {
         Args: { p_error?: string; p_job_id: string; p_succeeded: boolean };
         Returns: Database["app"]["Enums"]["job_status"];
       };
+      finish_report_delivery: {
+        Args: {
+          p_delivery_id: string;
+          p_error?: string;
+          p_provider_message_id?: string;
+          p_sent: boolean;
+        };
+        Returns: undefined;
+      };
       finish_report_run: {
         Args: {
           p_error?: string;
@@ -51840,6 +52110,26 @@ export type Database = {
       finish_stripe_event: {
         Args: { p_error?: string; p_stripe_event_row_id: string };
         Returns: undefined;
+      };
+      form_1099_nec_rows: {
+        Args: { p_include_tin?: boolean; p_org_id: string; p_year: number };
+        Returns: {
+          address_complete: boolean;
+          amount_minor: number;
+          locality: string;
+          payee_name: string;
+          payee_organization_id: string;
+          payee_person_id: string;
+          payment_count: number;
+          postal_code: string;
+          region_code: string;
+          street_address: string;
+          tax_form_id: string;
+          tin: string;
+          tin_last4: string;
+          tin_type: number;
+          w9_on_file: boolean;
+        }[];
       };
       fulfillment_display_key: {
         Args: {
@@ -52099,6 +52389,10 @@ export type Database = {
         Args: { p_expected_phase: string; p_project_id: string; p_reason: string };
         Returns: string;
       };
+      payee_name: {
+        Args: { p_counterparty_id: string; p_org_id: string; p_payee_person_id: string };
+        Returns: string;
+      };
       payroll_export_file: {
         Args: { p_payroll_export_id: string };
         Returns: {
@@ -52198,6 +52492,7 @@ export type Database = {
         Args: { p_course_id: string; p_reason?: string };
         Returns: string;
       };
+      queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
         Returns: boolean;
@@ -52301,6 +52596,15 @@ export type Database = {
           p_external_id?: string;
           p_local_id?: string;
           p_run_id: string;
+        };
+        Returns: string;
+      };
+      record_invoice_payment: {
+        Args: {
+          p_amount_minor?: number;
+          p_invoice_id: string;
+          p_paid_on: string;
+          p_reference?: string;
         };
         Returns: string;
       };
@@ -52538,6 +52842,23 @@ export type Database = {
         Args: { p_person_id: string; p_subject_id: string };
         Returns: string;
       };
+      report_delivery: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          delivery_id: string;
+          delivery_status: string;
+          export_format: Database["app"]["Enums"]["export_format"];
+          org_id: string;
+          org_name: string;
+          recipient_email: string;
+          recipient_name: string;
+          report_name: string;
+          row_count: number;
+          scheduled_for: string;
+          storage_object_path: string;
+          unpriced_count: number;
+        }[];
+      };
       report_incident: {
         Args: {
           p_accuracy_m?: number;
@@ -52773,6 +53094,10 @@ export type Database = {
         Returns: string;
       };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
+      set_deliverable_fee: {
+        Args: { p_deliverable_id: string; p_fee_minor?: number };
+        Returns: string;
+      };
       set_kiosk_pin: { Args: { p_membership_id: string; p_pin: string }; Returns: undefined };
       set_module_enabled: {
         Args: { p_enabled: boolean; p_module_code: string; p_org_id: string };
@@ -52799,6 +53124,17 @@ export type Database = {
           p_value_boolean?: boolean;
           p_value_integer?: number;
           p_value_text?: string;
+        };
+        Returns: string;
+      };
+      set_tax_form_address: {
+        Args: {
+          p_legal_name: string;
+          p_locality: string;
+          p_postal_code: string;
+          p_region_code: string;
+          p_street_address: string;
+          p_tax_form_id: string;
         };
         Returns: string;
       };

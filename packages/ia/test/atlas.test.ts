@@ -132,7 +132,7 @@ describe("atlas sitemap", () => {
       "Payroll Exports",
       "Time Off",
     ]);
-    expect(pages("finance")).toHaveLength(10);
+    expect(pages("finance")).toHaveLength(11); // with Year-End (A43, A38-006)
     expect(pages("safety")).toHaveLength(7);
     expect(pages("opportunities")).toHaveLength(8);
     expect(pages("canon")).toHaveLength(10);

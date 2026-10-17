@@ -21,6 +21,8 @@ export const EDGE_EXTERNALS = [
   "intl-messageformat",
   "@supabase/supabase-js",
   "yaml",
+  "exceljs",
+  "pdfkit",
 ] as const;
 
 export const BUNDLE_PATH = fileURLToPath(

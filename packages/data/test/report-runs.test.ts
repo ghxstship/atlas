@@ -1,3 +1,4 @@
+import ExcelJS from "exceljs";
 import { describe, expect, it } from "vitest";
 import type { ReportDefinition } from "../src/report-builder.ts";
 import {
@@ -74,11 +75,17 @@ function fakeStore(options: {
 }
 
 function fakeStorage() {
-  const files: { bucket: string; name: string; body: string; contentType: string }[] = [];
+  const files: { bucket: string; name: string; body: string | Uint8Array; contentType: string }[] =
+    [];
   return {
     files,
     storage: {
-      upload: async (bucket: string, name: string, body: string, contentType: string) => {
+      upload: async (
+        bucket: string,
+        name: string,
+        body: string | Uint8Array,
+        contentType: string,
+      ) => {
         files.push({ bucket, name, body, contentType });
       },
     },
@@ -141,17 +148,66 @@ describe("the report.run worker", () => {
 
   it("marks the run Failed when the queue has used the job's attempts", async () => {
     const { store, calls } = fakeStore({
-      run: { ...run, exportFormat: "XLSX" },
+      rows: new Error("report_run_rows: permission denied"),
       jobStatusOnFailure: "Failed",
     });
     const { storage } = fakeStorage();
     const results = await runReportJobs({ store, storage, labels, worker: "test" });
     expect(results[0]).toMatchObject({
       status: "Failed",
-      error: expect.stringMatching(/Run the report as CSV/),
+      error: "report_run_rows: permission denied",
     });
-    expect(calls.rowsAsked).toEqual([]);
     expect(calls.finished[0]?.outcome.status).toBe("Failed");
+  });
+
+  const rows = [
+    { account_code: "4000", extended_minor: 1000, currency_code: "USD" },
+    { account_code: "4000", extended_minor: 2550, currency_code: "USD" },
+    { account_code: "5000", extended_minor: null, currency_code: "USD" },
+    { account_code: "5000", extended_minor: 700, currency_code: "USD" },
+  ];
+  const fileLabels: RunLabels = {
+    ...labels,
+    unpriced: "Unpriced",
+    subtitle: ({ rows: n, unpriced }) => `${n} rows, ${unpriced} unpriced`,
+    truncated: "Cut at the row limit.",
+  };
+
+  it("stores an .xlsx run with NULL-aware totals and the unpriced count (A38-004)", async () => {
+    const { store, calls } = fakeStore({ run: { ...run, exportFormat: "XLSX" }, rows });
+    const { storage, files } = fakeStorage();
+    const results = await runReportJobs({ store, storage, labels: fileLabels, worker: "test" });
+    expect(results[0]?.status).toBe("Succeeded");
+    expect(files[0]).toMatchObject({
+      name: "org-1/run-1.xlsx",
+      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(files[0]?.body as unknown as ArrayBuffer);
+    const sheet = workbook.worksheets[0];
+    expect(sheet?.getCell("A1").value).toBe("Spend by Account");
+    expect(sheet?.getCell("A2").value).toBe("2 rows, 1 unpriced");
+    expect(sheet?.getRow(4).values).toEqual([undefined, "Account", "Sum of Extended", "Unpriced"]);
+    expect(sheet?.getRow(5).values).toEqual([undefined, "4000", 35.5, 0]);
+    // The unpriced line leaves the group's total blank and is counted beside it.
+    expect(sheet?.getCell("B6").value).toBeNull();
+    expect(sheet?.getCell("C6").value).toBe(1);
+    expect(calls.finished[0]?.outcome).toMatchObject({
+      status: "Succeeded",
+      path: "org-1/run-1.xlsx",
+    });
+  });
+
+  it("stores a PDF run (A38-004)", async () => {
+    const { store, calls } = fakeStore({ run: { ...run, exportFormat: "PDF" }, rows });
+    const { storage, files } = fakeStorage();
+    await runReportJobs({ store, storage, labels: fileLabels, worker: "test" });
+    expect(files[0]).toMatchObject({ name: "org-1/run-1.pdf", contentType: "application/pdf" });
+    const body = files[0]?.body as Uint8Array;
+    expect(new TextDecoder().decode(body.slice(0, 5))).toBe("%PDF-");
+    expect(body.length).toBeGreaterThan(1000);
+    expect(calls.finished[0]?.outcome).toMatchObject({ status: "Succeeded", unpricedCount: 1 });
+    expect(resultPath("org-1", "run-1", "PDF")).toBe("org-1/run-1.pdf");
   });
 
   it("skips a job whose run is gone or already finished", async () => {

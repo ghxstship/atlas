@@ -1,0 +1,57 @@
+{
+  "invoice": {
+    "detail": "{count, plural, one {Show # line} other {Show # lines}}",
+    "linesCaption": "Lines of invoice {number}",
+    "description": "What is billed",
+    "quantity": "Quantity",
+    "amount": "Amount"
+  },
+  "payTransparency": {
+    "title": "Pay transparency rules",
+    "description": "Where these rules apply, a Contractor, Crew or Staff posting cannot be published without a pay range. A rule covers its jurisdiction and every place within it; a remote posting follows the rules that cover remote roles in its country. The platform maintains this list.",
+    "caption": "Pay transparency rules by jurisdiction",
+    "loadError": "The pay transparency rules could not load. Reload the page; publishing still checks them.",
+    "empty": "No pay transparency rules are loaded, so no posting is refused for a missing pay range.",
+    "counselPending": "{count, plural, one {# rule has} other {# rules have}} not yet been confirmed with counsel. Treat them as the platform's reading of the law until they are.",
+    "needsReview": "Needs counsel review",
+    "confirmed": "Confirmed",
+    "remote": {
+      "covered": "Covers remote roles",
+      "onSiteOnly": "On site only"
+    },
+    "columns": {
+      "jurisdiction": "Jurisdiction",
+      "effective": "In force from",
+      "remote": "Remote roles",
+      "citation": "Law",
+      "review": "Review"
+    }
+  },
+  "w9": {
+    "title": "W-9 name and mailing address",
+    "body": "Each organization that pays you $600 or more in a year files a 1099-NEC with the name and address on your W-9. Keep them current here.",
+    "formFor": "W-9 for {org}, ending {last4}",
+    "missing": "No mailing address yet. Add it so the organization can file your 1099-NEC.",
+    "add": "Add the address",
+    "edit": "Change the address",
+    "formTitle": "W-9 name and mailing address",
+    "legalName": "Name as shown on your W-9",
+    "legalNameHelp": "Leave blank to use your profile name.",
+    "street": "Street address",
+    "locality": "City",
+    "region": "State",
+    "postal": "ZIP code",
+    "submit": "Save address",
+    "done": "Address saved.",
+    "errors": {
+      "legalName": "Keep the name to 200 characters.",
+      "streetAddress": "Enter the street address as it appears on your W-9.",
+      "locality": "Enter the city.",
+      "regionCode": "Enter the two-letter state code, for example CA.",
+      "postalCode": "Enter a five-digit ZIP code, or ZIP+4 such as 33101-2040."
+    }
+  },
+  "milestone": {
+    "fee": "Fee {amount}"
+  }
+}

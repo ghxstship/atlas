@@ -251,6 +251,8 @@ export interface OpportunityInput {
   readonly currencyCode?: string | null;
   readonly deadlineAt?: string | null;
   readonly minimumAge?: number | null;
+  /** Remote work follows the pay transparency rules that cover remote roles (1125). */
+  readonly isRemote?: boolean;
 }
 
 export type OpportunityPatch = Partial<Omit<OpportunityInput, "projectId" | "roleType">>;
@@ -394,6 +396,8 @@ export interface Deliverable {
   readonly submittedAt: string | null;
   readonly submissionMessage: string | null;
   readonly returnReason: string | null;
+  /** Agreed milestone fee in minor units of the engagement currency; null is unpriced (1121). */
+  readonly feeMinor: number | null;
 }
 
 export interface Rating {
@@ -720,6 +724,7 @@ function opportunityColumns(input: OpportunityPatch) {
     ["currencyCode", "currency_code"],
     ["deadlineAt", "deadline_at"],
     ["minimumAge", "minimum_age"],
+    ["isRemote", "is_remote"],
   ];
   for (const [key, column] of map) if (input[key] !== undefined) row[column] = input[key];
   return row;
@@ -1452,7 +1457,7 @@ export async function listDeliverables(
   const { data, error } = await db
     .from("engagement_deliverables")
     .select(
-      "id, record_id, deliverable_state, submitted_at, submission_message, return_reason, record:records(title)",
+      "id, record_id, deliverable_state, submitted_at, submission_message, return_reason, fee_minor, record:records(title)",
     )
     .eq("engagement_id", engagementId)
     .is("deleted_at", null);
@@ -1466,6 +1471,7 @@ export async function listDeliverables(
         submitted_at: string | null;
         submission_message: string | null;
         return_reason: string | null;
+        fee_minor: number | null;
         record: { title: string } | null;
       }[]
     ).map((d) => ({
@@ -1476,8 +1482,22 @@ export async function listDeliverables(
       submittedAt: d.submitted_at,
       submissionMessage: d.submission_message,
       returnReason: d.return_reason,
+      feeMinor: d.fee_minor,
     })),
   );
+}
+
+/** Sets or clears (null, unpriced) a milestone's fee until it is accepted (app.set_deliverable_fee). */
+export async function setDeliverableFee(
+  db: XosClient,
+  id: string,
+  feeMinor: number | null,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("set_deliverable_fee", {
+    p_deliverable_id: id,
+    ...(feeMinor === null ? {} : { p_fee_minor: feeMinor }),
+  });
+  return rpcResult(null, error);
 }
 
 export async function decideDeliverable(

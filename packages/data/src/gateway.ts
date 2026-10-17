@@ -450,7 +450,8 @@ export interface Payment {
   readonly key: string;
   readonly orgId: string;
   readonly orgName: string;
-  readonly accountId: string;
+  /** The account paid; null for a payment to the caller as an individual (A38-007). */
+  readonly accountId: string | null;
   readonly amountMinor: number;
   readonly currency: string;
   readonly paidOn: string | null;
@@ -475,7 +476,7 @@ export async function listPayments(db: XosClient): Promise<Result<Payment[]>> {
         key: toDisplayKey("payment", id),
         orgId: req(row.org_id, "payments.org_id"),
         orgName: req(row.org_name, "payments.org_name"),
-        accountId: req(row.account_id, "payments.account_id"),
+        accountId: row.account_id,
         amountMinor: req(row.amount_minor, "payments.amount_minor"),
         currency: req(row.currency_code, "payments.currency_code"),
         paidOn: row.paid_on,

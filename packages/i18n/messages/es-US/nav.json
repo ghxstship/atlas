@@ -125,7 +125,8 @@
         "periods": "Periodos",
         "universalPostingLineExport": "Exportación de la línea de registro universal",
         "chartOfAccounts": "Catálogo de cuentas",
-        "costCenters": "Centros de costos"
+        "costCenters": "Centros de costos",
+        "yearEnd": "Cierre del año"
       },
       "procurement": {
         "rfqs": "Solicitudes de cotización",
@@ -160,7 +161,8 @@
         "incidents": "Incidentes",
         "finalCostReport": "Informe de costo final",
         "savedReports": "Informes guardados",
-        "builder": "Generador de informes"
+        "builder": "Generador de informes",
+        "dashboards": "Tableros"
       },
       "canon": {
         "departments": "Departamentos",

@@ -8,10 +8,10 @@
  * of their own. Totals are `MoneyTotal`: the sum of the priced inputs with the unpriced count.
  */
 import { z } from "@hono/zod-openapi";
-import { canonCodes, fields } from "@xos/schemas";
+import { canonCodes, defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
-import { collectionAction, transition } from "../define.ts";
+import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -60,7 +60,84 @@ const PostingExport = z
       "Universal Posting Lines of one period projected to one platform through the canon mapping.",
   });
 
+/** Recording that an invoice was paid (A38-007, app.record_invoice_payment, 1123). */
+const RecordPaymentRequest = z
+  .object({
+    paid_on: fields.date("Date the money moved."),
+    amount_minor: minor("Amount paid; the whole balance when null or omitted.", 349000, 1)
+      .nullable()
+      .optional(),
+    reference: z.string().min(1).max(200).optional().meta({
+      description: "Remittance reference from the bank or payout provider.",
+      example: "ACH-2027-0042",
+    }),
+  })
+  .meta({
+    id: "InvoicePaymentRequest",
+    description: "A payment made on the org's own rails, recorded against an invoice.",
+  });
+
+/**
+ * A payee of the 1099-NEC data export (A38-006, app.form_1099_nec_rows, 1124). The API never returns
+ * the full TIN: that Restricted export needs step-up authentication, which an API key cannot give,
+ * so it stays in Atlas.
+ */
+const Form1099NecRow = defineResource({
+  name: "Form1099NecRow",
+  table: "app.form_1099_nec_rows",
+  description:
+    "A payee paid $600 or more in approved USD payments in a tax year as an independent contractor, with the W-9 on file.",
+  base: "view",
+  fields: {
+    payee_person_id: orNull(fields.ref("person paid as an individual")),
+    payee_organization_id: orNull(fields.ref("account paid")),
+    payee_name: fields.text("Name on the W-9, or the payee's name.", "Ivy Marchetti"),
+    w9_on_file: fields.bool("Whether a W-9 is on file with the org.", true),
+    tin_type: orNull(fields.int("FIRE TIN type: 1 EIN (an account), 2 SSN (a person).", 2, 1)),
+    tin_last4: orNull(fields.text("Last four of the TIN.", "6789", 4)),
+    address_complete: fields.bool("Whether the W-9 address is complete.", true),
+    amount_minor: fields.money("Approved USD payments in the year.", 75000),
+    payment_count: fields.int("Payments counted.", 2),
+  },
+});
+
 export const additions = defineAdditions("Finance", {
+  resources: [
+    resource("Finance", "/form-1099-nec", Form1099NecRow, {
+      verbs: [],
+      label: "1099-NEC payee",
+      actions: [
+        collectionQuery("rows", {
+          summary: "1099-NEC payees of a tax year",
+          description:
+            "Payees paid $600 or more in approved USD payments in the calendar year as independent contractors (individuals and accounts), with whether a W-9 and its address are on file. Full TINs are a Restricted export with step-up, in Atlas only.",
+          paged: true,
+          response: Form1099NecRow.read,
+          query: z.object({
+            year: z.coerce
+              .number()
+              .int()
+              .min(2020)
+              .meta({ description: "Tax year.", example: 2025 }),
+          }),
+        }),
+      ],
+    }),
+  ],
+  actions: {
+    invoices: [
+      itemAction("recordPayment", {
+        summary: "Record a payment",
+        description:
+          "Records that an approved payable (or issued receivable) was paid: a Proposed payment of the invoice's payee, its counterparty or the person engaged as an individual, applied to the invoice for the whole balance unless `amount_minor` says otherwise. Money moves on the org's own rails; XOS never holds funds. Another eligible person approves the payment. Refuses a Proposed, Disputed or Canceled invoice and an invoice with nothing left to pay (422).",
+        body: RecordPaymentRequest,
+      }),
+    ],
+  },
+  capabilities: {
+    invoices: { actions: { recordPayment: "finance.payment.write" } },
+    form1099Nec: { actions: { rows: "finance.payment.read" } },
+  },
   corrections: [
     {
       id: "budget-columns",
@@ -361,6 +438,34 @@ export const additions = defineAdditions("Finance", {
           ),
         ]),
       ),
+    },
+    {
+      id: "invoice-individual-payee",
+      since: SINCE,
+      resources: ["invoices"],
+      change:
+        "`counterparty_id` becomes nullable, optional on create and no longer accepted on update (the payee is fixed, `invoice_immutable`); adds the server-set `payee_person_id` and an optional `engagement_id`. Exactly one of `counterparty_id` and `payee_person_id` is set.",
+      reason:
+        "A person engaged as an individual has no counterparty (finding A38-007). app.invoices (1120) names exactly one payee: the counterparty, or the engaged person on a payable, which self-billing (app.generate_self_billed_invoice) and the person's own submission (app.submit_engagement_invoice) set together with the engagement billed.",
+      apply: editShape({
+        add: {
+          counterparty_id: {
+            schema: orNull(
+              fields.ref("counterparty billed or billing; null for an individual payee"),
+            ),
+            create: "optional",
+            update: false,
+          },
+          payee_person_id: {
+            schema: orNull(fields.ref("person billing as an individual")),
+          },
+          engagement_id: {
+            schema: orNull(fields.ref("engagement the invoice bills")),
+            create: "optional",
+            update: false,
+          },
+        },
+      }),
     },
     {
       id: "invoice-line-columns",

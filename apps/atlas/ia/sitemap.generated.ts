@@ -1195,6 +1195,13 @@ export const sitemap: Sitemap = {
               route: "/{org}/finance/cost-centers",
               list: { views: ["table", "tree"], default: "table" },
             },
+            {
+              id: "finance.year-end",
+              kind: "page",
+              label: "nav.atlas.pages.finance.yearEnd",
+              route: "/{org}/finance/year-end",
+              list: { views: ["table"], default: "table" },
+            },
           ],
         },
         {
@@ -1442,6 +1449,13 @@ export const sitemap: Sitemap = {
               label: "nav.atlas.pages.reports.savedReports",
               route: "/{org}/reports/saved-reports",
               list: { views: ["list", "table"], default: "list" },
+            },
+            {
+              id: "reports.dashboards",
+              kind: "page",
+              label: "nav.atlas.pages.reports.dashboards",
+              route: "/{org}/reports/dashboards",
+              list: { views: ["gallery", "list"], default: "gallery" },
             },
             {
               id: "reports.builder",

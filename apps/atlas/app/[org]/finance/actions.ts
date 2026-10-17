@@ -2,6 +2,7 @@
 
 import type { DataError, Result } from "@xos/data";
 import * as finance from "@xos/data/finance";
+import * as form1099 from "@xos/data/form-1099";
 import * as settlements from "@xos/data/settlements";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
@@ -475,6 +476,36 @@ export async function applyPaymentAction(_: ActionState, form: FormData): Promis
   );
 }
 
+/**
+ * Records that an approved payable (or issued receivable) was paid, as a Proposed payment of the
+ * invoice's payee applied to it (A38-007). A blank amount pays the whole balance. Money moves on the
+ * org's own rails; the reference is the remittance the bank or payout provider gave.
+ */
+export async function recordInvoicePaymentAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const f = fields(form);
+  const invoice = z.uuid().safeParse(f["invoiceId"]);
+  if (!invoice.success) return { error: { kind: "not-found" } };
+  const code = currency.safeParse(f["currency"]);
+  if (!code.success) return { error: { kind: "invalid" } };
+  const amount = await money(ctx, f["amount"], code.data, false);
+  if (amount === "invalid" || (amount !== null && amount <= 0)) return inputError("amount");
+  const paidOn = isoDate.safeParse(f["paidOn"]);
+  if (!paidOn.success) return inputError("paidOn", "date");
+  const reference = optionalText(200).safeParse(f["reference"] ?? "");
+  if (!reference.success) return inputError("reference");
+  const result = await finance.payInvoice(ctx.viewer.db, finance.manualPayout(reference.data), {
+    invoiceId: invoice.data,
+    amountMinor: amount,
+    currency: code.data,
+    paidOn: paidOn.data,
+  });
+  return finish(ctx, result, result.ok ? { id: result.data.id } : {});
+}
+
 // Periods, journal, cost centers and rates ---------------------------------------------------------------
 
 export async function createPeriodAction(_: ActionState, form: FormData): Promise<ActionState> {
@@ -758,6 +789,29 @@ export async function exportUplAction(_: ActionState, form: FormData): Promise<A
     at: Date.now(),
     csv: finance.toCsv(header, body),
     filename: `upl-${target.data}-${from.data}-to-${to.data}.csv`,
+  };
+}
+
+/**
+ * The 1099-NEC file of a tax year in the IRS FIRE field layout (A38-006). It carries full TINs, so the
+ * database asks for the restricted export capability and step-up authentication and audits it.
+ */
+export async function exportForm1099Action(_: ActionState, form: FormData): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const year = z.coerce.number().int().min(2020).max(2100).safeParse(form.get("year"));
+  if (!year.success) return inputError("year");
+  const rows = await form1099.listForm1099NecRows(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    year: year.data,
+    includeTin: true,
+  });
+  if (!rows.ok) return { error: toActionError(rows.error), at: Date.now() };
+  const out = form1099.form1099NecCsv(rows.data, year.data);
+  return {
+    ok: true,
+    at: Date.now(),
+    csv: out.csv,
+    filename: `1099-nec-${year.data}-${ctx.org.slug}.csv`,
   };
 }
 

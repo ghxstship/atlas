@@ -23,6 +23,7 @@ import {
   issueSigningLinkAction,
   rateAction,
   replyAction,
+  setDeliverableFeeAction,
   transitionDocumentAction,
   transitionEngagementAction,
   verifyItemAction,
@@ -562,8 +563,35 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
                   compact
                 />
               </div>
+              <p className="m-0 text-text-secondary">
+                {t("engagements.milestoneFee", {
+                  amount:
+                    formatMoney(page.locale, d.feeMinor, resolved.currencyCode) ?? t("unpriced"),
+                })}
+              </p>
               {d.submissionMessage ? (
                 <p className="m-0 text-text-secondary">{d.submissionMessage}</p>
+              ) : null}
+              {canWrite && d.state !== "Accepted" && resolved.currencyCode ? (
+                <ActionForm
+                  action={setDeliverableFeeAction}
+                  hidden={{
+                    org: ctx.org.slug,
+                    deliverableId: d.id,
+                    currencyCode: resolved.currencyCode,
+                  }}
+                  inline
+                  fields={[
+                    {
+                      name: "fee",
+                      label: t("engagements.milestoneFeeLabel", {
+                        currency: resolved.currencyCode,
+                      }),
+                      kind: "text",
+                    },
+                  ]}
+                  submitLabel={t("engagements.setFee")}
+                />
               ) : null}
               {canWrite && d.state === "Submitted" ? (
                 <ActionForm

@@ -305,7 +305,7 @@
     "self_billing_currency": "La contratación no tiene moneda. Defina primero su tarifa y moneda.",
     "self_billing_disabled": "La autofacturación está desactivada en este proyecto. Actívela en la configuración de Entidades legales y fiscal.",
     "self_billing_not_agreed": "La parte no aceptó la autofacturación en esta contratación; la acepta en Gateway.",
-    "self_billing_nothing_to_bill": "No hay hojas de horas aprobadas en este período pendientes de facturar.",
+    "self_billing_nothing_to_bill": "No hay hojas de horas aprobadas ni hitos aceptados en este período pendientes de facturar.",
     "self_billing_period": "Elija un período cuyo fin sea igual o posterior a su inicio.",
     "settlement_immutable": "Una liquidación conserva su contratación, proyecto, número y moneda.",
     "settlement_line_immutable": "Una línea permanece en su liquidación.",
@@ -330,7 +330,18 @@
     "tax_rate_overlap": "Las tasas de una jurisdicción fiscal y un tipo de impuesto nunca se superponen.",
     "tax_type_unknown": "Ese no es un tipo de impuesto del canon.",
     "transition_reason_required": "Todo cambio de estado necesita un motivo.",
-    "urid_unknown": "Ese URID no es una disciplina ni una categoría del canon."
+    "urid_unknown": "Ese URID no es una disciplina ni una categoría del canon.",
+    "invoice_payment_state": "Registra un pago contra una factura por pagar aprobada o una factura por cobrar emitida.",
+    "invoice_payment_amount": "No queda nada por pagar en esta factura.",
+    "invoice_payment_date": "Indica la fecha en que se movió el dinero.",
+    "payment_payee_not_engaged": "Un pago a una persona se hace a alguien que esta organización contrata a título individual.",
+    "invoice_engagement_payee": "El beneficiario de una factura de una contratación es la parte contratada: su cuenta, o la persona cuando no factura ninguna cuenta.",
+    "invoice_engagement_project": "Una factura cobra una contratación de su propio proyecto.",
+    "export_restricted": "Este archivo incluye identificadores fiscales restringidos. Pide ayuda a un Propietario o Administrador con la capacidad de exportación restringida.",
+    "step_up_required": "Exportar datos restringidos requiere autenticación reforzada. Vuelve a iniciar sesión con tu segundo factor y descarga de nuevo.",
+    "form_1099_year": "Elige un año fiscal entre 2020 y este año.",
+    "deliverable_fee_fixed": "Un hito aceptado conserva su tarifa.",
+    "deliverable_fee_currency": "Define la moneda de la contratación antes de poner precio a sus hitos."
   },
   "collab": {
     "attachments": "Adjuntos",
@@ -533,7 +544,8 @@
       "issuedOn": "Emitida el",
       "number": "Número de factura",
       "periodEnd": "Fin del período",
-      "periodStart": "Inicio del período"
+      "periodStart": "Inicio del período",
+      "paymentAmount": "Importe pagado ({currency})"
     },
     "kind": {
       "Payable": "Factura por pagar",
@@ -546,10 +558,17 @@
     "postsWhenApproved": "Una factura por pagar se contabiliza cuando queda totalmente aprobada.",
     "postsWhenIssued": "Una factura por cobrar se contabiliza cuando se emite.",
     "selfBill": "Generar desde hojas de horas",
-    "selfBillSentence": "Crea un borrador de factura por pagar para la parte a partir de las hojas de horas aprobadas del período. Requiere la autofacturación activada y la aceptación de la parte en Gateway.",
+    "selfBillSentence": "Crea una factura por pagar en borrador para la parte, una cuenta de empresa o una persona contratada a título individual, a partir de las hojas de horas aprobadas y los hitos aceptados en el período. Requiere activar la autofacturación y el acuerdo de la parte en Gateway.",
     "selfBillSubmit": "Generar factura",
     "tax": "Impuesto",
-    "unpricedTotal": "{count, plural, one {Sin precio, # línea no tiene precio} other {Sin precio, # líneas no tienen precio}}"
+    "unpricedTotal": "{count, plural, one {Sin precio, # línea no tiene precio} other {Sin precio, # líneas no tienen precio}}",
+    "recordPayment": "Registrar pago",
+    "recordPaymentSentence": "Registra un pago hecho con tu propio banco o proveedor de pagos. Se aplica a esta factura y espera a otro aprobador antes de que el beneficiario lo vea como pagado.",
+    "recordPaymentSubmit": "Registrar pago",
+    "paymentAmountHint": "Déjalo en blanco para pagar todo el saldo.",
+    "paymentReferenceHint": "La referencia de la remesa de tu banco o proveedor de pagos.",
+    "payee": "Beneficiario",
+    "individual": "Individual"
   },
   "payments": {
     "applications": "Aplicado a facturas",
@@ -582,7 +601,8 @@
     },
     "tabs": "Pagos y liquidaciones",
     "unapplied": "Sin aplicar",
-    "unnumbered": "Factura sin número"
+    "unnumbered": "Factura sin número",
+    "individualPayee": "{name} (individual)"
   },
   "journal": {
     "addLine": "Agregar línea",
@@ -740,5 +760,34 @@
     "noLines": "Aún no hay líneas. Agregue la garantía, los bonos, los gastos y las deducciones.",
     "noLinesRead": "Esta liquidación aún no tiene líneas.",
     "unpricedNet": "{count, plural, one {Sin precio, # línea no tiene importe} other {Sin precio, # líneas no tienen importe}}"
+  },
+  "yearEnd": {
+    "empty": "Ningún beneficiario alcanzó {threshold} en pagos aprobados en USD como contratista independiente en {year}. Los beneficiarios aparecen aquí cuando se aprueban sus pagos.",
+    "emptyAction": "Abrir pagos",
+    "loadError": "No se pudieron cargar los beneficiarios del cierre del año. Vuelve a cargar la página; si sigue fallando, revisa la página de pagos.",
+    "yearFilter": "Año fiscal",
+    "taxYear": "Año fiscal {year}",
+    "summary": "{count, plural, =0 {Ningún beneficiario} one {# beneficiario} other {# beneficiarios}} con pagos de {threshold} o más. {missingForm, plural, =0 {Todos tienen un W-9 registrado.} one {# no tiene W-9 registrado: pídelo en Gateway antes de presentar.} other {# no tienen W-9 registrado: pídelos en Gateway antes de presentar.}} {missingAddress, plural, =0 {} one {# W-9 aún no tiene la dirección completa.} other {# W-9 aún no tienen la dirección completa.}}",
+    "export": "Descargar archivo 1099-NEC",
+    "exportSentence": "Un CSV con el formato de registro de beneficiario FIRE del IRS, con los identificadores fiscales completos. Es una exportación restringida: necesitas autenticación reforzada y la descarga queda en el registro de auditoría. Se omiten los beneficiarios sin W-9 o sin dirección.",
+    "exported": "Se descargó {file}.",
+    "exportNeedsCapability": "El archivo 1099-NEC incluye identificadores fiscales completos. Pide a un Propietario o Administrador con la capacidad de exportación restringida que lo descargue.",
+    "w9OnFile": "W-9 registrado",
+    "w9Missing": "Sin W-9",
+    "addressMissing": "Falta la dirección",
+    "tinLast4": "Termina en {last4}",
+    "kind": {
+      "person": "Individual",
+      "account": "Cuenta de empresa"
+    },
+    "columns": {
+      "payee": "Beneficiario",
+      "kind": "Tipo de beneficiario",
+      "form": "Formulario fiscal",
+      "tin": "TIN",
+      "address": "Dirección",
+      "payments": "Pagos",
+      "amount": "Pagado en el año"
+    }
   }
 }

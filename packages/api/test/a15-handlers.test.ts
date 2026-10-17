@@ -68,6 +68,11 @@ const PO = id(3101);
 const MEMBERSHIP = id(3201);
 const REPORT = id(3301);
 const RUN = id(3401);
+const SCHEDULE = id(3501);
+const RECIPIENT = id(3502);
+const DELIVERY = id(3503);
+const DASHBOARD = id(3601);
+const TILE = id(3602);
 const MISSING = id(9999);
 
 function setState(db: MemoryDb, table: string, key: string, column: string, value: string) {
@@ -363,6 +368,49 @@ function world() {
           last_error: null,
         }),
       ],
+      memberships: [
+        tenantRow(MEMBERSHIP, ORG, { person_id: ME, valid_from: "2026-01-01T00:00:00.000Z" }),
+      ],
+      report_schedules: [
+        tenantRow(SCHEDULE, ORG, {
+          report_definition_id: REPORT,
+          cadence: "Weekly",
+          local_hour: 8,
+          weekday: 1,
+          month_day: null,
+          time_zone: "America/New_York",
+          export_format: "PDF",
+          next_run_at: "2026-10-19T12:00:00.000Z",
+          paused_at: null,
+        }),
+      ],
+      report_schedule_recipients: [
+        tenantRow(RECIPIENT, ORG, { report_schedule_id: SCHEDULE, membership_id: MEMBERSHIP }),
+      ],
+      report_deliveries: [
+        tenantRow(DELIVERY, ORG, {
+          report_schedule_id: SCHEDULE,
+          membership_id: MEMBERSHIP,
+          report_run_id: RUN,
+          scheduled_for: "2026-10-12T12:00:00.000Z",
+          delivery_status: "Sent",
+          sent_at: "2026-10-12T12:01:00.000Z",
+          last_error: null,
+        }),
+      ],
+      dashboards: [
+        tenantRow(DASHBOARD, ORG, { name: "Show Week", membership_id: MEMBERSHIP, team_id: null }),
+      ],
+      dashboard_tiles: [
+        tenantRow(TILE, ORG, {
+          dashboard_id: DASHBOARD,
+          report_definition_id: REPORT,
+          grid_column: 1,
+          grid_row: 1,
+          column_span: 6,
+          row_span: 1,
+        }),
+      ],
     },
     {
       approve_expense: (args, self) => {
@@ -415,6 +463,30 @@ function world() {
         return true;
       },
       transition_invoice: transitionRpc("invoices", "invoice_state", "p_invoice_id", "invoice"),
+      form_1099_nec_rows: () => [
+        {
+          payee_person_id: id(4101),
+          payee_organization_id: null,
+          payee_name: "Ivy Marchetti",
+          tax_form_id: id(4102),
+          w9_on_file: true,
+          tin_type: 2,
+          tin_last4: "6789",
+          tin: null,
+          street_address: "1 Pier Way",
+          locality: "Miami",
+          region_code: "FL",
+          postal_code: "33101",
+          address_complete: true,
+          amount_minor: 75000,
+          payment_count: 2,
+        },
+      ],
+      record_invoice_payment: (args, self) => {
+        if (stateOf(self, "invoices", String(args["p_invoice_id"]), "invoice_state") !== "Approved")
+          throw refusal("invoice_payment_state");
+        return id(2402);
+      },
       run_report: (args, self) => {
         const run = tenantRow(id(3402), ORG, {
           report_definition_id: args["p_report_definition_id"],
@@ -969,6 +1041,125 @@ describe("invoices and payments", () => {
       to_state: "Canceled",
     });
     expect(stale.status).toBe(409);
+  });
+
+  it("serves dashboards, tiles, report schedules, recipients and deliveries (A38-004)", async () => {
+    const { http } = world();
+    const schedulesR = await crud(http, {
+      path: "/report-schedules",
+      op: "reportSchedules",
+      key: SCHEDULE,
+      create: {
+        report_definition_id: REPORT,
+        cadence: "Monthly",
+        local_hour: 7,
+        month_day: 1,
+        time_zone: "America/New_York",
+        export_format: "XLSX",
+      },
+      update: { local_hour: 9 },
+    });
+    await expectContract(schedulesR.list, "reportSchedules.list");
+    await expectContract(schedulesR.get, "reportSchedules.get");
+    await expectContract(step(schedulesR.create), "reportSchedules.create");
+    await expectContract(step(schedulesR.update), "reportSchedules.update");
+    const scheduleGone = await success(http.delete(`/report-schedules/${SCHEDULE}`));
+    await expectContract(scheduleGone, "reportSchedules.delete");
+
+    const dashboardsR = await crud(http, {
+      path: "/dashboards",
+      op: "dashboards",
+      key: DASHBOARD,
+      create: { name: "Finance Week" },
+      update: { name: "Show Week Two" },
+    });
+    await expectContract(dashboardsR.list, "dashboards.list");
+    await expectContract(dashboardsR.get, "dashboards.get");
+    const createdDashboard = (await expectContract(
+      step(dashboardsR.create),
+      "dashboards.create",
+    )) as Row;
+    expect(createdDashboard["membership_id"]).toBe(MEMBERSHIP);
+    await expectContract(step(dashboardsR.update), "dashboards.update");
+
+    const tilesR = await crud(http, {
+      path: "/dashboard-tiles",
+      op: "dashboardTiles",
+      key: TILE,
+      create: {
+        dashboard_id: DASHBOARD,
+        report_definition_id: REPORT,
+        grid_column: 7,
+        grid_row: 1,
+        column_span: 6,
+        row_span: 1,
+      },
+      update: { column_span: 5 },
+      remove: true,
+    });
+    await expectContract(tilesR.list, "dashboardTiles.list");
+    await expectContract(tilesR.get, "dashboardTiles.get");
+    await expectContract(step(tilesR.create), "dashboardTiles.create");
+    await expectContract(step(tilesR.update), "dashboardTiles.update");
+    await expectContract(step(tilesR.remove), "dashboardTiles.delete");
+    const dashboardGone = await success(http.delete(`/dashboards/${DASHBOARD}`));
+    await expectContract(dashboardGone, "dashboards.delete");
+
+    const recipientsR = await crud(http, {
+      path: "/report-schedule-recipients",
+      op: "reportScheduleRecipients",
+      key: RECIPIENT,
+      create: { report_schedule_id: SCHEDULE, membership_id: MEMBERSHIP },
+      remove: true,
+    });
+    await expectContract(recipientsR.list, "reportScheduleRecipients.list");
+    await expectContract(recipientsR.get, "reportScheduleRecipients.get");
+    await expectContract(step(recipientsR.create), "reportScheduleRecipients.create");
+    await expectContract(step(recipientsR.remove), "reportScheduleRecipients.delete");
+
+    const deliveriesList = await success(http.get("/report-deliveries"));
+    await expectContract(deliveriesList, "reportDeliveries.list");
+    const deliveryOne = await success(http.get(`/report-deliveries/${DELIVERY}`));
+    const delivery = (await expectContract(deliveryOne, "reportDeliveries.get")) as Row;
+    expect(delivery["delivery_status"]).toBe("Sent");
+  });
+
+  it("lists the 1099-NEC payees of a tax year without full TINs (A38-006)", async () => {
+    const { db, http } = world();
+    const sent = await success(http.get("/form-1099-nec/rows?year=2025"));
+    const page = (await expectContract(sent, "form1099Nec.rows")) as { data: Row[] };
+    expect(page.data[0]).toMatchObject({ payee_name: "Ivy Marchetti", amount_minor: 75000 });
+    expect(page.data[0]).not.toHaveProperty("tin");
+    expect(db.calls.findLast((c) => c.name === "form_1099_nec_rows")?.args).toEqual({
+      p_org_id: ORG,
+      p_year: 2025,
+      p_include_tin: false,
+    });
+  });
+
+  it("records a payment against an approved invoice (A38-007)", async () => {
+    const { db, http } = world();
+    const early = await http.post(`/invoices/${INVOICE}/record-payment`, { paid_on: "2026-10-12" });
+    expect(early.status).toBe(422);
+    expect(((await early.json()) as Row)["rule"]).toBe("invoice_payment_state");
+    setState(db, "invoices", INVOICE, "invoice_state", "Approved");
+    const sent = await success(
+      http.post(`/invoices/${INVOICE}/record-payment`, {
+        paid_on: "2026-10-12",
+        reference: "ACH-2027-0042",
+      }),
+    );
+    const paid = (await expectContract(sent, "invoices.recordPayment")) as Row;
+    expect(paid["id"]).toBe(INVOICE);
+    expect(db.calls.findLast((c) => c.name === "record_invoice_payment")?.args).toEqual({
+      p_invoice_id: INVOICE,
+      p_paid_on: "2026-10-12",
+      p_reference: "ACH-2027-0042",
+    });
+    const missing = await http.post(`/invoices/${MISSING}/record-payment`, {
+      paid_on: "2026-10-12",
+    });
+    expect(missing.status).toBe(404);
   });
 
   it("serves billing draws, tax jurisdictions, tax rates and FX rates", async () => {
