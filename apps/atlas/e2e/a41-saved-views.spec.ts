@@ -78,7 +78,10 @@ test("the saved views page renames, shares, opens and deletes the viewer's views
   await page.goto(`/${ORG}/views`);
   await mine.getByRole("button", { name: `Delete ${renamed}` }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Delete view" }).click();
-  await expect(mine.getByRole("link", { name: renamed })).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: `Deleted ${renamed}.` })).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("heading", { level: 1, name: "Saved views" })).toBeVisible();
+  await expect(page.getByRole("link", { name: renamed })).toHaveCount(0);
 });
 
 test("the saved views page names the next step when there are none", async ({ page }) => {

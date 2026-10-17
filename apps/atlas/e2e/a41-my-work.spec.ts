@@ -30,6 +30,39 @@ test("My Work groups the viewer's records by due state in every view", async ({ 
   ).toBeVisible();
   await expectAccessibleInBothThemes(page);
 
+  // Icons draw from the cached sprite (ADR 0027): decorative ones are hidden from assistive
+  // technology and the sprite is a static asset browsers keep.
+  const use = page.locator("svg[aria-hidden='true'] > use").first();
+  const href = (await use.getAttribute("href")) ?? "";
+  expect(href).toMatch(/\.svg#[A-Z]\w+$/);
+  const sprite = await page.request.get(href.split("#")[0] as string);
+  expect(sprite.status()).toBe(200);
+  expect(sprite.headers()["content-type"]).toContain("image/svg+xml");
+  if (process.env["E2E_PRODUCTION_BUILD"] === "1") {
+    expect(sprite.headers()["cache-control"]).toContain("immutable");
+  }
+  expect(await sprite.text()).toContain(`<symbol id="${href.split("#")[1]}"`);
+
+  // Browser error reports name the signed-in person by id, never by email (ADR 0025).
+  // The reporter sends a Blob beacon, whose body Playwright does not expose, so read it in the page.
+  const payload = await page.evaluate(async () => {
+    const send = navigator.sendBeacon.bind(navigator);
+    const body = new Promise<string>((resolve) => {
+      navigator.sendBeacon = (url, data) => {
+        if (String(url).endsWith("/api/client-errors") && data instanceof Blob) {
+          void data.text().then(resolve);
+        }
+        return send(url, data);
+      };
+    });
+    void Promise.reject(new Error("My Work reporter check"));
+    return body;
+  });
+  expect(JSON.parse(payload)).toMatchObject({
+    userId: expect.stringMatching(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/),
+  });
+  expect(payload).not.toContain("producer@example.com");
+
   // A record opens in the shell's side peek.
   await upcoming
     .getByRole("row", { name: /Fire Marshal Walk/ })

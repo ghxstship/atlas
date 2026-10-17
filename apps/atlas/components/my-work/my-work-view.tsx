@@ -209,7 +209,7 @@ export function MyWorkView({
                     recordKey={r.key}
                     kind={r.kind as RecordKind}
                     title={r.title}
-                    next={`${r.project} · ${r.when}`}
+                    next={r.when}
                     actionLabel={t("open")}
                     onAction={() => open(r.key)}
                     onOpen={() => open(r.key)}
