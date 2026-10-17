@@ -556,5 +556,12 @@
     "breakStarted": "Pausa iniciada.",
     "breakEnded": "Pausa terminada. Estás en turno.",
     "clockedOut": "Salida registrada."
+  },
+  "update": {
+    "message": "Esta versión de Compass ya no tiene soporte. Actualízala para seguir registrando horas, escaneando y reportando.",
+    "messageNoLink": "Esta versión de Compass ya no tiene soporte. Actualízala desde tu tienda de apps y vuelve a abrir Compass.",
+    "versions": "Esta versión {current}. Se necesita {minimum} o posterior.",
+    "action": "Actualizar Compass",
+    "recheck": "Comprobar de nuevo"
   }
 }

@@ -556,5 +556,12 @@
     "breakStarted": "Break started.",
     "breakEnded": "Break ended. You're on shift.",
     "clockedOut": "Clocked out."
+  },
+  "update": {
+    "message": "This version of Compass is no longer supported. Update it to keep clocking in, scanning and reporting.",
+    "messageNoLink": "This version of Compass is no longer supported. Update it from your app store, then open Compass again.",
+    "versions": "This build {current}. Needed {minimum} or later.",
+    "action": "Update Compass",
+    "recheck": "Check Again"
   }
 }
