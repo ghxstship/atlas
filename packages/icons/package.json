@@ -9,7 +9,10 @@
     ".": "./src/index.ts",
     "./glyphs": "./src/glyphs.ts",
     "./names": "./src/names.ts",
-    "./sprite.svg": "./src/sprite.generated.svg",
+    "./sprite.svg": {
+      "types": "./src/sprite.d.ts",
+      "default": "./src/sprite.generated.svg"
+    },
     "./map.json": "./src/map.json"
   },
   "scripts": {
