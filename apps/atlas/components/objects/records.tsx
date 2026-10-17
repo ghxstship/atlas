@@ -66,10 +66,6 @@ export function CreateRecordDrawer({
         }}
         label={t("objects.createTitle", { object: label })}
         submitLabel={t("objects.createSubmit")}
-        onDone={() => {
-          close();
-          router.refresh();
-        }}
       >
         <Input
           id="record-title"
@@ -197,7 +193,7 @@ export function RecordPeek({
         <ActionForm
           action={setChoiceAction}
           hidden={{ org, objectKey, record: recordId, field: board.id, choice }}
-          label={t("objects.move", { field: board.label })}
+          label={t("objects.moveForm", { field: board.label })}
           submitLabel={t("objects.moveSubmit")}
           success={t("objects.moved")}
           inline

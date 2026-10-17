@@ -46,6 +46,8 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
   const items = rows.filter((r) => !hidden.has(r.id));
   const refs = useRef(new Map<string, HTMLElement>());
   const listRef = useRef<HTMLUListElement>(null);
+  /** Set when an acted-on item leaves, so focus moves to the item that took its place. */
+  const refocus = useRef(false);
 
   const current = Math.min(selected, Math.max(items.length - 1, 0));
 
@@ -62,6 +64,7 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
   const act = useCallback(
     (row: InboxRow, action: Quick) => {
       if (action === "approve" && !row.approvable) return;
+      refocus.current = true;
       setHidden((prev) => new Set(prev).add(row.id));
       setHandled((n) => n + 1);
       void quickInboxAction({ org, id: row.id, action }).then((result) => {
@@ -125,7 +128,10 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
   // Keep focus on the item that took the acted-on item's place.
   useEffect(() => {
     const row = items[current];
-    if (row && listRef.current?.contains(document.activeElement)) refs.current.get(row.id)?.focus();
+    if (row && (refocus.current || listRef.current?.contains(document.activeElement))) {
+      refocus.current = false;
+      refs.current.get(row.id)?.focus();
+    }
   }, [items, current]);
 
   if (items.length === 0) {

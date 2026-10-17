@@ -12,6 +12,8 @@ import {
   type FieldValue,
 } from "@xos/data/custom-objects";
 import { revalidatePath } from "next/cache";
+import type { Route } from "next";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
   done,
@@ -139,8 +141,11 @@ export async function createRecordAction(
     values,
   });
   if (!result.ok) return fromDataError(result.error);
-  revalidatePath(`/${ctx.org.slug}/objects/${type.data.key}`);
-  return done(result.data);
+  const base = `/${ctx.org.slug}/objects/${type.data.key}`;
+  revalidatePath(base);
+  // Back to the collection the drawer opened from, keeping its view and search.
+  const close = field(form, "close");
+  redirect((close.startsWith(`${base}?`) || close === base ? close : base) as Route);
 }
 
 export async function setChoiceAction(

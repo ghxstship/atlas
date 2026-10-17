@@ -389,6 +389,7 @@
     "requiredLabel": "{label} (obligatorio)",
     "noValue": "Sin valor",
     "move": "{field}",
+    "moveForm": "Mover este registro a otro valor de {field}",
     "moveSubmit": "Mover",
     "moved": "Movido.",
     "views": {

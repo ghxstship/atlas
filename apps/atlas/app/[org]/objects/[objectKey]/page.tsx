@@ -168,6 +168,8 @@ export default async function Page({
 
   return (
     <CollectionView
+      // The board keeps its cards in state; a new key remounts it when the records change.
+      key={JSON.stringify(records.data.map((r) => [r.id, r.title, r.values]))}
       title={object.label}
       views={views}
       view={state.view}
