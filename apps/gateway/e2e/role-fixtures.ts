@@ -386,6 +386,18 @@ export async function changeOrderForClient(
   return { id, title, internal };
 }
 
+/** A sponsor entitlement of the sponsor's package on the demo project (journey 47). */
+export async function sponsorEntitlement(description: string): Promise<{ id: string }> {
+  const [row] = await sql<{ id: string }>(
+    `insert into app.sponsor_entitlements (project_id, counterparty_id, description, quantity, due_on)
+     values ($1, (select c.id from app.counterparties c where c.org_id = $2 and c.organization_id = $3 and c.deleted_at is null limit 1),
+       $4, 12, '2027-06-06') returning id`,
+    [PROJECT, DEMO.org, ROLE_ACCOUNTS.sponsor, description],
+    PEOPLE.owner,
+  );
+  return { id: row?.id as string };
+}
+
 /**
  * A sign-in with the shared demo password (seed 0010's local test value), for a person a journey
  * needs fresh on every run. Returns the person id the person trigger created.
