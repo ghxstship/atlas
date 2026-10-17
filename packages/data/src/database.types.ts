@@ -50223,6 +50223,7 @@ export type Database = {
         };
         Returns: string;
       };
+      account_deletion_preview: { Args: Record<PropertyKey, never>; Returns: Json };
       acknowledge_feed_post: { Args: { p_post_id: string }; Returns: string };
       acknowledge_handbook_article: { Args: { p_article_id: string }; Returns: string };
       acknowledge_purchase_order: { Args: { p_purchase_order_id: string }; Returns: string };
@@ -51011,6 +51012,7 @@ export type Database = {
       };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
+      delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;
@@ -51309,6 +51311,14 @@ export type Database = {
           published_at: string;
           title: string;
           version: number;
+        }[];
+      };
+      my_project_role_capabilities: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          capability_code: string;
+          project_id: string;
+          project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
       open_help_desk_request: {

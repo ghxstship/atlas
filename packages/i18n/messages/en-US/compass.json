@@ -476,7 +476,7 @@
     "signOutQueued": "{count} changes have not uploaded. Signing out deletes them from this device.",
     "signOutConfirm": "Sign Out Anyway",
     "deleteAccount": "Delete Account",
-    "deleteAccountHelp": "Deletes your account and the data you own. Opens Gateway to confirm.",
+    "deleteAccountHelp": "Deletes your account and the data you own, after you confirm.",
     "version": "Version {version}",
     "personal": "Personal settings",
     "biometric": "Biometric Unlock",
@@ -590,5 +590,41 @@
     "versions": "This build {current}. Needed {minimum} or later.",
     "action": "Update Compass",
     "recheck": "Check Again"
+  },
+  "account": {
+    "title": "Delete Account",
+    "intro": "Deleting your account signs you out and erases your sign-in, name, profile, devices and preferences. Every organization you work with is told.",
+    "offline": "Deleting your account needs a connection. Connect, then try again.",
+    "previewFailedTitle": "Your account could not be checked",
+    "previewFailed": "{reason}. Check your connection, then try again.",
+    "retry": "Try Again",
+    "blockersTitle": "Your account cannot be deleted yet",
+    "blocker": {
+      "account_delete_legal_hold": "{org} keeps your records under a legal hold ({matter}). Ask {org} to release the hold, then delete your account.",
+      "account_delete_on_shift": "You are clocked in at {org}. Clock out, then delete your account.",
+      "account_delete_sole_owner": "You are the only owner of {org}. Make someone else an owner, then delete your account."
+    },
+    "keptTitle": "What is kept, and why",
+    "kept": {
+      "time_and_pay": "Your time and pay records, kept 7 years because payroll law requires it.",
+      "tax_forms": "Your tax forms, kept 7 years because tax law requires it.",
+      "engagements": "Your engagement records and signed agreements, kept 7 years.",
+      "org_records": "Records you created for an organization, such as incident reports, kept by that organization without your name.",
+      "audit_trail": "The security audit trail, kept 7 years. Your personal details in it are removed after 90 days.",
+      "erasure_request": "A record that you asked for this erasure, so each organization can show it was done."
+    },
+    "emailLabel": "Type your sign-in email to confirm",
+    "emailHelp": "You sign in as {email}.",
+    "emailMismatch": "That is not the email you sign in with.",
+    "delete": "Delete My Account",
+    "deleteHoldHint": "Hold for 2 seconds to delete your account",
+    "stepUpPrompt": "Confirm it is you to delete your account",
+    "stepUpFailed": "That did not confirm it is you, so nothing was deleted. Try again.",
+    "refusedTitle": "Your account was not deleted",
+    "failed": "Your account was not deleted: {reason}. Try again.",
+    "doneTitle": "Your account is deleted",
+    "doneSentence": "Your sign-in, name and profile are erased. Organizations told: {count}.",
+    "done": "Done",
+    "signOutFailed": "Compass could not clear this device: {reason}. Try Done again."
   }
 }

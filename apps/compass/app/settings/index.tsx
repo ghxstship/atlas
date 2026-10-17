@@ -110,7 +110,8 @@ export default function SettingsScreen(): ReactElement {
           icon="ban"
           title={t("compass.settings.deleteAccount")}
           subtitle={t("compass.settings.deleteAccountHelp")}
-          onPress={() => void Linking.openURL(`${config.gatewayUrl}/settings/account`)}
+          testID="settings-delete-account"
+          onPress={() => router.push("/settings/account")}
         />
       </Card>
       {confirmSignOut && queued > 0 ? (

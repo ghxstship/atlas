@@ -1,7 +1,7 @@
 import * as Linking from "expo-linking";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import type { ReactElement } from "react";
+import { useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -10,8 +10,10 @@ import { playHaptic } from "../src/runtime/haptics";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { BiometricLock } from "../src/screens/BiometricLock";
+import { DeleteAccount } from "../src/screens/DeleteAccount";
 import { SignIn } from "../src/screens/SignIn";
 import {
+  Button,
   ErrorState,
   ForceUpdateScreen,
   Screen,
@@ -23,8 +25,13 @@ import {
 initI18n();
 
 function Gatekeeper(): ReactElement {
-  const { phase, retryIdentity, settings, client } = useCompass();
+  const { phase, retryIdentity, settings, client, signOut } = useCompass();
   const { t } = useTranslation();
+  const [deleting, setDeleting] = useState(false);
+  // The delete screen belongs to this failed sign-in only; the next sign-in starts from the error screen.
+  useEffect(() => {
+    if (phase.kind !== "identity-failed") setDeleting(false);
+  }, [phase.kind]);
   const theme = useTheme();
   const update = useUpdateGate(client);
   // Below the server-advertised minimum version nothing else runs, signed in or not (Section 5.1).
@@ -52,6 +59,8 @@ function Gatekeeper(): ReactElement {
   }
   if (phase.kind === "signed-out") return <SignIn />;
   if (phase.kind === "identity-failed") {
+    // A sign-in with no membership or engagement can still sign out or delete itself (SIM-004).
+    if (deleting) return <DeleteAccount />;
     return (
       <Screen testID="identity-failed">
         <ErrorState
@@ -60,6 +69,22 @@ function Gatekeeper(): ReactElement {
           reference={phase.message}
           actionLabel={t("compass.common.retry")}
           onRetry={retryIdentity}
+        />
+        <Button
+          testID="identity-failed-sign-out"
+          variant="secondary"
+          icon="log-out"
+          block
+          label={t("compass.settings.signOut")}
+          onPress={() => void signOut()}
+        />
+        <Button
+          testID="identity-failed-delete-account"
+          variant="secondary"
+          icon="ban"
+          block
+          label={t("compass.settings.deleteAccount")}
+          onPress={() => setDeleting(true)}
         />
       </Screen>
     );
