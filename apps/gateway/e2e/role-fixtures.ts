@@ -386,6 +386,90 @@ export async function changeOrderForClient(
   return { id, title, internal };
 }
 
+/**
+ * A pay-transparency rule on the demo project's jurisdiction for the length of one journey.
+ * `private.pay_transparency_rules` is platform legal reference data and ships empty (finding
+ * A38-006); this local test row stands in for a real rule and `remove()` deletes it.
+ */
+export async function temporaryPayTransparencyRule(): Promise<{ remove: () => Promise<void> }> {
+  const citation = `Journey 44 local test rule ${suffix()}`;
+  await sql(
+    `insert into private.pay_transparency_rules (jurisdiction_id, requires_pay_range, effective_from, citation)
+     values ('US-FL-MIAMI-DADE', true, current_date - 1, $1)`,
+    [citation],
+  );
+  return {
+    remove: async () => {
+      await sql(`delete from private.pay_transparency_rules where citation = $1`, [citation]);
+    },
+  };
+}
+
+/**
+ * A Draft Contractor opportunity with no pay range, made from an Approved contractor requisition
+ * on the demo project (journey 44): scoped work, a lighting design package.
+ */
+export async function draftContractorOpportunity(): Promise<{ id: string; title: string }> {
+  const title = `Lighting Design Package ${suffix()}`;
+  const [req] = await sql<{ id: string }>(
+    `insert into app.requisitions (project_id, role_type, role_code, worker_classification, pay_basis, arrangement,
+       headcount, rate_minor, currency_code, starts_on, ends_on, justification, requested_by)
+     values ($1, 'Contractor', '9000.50.03', 'INDEPENDENT_CONTRACTOR', 'Day Rate', 'Per Engagement', 1, 120000, 'USD',
+       '2027-05-01', '2027-06-06', 'Lighting design for the summer series, delivered in two milestones.', $2)
+     returning id`,
+    [PROJECT, PEOPLE.owner],
+    PEOPLE.owner,
+  );
+  await transition(
+    "requisition",
+    req?.id as string,
+    "Proposed",
+    "Approved",
+    "Within the design budget.",
+  );
+  const [opp] = await sql<{ id: string }>(
+    `insert into app.opportunities (project_id, requisition_id, role_type, role_code, title, description, visibility,
+       rate_type, currency_code, starts_on, ends_on, deadline_at)
+     values ($1, $2, 'Contractor', '9000.50.03', $3, 'Lighting plot and cue design in two milestones.', 'Invited',
+       'Milestone', 'USD', '2027-05-01', '2027-06-06', now() + interval '30 days')
+     returning id`,
+    [PROJECT, req?.id, title],
+    PEOPLE.owner,
+  );
+  return { id: opp?.id as string, title };
+}
+
+/** A milestone deliverable on the contractor engagement, with the file the contractor delivers. */
+export async function contractorMilestone(
+  engagementId: string,
+  title: string,
+): Promise<{ id: string; file: string }> {
+  const [record] = await sql<{ id: string }>(
+    `insert into app.records (project_id, record_kind, record_subtype, title, xyz, xyz_basis)
+     values ($1, 'Task', 'Execute', $2, 'Y', 'Declared') returning id`,
+    [PROJECT, title],
+    PEOPLE.owner,
+  );
+  const [deliverable] = await asPerson<{ id: string }>(
+    PEOPLE.owner,
+    `select app.add_engagement_deliverable($1, $2) as id`,
+    [engagementId, record?.id],
+  );
+  const file = `${title} drawings`;
+  const [doc] = await sql<{ id: string }>(
+    `insert into app.documents (org_id, project_id, title) values ($1, $2, $3) returning id`,
+    [DEMO.org, PROJECT, file],
+    PEOPLE.owner,
+  );
+  await sql(
+    `insert into app.engagement_documents (engagement_id, document_kind, title, document_id)
+     values ($1, 'Statement of Work', $2, $3)`,
+    [engagementId, file, doc?.id],
+    PEOPLE.owner,
+  );
+  return { id: deliverable?.id as string, file };
+}
+
 /** A sponsor entitlement of the sponsor's package on the demo project (journey 47). */
 export async function sponsorEntitlement(description: string): Promise<{ id: string }> {
   const [row] = await sql<{ id: string }>(
