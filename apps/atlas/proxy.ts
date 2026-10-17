@@ -1,4 +1,5 @@
 import { getCurrentPerson } from "@xos/data";
+import { VIEW_AS_COOKIE } from "@xos/data/access";
 import { findRoute } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
@@ -11,6 +12,7 @@ import {
 } from "@/lib/security/headers";
 import { decideRoute } from "@/lib/shell/guard";
 import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
+import { applyViewAs } from "@/lib/access/view-as";
 import { resolveMembership } from "@/lib/shell/membership";
 import { createProxySupabase } from "@/lib/supabase/proxy";
 
@@ -85,7 +87,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       }
       if (personId === null) return null;
       const membership = await resolveMembership(db, personId, slug, request.headers);
-      return membership?.nav ?? null;
+      if (!membership) return null;
+      // View as role (A36): a preview guards routes as the previewed role, as pages do.
+      const previewed = await applyViewAs(
+        db,
+        membership,
+        request.cookies.get(VIEW_AS_COOKIE)?.value,
+      );
+      return previewed.nav;
     },
   });
 

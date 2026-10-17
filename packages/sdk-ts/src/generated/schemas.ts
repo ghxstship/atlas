@@ -32297,6 +32297,42 @@ export interface ImportJobCreate {
 }
 
 /**
+ * What committing an import would write (Section 4.6.2 step 6).
+ */
+export interface ImportDryRun {
+  /**
+   * Rows that will create a record.
+   * Range: 0 to unbounded.
+   */
+  readonly creates: number;
+  /**
+   * Rows that will update the record their strong key matched.
+   * Range: 0 to unbounded.
+   */
+  readonly updates: number;
+  /**
+   * Rows that will merge into a record a person chose.
+   * Range: 0 to unbounded.
+   */
+  readonly merges: number;
+  /**
+   * Rows that are Invalid or Refused.
+   * Range: 0 to unbounded.
+   */
+  readonly refusals: number;
+  /**
+   * Rows skipped.
+   * Range: 0 to unbounded.
+   */
+  readonly skipped: number;
+  /**
+   * Possible duplicates still waiting for a person.
+   * Range: 0 to unbounded.
+   */
+  readonly pending_reviews: number;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ImportBatchPage {
@@ -33639,6 +33675,21 @@ export interface NotificationUpdate {
 
 export interface MarkAllReadResult {
   readonly updated_count: number;
+}
+
+/**
+ * An action on a notification.
+ */
+export interface NotificationActRequest {
+  /**
+   * What to do.
+   */
+  readonly action: "approve" | "reject" | "done";
+  /**
+   * Reason, required when rejecting.
+   * Length: 1 to 20000.
+   */
+  readonly comment?: string;
 }
 
 /**
@@ -36170,6 +36221,198 @@ export interface TemplateItemUpdate {
    * Range: -3660 to 3660.
    */
   readonly due_offset_days?: number | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface SupportSessionPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<SupportSession>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end.
+ */
+export interface SupportSession {
+  /**
+   * Identifier of the support session.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the partner org whose staff may read while the session lasts.
+   * Format: `uuid`.
+   */
+  readonly grantee_org_id: string;
+  /**
+   * Why the session was granted.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+  /**
+   * When access began.
+   * Format: `date-time`.
+   */
+  readonly starts_at: string;
+  /**
+   * When access ends on its own, at most 24 hours after it began.
+   * Format: `date-time`.
+   */
+  readonly ends_at: string;
+  /**
+   * When someone ended the session early.
+   * Format: `date-time`.
+   */
+  readonly ended_at: string | null;
+  /**
+   * Identifier of the person who ended it early.
+   * Format: `uuid`.
+   */
+  readonly ended_by: string | null;
+}
+
+/**
+ * A support session to grant.
+ */
+export interface SupportSessionGrantRequest {
+  /**
+   * Length of the session in hours, 1 to 24.
+   * Range: 1 to unbounded.
+   */
+  readonly hours: number;
+  /**
+   * Why the partner needs access.
+   * Length: 1 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WholesaleStatementPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WholesaleStatement>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only.
+ */
+export interface WholesaleStatement {
+  /**
+   * Identifier of the wholesale statement.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * First day of the month billed.
+   * Format: `date`.
+   */
+  readonly period_start: string;
+  /**
+   * Currency of the partner agreement.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly currency_code: string;
+  /**
+   * Discount in basis points when the statement ran.
+   * Range: 0 to unbounded.
+   */
+  readonly wholesale_discount_bps: number;
+  /**
+   * Client orgs on the statement.
+   * Range: 0 to unbounded.
+   */
+  readonly client_count: number;
+  /**
+   * Sum of priced list prices in minor units; null only while a statement has no priced line.
+   * Range: 0 to unbounded.
+   */
+  readonly list_total_minor: number | null;
+  /**
+   * What the partner owes, in minor units; null only while a statement has no priced line.
+   * Range: 0 to unbounded.
+   */
+  readonly wholesale_total_minor: number | null;
+  /**
+   * Lines whose plan is unpriced in the currency.
+   * Range: 0 to unbounded.
+   */
+  readonly unpriced_count: number;
+}
+
+/**
+ * The month to bill.
+ */
+export interface WholesaleBillingRequest {
+  /**
+   * First day of the month to bill.
+   * Format: `date`.
+   */
+  readonly period_start: string;
 }
 
 /**

@@ -560,6 +560,7 @@ if TYPE_CHECKING:
         HomeSummary,
         ImportBatch,
         ImportBatchPage,
+        ImportDryRun,
         ImportJob,
         ImportJobCreate,
         ImportJobPage,
@@ -688,6 +689,7 @@ if TYPE_CHECKING:
         ModerationActionCreate,
         ModerationActionPage,
         Notification,
+        NotificationActRequest,
         NotificationPage,
         NotificationPreference,
         NotificationPreferenceCreate,
@@ -1146,6 +1148,9 @@ if TYPE_CHECKING:
         Subscription,
         SubscriptionPage,
         SubscriptionUpdate,
+        SupportSession,
+        SupportSessionGrantRequest,
+        SupportSessionPage,
         SupportTicket,
         SupportTicketDiagnostics,
         SupportTicketDiagnosticsPage,
@@ -1326,6 +1331,9 @@ if TYPE_CHECKING:
         WebhookEndpointUpdate,
         WebhookEventType,
         WebhookEventTypePage,
+        WholesaleBillingRequest,
+        WholesaleStatement,
+        WholesaleStatementPage,
         WorkOrder,
         WorkOrderBid,
         WorkOrderBidCreate,
@@ -29679,10 +29687,10 @@ class ImportJobsResource(Resource):
         *,
         idempotency_key: Optional[str] = None,
         options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ImportJob]:
+    ) -> ApiResponse[ImportDryRun]:
         """Dry-run an import
 
-        Validates every row and reports counts of creates, updates, merges and refusals without writing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Counts what committing a validated import would write (app.import_dry_run): creates, strong key updates, merges a person chose, refusals and possible duplicates still pending. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /import-jobs/{id}/dry-run`` (operation ``importJobs.dryRun``).
         Requires the capability ``data.classification.write``.
@@ -30784,6 +30792,23 @@ class NotificationsResource(Resource):
         Requires the capability ``inbox.notifications.write``.
         """
         return self._client.request(OPERATIONS["notifications.markAllRead"], idempotency_key=idempotency_key, options=options)
+
+    def act(
+        self,
+        id: str,
+        body: NotificationActRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Notification]:
+        """Act on a notification
+
+        Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), or mark it Done. Only the recipient acts. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /notifications/{id}/act`` (operation ``notifications.act``).
+        Requires the capability ``inbox.notifications.write``.
+        """
+        return self._client.request(OPERATIONS["notifications.act"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class NotificationPreferencesResource(Resource):
@@ -32648,6 +32673,172 @@ class TemplateItemsResource(Resource):
         Requires the capability ``projects.template.write``.
         """
         return self._client.request(OPERATIONS["templateItems.delete"], path={"id": id}, options=options)
+
+
+class SupportSessionsResource(Resource):
+    """Operations on ``supportSessions``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[SupportSession]:
+        """List support session rows
+
+        A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns a cursor page of support session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /support-sessions`` (operation ``supportSessions.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request_page(OPERATIONS["supportSessions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[SupportSession]:
+        """List support session rows
+
+        A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns a cursor page of support session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /support-sessions`` (operation ``supportSessions.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.paginate(OPERATIONS["supportSessions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SupportSession]:
+        """Get a support session
+
+        A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns one support session with its `ETag`. A support session the caller may not see returns 404.
+
+        ``GET /support-sessions/{id}`` (operation ``supportSessions.get``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request(OPERATIONS["supportSessions.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def grant(
+        self,
+        body: SupportSessionGrantRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SupportSession]:
+        """Grant the partner a support session
+
+        The client org's Owner (org.support_session.grant) lets its partner's staff read the client org for 1 to 24 hours with a reason (app.grant_support_session). One open session at a time (support_session_active: 422); an org without a partner refuses (support_session_no_partner: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /support-sessions/grant`` (operation ``supportSessions.grant``).
+        Requires the capability ``org.support_session.grant``.
+        """
+        return self._client.request(OPERATIONS["supportSessions.grant"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def end(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SupportSession]:
+        """End a support session early
+
+        Ends an open session at once (app.end_support_session): the client's Owner or the partner's staff with org.partner.manage. An ended session answers 422 (support_session_ended). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /support-sessions/{id}/end`` (operation ``supportSessions.end``).
+        Requires the capability ``org.support_session.grant``.
+        """
+        return self._client.request(OPERATIONS["supportSessions.end"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class WholesaleStatementsResource(Resource):
+    """Operations on ``wholesaleStatements``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WholesaleStatement]:
+        """List wholesale statement rows
+
+        What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns a cursor page of wholesale statement rows the caller may see. The default order is `period_start` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /wholesale-statements`` (operation ``wholesaleStatements.list``).
+        Requires the capability ``org.billing.manage``.
+        """
+        return self._client.request_page(OPERATIONS["wholesaleStatements.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WholesaleStatement]:
+        """List wholesale statement rows
+
+        What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns a cursor page of wholesale statement rows the caller may see. The default order is `period_start` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /wholesale-statements`` (operation ``wholesaleStatements.list``).
+        Requires the capability ``org.billing.manage``.
+        """
+        return self._client.paginate(OPERATIONS["wholesaleStatements.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WholesaleStatement]:
+        """Get a wholesale statement
+
+        What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns one wholesale statement with its `ETag`. A wholesale statement the caller may not see returns 404.
+
+        ``GET /wholesale-statements/{id}`` (operation ``wholesaleStatements.get``).
+        Requires the capability ``org.billing.manage``.
+        """
+        return self._client.request(OPERATIONS["wholesaleStatements.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def run(
+        self,
+        body: WholesaleBillingRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WholesaleStatement]:
+        """Run wholesale billing for a month
+
+        Records the partner's statement for a month (app.run_wholesale_billing, org.billing.manage): every client org at its plan's list price less the agreed discount. A month is billed once (wholesale_statement_exists: 422); a partner without an agreement refuses (partner_agreement_missing: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /wholesale-statements/run`` (operation ``wholesaleStatements.run``).
+        Requires the capability ``org.billing.manage``.
+        """
+        return self._client.request(OPERATIONS["wholesaleStatements.run"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class WorkforceGroupsResource(Resource):

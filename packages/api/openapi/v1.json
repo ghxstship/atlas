@@ -42944,6 +42944,49 @@
         "required": ["target_code", "source", "original_filename", "storage_object_path"],
         "description": "Fields accepted when creating a ImportJob."
       },
+      "ImportDryRun": {
+        "type": "object",
+        "properties": {
+          "creates": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that will create a record.",
+            "example": 12
+          },
+          "updates": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that will update the record their strong key matched.",
+            "example": 3
+          },
+          "merges": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that will merge into a record a person chose.",
+            "example": 1
+          },
+          "refusals": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows that are Invalid or Refused.",
+            "example": 2
+          },
+          "skipped": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Rows skipped.",
+            "example": 0
+          },
+          "pending_reviews": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Possible duplicates still waiting for a person.",
+            "example": 0
+          }
+        },
+        "required": ["creates", "updates", "merges", "refusals", "skipped", "pending_reviews"],
+        "description": "What committing an import would write (Section 4.6.2 step 6)."
+      },
       "ImportBatchPage": {
         "type": "object",
         "properties": {
@@ -44769,6 +44812,26 @@
         "type": "object",
         "properties": { "updated_count": { "type": "integer", "example": 12 } },
         "required": ["updated_count"]
+      },
+      "NotificationActRequest": {
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": ["approve", "reject", "done"],
+            "description": "What to do.",
+            "example": "approve"
+          },
+          "comment": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Reason, required when rejecting.",
+            "example": "Over the stage budget."
+          }
+        },
+        "required": ["action"],
+        "description": "An action on a notification."
       },
       "NotificationPreferencePage": {
         "type": "object",
@@ -48197,6 +48260,265 @@
           }
         },
         "description": "Fields accepted when updating a TemplateItem. Omitted fields are unchanged."
+      },
+      "SupportSessionPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SupportSession" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "SupportSession": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the support session.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "grantee_org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the partner org whose staff may read while the session lasts.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the session was granted.",
+            "example": "Help with the venue import."
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access began.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access ends on its own, at most 24 hours after it began.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ended_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When someone ended the session early.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ended_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who ended it early.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "grantee_org_id",
+          "reason",
+          "starts_at",
+          "ends_at",
+          "ended_at",
+          "ended_by"
+        ],
+        "description": "A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end."
+      },
+      "SupportSessionGrantRequest": {
+        "type": "object",
+        "properties": {
+          "hours": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Length of the session in hours, 1 to 24.",
+            "example": 4
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the partner needs access.",
+            "example": "Help with the venue import."
+          }
+        },
+        "required": ["hours", "reason"],
+        "description": "A support session to grant."
+      },
+      "WholesaleStatementPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WholesaleStatement" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WholesaleStatement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the wholesale statement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the month billed.",
+            "example": "2026-10-08"
+          },
+          "currency_code": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "description": "Currency of the partner agreement.",
+            "example": "USD"
+          },
+          "wholesale_discount_bps": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Discount in basis points when the statement ran.",
+            "example": 2000
+          },
+          "client_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Client orgs on the statement.",
+            "example": 3
+          },
+          "list_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Sum of priced list prices in minor units; null only while a statement has no priced line.",
+            "example": 14700
+          },
+          "wholesale_total_minor": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "What the partner owes, in minor units; null only while a statement has no priced line.",
+            "example": 11760
+          },
+          "unpriced_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Lines whose plan is unpriced in the currency.",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "period_start",
+          "currency_code",
+          "wholesale_discount_bps",
+          "client_count",
+          "list_total_minor",
+          "wholesale_total_minor",
+          "unpriced_count"
+        ],
+        "description": "What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only."
+      },
+      "WholesaleBillingRequest": {
+        "type": "object",
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the month to bill.",
+            "example": "2026-10-08"
+          }
+        },
+        "required": ["period_start"],
+        "description": "The month to bill."
       },
       "WorkforceGroupPage": {
         "type": "object",
@@ -124654,8 +124976,9 @@
         "x-xos-table": "app.import_jobs",
         "x-xos-capability": "data.classification.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-rpc": "import_dry_run",
         "summary": "Dry-run an import",
-        "description": "Validates every row and reports counts of creates, updates, merges and refusals without writing. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Counts what committing a validated import would write (app.import_dry_run): creates, strong key updates, merges a person chose, refusals and possible duplicates still pending. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -124675,7 +124998,6 @@
           "200": {
             "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -124683,21 +125005,14 @@
             "content": {
               "application/json": {
                 "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "import_mapping_profile_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "target_code": "vendors",
-                  "source": "CSV",
-                  "original_filename": "vendors-2026.xlsx",
-                  "storage_object_path": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f/imports/vendors-2026.xlsx",
-                  "import_status": "Uploaded",
-                  "mapping_confirmed_at": "2026-10-08T14:30:00Z"
+                  "creates": 12,
+                  "updates": 3,
+                  "merges": 1,
+                  "refusals": 2,
+                  "skipped": 0,
+                  "pending_reviews": 0
                 },
-                "schema": { "$ref": "#/components/schemas/ImportJob" }
+                "schema": { "$ref": "#/components/schemas/ImportDryRun" }
               }
             }
           },
@@ -127513,6 +127828,81 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/notifications/{id}/act": {
+      "post": {
+        "operationId": "notifications.act",
+        "tags": ["Platform"],
+        "x-xos-table": "app.notifications",
+        "x-xos-capability": "inbox.notifications.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["inbox"] }],
+        "x-xos-rpc": "act_on_notification",
+        "summary": "Act on a notification",
+        "description": "Acts where the notification arrived, without opening its record (app.act_on_notification): approve or reject the approval an approval request asks for (app.decide_approval decides every rule; a rejection needs a comment), or mark it Done. Only the recipient acts. Push notification action buttons call this operation. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the notification.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the notification.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "action": "approve", "comment": "Over the stage budget." },
+              "schema": { "$ref": "#/components/schemas/NotificationActRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "kind": "timesheet.approved",
+                  "recipient_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "read_at": "2026-10-08T14:30:00Z",
+                  "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "subject_table": "records",
+                  "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "message_args": { "type": "doc" },
+                  "archived_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/Notification" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
@@ -132476,6 +132866,418 @@
           "204": { "description": "The template item moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-sessions": {
+      "get": {
+        "operationId": "supportSessions.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_sessions",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List support session rows",
+        "description": "A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns a cursor page of support session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of support session rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reason": "Help with the venue import.",
+                      "starts_at": "2026-10-08T14:30:00Z",
+                      "ends_at": "2026-10-08T14:30:00Z",
+                      "ended_at": "2026-10-08T14:30:00Z",
+                      "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/SupportSessionPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-sessions/{id}": {
+      "get": {
+        "operationId": "supportSessions.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_sessions",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get a support session",
+        "description": "A support session (1060): the client org's Owner lets its partner's staff read the client org for 1 to 24 hours. Partner staff read nothing of a client without one; they never write. Created with supportSessions.grant and ended early with supportSessions.end. Returns one support session with its `ETag`. A support session the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support session.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support session.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The support session.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Help with the venue import.",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportSession" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-sessions/grant": {
+      "post": {
+        "operationId": "supportSessions.grant",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_sessions",
+        "x-xos-capability": "org.support_session.grant",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "grant_support_session",
+        "summary": "Grant the partner a support session",
+        "description": "The client org's Owner (org.support_session.grant) lets its partner's staff read the client org for 1 to 24 hours with a reason (app.grant_support_session). One open session at a time (support_session_active: 422); an org without a partner refuses (support_session_no_partner: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "hours": 4, "reason": "Help with the venue import." },
+              "schema": { "$ref": "#/components/schemas/SupportSessionGrantRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Help with the venue import.",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportSession" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/support-sessions/{id}/end": {
+      "post": {
+        "operationId": "supportSessions.end",
+        "tags": ["Platform"],
+        "x-xos-table": "app.support_sessions",
+        "x-xos-capability": "org.support_session.grant",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "end_support_session",
+        "summary": "End a support session early",
+        "description": "Ends an open session at once (app.end_support_session): the client's Owner or the partner's staff with org.partner.manage. An ended session answers 422 (support_session_ended). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the support session.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the support session.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "grantee_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "Help with the venue import.",
+                  "starts_at": "2026-10-08T14:30:00Z",
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/SupportSession" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/wholesale-statements": {
+      "get": {
+        "operationId": "wholesaleStatements.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.wholesale_statements",
+        "x-xos-capability": "org.billing.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["period_start"], "numeric": false, "descending": true },
+        "summary": "List wholesale statement rows",
+        "description": "What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns a cursor page of wholesale statement rows the caller may see. The default order is `period_start` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of wholesale statement rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "period_start": "2026-10-08",
+                      "currency_code": "USD",
+                      "wholesale_discount_bps": 2000,
+                      "client_count": 3,
+                      "list_total_minor": 14700,
+                      "wholesale_total_minor": 11760,
+                      "unpriced_count": 0
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WholesaleStatementPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/wholesale-statements/{id}": {
+      "get": {
+        "operationId": "wholesaleStatements.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.wholesale_statements",
+        "x-xos-capability": "org.billing.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get a wholesale statement",
+        "description": "What the platform bills a partner for one month (1060): each client org at its plan's list price less the wholesale discount. Totals cover priced lines; unpriced lines are counted, never zero. Append-only. Returns one wholesale statement with its `ETag`. A wholesale statement the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the wholesale statement.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the wholesale statement.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The wholesale statement.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "period_start": "2026-10-08",
+                  "currency_code": "USD",
+                  "wholesale_discount_bps": 2000,
+                  "client_count": 3,
+                  "list_total_minor": 14700,
+                  "wholesale_total_minor": 11760,
+                  "unpriced_count": 0
+                },
+                "schema": { "$ref": "#/components/schemas/WholesaleStatement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/wholesale-statements/run": {
+      "post": {
+        "operationId": "wholesaleStatements.run",
+        "tags": ["Platform"],
+        "x-xos-table": "app.wholesale_statements",
+        "x-xos-capability": "org.billing.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "run_wholesale_billing",
+        "summary": "Run wholesale billing for a month",
+        "description": "Records the partner's statement for a month (app.run_wholesale_billing, org.billing.manage): every client org at its plan's list price less the agreed discount. A month is billed once (wholesale_statement_exists: 422); a partner without an agreement refuses (partner_agreement_missing: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "period_start": "2026-10-08" },
+              "schema": { "$ref": "#/components/schemas/WholesaleBillingRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "period_start": "2026-10-08",
+                  "currency_code": "USD",
+                  "wholesale_discount_bps": 2000,
+                  "client_count": 3,
+                  "list_total_minor": 14700,
+                  "wholesale_total_minor": 11760,
+                  "unpriced_count": 0
+                },
+                "schema": { "$ref": "#/components/schemas/WholesaleStatement" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

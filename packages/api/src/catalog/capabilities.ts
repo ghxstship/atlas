@@ -510,8 +510,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.localization.write": "Localization defaults are setting values.",
   "org.legal.read": "Legal acceptance records arrive with A21.",
   "org.legal.accept": "Legal acceptance records arrive with A21.",
-  "org.support_session.grant":
-    "Support sessions are granted from the operator console flow (Section 8).",
   "org.ownership.transfer": "Ownership transfer arrives with A30 offboarding in Wave 3.",
   "org.organization.archive": "Org lifecycle operations arrive with A18 billing.",
   "org.organization.delete":

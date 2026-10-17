@@ -671,6 +671,9 @@ importers:
       '@supabase/supabase-js':
         specifier: 2.117.3
         version: 2.117.3(@opentelemetry/api@1.9.1)
+      exceljs:
+        specifier: 4.4.0
+        version: 4.4.0
     devDependencies:
       '@types/node':
         specifier: 22.20.5

@@ -6,9 +6,11 @@ import {
   type Person,
   type XosClient,
 } from "@xos/data";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { VIEW_AS_COOKIE } from "@xos/data/access";
+import { applyViewAs, type ViewAsPreview } from "@/lib/access/view-as";
 import { resolveMembership, type Membership } from "./membership";
 
 /**
@@ -28,6 +30,8 @@ export interface Viewer {
 
 export interface OrgContext extends Membership {
   readonly viewer: Viewer;
+  /** The role the viewer previews with View as role (A36, Section 8.4), or null. */
+  readonly preview: ViewAsPreview | null;
 }
 
 /** The signed-in viewer, or null when there is no valid session. */
@@ -69,5 +73,11 @@ export const getOrgContext = cache(async (slug: string): Promise<OrgContext | nu
   const viewer = await getViewer();
   if (!viewer?.person) return null;
   const membership = await resolveMembership(viewer.db, viewer.person.id, slug, await headers());
-  return membership ? { ...membership, viewer } : null;
+  if (!membership) return null;
+  const previewed = await applyViewAs(
+    viewer.db,
+    membership,
+    (await cookies()).get(VIEW_AS_COOKIE)?.value,
+  );
+  return { ...previewed, viewer };
 });
