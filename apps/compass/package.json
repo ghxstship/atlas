@@ -5,7 +5,7 @@
   "description": "Compass 4.0: the field app for internal members and every external role type, offline first.",
   "license": "AGPL-3.0-only",
   "type": "module",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "ios": "expo run:ios",

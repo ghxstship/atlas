@@ -316,6 +316,18 @@ export function TextField({
     phone: "phone-pad",
     url: "url",
   } as const;
+  /* Addresses, codes and secrets are typed exactly: iOS must not capitalize or autocorrect them. */
+  const literal =
+    secure || keyboard === "email" || keyboard === "url" || autoComplete === "one-time-code";
+  const contentType = secure
+    ? "password"
+    : keyboard === "email"
+      ? "emailAddress"
+      : keyboard === "url"
+        ? "URL"
+        : autoComplete === "one-time-code"
+          ? "oneTimeCode"
+          : undefined;
   return (
     <View style={{ gap: theme.space["6"] }}>
       <Text variant="label13" tone="secondary">
@@ -332,6 +344,8 @@ export function TextField({
         multiline={multiline}
         keyboardType={keyboardType[keyboard]}
         autoComplete={autoComplete === "one-time-code" ? "one-time-code" : autoComplete}
+        {...(literal ? { autoCapitalize: "none", autoCorrect: false, spellCheck: false } : {})}
+        {...(contentType ? { textContentType: contentType } : {})}
         maxFontSizeMultiplier={2}
         style={[
           typography(theme, "text16"),

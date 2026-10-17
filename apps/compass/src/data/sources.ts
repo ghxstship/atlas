@@ -170,7 +170,7 @@ const INTERNAL_SOURCES: readonly Source[] = [
     table: "kiosk_roster",
     schema: "app",
     relation: "memberships",
-    select: "id,org_id,people(full_name)",
+    select: "id,org_id,people:people!memberships_person_id_fkey(full_name)",
     map: (r) => ({
       id: r["id"],
       org_id: r["org_id"],
