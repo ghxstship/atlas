@@ -80,11 +80,11 @@ select throws_ok($$update app.incidents set device_reported_at = now() - interva
 insert into app.incident_media (incident_id, media_uri) values (pg_temp.id('inc'), 'incidents/gate-2-fall.jpg');
 select is((select project_id from app.incident_media where incident_id = pg_temp.id('inc')), pg_temp.id('prj_a'), 'incident media carries the incident''s project');
 
--- Dispatch and crisis events --------------------------------------------------------------------------------------
-select lives_ok($$insert into app.dispatch_assignments (incident_id, membership_id) values ((select id from world where key = 'inc'), (select id from world where key = 'frank@org_a'))$$,
-  'a Field member with dispatch reach dispatches a responder');
-update app.dispatch_assignments set arrived_at = now() where incident_id = pg_temp.id('inc');
+-- Dispatch and crisis events (dispatch is the manager band's and the Field Supervisor's since 1110) -----------------
 select pg_temp.as_user('carol');
+select lives_ok($$insert into app.dispatch_assignments (incident_id, membership_id) values ((select id from world where key = 'inc'), (select id from world where key = 'frank@org_a'))$$,
+  'a Manager with dispatch reach dispatches a responder');
+update app.dispatch_assignments set arrived_at = now() where incident_id = pg_temp.id('inc');
 with x as (insert into app.crisis_alerts (project_id, emergency_code, message) values (pg_temp.id('prj_a'), 'CODE_RED', 'Fire reported at the north gate. Evacuate the north lawn.') returning id) insert into world select 'alert', id from x;
 update app.crisis_alerts set ended_at = now() where id = pg_temp.id('alert');
 select pg_temp.as_platform();

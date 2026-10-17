@@ -8,7 +8,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Audience, DownloadScope } from "@xos/sync";
 import type { CompassIdentity, EngagementState, EngagementSummary } from "../domain/access";
 
-/** Field Supervisor and above hold one of these (Section 4.5.7 supervisor mode). */
+/**
+ * Field Supervisor and above hold one of these (Section 4.5.7 supervisor mode). The Field role holds none
+ * since migration 1110 (SIM-007); a Field Supervisor gets dispatch from the project role.
+ */
 const SUPERVISOR_CAPABILITIES = [
   "crew.timesheet.approve",
   "safety.incident.dispatch",
@@ -122,7 +125,18 @@ export async function resolveIdentity(
           .is("deleted_at", null)
       : { data: [], error: null };
     if (caps.error) throw new IdentityError("capabilities", caps.error.message);
-    const capabilities = [...new Set(caps.data.map((c) => String(c.capability_code)))].sort();
+    // A project role adds capabilities on its project (SIM-007: the Field Supervisor dispatches).
+    const projectRoleCaps = await client.rpc("my_project_role_capabilities");
+    if (projectRoleCaps.error)
+      throw new IdentityError("capabilities", projectRoleCaps.error.message);
+    const capabilities = [
+      ...new Set([
+        ...caps.data.map((c) => String(c.capability_code)),
+        ...((projectRoleCaps.data ?? []) as { capability_code: string }[]).map((c) =>
+          String(c.capability_code),
+        ),
+      ]),
+    ].sort();
     const projects = await client
       .from("projects")
       .select("id, name")

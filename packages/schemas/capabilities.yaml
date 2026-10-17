@@ -498,6 +498,8 @@ modules:
       - code: safety.incident.write
         class: write
         description: Report incidents and add updates.
+      # Migration 1110 (SIM-007) removes this from the Field role after the 0203 seed and grants it to the
+      # Field Supervisor project role on its project; 0203 stays the generator's output.
       - code: safety.incident.dispatch
         class: write
         description: Dispatch responders to an incident.
