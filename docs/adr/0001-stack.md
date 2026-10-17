@@ -138,3 +138,10 @@ Renovate opens pinned upgrade pull requests weekly. Every runtime library above 
 | Testing | Lighthouse, bundled by `@lhci/cli`; not a direct dependency, because 13.x needs Node 22.19 and the repo floor is 22.12 | 12.6.1        |
 | Testing | k6, run only as the official Docker image `grafana/k6` against local stacks                                            | 2.3.0         |
 | Testing | Playwright image for the Storybook visual job, `mcr.microsoft.com/playwright`                                          | v1.64.0-noble |
+
+## Amendment (2026-10-17): Compass launch dependencies (A42)
+
+| Area    | Package                                                                 | Version |
+| ------- | ----------------------------------------------------------------------- | ------- |
+| Compass | `expo-audio` (voice notes; published 2026-09-11, sdk-57 tag)            | 57.0.5  |
+| Compass | `@bacons/apple-targets` (widget extension target; published 2026-07-17) | 5.0.0   |
