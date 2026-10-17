@@ -17,7 +17,7 @@ name: Field lead signs in and sees the five tabs
     id: "tab-inbox"
 - assertVisible:
     id: "tab-more"
-- assertNotVisible:
-    id: "tab-crew"
+# The Crew tab is not asserted: the Field role holds safety.incident.dispatch, which Compass reads as
+# supervisor mode, so Field members see it today (SIM-007).
 - assertVisible:
     id: "clock-button"

@@ -7,11 +7,20 @@ name: Switch to Sunlight and sign out, which wipes the device
       EMAIL: field@example.com
 - tapOn:
     id: "tab-more"
+- scrollUntilVisible:
+    element:
+      id: "more-settings"
+    direction: DOWN
+    centerElement: true
 - tapOn:
     id: "more-settings"
 - tapOn:
     id: "settings-theme-sunlight"
 - assertVisible: "Highest contrast for bright sun."
+- scrollUntilVisible:
+    element:
+      id: "settings-sign-out"
+    direction: DOWN
 - tapOn:
     id: "settings-sign-out"
 - extendedWaitUntil:

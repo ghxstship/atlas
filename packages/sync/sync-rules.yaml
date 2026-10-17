@@ -110,3 +110,4 @@ bucket_definitions:
       - SELECT code AS id, label, emergency, swatch, sort_order FROM xpms.emergency_code AS emergency_codes
       - SELECT record_id AS id, enum_code AS code, enum_label AS label, sort_order, color_code FROM xpms.std_enumeration AS incident_severities WHERE enum_domain = 'Incident Severity'
       - SELECT record_id AS id, enum_code AS code, enum_label AS label, sort_order FROM xpms.std_enumeration AS inspection_result_values WHERE enum_domain = 'Inspection Result'
+      - SELECT role_code AS id, job_title FROM xpms.role AS roles

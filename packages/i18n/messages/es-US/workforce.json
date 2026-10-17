@@ -1003,11 +1003,9 @@
       "submitted": "Formulario guardado. Se envía ahora o cuando vuelvas a tener conexión.",
       "required": "Obligatorio",
       "requiredField": "{label} (obligatorio)",
-      "missing": "Completa {count} respuestas obligatorias más.",
       "score": "Puntaje {score} de {max}",
       "scorePass": "Puntaje {score} de {max}, aprueba con {pass}",
       "addPhoto": "Agregar foto",
-      "photos": "{count} fotos",
       "dateHelp": "Año, mes y día, como 2027-06-01.",
       "numberError": "Escribe un número.",
       "signature": "Firma",
@@ -1016,7 +1014,11 @@
       "signatureMissing": "Firma en el recuadro antes de enviar.",
       "locationStamped": "Ubicación registrada cerca de {latitude}, {longitude}",
       "locating": "Buscando tu ubicación para el registro. Puedes seguir completando el formulario.",
-      "locationOff": "La ubicación está desactivada. Actívala para registrar dónde estás en este formulario."
+      "locationOff": "La ubicación está desactivada. Actívala para registrar dónde estás en este formulario.",
+      "missingOne": "Completa 1 respuesta obligatoria más.",
+      "missingOther": "Completa {count} respuestas obligatorias más.",
+      "photosOne": "1 foto",
+      "photosOther": "{count} fotos"
     },
     "training": {
       "title": "Capacitación",

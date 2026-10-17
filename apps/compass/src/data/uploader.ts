@@ -181,8 +181,11 @@ export class SupabaseUploader implements Uploader {
         /exists|duplicate/i.test(result.error.message)
       )
         continue;
+      // No HTTP status (a dropped connection) is no response at all, so it retries; a status that is
+      // not a number once made a network failure a refusal that asked the person to decide.
+      const status = Number(result.error.statusCode ?? 0);
       return classifyServerError({
-        status: Number(result.error.statusCode ?? 0),
+        status: Number.isFinite(status) ? status : 0,
         message: result.error.message,
       });
     }

@@ -1,11 +1,27 @@
 appId: pro.ghxstship.compass
 ---
 # Signs in with the seeded demo account given in EMAIL; the password comes from XOS_DEMO_PASSWORD.
+# Against a development build, pass DEV_URL (the expo-development-client link to Metro) so the app loads
+# its bundle instead of stopping at the development launcher. A session left by an earlier flow is
+# signed out through Settings, which wipes the device's data as clearState would (clearState cannot
+# clear a development build on an iOS 26 simulator). Grant location, camera and microphone before the run
+# (on a simulator: xcrun simctl privacy booted grant location-always|camera|microphone <app id>); the
+# permissions block of launchApp fails the same way there.
 - launchApp:
-    clearState: true
-    permissions:
-      camera: allow
-      location: allow
+    stopApp: true
+- runFlow:
+    when:
+      true: ${typeof DEV_URL !== "undefined" && DEV_URL !== ""}
+    file: open-dev-bundle.yaml
+- extendedWaitUntil:
+    visible:
+      id: "sign-in|tab-bar"
+    timeout: 120000
+- runFlow:
+    when:
+      visible:
+        id: "tab-bar"
+    file: sign-out.yaml
 - extendedWaitUntil:
     visible:
       id: "sign-in"
@@ -21,6 +37,15 @@ appId: pro.ghxstship.compass
 - hideKeyboard
 - tapOn:
     id: "sign-in-submit"
+# iOS offers to save the password after a password sign-in; it covers the app until answered.
+- extendedWaitUntil:
+    visible: "Not Now|Today"
+    timeout: 30000
+- runFlow:
+    when:
+      visible: "Not Now"
+    commands:
+      - tapOn: "Not Now"
 - extendedWaitUntil:
     visible:
       id: "tab-bar"

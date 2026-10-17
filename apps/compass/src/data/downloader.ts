@@ -19,6 +19,8 @@ export interface DownloadOptions {
   readonly session: SyncSession;
   /** Limits project-scoped sources to the current project; null pulls every project in scope. */
   readonly projectId: string | null;
+  /** Pulls only these local tables (a live screen refreshing what it shows); omitted pulls every source. */
+  readonly only?: readonly string[];
 }
 
 async function fetchSource(client: SupabaseClient, source: Source, projectId: string | null) {
@@ -42,12 +44,14 @@ export async function downloadAll({
   client,
   session,
   projectId,
+  only,
 }: DownloadOptions): Promise<DownloadReport> {
   let written = 0;
   let refused = 0;
   const failed: { table: string; message: string }[] = [];
   const pulled = new Map<string, Row[]>();
   for (const source of sourcesFor(session.scope.audience)) {
+    if (only && !only.includes(source.table)) continue;
     const { data, error } = await fetchSource(client, source, projectId);
     if (error) {
       failed.push({ table: source.table, message: error.message });

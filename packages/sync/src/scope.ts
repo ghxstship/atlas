@@ -186,6 +186,8 @@ export const TABLE_RULES: readonly TableRule[] = [
   { table: "emergency_codes", anyOf: [], global: true },
   { table: "incident_severities", anyOf: [], global: true },
   { table: "inspection_result_values", anyOf: [], global: true },
+  // Canon job titles, so a shift reads "Head Arena / Festival Rigger" instead of its role code.
+  { table: "roles", anyOf: [], global: true },
 ];
 
 const RULES = new Map(TABLE_RULES.map((rule) => [rule.table, rule]));

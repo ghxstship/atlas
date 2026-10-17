@@ -62,7 +62,39 @@
     "authRequired": "Sign in again to upload your saved changes.",
     "signInAgain": "Sign In Again",
     "uploaded": "All changes uploaded",
-    "refreshFailed": "Some data did not refresh: {tables}. It refreshes again when you pull down."
+    "refreshFailed": "Some data did not refresh: {tables}. It refreshes again when you pull down.",
+    "tables": {
+      "access_grid": "access rules",
+      "asset_custody": "gear hand-overs",
+      "asset_identifiers": "gear codes",
+      "asset_units": "gear",
+      "clock_punches": "clock punches",
+      "credentials": "credentials",
+      "cues": "cues",
+      "day_sheets": "day sheets",
+      "dock_slots": "dock slots",
+      "emergency_codes": "emergency codes",
+      "fulfillments": "fulfillments",
+      "gate_queue": "gate queue",
+      "geofence_shapes": "site geofences",
+      "incident_severities": "incident severities",
+      "incidents": "incidents",
+      "inspection_items": "inspection items",
+      "inspection_result_values": "inspection results",
+      "inspection_templates": "inspection templates",
+      "inspections": "inspections",
+      "kiosk_roster": "kiosk roster",
+      "marshalling_log": "marshalling log",
+      "projects": "projects",
+      "radio_channels": "radio channels",
+      "run_of_show": "run of show",
+      "shifts": "shifts",
+      "sops": "SOPs",
+      "time_entries": "time entries",
+      "zones": "zones",
+      "other": "other data",
+      "roles": "job titles"
+    }
   },
   "queue": {
     "title": "Offline Queue",
@@ -95,8 +127,73 @@
       "asset_custody": "Asset hand-over",
       "cues": "Cue call",
       "shifts": "Shift",
-      "kiosk_punches": "Kiosk punch"
-    }
+      "kiosk_punches": "Kiosk punch",
+      "chat_messages": "Chat message",
+      "conversation_reads": "Read receipt",
+      "feed_acknowledgments": "Post acknowledgment",
+      "feed_reactions": "Post reaction",
+      "poll_votes": "Poll vote",
+      "survey_responses": "Survey answer",
+      "event_rsvps": "Event reply",
+      "event_check_ins": "Event check-in",
+      "form_submissions": "Form",
+      "training_lesson_progress": "Training lesson",
+      "handbook_acknowledgments": "Handbook acknowledgment",
+      "recognitions": "Recognition",
+      "occupancy_counts": "Occupancy count",
+      "weather_readings": "Weather reading",
+      "guest_check_ins": "Guest check-in",
+      "lost_found_items": "Lost item",
+      "personal_settings": "Setting",
+      "dock_slots": "Dock check-in",
+      "gate_queue": "Gate arrival",
+      "marshalling_log": "Marshalling entry",
+      "fulfillments": "Fulfillment"
+    },
+    "punchActions": {
+      "in": "Clock in",
+      "breakStart": "Start break",
+      "breakEnd": "End break",
+      "out": "Clock out"
+    },
+    "summary": {
+      "punch": "{action} at {time}, {project}",
+      "punchNoProject": "{action} at {time}",
+      "kioskPunch": "{action} at {time} on the kiosk",
+      "shiftAccept": "Accept the shift on {day}, {start} to {end}",
+      "shiftAcceptUnknown": "Accept a shift",
+      "shiftClaim": "Claim the open shift on {day}, {start} to {end}",
+      "shiftClaimUnknown": "Claim an open shift",
+      "incidentReport": "Report \"{title}\" at {time}",
+      "incidentPhoto": "Incident photo taken at {time}",
+      "incidentParty": "Person involved: {description}",
+      "incidentMove": "Move the incident to {state}",
+      "fulfillmentMove": "Move the fulfillment to {state}",
+      "accessScan": "Credential scan at {time}",
+      "accessScanZone": "Credential scan at {zone}, {time}",
+      "assetCheckOut": "Check out {code}",
+      "assetReturn": "Return {code}",
+      "cueCall": "Call the cue {label}",
+      "cueCallUnknown": "Call a cue",
+      "gateArrival": "Gate arrival for {vehicle}",
+      "vehicleRelease": "Release the vehicle from the gate",
+      "dockCheckIn": "Check in at the dock slot",
+      "marshalling": "Marshalling log: {entry}",
+      "chatMessage": "Message: {text}",
+      "recognition": "Recognition: {text}",
+      "lostItem": "Lost item: {text}",
+      "inspectionStart": "Inspection started at {time}",
+      "inspectionSignOff": "Sign off the inspection",
+      "inspectionAnswer": "Inspection answer",
+      "scanIntake": "Unknown code {code}, waiting for someone to match it",
+      "generic": "{kind}, saved at {time}",
+      "serverShift": "Shift on {day} at {start}, now {state}",
+      "serverState": "{title}, now {state}",
+      "serverCue": "{label}, called at {time}",
+      "serverGeneric": "The server holds a different version of this {kind}."
+    },
+    "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
+    "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."
   },
   "today": {
     "title": "Today",
@@ -109,7 +206,8 @@
     "nextCue": "Next cue",
     "callTime": "Call {time}",
     "blockEmpty": "Nothing here today.",
-    "orgChip": "{org}"
+    "orgChip": "{org}",
+    "nextCueAt": "Planned for {day} at {time}"
   },
   "clock": {
     "in": "Clock In",
@@ -191,7 +289,13 @@
     "assetFound": "{tag} found",
     "assetNotYours": "This item is not assigned to you. Hand it to its custodian.",
     "receivingAck": "Delivery acknowledged",
-    "review": "Review",
+    "review": {
+      "title": "Review {count} scanned",
+      "count": "{count} scanned",
+      "removeOne": "Remove one {code}",
+      "save": "Save {count} Items",
+      "keep": "Keep Scanning"
+    },
     "remove": "Remove one",
     "badgeTitle": "My Badge",
     "badgeEmpty": "No badge is issued to you for this project yet. Your organization issues badges before the show.",
@@ -261,7 +365,9 @@
     "signOffOwn": "Someone other than the inspector signs off.",
     "recent": "Recent Inspections",
     "notSigned": "Waiting for sign-off",
-    "signed": "Signed off"
+    "signed": "Signed off",
+    "failPhotoRetake": "Retake Photo",
+    "failPhotoAdded": "Photo added. It uploads with the inspection."
   },
   "show": {
     "title": "Show",
@@ -477,5 +583,12 @@
     "breakStarted": "Break started.",
     "breakEnded": "Break ended. You're on shift.",
     "clockedOut": "Clocked out."
+  },
+  "update": {
+    "message": "This version of Compass is no longer supported. Update it to keep clocking in, scanning and reporting.",
+    "messageNoLink": "This version of Compass is no longer supported. Update it from your app store, then open Compass again.",
+    "versions": "This build {current}. Needed {minimum} or later.",
+    "action": "Update Compass",
+    "recheck": "Check Again"
   }
 }

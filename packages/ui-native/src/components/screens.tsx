@@ -249,6 +249,11 @@ export function SignaturePad({
           setPath(current.current);
         },
         onPanResponderRelease: () => onChange(current.current || null),
+        // A scrolling form must not take the stroke: on the simulator a signature drawn inside a form
+        // was taken by the scroll view, never released here, and the form still said "Sign in the box".
+        // If the stroke is taken anyway, what was drawn still counts.
+        onPanResponderTerminationRequest: () => false,
+        onPanResponderTerminate: () => onChange(current.current || null),
       }),
     [onChange],
   );

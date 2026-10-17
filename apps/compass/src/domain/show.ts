@@ -74,6 +74,17 @@ export function formatCountdown(ms: number): string {
   return late ? `+${body}` : body;
 }
 
+/** Beyond this, Today names the cue's day and time instead of counting down. */
+export const COUNTDOWN_HORIZON_MS = 12 * 3600_000;
+
+/**
+ * Whether Today counts down to the next cue. A cue months away read "3547:45:52" on the simulator; past
+ * the horizon the card shows when the cue is planned instead.
+ */
+export function showsCountdown(msToNext: number | null): msToNext is number {
+  return msToNext !== null && msToNext <= COUNTDOWN_HORIZON_MS;
+}
+
 /** Seconds before a cue at which the countdown is spoken; 0 is the cue itself (A23-009). */
 export const COUNTDOWN_ANNOUNCE_AT_S: readonly number[] = [60, 30, 10, 0];
 

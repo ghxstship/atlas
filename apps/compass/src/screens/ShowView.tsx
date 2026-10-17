@@ -35,9 +35,33 @@ type CueRow = Cue & Row & { project_id?: string | null };
 
 const KEEP_AWAKE_TAG = "compass-show-mode";
 
+/** What the live show pulls while it is open, and how often without a realtime change. */
+const LIVE_TABLES = ["run_of_show", "cues"] as const;
+const LIVE_PULL_MS = 10_000;
+
 export function ShowView({ readOnly }: { readonly readOnly: boolean }): ReactElement {
   const { t } = useTranslation();
-  const { projectId, enqueue, settings } = useCompass();
+  const { projectId, enqueue, settings, client, refreshTables, network } = useCompass();
+  // Journey 15: followers see cues called in Atlas as they happen. A realtime change on the project's
+  // cues pulls them at once; a 10 s pull covers externals (whose cues come through an api_external view)
+  // and a dropped channel. On the simulator a called cue stayed "next" until a manual refresh.
+  useEffect(() => {
+    if (!projectId || !network.isConnected) return undefined;
+    const pull = () => void refreshTables(LIVE_TABLES);
+    const channel = client
+      .channel(`show:${projectId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "app", table: "cues", filter: `project_id=eq.${projectId}` },
+        pull,
+      )
+      .subscribe();
+    const timer = setInterval(pull, LIVE_PULL_MS);
+    return () => {
+      clearInterval(timer);
+      void client.removeChannel(channel);
+    };
+  }, [client, projectId, network.isConnected, refreshTables]);
   const canCall = useAllowed("show.callCue") && !readOnly;
   const [showMode, setShowMode] = useState(false);
   const [now, setNow] = useState(Date.now());

@@ -62,7 +62,39 @@
     "authRequired": "Vuelve a iniciar sesión para subir tus cambios guardados.",
     "signInAgain": "Iniciar sesión",
     "uploaded": "Todos los cambios se subieron",
-    "refreshFailed": "Algunos datos no se actualizaron: {tables}. Se actualizan de nuevo al deslizar hacia abajo."
+    "refreshFailed": "Algunos datos no se actualizaron: {tables}. Se actualizan de nuevo al deslizar hacia abajo.",
+    "tables": {
+      "access_grid": "reglas de acceso",
+      "asset_custody": "entregas de equipo",
+      "asset_identifiers": "códigos de equipo",
+      "asset_units": "equipo",
+      "clock_punches": "registros de horario",
+      "credentials": "credenciales",
+      "cues": "pies",
+      "day_sheets": "hojas del día",
+      "dock_slots": "turnos de muelle",
+      "emergency_codes": "códigos de emergencia",
+      "fulfillments": "entregas",
+      "gate_queue": "fila de la puerta",
+      "geofence_shapes": "geocercas del sitio",
+      "incident_severities": "gravedades de incidente",
+      "incidents": "incidentes",
+      "inspection_items": "puntos de inspección",
+      "inspection_result_values": "resultados de inspección",
+      "inspection_templates": "plantillas de inspección",
+      "inspections": "inspecciones",
+      "kiosk_roster": "lista del quiosco",
+      "marshalling_log": "registro de maniobras",
+      "projects": "proyectos",
+      "radio_channels": "canales de radio",
+      "run_of_show": "orden del show",
+      "shifts": "turnos",
+      "sops": "procedimientos",
+      "time_entries": "horas trabajadas",
+      "zones": "zonas",
+      "other": "otros datos",
+      "roles": "puestos"
+    }
   },
   "queue": {
     "title": "Cola sin conexión",
@@ -95,8 +127,73 @@
       "asset_custody": "Entrega de equipo",
       "cues": "Llamado de cue",
       "shifts": "Turno",
-      "kiosk_punches": "Marcación en quiosco"
-    }
+      "kiosk_punches": "Marcación en quiosco",
+      "chat_messages": "Mensaje de chat",
+      "conversation_reads": "Confirmación de lectura",
+      "feed_acknowledgments": "Confirmación de publicación",
+      "feed_reactions": "Reacción a publicación",
+      "poll_votes": "Voto de encuesta",
+      "survey_responses": "Respuesta de encuesta",
+      "event_rsvps": "Respuesta a evento",
+      "event_check_ins": "Registro en evento",
+      "form_submissions": "Formulario",
+      "training_lesson_progress": "Lección de capacitación",
+      "handbook_acknowledgments": "Confirmación del manual",
+      "recognitions": "Reconocimiento",
+      "occupancy_counts": "Conteo de aforo",
+      "weather_readings": "Lectura del clima",
+      "guest_check_ins": "Registro de invitado",
+      "lost_found_items": "Objeto perdido",
+      "personal_settings": "Ajuste",
+      "dock_slots": "Llegada al muelle",
+      "gate_queue": "Llegada a la puerta",
+      "marshalling_log": "Entrada de maniobras",
+      "fulfillments": "Entrega"
+    },
+    "punchActions": {
+      "in": "Registrar entrada",
+      "breakStart": "Iniciar descanso",
+      "breakEnd": "Terminar descanso",
+      "out": "Registrar salida"
+    },
+    "summary": {
+      "punch": "{action} a las {time}, {project}",
+      "punchNoProject": "{action} a las {time}",
+      "kioskPunch": "{action} a las {time} en el quiosco",
+      "shiftAccept": "Aceptar el turno del {day}, de {start} a {end}",
+      "shiftAcceptUnknown": "Aceptar un turno",
+      "shiftClaim": "Reclamar el turno abierto del {day}, de {start} a {end}",
+      "shiftClaimUnknown": "Reclamar un turno abierto",
+      "incidentReport": "Reportar \"{title}\" a las {time}",
+      "incidentPhoto": "Foto del incidente tomada a las {time}",
+      "incidentParty": "Persona involucrada: {description}",
+      "incidentMove": "Pasar el incidente a {state}",
+      "fulfillmentMove": "Pasar la entrega a {state}",
+      "accessScan": "Escaneo de credencial a las {time}",
+      "accessScanZone": "Escaneo de credencial en {zone}, {time}",
+      "assetCheckOut": "Entregar {code}",
+      "assetReturn": "Devolver {code}",
+      "cueCall": "Dar el pie {label}",
+      "cueCallUnknown": "Dar un pie",
+      "gateArrival": "Llegada a la puerta de {vehicle}",
+      "vehicleRelease": "Liberar el vehículo de la puerta",
+      "dockCheckIn": "Registrar llegada al muelle",
+      "marshalling": "Registro de maniobras: {entry}",
+      "chatMessage": "Mensaje: {text}",
+      "recognition": "Reconocimiento: {text}",
+      "lostItem": "Objeto perdido: {text}",
+      "inspectionStart": "Inspección iniciada a las {time}",
+      "inspectionSignOff": "Aprobar la inspección",
+      "inspectionAnswer": "Respuesta de inspección",
+      "scanIntake": "Código desconocido {code}, en espera de que alguien lo asigne",
+      "generic": "{kind}, guardado a las {time}",
+      "serverShift": "Turno del {day} a las {start}, ahora {state}",
+      "serverState": "{title}, ahora {state}",
+      "serverCue": "{label}, dado a las {time}",
+      "serverGeneric": "El servidor tiene otra versión de este registro: {kind}."
+    },
+    "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
+    "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
   },
   "today": {
     "title": "Hoy",
@@ -109,7 +206,8 @@
     "nextCue": "Siguiente cue",
     "callTime": "Llamado {time}",
     "blockEmpty": "Nada aquí hoy.",
-    "orgChip": "{org}"
+    "orgChip": "{org}",
+    "nextCueAt": "Previsto para el {day} a las {time}"
   },
   "clock": {
     "in": "Marcar entrada",
@@ -191,7 +289,13 @@
     "assetFound": "{tag} encontrado",
     "assetNotYours": "Este equipo no está asignado a ti. Entrégalo a su responsable.",
     "receivingAck": "Entrega confirmada",
-    "review": "Revisar",
+    "review": {
+      "title": "Revisar {count} escaneados",
+      "count": "{count} escaneados",
+      "removeOne": "Quitar uno de {code}",
+      "save": "Guardar {count} artículos",
+      "keep": "Seguir escaneando"
+    },
     "remove": "Quitar uno",
     "badgeTitle": "Mi credencial",
     "badgeEmpty": "Aún no tienes credencial para este proyecto. Tu organización las emite antes del show.",
@@ -261,7 +365,9 @@
     "signOffOwn": "Aprueba alguien distinto al inspector.",
     "recent": "Inspecciones recientes",
     "notSigned": "Esperando aprobación",
-    "signed": "Aprobada"
+    "signed": "Aprobada",
+    "failPhotoRetake": "Tomar otra foto",
+    "failPhotoAdded": "Foto agregada. Se sube con la inspección."
   },
   "show": {
     "title": "Show",
@@ -477,5 +583,12 @@
     "breakStarted": "Pausa iniciada.",
     "breakEnded": "Pausa terminada. Estás en turno.",
     "clockedOut": "Salida registrada."
+  },
+  "update": {
+    "message": "Esta versión de Compass ya no tiene soporte. Actualízala para seguir registrando horas, escaneando y reportando.",
+    "messageNoLink": "Esta versión de Compass ya no tiene soporte. Actualízala desde tu tienda de apps y vuelve a abrir Compass.",
+    "versions": "Esta versión {current}. Se necesita {minimum} o posterior.",
+    "action": "Actualizar Compass",
+    "recheck": "Comprobar de nuevo"
   }
 }

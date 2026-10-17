@@ -1,7 +1,7 @@
 import { getFormTemplate } from "@xos/data/workforce-forms";
 import { uuidv7 } from "@xos/sync";
 import { FormFillScreen } from "@xos/workforce-native";
-import { useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import { useRef, useState, type ReactElement } from "react";
 import { samplingPlan } from "../../../src/domain/geo";
 import { useCompass } from "../../../src/runtime/CompassProvider";
@@ -54,6 +54,9 @@ function FormFill(): ReactElement {
 
   return (
     <>
+      {/* No swipe back here: on iOS 26 a horizontal signature stroke swiped the form away and lost every
+          answer. The back button still leaves. */}
+      <Stack.Screen options={{ gestureEnabled: false }} />
       <FormFillScreen
         status={loaded.status}
         labels={formLabels(t, template?.name ?? t("workforce.compass.hub.forms"), location)}

@@ -21,6 +21,7 @@ import type {
   TrainingScreenLabels,
   WeatherScreenLabels,
 } from "@xos/workforce-native";
+import { countKey } from "../runtime/i18n";
 
 export type T = (key: string, values?: Record<string, string | number>) => string;
 
@@ -182,13 +183,13 @@ export function formLabels(t: T, title: string, location: string): FormFillScree
     no: t("workforce.no"),
     required: t(`${C}.forms.required`),
     requiredField: (label) => t(`${C}.forms.requiredField`, { label }),
-    missing: (count) => t(`${C}.forms.missing`, { count }),
+    missing: (count) => t(countKey(`${C}.forms.missing`, count), { count }),
     score: (score, max, pass) =>
       pass === null
         ? t(`${C}.forms.score`, { score, max })
         : t(`${C}.forms.scorePass`, { score, max, pass }),
     addPhoto: t(`${C}.forms.addPhoto`),
-    photos: (count) => t(`${C}.forms.photos`, { count }),
+    photos: (count) => t(countKey(`${C}.forms.photos`, count), { count }),
     dateHelp: t(`${C}.forms.dateHelp`),
     numberError: t(`${C}.forms.numberError`),
     signature: t(`${C}.forms.signature`),

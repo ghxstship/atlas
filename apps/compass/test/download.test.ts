@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { MemoryStore, SyncSession, type DownloadScope } from "@xos/sync";
+import { getMessages } from "@xos/i18n";
+import {
+  EXTERNAL_AUDIENCES,
+  INTERNAL_AUDIENCES,
+  MemoryStore,
+  SyncSession,
+  TABLE_RULES,
+  type Audience,
+  type DownloadScope,
+} from "@xos/sync";
 import { describe, expect, it } from "vitest";
 import { downloadAll } from "../src/data/downloader";
 import { sourcesFor, toLocalRows } from "../src/data/sources";
@@ -55,6 +64,56 @@ describe("sources", () => {
     expect(sourcesFor("field").map((s) => s.table)).toEqual(
       expect.arrayContaining(["incident_severities", "emergency_codes"]),
     );
+  });
+
+  it("selects the column each table's device scope rule checks, for every audience", () => {
+    // A row the scope check cannot place is refused, so a source that leaves out the scope column
+    // downloads nothing (geofence shapes once lacked org_id and Today said the site had no geofence).
+    // Columns the downloader adds after the pull are listed here.
+    const enriched: Readonly<Record<string, readonly string[]>> = { cues: ["project_id"] };
+    const audiences: readonly Audience[] = [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES];
+    const gaps: string[] = [];
+    for (const audience of audiences) {
+      for (const source of sourcesFor(audience)) {
+        const rule = TABLE_RULES.find((r) => r.table === source.table);
+        if (!rule) {
+          gaps.push(`${audience} ${source.table}: no scope rule`);
+          continue;
+        }
+        if (rule.global) continue;
+        const selected = Object.fromEntries(
+          source.select.split(",").map((c) => [c.split(":")[0]?.trim() ?? c, "x"]),
+        );
+        const columns = new Set([
+          ...Object.keys(source.map ? source.map(selected) : selected),
+          ...(enriched[source.table] ?? []),
+        ]);
+        const served = rule.anyOf.filter(
+          (a) => a.audiences === undefined || a.audiences.includes(audience),
+        );
+        // Externals share one source list; a table no rule serves for this audience is refused by design.
+        if (served.length > 0 && !served.some((a) => columns.has(a.column))) {
+          gaps.push(
+            `${audience} ${source.table}: needs one of ${served.map((a) => a.column).join(", ")}`,
+          );
+        }
+      }
+    }
+    expect(gaps).toEqual([]);
+  });
+
+  it("names every source in words for the refresh banner, in each locale", () => {
+    // The banner once read "Some data did not refresh: geofence_shapes".
+    type Names = { compass: { sync: { tables: Record<string, string> } } };
+    const tables = new Set(
+      [...INTERNAL_AUDIENCES, ...EXTERNAL_AUDIENCES].flatMap((a) =>
+        sourcesFor(a).map((s) => s.table),
+      ),
+    );
+    for (const locale of ["en-US", "es-US"] as const) {
+      const names = (getMessages(locale) as unknown as Names).compass.sync.tables;
+      expect([...tables].filter((t) => typeof names[t] !== "string")).toEqual([]);
+    }
   });
 
   it("maps view rows to local rows and drops rows without an id", () => {
@@ -151,5 +210,40 @@ describe("REST download", () => {
     await downloadAll({ client: api, session, projectId: "proj-1" });
     expect(filters).toContain("api_external.shifts project_id=proj-1");
     expect((await store.list("shifts")).map((r) => r.id).sort()).toEqual(["s1", "s2"]);
+  });
+
+  it("pulls only the tables a live screen asks for (the run of show follows called cues)", async () => {
+    const store = new MemoryStore();
+    const session = new SyncSession(store, {
+      audience: "field",
+      personIds: ["person-1"],
+      orgIds: ["org-1"],
+      membershipIds: ["mem-1"],
+      readableProjectIds: ["proj-1"],
+      engagementIds: [],
+      engagedProjectIds: [],
+    });
+    const { client: api } = client({
+      "app.shifts": [{ id: "s1", membership_id: "mem-1", project_id: "proj-1" }],
+      "app.run_of_show": [{ id: "ros-1", org_id: "org-1", project_id: "proj-1" }],
+      "app.cues": [
+        {
+          id: "c1",
+          org_id: "org-1",
+          project_id: "proj-1",
+          run_of_show_id: "ros-1",
+          called_at: "2026-10-17T08:03:59Z",
+        },
+      ],
+    });
+    const report = await downloadAll({
+      client: api,
+      session,
+      projectId: "proj-1",
+      only: ["run_of_show", "cues"],
+    });
+    expect(report.failed).toEqual([]);
+    expect(await store.get("cues", "c1")).toMatchObject({ called_at: "2026-10-17T08:03:59Z" });
+    expect(await store.list("shifts")).toEqual([]);
   });
 });

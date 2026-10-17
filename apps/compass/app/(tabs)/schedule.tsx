@@ -7,16 +7,24 @@ import {
   buildShiftAction,
   claimConflict,
   groupByDay,
+  isMine,
   isOpenShift,
   startsIn,
   type ShiftRow,
 } from "../../src/domain/shifts";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
-import { formatDay, formatTime, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import {
+  formatDay,
+  formatTime,
+  ProjectPicker,
+  SyncBanner,
+  useRoleTitle,
+} from "../../src/screens/common";
 import { Button, EmptyState, InlineAlert, Screen, ShiftCard, Text } from "../../src/ui";
 
 export default function ScheduleScreen(): ReactElement {
   const { t } = useTranslation();
+  const roleTitle = useRoleTitle();
   const { resolved, projectId, enqueue, refresh } = useCompass();
   const identity = resolved?.identity;
   const { rows } = useRows<ShiftRow & Row>("shifts", (s) => s.project_id === projectId);
@@ -25,7 +33,7 @@ export default function ScheduleScreen(): ReactElement {
     membershipId: identity?.membershipId ?? null,
     engagementIds: identity ? operationalEngagements(identity, null).map((e) => e.id) : [],
   };
-  const mine = rows.filter((s) => !isOpenShift(s));
+  const mine = rows.filter((s) => isMine(s, me));
   const open = rows.filter(isOpenShift);
   const [notice, setNotice] = useState<{ tone: "success" | "warning"; text: string } | null>(null);
   const held = mine.filter((s) => s.membership_id === me.membershipId);
@@ -67,7 +75,7 @@ export default function ScheduleScreen(): ReactElement {
         }
         stateLabel={t(`compass.schedule.${state}`)}
         {...(countdown ? { countdown: t("compass.schedule.startsIn", { time: countdown }) } : {})}
-        role={s.job_title ?? s.role_code ?? ""}
+        role={roleTitle(s)}
         date={formatDay(s.starts_at, s.time_zone)}
         time={t("compass.schedule.timeRange", {
           start: formatTime(s.starts_at, s.time_zone),
