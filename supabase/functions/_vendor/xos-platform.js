@@ -6865,6 +6865,55 @@ var logistics_default$1 = {
     },
   },
 };
+var myWork_default$1 = {
+  title: "My Work",
+  label: "My work",
+  views: "My Work views",
+  groups: {
+    overdue: "Overdue",
+    today: "Today",
+    upcoming: "Upcoming",
+    undated: "No due date",
+  },
+  groupEmpty: {
+    overdue: "Nothing overdue.",
+    today: "Nothing due today.",
+    upcoming: "Nothing coming up.",
+    undated: "Every record you hold has a date.",
+  },
+  groupCount: "{count, plural, one {# record} other {# records}}",
+  columns: {
+    key: "Key",
+    title: "Title",
+    project: "Project",
+    state: "State",
+    due: "Due",
+    when: "When",
+    roles: "Why it is yours",
+  },
+  roles: {
+    owner: "Owner",
+    accountable: "Accountable",
+    assigned: "Assigned",
+  },
+  due: "Due {when}",
+  starts: "Starts {when}",
+  noDate: "No due date",
+  open: "Open",
+  previousMonth: "Previous month",
+  nextMonth: "Next month",
+  undatedNote:
+    "{count, plural, one {# record has no date and is left off the calendar.} other {# records have no date and are left off the calendar.}}",
+  truncated: "Showing your first {count} records. Open a project to see the rest of its work.",
+  empty:
+    "Nothing is assigned to you yet. Open Projects to pick up work, or ask a lead to assign you.",
+  emptyAction: "Open Projects",
+  loadError: "Your work could not be loaded. Try again in a moment.",
+  refusal:
+    "My Work lists the records assigned to a person, and this session has no person in this organization. Sign in as a member to see your work.",
+  refusalAction: "Go to Home",
+  loading: "Loading your work",
+};
 var nav_default$1 = {
   breadcrumb: {
     org: "Organization",
@@ -7113,6 +7162,7 @@ var nav_default$1 = {
       partnerConsole: "Partner Console",
       record: "Record",
       savedView: "Saved View",
+      savedViews: "Saved Views",
       import: "Import",
       customObject: "Custom Object",
       approvals: "Approvals",
@@ -10759,6 +10809,44 @@ var reports_default$1 = {
     you: "You",
   },
 };
+var savedViews_default$1 = {
+  title: "Saved views",
+  mine: "Your views",
+  shared: "Shared with you",
+  mineEmpty:
+    "You have not saved a view yet. Set up a list and choose Save current view from its view menu.",
+  sharedEmpty: "No one has shared a view with you yet.",
+  empty:
+    "No saved views yet. Open a list, arrange it the way you work and choose Save current view from its view menu.",
+  emptyAction: "Open Projects",
+  page: "Opens on {page}",
+  pageUnknown: "Opens on a page you cannot open",
+  audience: {
+    private: "Only you",
+    org: "Everyone in the organization",
+    teams: "{count, plural, one {# team} other {# teams}}",
+    orgAndTeams: "Everyone in the organization and {count, plural, one {# team} other {# teams}}",
+  },
+  isDefault: "Opens by default",
+  rename: "Rename {name}",
+  share: "Share {name}",
+  delete: "Delete {name}",
+  renameAction: "Rename",
+  shareAction: "Share",
+  deleteAction: "Delete",
+  renameTitle: "Rename {name}",
+  renameLabel: "Name",
+  renameHelp: "Up to 100 characters.",
+  renameRequired: "Name the view to save it.",
+  renameSubmit: "Rename view",
+  cancel: "Cancel",
+  renamed: "Renamed to {name}.",
+  loadError: "Your saved views could not be loaded. Try again in a moment.",
+  refusal:
+    "Saved views belong to a member of this organization, and this session has no membership here. Sign in as a member to manage your views.",
+  refusalAction: "Go to Home",
+  loading: "Loading saved views",
+};
 var schedule_default$1 = {
   dependencies: {
     title: "Dependencies",
@@ -12798,6 +12886,7 @@ var views_default$1 = {
     share: "Share {name}",
     delete: "Delete {name}",
     pageDefault: "Page default",
+    manage: "Manage saved views",
   },
   save: {
     title: "Save current view",
@@ -21615,6 +21704,56 @@ var logistics_default = {
     },
   },
 };
+var myWork_default = {
+  title: "Mi trabajo",
+  label: "Mi trabajo",
+  views: "Vistas de Mi trabajo",
+  groups: {
+    overdue: "Vencido",
+    today: "Hoy",
+    upcoming: "Próximo",
+    undated: "Sin fecha de vencimiento",
+  },
+  groupEmpty: {
+    overdue: "Nada vencido.",
+    today: "Nada vence hoy.",
+    upcoming: "Nada próximo.",
+    undated: "Todos tus registros tienen fecha.",
+  },
+  groupCount: "{count, plural, one {# registro} other {# registros}}",
+  columns: {
+    key: "Clave",
+    title: "Título",
+    project: "Proyecto",
+    state: "Estado",
+    due: "Vence",
+    when: "Cuándo",
+    roles: "Por qué es tuyo",
+  },
+  roles: {
+    owner: "Responsable",
+    accountable: "Encargado final",
+    assigned: "Asignado",
+  },
+  due: "Vence {when}",
+  starts: "Empieza {when}",
+  noDate: "Sin fecha de vencimiento",
+  open: "Abrir",
+  previousMonth: "Mes anterior",
+  nextMonth: "Mes siguiente",
+  undatedNote:
+    "{count, plural, one {# registro no tiene fecha y no aparece en el calendario.} other {# registros no tienen fecha y no aparecen en el calendario.}}",
+  truncated:
+    "Se muestran tus primeros {count} registros. Abre un proyecto para ver el resto de su trabajo.",
+  empty:
+    "Todavía no tienes nada asignado. Abre Proyectos para tomar trabajo o pide a un líder que te asigne.",
+  emptyAction: "Abrir Proyectos",
+  loadError: "No se pudo cargar tu trabajo. Inténtalo de nuevo en un momento.",
+  refusal:
+    "Mi trabajo muestra los registros asignados a una persona, y esta sesión no tiene una persona en esta organización. Inicia sesión como miembro para ver tu trabajo.",
+  refusalAction: "Ir a Inicio",
+  loading: "Cargando tu trabajo",
+};
 var nav_default = {
   breadcrumb: {
     org: "Organización",
@@ -21863,6 +22002,7 @@ var nav_default = {
       partnerConsole: "Consola de socios",
       record: "Registro",
       savedView: "Vista guardada",
+      savedViews: "Vistas guardadas",
       import: "Importar",
       customObject: "Objeto personalizado",
       approvals: "Aprobaciones",
@@ -25632,6 +25772,44 @@ var reports_default = {
     you: "Usted",
   },
 };
+var savedViews_default = {
+  title: "Vistas guardadas",
+  mine: "Tus vistas",
+  shared: "Compartidas contigo",
+  mineEmpty:
+    "Todavía no has guardado una vista. Configura una lista y elige Guardar vista actual en su menú de vistas.",
+  sharedEmpty: "Nadie ha compartido una vista contigo todavía.",
+  empty:
+    "Todavía no hay vistas guardadas. Abre una lista, ordénala a tu manera y elige Guardar vista actual en su menú de vistas.",
+  emptyAction: "Abrir Proyectos",
+  page: "Se abre en {page}",
+  pageUnknown: "Se abre en una página que no puedes abrir",
+  audience: {
+    private: "Solo tú",
+    org: "Todos en la organización",
+    teams: "{count, plural, one {# equipo} other {# equipos}}",
+    orgAndTeams: "Todos en la organización y {count, plural, one {# equipo} other {# equipos}}",
+  },
+  isDefault: "Se abre de forma predeterminada",
+  rename: "Cambiar el nombre de {name}",
+  share: "Compartir {name}",
+  delete: "Eliminar {name}",
+  renameAction: "Cambiar nombre",
+  shareAction: "Compartir",
+  deleteAction: "Eliminar",
+  renameTitle: "Cambiar el nombre de {name}",
+  renameLabel: "Nombre",
+  renameHelp: "Hasta 100 caracteres.",
+  renameRequired: "Ponle nombre a la vista para guardarla.",
+  renameSubmit: "Cambiar nombre",
+  cancel: "Cancelar",
+  renamed: "Nombre cambiado a {name}.",
+  loadError: "No se pudieron cargar tus vistas guardadas. Inténtalo de nuevo en un momento.",
+  refusal:
+    "Las vistas guardadas pertenecen a un miembro de esta organización, y esta sesión no tiene membresía aquí. Inicia sesión como miembro para administrar tus vistas.",
+  refusalAction: "Ir a Inicio",
+  loading: "Cargando vistas guardadas",
+};
 var schedule_default = {
   dependencies: {
     title: "Dependencias",
@@ -27711,6 +27889,7 @@ var views_default = {
     share: "Compartir {name}",
     delete: "Eliminar {name}",
     pageDefault: "Vista predeterminada de la página",
+    manage: "Administrar vistas guardadas",
   },
   save: {
     title: "Guardar la vista actual",
@@ -30317,6 +30496,7 @@ var enUS = {
   integrations: integrations_default$1,
   knowledge: knowledge_default$1,
   logistics: logistics_default$1,
+  myWork: myWork_default$1,
   nav: nav_default$1,
   opportunities: opportunities_default$1,
   peek: peek_default$1,
@@ -30328,6 +30508,7 @@ var enUS = {
   profiles: profiles_default$1,
   projects: projects_default$1,
   reports: reports_default$1,
+  savedViews: savedViews_default$1,
   schedule: schedule_default$1,
   settings: settings_default$1,
   shell: shell_default$1,
@@ -30362,6 +30543,7 @@ var esUS = {
   integrations: integrations_default,
   knowledge: knowledge_default,
   logistics: logistics_default,
+  myWork: myWork_default,
   nav: nav_default,
   opportunities: opportunities_default,
   peek: peek_default,
@@ -30373,6 +30555,7 @@ var esUS = {
   profiles: profiles_default,
   projects: projects_default,
   reports: reports_default,
+  savedViews: savedViews_default,
   schedule: schedule_default,
   settings: settings_default,
   shell: shell_default,
