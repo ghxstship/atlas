@@ -27,6 +27,8 @@ function suffix(): string {
 }
 
 async function lookUp(page: Page, code: string) {
+  // The field is controlled; text typed before hydration is dropped (slow engines show it).
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Asset tag, serial or lot label").fill(code);
   await page.getByRole("button", { name: "Look up" }).click();
 }

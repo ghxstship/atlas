@@ -31,7 +31,16 @@ export function settledGoto(page: Page): Page {
  * The journeys' `test`: its `page`, and every page of a context a spec opens for another person
  * with `browser.newContext`, navigates with `settledGoto`.
  */
-export const test = base.extend<object, { browser: Browser }>({
+export const test = base.extend<{ engineTimeout: undefined }, { browser: Browser }>({
+  // WebKit runs the same steps markedly slower (axe on a long page most of all), so its tests get
+  // three times the timeout the spec sets.
+  engineTimeout: [
+    async ({ browserName }, provide, testInfo) => {
+      if (browserName === "webkit") testInfo.setTimeout(testInfo.timeout * 3);
+      await provide(undefined);
+    },
+    { auto: true },
+  ],
   page: async ({ page }, provide) => {
     await provide(settledGoto(page));
   },
