@@ -17,6 +17,8 @@
     "test:a11y": "playwright test -c e2e/a11y/playwright.a11y.config.ts"
   },
   "dependencies": {
+    "@opentelemetry/api": "1.9.1",
+    "@sentry/nextjs": "11.5.0",
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
     "@xos/ai": "workspace:*",
@@ -25,6 +27,7 @@
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/icons": "workspace:*",
+    "@xos/infra": "workspace:*",
     "@xos/integrations": "workspace:*",
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",

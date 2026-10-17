@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { TemplateSystem } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
@@ -23,6 +24,7 @@ export default function OrgPageError({
   const { org } = useParams<{ org: string }>();
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <div className="flex flex-col items-center gap-8">

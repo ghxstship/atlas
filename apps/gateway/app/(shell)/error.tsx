@@ -1,5 +1,6 @@
 "use client";
 
+import { reportClientError } from "@xos/infra/observability/browser";
 import { TemplateSystem } from "@xos/ui";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
@@ -20,6 +21,7 @@ export default function ShellPageError({
   const t = useTranslations("gateway.system.pageError");
   useEffect(() => {
     console.error(error);
+    reportClientError(error);
   }, [error]);
   return (
     <div className="flex flex-col items-center gap-8">

@@ -31,7 +31,8 @@ export const chipClass = cx(
   "transition-colors duration-fast ease-standard forced-colors:border-[CanvasText]",
 );
 
-const buttonChipClass = cx("xos-hit cursor-pointer hover:bg-bg-hover active:brightness-90");
+/* Pressed holds the hover fill: a brightness filter took small chip text under 4.5:1 (A24-004). */
+const buttonChipClass = cx("xos-hit cursor-pointer hover:bg-bg-hover active:bg-bg-hover");
 
 /** The mono code beside a plain name; codes never appear alone. */
 export const codeClass = cx(

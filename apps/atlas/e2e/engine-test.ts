@@ -13,7 +13,7 @@ const INTERRUPTED = /NS_BINDING_ABORTED|interrupted by another navigation|frame 
  * other navigation error is thrown as before.
  */
 export const test = base.extend({
-  page: async ({ page }, use) => {
+  page: async ({ page }, provide) => {
     const goto = page.goto.bind(page);
     page.goto = async (url, options) => {
       await page.waitForLoadState("networkidle");
@@ -25,6 +25,6 @@ export const test = base.extend({
         return goto(url, options);
       }
     };
-    await use(page);
+    await provide(page);
   },
 });

@@ -3,9 +3,15 @@
  * `@xos/api`, which mounts only operations that have handlers; the rest answer 404. Callers
  * authenticate with a Supabase session JWT, the Atlas session cookie or an API key, and every query
  * runs as the caller so RLS decides access. `/api/v1/openapi.json` keeps its own static route.
+ *
+ * `observe` (ADR 0025) continues the caller's trace, opens a server span, writes one redacted
+ * completion record per request and echoes `traceparent` and `x-request-id`. An error the Hono app
+ * turns into a 500 problem is reported through `onError`, once, with its request id.
  */
 import { createApiApp, createSupabaseAuthenticator, handlersWithAuroraModel } from "@xos/api";
+import { observe } from "@xos/infra/observability";
 import { env } from "@/lib/env";
+import { flushErrors, observability } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -42,23 +48,24 @@ async function api(): Promise<ApiApp> {
         siteOrigin: config.ATLAS_SITE_URL,
       }),
       onError: (error, requestId) => {
-        console.error(
-          JSON.stringify({
-            level: "error",
-            source: "api",
-            requestId,
-            message: error instanceof Error ? error.message : String(error),
-          }),
-        );
+        observability.errors.report(error, {
+          tags: { route: "/api/v1", source: "api" },
+          extra: { request_id: requestId },
+        });
       },
     });
   }
   return app;
 }
 
-async function handle(request: Request): Promise<Response> {
-  return (await api()).fetch(request);
-}
+const handle = observe(
+  async (request) => {
+    const response = await (await api()).fetch(request);
+    if (response.status >= 500) await flushErrors();
+    return response;
+  },
+  { ...observability, route: "/api/v1" },
+);
 
 export const GET = handle;
 export const HEAD = handle;

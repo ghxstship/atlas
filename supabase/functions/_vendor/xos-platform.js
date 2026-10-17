@@ -5792,6 +5792,7 @@ var help_default$1 = {
   related: "Related",
   loadFailed:
     "Your tours and tips could not be loaded. Help articles still work; reopen Help to try again.",
+  bodyFailed: "This article could not be loaded. Reload the page, then open Help again.",
   kinds: {
     guide: "Guide",
     page: "Page",
@@ -8930,6 +8931,595 @@ var places_default$1 = {
       CLAIMED: "Claimed",
       INFERRED: "Inferred",
       UNKNOWN: "Unknown",
+    },
+  },
+};
+var platform_default$1 = {
+  common: {
+    errorTitle: "Something went wrong",
+    retry: "Try again",
+    refusedTitle: "Not allowed",
+    unpriced: "Unpriced",
+    done: "Done",
+    yes: "Yes",
+    no: "No",
+  },
+  errors: {
+    input: "Check the highlighted fields and try again.",
+    notFound: "This item no longer exists or you can no longer see it. Refresh the page.",
+    conflict: "Someone changed this at the same time. Refresh the page to see their change.",
+    invalid: "One of the values is not accepted. Check it and try again.",
+    unexpected:
+      "The change could not be saved. Try again, or contact support if it keeps happening.",
+  },
+  refusals: {
+    other: "The database refused this change. The rule below names why.",
+    partner_is_client:
+      "A client org cannot have clients of its own, so it sets no default client brand.",
+    partner_client_unknown: "That org is not one of your clients.",
+    partner_price_client_immutable:
+      "A price stays with its client. Set a price for the other client instead.",
+    partner_depth:
+      "A partner cannot have a parent partner, and an org with clients cannot become a client.",
+    partner_agreement_missing:
+      "Wholesale billing starts once the platform records your partner agreement. Contact your account manager.",
+    partner_no_clients: "Create a client org before running wholesale billing.",
+    wholesale_period_month: "A wholesale statement covers a calendar month. Pick its first day.",
+    wholesale_period_future: "A month is billed once it has started.",
+    wholesale_statement_exists: "This month is already billed. Its statement is listed below.",
+    support_session_no_partner: "Only a client org grants its partner a support session.",
+    support_session_hours: "A support session lasts from 1 to 24 hours.",
+    support_session_reason: "Say why the partner needs access, in up to 500 characters.",
+    support_session_active: "A support session is already open. End it before granting another.",
+    support_session_ended: "This support session has already ended.",
+    support_session_immutable: "A support session can only be ended early, once.",
+    brand_contrast:
+      "This accent fails WCAG 2.2 AA contrast in at least one theme. Choose a darker or lighter accent.",
+    slug_taken: "That web address is already in use. Choose another.",
+    slug_reserved: "That web address is reserved by the platform. Choose another.",
+    plan_unknown: "That plan does not exist.",
+    plan_limit_exceeded:
+      "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    plan_feature_required: "Your plan does not include this. Upgrade the plan to use it.",
+    import_file_type: "Upload a .csv or .xlsx spreadsheet.",
+    import_xls_unsupported:
+      "Older .xls files cannot be read. Save the sheet as .xlsx or .csv and upload it again.",
+    import_file_size: "The spreadsheet is larger than 10 MB. Split it into smaller files.",
+    import_field_twice:
+      "Two columns map to the same field. Map each field once and skip the other column.",
+    import_upload_owner: "An import reads a spreadsheet you uploaded yourself. Upload it again.",
+    import_field_unknown: "That field is not part of this import's target.",
+    import_mapping_confirmation: "The mapping was already confirmed for this import.",
+    import_status_service_only:
+      "This import is being processed. Wait for the current step to finish.",
+    import_job_immutable: "An import keeps its file and target. Start a new import instead.",
+    import_not_validated:
+      "Only a validated import is committed. Wait for validation, or start again.",
+    import_merge_reviews_pending: "Decide every possible duplicate before committing.",
+    import_nothing_to_commit: "No row is valid. Fix the spreadsheet and import it again.",
+    merge_review_decided: "This duplicate was already decided.",
+    merge_review_person: "Only a person decides a possible duplicate.",
+    import_batch_not_undoable: "Only a committed batch that was not undone can be undone.",
+    import_undo_window: "A batch can be undone for 7 days after it was committed.",
+    import_undo_reason: "Say why the batch is undone.",
+    custom_choices_required: "A Choice field needs at least one option, one per line.",
+    custom_value_type: "A value does not match its field's type. Check dates, numbers and amounts.",
+    custom_value_required: "Fill in every required field.",
+    custom_value_currency: "An amount needs its currency.",
+    custom_value_email: "That is not an email address.",
+    custom_value_url: "That is not an http or https address.",
+    custom_value_field: "That field belongs to another object.",
+    custom_value_choice: "That option belongs to another field.",
+    custom_value_person: "A person value names a member of this org.",
+    custom_object_key_immutable: "An object key is part of its API routes and never changes.",
+    view_as_role_unknown: "Preview a platform role or one of this org's roles.",
+    explain_table_unknown: "Only records of this org can be explained.",
+    org_already_canceled: "This organization is already canceled.",
+    org_name_mismatch: "Type the organization's name exactly as shown to confirm.",
+    org_cancel_reason: "Say why the organization is canceled, in up to 1,000 characters.",
+    org_cancel_has_clients:
+      "A partner with client orgs cannot cancel. Move each client to direct billing first.",
+    org_not_canceled: "This organization is not canceled.",
+    org_reactivation_window:
+      "An organization can be reactivated during the 30 days after it was canceled.",
+    org_read_only:
+      "This organization is canceled and read-only. The Owner can reactivate it in Settings, Danger zone.",
+    inbox_action_unknown: "An Inbox item is approved, rejected or marked Done.",
+    inbox_action_not_offered: "Only an approval request is approved or rejected from the Inbox.",
+    inbox_snooze_window: "Snooze an item for up to 30 days.",
+    approval_not_in_review: "This approval was already decided.",
+    approval_not_step_approver: "You are not an approver of the step this approval is waiting on.",
+    approval_approver_capability: "Approving this document needs its approval capability.",
+    approval_one_step_per_approver:
+      "You already decided a step of this approval. The next step needs another approver.",
+    approval_rejection_reason: "Say why when you reject an approval.",
+    sod_approval_requester: "You requested this approval, so someone else decides it.",
+  },
+  partner: {
+    sections: "Partner console sections",
+    loadError: "The partner console could not be loaded.",
+    noAgreement: {
+      title: "No partner agreement yet",
+      body: "You can create and brand client orgs now. Wholesale billing starts once the platform records your agreement.",
+    },
+    overview: {
+      empty: "You have no client orgs yet. Create one to invite its Owner.",
+      emptyAction: "Create a client org",
+      clients: "Client orgs",
+      clientsCaption: "Billed to you at wholesale",
+      ownersJoined: "Owners joined",
+      ownersJoinedCaption: "Clients whose Owner accepted the invitation",
+      sessions: "Open support sessions",
+      sessionsCaption: "Clients you can read right now",
+      seats: "Client seats",
+      discount: "Wholesale discount {percent} percent",
+      noDiscount: "Wholesale terms not recorded yet",
+    },
+    plans: {
+      access: "Access",
+      core: "Core",
+      pro: "Pro",
+      team: "Team",
+      enterprise: "Enterprise",
+    },
+    clients: {
+      intro:
+        "Each client org has its own data, members and brand. You see billing facts only; reading a client's records needs a support session its Owner grants.",
+      create: "Create a client org",
+      createTitle: "New client org",
+      createSubmit: "Create and invite the Owner",
+      caption: "Client orgs",
+      empty: "No client orgs yet. Create one and send its Owner the invitation.",
+      columns: {
+        name: "Client",
+        plan: "Plan",
+        seats: "Seats",
+        owner: "Owner",
+        session: "Support session",
+        price: "Your price",
+      },
+      fields: {
+        name: "Organization name",
+        slug: "Web address",
+        slugHelp: "Lowercase letters, digits and hyphens. The client's Atlas address.",
+        owner: "Owner's email",
+        ownerHelp: "This person receives the Owner invitation.",
+        plan: "Plan",
+      },
+      inviteReady: "The client org is ready. Send its Owner this invitation link.",
+      inviteLink: "Owner invitation link",
+      inviteOnce: "This link is shown once. It expires in 14 days.",
+      copyInvite: "Copy the link",
+      ownerJoined: "Joined",
+      ownerInvited: "Invited",
+      sessionUntil: "Open until {when}",
+      noSession: "None",
+      noPrice: "Not set",
+      fieldMembers: "Field members",
+      brand: "Brand",
+      brandInherited: "Inherits your accent {accent}",
+      brandOwn: "Its own accent {accent}",
+      brandPlatform: "Platform default",
+      dataTitle: "Client records",
+      noSessionBody:
+        "No support session is open. You cannot read this client's records until its Owner grants one in Settings, Security.",
+      sessionOpen:
+        "Support session open until {when}. You can read, never change, the client's records.",
+      dataError: "The client's records could not be read.",
+      noVenues: "The client has no venues yet.",
+      venues: "Client venues",
+      endSession: "End the support session",
+      priceTitle: "What you charge this client",
+      priceHelp:
+        "You bill clients through Stripe Connect at the price you set. It never shows to the client here.",
+      priceAmount: "Monthly price",
+      priceCurrency: "Currency",
+      priceSave: "Save the price",
+      priceSaved: "Price saved.",
+    },
+    brand: {
+      intro:
+        "Client orgs inherit this brand on Atlas, Gateway, emails and documents. Each client keeps its own name.",
+      loadError: "The default brand could not be loaded.",
+      formLabel: "Default client brand",
+      accent: "Accent color",
+      accentHelp: "A hex color such as #1F6FEB. It must pass WCAG 2.2 AA contrast in every theme.",
+      swatch: "Accent preview {accent}",
+      noSwatch: "Accent preview, platform accent",
+      tint: "Neutral tint",
+      tintHelp: "Optional hex color for neutral surfaces.",
+      font: "Font",
+      platformFont: "Platform font",
+      radius: "Corner radius",
+      radii: {
+        Compact: "Compact",
+        Default: "Default",
+        Rounded: "Rounded",
+      },
+      sender: "Email sender name",
+      senderHelp: "Used for clients that do not set their own.",
+      support: "Support email",
+      allowOverride: "Let clients override this brand with their own",
+      save: "Save the default brand",
+      saved: "Default brand saved. Clients see it at once.",
+    },
+    usage: {
+      loadError: "Client usage could not be loaded.",
+      empty: "No client orgs yet, so there is no usage to show.",
+      caption: "Client usage, {month}",
+      meters: {
+        emails_sent: "Emails",
+        sms_segments: "SMS segments",
+        push_sent: "Push",
+        api_requests: "API requests",
+        ai_tokens: "AI tokens",
+      },
+    },
+    wholesale: {
+      loadError: "Wholesale billing could not be loaded.",
+      terms:
+        "The platform bills you each client's list price less {percent} percent, in {currency}.",
+      ready: "{month} is not billed yet.",
+      billed: "{month} is billed.",
+      run: "Run wholesale billing for {month}",
+      ran: "Statement recorded. The billing service charges it to your payment method.",
+      empty: "No statements yet. Run wholesale billing for the current month.",
+      statementTitle: "Statement for {month}",
+      statementTotals:
+        "{clients, plural, one {# client} other {# clients}}: list {list}, you owe {wholesale}, {unpriced, plural, =0 {every line priced} one {# line unpriced} other {# lines unpriced}}.",
+      list: "List price",
+      wholesale: "Wholesale",
+      charge: "You charge",
+      margin: "Margin",
+      formerClient: "Former client",
+    },
+  },
+  imports: {
+    title: "Import",
+    loadError: "Imports could not be loaded.",
+    notFound: "This import no longer exists or you cannot see it. Start a new import.",
+    back: "All imports",
+    fileLine: "{file} into {target}",
+    cancel: "Cancel this import",
+    canceled: "This import was canceled. Nothing was written.",
+    newAnother: "Start another import",
+    new: {
+      title: "New import",
+      intro:
+        "Upload a spreadsheet, confirm how its columns map, review problems and possible duplicates, then commit. You can undo the whole batch for 7 days.",
+      noTargets:
+        "You cannot import into anything yet. Ask an Admin for write access to venues, vendors or assets.",
+      target: "Import into",
+      targetHelp: "Each row becomes one record of this kind.",
+      file: "Spreadsheet",
+      fileHelp: ".csv or .xlsx, up to 10 MB. The first row with text is the header row.",
+      submit: "Upload and read",
+    },
+    past: {
+      title: "Recent imports",
+      empty: "No imports yet. Upload a spreadsheet to start.",
+      emptyAction: "Choose a spreadsheet",
+      file: "File",
+      target: "Into",
+      status: "Status",
+      when: "Started",
+    },
+    targets: {
+      venues: "Venues",
+      counterparties: "Customers and other companies",
+      vendor_products: "Vendor products",
+      asset_units: "Asset units",
+    },
+    steps: {
+      upload: "Upload",
+      map: "Map columns",
+      review: "Review",
+      commit: "Commit",
+      undo: "Done",
+    },
+    status: {
+      Uploaded: "Uploaded",
+      Detected: "Reading",
+      Mapped: "Ready to map",
+      Validated: "Ready to commit",
+      Committing: "Committing",
+      Committed: "Committed",
+      Undone: "Undone",
+      Failed: "Failed",
+      Canceled: "Canceled",
+    },
+    working: {
+      reading: "Reading the spreadsheet. This page updates on its own.",
+      validating: "Checking every row. This page updates on its own.",
+      committing: "Writing the rows. This page updates on its own.",
+    },
+    failed: {
+      title: "This import could not be processed",
+      body: "The file could not be read or written. Check that it is a .csv or .xlsx spreadsheet and start a new import.",
+    },
+    map: {
+      title: "Map the columns",
+      intro:
+        "Confirm what each column holds. Suggestions come from the header names; skip any column you do not need.",
+      noColumns:
+        "No header row was found. Check that the first row with text holds the column names.",
+      columns: "Columns",
+      column: "Column {header}",
+      untitled: "Column {index}",
+      skip: "Skip this column",
+      required: "required",
+      suggested: "Suggested",
+      missing: "Map these required fields first: {fields}.",
+      confirm: "Confirm the mapping",
+    },
+    fields: {
+      name: "Name",
+      street_address: "Street address",
+      locality: "City",
+      postal_code: "Postal code",
+      jurisdiction_id: "Jurisdiction",
+      time_zone: "Time zone",
+      counterparty_type: "Vendor type",
+      vendor_sku: "Vendor SKU",
+      vendor_name: "Vendor",
+      element_id: "Catalog element",
+      unit_price_minor: "Unit price in cents",
+      currency_code: "Currency",
+      lead_time_days: "Lead time in days",
+      asset_tag: "Asset tag",
+      asset_class_id: "Asset class",
+      home_venue_id: "Home venue",
+    },
+    dryRun: {
+      title: "Dry run",
+      creates: "New records",
+      updates: "Updates",
+      merges: "Merges",
+      refusals: "Rows refused",
+    },
+    duplicates: {
+      title: "Possible duplicates",
+      none: "No possible duplicates were found.",
+      match: "Row {row} looks like {candidate} ({percent} percent alike).",
+      existing: "an existing record",
+      merge: "Merge into it",
+      keep: "Keep separate",
+      mergeLabel: "Merge row {row}",
+      keepLabel: "Keep row {row} separate",
+      merged: "Merged into the existing record.",
+      kept: "Kept as a new record.",
+    },
+    issues: {
+      title: "Rows with problems",
+      none: "Every row passed the checks.",
+      row: "Row",
+      state: "State",
+      cells: "Problems",
+      cell: "{column}: {issue}",
+    },
+    rowStates: {
+      Valid: "Valid",
+      Invalid: "Invalid",
+      Written: "Written",
+      Refused: "Refused",
+      Skipped: "Skipped",
+    },
+    issueCodes: {
+      required: "required",
+      unknown_counterparty_type: "not a vendor type in the canon",
+      unknown_jurisdiction: "not a known jurisdiction",
+      unknown_time_zone: "not a time zone",
+      unknown_vendor: "no vendor of this org has this name",
+      unknown_element: "not a catalog element",
+      invalid_amount: "not a whole number of cents",
+      invalid_currency: "not a currency code",
+      invalid_number: "not a whole number",
+      currency_required: "a price needs its currency",
+      unknown_asset_class: "no asset class has this name",
+      unknown_venue: "no venue has this name",
+      target_not_importable: "this kind of record cannot be imported",
+      other: "not accepted",
+    },
+    commit: {
+      title: "Commit",
+      ready: "Valid rows are written in one batch. Refused rows are left out.",
+      pending:
+        "{count, plural, one {Decide # possible duplicate} other {Decide # possible duplicates}} before committing.",
+      submit: "Commit the import",
+    },
+    undo: {
+      title: "Undo the whole batch",
+      doneTitle: "Batch undone",
+      summary: "{written, plural, one {# row was} other {# rows were}} written on {when}.",
+      reason: "Why undo it",
+      reasonHelp: "Rows edited since, or that other records depend on, are kept and listed.",
+      submit: "Undo the batch",
+      result:
+        "{reverted, plural, one {# row reverted} other {# rows reverted}}, {kept, plural, =0 {none kept} one {# kept} other {# kept}}.",
+      keptTitle: "Rows kept",
+      keptRow: "Row {row}: {reason}",
+    },
+  },
+  objects: {
+    title: "Custom object",
+    loadError: "The records could not be loaded.",
+    titleColumn: "Title",
+    person: "A member",
+    create: "New {object} record",
+    createTitle: "New {object} record",
+    createSubmit: "Create the record",
+    empty: "No {object} records yet. Create the first one.",
+    emptyReadOnly: "Back to Home",
+    requiredLabel: "{label} (required)",
+    noValue: "No value",
+    move: "{field}",
+    moveForm: "Move this record to another {field}",
+    moveSubmit: "Move",
+    moved: "Moved.",
+    views: {
+      List: "List",
+      Board: "Board",
+      Table: "Table",
+      Calendar: "Calendar",
+    },
+    dataTypes: {
+      Text: "Text",
+      Number: "Number",
+      Money: "Money",
+      Date: "Date",
+      Timestamp: "Date and time",
+      Boolean: "Yes or no",
+      Choice: "Choice",
+      Person: "Person",
+      Email: "Email",
+      URL: "Web address",
+    },
+    define: {
+      heading: "Custom objects",
+      description:
+        "Your own record types, each with typed fields, list, board, table and calendar views, and API routes.",
+      none: "No custom objects yet. Define one below.",
+      open: "Open {object} records",
+      fields: "Fields of {object}",
+      noFields: "No fields yet. Add a Choice field to group the board.",
+      title: "Define a custom object",
+      label: "Name",
+      labelHelp: "Title Case, such as Gear Requests. The key and API route come from it.",
+      icon: "Icon",
+      iconHelp: "An icon name such as box or truck. Leave empty for box.",
+      view: "Opens in",
+      submit: "Define the object",
+      done: "Object defined. Add its fields next.",
+      readOnly: "Defining objects needs the custom objects capability. Ask an Admin.",
+    },
+    field: {
+      title: "Add a field to {object}",
+      label: "Field name",
+      type: "Type",
+      choices: "Options",
+      choicesHelp: "One option per line, in board order.",
+      required: "Every record needs a value",
+      requiredShort: "required",
+      submit: "Add the field",
+      done: "Field added.",
+    },
+  },
+  inbox: {
+    title: "Inbox",
+    loadError: "Your Inbox could not be loaded.",
+    empty: "Nothing needs you right now.",
+    emptyAction: "Open My Work",
+    cleared: "You cleared {count, plural, one {# item} other {# items}}. Nothing else needs you.",
+    handled: "{count, plural, one {# item handled} other {# items handled}} this visit.",
+    listLabel: "Inbox items",
+    needsYou: "Needs you",
+    fyi: "For your information",
+    aRecord: "a record",
+    someone: "Someone",
+    generic: "Update",
+    approvalSummary: "Approve {document} {reference} for {amount}",
+    approvalDetail: "Requested by {actor}, step {step}",
+    documents: {
+      PurchaseOrder: "purchase order",
+      ChangeOrder: "change order",
+      Expense: "expense",
+      InvoiceApproval: "invoice",
+      Contract: "contract",
+      PayrollRun: "payroll run",
+      Requisition: "requisition",
+    },
+    approve: "Approve",
+    reject: "Reject",
+    done: "Done",
+    snooze: "Snooze",
+    rejectTitle: "Reject with a reason",
+    rejectReason: "Reason",
+    rejectSubmit: "Reject",
+    keys: {
+      title: "Keys:",
+      move: "move",
+      approve: "approve",
+      reject: "reject",
+      done: "done",
+      snooze: "snooze until tomorrow",
+    },
+  },
+  access: {
+    why: {
+      title: "Why can I see this?",
+      error: "The explanation could not be read. Refresh the page.",
+      policyHelp: "The read rule of this record type admitted it through the paths above.",
+      until: "Until {when}",
+      kinds: {
+        Membership: "Your membership and roles",
+        ProjectMembership: "Your project membership",
+        CapabilityGrant: "A capability granted to you",
+        RecordGrant: "Access granted to you or your organization",
+        SupportSession: "A support session",
+        Delegation: "A delegation to you",
+        Policy: "Read rule",
+      },
+    },
+    viewAs: {
+      title: "View as role",
+      description:
+        "Preview Atlas as a role at or below your own. You still see only what you could already see; navigation and actions follow the role.",
+      role: "Role",
+      start: "Start the preview",
+      active: "A preview is running. Use the banner at the top of the page to end it.",
+      loadError: "Roles could not be loaded.",
+      banner: "Viewing as {role}. You see nothing beyond your own access.",
+      exit: "End the preview",
+    },
+    support: {
+      title: "Partner support sessions",
+      description:
+        "Your partner's staff cannot read your records unless the Owner grants a support session. They read, never change, until it ends. Every grant is in your audit log.",
+      loadError: "Support sessions could not be loaded.",
+      none: "No support session is open.",
+      open: "Support session open until {when}. Reason: {reason}",
+      grant: "Grant a support session",
+      granted: "Support session granted.",
+      hours: "Length",
+      hoursOption: "{hours, plural, one {# hour} other {# hours}}",
+      reason: "Why does your partner need access?",
+      reasonHelp: "Shown to your partner and kept in the audit log.",
+      end: "End the support session",
+      ownerOnly: "Only the Owner grants or ends a support session.",
+      history: "Past support sessions",
+      past: "{from} to {to}: {reason}",
+    },
+  },
+  lifecycle: {
+    title: "Cancel the organization",
+    description:
+      "Canceling ends the subscription. The organization is read-only for 30 days with the full export available, then its data is deleted at day 90.",
+    loadError: "The organization's status could not be loaded.",
+    ownerOnly: "Only the Owner cancels the organization or takes the full export.",
+    banner:
+      "This organization is canceled and read-only for {days, plural, one {# more day} other {# more days}}, until {until}. The Owner can download the full export in Settings, Danger zone.",
+    canceled: {
+      title: "Canceled and read-only",
+      body: "{days, plural, one {# day} other {# days}} left, until {until}. Download the full export before then. Data is deleted on {purge}.",
+    },
+    cancel: {
+      title: "Cancel the organization",
+      explain:
+        "Take the full export first if you need a copy now; it stays available for 30 days after canceling.",
+      confirm: "Type {name} to confirm",
+      reason: "Why are you canceling?",
+      reasonHelp: "Kept with the cancellation record.",
+      submit: "Cancel the organization",
+    },
+    reactivate: {
+      title: "Reactivate the organization",
+      submit: "Reactivate on the Access plan",
+    },
+    export: {
+      download: "Download the full export",
+      help: "One archive with JSON and CSV for every record, the stored files and a manifest.",
+      history: "Exports taken",
+      past: "{when}: {tables} tables, {rows} rows, {files} files",
     },
   },
 };
@@ -19978,6 +20568,7 @@ var help_default = {
   related: "Relacionado",
   loadFailed:
     "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
+  bodyFailed: "No se pudo cargar este artículo. Recargue la página y vuelva a abrir la Ayuda.",
   kinds: {
     guide: "Guía",
     page: "Página",
@@ -23199,6 +23790,617 @@ var places_default = {
       CLAIMED: "Declarado",
       INFERRED: "Inferido",
       UNKNOWN: "Desconocido",
+    },
+  },
+};
+var platform_default = {
+  common: {
+    errorTitle: "Algo salió mal",
+    retry: "Intentar de nuevo",
+    refusedTitle: "No permitido",
+    unpriced: "Sin precio",
+    done: "Listo",
+    yes: "Sí",
+    no: "No",
+  },
+  errors: {
+    input: "Revise los campos marcados e inténtelo de nuevo.",
+    notFound: "Este elemento ya no existe o ya no puede verlo. Actualice la página.",
+    conflict: "Otra persona cambió esto al mismo tiempo. Actualice la página para ver su cambio.",
+    invalid: "Uno de los valores no se acepta. Revíselo e inténtelo de nuevo.",
+    unexpected:
+      "No se pudo guardar el cambio. Inténtelo de nuevo o contacte a soporte si sigue ocurriendo.",
+  },
+  refusals: {
+    other: "La base de datos rechazó este cambio. La regla de abajo indica el motivo.",
+    partner_is_client:
+      "Una organización cliente no puede tener clientes propios, así que no define una marca predeterminada para clientes.",
+    partner_client_unknown: "Esa organización no es uno de sus clientes.",
+    partner_price_client_immutable:
+      "Un precio se queda con su cliente. Defina un precio para el otro cliente.",
+    partner_depth:
+      "Un socio no puede tener un socio superior, y una organización con clientes no puede volverse cliente.",
+    partner_agreement_missing:
+      "La facturación mayorista empieza cuando la plataforma registra su acuerdo de socio. Contacte a su gerente de cuenta.",
+    partner_no_clients: "Cree una organización cliente antes de ejecutar la facturación mayorista.",
+    wholesale_period_month:
+      "Un estado de cuenta mayorista cubre un mes calendario. Elija su primer día.",
+    wholesale_period_future: "Un mes se factura cuando ya empezó.",
+    wholesale_statement_exists: "Este mes ya está facturado. Su estado de cuenta aparece abajo.",
+    support_session_no_partner:
+      "Solo una organización cliente otorga a su socio una sesión de soporte.",
+    support_session_hours: "Una sesión de soporte dura de 1 a 24 horas.",
+    support_session_reason: "Diga por qué el socio necesita acceso, en hasta 500 caracteres.",
+    support_session_active:
+      "Ya hay una sesión de soporte abierta. Termínela antes de otorgar otra.",
+    support_session_ended: "Esta sesión de soporte ya terminó.",
+    support_session_immutable:
+      "Una sesión de soporte solo puede terminarse antes de tiempo, una vez.",
+    brand_contrast:
+      "Este color de acento no cumple el contraste WCAG 2.2 AA en al menos un tema. Elija un acento más oscuro o más claro.",
+    slug_taken: "Esa dirección web ya está en uso. Elija otra.",
+    slug_reserved: "Esa dirección web está reservada por la plataforma. Elija otra.",
+    plan_unknown: "Ese plan no existe.",
+    plan_limit_exceeded: "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    plan_feature_required: "Su plan no incluye esto. Mejore el plan para usarlo.",
+    import_file_type: "Suba una hoja de cálculo .csv o .xlsx.",
+    import_xls_unsupported:
+      "Los archivos .xls antiguos no se pueden leer. Guarde la hoja como .xlsx o .csv y súbala de nuevo.",
+    import_file_size: "La hoja de cálculo supera los 10 MB. Divídala en archivos más pequeños.",
+    import_field_twice:
+      "Dos columnas corresponden al mismo campo. Asigne cada campo una vez y omita la otra columna.",
+    import_upload_owner:
+      "Una importación lee una hoja de cálculo que usted mismo subió. Súbala de nuevo.",
+    import_field_unknown: "Ese campo no forma parte del destino de esta importación.",
+    import_mapping_confirmation: "La asignación de columnas ya se confirmó para esta importación.",
+    import_status_service_only:
+      "Esta importación se está procesando. Espere a que termine el paso actual.",
+    import_job_immutable:
+      "Una importación conserva su archivo y su destino. Inicie una nueva importación.",
+    import_not_validated:
+      "Solo se confirma una importación validada. Espere la validación o empiece de nuevo.",
+    import_merge_reviews_pending: "Decida cada posible duplicado antes de confirmar.",
+    import_nothing_to_commit:
+      "Ninguna fila es válida. Corrija la hoja de cálculo e impórtela de nuevo.",
+    merge_review_decided: "Este duplicado ya se decidió.",
+    merge_review_person: "Solo una persona decide un posible duplicado.",
+    import_batch_not_undoable: "Solo se deshace un lote confirmado que no se haya deshecho.",
+    import_undo_window: "Un lote se puede deshacer durante 7 días después de confirmarlo.",
+    import_undo_reason: "Diga por qué se deshace el lote.",
+    custom_choices_required: "Un campo de opciones necesita al menos una opción, una por línea.",
+    custom_value_type:
+      "Un valor no coincide con el tipo de su campo. Revise fechas, números e importes.",
+    custom_value_required: "Complete todos los campos obligatorios.",
+    custom_value_currency: "Un importe necesita su moneda.",
+    custom_value_email: "Eso no es una dirección de correo electrónico.",
+    custom_value_url: "Eso no es una dirección http o https.",
+    custom_value_field: "Ese campo pertenece a otro objeto.",
+    custom_value_choice: "Esa opción pertenece a otro campo.",
+    custom_value_person: "Un valor de persona nombra a un miembro de esta organización.",
+    custom_object_key_immutable:
+      "La clave de un objeto forma parte de sus rutas de API y nunca cambia.",
+    view_as_role_unknown:
+      "Previsualice un rol de la plataforma o uno de los roles de esta organización.",
+    explain_table_unknown: "Solo se pueden explicar registros de esta organización.",
+    org_already_canceled: "Esta organización ya está cancelada.",
+    org_name_mismatch:
+      "Escriba el nombre de la organización exactamente como aparece para confirmar.",
+    org_cancel_reason: "Diga por qué se cancela la organización, en hasta 1,000 caracteres.",
+    org_cancel_has_clients:
+      "Un socio con organizaciones cliente no puede cancelar. Pase primero cada cliente a facturación directa.",
+    org_not_canceled: "Esta organización no está cancelada.",
+    org_reactivation_window:
+      "Una organización se puede reactivar durante los 30 días posteriores a su cancelación.",
+    org_read_only:
+      "Esta organización está cancelada y en solo lectura. El Propietario puede reactivarla en Configuración, Zona de peligro.",
+    inbox_action_unknown: "Un elemento de la Bandeja se aprueba, se rechaza o se marca como Listo.",
+    inbox_action_not_offered:
+      "Solo una solicitud de aprobación se aprueba o se rechaza desde la Bandeja.",
+    inbox_snooze_window: "Posponga un elemento hasta por 30 días.",
+    approval_not_in_review: "Esta aprobación ya se decidió.",
+    approval_not_step_approver: "Usted no aprueba el paso en el que espera esta aprobación.",
+    approval_approver_capability: "Aprobar este documento requiere su permiso de aprobación.",
+    approval_one_step_per_approver:
+      "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
+    approval_rejection_reason: "Diga por qué cuando rechace una aprobación.",
+    sod_approval_requester: "Usted solicitó esta aprobación, así que otra persona la decide.",
+  },
+  partner: {
+    sections: "Secciones de la consola de socio",
+    loadError: "No se pudo cargar la consola de socio.",
+    noAgreement: {
+      title: "Todavía no hay acuerdo de socio",
+      body: "Ya puede crear organizaciones cliente y aplicarles su marca. La facturación mayorista empieza cuando la plataforma registra su acuerdo.",
+    },
+    overview: {
+      empty: "Todavía no tiene organizaciones cliente. Cree una para invitar a su Propietario.",
+      emptyAction: "Crear una organización cliente",
+      clients: "Organizaciones cliente",
+      clientsCaption: "Se le facturan a precio mayorista",
+      ownersJoined: "Propietarios unidos",
+      ownersJoinedCaption: "Clientes cuyo Propietario aceptó la invitación",
+      sessions: "Sesiones de soporte abiertas",
+      sessionsCaption: "Clientes que puede leer ahora",
+      seats: "Puestos de clientes",
+      discount: "Descuento mayorista del {percent} por ciento",
+      noDiscount: "Condiciones mayoristas aún no registradas",
+    },
+    plans: {
+      access: "Access",
+      core: "Core",
+      pro: "Pro",
+      team: "Team",
+      enterprise: "Enterprise",
+    },
+    clients: {
+      intro:
+        "Cada organización cliente tiene sus propios datos, miembros y marca. Usted ve solo datos de facturación; leer los registros de un cliente requiere una sesión de soporte que otorga su Propietario.",
+      create: "Crear una organización cliente",
+      createTitle: "Nueva organización cliente",
+      createSubmit: "Crear e invitar al Propietario",
+      caption: "Organizaciones cliente",
+      empty:
+        "Todavía no hay organizaciones cliente. Cree una y envíe la invitación a su Propietario.",
+      columns: {
+        name: "Cliente",
+        plan: "Plan",
+        seats: "Puestos",
+        owner: "Propietario",
+        session: "Sesión de soporte",
+        price: "Su precio",
+      },
+      fields: {
+        name: "Nombre de la organización",
+        slug: "Dirección web",
+        slugHelp: "Letras minúsculas, dígitos y guiones. La dirección de Atlas del cliente.",
+        owner: "Correo del Propietario",
+        ownerHelp: "Esta persona recibe la invitación como Propietario.",
+        plan: "Plan",
+      },
+      inviteReady:
+        "La organización cliente está lista. Envíe a su Propietario este enlace de invitación.",
+      inviteLink: "Enlace de invitación del Propietario",
+      inviteOnce: "Este enlace se muestra una sola vez. Vence en 14 días.",
+      copyInvite: "Copiar el enlace",
+      ownerJoined: "Se unió",
+      ownerInvited: "Invitado",
+      sessionUntil: "Abierta hasta {when}",
+      noSession: "Ninguna",
+      noPrice: "Sin definir",
+      fieldMembers: "Miembros de campo",
+      brand: "Marca",
+      brandInherited: "Hereda su acento {accent}",
+      brandOwn: "Su propio acento {accent}",
+      brandPlatform: "Predeterminada de la plataforma",
+      dataTitle: "Registros del cliente",
+      noSessionBody:
+        "No hay una sesión de soporte abierta. No puede leer los registros de este cliente hasta que su Propietario otorgue una en Configuración, Seguridad.",
+      sessionOpen:
+        "Sesión de soporte abierta hasta {when}. Puede leer, nunca cambiar, los registros del cliente.",
+      dataError: "No se pudieron leer los registros del cliente.",
+      noVenues: "El cliente todavía no tiene recintos.",
+      venues: "Recintos del cliente",
+      endSession: "Terminar la sesión de soporte",
+      priceTitle: "Lo que cobra a este cliente",
+      priceHelp:
+        "Usted factura a sus clientes mediante Stripe Connect al precio que define. El cliente nunca lo ve aquí.",
+      priceAmount: "Precio mensual",
+      priceCurrency: "Moneda",
+      priceSave: "Guardar el precio",
+      priceSaved: "Precio guardado.",
+    },
+    brand: {
+      intro:
+        "Las organizaciones cliente heredan esta marca en Atlas, Gateway, correos y documentos. Cada cliente conserva su propio nombre.",
+      loadError: "No se pudo cargar la marca predeterminada.",
+      formLabel: "Marca predeterminada para clientes",
+      accent: "Color de acento",
+      accentHelp:
+        "Un color hexadecimal como #1F6FEB. Debe cumplir el contraste WCAG 2.2 AA en todos los temas.",
+      swatch: "Vista previa del acento {accent}",
+      noSwatch: "Vista previa del acento, acento de la plataforma",
+      tint: "Tono neutro",
+      tintHelp: "Color hexadecimal opcional para superficies neutras.",
+      font: "Fuente",
+      platformFont: "Fuente de la plataforma",
+      radius: "Radio de las esquinas",
+      radii: {
+        Compact: "Compacto",
+        Default: "Predeterminado",
+        Rounded: "Redondeado",
+      },
+      sender: "Nombre del remitente de correo",
+      senderHelp: "Se usa para los clientes que no definen el suyo.",
+      support: "Correo de soporte",
+      allowOverride: "Permitir que los clientes reemplacen esta marca con la suya",
+      save: "Guardar la marca predeterminada",
+      saved: "Marca predeterminada guardada. Los clientes la ven de inmediato.",
+    },
+    usage: {
+      loadError: "No se pudo cargar el uso de los clientes.",
+      empty: "Todavía no hay organizaciones cliente, así que no hay uso que mostrar.",
+      caption: "Uso de los clientes, {month}",
+      meters: {
+        emails_sent: "Correos",
+        sms_segments: "Segmentos SMS",
+        push_sent: "Notificaciones push",
+        api_requests: "Solicitudes de API",
+        ai_tokens: "Tokens de IA",
+      },
+    },
+    wholesale: {
+      loadError: "No se pudo cargar la facturación mayorista.",
+      terms:
+        "La plataforma le factura el precio de lista de cada cliente menos un {percent} por ciento, en {currency}.",
+      ready: "{month} todavía no está facturado.",
+      billed: "{month} está facturado.",
+      run: "Ejecutar la facturación mayorista de {month}",
+      ran: "Estado de cuenta registrado. El servicio de facturación lo cobra a su método de pago.",
+      empty: "Todavía no hay estados de cuenta. Ejecute la facturación mayorista del mes actual.",
+      statementTitle: "Estado de cuenta de {month}",
+      statementTotals:
+        "{clients, plural, one {# cliente} other {# clientes}}: lista {list}, usted debe {wholesale}, {unpriced, plural, =0 {todas las líneas con precio} one {# línea sin precio} other {# líneas sin precio}}.",
+      list: "Precio de lista",
+      wholesale: "Mayorista",
+      charge: "Usted cobra",
+      margin: "Margen",
+      formerClient: "Cliente anterior",
+    },
+  },
+  imports: {
+    title: "Importar",
+    loadError: "No se pudieron cargar las importaciones.",
+    notFound: "Esta importación ya no existe o no puede verla. Inicie una nueva importación.",
+    back: "Todas las importaciones",
+    fileLine: "{file} en {target}",
+    cancel: "Cancelar esta importación",
+    canceled: "Esta importación se canceló. No se escribió nada.",
+    newAnother: "Iniciar otra importación",
+    new: {
+      title: "Nueva importación",
+      intro:
+        "Suba una hoja de cálculo, confirme cómo corresponden sus columnas, revise problemas y posibles duplicados y luego confirme. Puede deshacer todo el lote durante 7 días.",
+      noTargets:
+        "Todavía no puede importar nada. Pida a un Administrador acceso de escritura a recintos, proveedores o activos.",
+      target: "Importar en",
+      targetHelp: "Cada fila se convierte en un registro de este tipo.",
+      file: "Hoja de cálculo",
+      fileHelp: ".csv o .xlsx, hasta 10 MB. La primera fila con texto es la fila de encabezados.",
+      submit: "Subir y leer",
+    },
+    past: {
+      title: "Importaciones recientes",
+      empty: "Todavía no hay importaciones. Suba una hoja de cálculo para empezar.",
+      emptyAction: "Elegir una hoja de cálculo",
+      file: "Archivo",
+      target: "En",
+      status: "Estado",
+      when: "Iniciada",
+    },
+    targets: {
+      venues: "Recintos",
+      counterparties: "Clientes y otras empresas",
+      vendor_products: "Productos de proveedores",
+      asset_units: "Unidades de activos",
+    },
+    steps: {
+      upload: "Subir",
+      map: "Asignar columnas",
+      review: "Revisar",
+      commit: "Confirmar",
+      undo: "Listo",
+    },
+    status: {
+      Uploaded: "Subida",
+      Detected: "Leyendo",
+      Mapped: "Lista para asignar",
+      Validated: "Lista para confirmar",
+      Committing: "Confirmando",
+      Committed: "Confirmada",
+      Undone: "Deshecha",
+      Failed: "Falló",
+      Canceled: "Cancelada",
+    },
+    working: {
+      reading: "Leyendo la hoja de cálculo. Esta página se actualiza sola.",
+      validating: "Revisando cada fila. Esta página se actualiza sola.",
+      committing: "Escribiendo las filas. Esta página se actualiza sola.",
+    },
+    failed: {
+      title: "No se pudo procesar esta importación",
+      body: "No se pudo leer o escribir el archivo. Verifique que sea una hoja de cálculo .csv o .xlsx e inicie una nueva importación.",
+    },
+    map: {
+      title: "Asignar las columnas",
+      intro:
+        "Confirme qué contiene cada columna. Las sugerencias vienen de los encabezados; omita cualquier columna que no necesite.",
+      noColumns:
+        "No se encontró una fila de encabezados. Verifique que la primera fila con texto contenga los nombres de las columnas.",
+      columns: "Columnas",
+      column: "Columna {header}",
+      untitled: "Columna {index}",
+      skip: "Omitir esta columna",
+      required: "obligatorio",
+      suggested: "Sugerido",
+      missing: "Asigne primero estos campos obligatorios: {fields}.",
+      confirm: "Confirmar la asignación",
+    },
+    fields: {
+      name: "Nombre",
+      street_address: "Dirección",
+      locality: "Ciudad",
+      postal_code: "Código postal",
+      jurisdiction_id: "Jurisdicción",
+      time_zone: "Zona horaria",
+      counterparty_type: "Tipo de proveedor",
+      vendor_sku: "SKU del proveedor",
+      vendor_name: "Proveedor",
+      element_id: "Elemento del catálogo",
+      unit_price_minor: "Precio unitario en centavos",
+      currency_code: "Moneda",
+      lead_time_days: "Plazo de entrega en días",
+      asset_tag: "Etiqueta del activo",
+      asset_class_id: "Clase de activo",
+      home_venue_id: "Recinto base",
+    },
+    dryRun: {
+      title: "Simulación",
+      creates: "Registros nuevos",
+      updates: "Actualizaciones",
+      merges: "Fusiones",
+      refusals: "Filas rechazadas",
+    },
+    duplicates: {
+      title: "Posibles duplicados",
+      none: "No se encontraron posibles duplicados.",
+      match: "La fila {row} se parece a {candidate} ({percent} por ciento parecido).",
+      existing: "un registro existente",
+      merge: "Fusionar con él",
+      keep: "Mantener aparte",
+      mergeLabel: "Fusionar la fila {row}",
+      keepLabel: "Mantener aparte la fila {row}",
+      merged: "Fusionado con el registro existente.",
+      kept: "Se mantiene como registro nuevo.",
+    },
+    issues: {
+      title: "Filas con problemas",
+      none: "Todas las filas pasaron las revisiones.",
+      row: "Fila",
+      state: "Estado",
+      cells: "Problemas",
+      cell: "{column}: {issue}",
+    },
+    rowStates: {
+      Valid: "Válida",
+      Invalid: "No válida",
+      Written: "Escrita",
+      Refused: "Rechazada",
+      Skipped: "Omitida",
+    },
+    issueCodes: {
+      required: "obligatorio",
+      unknown_counterparty_type: "no es un tipo de proveedor del canon",
+      unknown_jurisdiction: "no es una jurisdicción conocida",
+      unknown_time_zone: "no es una zona horaria",
+      unknown_vendor: "ningún proveedor de esta organización tiene este nombre",
+      unknown_element: "no es un elemento del catálogo",
+      invalid_amount: "no es un número entero de centavos",
+      invalid_currency: "no es un código de moneda",
+      invalid_number: "no es un número entero",
+      currency_required: "un precio necesita su moneda",
+      unknown_asset_class: "ninguna clase de activo tiene este nombre",
+      unknown_venue: "ningún recinto tiene este nombre",
+      target_not_importable: "este tipo de registro no se puede importar",
+      other: "no se acepta",
+    },
+    commit: {
+      title: "Confirmar",
+      ready: "Las filas válidas se escriben en un solo lote. Las filas rechazadas quedan fuera.",
+      pending:
+        "{count, plural, one {Decida # posible duplicado} other {Decida # posibles duplicados}} antes de confirmar.",
+      submit: "Confirmar la importación",
+    },
+    undo: {
+      title: "Deshacer todo el lote",
+      doneTitle: "Lote deshecho",
+      summary:
+        "{written, plural, one {Se escribió # fila} other {Se escribieron # filas}} el {when}.",
+      reason: "Por qué deshacerlo",
+      reasonHelp:
+        "Las filas editadas desde entonces, o de las que dependen otros registros, se conservan y se listan.",
+      submit: "Deshacer el lote",
+      result:
+        "{reverted, plural, one {# fila revertida} other {# filas revertidas}}, {kept, plural, =0 {ninguna conservada} one {# conservada} other {# conservadas}}.",
+      keptTitle: "Filas conservadas",
+      keptRow: "Fila {row}: {reason}",
+    },
+  },
+  objects: {
+    title: "Objeto personalizado",
+    loadError: "No se pudieron cargar los registros.",
+    titleColumn: "Título",
+    person: "Un miembro",
+    create: "Nuevo registro de {object}",
+    createTitle: "Nuevo registro de {object}",
+    createSubmit: "Crear el registro",
+    empty: "Todavía no hay registros de {object}. Cree el primero.",
+    emptyReadOnly: "Volver a Inicio",
+    requiredLabel: "{label} (obligatorio)",
+    noValue: "Sin valor",
+    move: "{field}",
+    moveForm: "Mover este registro a otro valor de {field}",
+    moveSubmit: "Mover",
+    moved: "Movido.",
+    views: {
+      List: "Lista",
+      Board: "Tablero",
+      Table: "Tabla",
+      Calendar: "Calendario",
+    },
+    dataTypes: {
+      Text: "Texto",
+      Number: "Número",
+      Money: "Dinero",
+      Date: "Fecha",
+      Timestamp: "Fecha y hora",
+      Boolean: "Sí o no",
+      Choice: "Opciones",
+      Person: "Persona",
+      Email: "Correo electrónico",
+      URL: "Dirección web",
+    },
+    define: {
+      heading: "Objetos personalizados",
+      description:
+        "Sus propios tipos de registro, cada uno con campos tipados, vistas de lista, tablero, tabla y calendario, y rutas de API.",
+      none: "Todavía no hay objetos personalizados. Defina uno abajo.",
+      open: "Abrir los registros de {object}",
+      fields: "Campos de {object}",
+      noFields: "Todavía no hay campos. Agregue un campo de opciones para agrupar el tablero.",
+      title: "Definir un objeto personalizado",
+      label: "Nombre",
+      labelHelp:
+        "Con mayúscula inicial en cada palabra, como Gear Requests. La clave y la ruta de API salen de él.",
+      icon: "Ícono",
+      iconHelp: "Un nombre de ícono como box o truck. Déjelo vacío para box.",
+      view: "Se abre en",
+      submit: "Definir el objeto",
+      done: "Objeto definido. Ahora agregue sus campos.",
+      readOnly:
+        "Definir objetos requiere el permiso de objetos personalizados. Pídalo a un Administrador.",
+    },
+    field: {
+      title: "Agregar un campo a {object}",
+      label: "Nombre del campo",
+      type: "Tipo",
+      choices: "Opciones",
+      choicesHelp: "Una opción por línea, en el orden del tablero.",
+      required: "Todo registro necesita un valor",
+      requiredShort: "obligatorio",
+      submit: "Agregar el campo",
+      done: "Campo agregado.",
+    },
+  },
+  inbox: {
+    title: "Bandeja",
+    loadError: "No se pudo cargar su Bandeja.",
+    empty: "Nada requiere su atención ahora.",
+    emptyAction: "Abrir Mi trabajo",
+    cleared:
+      "Despejó {count, plural, one {# elemento} other {# elementos}}. Nada más requiere su atención.",
+    handled:
+      "{count, plural, one {# elemento atendido} other {# elementos atendidos}} en esta visita.",
+    listLabel: "Elementos de la Bandeja",
+    needsYou: "Requiere su atención",
+    fyi: "Para su información",
+    aRecord: "un registro",
+    someone: "Alguien",
+    generic: "Actualización",
+    approvalSummary: "Aprobar {document} {reference} por {amount}",
+    approvalDetail: "Solicitado por {actor}, paso {step}",
+    documents: {
+      PurchaseOrder: "orden de compra",
+      ChangeOrder: "orden de cambio",
+      Expense: "gasto",
+      InvoiceApproval: "factura",
+      Contract: "contrato",
+      PayrollRun: "corrida de nómina",
+      Requisition: "requisición",
+    },
+    approve: "Aprobar",
+    reject: "Rechazar",
+    done: "Listo",
+    snooze: "Posponer",
+    rejectTitle: "Rechazar con un motivo",
+    rejectReason: "Motivo",
+    rejectSubmit: "Rechazar",
+    keys: {
+      title: "Teclas:",
+      move: "moverse",
+      approve: "aprobar",
+      reject: "rechazar",
+      done: "listo",
+      snooze: "posponer hasta mañana",
+    },
+  },
+  access: {
+    why: {
+      title: "¿Por qué puedo ver esto?",
+      error: "No se pudo leer la explicación. Actualice la página.",
+      policyHelp:
+        "La regla de lectura de este tipo de registro lo admitió mediante las vías de arriba.",
+      until: "Hasta {when}",
+      kinds: {
+        Membership: "Su membresía y roles",
+        ProjectMembership: "Su membresía en el proyecto",
+        CapabilityGrant: "Un permiso otorgado a usted",
+        RecordGrant: "Acceso otorgado a usted o a su organización",
+        SupportSession: "Una sesión de soporte",
+        Delegation: "Una delegación a usted",
+        Policy: "Regla de lectura",
+      },
+    },
+    viewAs: {
+      title: "Ver como rol",
+      description:
+        "Previsualice Atlas como un rol igual o inferior al suyo. Sigue viendo solo lo que ya podía ver; la navegación y las acciones siguen al rol.",
+      role: "Rol",
+      start: "Iniciar la vista previa",
+      active:
+        "Hay una vista previa en curso. Use el aviso en la parte superior de la página para terminarla.",
+      loadError: "No se pudieron cargar los roles.",
+      banner: "Viendo como {role}. No ve nada más allá de su propio acceso.",
+      exit: "Terminar la vista previa",
+    },
+    support: {
+      title: "Sesiones de soporte del socio",
+      description:
+        "El personal de su socio no puede leer sus registros salvo que el Propietario otorgue una sesión de soporte. Leen, nunca cambian, hasta que termina. Cada otorgamiento queda en su registro de auditoría.",
+      loadError: "No se pudieron cargar las sesiones de soporte.",
+      none: "No hay una sesión de soporte abierta.",
+      open: "Sesión de soporte abierta hasta {when}. Motivo: {reason}",
+      grant: "Otorgar una sesión de soporte",
+      granted: "Sesión de soporte otorgada.",
+      hours: "Duración",
+      hoursOption: "{hours, plural, one {# hora} other {# horas}}",
+      reason: "¿Por qué su socio necesita acceso?",
+      reasonHelp: "Se muestra a su socio y se guarda en el registro de auditoría.",
+      end: "Terminar la sesión de soporte",
+      ownerOnly: "Solo el Propietario otorga o termina una sesión de soporte.",
+      history: "Sesiones de soporte anteriores",
+      past: "{from} a {to}: {reason}",
+    },
+  },
+  lifecycle: {
+    title: "Cancelar la organización",
+    description:
+      "Cancelar termina la suscripción. La organización queda en solo lectura durante 30 días con la exportación completa disponible, y sus datos se eliminan el día 90.",
+    loadError: "No se pudo cargar el estado de la organización.",
+    ownerOnly: "Solo el Propietario cancela la organización o descarga la exportación completa.",
+    banner:
+      "Esta organización está cancelada y en solo lectura {days, plural, one {# día más} other {# días más}}, hasta el {until}. El Propietario puede descargar la exportación completa en Configuración, Zona de peligro.",
+    canceled: {
+      title: "Cancelada y en solo lectura",
+      body: "{days, plural, one {Queda # día} other {Quedan # días}}, hasta el {until}. Descargue la exportación completa antes. Los datos se eliminan el {purge}.",
+    },
+    cancel: {
+      title: "Cancelar la organización",
+      explain:
+        "Descargue primero la exportación completa si necesita una copia ahora; sigue disponible durante 30 días después de cancelar.",
+      confirm: "Escriba {name} para confirmar",
+      reason: "¿Por qué cancela?",
+      reasonHelp: "Se guarda con el registro de cancelación.",
+      submit: "Cancelar la organización",
+    },
+    reactivate: {
+      title: "Reactivar la organización",
+      submit: "Reactivar en el plan Access",
+    },
+    export: {
+      download: "Descargar la exportación completa",
+      help: "Un archivo con JSON y CSV de cada registro, los archivos guardados y un manifiesto.",
+      history: "Exportaciones realizadas",
+      past: "{when}: {tables} tablas, {rows} filas, {files} archivos",
     },
   },
 };
@@ -29235,6 +30437,7 @@ var enUS = {
   people: people_default$1,
   permits: permits_default$1,
   places: places_default$1,
+  platform: platform_default$1,
   procurement: procurement_default$1,
   profiles: profiles_default$1,
   projects: projects_default$1,
@@ -29282,6 +30485,7 @@ var esUS = {
   people: people_default,
   permits: permits_default,
   places: places_default,
+  platform: platform_default,
   procurement: procurement_default,
   profiles: profiles_default,
   projects: projects_default,
@@ -29302,16 +30506,27 @@ var esUS = {
   workforce: workforce_default,
 };
 //#endregion
-//#region ../i18n/src/index.ts
+//#region ../i18n/src/locales.ts
+/**
+ * The shipped locales, without any catalog. Client code imports this entry (`@xos/i18n/locales`)
+ * so that checking a locale never pulls the message catalogs into a browser bundle (A24-009).
+ */
 var locales = ["en-US", "es-US"];
 var defaultLocale = "en-US";
+function isLocale(value) {
+  return locales.includes(value);
+}
+//#endregion
+//#region ../i18n/src/index.ts
 var catalogs = {
   "en-US": enUS,
   "es-US": esUS,
 };
-function isLocale(value) {
-  return locales.includes(value);
-}
+/**
+ * Every namespace of one locale. Server code only: a client component that imports this pulls the
+ * whole catalog into the browser. Client components get their copy from the next-intl provider
+ * (see `pickNamespaces`) or import one namespace file from `@xos/i18n/messages/<locale>/<ns>.json`.
+ */
 function getMessages(locale) {
   return catalogs[locale];
 }
@@ -30938,11 +32153,11 @@ async function kioskPunch(db, input) {
 }
 //#endregion
 //#region src/http/failure.ts
-var REQUEST_ID = /^[A-Za-z0-9._:-]{8,128}$/;
+var REQUEST_ID$1 = /^[A-Za-z0-9._:-]{8,128}$/;
 /** The caller's X-Request-Id when it is well formed, otherwise a new UUID. */
 function requestIdFor(request, generate = () => crypto.randomUUID()) {
   const given = request.headers.get("X-Request-Id");
-  return given !== null && REQUEST_ID.test(given) ? given : generate();
+  return given !== null && REQUEST_ID$1.test(given) ? given : generate();
 }
 /** The function name from an Edge Function URL (`/functions/v1/<name>/...` or `/<name>/...`). */
 function edgeFunctionName(url) {
@@ -31917,6 +33132,27 @@ function redactError(error, walk, depth) {
   if (error.cause !== void 0) out["cause"] = walk(error.cause, depth + 1);
   return out;
 }
+/** Redacts a flat attribute map for OpenTelemetry spans, dropping values that are not attributes. */
+function redactAttributes(attributes, options = {}) {
+  const allow = new Set((options.allowKeys ?? []).map(normalizeKey));
+  const out = {};
+  for (const [key, value] of Object.entries(attributes)) {
+    if (value === null || value === void 0) continue;
+    if (!allow.has(normalizeKey(key)) && isSensitiveKey(key)) {
+      out[key] = REDACTED;
+      continue;
+    }
+    if (typeof value === "string") out[key] = redactString(value, 1024);
+    else if (typeof value === "number" || typeof value === "boolean") out[key] = value;
+    else if (Array.isArray(value) && value.every((item) => typeof item === "string"))
+      out[key] = value.map((item) => redactString(item, 1024));
+    else if (Array.isArray(value) && value.every((item) => typeof item === "number"))
+      out[key] = value;
+    else if (Array.isArray(value) && value.every((item) => typeof item === "boolean"))
+      out[key] = value;
+  }
+  return out;
+}
 //#endregion
 //#region ../../infra/observability/src/logger.ts
 /**
@@ -31930,6 +33166,10 @@ var LEVEL_RANK = {
   warn: 30,
   error: 40,
 };
+var LOG_LEVELS = ["debug", "info", "warn", "error"];
+function isLogLevel(value) {
+  return typeof value === "string" && LOG_LEVELS.includes(value);
+}
 /** Keys the logger owns; caller fields with these names are nested under `fields` instead. */
 var RESERVED = /* @__PURE__ */ new Set([
   "timestamp",
@@ -32016,6 +33256,558 @@ function identityFromEnv(service, env) {
     ...(release ? { release } : {}),
     ...(region ? { region } : {}),
   };
+}
+//#endregion
+//#region ../../infra/observability/src/errors.ts
+function createErrorReporter(options) {
+  const reported = /* @__PURE__ */ new WeakSet();
+  return {
+    report(error, context = {}) {
+      if (typeof error === "object" && error !== null) {
+        if (reported.has(error)) return;
+        reported.add(error);
+      }
+      const tags = { ...context.tags };
+      const extra = redact(context.extra ?? {});
+      options.logger.error("unhandled error", {
+        error,
+        tags,
+        ...extra,
+      });
+      if (!options.sink) return;
+      try {
+        options.sink.captureException(error, {
+          tags,
+          extra,
+          ...(context.user ? { user: { id: context.user.id } } : {}),
+        });
+      } catch (sinkError) {
+        options.logger.warn("error sink rejected an event", { error: sinkError });
+      }
+    },
+    wasReported(error) {
+      return typeof error === "object" && error !== null && reported.has(error);
+    },
+  };
+}
+/** Request headers kept on error events; every other header is dropped. */
+var KEPT_HEADERS = /* @__PURE__ */ new Set([
+  "accept",
+  "content-type",
+  "content-length",
+  "traceparent",
+  "x-request-id",
+  "x-vercel-id",
+  "sb-request-id",
+]);
+/**
+ * Sentry `beforeSend` hook. Returns the same event object with personal data removed, so it can
+ * be passed to `Sentry.init({ beforeSend: scrubEvent, beforeSendTransaction: scrubEvent })`.
+ */
+function scrubEvent(event) {
+  if (event.message) event.message = redactString(event.message);
+  for (const value of event.exception?.values ?? [])
+    if (value.value) value.value = redactString(value.value);
+  if (event.request) {
+    const req = event.request;
+    if (req.url) req.url = redactUrl(req.url);
+    delete req.cookies;
+    delete req.query_string;
+    delete req.env;
+    if (req.data !== void 0) req.data = REDACTED;
+    if (req.headers) {
+      const kept = {};
+      for (const [name, value] of Object.entries(req.headers))
+        if (KEPT_HEADERS.has(name.toLowerCase())) kept[name] = redactString(value);
+      req.headers = kept;
+    }
+  }
+  if (event.user) {
+    const id = event.user.id;
+    event.user = id === void 0 ? {} : { id };
+  }
+  if (event.breadcrumbs)
+    event.breadcrumbs = event.breadcrumbs.map((crumb) => {
+      const next = { ...crumb };
+      if (next.message) next.message = redactString(next.message);
+      if (next.data) next.data = redact(next.data);
+      return next;
+    });
+  if (event.extra) event.extra = redact(event.extra);
+  if (event.contexts) event.contexts = redact(event.contexts);
+  if (event.tags) event.tags = redact(event.tags);
+  if (event.transaction) event.transaction = redactUrl(event.transaction);
+  delete event.server_name;
+  return event;
+}
+//#endregion
+//#region ../../infra/observability/src/trace-context.ts
+var TRACEPARENT = /^([0-9a-f]{2})-([0-9a-f]{32})-([0-9a-f]{16})-([0-9a-f]{2})$/;
+var ZERO_TRACE = "0".repeat(32);
+var ZERO_SPAN = "0".repeat(16);
+function randomHex(bytes) {
+  const buf = new Uint8Array(bytes);
+  crypto.getRandomValues(buf);
+  return Array.from(buf, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+function newTraceId() {
+  let id = randomHex(16);
+  while (id === ZERO_TRACE) id = randomHex(16);
+  return id;
+}
+function newSpanId() {
+  let id = randomHex(8);
+  while (id === ZERO_SPAN) id = randomHex(8);
+  return id;
+}
+/** Parses a traceparent header. Returns null for a missing, malformed or all-zero value. */
+function parseTraceparent(header) {
+  if (!header) return null;
+  const match = TRACEPARENT.exec(header.trim().toLowerCase());
+  if (!match) return null;
+  const [, version, traceId, spanId, flags] = match;
+  if (version === "ff" || traceId === ZERO_TRACE || spanId === ZERO_SPAN) return null;
+  return {
+    traceId,
+    spanId,
+    sampled: (Number.parseInt(flags, 16) & 1) === 1,
+  };
+}
+function formatTraceparent(context) {
+  return `00-${context.traceId}-${context.spanId}-${context.sampled ? "01" : "00"}`;
+}
+/**
+ * The context for work done on behalf of an incoming request: the caller's trace id when it sent
+ * one, otherwise a new trace, always with a new span id for this hop.
+ */
+function continueTrace(header, sampled = true) {
+  const parent = parseTraceparent(header);
+  return {
+    traceId: parent?.traceId ?? newTraceId(),
+    spanId: newSpanId(),
+    sampled: parent?.sampled ?? sampled,
+  };
+}
+var REQUEST_ID = /^[A-Za-z0-9:._-]{8,128}$/;
+/**
+ * A request id for correlation: the platform's id when present and well formed (Vercel sends
+ * `x-vercel-id`, Supabase sends `sb-request-id`), otherwise a new one.
+ */
+function requestIdFrom(headers) {
+  for (const name of ["x-request-id", "x-vercel-id", "sb-request-id", "cf-ray"]) {
+    const value = headers.get(name);
+    if (value && REQUEST_ID.test(value)) return value;
+  }
+  return crypto.randomUUID();
+}
+//#endregion
+//#region ../../infra/observability/src/tracing.ts
+/**
+ * Tracing over the OpenTelemetry API (`@opentelemetry/api` 1.9.1, ADR 0001).
+ *
+ * The types below are the structural subset of the OpenTelemetry `Tracer` and `Span` this module
+ * calls, so `trace.getTracer("atlas")` from the pinned API package is accepted as is, and this
+ * module itself stays free of runtime dependencies (Supabase Edge Functions import it under Deno).
+ * Without a tracer, `withSpan` still issues W3C ids so logs and error reports correlate.
+ * Attributes are redacted before they reach the span.
+ */
+/** OpenTelemetry `SpanStatusCode`. */
+var SpanStatus = {
+  UNSET: 0,
+  OK: 1,
+  ERROR: 2,
+};
+/** OpenTelemetry `SpanKind`. */
+var SpanKind = {
+  INTERNAL: 0,
+  SERVER: 1,
+  CLIENT: 2,
+  PRODUCER: 3,
+  CONSUMER: 4,
+};
+/** A span that records nothing but carries real ids, used when no tracer is configured. */
+function detachedSpan(parent) {
+  const context = {
+    traceId: parent?.traceId ?? newTraceId(),
+    spanId: parent?.spanId ?? newSpanId(),
+    traceFlags: parent?.sampled === false ? 0 : 1,
+  };
+  return {
+    setAttribute: () => void 0,
+    setStatus: () => void 0,
+    recordException: () => void 0,
+    end: () => void 0,
+    spanContext: () => context,
+  };
+}
+/**
+ * Runs `fn` inside a span. A thrown error or rejected promise is recorded on the span, which ends
+ * with status ERROR; the error is rethrown unchanged.
+ */
+async function withSpan(name, options, fn) {
+  const attributes = redactAttributes(options.attributes ?? {});
+  const run = async (span) => {
+    try {
+      return await fn(span);
+    } catch (error) {
+      recordError(span, error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  };
+  if (!options.tracer) return run(detachedSpan(options.parent));
+  return options.tracer.startActiveSpan(
+    name,
+    {
+      attributes,
+      kind: options.kind ?? SpanKind.INTERNAL,
+    },
+    (span) => run(span),
+  );
+}
+function recordError(span, error) {
+  const err = error instanceof Error ? error : new Error(String(error));
+  span.recordException({
+    name: err.name,
+    message: redactString(err.message),
+    ...(err.stack ? { stack: redactString(err.stack, 8192) } : {}),
+  });
+  span.setStatus({
+    code: SpanStatus.ERROR,
+    message: redactString(err.message, 256),
+  });
+}
+function setSpanAttributes(span, attributes) {
+  for (const [key, value] of Object.entries(redactAttributes(attributes)))
+    span.setAttribute(key, value);
+}
+function observe(handler, options) {
+  const now = options.now ?? (() => performance.now());
+  return async (request, ...rest) => {
+    const started = now();
+    const trace = continueTrace(request.headers.get("traceparent"));
+    const requestId = requestIdFrom(request.headers);
+    const path = redactUrl(new URL(request.url).pathname);
+    const method = request.method.toUpperCase();
+    const logger = options.logger.child({
+      request_id: requestId,
+      trace_id: trace.traceId,
+      span_id: trace.spanId,
+      http_route: options.route,
+    });
+    const attributes = {
+      "http.request.method": method,
+      "http.route": options.route,
+      "url.path": path,
+      "xos.request_id": requestId,
+    };
+    return withSpan(
+      `${method} ${options.route}`,
+      {
+        tracer: options.tracer,
+        kind: SpanKind.SERVER,
+        attributes,
+        parent: trace,
+      },
+      async (span) => {
+        const active = span.spanContext();
+        const scopeTrace = {
+          traceId: active.traceId,
+          spanId: active.spanId,
+          sampled: trace.sampled,
+        };
+        const scopedLogger =
+          active.traceId === trace.traceId && active.spanId === trace.spanId
+            ? logger
+            : logger.child({
+                trace_id: active.traceId,
+                span_id: active.spanId,
+              });
+        try {
+          const response = await handler(
+            request,
+            {
+              logger: scopedLogger,
+              trace: scopeTrace,
+              requestId,
+            },
+            ...rest,
+          );
+          const status = response.status;
+          setSpanAttributes(span, { "http.response.status_code": status });
+          if (status >= 500) span.setStatus({ code: SpanStatus.ERROR });
+          const durationMs = Math.round(now() - started);
+          const fields = {
+            method,
+            path,
+            status,
+            duration_ms: durationMs,
+          };
+          if (status >= 500) scopedLogger.error("request failed", fields);
+          else if (durationMs > 800) scopedLogger.warn("request slow", fields);
+          else scopedLogger.info("request completed", fields);
+          return withCorrelationHeaders(response, scopeTrace, requestId);
+        } catch (error) {
+          options.errors.report(error, {
+            tags: {
+              route: options.route,
+              method,
+            },
+            extra: {
+              path,
+              request_id: requestId,
+              trace_id: scopeTrace.traceId,
+            },
+          });
+          scopedLogger.error("request threw", {
+            method,
+            path,
+            duration_ms: Math.round(now() - started),
+          });
+          throw error;
+        }
+      },
+    );
+  };
+}
+/** Adds `traceparent` and `x-request-id`; copies the response when its headers are immutable. */
+function withCorrelationHeaders(response, trace, requestId) {
+  const traceparent = formatTraceparent(trace);
+  try {
+    response.headers.set("traceparent", traceparent);
+    response.headers.set("x-request-id", requestId);
+    return response;
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    const headers = new Headers(response.headers);
+    headers.set("traceparent", traceparent);
+    headers.set("x-request-id", requestId);
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+}
+//#endregion
+//#region ../../infra/observability/src/sentry.ts
+/**
+ * Sentry configuration shared by every runtime.
+ *
+ * `sentryInitOptions` is what Atlas and Gateway pass to `Sentry.init` from `@sentry/nextjs` on the
+ * Node and Edge runtimes. Without a DSN it returns `undefined`, and the apps skip `Sentry.init`, so
+ * local runs, tests and CI make no network calls.
+ *
+ * `createSentryEnvelopeSink` is the error sink for Supabase Edge Functions. No Sentry Deno SDK is
+ * pinned in ADR 0001, so the sink posts one event per error to the project's envelope endpoint
+ * with `fetch`, after `scrubEvent` has removed personal data. It has no dependencies, so Deno loads
+ * it from the vendored platform bundle.
+ */
+/** The server DSN: `SENTRY_DSN`, else the public `NEXT_PUBLIC_SENTRY_DSN`. Blank counts as unset. */
+function sentryDsn(env) {
+  for (const name of ["SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN"]) {
+    const value = env[name]?.trim();
+    if (value) return value;
+  }
+}
+function parseDsn(dsn) {
+  let url;
+  try {
+    url = new URL(dsn);
+  } catch (error) {
+    if (error instanceof TypeError) return void 0;
+    throw error;
+  }
+  const projectId = url.pathname.split("/").filter(Boolean).pop();
+  if (url.protocol !== "https:" || !url.username || !projectId || !/^\d+$/.test(projectId)) return;
+  return {
+    key: url.username,
+    origin: url.origin,
+    projectId,
+  };
+}
+var SDK_NAME = "xos.envelope";
+var SDK_VERSION = "1.0.0";
+function newEventId() {
+  return crypto.randomUUID().replace(/-/g, "");
+}
+function frames(stack) {
+  if (!stack) return void 0;
+  const parsed = [];
+  for (const line of stack.split("\n")) {
+    const match = /^\s*at (?:(.+?) \()?(.+?):(\d+):(\d+)\)?$/.exec(line);
+    if (!match) continue;
+    const [, fn, file, lineno, colno] = match;
+    parsed.push({
+      function: fn ?? "?",
+      filename: redactString(file ?? "?", 512),
+      lineno: Number(lineno),
+      colno: Number(colno),
+      in_app: !(file ?? "").includes("node_modules"),
+    });
+  }
+  return parsed.length > 0 ? parsed.reverse() : void 0;
+}
+/**
+ * An error sink that sends scrubbed events to Sentry over HTTP. Returns `undefined` without a valid
+ * DSN, so callers pass the result straight to `createObservability({ errorSink })`.
+ */
+function createSentryEnvelopeSink(options) {
+  const dsnText = sentryDsn(options.env);
+  const dsn = dsnText === void 0 ? void 0 : parseDsn(dsnText);
+  if (dsn === void 0 || dsnText === void 0) return void 0;
+  const send = options.fetch ?? fetch;
+  const now = options.now ?? (() => /* @__PURE__ */ new Date());
+  const identity = identityFromEnv(options.service, options.env);
+  const endpoint = `${dsn.origin}/api/${dsn.projectId}/envelope/`;
+  const auth = `Sentry sentry_version=7, sentry_key=${dsn.key}, sentry_client=${SDK_NAME}/${SDK_VERSION}`;
+  const pending = /* @__PURE__ */ new Set();
+  return {
+    captureException(exception, hint) {
+      const error = exception instanceof Error ? exception : new Error(String(exception));
+      const stacktrace = frames(error.stack);
+      const scrubbed = scrubEvent({
+        event_id: newEventId(),
+        timestamp: now().getTime() / 1e3,
+        platform: "javascript",
+        level: "error",
+        logger: identity.service,
+        environment: identity.environment,
+        ...(identity.release ? { release: identity.release } : {}),
+        exception: {
+          values: [
+            {
+              type: error.name,
+              value: error.message,
+              ...(stacktrace ? { stacktrace: { frames: stacktrace } } : {}),
+            },
+          ],
+        },
+        tags: {
+          service: identity.service,
+          ...hint?.tags,
+        },
+        extra: redact(hint?.extra ?? {}),
+        ...(hint?.user ? { user: { id: hint.user.id } } : {}),
+        sdk: {
+          name: SDK_NAME,
+          version: SDK_VERSION,
+        },
+      });
+      const body = [
+        JSON.stringify({
+          event_id: scrubbed["event_id"],
+          sent_at: now().toISOString(),
+        }),
+        JSON.stringify({ type: "event" }),
+        JSON.stringify(scrubbed),
+      ].join("\n");
+      const request = send(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-sentry-envelope",
+          "X-Sentry-Auth": auth,
+        },
+        body,
+      }).then(
+        (response) => {
+          if (!response.ok)
+            options.onSendError?.(/* @__PURE__ */ new Error(`Sentry answered ${response.status}`));
+        },
+        (error) => options.onSendError?.(error),
+      );
+      pending.add(request);
+      request.finally(() => pending.delete(request));
+      return scrubbed["event_id"];
+    },
+    async flush(timeoutMs = 2e3) {
+      if (pending.size === 0) return true;
+      let timer;
+      const timeout = new Promise((resolve) => {
+        timer = setTimeout(() => resolve(false), timeoutMs);
+      });
+      const settled = Promise.allSettled([...pending]).then(() => true);
+      const done = await Promise.race([settled, timeout]);
+      clearTimeout(timer);
+      return done;
+    },
+  };
+}
+//#endregion
+//#region ../../infra/observability/src/index.ts
+/**
+ * @xos/infra/observability: structured logs, traces and error reports with personal data redaction
+ * for Atlas, Gateway, the public API and the Supabase Edge Functions.
+ */
+/**
+ * One call per process: a logger tagged with the service identity, an error reporter that writes
+ * to it and to the error sink, and the tracer. `XOS_LOG_LEVEL` sets the threshold (default info).
+ */
+function createObservability(options) {
+  const level = options.env["XOS_LOG_LEVEL"];
+  const logger = createLogger({
+    ...identityFromEnv(options.service, options.env),
+    ...(isLogLevel(level) ? { level } : {}),
+    ...(options.sink ? { sink: options.sink } : {}),
+  });
+  return {
+    logger,
+    errors: createErrorReporter({
+      logger,
+      sink: options.errorSink,
+    }),
+    tracer: options.tracer,
+  };
+}
+//#endregion
+//#region ../../infra/observability/src/edge.ts
+/**
+ * Supabase Edge Function instrumentation (Deno). `observeEdgeFunction` wraps a handler with
+ * `observe` under the service `edge.<fn>` and the route `/<fn>`, and turns an unexpected error into
+ * the caller's failure response (the generic 500 problem of A22-013) after reporting it once: to
+ * the structured log through `failure`, and to Sentry through the envelope sink when `SENTRY_DSN`
+ * is set. Without the secret nothing leaves the function but the log.
+ */
+function observeEdgeFunction(handler, options) {
+  const service = `edge.${options.fn}`;
+  const observability = createObservability({
+    service,
+    env: options.env,
+    ...(options.logSink ? { sink: options.logSink } : {}),
+  });
+  const sink = createSentryEnvelopeSink({
+    service,
+    env: options.env,
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+    onSendError: (error) => observability.logger.warn("sentry event not sent", { error }),
+  });
+  return observe(
+    async (request, scope) => {
+      try {
+        return await handler(request);
+      } catch (error) {
+        if (sink) {
+          sink.captureException(error, {
+            tags: {
+              function: options.fn,
+              runtime: "edge-function",
+            },
+            extra: {
+              request_id: scope.requestId,
+              trace_id: scope.trace.traceId,
+            },
+          });
+          await sink.flush(options.flushMs ?? 2e3);
+        }
+        return options.failure(error, scope);
+      }
+    },
+    {
+      ...observability,
+      route: `/${options.fn}`,
+    },
+  );
 }
 //#endregion
 //#region ../data/src/result.ts
@@ -32754,7 +34546,9 @@ function reportRunLabels(locale) {
  * bundled here, with every npm package left external and mapped to an npm: specifier in deno.json.
  * The plan registry is embedded from packages/schemas/plans.yaml, its single source. The structured
  * logger with personal data redaction comes from infra/observability, so every function logs through
- * the same redactor as Atlas and the API (A22-013).
+ * the same redactor as Atlas and the API (A22-013). Requests are observed (`observe`) and errors go
+ * to Sentry through the dependency-free envelope sink when the function has a `SENTRY_DSN` secret
+ * (ADR 0025).
  */
 /** The plan registry the bundle was built from. */
 var planRegistry = parsePlanRegistry(plans_default);
@@ -32779,6 +34573,7 @@ export {
   clamavScanner,
   createCheckoutSession,
   createLogger,
+  createObservability,
   createPortalSession,
   createStripeClient,
   createTransport,
@@ -32795,6 +34590,8 @@ export {
   localPartFor,
   lookupKeyFor,
   notificationStore,
+  observe,
+  observeEdgeFunction,
   parseClamdReply,
   planForLookupKey,
   planRegistry,

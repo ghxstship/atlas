@@ -395,17 +395,14 @@ export {
   Timeline,
   ResourceSchedule,
   OrgChart,
-  Chart,
-  Sparkline,
-  foldSeries,
   type GalleryProps,
   type CalendarProps,
   type TimelineProps,
   type ResourceScheduleProps,
   type OrgChartProps,
-  type ChartProps,
-  type SparklineProps,
 } from "./Charts/Charts.tsx";
+export { Chart, foldSeries, type ChartProps } from "./Charts/Chart.tsx";
+export { Sparkline, type SparklineProps } from "./Charts/Sparkline.tsx";
 
 /* Editing */
 export {

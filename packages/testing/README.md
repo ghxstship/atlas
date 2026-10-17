@@ -4,13 +4,14 @@ Shared test tooling for the XOS 4.0 quality gates (Section 18): the design QA au
 behind "input kept after refusal", the spec budgets, Lighthouse CI, the k6 load scripts and shared
 Playwright helpers. Proposed CI jobs for all of it are in `ci/proposed-jobs.yml`.
 
-| Command                                                                  | What it does                                                                                                                                      |
-| ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm --filter @xos/testing test`                                        | Unit tests, plus the repository audits: no raw design values, every Section 11.4 component exported, every form keeps typed input after a refusal |
-| `pnpm --filter @xos/testing design:audit`                                | The design QA report (raw values, token usage, component inventory)                                                                               |
-| `node --experimental-strip-types packages/testing/src/form-audit-cli.ts` | Lists any form that would lose typed input                                                                                                        |
-| `pnpm --filter @xos/testing lighthouse [atlas\|gateway\|docs]`           | Lighthouse CI against running production builds                                                                                                   |
-| `pnpm --filter @xos/testing load:smoke`                                  | The three k6 scripts at smoke scale against the local stack                                                                                       |
+| Command                                                                  | What it does                                                                                                                                                                 |
+| ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm --filter @xos/testing test`                                        | Unit tests, plus the repository audits: no raw design values, every Section 11.4 component exported, every form keeps typed input after a refusal                            |
+| `pnpm --filter @xos/testing design:audit`                                | The design QA report (raw values, token usage, component inventory)                                                                                                          |
+| `node --experimental-strip-types packages/testing/src/form-audit-cli.ts` | Lists any form that would lose typed input                                                                                                                                   |
+| `pnpm --filter @xos/testing lighthouse [atlas\|gateway\|docs]`           | Lighthouse CI against running production builds                                                                                                                              |
+| `pnpm --filter @xos/testing load:smoke`                                  | The three k6 scripts at smoke scale against the local stack                                                                                                                  |
+| `pnpm --filter @xos/testing budget:js [--chunks]`                        | Route JavaScript of every key page from the production builds, against the 200 KB budget, and no Sentry SDK in any client chunk; `--chunks` lists each page's largest chunks |
 
 ## Design QA audit
 
@@ -38,6 +39,31 @@ CHROME_PATH=<a Chromium build> pnpm --filter @xos/testing lighthouse
 ```
 
 Reports and `summary.json` land in `node_modules/.cache/lighthouse/<app>/`.
+
+## Route JavaScript budget
+
+`budget:js` checks the same 200 KB budget without a browser or a database, so CI can run it on
+every pull request (job `route-js-budget` in `ci/proposed-jobs.yml`). After `next build` of Atlas,
+Gateway and docs it reads each build's manifests, adds the root chunks to every chunk the key page's
+segments list, and gzips each chunk once: the scripts a cold load fetches, which is what
+Lighthouse's `resource-summary:script:size` counts, within a few kilobytes.
+
+The same command then scans every script under `apps/<app>/.next/static` for the Sentry SDK
+(`src/client-chunk-audit.ts`) and fails if one carries it: browsers report errors through the
+same-origin reporter in `@xos/infra/observability/browser`, and Sentry stays on the server
+(ADR 0025).
+
+A page still over budget has a ceiling in `bundle-ceilings.json`, set 3 KB above its measured size,
+with the cause recorded in `legal/qa/performance-results.md`. The check fails when a page grows past
+its ceiling. Lower a ceiling when a page shrinks; never raise one to make a change pass.
+
+Two rules keep pages small:
+
+- A `"use client"` barrel such as `apps/<app>/components/ui.tsx` ships every export that any page
+  uses to every page that imports it. Heavy components (charts, tables, editors, maps) get their own
+  boundary file, as `apps/gateway/components/ui-chart.tsx` does.
+- A small hook or helper that lives in a module with heavy components drags them along. Give it its
+  own module (`apps/atlas/components/home/alert-text.ts`, `components/activity/describe.ts`).
 
 ## Load tests (k6)
 

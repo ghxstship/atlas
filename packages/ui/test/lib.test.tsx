@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import esUSui from "@xos/i18n/messages/es-US/ui.json" with { type: "json" };
 import enXA from "@xos/i18n/messages/pseudo/en-XA.json" with { type: "json" };
 import {
   XOSProvider,
@@ -34,15 +35,18 @@ afterEach(() => configure({ locale: "en-US" }));
 describe("t and translate", () => {
   it("prefixes ui. and reads the en-US catalog", () => {
     expect(t("money.unpriced")).toBe("Unpriced");
-    expect(catalogFor("en-US")["action.close"]).toBe("Close");
-    expect(Object.keys(catalogFor("en-US")).length).toBeGreaterThanOrEqual(319);
+    expect(catalogFor()["action.close"]).toBe("Close");
+    expect(Object.keys(catalogFor()).length).toBeGreaterThanOrEqual(319);
   });
 
-  it("reads es-US with identical keys", () => {
-    expect(Object.keys(catalogFor("es-US")).sort()).toEqual(
-      Object.keys(catalogFor("en-US")).sort(),
-    );
-    expect(translate("es-US", "money.unpriced")).not.toBe("Unpriced");
+  it("reads es-US from the messages it is given, with identical keys", () => {
+    const es = flattenMessages(esUSui);
+    expect(Object.keys(es).sort()).toEqual(Object.keys(catalogFor()).sort());
+    expect(translate("es-US", "money.unpriced", undefined, es)).not.toBe("Unpriced");
+  });
+
+  it("ships only the en-US catalog, so another locale without messages falls back to it", () => {
+    expect(translate("es-US", "money.unpriced")).toBe("Unpriced");
   });
 
   it("fills arguments and formats numbers for the locale", () => {
@@ -62,9 +66,7 @@ describe("t and translate", () => {
     expect(t("action.close")).toBe(pseudo["action.close"]);
     expect(t("action.close")).not.toBe("Close");
     configure({
-      messages: Object.fromEntries(
-        Object.keys(pseudo).map((k) => [k, catalogFor("en-US")[k] ?? k]),
-      ),
+      messages: Object.fromEntries(Object.keys(pseudo).map((k) => [k, catalogFor()[k] ?? k])),
     });
   });
 

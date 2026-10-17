@@ -14,7 +14,7 @@ grant select, insert, update on k to public;
 -- Jobs and mappings ---------------------------------------------------------------------------------------
 select pg_temp.as_user('bob');
 insert into app.import_jobs (org_id, target_code, source, original_filename, storage_object_path, import_status)
-values (pg_temp.id('org_a'), 'venues', 'CSV', 'venues.csv', 'org_a/imports/venues.csv', 'Committed');
+values (pg_temp.id('org_a'), 'venues', 'CSV', 'venues.csv', pg_temp.id('bob') || '/' || gen_random_uuid() || '.csv', 'Committed');
 insert into k select 'job', id from app.import_jobs;
 select is((select import_status from app.import_jobs), 'Uploaded'::app.import_status, 'a new import always starts Uploaded');
 select pg_temp.as_platform();

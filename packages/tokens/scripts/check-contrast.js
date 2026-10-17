@@ -23,7 +23,30 @@ export function resolveColor(tokens, name, theme) {
   return m ? resolveColor(tokens, m[1], theme) : v;
 }
 
-/** Checks every declared pair in every theme. Returns the pair count and each failure. */
+/**
+ * A background with an overlay composited over it, as a hover or pressed state draws it: the
+ * overlay color at `opacity` over the fill, per sRGB channel (CSS `color-mix(in srgb, ...)`).
+ */
+export function composite(bgHex, overlayHex, opacity) {
+  const channels = (h) => {
+    let x = h.replace("#", "");
+    if (x.length === 3) x = x.replace(/./g, "$&$&");
+    return [0, 2, 4].map((i) => parseInt(x.substring(i, i + 2), 16));
+  };
+  const over = channels(overlayHex);
+  return (
+    "#" +
+    channels(bgHex)
+      .map((c, i) => Math.round(c * (1 - opacity) + over[i] * opacity))
+      .map((c) => c.toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+/**
+ * Checks every declared pair in every theme. Returns the pair count and each failure. A rule with
+ * `overlays` also checks each background with each overlay composited over it (hover, pressed).
+ */
 export function checkContrast(tokens, spec) {
   const themes = tokens.color.themes.map((t) => t.id);
   const failures = [];
@@ -32,10 +55,27 @@ export function checkContrast(tokens, spec) {
     for (const rule of spec.rules) {
       for (const fg of rule.fg) {
         for (const bg of rule.bg) {
-          checked++;
-          const r = ratio(resolveColor(tokens, fg, theme), resolveColor(tokens, bg, theme));
-          if (r < rule.min)
-            failures.push({ theme, rule: rule.name, fg, bg, ratio: r, min: rule.min });
+          const fill = resolveColor(tokens, bg, theme);
+          const states = [
+            { label: bg, hex: fill },
+            ...(rule.overlays || []).map((o) => ({
+              label: bg + " " + o.state + " (" + o.color + " at " + o.opacity + ")",
+              hex: composite(fill, resolveColor(tokens, o.color, theme), o.opacity),
+            })),
+          ];
+          for (const state of states) {
+            checked++;
+            const r = ratio(resolveColor(tokens, fg, theme), state.hex);
+            if (r < rule.min)
+              failures.push({
+                theme,
+                rule: rule.name,
+                fg,
+                bg: state.label,
+                ratio: r,
+                min: rule.min,
+              });
+          }
         }
       }
     }

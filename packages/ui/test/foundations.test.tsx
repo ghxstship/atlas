@@ -43,7 +43,9 @@ import {
   URIDChip,
   UndoToast,
   XOSProvider,
+  flattenMessages,
 } from "../src/index.ts";
+import esUSui from "@xos/i18n/messages/es-US/ui.json" with { type: "json" };
 import { recordStates } from "@xos/icons";
 import { expectAccessible } from "./a11y.ts";
 
@@ -326,7 +328,7 @@ describe("form fields", () => {
 
   it("reads copy in es-US", () => {
     render(
-      <XOSProvider locale="es-US">
+      <XOSProvider locale="es-US" messages={flattenMessages(esUSui)}>
         <Money amount={null} />
       </XOSProvider>,
     );

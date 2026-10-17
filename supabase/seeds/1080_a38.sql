@@ -12,7 +12,7 @@
 --               sponsor@ (Demo Sponsor Beverage), finance@ (a Finance Lead of the demo org who has
 --               never signed in), multi@ (journey 59: Admin of Demo Bayside Studios, Producer and
 --               member of the demo org, crew for Demo Harbor Events, artist for Demo Night
---               Festival), partner@ (Owner of those three orgs), supplier@ (Demo Lighting Rentals, an
+--               Festival), orgs.owner@ (Owner of those three orgs), supplier@ (Demo Lighting Rentals, an
 --               external account with history that subscribes in journey 60)
 --   Accounts    the six external accounts above, without subscriptions, each a counterparty of the
 --               demo org
@@ -80,7 +80,7 @@ begin
     (p_sponsor, 'sponsor@example.com', 'Demo Sponsor Lead'),
     (p_finance, 'finance@example.com', 'Demo Finance Lead'),
     (p_multi, 'multi@example.com', 'Demo Multi Role'),
-    (p_partner, 'partner@example.com', 'Demo Partner Owner'),
+    (p_partner, 'orgs.owner@example.com', 'Demo Multi Org Owner'),
     (p_supplier, 'supplier@example.com', 'Demo Supplier Owner')
   ) as u (id, email, full_name)
   on conflict (id) do nothing;

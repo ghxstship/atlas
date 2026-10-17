@@ -7,8 +7,9 @@
  * - `Authorization: Bearer xos_live_...` API keys, exchanged for a short-lived JWT acting as the
  *   key's service account (`createApiKeyExchange`), limited to the key's scopes.
  *
- * The token is verified with Supabase Auth, and every query runs through a client carrying that
- * token, so RLS decides access. The service role is never used for a user request.
+ * The token's signature is verified against the project's published keys (runtime/jwt.ts), or by
+ * Supabase Auth for a token only Auth can judge, and every query runs through a client carrying
+ * that token, so RLS decides access. The service role is never used for a user request.
  *
  * The active organization is bound to the credential, resolved in this order: the `org_id` claim
  * written by the custom access token hook from the context switcher's choice; for cookie sessions,
@@ -21,6 +22,7 @@ import { createCallerClient } from "@xos/data/client";
 import type { XosClient } from "@xos/data";
 import { unauthorized } from "../problem.ts";
 import type { Authenticate, RequestContext, RequestOrg } from "./context.ts";
+import { createJwksVerifier } from "./jwt.ts";
 
 /** Session cookie name on local http development; browsers refuse prefixed cookies without Secure. */
 export const SESSION_COOKIE = "xos-auth";
@@ -47,6 +49,12 @@ export interface SupabaseAuthOptions {
   /** The api-token Edge Function; defaults to `${url}/functions/v1/api-token`. */
   readonly tokenExchangeUrl?: string;
   readonly now?: () => number;
+  /**
+   * How long a caller's person and memberships are reused across requests, in milliseconds; 30
+   * seconds by default, 0 to read them on every request. RLS checks membership on every query
+   * whatever this holds, so a stale entry can only pick the org a request is bound to.
+   */
+  readonly identityTtlMs?: number;
 }
 
 /** Cookie header to a name-to-value map. */
@@ -167,22 +175,55 @@ function readCredential(request: Request, options: SupabaseAuthOptions): Credent
   return { token, kind: "session-cookie", cookies };
 }
 
-async function resolveOrg(
-  db: XosClient,
-  personId: string,
+/** The caller's person and active memberships, as the org binding needs them. */
+interface Identity {
+  readonly personId: string;
+  readonly orgs: readonly RequestOrg[];
+}
+
+/**
+ * Reads a caller's identity, reusing it for `ttlMs` (A24-010): the person and membership lookups
+ * were two of the round trips every request made before its handler ran. A missing person is never
+ * cached, so a person created a moment later is found on the next request.
+ */
+export function createIdentityCache(ttlMs: number, now: () => number = Date.now) {
+  const entries = new Map<string, { identity: Identity; until: number }>();
+  return async (db: XosClient, userId: string): Promise<Identity | null> => {
+    const hit = entries.get(userId);
+    if (hit !== undefined && hit.until > now()) return hit.identity;
+    entries.delete(userId);
+    const person = await getCurrentPerson(db, userId);
+    if (!person.ok) {
+      if (person.error.kind === "not-found") return null;
+      throw new Error(`Cannot read the caller's person: ${JSON.stringify(person.error)}`);
+    }
+    const orgs = await listMyOrganizations(db, person.data.id);
+    if (!orgs.ok) throw new Error(`Cannot read memberships: ${JSON.stringify(orgs.error)}`);
+    const identity: Identity = {
+      personId: person.data.id,
+      orgs: orgs.data.map((o) => ({ id: o.id, slug: o.slug })),
+    };
+    if (ttlMs > 0) {
+      if (entries.size >= 10_000) entries.clear();
+      entries.set(userId, { identity, until: now() + ttlMs });
+    }
+    return identity;
+  };
+}
+
+function resolveOrg(
+  orgs: readonly RequestOrg[],
   candidates: readonly { readonly id?: string; readonly slug?: string }[],
-): Promise<RequestOrg | null> {
-  const orgs = await listMyOrganizations(db, personId);
-  if (!orgs.ok) throw new Error(`Cannot read memberships: ${JSON.stringify(orgs.error)}`);
+): RequestOrg | null {
   for (const candidate of candidates) {
-    const found = orgs.data.find(
+    const found = orgs.find(
       (o) =>
         (candidate.id !== undefined && o.id === candidate.id) ||
         (candidate.slug !== undefined && o.slug === candidate.slug),
     );
     if (found !== undefined) return { id: found.id, slug: found.slug };
   }
-  const only = orgs.data.length === 1 ? orgs.data[0] : undefined;
+  const only = orgs.length === 1 ? orgs[0] : undefined;
   return only === undefined ? null : { id: only.id, slug: only.slug };
 }
 
@@ -263,6 +304,13 @@ export function apiKeyTokenScopes(claims: Record<string, unknown>): readonly str
 export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authenticate {
   const locales = options.locales ?? SUPPORTED_LOCALES;
   const exchange = createApiKeyExchange(options);
+  const verify = createJwksVerifier({
+    url: options.url,
+    anonKey: options.anonKey,
+    ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
+    ...(options.now === undefined ? {} : { now: options.now }),
+  });
+  const identityOf = createIdentityCache(options.identityTtlMs ?? 30_000, options.now);
   return async (request, requestId): Promise<RequestContext | null> => {
     const credential = readCredential(request, options);
     if (credential === null) return null;
@@ -276,16 +324,14 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
         ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
       });
       const userId = String(jwtClaims(token.accessToken)["sub"] ?? "");
-      const person = await getCurrentPerson(db, userId);
-      if (!person.ok) {
-        throw new Error(
-          `Cannot read the service account's person: ${JSON.stringify(person.error)}`,
-        );
+      const identity = await identityOf(db, userId);
+      if (identity === null) {
+        throw new Error("Cannot read the service account's person: not found.");
       }
       return {
         user: { id: userId, email: null },
-        personId: person.data.id,
-        org: await resolveOrg(db, person.data.id, [{ id: token.orgId }]),
+        personId: identity.personId,
+        org: resolveOrg(identity.orgs, [{ id: token.orgId }]),
         locale: negotiateLocale(request.headers.get("accept-language"), locales),
         db,
         credential: "api_key",
@@ -299,24 +345,28 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
       accessToken: credential.token,
       ...(options.fetch === undefined ? {} : { fetch: options.fetch }),
     });
-    const { data, error } = await db.auth.getUser(credential.token);
-    if (error !== null || data.user === null) return null;
-    const user = data.user;
-
-    const person = await getCurrentPerson(db, user.id);
-    if (!person.ok && person.error.kind !== "not-found") {
-      throw new Error(`Cannot read the caller's person: ${JSON.stringify(person.error)}`);
+    let user: { readonly id: string; readonly email: string | null };
+    const verified = await verify(credential.token);
+    if (verified === null) return null;
+    if (verified !== undefined) {
+      user = { id: verified.sub, email: verified.email };
+    } else {
+      const { data, error } = await db.auth.getUser(credential.token);
+      if (error !== null || data.user === null) return null;
+      user = { id: data.user.id, email: data.user.email ?? null };
     }
-    const personId = person.ok ? person.data.id : null;
+
+    const identity = await identityOf(db, user.id);
+    const personId = identity?.personId ?? null;
     const claim = jwtClaims(credential.token)["org_id"];
     const lastOrg =
       credential.kind === "session-cookie"
         ? credential.cookies.get(options.lastOrgCookie ?? LAST_ORG_COOKIE)
         : undefined;
     const org =
-      personId === null
+      identity === null
         ? null
-        : await resolveOrg(db, personId, [
+        : resolveOrg(identity.orgs, [
             ...(typeof claim === "string" ? [{ id: claim }] : []),
             ...(lastOrg === undefined ? [] : [{ slug: lastOrg }]),
           ]);
@@ -324,7 +374,7 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
     // client presents the JWT itself instead of the xos_live_ key.
     const keyScopes = apiKeyTokenScopes(jwtClaims(credential.token));
     return {
-      user: { id: user.id, email: user.email ?? null },
+      user,
       personId,
       org,
       locale: negotiateLocale(request.headers.get("accept-language"), locales),

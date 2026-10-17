@@ -1,0 +1,9 @@
+# Hand-written Atlas pages owned by A36 (journey surfaces). One sitemap node id per line.
+partner-console
+partner-console.client-orgs
+partner-console.default-brand
+partner-console.usage
+partner-console.wholesale-billing
+import
+custom-object
+inbox

@@ -357,6 +357,8 @@ from .resources import (
     ApprovalStepsResource,
     TemplateVersionsResource,
     TemplateItemsResource,
+    SupportSessionsResource,
+    WholesaleStatementsResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -757,6 +759,8 @@ class XosClient(XosClientCore):
     approval_steps: ApprovalStepsResource
     template_versions: TemplateVersionsResource
     template_items: TemplateItemsResource
+    support_sessions: SupportSessionsResource
+    wholesale_statements: WholesaleStatementsResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1145,6 +1149,8 @@ class XosClient(XosClientCore):
         self.approval_steps = ApprovalStepsResource(self)
         self.template_versions = TemplateVersionsResource(self)
         self.template_items = TemplateItemsResource(self)
+        self.support_sessions = SupportSessionsResource(self)
+        self.wholesale_statements = WholesaleStatementsResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

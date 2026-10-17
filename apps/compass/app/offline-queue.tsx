@@ -84,7 +84,7 @@ export default function OfflineQueue(): ReactElement {
             </Text>
             {m.lastError ? (
               <Text tone="secondary">
-                {t("compass.queue.refusedMessage", { reason: m.lastError.message })}
+                {t("compass.queue.refusedMessage", { reason: plainReason(m.lastError.message) })}
               </Text>
             ) : null}
           </Card>
@@ -101,7 +101,7 @@ export default function OfflineQueue(): ReactElement {
             testID="conflict-sheet"
             message={
               open.lastError
-                ? t("compass.queue.refusedMessage", { reason: open.lastError.message })
+                ? t("compass.queue.refusedMessage", { reason: plainReason(open.lastError.message) })
                 : t("compass.queue.conflictMessage")
             }
             field={kind(open)}
@@ -116,7 +116,9 @@ export default function OfflineQueue(): ReactElement {
               setOpen(null);
             }}
             onKeepTheirs={() => {
-              void engine?.outbox.resolve(open.id, { action: "discard" });
+              void engine?.outbox
+                .resolve(open.id, { action: "discard" })
+                .then(() => engine.drain());
               setOpen(null);
             }}
             labels={{
@@ -130,4 +132,9 @@ export default function OfflineQueue(): ReactElement {
       </Sheet>
     </Screen>
   );
+}
+
+/** Server refusals read "rule_code: sentence"; people see the sentence, not the rule code. */
+function plainReason(message: string): string {
+  return message.replace(/^[a-z][a-z0-9_]*:\s+/, "");
 }

@@ -94,8 +94,12 @@ export function Icon({
   size = 24,
   label,
   tone = "primary",
+  onAccent = false,
   testID,
-}: IconProps): ReactElement | null {
+}: IconProps & {
+  /** Drawn on an accent fill (the raised Scan tab), so it uses the on-accent color. */
+  onAccent?: boolean;
+}): ReactElement | null {
   const theme = useTheme();
   const Glyph = ICONS[name];
   if (!Glyph) return null;
@@ -106,7 +110,11 @@ export function Icon({
       accessibilityLabel={label}
       importantForAccessibility={label ? "yes" : "no-hide-descendants"}
     >
-      <Glyph size={size} color={toneColor(theme, tone)} strokeWidth={theme.strokeWidth.focus} />
+      <Glyph
+        size={size}
+        color={onAccent ? theme.color.accentTextOn : toneColor(theme, tone)}
+        strokeWidth={theme.strokeWidth.focus}
+      />
     </View>
   );
 }
@@ -316,6 +324,18 @@ export function TextField({
     phone: "phone-pad",
     url: "url",
   } as const;
+  /* Addresses, codes and secrets are typed exactly: iOS must not capitalize or autocorrect them. */
+  const literal =
+    secure || keyboard === "email" || keyboard === "url" || autoComplete === "one-time-code";
+  const contentType = secure
+    ? "password"
+    : keyboard === "email"
+      ? "emailAddress"
+      : keyboard === "url"
+        ? "URL"
+        : autoComplete === "one-time-code"
+          ? "oneTimeCode"
+          : undefined;
   return (
     <View style={{ gap: theme.space["6"] }}>
       <Text variant="label13" tone="secondary">
@@ -332,6 +352,8 @@ export function TextField({
         multiline={multiline}
         keyboardType={keyboardType[keyboard]}
         autoComplete={autoComplete === "one-time-code" ? "one-time-code" : autoComplete}
+        {...(literal ? { autoCapitalize: "none", autoCorrect: false, spellCheck: false } : {})}
+        {...(contentType ? { textContentType: contentType } : {})}
         maxFontSizeMultiplier={2}
         style={[
           typography(theme, "text16"),

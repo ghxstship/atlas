@@ -253,6 +253,8 @@ function world(rpcs: Record<string, (args: Row) => RpcResult> = {}) {
       recordRow(R2, { title: "Focus the Wash", created_at: "2026-10-02T12:00:00Z" }),
     ],
     scope_nodes: [{ ...base(NODE), project_id: PROJECT, name: "Northwind Summer Series" }],
+    // records.list composes record_key from the project key (A24-010).
+    projects: [{ ...base(PROJECT), project_key: "NWS" }],
     record_external_visibility: [
       {
         ...base(newId()),

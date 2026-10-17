@@ -1,4 +1,5 @@
-import { NON_NAVIGABLE_KINDS, type Sitemap, type SitemapNode } from "./schema";
+import { NON_NAVIGABLE_KINDS } from "./constants";
+import type { Sitemap, SitemapNode } from "./schema";
 
 /** A node with its position in the tree. */
 export interface IndexedNode {

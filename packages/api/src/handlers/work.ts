@@ -59,11 +59,90 @@ export const RECORD_COLUMNS = [
 
 const RECORD_ALIASES = { record_key: "record_display_key" } as const;
 
+/** Columns a page reads to compose `record_key` itself. */
+const KEY_PARTS = ["project_id", "record_number"] as const;
+
+/**
+ * Sets `record_key` (`<project key>-<number>`) on rows read with KEY_PARTS, reading the projects'
+ * keys in one query, and drops the parts the caller did not ask for.
+ *
+ * The `record_display_key` computed column gives the same value, but Postgres runs it once per row
+ * as its own query, and each run evaluates the projects read policy from scratch: about 1.8 ms a
+ * row, 40 ms for a page of 22 (A24-010). One query for the page's projects evaluates it once.
+ */
+export async function composeRecordKeys(
+  db: XosClient,
+  rows: Row[],
+  added: readonly string[],
+): Promise<Row[]> {
+  const ids = [...new Set(rows.map((r) => r["project_id"]).filter((v) => typeof v === "string"))];
+  const keys = new Map<string, string>();
+  if (ids.length > 0) {
+    const { data, error } = await db
+      .from("projects")
+      .select("id, project_key")
+      .in("id", ids as string[]);
+    if (error !== null) throw error;
+    for (const p of data ?? []) keys.set(p.id, p.project_key);
+  }
+  return rows.map((row) => {
+    const key = keys.get(String(row["project_id"]));
+    const kept = Object.entries(row).filter(([column]) => !added.includes(column));
+    return {
+      ...Object.fromEntries(kept),
+      record_key: key === undefined ? null : `${key}-${String(row["record_number"])}`,
+    };
+  });
+}
+
 function liveRecords(db: XosClient) {
-  return aliasedSource(
+  const source = aliasedSource(
     () => ({ select: (c: string) => db.from("records").select(c).is("deleted_at", null) }),
     RECORD_ALIASES,
   );
+  return {
+    select(columns: string): unknown {
+      const list = columns.split(",");
+      if (!list.includes("record_key")) return source.select(columns);
+      const added = KEY_PARTS.filter((c) => !list.includes(c));
+      const builder = source.select(
+        [...list.filter((c) => c !== "record_key"), ...added].join(","),
+      );
+      return withComposedKeys(db, builder, added);
+    },
+  };
+}
+
+/** Wraps a records query so awaiting it answers rows with `record_key` composed. */
+function withComposedKeys(db: XosClient, builder: unknown, added: readonly string[]): unknown {
+  return new Proxy(builder as Row, {
+    get(target, prop, receiver) {
+      const value = Reflect.get(target, prop, receiver) as unknown;
+      if (typeof value !== "function") return value;
+      if (prop === "then") {
+        return (
+          resolve: (v: unknown) => unknown,
+          reject?: (reason: unknown) => unknown,
+        ): PromiseLike<unknown> =>
+          Promise.resolve(
+            target as unknown as PromiseLike<{ data: Row[] | Row | null; error: unknown }>,
+          )
+            .then(async (result) => {
+              if (result.error !== null || result.data === null) return result;
+              if (Array.isArray(result.data)) {
+                return { ...result, data: await composeRecordKeys(db, result.data, added) };
+              }
+              const [row] = await composeRecordKeys(db, [result.data], added);
+              return { ...result, data: row };
+            })
+            .then(resolve, reject);
+      }
+      return (...args: unknown[]) => {
+        const next = (value as (...a: unknown[]) => unknown).apply(target, args);
+        return next !== null && typeof next === "object" ? withComposedKeys(db, next, added) : next;
+      };
+    },
+  });
 }
 
 /** Adds external_visibility (the junction rows, presented as a set) to records that asked for it. */

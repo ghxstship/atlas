@@ -233,3 +233,23 @@ maestro-android:
           adb install apps/compass/android/app/build/outputs/apk/release/app-release.apk
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           $HOME/.maestro/bin/maestro test -e XOS_DEMO_PASSWORD=xos-demo-2026 apps/compass/.maestro
+
+# A37 (RRR-81): route JavaScript budget without a browser or a database. It reads the production
+# builds' manifests and gzips each key page's chunks, so it runs in a few minutes on every pull
+# request; Lighthouse stays the nightly check of the same budget in a real browser.
+route-js-budget:
+  name: Route JavaScript budget (gate 10)
+  runs-on: ubuntu-24.04
+  timeout-minutes: 30
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+    - run: pnpm install --frozen-lockfile
+    - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
+    # Fails when a key page passes 200 KB gzip, or the ceiling recorded for it in
+    # packages/testing/bundle-ceilings.json.
+    - run: pnpm --filter @xos/testing budget:js -- --chunks

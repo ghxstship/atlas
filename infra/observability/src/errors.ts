@@ -14,7 +14,11 @@ import { REDACTED, redact, redactString, redactUrl } from "./redact.ts";
 export interface ErrorSink {
   captureException(
     exception: unknown,
-    hint?: { tags?: Record<string, string>; extra?: Record<string, unknown> },
+    hint?: {
+      tags?: Record<string, string>;
+      extra?: Record<string, unknown>;
+      user?: { id: string };
+    },
   ): unknown;
 }
 
@@ -23,6 +27,8 @@ export interface ErrorContext {
   readonly tags?: Readonly<Record<string, string>>;
   /** Anything else useful for diagnosis. Redacted before it leaves the process. */
   readonly extra?: Readonly<Record<string, unknown>>;
+  /** The signed-in person's id (a UUID), the only user field an error report carries. */
+  readonly user?: { readonly id: string };
 }
 
 export interface ErrorReporter {
@@ -47,7 +53,11 @@ export function createErrorReporter(options: {
       options.logger.error("unhandled error", { error, tags, ...extra });
       if (!options.sink) return;
       try {
-        options.sink.captureException(error, { tags, extra });
+        options.sink.captureException(error, {
+          tags,
+          extra,
+          ...(context.user ? { user: { id: context.user.id } } : {}),
+        });
       } catch (sinkError) {
         options.logger.warn("error sink rejected an event", { error: sinkError });
       }
@@ -60,30 +70,41 @@ export function createErrorReporter(options: {
 
 /** The parts of a Sentry event that can carry personal data. */
 export interface SentryEventLike {
-  message?: string;
-  exception?: { values?: Array<{ type?: string; value?: string }> };
-  request?: {
-    url?: string;
-    method?: string;
-    headers?: Record<string, string>;
-    cookies?: unknown;
-    data?: unknown;
-    query_string?: unknown;
-    env?: unknown;
-  };
-  user?: {
-    id?: string | number;
-    email?: string;
-    ip_address?: string | null;
-    username?: string;
-    [key: string]: unknown;
-  };
-  breadcrumbs?: Array<{ message?: string; data?: Record<string, unknown>; [key: string]: unknown }>;
-  extra?: Record<string, unknown>;
-  contexts?: Record<string, unknown>;
-  tags?: Record<string, unknown>;
-  server_name?: string;
-  transaction?: string;
+  message?: string | undefined;
+  exception?:
+    | { values?: Array<{ type?: string | undefined; value?: string | undefined }> | undefined }
+    | undefined;
+  request?:
+    | {
+        url?: string | undefined;
+        method?: string | undefined;
+        headers?: Record<string, string> | undefined;
+        cookies?: unknown;
+        data?: unknown;
+        query_string?: unknown;
+        env?: unknown;
+      }
+    | undefined;
+  user?:
+    | {
+        id?: string | number | undefined;
+        email?: string | undefined;
+        ip_address?: string | null | undefined;
+        username?: string | undefined;
+      }
+    | undefined;
+  breadcrumbs?:
+    | Array<{
+        message?: string | undefined;
+        category?: string | undefined;
+        data?: Record<string, unknown> | undefined;
+      }>
+    | undefined;
+  extra?: Record<string, unknown> | undefined;
+  contexts?: Record<string, unknown> | undefined;
+  tags?: Record<string, unknown> | undefined;
+  server_name?: string | undefined;
+  transaction?: string | undefined;
 }
 
 /** Request headers kept on error events; every other header is dropped. */

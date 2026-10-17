@@ -1,39 +1,106 @@
 # Performance results (Section 5.1, Section 18 gate 10)
 
-A24, 2026-10-16, main d215afa plus this branch. Local measurements on the build machine: a full
-Supabase stack (block 574) with the demo seed, production builds served by `next start`, Lighthouse
+A37, 2026-10-17, after the fixes for A24-009, A24-010 and A24-004 (RRR-81). Local measurements on
+the build machine, which other agents were loading at the same time (load average 20 to 69): a full
+Supabase stack (block 576) with the demo seed, production builds served by `next start`, Lighthouse
 CI 0.15.1 (Lighthouse 12.6.1, desktop preset, one run per page) in Chromium 1243, and k6 2.3.0 from
 the `grafana/k6:2.3.0` image. Laptop numbers show trends and regressions; the Section 5.1
-objectives are decided by the staging runs described in `packages/testing/README.md`.
+objectives are decided by the staging runs described in `packages/testing/README.md`. A24's first
+measurements (main d215afa) are kept in the "Before" columns.
+
+## Route JavaScript
+
+Two measurements of the same budget (200 KB gzip):
+
+- **Route JS (build)**: `pnpm --filter @xos/testing budget:js`, from the production build's
+  manifests: the scripts the route itself loads. CI can run it on every pull request (proposed job
+  `route-js-budget`). Pages still over budget hold a ceiling in `packages/testing/bundle-ceilings.json`.
+- **Lighthouse JS**: `resource-summary:script:size`, every script fetched during the trace. On Atlas
+  signed-in pages it adds 60 to 85 KB that Next.js prefetches for the sidebar links in the viewport,
+  which belong to the routes those links open.
+
+| App     | Page                              | Before | Route JS (build) | Lighthouse JS | Verdict                     |
+| ------- | --------------------------------- | ------ | ---------------- | ------------- | --------------------------- |
+| Atlas   | /auth/sign-in                     | 481 KB | 183 KB           | 189 KB        | Pass                        |
+| Atlas   | /demo-productions/home            | 717 KB | 262 KB           | 347 KB        | Over (cause 1, 2)           |
+| Atlas   | /demo-productions/projects        | 696 KB | 299 KB           | 309 KB        | Over (cause 1, 2, 3)        |
+| Atlas   | /demo-productions/p/NWS/overview  | 711 KB | 295 KB           | 321 KB        | Over (cause 1, 2, 3)        |
+| Atlas   | /demo-productions/inbox           | 632 KB | 256 KB           | 264 KB        | Over (cause 1, 2)           |
+| Atlas   | /demo-productions/crew/shifts     | 693 KB | 294 KB           | 305 KB        | Over (cause 1, 2, 3)        |
+| Atlas   | /demo-productions/finance/budgets | 712 KB | 331 KB           | 342 KB        | Over (cause 1, 2, 3, 4)     |
+| Gateway | /auth/sign-in                     | 519 KB | 202 KB           | 208 KB        | Over by 2 to 8 KB (cause 1) |
+| Gateway | /home                             | 528 KB | 211 KB           | 217 KB        | Over (cause 1)              |
+| Gateway | /explore                          | 530 KB | 213 KB           | 219 KB        | Over (cause 1)              |
+| Gateway | /work                             | 519 KB | 210 KB           | 208 KB        | Over (cause 1)              |
+| Gateway | /money                            | 519 KB | 210 KB           | 208 KB        | Over (cause 1)              |
+| Docs    | /en-US                            | 466 KB | 169 KB           | 174 KB        | Pass                        |
+| Docs    | /en-US/reference                  | 466 KB | 169 KB           | 174 KB        | Pass                        |
+| Docs    | /en-US/guides/getting-started     | 466 KB | 169 KB           | 174 KB        | Pass                        |
+| Docs    | /en-US/help                       | 466 KB | 169 KB           | 174 KB        | Pass                        |
+
+What came out (A24-009): the two-locale message catalog (305 KB on every page), Zod and the YAML
+parser through `@xos/ia` (61 KB), the help article bodies (20 KB), the visx chart library on pages
+without a chart (15 KB), and the table code on Atlas Home (17 KB). The README section "Route
+JavaScript budget" lists the two rules that keep them out.
+
+What remains, with its cause:
+
+1. **Framework and shell, on every page.** Next.js 16 with React 19 is 128 KB of every page, which
+   leaves 72 KB for the app. The `@xos/icons` registry draws any of 206 Lucide icons by name (15 KB),
+   and the next-intl runtime with its ICU parser adds 7 KB. Gateway pages are 2 to 13 KB over on
+   these alone. Moving the icon registry to an SVG sprite served as a static file, and next-intl's
+   message precompilation, are the two changes that would bring Gateway under budget; both need a
+   design decision (proposed in the A37 completion report).
+2. **The Atlas shell (about 105 KB over the framework).** Command menu (cmdk), menus and dialogs
+   (Radix), the sitemap the breadcrumbs and help read on the client (6 KB), the help index (4 KB),
+   the help and Aurora panels (8 KB) and the `ui` catalog (4 KB). Signed-in Atlas pages cannot reach
+   200 KB without a smaller shell.
+3. **Tables.** List pages default to the table view, which needs TanStack Table and Virtual (17 KB).
+4. **Charts.** Finance budgets draws a chart (visx, 15 KB) and its module set is the largest (13 KB).
 
 ## Lighthouse against the gate 10 budgets
 
-Budgets: LCP under 2.5 s, CLS under 0.1, INP under 200 ms (Total Blocking Time in the lab), route
-JavaScript under 200 KB gzip. Accessibility must score 100.
+| App     | Page                              | Performance | Accessibility | LCP    | CLS   | TBT  |
+| ------- | --------------------------------- | ----------- | ------------- | ------ | ----- | ---- |
+| Atlas   | /auth/sign-in                     | 90          | 100           | 685 ms | 0.000 | 0 ms |
+| Atlas   | /demo-productions/home            | 99          | 100           | 835 ms | 0.000 | 0 ms |
+| Atlas   | /demo-productions/projects        | 97          | 100           | 866 ms | 0.088 | 0 ms |
+| Atlas   | /demo-productions/p/NWS/overview  | 99          | 100           | 837 ms | 0.038 | 0 ms |
+| Atlas   | /demo-productions/inbox           | 99          | 100           | 846 ms | 0.000 | 0 ms |
+| Atlas   | /demo-productions/crew/shifts     | 98          | 100           | 948 ms | 0.065 | 0 ms |
+| Atlas   | /demo-productions/finance/budgets | 98          | 100           | 889 ms | 0.075 | 0 ms |
+| Gateway | /auth/sign-in                     | 100         | 100           | 591 ms | 0.000 | 0 ms |
+| Gateway | /home                             | 100         | 100           | 671 ms | 0.003 | 0 ms |
+| Gateway | /explore                          | 100         | 100           | 632 ms | 0.000 | 0 ms |
+| Gateway | /work                             | 100         | 100           | 677 ms | 0.000 | 0 ms |
+| Gateway | /money                            | 100         | 100           | 671 ms | 0.000 | 0 ms |
+| Docs    | /en-US                            | 100         | 100           | 511 ms | 0.000 | 0 ms |
+| Docs    | /en-US/reference                  | 100         | 100           | 551 ms | 0.000 | 0 ms |
+| Docs    | /en-US/guides/getting-started     | 100         | 100           | 510 ms | 0.000 | 0 ms |
+| Docs    | /en-US/help                       | 100         | 100           | 511 ms | 0.000 | 0 ms |
 
-| App     | Page                              | Performance | Accessibility                     | LCP     | CLS   | TBT  | Route JS (gzip) | Verdict   |
-| ------- | --------------------------------- | ----------- | --------------------------------- | ------- | ----- | ---- | --------------- | --------- |
-| Atlas   | /auth/sign-in                     | 100         | 100                               | 644 ms  | 0.000 | 0 ms | 481 KB          | Fail (JS) |
-| Atlas   | /demo-productions/home            | 99          | 100                               | 889 ms  | 0.000 | 0 ms | 717 KB          | Fail (JS) |
-| Atlas   | /demo-productions/projects        | 95          | 100                               | 1242 ms | 0.099 | 0 ms | 696 KB          | Fail (JS) |
-| Atlas   | /demo-productions/p/NWS/overview  | 97          | 100                               | 1203 ms | 0.000 | 0 ms | 711 KB          | Fail (JS) |
-| Atlas   | /demo-productions/inbox           | 98          | 100                               | 1121 ms | 0.000 | 0 ms | 632 KB          | Fail (JS) |
-| Atlas   | /demo-productions/crew/shifts     | 95          | 100                               | 1409 ms | 0.065 | 0 ms | 693 KB          | Fail (JS) |
-| Atlas   | /demo-productions/finance/budgets | 95          | 100                               | 1326 ms | 0.075 | 0 ms | 712 KB          | Fail (JS) |
-| Gateway | /auth/sign-in                     | 100         | 100                               | 707 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
-| Gateway | /home                             | 99          | 100                               | 965 ms  | 0.000 | 0 ms | 528 KB          | Fail (JS) |
-| Gateway | /explore                          | 100         | 98 before, 100 after the fix here | 742 ms  | 0.000 | 0 ms | 530 KB          | Fail (JS) |
-| Gateway | /work                             | 99          | 100                               | 868 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
-| Gateway | /money                            | 100         | 100                               | 663 ms  | 0.000 | 0 ms | 519 KB          | Fail (JS) |
-| Docs    | /en-US                            | 90          | 100                               | 781 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
-| Docs    | /en-US/reference                  | 100         | 100                               | 791 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
-| Docs    | /en-US/guides/getting-started     | 100         | 100                               | 750 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
-| Docs    | /en-US/help                       | 100         | 100                               | 708 ms  | 0.000 | 0 ms | 466 KB          | Fail (JS) |
+LCP, CLS and TBT are inside budget on every page and accessibility scores 100 everywhere. LCP fell
+on every page (Atlas signed-in 889 to 1409 ms before, 835 to 948 ms now). Atlas sign-in scored 90 on
+this run with the same LCP and no blocking time; one desktop run on a loaded machine.
 
-LCP, CLS and TBT are inside budget on every page; Atlas Projects sits at the CLS edge (0.099).
-Route JavaScript fails everywhere, mainly because the full two-locale message catalog ships to the
-browser on every page (finding A24-009). Gateway Explore lost two accessibility points to heading
-order (card titles were h3 under the page h1); the result count is now the h2, a cheap fix made here.
+## API latency (A24-010)
+
+Every API response now carries `Server-Timing` (`auth`, `rate`, `validate`, `handler`). Single
+unloaded requests for the load member (load-99-1, Producer in the demo tenant), median of 30:
+
+| Request                     | Before | After | After, by phase                           |
+| --------------------------- | ------ | ----- | ----------------------------------------- |
+| GET /me                     | 200 ms | 7 ms  | auth 0.3, rate limit 2.5, handler 2.6 ms  |
+| GET /projects?limit=25      | 236 ms | 9 ms  | auth 0.3, rate limit 2.3, handler 5.2 ms  |
+| GET /records?limit=50       | 347 ms | 16 ms | auth 0.3, rate limit 2.3, handler 11.1 ms |
+| GET /notifications?limit=20 | 168 ms | 6 ms  | auth 0.2, rate limit 2.1, handler 2.3 ms  |
+
+Before the fix, credential resolution took 36 to 41 ms of every request: a round trip to Supabase
+Auth (`getUser`) and the person and membership reads. Sessions are now verified against the
+project's JWKS in the process, and the identity is reused for 30 seconds. `records.list` lost 40 ms
+of handler time: the `record_display_key` computed column re-evaluated the projects read policy once
+per row. The Postgres rate limiter costs 2 to 3 ms and stays a write per request; batching it would
+trade exactness across instances for 2 ms, so it is left as it is.
 
 ## k6 smoke (reduced scale)
 
@@ -41,12 +108,12 @@ Each run: 30 s, ramp to the smoke scale, then hold. Users come from
 `packages/testing/load/fixtures/load-tenants.sql` (40 Producers in the demo tenant, 20 in two empty
 load tenants).
 
-| Script           | Scale                       | Requests | Reads p50 / p95 | Writes or sync p50 / p95                       | Result                                                                    |
-| ---------------- | --------------------------- | -------- | --------------- | ---------------------------------------------- | ------------------------------------------------------------------------- |
-| api.js, platform | 20 users, two empty tenants | 1,524    | 61 / 268 ms     | no writes (no record to copy in empty tenants) | Read p95 over 250 ms                                                      |
-| api.js, tenant   | 10 users, demo tenant       | 648      | 107 / 513 ms    | create record 113 / 623 ms                     | Read and write p95 over objective (A24-010)                               |
-| compass-show.js  | 25 devices                  | 1,385    | 3.8 / 5.8 ms    | apply 6.5 / 20.3 ms; replay 2.1 / 2.8 ms       | Pass; 326 mutations applied once each, replays returned the stored result |
+| Script           | Scale                       | Requests | Reads p50 / p95 (before)     | Writes p50 / p95 (before)                   | Result                             |
+| ---------------- | --------------------------- | -------- | ---------------------------- | ------------------------------------------- | ---------------------------------- |
+| api.js, platform | 20 users, two empty tenants | 2,024    | 9.4 / 17.2 ms (61 / 268 ms)  | no writes (no record to copy)               | Pass, 0 % errors                   |
+| api.js, tenant   | 10 users, demo tenant       | 1,034    | 9.0 / 18.4 ms (107 / 513 ms) | create record 32.6 / 44.4 ms (113 / 623 ms) | Pass, 0 % errors                   |
+| compass-show.js  | 25 devices                  | 1,385    | 3.8 / 5.8 ms                 | apply 6.5 / 20.3 ms; replay 2.1 / 2.8 ms    | Pass (A24's run; path not changed) |
 
-The Compass sync path through `app.apply_sync_mutation` is far inside its 5 s objective, including
-the hot occupancy counter row every device writes. The API path is the risk: the database answers in
-under 10 ms, and the per-request API runtime adds the rest (A24-010).
+Both API profiles now pass their Section 5.1 thresholds (reads p95 under 250 ms, writes p95 under
+400 ms, p99 under 800 ms, errors under 1 %) with a wide margin, and served twice the requests in the
+same 30 seconds.

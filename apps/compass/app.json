@@ -43,9 +43,19 @@
       ],
       [
         "expo-local-authentication",
-        { "faceIDPermission": "Compass uses Face ID to unlock your work data on this device." }
+        {
+          "faceIDPermission": "Compass uses Face ID to unlock your work data on this device."
+        }
       ]
     ],
-    "experiments": { "typedRoutes": false }
+    "experiments": {
+      "typedRoutes": false
+    },
+    "owner": "ghxstship",
+    "extra": {
+      "eas": {
+        "projectId": "7a96bb1f-c266-4df1-a072-b03bbc3d567e"
+      }
+    }
   }
 }

@@ -8,3 +8,12 @@ declare module "next-intl" {
     Messages: Messages;
   }
 }
+
+/** The build's commit, inlined by next.config.ts as the release of browser error reports. */
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      readonly NEXT_PUBLIC_XOS_RELEASE?: string;
+    }
+  }
+}

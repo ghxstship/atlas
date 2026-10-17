@@ -37,3 +37,15 @@ A26 built the reliability stack under `infra/`: observability, synthetic checks,
 - **Owner inputs:** the public backup key, the `STAGING_DB_URL`, synthetic-user and alert-webhook secrets, the PowerSync image pin in ADR 0001, and EU-region backup storage.
 - **Wiring still to do:** Atlas and Gateway still need `@sentry/nextjs` and `@opentelemetry/api` wired in as described in `infra/observability/README.md`.
 - **CI snippets:** the snippets in `infra/ci/README.md` are applied once their secrets exist.
+
+## Amendment (2026-10-17): browser errors and Edge Functions (A40)
+
+9. **Browser errors without the Sentry browser SDK.** The Sentry browser SDK (about 30 KB gzip) is not installed, because the route budgets of ADR 0027 cannot absorb it.
+   - A dependency-free reporter (`@xos/infra/observability/browser`, about 1 KB gzip) listens for window `error` and `unhandledrejection`, and every `error.tsx` boundary reports through it.
+   - It sends one scrubbed payload per error with `sendBeacon` to the same-origin `/api/client-errors`: the message, at most 15 stack frames, the route template, the release and the user id when known.
+   - The route checks the origin, caps the body at 8 KB, rate-limits, validates with a strict schema, redacts again and reports through the server Sentry client, tagged `runtime:browser`.
+   - Nothing in the browser calls Sentry, and `budget:js` fails if a client chunk carries the Sentry SDK. There is no Session Replay. Browser frames arrive minified until source map upload is adopted.
+10. **No DSN, no network.** Sentry initializes only when `SENTRY_DSN` or `NEXT_PUBLIC_SENTRY_DSN` is set. Local runs, tests and CI never reach Sentry.
+11. **Edge Functions report over HTTP.** `serve()` wraps every function with `observe`. On an unexpected error it returns the A22-013 problem and, when the `SENTRY_DSN` secret is set, sends one scrubbed event through a dependency-free envelope sender. `@sentry/deno` stays a later decision.
+
+The Consequences item about wiring Sentry into Atlas and Gateway is closed.

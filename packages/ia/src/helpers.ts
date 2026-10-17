@@ -1,13 +1,13 @@
-import {
-  LIST_QUERY_PARAMS,
-  type AuthMode,
-  type ExternalRoleType,
-  type NodeKind,
-  type Shell,
-  type Sitemap,
-  type SitemapNode,
-  type ViewType,
-  type Visibility,
+import { LIST_QUERY_PARAMS } from "./constants";
+import type {
+  AuthMode,
+  ExternalRoleType,
+  NodeKind,
+  Shell,
+  Sitemap,
+  SitemapNode,
+  ViewType,
+  Visibility,
 } from "./schema";
 import { compareSpecificity, fillRoute, matchRoute, routeParams } from "./routes";
 import { getNode, indexSitemap } from "./tree";

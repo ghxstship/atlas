@@ -13,11 +13,19 @@ export interface TokenSource {
   };
 }
 
+/** A state drawn as an overlay color at an opacity over the rule's backgrounds. */
+export interface ContrastOverlay {
+  readonly state: string;
+  readonly color: string;
+  readonly opacity: number;
+}
+
 export interface ContrastRule {
   readonly name: string;
   readonly min: number;
   readonly fg: readonly string[];
   readonly bg: readonly string[];
+  readonly overlays?: readonly ContrastOverlay[];
 }
 
 export interface ContrastSpec {
@@ -42,6 +50,7 @@ export interface ContrastResult {
 }
 
 export function ratio(a: string, b: string): number;
+export function composite(bgHex: string, overlayHex: string, opacity: number): string;
 export function resolveColor(tokens: TokenSource, name: string, theme: string): string;
 export function checkContrast(tokens: TokenSource, spec: ContrastSpec): ContrastResult;
 export function formatFailure(failure: ContrastFailure): string;

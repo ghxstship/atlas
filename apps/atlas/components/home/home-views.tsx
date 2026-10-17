@@ -19,6 +19,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Alert } from "@/lib/home/data";
 import { enumKey, phaseCode } from "@/lib/projects/format";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useAlertText } from "./alert-text";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -298,24 +299,6 @@ export function ReadinessView({
 }
 
 // Alerts -------------------------------------------------------------------------------------------
-
-/** The text of an alert, from the catalog. */
-export function useAlertText() {
-  const t = useTranslations("home.alerts") as unknown as Translate;
-  const format = useFormatter();
-  return (a: Alert) => {
-    const values = { ...a.values };
-    if (a.kind === "gateGap" || a.kind === "overdue") {
-      const raw = String(values["date"] ?? "");
-      if (raw) {
-        values["date"] = format.dateTime(new Date(raw.length === 10 ? `${raw}T00:00:00` : raw), {
-          dateStyle: "medium",
-        });
-      }
-    }
-    return t(a.kind, values);
-  };
-}
 
 /** Home > Alerts: what needs attention, highest severity first, as a list or an inbox. */
 export function AlertsView({

@@ -42,6 +42,15 @@ export function TextField({
   const theme = useTheme();
   const id = useId();
   const type = theme.typography.text16;
+  /* Addresses and secrets are typed exactly: iOS must not capitalize or autocorrect them. */
+  const literal = secure || keyboard === "email" || keyboard === "url";
+  const contentType = secure
+    ? "password"
+    : keyboard === "email"
+      ? "emailAddress"
+      : keyboard === "url"
+        ? "URL"
+        : undefined;
   return (
     <View style={{ gap: theme.space["6"] }}>
       <Text variant="label13">{label}</Text>
@@ -57,7 +66,9 @@ export function TextField({
         multiline={multiline}
         secureTextEntry={secure}
         keyboardType={KEYBOARD[keyboard]}
+        {...(literal ? { autoCapitalize: "none", autoCorrect: false, spellCheck: false } : {})}
         {...(autoComplete ? { autoComplete } : {})}
+        {...(contentType ? { textContentType: contentType } : {})}
         style={{
           minHeight: multiline ? theme.density.touchMin * 2 : theme.density.touchMin,
           paddingHorizontal: theme.space["12"],

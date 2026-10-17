@@ -3204,6 +3204,14 @@ export interface Components {
     undo_reason: string | null;
   };
   ImportBatchPage: { data: Array<Components["ImportBatch"]>; next_cursor: string | null };
+  ImportDryRun: {
+    creates: number;
+    updates: number;
+    merges: number;
+    refusals: number;
+    skipped: number;
+    pending_reviews: number;
+  };
   ImportJob: {
     id: string;
     org_id: string;
@@ -4067,6 +4075,7 @@ export interface Components {
     message_args: Record<string, unknown>;
     archived_at: string | null;
   };
+  NotificationActRequest: { action: "approve" | "reject" | "done"; comment?: string };
   NotificationPage: { data: Array<Components["Notification"]>; next_cursor: string | null };
   NotificationPreference: {
     id: string;
@@ -6902,6 +6911,22 @@ export interface Components {
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
   SubscriptionUpdate: { plan_code?: string };
+  SupportSession: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    grantee_org_id: string;
+    reason: string;
+    starts_at: string;
+    ends_at: string;
+    ended_at: string | null;
+    ended_by: string | null;
+  };
+  SupportSessionGrantRequest: { hours: number; reason: string };
+  SupportSessionPage: { data: Array<Components["SupportSession"]>; next_cursor: string | null };
   SupportTicket: {
     id: string;
     org_id: string;
@@ -8067,6 +8092,26 @@ export interface Components {
   };
   WebhookEventType: { code: string; description: string; subject: string };
   WebhookEventTypePage: { data: Array<Components["WebhookEventType"]>; next_cursor: string | null };
+  WholesaleBillingRequest: { period_start: string };
+  WholesaleStatement: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    period_start: string;
+    currency_code: string;
+    wholesale_discount_bps: number;
+    client_count: number;
+    list_total_minor: number | null;
+    wholesale_total_minor: number | null;
+    unpriced_count: number;
+  };
+  WholesaleStatementPage: {
+    data: Array<Components["WholesaleStatement"]>;
+    next_cursor: string | null;
+  };
   WorkOrder: {
     id: string;
     org_id: string;
@@ -21299,7 +21344,7 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
-    responses: { 200: Components["ImportJob"] };
+    responses: { 200: Components["ImportDryRun"] };
   };
   "importJobs.commit": {
     module: "Platform";
@@ -21804,6 +21849,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["MarkAllReadResult"] };
+  };
+  "notifications.act": {
+    module: "Platform";
+    method: "post";
+    path: "/notifications/{id}/act";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["NotificationActRequest"];
+    responses: { 200: Components["Notification"] };
   };
   "notificationPreferences.list": {
     module: "Platform";
@@ -22674,6 +22728,81 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "supportSessions.list": {
+    module: "Platform";
+    method: "get";
+    path: "/support-sessions";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["SupportSessionPage"] };
+  };
+  "supportSessions.get": {
+    module: "Platform";
+    method: "get";
+    path: "/support-sessions/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["SupportSession"] };
+  };
+  "supportSessions.grant": {
+    module: "Platform";
+    method: "post";
+    path: "/support-sessions/grant";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SupportSessionGrantRequest"];
+    responses: { 201: Components["SupportSession"] };
+  };
+  "supportSessions.end": {
+    module: "Platform";
+    method: "post";
+    path: "/support-sessions/{id}/end";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SupportSession"] };
+  };
+  "wholesaleStatements.list": {
+    module: "Platform";
+    method: "get";
+    path: "/wholesale-statements";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WholesaleStatementPage"] };
+  };
+  "wholesaleStatements.get": {
+    module: "Platform";
+    method: "get";
+    path: "/wholesale-statements/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WholesaleStatement"] };
+  };
+  "wholesaleStatements.run": {
+    module: "Platform";
+    method: "post";
+    path: "/wholesale-statements/run";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WholesaleBillingRequest"];
+    responses: { 201: Components["WholesaleStatement"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -25580,6 +25709,7 @@ export interface ModuleOperations {
     | "notifications.get"
     | "notifications.update"
     | "notifications.markAllRead"
+    | "notifications.act"
     | "notificationPreferences.list"
     | "notificationPreferences.create"
     | "notificationPreferences.get"
@@ -25639,7 +25769,14 @@ export interface ModuleOperations {
     | "templateItems.create"
     | "templateItems.get"
     | "templateItems.update"
-    | "templateItems.delete";
+    | "templateItems.delete"
+    | "supportSessions.list"
+    | "supportSessions.get"
+    | "supportSessions.grant"
+    | "supportSessions.end"
+    | "wholesaleStatements.list"
+    | "wholesaleStatements.get"
+    | "wholesaleStatements.run";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

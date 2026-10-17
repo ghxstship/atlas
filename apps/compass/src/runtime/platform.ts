@@ -75,12 +75,29 @@ export function deviceId(): Promise<string> {
   return secret(DEVICE_ID, () => uuidv7());
 }
 
-/** Opens the SQLCipher database with a random key held in the secure enclave store. */
-export async function openStore(): Promise<PersistentStore> {
+let opening: Promise<PersistentStore> | null = null;
+
+/**
+ * Opens the SQLCipher database with a random key held in the secure enclave store. One connection per
+ * launch: a second one (an effect rerun, or React's development double invoke) would contend for the
+ * write lock and fail with "database is locked".
+ */
+export function openStore(): Promise<PersistentStore> {
+  opening ??= openStoreOnce().catch((error: unknown) => {
+    opening = null;
+    throw error;
+  });
+  return opening;
+}
+
+async function openStoreOnce(): Promise<PersistentStore> {
   const key = await secret(DB_KEY, () =>
     Array.from(Crypto.getRandomBytes(32), (b) => b.toString(16).padStart(2, "0")).join(""),
   );
   const db = open({ name: "compass.sqlite", encryptionKey: key });
+  // Writers wait briefly for the lock instead of failing; WAL lets the sync reads run beside a write.
+  await db.execute("PRAGMA busy_timeout = 5000");
+  await db.execute("PRAGMA journal_mode = WAL");
   const executor: SqlExecutor = {
     transaction: (statements) =>
       db.transaction(async (tx) => {

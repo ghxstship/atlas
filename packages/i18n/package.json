@@ -7,9 +7,11 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./messages/pseudo/en-XA.json": "./messages/pseudo/en-XA.json",
-    "./messages/pseudo/ar-XB.json": "./messages/pseudo/ar-XB.json"
+    "./locales": "./src/locales.ts",
+    "./extracts": "./src/extracts.generated.ts",
+    "./messages/*": "./messages/*"
   },
+  "sideEffects": false,
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
