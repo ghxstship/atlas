@@ -14,7 +14,7 @@ import {
 import { DEMO, expectAccessible, expectAccessibleInBothThemes, signIn, sql } from "./support";
 
 /**
- * Journey 47 (Section 20.2), sponsor: the sponsor accepts the sponsorship package, approves the
+ * Journey 47 (Section 20.2), sponsor: the sponsor accepts the sponsorship package, returns and then approves the
  * banner artwork in Gateway, sees the entitlement fulfilled once the crew captures it with photos
  * (the Compass capture's server half: the fulfillment and its photo evidence recorded by the
  * Field lead), receives the proof-of-performance report, and that report is the evidence that
@@ -53,23 +53,23 @@ test("journey 47: package, asset approval, fulfillment and proof of performance 
   await expect(page.getByRole("listitem").filter({ hasText: entitlement })).toContainText("Open");
   await expectAccessibleInBothThemes(page);
 
-  // Assets: the banner artwork is reviewed and approved under separation of duties. Sponsor
-  // assets have no Gateway view or submit path yet (finding A38-005), so the review runs through
-  // app.transition_sponsor_asset, the call Atlas makes, and the sponsor's Asset approvals tab
-  // still shows its empty state.
+  // Assets, approved in Gateway (migration 1133, finding A38-005): the org submits the banner
+  // artwork; the sponsor returns it with what to change, the org resubmits a revision and the
+  // sponsor approves it. The org's own creator still cannot approve it (separation of duties).
+  const assetTitle = `Main stage banner artwork ${tag}`;
   const [asset] = await sql<{ id: string }>(
     `insert into app.sponsor_assets (sponsor_entitlement_id, asset_kind, title, due_on)
      values ($1, 'Logo', $2, '2027-05-20') returning id`,
-    [ent.id, `Main stage banner artwork ${tag}`],
+    [ent.id, assetTitle],
     PEOPLE.owner,
   );
-  await expect(
-    asPerson(
-      PEOPLE.owner,
-      `select app.transition_sponsor_asset($1, 'Proposed', 'Submitted', 'Artwork in.')`,
-      [asset?.id],
-    ),
-  ).resolves.toBeDefined();
+  await page.goto(`/work/engagements/${engagement.key}/asset-approvals`);
+  await expect(page.getByRole("listitem").filter({ hasText: assetTitle })).toHaveCount(0);
+  await asPerson(
+    PEOPLE.owner,
+    `select app.transition_sponsor_asset($1, 'Proposed', 'Submitted', 'Artwork in.')`,
+    [asset?.id],
+  );
   await expect(
     asPerson(
       PEOPLE.owner,
@@ -77,13 +77,35 @@ test("journey 47: package, asset approval, fulfillment and proof of performance 
       [asset?.id],
     ),
   ).rejects.toThrow();
+  await page.reload();
+  const assetRow = page.getByRole("listitem").filter({ hasText: assetTitle });
+  await expect(assetRow.getByText("Awaiting your approval")).toBeVisible();
+  await expectAccessibleInBothThemes(page);
+  const answer = assetRow.getByRole("form", { name: assetTitle });
+  await answer.getByRole("button", { name: "Return for changes" }).click();
+  await answer.getByLabel("What to change").fill("Use the white logo on the dark screen.");
+  await answer.getByRole("button", { name: "Return for changes" }).last().click();
+  await expect(assetRow.getByText("Answer sent.")).toBeVisible();
   await asPerson(
     PEOPLE.producer,
-    `select app.transition_sponsor_asset($1, 'Submitted', 'Approved', 'Logo lockup approved.')`,
+    `select app.transition_sponsor_asset($1, 'Returned', 'Submitted', 'White logo version.')`,
     [asset?.id],
   );
-  await page.goto(`/work/engagements/${engagement.key}/asset-approvals`);
-  await expect(page.getByText("Nothing waits for your approval.", { exact: false })).toBeVisible();
+  await page.reload();
+  await expect(assetRow.getByText("Revision 1")).toBeVisible();
+  await assetRow
+    .getByRole("form", { name: assetTitle })
+    .getByRole("button", { name: "Approve" })
+    .last()
+    .click();
+  await expect(assetRow.getByText("Answer sent.")).toBeVisible();
+  await page.reload();
+  await expect(assetRow.getByText("Approved", { exact: true })).toBeVisible();
+  const [decided] = await sql<{ decided_by: string; asset_state: string }>(
+    `select decided_by, asset_state::text from app.sponsor_assets where id = $1`,
+    [asset?.id],
+  );
+  expect(decided).toEqual({ decided_by: ROLE_PEOPLE.sponsor, asset_state: "Approved" });
 
   // Fulfilled with photo evidence captured at the show (the Compass capture's server half).
   await page.goto(`/work/engagements/${engagement.key}/entitlements`);

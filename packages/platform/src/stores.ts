@@ -151,6 +151,21 @@ export interface NotificationStoreOptions {
   readonly unsubscribeUrl: (orgId: string, personId: string, kind: string) => Promise<string>;
   /** Inbound domain reply addresses live on, or null to send without reply by email. */
   readonly inboundDomain: string | null;
+  /**
+   * Base URL of Gateway. A notification for an external party carries a `gatewayPath` argument
+   * (1131), and its email links there instead of Atlas.
+   */
+  readonly gatewayUrl?: string | null;
+}
+
+/** The Gateway link of a notification for an external party, or null. */
+export function gatewayLink(
+  claim: Pick<ClaimedEmail, "messageArgs">,
+  gatewayUrl: string | null | undefined,
+): string | null {
+  const path = claim.messageArgs["gatewayPath"];
+  if (!gatewayUrl || typeof path !== "string" || !/^\/[A-Za-z0-9/_-]*$/.test(path)) return null;
+  return `${gatewayUrl.replace(/\/$/, "")}${path}`;
 }
 
 /** NotificationStore over the 0520 RPCs and identity reads. */
@@ -193,6 +208,8 @@ export function notificationStore(
       return { name: optionalText(person, "full_name") ?? "", locale: "en-US", timeZone: "UTC" };
     },
     async linkFor(claim) {
+      const gateway = gatewayLink(claim, options.gatewayUrl);
+      if (gateway !== null) return gateway;
       return `${options.appUrl}/${await orgSlug(claim.orgId)}/inbox`;
     },
     async replyAddressFor(claim) {

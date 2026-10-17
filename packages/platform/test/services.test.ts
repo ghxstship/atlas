@@ -9,6 +9,7 @@ import {
   isPublicAddress,
   kioskPunch,
   localPartFor,
+  gatewayLink,
   notificationStore,
   receiveInbound,
   signWebhook,
@@ -359,6 +360,23 @@ describe("stores", () => {
     await expect(store.linkFor(claimed)).resolves.toBe(
       "https://atlas.xos.test/northwind-live/inbox",
     );
+    // An external party's notification (1131) links to Gateway when its base URL is known.
+    const party = { ...claimed, messageArgs: { gatewayPath: "/money/invoices" } };
+    await expect(store.linkFor(party)).resolves.toBe("https://atlas.xos.test/northwind-live/inbox");
+    const withGateway = notificationStore(db, {
+      appUrl: "https://atlas.xos.test",
+      gatewayUrl: "https://gateway.xos.test/",
+      fromAddress: "notifications@mail.xos.test",
+      postalAddress: "100 Harbor Way",
+      unsubscribeUrl: async () => "https://fn.xos.test/u",
+      inboundDomain: null,
+    });
+    await expect(withGateway.linkFor(party)).resolves.toBe(
+      "https://gateway.xos.test/money/invoices",
+    );
+    expect(
+      gatewayLink({ messageArgs: { gatewayPath: "https://evil.test" } }, "https://g.test"),
+    ).toBe(null);
     await expect(store.replyAddressFor(claimed)).resolves.toBe("r-abc@in.xos.test");
     await expect(store.replyAddressFor({ ...claimed, subjectId: null })).resolves.toBeNull();
     await store.record("nd1", "Sent", "re_1", null);

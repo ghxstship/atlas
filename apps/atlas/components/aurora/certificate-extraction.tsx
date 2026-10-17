@@ -13,11 +13,30 @@ const MEDIA = ["application/pdf", "text/plain", "image/png", "image/jpeg", "imag
 type Media = (typeof MEDIA)[number];
 /** Fields insuranceCertificates.create cannot do without; a NO ANSWER on one blocks confirming. */
 const REQUIRED = ["insurer", "policy_identifier", "coverage_type", "valid_from", "valid_to"];
+const INSURED_OPERATION = "insuranceCertificateInsureds.create";
+const ENDORSEMENTS = ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"];
+
+/** A proposed field's value, or null when it was not read. */
+function read(s: AuroraSuggestion, path: string): string | null {
+  const f = s.proposed_fields.find((x) => x.field_path === path);
+  return f && f.refusal === null && f.proposed_value !== null ? String(f.proposed_value) : null;
+}
+
+/** The endorsement to write: the one read when it is a known kind, otherwise Additional Insured. */
+function endorsementOf(s: AuroraSuggestion): string {
+  const value = read(s, "endorsement_kind");
+  return value !== null && ENDORSEMENTS.includes(value) ? value : "Additional Insured";
+}
 
 type Phase =
   | { readonly kind: "idle" }
   | { readonly kind: "running" }
-  | { readonly kind: "review"; readonly suggestion: AuroraSuggestion; readonly busy: boolean }
+  | {
+      readonly kind: "review";
+      readonly suggestion: AuroraSuggestion;
+      readonly insureds: readonly AuroraSuggestion[];
+      readonly busy: boolean;
+    }
   | {
       readonly kind: "message";
       readonly tone: "info" | "success" | "warning" | "danger";
@@ -104,11 +123,40 @@ export function CertificateExtraction({
       setPhase({ kind: "message", tone: "danger", text: t("failed") });
       return;
     }
-    setPhase({ kind: "review", suggestion: loaded.data, busy: false });
+    const insureds: AuroraSuggestion[] = [];
+    for (const line of result.data.suggestions.filter(
+      (s) => s.operation_id === INSURED_OPERATION,
+    )) {
+      const one = await client.suggestion(line.suggestion_id);
+      if (one.ok) insureds.push(one.data);
+    }
+    setPhase({ kind: "review", suggestion: loaded.data, insureds, busy: false });
   };
 
-  const decide = async (suggestion: AuroraSuggestion, confirm: boolean) => {
-    setPhase({ kind: "review", suggestion, busy: true });
+  /** Confirms each named party against the saved certificate; unreadable names are discarded. */
+  const settleInsureds = async (
+    insureds: readonly AuroraSuggestion[],
+    certificateId: string | null,
+  ): Promise<string | null> => {
+    for (const line of insureds) {
+      const result =
+        certificateId !== null && read(line, "insured_name") !== null
+          ? await client.confirm(line.id, t("confirmReason"), {
+              certificate_id: certificateId,
+              endorsement_kind: endorsementOf(line),
+            })
+          : await client.reject(line.id, t("discardReason"));
+      if (!result.ok) return result.problem.detail;
+    }
+    return null;
+  };
+
+  const decide = async (
+    suggestion: AuroraSuggestion,
+    insureds: readonly AuroraSuggestion[],
+    confirm: boolean,
+  ) => {
+    setPhase({ kind: "review", suggestion, insureds, busy: true });
     const result = confirm
       ? await client.confirm(suggestion.id, t("confirmReason"), { vendor_id: vendor })
       : await client.reject(suggestion.id, t("discardReason"));
@@ -118,6 +166,12 @@ export function CertificateExtraction({
         tone: "danger",
         text: t("saveFailed", { detail: result.problem.detail }),
       });
+      return;
+    }
+    const lines = await settleInsureds(insureds, confirm ? result.data.applied_id : null);
+    if (lines !== null) {
+      setPhase({ kind: "message", tone: "danger", text: t("insuredsFailed", { detail: lines }) });
+      if (confirm) router.refresh();
       return;
     }
     setPhase({
@@ -140,10 +194,11 @@ export function CertificateExtraction({
       {phase.kind === "review" ? (
         <Review
           suggestion={phase.suggestion}
+          insureds={phase.insureds}
           busy={phase.busy}
           t={t}
-          onConfirm={() => void decide(phase.suggestion, true)}
-          onDiscard={() => void decide(phase.suggestion, false)}
+          onConfirm={() => void decide(phase.suggestion, phase.insureds, true)}
+          onDiscard={() => void decide(phase.suggestion, phase.insureds, false)}
         />
       ) : (
         <div className="flex flex-col gap-8">
@@ -190,12 +245,14 @@ export function CertificateExtraction({
 
 function Review({
   suggestion,
+  insureds,
   busy,
   t,
   onConfirm,
   onDiscard,
 }: {
   suggestion: AuroraSuggestion;
+  insureds: readonly AuroraSuggestion[];
   busy: boolean;
   t: Translate;
   onConfirm: () => void;
@@ -243,6 +300,7 @@ function Review({
           ))}
         </tbody>
       </table>
+      <InsuredList insureds={insureds} t={t} />
       {blocked ? <InlineAlert tone="warning">{t("missingRequired")}</InlineAlert> : null}
       <div className="flex flex-wrap gap-8">
         <Button variant="primary" loading={busy} disabled={blocked || busy} onClick={onConfirm}>
@@ -253,5 +311,32 @@ function Review({
         </Button>
       </div>
     </div>
+  );
+}
+
+/** The parties the certificate names, as read, each saved with the certificate on confirm. */
+function InsuredList({ insureds, t }: { insureds: readonly AuroraSuggestion[]; t: Translate }) {
+  return (
+    <section aria-labelledby="extraction-insureds-title" className="flex flex-col gap-4">
+      <h4 id="extraction-insureds-title" className="m-0 text-text-13 font-semibold">
+        {t("insuredsTitle")}
+      </h4>
+      {insureds.length === 0 ? (
+        <p className="m-0 text-text-12 text-text-secondary">{t("insuredsNone")}</p>
+      ) : (
+        <ul className="m-0 flex list-none flex-col gap-2 p-0 text-text-13">
+          {insureds.map((line) => {
+            const name = read(line, "insured_name");
+            return (
+              <li key={line.id}>
+                {name === null
+                  ? t("insuredNotRead")
+                  : t("insuredLine", { name, endorsement: endorsementOf(line) })}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

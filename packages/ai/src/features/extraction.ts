@@ -66,6 +66,23 @@ export const EXTRACTION_TARGETS: Readonly<Record<DocumentKind, ExtractionTarget>
       { path: "valid_from", kind: "date", description: "Policy effective date, YYYY-MM-DD." },
       { path: "valid_to", kind: "date", description: "Policy expiry date, YYYY-MM-DD." },
     ],
+    // Each party the certificate names (finding A38-001); confirmed with the certificate's id.
+    lines: {
+      operationId: "insuranceCertificateInsureds.create",
+      fields: [
+        {
+          path: "insured_name",
+          kind: "text",
+          description: "A party named as additional insured or certificate holder, as printed.",
+        },
+        {
+          path: "endorsement_kind",
+          kind: "text",
+          description:
+            "Exactly one of Additional Insured, Primary and Noncontributory, Waiver of Subrogation.",
+        },
+      ],
+    },
   },
   invoice: {
     operationId: "invoices.create",

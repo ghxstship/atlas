@@ -34395,6 +34395,210 @@ export interface GuestDecisionRequest {
 }
 
 /**
+ * One page of results with a cursor to the next page.
+ */
+export interface InsuranceCertificateInsuredPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<InsuranceCertificateInsured>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409).
+ */
+export interface InsuranceCertificateInsured {
+  /**
+   * Identifier of the insurance certificate insured.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the certificate naming the party.
+   * Format: `uuid`.
+   */
+  readonly certificate_id: string;
+  /**
+   * Party named, as printed.
+   * Length: 1 to 200.
+   */
+  readonly insured_name: string;
+  /**
+   * Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+   */
+  readonly endorsement_kind:
+    "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * Fields accepted when creating a InsuranceCertificateInsured.
+ */
+export interface InsuranceCertificateInsuredCreate {
+  /**
+   * Identifier of the certificate naming the party.
+   * Format: `uuid`.
+   */
+  readonly certificate_id: string;
+  /**
+   * Party named, as printed.
+   * Length: 1 to 200.
+   */
+  readonly insured_name: string;
+  /**
+   * Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+   */
+  readonly endorsement_kind:
+    "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * Fields accepted when updating a InsuranceCertificateInsured. Omitted fields are unchanged.
+ */
+export interface InsuranceCertificateInsuredUpdate {
+  /**
+   * Party named, as printed.
+   * Length: 1 to 200.
+   */
+  readonly insured_name?: string;
+  /**
+   * Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+   */
+  readonly endorsement_kind?:
+    "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface RequiredAdditionalInsuredPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<RequiredAdditionalInsured>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them.
+ */
+export interface RequiredAdditionalInsured {
+  /**
+   * Identifier of the required additional insured.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the requirement adds to; null for every project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string | null;
+  /**
+   * Party that must be named.
+   * Length: 1 to 200.
+   */
+  readonly insured_name: string;
+  /**
+   * Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+   */
+  readonly endorsement_kind:
+    "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * Fields accepted when creating a RequiredAdditionalInsured.
+ */
+export interface RequiredAdditionalInsuredCreate {
+  /**
+   * Identifier of the project the requirement adds to; null for every project.
+   * Format: `uuid`.
+   */
+  readonly project_id?: string | null;
+  /**
+   * Party that must be named.
+   * Length: 1 to 200.
+   */
+  readonly insured_name: string;
+  /**
+   * Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+   */
+  readonly endorsement_kind:
+    "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * Fields accepted when updating a RequiredAdditionalInsured. Omitted fields are unchanged.
+ */
+export interface RequiredAdditionalInsuredUpdate {
+  /**
+   * Party that must be named.
+   * Length: 1 to 200.
+   */
+  readonly insured_name?: string;
+  /**
+   * Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
+   */
+  readonly endorsement_kind?:
+    "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
  * What Aurora can do for the caller now: the features an Admin turned on that the plan includes, and this month's use of the allowance.
  */
 export interface AuroraStatus {

@@ -431,6 +431,9 @@ import type {
   InspectionUpdate,
   InsuranceCertificate,
   InsuranceCertificateCreate,
+  InsuranceCertificateInsured,
+  InsuranceCertificateInsuredCreate,
+  InsuranceCertificateInsuredUpdate,
   InsuranceCertificateUpdate,
   Integration,
   IntegrationCreate,
@@ -710,6 +713,9 @@ import type {
   Representation,
   RepresentationCreate,
   RepresentationUpdate,
+  RequiredAdditionalInsured,
+  RequiredAdditionalInsuredCreate,
+  RequiredAdditionalInsuredUpdate,
   Requirement,
   RequirementCreate,
   RequirementUpdate,
@@ -33587,6 +33593,250 @@ export class GuestListEntriesResource extends $Resource {
   checkIn(id: string, options?: $MutationOptions): Promise<$ApiResponse<GuestListEntry>> {
     return this.client.request<GuestListEntry>(
       $OPERATIONS["guestListEntries.checkIn"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `insuranceCertificateInsureds`, in the Vendors module.
+ *
+ * Vendors, classes, prequalification, insurance, scorecards and sponsor entitlements (Section 4.2).
+ */
+export class InsuranceCertificateInsuredsResource extends $Resource {
+  /**
+   * List insurance certificate insured rows
+   *
+   * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns a cursor page of insurance certificate insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /insurance-certificate-insureds` (operation `insuranceCertificateInsureds.list`).
+   * Requires the capability `vendors.vendor.read`.
+   */
+  list(
+    params?: $ListParams<InsuranceCertificateInsured>,
+    options?: $RequestOptions,
+  ): Promise<$Page<InsuranceCertificateInsured>> {
+    return this.client.requestPage<InsuranceCertificateInsured>(
+      $OPERATIONS["insuranceCertificateInsureds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List insurance certificate insured rows
+   *
+   * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns a cursor page of insurance certificate insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /insurance-certificate-insureds` (operation `insuranceCertificateInsureds.list`).
+   * Requires the capability `vendors.vendor.read`.
+   */
+  listAll(
+    params?: $ListAllParams<InsuranceCertificateInsured>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<InsuranceCertificateInsured, void, undefined> {
+    return this.client.paginate<InsuranceCertificateInsured>(
+      $OPERATIONS["insuranceCertificateInsureds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an insurance certificate insured
+   *
+   * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Creates an insurance certificate insured. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /insurance-certificate-insureds` (operation `insuranceCertificateInsureds.create`).
+   * Requires the capability `vendors.coi.write`.
+   */
+  create(
+    body: InsuranceCertificateInsuredCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InsuranceCertificateInsured>> {
+    return this.client.request<InsuranceCertificateInsured>(
+      $OPERATIONS["insuranceCertificateInsureds.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an insurance certificate insured
+   *
+   * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns one insurance certificate insured with its `ETag`. A insurance certificate insured the caller may not see returns 404.
+   *
+   * `GET /insurance-certificate-insureds/{id}` (operation `insuranceCertificateInsureds.get`).
+   * Requires the capability `vendors.vendor.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<InsuranceCertificateInsured>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<InsuranceCertificateInsured>> {
+    return this.client.request<InsuranceCertificateInsured>(
+      $OPERATIONS["insuranceCertificateInsureds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an insurance certificate insured
+   *
+   * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /insurance-certificate-insureds/{id}` (operation `insuranceCertificateInsureds.update`).
+   * Requires the capability `vendors.coi.write`.
+   */
+  update(
+    id: string,
+    body: InsuranceCertificateInsuredUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<InsuranceCertificateInsured>> {
+    return this.client.request<InsuranceCertificateInsured>(
+      $OPERATIONS["insuranceCertificateInsureds.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an insurance certificate insured
+   *
+   * A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Soft-deletes the insurance certificate insured: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /insurance-certificate-insureds/{id}` (operation `insuranceCertificateInsureds.delete`).
+   * Requires the capability `vendors.coi.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["insuranceCertificateInsureds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `requiredAdditionalInsureds`, in the Vendors module.
+ *
+ * Vendors, classes, prequalification, insurance, scorecards and sponsor entitlements (Section 4.2).
+ */
+export class RequiredAdditionalInsuredsResource extends $Resource {
+  /**
+   * List required additional insured rows
+   *
+   * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns a cursor page of required additional insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /required-additional-insureds` (operation `requiredAdditionalInsureds.list`).
+   * Requires the capability `vendors.vendor.read`.
+   */
+  list(
+    params?: $ListParams<RequiredAdditionalInsured>,
+    options?: $RequestOptions,
+  ): Promise<$Page<RequiredAdditionalInsured>> {
+    return this.client.requestPage<RequiredAdditionalInsured>(
+      $OPERATIONS["requiredAdditionalInsureds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List required additional insured rows
+   *
+   * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns a cursor page of required additional insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /required-additional-insureds` (operation `requiredAdditionalInsureds.list`).
+   * Requires the capability `vendors.vendor.read`.
+   */
+  listAll(
+    params?: $ListAllParams<RequiredAdditionalInsured>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<RequiredAdditionalInsured, void, undefined> {
+    return this.client.paginate<RequiredAdditionalInsured>(
+      $OPERATIONS["requiredAdditionalInsureds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a required additional insured
+   *
+   * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Creates a required additional insured. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /required-additional-insureds` (operation `requiredAdditionalInsureds.create`).
+   * Requires the capability `vendors.coi.write`.
+   */
+  create(
+    body: RequiredAdditionalInsuredCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<RequiredAdditionalInsured>> {
+    return this.client.request<RequiredAdditionalInsured>(
+      $OPERATIONS["requiredAdditionalInsureds.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a required additional insured
+   *
+   * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns one required additional insured with its `ETag`. A required additional insured the caller may not see returns 404.
+   *
+   * `GET /required-additional-insureds/{id}` (operation `requiredAdditionalInsureds.get`).
+   * Requires the capability `vendors.vendor.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<RequiredAdditionalInsured>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<RequiredAdditionalInsured>> {
+    return this.client.request<RequiredAdditionalInsured>(
+      $OPERATIONS["requiredAdditionalInsureds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a required additional insured
+   *
+   * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /required-additional-insureds/{id}` (operation `requiredAdditionalInsureds.update`).
+   * Requires the capability `vendors.coi.write`.
+   */
+  update(
+    id: string,
+    body: RequiredAdditionalInsuredUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<RequiredAdditionalInsured>> {
+    return this.client.request<RequiredAdditionalInsured>(
+      $OPERATIONS["requiredAdditionalInsureds.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a required additional insured
+   *
+   * A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Soft-deletes the required additional insured: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /required-additional-insureds/{id}` (operation `requiredAdditionalInsureds.delete`).
+   * Requires the capability `vendors.coi.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["requiredAdditionalInsureds.delete"],
       { path: { id } },
       options,
     );

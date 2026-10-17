@@ -178,8 +178,11 @@
       "XOS_ENG_5": "La regla de horas extra está por debajo del mínimo legal aquí. Elige una tarifa que lo cumpla.",
       "XOS_ENG_6": "El tipo de tu organización no permite esa clasificación laboral.",
       "plan_limit_exceeded": "Se alcanzó el límite mensual de contrataciones externas de tu plan. Mejora el plan o espera al mes siguiente.",
-      "transition_reason_required": "Indica un motivo para el cambio."
-    }
+      "transition_reason_required": "Indica un motivo para el cambio.",
+      "insureds_none_required": "La organización no exige asegurados adicionales para este proyecto. Agréguelos en Proveedores, Certificados de seguro, Asegurados exigidos.",
+      "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización."
+    },
+    "insuredsMissing": "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado."
   },
   "requisitions": {
     "title": "Requisiciones",
@@ -272,7 +275,36 @@
     "unpaid": "No remunerado",
     "createEngagement": "Crear contratación",
     "engaged": "Contratación creada. Su paquete de incorporación está listo.",
-    "engageNeedsWrite": "Una persona con permiso de escritura de contrataciones crea la contratación."
+    "engageNeedsWrite": "Una persona con permiso de escritura de contrataciones crea la contratación.",
+    "shared": {
+      "title": "Compartido con usted",
+      "none": "La persona solicitante no compartió campos de su perfil con su organización.",
+      "loadFailed": "No se pudo cargar lo que compartió la persona solicitante. Vuelva a cargar la página.",
+      "sharedOn": "Compartido al postularse, {date}. Esta es la copia que la persona solicitante consintió.",
+      "revoked": "Compartido el {date} y luego revocado. Su organización conserva esta copia solo según lo exige la ley.",
+      "empty": "Compartido vacío",
+      "rate": "{amount} por {unit}",
+      "units": {
+        "Hour": "hora",
+        "Day": "día",
+        "Week": "semana",
+        "Project": "proyecto"
+      },
+      "fields": {
+        "fullName": "Nombre",
+        "email": "Correo electrónico",
+        "companyName": "Empresa",
+        "headline": "Titular",
+        "bio": "Acerca de",
+        "pronouns": "Pronombres",
+        "location": "Ubicación",
+        "skills": "Habilidades",
+        "certifications": "Certificaciones",
+        "rates": "Tarifa",
+        "languages": "Idiomas",
+        "links": "Enlaces"
+      }
+    }
   },
   "pools": {
     "title": "Grupos",
@@ -620,5 +652,18 @@
     "misleadingInformation": "Información engañosa",
     "missingPayRange": "Falta el rango de pago",
     "safety": "Seguridad"
+  },
+  "insureds": {
+    "title": "Asegurados adicionales",
+    "loadFailed": "No se pudieron verificar los asegurados adicionales. Vuelva a cargar la página.",
+    "named": "Nombrado en un certificado vigente",
+    "missing": "Falta",
+    "verify": "Verificar asegurados adicionales de {item}",
+    "verified": "Todos los asegurados exigidos están nombrados. El elemento se aprueba.",
+    "endorsements": {
+      "AdditionalInsured": "Asegurado adicional",
+      "PrimaryandNoncontributory": "Primario y no contributivo",
+      "WaiverofSubrogation": "Renuncia de subrogación"
+    }
   }
 }

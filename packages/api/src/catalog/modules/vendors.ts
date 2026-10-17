@@ -8,6 +8,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
+import { insuredCapabilities, insuredResources } from "./parts/insureds.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -17,6 +18,8 @@ const label = (values: readonly [string, ...string[]], description: string) =>
 const score = (what: string) => orNull(fields.int(`${what}, 1 to 5; null when not scored.`, 4, 1));
 
 export const additions = defineAdditions("Vendors", {
+  resources: [...insuredResources],
+  capabilities: { ...insuredCapabilities },
   corrections: [
     {
       id: "vendor-counterparty-facet",

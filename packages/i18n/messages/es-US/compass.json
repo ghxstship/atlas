@@ -246,6 +246,9 @@
       "lockScreenFailed": "La Actividad en Vivo de la pantalla bloqueada no se inició: {reason}. Esta tarjeta sigue llevando tu reloj.",
       "drainFailed": "Las marcas de la pantalla bloqueada no llegaron a la cola de envío: {reason}. Abre Compass otra vez para reintentar.",
       "drainDropped": "Marcas de la pantalla bloqueada sin turno asociado: {count}. No se registraron; marca aquí."
+    },
+    "shortcut": {
+      "clockedIn": "Entrada registrada en {project}. Descanso y Salida están en su pantalla de bloqueo."
     }
   },
   "schedule": {

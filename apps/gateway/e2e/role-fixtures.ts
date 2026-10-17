@@ -181,16 +181,36 @@ export async function sentPurchaseOrder(): Promise<{ id: string; number: number 
 }
 
 /** A current certificate of insurance on file for the demo vendor; the policy number is unique. */
-export async function vendorCertificate(): Promise<{ policy: string }> {
+export async function vendorCertificate(): Promise<{ id: string; policy: string }> {
   const policy = `GL-${suffix()}-2027`;
-  await sql(
+  const [row] = await sql<{ id: string }>(
     `insert into app.insurance_certificates (vendor_id, insurer, policy_identifier, coverage_type, coverage_limit_minor,
        currency_code, valid_from, valid_to)
-     values ($1, 'Atlantic Mutual', $2, 'General Liability', 200000000, 'USD', current_date - 30, current_date + 335)`,
+     values ($1, 'Atlantic Mutual', $2, 'General Liability', 200000000, 'USD', current_date - 30, current_date + 335)
+     returning id`,
     [await demoVendorId(), policy],
     PEOPLE.owner,
   );
-  return { policy };
+  return { id: row?.id as string, policy };
+}
+
+/**
+ * A party the demo org requires every vendor certificate to name (migration 1130, journey 43);
+ * retire() soft-deletes it so other journeys see no requirement.
+ */
+export async function requiredInsured(name: string): Promise<{ retire: () => Promise<void> }> {
+  const [row] = await sql<{ id: string }>(
+    `insert into app.required_additional_insureds (org_id, insured_name) values ($1, $2) returning id`,
+    [DEMO.org, name],
+    PEOPLE.owner,
+  );
+  return {
+    retire: async () => {
+      await sql(`update app.required_additional_insureds set deleted_at = now() where id = $1`, [
+        row?.id,
+      ]);
+    },
+  };
 }
 
 /**

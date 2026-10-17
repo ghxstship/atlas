@@ -703,16 +703,76 @@ var GuardedTransport = class {
     return this.#inner.send(message);
   }
 };
+/** Hosts a Mailpit inbox may run on: this machine, or the local Supabase stack's inbucket container. */
+var LOCAL_INBOX_HOST =
+  /^(localhost|127\.0\.0\.1|\[::1\]|host\.docker\.internal|supabase_inbucket_[a-z0-9_-]+|[a-z0-9-]+\.localhost)$/i;
+/** Splits "Name <address>" into Mailpit's address shape. */
+function mailpitAddress(value) {
+  const match = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(value);
+  if (!match) return { Email: value.trim() };
+  const name = (match[1] ?? "").replace(/^"|"$/g, "");
+  return name === ""
+    ? { Email: match[2] }
+    : {
+        Email: match[2],
+        Name: name,
+      };
+}
+/**
+ * Delivers into a local Mailpit inbox (the Supabase stack's inbucket) through its send API, for
+ * development and end-to-end tests. It refuses any host that is not local, so it can never reach
+ * a real recipient (Section 19.8).
+ */
+var MailpitTransport = class {
+  name = "mailpit";
+  #endpoint;
+  #fetch;
+  constructor(baseUrl, fetchImpl = fetch) {
+    const url = new URL(baseUrl);
+    if (!LOCAL_INBOX_HOST.test(url.hostname))
+      throw new Error(`The Mailpit transport delivers only to a local inbox, not ${url.hostname}.`);
+    this.#endpoint = new URL("/api/v1/send", url).toString();
+    this.#fetch = fetchImpl;
+  }
+  async send(message) {
+    const response = await this.#fetch(this.#endpoint, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        From: mailpitAddress(message.from),
+        To: [{ Email: message.to }],
+        ...(message.replyTo === void 0 ? {} : { ReplyTo: [mailpitAddress(message.replyTo)] }),
+        Subject: message.subject,
+        HTML: message.html,
+        Text: message.text,
+        ...(message.headers === void 0 ? {} : { Headers: { ...message.headers } }),
+        ...(message.tags === void 0 ? {} : { Tags: message.tags.map((t) => t.value) }),
+      }),
+    });
+    if (!response.ok)
+      throw new EmailSendError(
+        `Mailpit refused the message with status ${response.status}.`,
+        `mailpit_${response.status}`,
+      );
+    const body = await response.json();
+    if (typeof body.ID !== "string")
+      throw new EmailSendError("Mailpit returned no message id.", "mailpit_no_id");
+    return { providerMessageId: `mailpit-${body.ID}` };
+  }
+};
 //#endregion
 //#region ../email/src/env.ts
 /**
  * Email environment, validated once at start-up. Without XOS_EMAIL_TRANSPORT=resend nothing is sent:
  * messages are recorded. With Resend, recipients are limited to XOS_EMAIL_ALLOWLIST unless
  * XOS_EMAIL_DELIVER_TO_ANY=true, which only the production deployment sets (Section 19.8).
+ * XOS_EMAIL_TRANSPORT=mailpit delivers into the local stack's inbox at XOS_EMAIL_MAILPIT_URL, for
+ * development and end-to-end tests; it refuses any host that is not local.
  */
 var emailEnvSchema = z
   .object({
-    XOS_EMAIL_TRANSPORT: z.enum(["record", "resend"]).default("record"),
+    XOS_EMAIL_TRANSPORT: z.enum(["record", "resend", "mailpit"]).default("record"),
+    XOS_EMAIL_MAILPIT_URL: z.url({ protocol: /^https?$/ }).optional(),
     RESEND_API_KEY: z
       .string()
       .regex(/^re_[A-Za-z0-9_]{8,}$/, "RESEND_API_KEY must be a Resend API key")
@@ -739,6 +799,12 @@ var emailEnvSchema = z
         path: ["RESEND_API_KEY"],
         message: "RESEND_API_KEY is required for the resend transport",
       });
+    if (env.XOS_EMAIL_TRANSPORT === "mailpit" && env.XOS_EMAIL_MAILPIT_URL === void 0)
+      ctx.addIssue({
+        code: "custom",
+        path: ["XOS_EMAIL_MAILPIT_URL"],
+        message: "XOS_EMAIL_MAILPIT_URL is required for the mailpit transport",
+      });
   });
 /** Parses the email environment, throwing a readable error that names each bad variable. */
 function readEmailEnv(source) {
@@ -756,7 +822,9 @@ function readEmailEnv(source) {
  * transport, and is always wrapped by the recipient guard.
  */
 function createTransport(env, makeClient = (apiKey) => new Resend(apiKey)) {
-  if (env.XOS_EMAIL_TRANSPORT === "record" || env.RESEND_API_KEY === void 0)
+  if (env.XOS_EMAIL_TRANSPORT === "mailpit" && env.XOS_EMAIL_MAILPIT_URL !== void 0)
+    return new MailpitTransport(env.XOS_EMAIL_MAILPIT_URL);
+  if (env.XOS_EMAIL_TRANSPORT !== "resend" || env.RESEND_API_KEY === void 0)
     return new RecordingTransport();
   return new GuardedTransport(new ResendTransport(makeClient(env.RESEND_API_KEY)), {
     allowed: env.XOS_EMAIL_ALLOWLIST,
@@ -1944,6 +2012,13 @@ var auroraCertificates_default$1 = {
     valid_from: "Valid from",
     valid_to: "Valid to",
   },
+  insuredsTitle: "Additional insureds read",
+  insuredsNone:
+    "Aurora read no additional insureds. If the certificate names any, add them on it after saving.",
+  insuredNotRead: "A named party Aurora could not read. It is not saved.",
+  insuredLine: "{name}, {endorsement}",
+  insuredsFailed:
+    "The certificate was saved, but its additional insureds were not: {detail}. Add them on the certificate.",
 };
 var canonBrowser_default$1 = {
   what: "the canon",
@@ -2381,6 +2456,9 @@ var compass_default$1 = {
         "Punches from the lock screen did not reach the upload queue: {reason}. Open Compass again to retry.",
       drainDropped:
         "Punches from the lock screen that had no shift attached: {count}. They were not recorded; punch here instead.",
+    },
+    shortcut: {
+      clockedIn: "Clocked in at {project}. Break and Clock Out are on your lock screen.",
     },
   },
   schedule: {
@@ -3810,6 +3888,18 @@ var email_default$1 = {
         subject: "Invoice approved: {title}",
         body: "{actorName} approved invoice {title}.",
       },
+      submitted: {
+        subject: "Invoice received: {title}",
+        body: "{actorName} received your invoice {title}. Follow it in Gateway under Money, Invoices.",
+      },
+      scheduled: {
+        subject: "Payment scheduled: {title}",
+        body: "{actorName} scheduled a payment for your invoice {title}.",
+      },
+      paid: {
+        subject: "Invoice paid: {title}",
+        body: "{actorName} paid your invoice {title} in full.",
+      },
     },
     incident: {
       reported: {
@@ -4821,7 +4911,7 @@ var gateway_default$1 = {
     clearFilter: "Show every organization",
   },
   engagement: /* @__PURE__ */ JSON.parse(
-    '{"tabs":"Engagement sections","representing":"Acting for {artist}","messagesAction":"Message the organization","onboardingAction":"See onboarding","trainingAction":"See training","shiftsAction":"See shifts","invoicesAction":"See invoices","documentsAction":"See documents","poAction":"See purchase orders","changeOrdersAction":"See change orders","scheduleAction":"See schedule","scopeAction":"See scope","advanceAction":"Open the advance","operationalClosed":"This opens once the engagement is Active. Finish onboarding to get there.","due":"Due {date}","overview":{"next":"Your next steps","stages":"Where this engagement is","stage":{"offer":"Offer","onboarding":"Onboarding","engaged":"Engaged","closeOut":"Close-out"},"blocked":"This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.","rate":"Your rate","rateHidden":"Shown while money is open on this engagement","payBasis":"Pay basis","rated":"Thanks. Both ratings appear once the organization rates too, or after 14 days."},"documents":{"empty":"No documents yet. Contracts and forms the organization shares appear here.","emptyKind":"Nothing of this kind has been shared yet. Ask the organization if you expected it.","expires":"Expires {date}"},"onboarding":{"empty":"No onboarding steps. The organization adds any it needs before you start.","progress":"{n} of {total} verified","blocking":"Required before you start","standing":{"verified":"Verified","review":"In review","todo":"To do","expired":"Expired"},"signHint":"Sign it under Documents; the step completes when the organization countersigns.","backgroundHint":"The organization\'s screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.","payoutHint":"Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown."},"messages":{"empty":"No conversations yet. Start one below; the organization answers here.","org":"The organization","new":"Start a conversation"},"invoices":{"closed":"Invoices open once money is open on this engagement, at Active.","empty":"No invoices yet. Submit one below when your work is done.","submitTitle":"Submit an invoice","selfBilling":"Self-billing","selfBillingBody":"With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.","selfBillingOn":"Self-billing on","selfBillingAgree":"Agree to self-billing","selfBillingStop":"Stop self-billing"},"shifts":{"empty":"No shifts yet. Published shifts appear here for you to accept.","accept":"Accept shift"},"positions":{"empty":"No positions assigned yet. They follow once training is done."},"timesheets":{"empty":"No timesheets yet. Your clocked shifts collect into timesheets here.","hours":"{n} hours","submitted":"Submitted {date}","submit":"Submit","entries":"Time entries"},"time":{"empty":"No time recorded yet. Clock in from Compass when you start.","out":"Out {time}","open":"Still clocked in","break":"{n} min break"},"travel":{"empty":"No travel or lodging arranged yet. Message the organization if you need it.","lodging":"Lodging","travel":"Travel","itinerary":"Itinerary","route":"{from} to {to}","departs":"Departs {time}","arrives":"Arrives {time}","confirmation":"Confirmation {code}"},"perDiem":{"empty":"No per diem or allowances listed yet. They appear here once the organization sets them.","quantity":"{n} per day","allowances":"Allowances","amenities":"Amenities","total":"Total: {amount}"},"credentials":{"empty":"No credentials issued yet. They are issued once onboarding passes.","valid":"Valid","revoked":"Revoked"},"training":{"empty":"No training to complete. Briefings and acknowledgments show here when assigned.","sessions":"Training sessions"},"bid":{"empty":"You have no bid with this organization. Purchase orders arrive once a bid wins.","summary":"Sealed bid sent {date}, total {total}","quantity":"Quantity {n}"},"po":{"empty":"No purchase orders yet. They arrive here when the organization sends one.","number":"PO {n}","sent":"Sent {date}","acknowledged":"Acknowledged {date}","acknowledge":"Acknowledge","line":"{n}. {description}"},"deliveries":{"empty":"No deliveries or dock slots yet. Your dock times appear here once booked.","docks":"Dock slots","shipments":"Shipments"},"submittals":{"empty":"No submittals requested yet. Requests for drawings and specs appear here."},"advance":{"empty":"No advance packet yet. When the organization sends one, answer each section here.","awaitingReview":"Awaiting review"},"compliance":{"empty":"No compliance items yet. Insurance and prequalification appear here.","insurance":"Insurance certificates","noInsurance":"No insurance certificate on file. Upload one under Onboarding.","current":"Current","expired":"Expired","prequalification":"Prequalification","validTo":"Valid to {date}","items":"Compliance steps"},"approvals":{"empty":"Nothing waits for your approval. Requests from the organization appear here.","requested":"Requested {date}","waiting":"Waiting for you"},"changeOrders":{"empty":"No change orders yet. Changes to scope or cost appear here for review.","noCost":"No cost"},"schedule":{"empty":"Nothing on the shared schedule yet. Dates appear once the organization shares them."},"reports":{"empty":"No reports shared yet. Reports the organization shares appear here.","shared":"Shared reports","ranAt":"Run {time}","rows":"{n} rows","unpriced":"{n} rows still unpriced","expires":"Shared until {date}","noRecords":"No report records shared yet. Ask the organization if you expect one."},"activation":{"empty":"No activation dates shared yet. They appear once the organization schedules them."},"runOfShow":{"empty":"No run of show shared yet. It appears here once the organization shares it.","called":"Called {time}","mySet":"Your set"},"scope":{"statement":"Statement of work","noStatement":"No statement of work shared yet. Ask the organization for it in Messages.","milestones":"Milestones","noMilestones":"No milestones shared yet."},"deliverables":{"empty":"No deliverables yet. They come from your scope once the organization adds them.","submitted":"Submitted {date}"},"entitlements":{"empty":"No entitlements listed yet. Your package\'s entitlements appear here.","quantity":"Quantity {n}","fulfilled":"Fulfilled {date}","done":"Fulfilled","overdue":"Overdue","open":"Open"},"rider":{"empty":"No rider yet. Send your rider through the advance.","quantity":"Quantity {n}","fulfilled":"Confirmed","pending":"Pending"},"setTimes":{"empty":"No set times yet. They appear once the run of show is shared.","daySheets":"Day sheets"},"hospitality":{"empty":"No hospitality arranged yet. Ask for what you need in the advance."},"guestList":{"empty":"No guests on your list yet. Add a guest below, and the production confirms each one before the show.","request":"Add a guest","listLabel":"Guest list, {n} people in total","plusOnes":"Plus {n}","checkedIn":"Checked in {time}"},"roster":{"empty":"You do not represent any artists yet. Propose a representation from Company settings.","action":"Representation settings","noEngagements":"No engagements for this artist yet."},"forms":{"errors":{"answer":"Write an answer before sending.","decision":"Choose approve or reject.","reason":"Say why you reject it, so the organization can fix it.","deliverable":"Choose the document and write a short message.","header":"Fill in the invoice number and both dates.","dates":"The due date must be on or after the issue date.","lines":"Each line needs an item, a quantity above zero and a unit price.","file":"Choose a file to upload.","fileType":"Upload a PDF, JPEG, PNG, HEIC or WebP file.","fileSize":"The file is larger than 25 MB. Upload a smaller scan or photo.","tin":"Enter the tax identifier with 4 to 30 letters and digits.","subject":"Give the conversation a subject.","guestName":"Write the guest\'s name before adding them.","plusOnes":"Plus-ones run from 0 to 20.","settlementReason":"Write a short note or reason before answering."},"advance":{"answer":"Your answer","submit":"Send answer","done":"Answer sent. The organization reviews it next."},"approval":{"decision":"Decision","approve":"Approve","reject":"Reject","reason":"Why you reject it","note":"Note to the organization","done":"Decision sent."},"deliverable":{"document":"Document","message":"Message","submit":"Submit deliverable","done":"Submitted. The organization accepts or returns it.","noDocuments":"Share the file in Messages first; it then becomes a document you can submit here."},"invoice":{"title":"Invoice","number":"Invoice number","issuedOn":"Issue date","dueOn":"Due date","currency":"Amounts in {currency}","description":"Item or service","quantity":"Quantity","unitPrice":"Unit price","addLine":"Add line","removeLine":"Remove line {n}","submit":"Submit invoice","done":"Invoice submitted. Follow it on the payment tracker."},"upload":{"file":"File or photo","help":"PDF or photo up to 25 MB. On a phone you can take the photo now.","submit":"Upload","done":"Uploaded. The organization verifies it next."},"tax":{"title":"Tax form","kind":"Form","tin":"Taxpayer identification number","tinHelp":"Stored encrypted. Only the last four characters are ever shown.","withholding":"I am a foreign performer subject to withholding","submit":"Submit tax form","done":"Tax form submitted."},"thread":{"title":"New conversation","subject":"Subject","submit":"Start conversation","done":"Conversation started."},"message":{"label":"Reply","body":"Message","send":"Send"},"rating":{"title":"Rate {org}","score":"Score","stars":"{n, plural, one {# star} other {# stars}}","comment":"Public comment","release":"Both ratings appear together once both sides rate, or after 14 days.","submit":"Send rating","done":"Rating sent. It appears when the organization rates too, or after 14 days."},"reply":{"label":"Public reply","submit":"Reply","done":"Reply posted."},"guest":{"title":"Add a guest","name":"Guest name","plusOnes":"Plus-ones","note":"Note for the production (optional)","submit":"Add guest","done":"Guest added. The production confirms them before the show."},"settlement":{"decision":"Your answer","accept":"Accept settlement","dispute":"Dispute settlement","note":"Note","reason":"What should change","done":"Answer sent. The organization sees it now."}},"settlement":{"submitted":"Sent to you {date}","lines":"Lines of {title}","unpriced":"Amount to be confirmed","less":"Less {amount}","net":"Net to you: {amount}","netUnpriced":"The net shows once every line has an amount.","none":"No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."}}',
+    '{"tabs":"Engagement sections","representing":"Acting for {artist}","messagesAction":"Message the organization","onboardingAction":"See onboarding","trainingAction":"See training","shiftsAction":"See shifts","invoicesAction":"See invoices","documentsAction":"See documents","poAction":"See purchase orders","changeOrdersAction":"See change orders","scheduleAction":"See schedule","scopeAction":"See scope","advanceAction":"Open the advance","operationalClosed":"This opens once the engagement is Active. Finish onboarding to get there.","due":"Due {date}","overview":{"next":"Your next steps","stages":"Where this engagement is","stage":{"offer":"Offer","onboarding":"Onboarding","engaged":"Engaged","closeOut":"Close-out"},"blocked":"This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.","rate":"Your rate","rateHidden":"Shown while money is open on this engagement","payBasis":"Pay basis","rated":"Thanks. Both ratings appear once the organization rates too, or after 14 days."},"documents":{"empty":"No documents yet. Contracts and forms the organization shares appear here.","emptyKind":"Nothing of this kind has been shared yet. Ask the organization if you expected it.","expires":"Expires {date}"},"onboarding":{"empty":"No onboarding steps. The organization adds any it needs before you start.","progress":"{n} of {total} verified","blocking":"Required before you start","standing":{"verified":"Verified","review":"In review","todo":"To do","expired":"Expired"},"signHint":"Sign it under Documents; the step completes when the organization countersigns.","backgroundHint":"The organization\'s screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.","payoutHint":"Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown."},"messages":{"empty":"No conversations yet. Start one below; the organization answers here.","org":"The organization","new":"Start a conversation"},"invoices":{"closed":"Invoices open once money is open on this engagement, at Active.","empty":"No invoices yet. Submit one below when your work is done.","submitTitle":"Submit an invoice","selfBilling":"Self-billing","selfBillingBody":"With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.","selfBillingOn":"Self-billing on","selfBillingAgree":"Agree to self-billing","selfBillingStop":"Stop self-billing"},"shifts":{"empty":"No shifts yet. Published shifts appear here for you to accept.","accept":"Accept shift"},"positions":{"empty":"No positions assigned yet. They follow once training is done."},"timesheets":{"empty":"No timesheets yet. Your clocked shifts collect into timesheets here.","hours":"{n} hours","submitted":"Submitted {date}","submit":"Submit","entries":"Time entries"},"time":{"empty":"No time recorded yet. Clock in from Compass when you start.","out":"Out {time}","open":"Still clocked in","break":"{n} min break"},"travel":{"empty":"No travel or lodging arranged yet. Message the organization if you need it.","lodging":"Lodging","travel":"Travel","itinerary":"Itinerary","route":"{from} to {to}","departs":"Departs {time}","arrives":"Arrives {time}","confirmation":"Confirmation {code}"},"perDiem":{"empty":"No per diem or allowances listed yet. They appear here once the organization sets them.","quantity":"{n} per day","allowances":"Allowances","amenities":"Amenities","total":"Total: {amount}"},"credentials":{"empty":"No credentials issued yet. They are issued once onboarding passes.","valid":"Valid","revoked":"Revoked"},"training":{"empty":"No training to complete. Briefings and acknowledgments show here when assigned.","sessions":"Training sessions"},"bid":{"empty":"You have no bid with this organization. Purchase orders arrive once a bid wins.","summary":"Sealed bid sent {date}, total {total}","quantity":"Quantity {n}"},"po":{"empty":"No purchase orders yet. They arrive here when the organization sends one.","number":"PO {n}","sent":"Sent {date}","acknowledged":"Acknowledged {date}","acknowledge":"Acknowledge","line":"{n}. {description}"},"deliveries":{"empty":"No deliveries or dock slots yet. Your dock times appear here once booked.","docks":"Dock slots","shipments":"Shipments"},"submittals":{"empty":"No submittals requested yet. Requests for drawings and specs appear here."},"advance":{"empty":"No advance packet yet. When the organization sends one, answer each section here.","awaitingReview":"Awaiting review"},"compliance":{"empty":"No compliance items yet. Insurance and prequalification appear here.","insurance":"Insurance certificates","noInsurance":"No insurance certificate on file. Upload one under Onboarding.","current":"Current","expired":"Expired","prequalification":"Prequalification","validTo":"Valid to {date}","items":"Compliance steps","insureds":"Additional insureds named","noInsureds":"This certificate names no additional insureds on file. If the organization requires some, send a certificate that names them.","insuredLine":"{name}, {endorsement}"},"approvals":{"empty":"Nothing waits for your approval. Requests from the organization appear here.","requested":"Requested {date}","waiting":"Waiting for you"},"changeOrders":{"empty":"No change orders yet. Changes to scope or cost appear here for review.","noCost":"No cost"},"schedule":{"empty":"Nothing on the shared schedule yet. Dates appear once the organization shares them."},"reports":{"empty":"No reports shared yet. Reports the organization shares appear here.","shared":"Shared reports","ranAt":"Run {time}","rows":"{n} rows","unpriced":"{n} rows still unpriced","expires":"Shared until {date}","noRecords":"No report records shared yet. Ask the organization if you expect one."},"activation":{"empty":"No activation dates shared yet. They appear once the organization schedules them."},"runOfShow":{"empty":"No run of show shared yet. It appears here once the organization shares it.","called":"Called {time}","mySet":"Your set"},"scope":{"statement":"Statement of work","noStatement":"No statement of work shared yet. Ask the organization for it in Messages.","milestones":"Milestones","noMilestones":"No milestones shared yet."},"deliverables":{"empty":"No deliverables yet. They come from your scope once the organization adds them.","submitted":"Submitted {date}"},"entitlements":{"empty":"No entitlements listed yet. Your package\'s entitlements appear here.","quantity":"Quantity {n}","fulfilled":"Fulfilled {date}","done":"Fulfilled","overdue":"Overdue","open":"Open"},"rider":{"empty":"No rider yet. Send your rider through the advance.","quantity":"Quantity {n}","fulfilled":"Confirmed","pending":"Pending"},"setTimes":{"empty":"No set times yet. They appear once the run of show is shared.","daySheets":"Day sheets"},"hospitality":{"empty":"No hospitality arranged yet. Ask for what you need in the advance."},"guestList":{"empty":"No guests on your list yet. Add a guest below, and the production confirms each one before the show.","request":"Add a guest","listLabel":"Guest list, {n} people in total","plusOnes":"Plus {n}","checkedIn":"Checked in {time}"},"roster":{"empty":"You do not represent any artists yet. Propose a representation from Company settings.","action":"Representation settings","noEngagements":"No engagements for this artist yet."},"forms":{"errors":{"answer":"Write an answer before sending.","decision":"Choose approve or reject.","reason":"Say why you reject it, so the organization can fix it.","deliverable":"Choose the document and write a short message.","header":"Fill in the invoice number and both dates.","dates":"The due date must be on or after the issue date.","lines":"Each line needs an item, a quantity above zero and a unit price.","file":"Choose a file to upload.","fileType":"Upload a PDF, JPEG, PNG, HEIC or WebP file.","fileSize":"The file is larger than 25 MB. Upload a smaller scan or photo.","tin":"Enter the tax identifier with 4 to 30 letters and digits.","subject":"Give the conversation a subject.","guestName":"Write the guest\'s name before adding them.","plusOnes":"Plus-ones run from 0 to 20.","settlementReason":"Write a short note or reason before answering.","asset":"Choose approve, return or resubmit.","assetReason":"Say what to change, so the organization can revise the asset."},"advance":{"answer":"Your answer","submit":"Send answer","done":"Answer sent. The organization reviews it next."},"approval":{"decision":"Decision","approve":"Approve","reject":"Reject","reason":"Why you reject it","note":"Note to the organization","done":"Decision sent."},"deliverable":{"document":"Document","message":"Message","submit":"Submit deliverable","done":"Submitted. The organization accepts or returns it.","noDocuments":"Share the file in Messages first; it then becomes a document you can submit here."},"invoice":{"title":"Invoice","number":"Invoice number","issuedOn":"Issue date","dueOn":"Due date","currency":"Amounts in {currency}","description":"Item or service","quantity":"Quantity","unitPrice":"Unit price","addLine":"Add line","removeLine":"Remove line {n}","submit":"Submit invoice","done":"Invoice submitted. Follow it on the payment tracker."},"upload":{"file":"File or photo","help":"PDF or photo up to 25 MB. On a phone you can take the photo now.","submit":"Upload","done":"Uploaded. The organization verifies it next."},"tax":{"title":"Tax form","kind":"Form","tin":"Taxpayer identification number","tinHelp":"Stored encrypted. Only the last four characters are ever shown.","withholding":"I am a foreign performer subject to withholding","submit":"Submit tax form","done":"Tax form submitted."},"thread":{"title":"New conversation","subject":"Subject","submit":"Start conversation","done":"Conversation started."},"message":{"label":"Reply","body":"Message","send":"Send"},"rating":{"title":"Rate {org}","score":"Score","stars":"{n, plural, one {# star} other {# stars}}","comment":"Public comment","release":"Both ratings appear together once both sides rate, or after 14 days.","submit":"Send rating","done":"Rating sent. It appears when the organization rates too, or after 14 days."},"reply":{"label":"Public reply","submit":"Reply","done":"Reply posted."},"guest":{"title":"Add a guest","name":"Guest name","plusOnes":"Plus-ones","note":"Note for the production (optional)","submit":"Add guest","done":"Guest added. The production confirms them before the show."},"settlement":{"decision":"Your answer","accept":"Accept settlement","dispute":"Dispute settlement","note":"Note","reason":"What should change","done":"Answer sent. The organization sees it now."},"asset":{"decision":"Your answer","approve":"Approve","return":"Return for changes","resubmit":"Resubmit","reason":"What to change","note":"Note to the organization","done":"Answer sent."}},"settlement":{"submitted":"Sent to you {date}","lines":"Lines of {title}","unpriced":"Amount to be confirmed","less":"Less {amount}","net":"Net to you: {amount}","netUnpriced":"The net shows once every line has an amount.","none":"No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."},"assets":{"empty":"No brand assets to review yet. The organization submits banners, artwork and copy here for your approval.","due":"Needed by {date}","revision":"Revision {n}","awaiting":"Awaiting your approval"}}',
   ),
   enums: {
     externalRoleType: {
@@ -5135,6 +5225,25 @@ var gateway_default$1 = {
       flight: "Flight",
       ground: "Ground transport",
     },
+    endorsementKind: {
+      additionalInsured: "Additional Insured",
+      primaryAndNoncontributory: "Primary and Noncontributory",
+      waiverOfSubrogation: "Waiver of Subrogation",
+    },
+    sponsorAssetKind: {
+      logo: "Logo",
+      artwork: "Artwork",
+      copy: "Copy",
+      video: "Video",
+      other: "Other",
+    },
+    reviewState: {
+      proposed: "Drafted",
+      submitted: "Submitted",
+      approved: "Approved",
+      returned: "Returned",
+      canceled: "Canceled",
+    },
   },
   explore: {
     title: "Explore",
@@ -5273,6 +5382,20 @@ var gateway_default$1 = {
         bidLines: "Add at least one bid line with an item and a quantity above zero.",
         slate: "Pick at least one team member for the slate.",
       },
+      profileSections: "Also share from your profile with {org}",
+      profileSectionsHelp:
+        "Only the sections you check are shared, as they read today, including ones your profile keeps private. Revoke sharing at any time in Settings.",
+      sections: {
+        headline: "Headline",
+        bio: "About",
+        pronouns: "Pronouns",
+        location: "Location",
+        skills: "Skills",
+        certifications: "Certifications",
+        rates: "Rates",
+        languages: "Languages",
+        links: "Links",
+      },
     },
     reportForm: {
       title: "Report this listing",
@@ -5292,6 +5415,16 @@ var gateway_default$1 = {
         "You see an opportunity only when the organization made it visible to you: by invitation, through its talent or vendor pools, to people who completed work with it, or to the whole marketplace.",
       filters: "Your filters narrow the list; they never reorder it.",
       back: "Back to Explore",
+    },
+    organizations: {
+      tab: "Organizations",
+      lead: "Organizations that publish a public profile: what they do, whether they are verified and what they have open.",
+      searchLabel: "Search organizations",
+      results: "{n, plural, =0 {No organizations} one {# organization} other {# organizations}}",
+      empty: "No public organization profile matches. Clear the search to see every organization.",
+      emptyAction: "Back to opportunities",
+      listLabel: "Organizations",
+      open: "{n, plural, =0 {No open opportunities} one {# open opportunity} other {# open opportunities}}",
     },
   },
   home: {
@@ -5333,6 +5466,16 @@ var gateway_default$1 = {
       empty:
         "No open opportunities match you right now. Set an alert and we will tell you when one does.",
       emptyAction: "Set an alert",
+    },
+    updates: {
+      title: "Updates",
+      new: "New",
+      kinds: {
+        invoiceSubmitted: "{orgName} received invoice {title}",
+        invoiceApproved: "{orgName} approved invoice {title}",
+        invoiceScheduled: "{orgName} scheduled a payment for invoice {title}",
+        invoicePaid: "{orgName} paid invoice {title}",
+      },
     },
   },
   messages: {
@@ -5491,6 +5634,7 @@ var gateway_default$1 = {
       capabilities: "Capabilities",
       regions: "Service regions",
       opportunities: "Open opportunities",
+      caseStudies: "Case studies",
     },
     public: {
       certifications: "Certifications",
@@ -5748,6 +5892,31 @@ var gateway_default$1 = {
       dangerZone:
         "Transferring ownership or closing a company account is done with platform support so records the law requires are kept. The last Account Owner cannot leave.",
       toTeam: "Open team",
+    },
+    notifications: {
+      formLabel: "Notification preferences",
+      save: "Save preferences",
+      saved: "Saved. New notifications follow these choices.",
+      channels: {
+        Email: "Email",
+        Push: "Push to Compass",
+      },
+      categories: {
+        finance: {
+          label: "Invoices and payments",
+          help: "Each step of your invoices: received, approved, payment scheduled and paid. Updates always show on Home.",
+        },
+      },
+      errors: {
+        denied: "These preferences could not be saved for your account. Sign in again and retry.",
+        unexpected: "Something went wrong saving your preferences. Try again in a moment.",
+      },
+    },
+    deleteAccount: {
+      confirmTitle: "Delete your account now?",
+      confirmBody:
+        "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
+      cancel: "Keep my account",
     },
   },
   shell: {
@@ -7866,7 +8035,13 @@ var opportunities_default$1 = {
       plan_limit_exceeded:
         "Your plan's monthly limit of external engagements is reached. Upgrade or wait for next month.",
       transition_reason_required: "Give a reason for the change.",
+      insureds_none_required:
+        "The organization requires no additional insureds for this project. Add them under Vendors, Insurance certificates, Required insureds.",
+      insureds_vendor_only:
+        "Additional insureds are checked for vendors. This party is not a vendor of the organization.",
     },
+    insuredsMissing:
+      "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate.",
   },
   requisitions: {
     title: "Requisitions",
@@ -7968,6 +8143,36 @@ var opportunities_default$1 = {
     createEngagement: "Create engagement",
     engaged: "Engagement created. Its onboarding packet is ready.",
     engageNeedsWrite: "Someone with engagement write access creates the engagement.",
+    shared: {
+      title: "Shared with you",
+      none: "The applicant shared no profile fields with your organization.",
+      loadFailed: "What the applicant shared could not be loaded. Reload the page.",
+      sharedOn: "Shared when applying, {date}. This is the snapshot the applicant consented to.",
+      revoked:
+        "Shared {date}, since revoked. Your organization keeps this snapshot only as the law requires.",
+      empty: "Shared empty",
+      rate: "{amount} per {unit}",
+      units: {
+        Hour: "hour",
+        Day: "day",
+        Week: "week",
+        Project: "project",
+      },
+      fields: {
+        fullName: "Name",
+        email: "Email",
+        companyName: "Company",
+        headline: "Headline",
+        bio: "About",
+        pronouns: "Pronouns",
+        location: "Location",
+        skills: "Skills",
+        certifications: "Certifications",
+        rates: "Rate",
+        languages: "Languages",
+        links: "Links",
+      },
+    },
   },
   pools: {
     title: "Pools",
@@ -8321,6 +8526,19 @@ var opportunities_default$1 = {
     misleadingInformation: "Misleading Information",
     missingPayRange: "Missing Pay Range",
     safety: "Safety",
+  },
+  insureds: {
+    title: "Additional insureds",
+    loadFailed: "The additional insureds could not be checked. Reload the page.",
+    named: "Named on a current certificate",
+    missing: "Missing",
+    verify: "Check additional insureds for {item}",
+    verified: "Every required insured is named. The item passes.",
+    endorsements: {
+      AdditionalInsured: "Additional Insured",
+      PrimaryandNoncontributory: "Primary and Noncontributory",
+      WaiverofSubrogation: "Waiver of Subrogation",
+    },
   },
 };
 var peek_default$1 = {
@@ -13091,6 +13309,39 @@ var vendors_default$1 = {
       "A delivery keeps its entitlement and the person who recorded it.",
     review_decide_rpc: "Approve or return assets with the review buttons.",
     cross_org_reference: "That item belongs to another organization.",
+    insureds_none_required:
+      "The organization requires no additional insureds for this project. Add them under Required insureds first.",
+    insureds_vendor_only:
+      "Additional insureds are checked for vendors. This party is not a vendor of the organization.",
+  },
+  insureds: {
+    what: "additional insureds",
+    title: "Additional insureds",
+    verified: "Names every additional insured the organization requires.",
+    missing:
+      "{count, plural, one {Misses # required additional insured.} other {Misses # required additional insureds.}}",
+    empty: "No additional insureds recorded. Add each party the certificate names.",
+    emptyRead: "No additional insureds recorded on this certificate.",
+    add: "Add insured",
+    remove: "Remove {name}",
+    name: "Party named",
+    nameHelp: "As the certificate prints it, for example the venue owner.",
+    endorsement: "Endorsement",
+    endorsements: {
+      AdditionalInsured: "Additional Insured",
+      PrimaryandNoncontributory: "Primary and Noncontributory",
+      WaiverofSubrogation: "Waiver of Subrogation",
+    },
+    requiredWhat: "required additional insureds",
+    requiredTitle: "Required insureds",
+    requiredSentence:
+      "Every vendor certificate must name these parties. A project requirement adds to the organization-wide ones for vendors engaged on that project.",
+    requiredEmpty: "No required insureds yet. Add the parties every vendor certificate must name.",
+    requiredEmptyRead: "The organization requires no additional insureds yet.",
+    requiredAdd: "Require insured",
+    requiredNameHelp: "The party vendors must name, for example the venue owner.",
+    project: "Project",
+    everyProject: "Every project",
   },
 };
 var views_default$1 = {
@@ -16885,6 +17136,13 @@ var auroraCertificates_default = {
     valid_from: "Válido desde",
     valid_to: "Válido hasta",
   },
+  insuredsTitle: "Asegurados adicionales leídos",
+  insuredsNone:
+    "Aurora no leyó asegurados adicionales. Si el certificado nombra alguno, agréguelo después de guardarlo.",
+  insuredNotRead: "Una parte nombrada que Aurora no pudo leer. No se guarda.",
+  insuredLine: "{name}, {endorsement}",
+  insuredsFailed:
+    "El certificado se guardó, pero sus asegurados adicionales no: {detail}. Agréguelos en el certificado.",
 };
 var canonBrowser_default = {
   what: "el canon",
@@ -17328,6 +17586,10 @@ var compass_default = {
         "Las marcas de la pantalla bloqueada no llegaron a la cola de envío: {reason}. Abre Compass otra vez para reintentar.",
       drainDropped:
         "Marcas de la pantalla bloqueada sin turno asociado: {count}. No se registraron; marca aquí.",
+    },
+    shortcut: {
+      clockedIn:
+        "Entrada registrada en {project}. Descanso y Salida están en su pantalla de bloqueo.",
     },
   },
   schedule: {
@@ -18799,6 +19061,18 @@ var email_default = {
         subject: "Factura aprobada: {title}",
         body: "{actorName} aprobó la factura {title}.",
       },
+      submitted: {
+        subject: "Factura recibida: {title}",
+        body: "{actorName} recibió su factura {title}. Siga su avance en Gateway, en Dinero, Facturas.",
+      },
+      scheduled: {
+        subject: "Pago programado: {title}",
+        body: "{actorName} programó un pago para su factura {title}.",
+      },
+      paid: {
+        subject: "Factura pagada: {title}",
+        body: "{actorName} pagó por completo su factura {title}.",
+      },
     },
     incident: {
       reported: {
@@ -19854,7 +20128,7 @@ var gateway_default = {
     clearFilter: "Mostrar todas las organizaciones",
   },
   engagement: /* @__PURE__ */ JSON.parse(
-    '{"tabs":"Secciones de la contratación","representing":"Actuando por {artist}","messagesAction":"Escribir a la organización","onboardingAction":"Ver incorporación","trainingAction":"Ver capacitación","shiftsAction":"Ver turnos","invoicesAction":"Ver facturas","documentsAction":"Ver documentos","poAction":"Ver órdenes de compra","changeOrdersAction":"Ver órdenes de cambio","scheduleAction":"Ver calendario","scopeAction":"Ver alcance","advanceAction":"Abrir el avance","operationalClosed":"Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.","due":"Vence {date}","overview":{"next":"Tus próximos pasos","stages":"En qué etapa está","stage":{"offer":"Oferta","onboarding":"Incorporación","engaged":"En curso","closeOut":"Cierre"},"blocked":"Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.","rate":"Tu tarifa","rateHidden":"Se muestra mientras el área de pagos esté abierta","payBasis":"Base de pago","rated":"Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."},"documents":{"empty":"Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.","emptyKind":"Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.","expires":"Vence {date}"},"onboarding":{"empty":"No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.","progress":"{n} de {total} verificados","blocking":"Obligatorio antes de empezar","standing":{"verified":"Verificado","review":"En revisión","todo":"Pendiente","expired":"Vencido"},"signHint":"Fírmalo en Documentos; el paso se completa cuando la organización firme.","backgroundHint":"El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.","payoutHint":"Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."},"messages":{"empty":"Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.","org":"La organización","new":"Iniciar una conversación"},"invoices":{"closed":"Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.","empty":"Aún no hay facturas. Envía una abajo cuando termines tu trabajo.","submitTitle":"Enviar una factura","selfBilling":"Autofacturación","selfBillingBody":"Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.","selfBillingOn":"Autofacturación activa","selfBillingAgree":"Aceptar autofacturación","selfBillingStop":"Detener autofacturación"},"shifts":{"empty":"Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.","accept":"Aceptar turno"},"positions":{"empty":"Aún no tienes puestos asignados. Llegan cuando termines la capacitación."},"timesheets":{"empty":"Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.","hours":"{n} horas","submitted":"Enviada el {date}","submit":"Enviar","entries":"Registros de tiempo"},"time":{"empty":"Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.","out":"Salida {time}","open":"Aún con entrada marcada","break":"{n} min de descanso"},"travel":{"empty":"Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.","lodging":"Hospedaje","travel":"Viaje","itinerary":"Itinerario","route":"{from} a {to}","departs":"Sale {time}","arrives":"Llega {time}","confirmation":"Confirmación {code}"},"perDiem":{"empty":"Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.","quantity":"{n} por día","allowances":"Viáticos","amenities":"Comodidades","total":"Total: {amount}"},"credentials":{"empty":"Aún no hay credenciales. Se emiten cuando pasa la incorporación.","valid":"Vigente","revoked":"Revocada"},"training":{"empty":"No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.","sessions":"Sesiones de capacitación"},"bid":{"empty":"No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.","summary":"Oferta sellada enviada el {date}, total {total}","quantity":"Cantidad {n}"},"po":{"empty":"Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.","number":"OC {n}","sent":"Enviada el {date}","acknowledged":"Confirmada el {date}","acknowledge":"Confirmar recepción","line":"{n}. {description}"},"deliveries":{"empty":"Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.","docks":"Turnos de muelle","shipments":"Envíos"},"submittals":{"empty":"Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."},"advance":{"empty":"Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.","awaitingReview":"En espera de revisión"},"compliance":{"empty":"Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.","insurance":"Certificados de seguro","noInsurance":"No hay certificado de seguro registrado. Súbelo en Incorporación.","current":"Vigente","expired":"Vencido","prequalification":"Precalificación","validTo":"Vigente hasta {date}","items":"Pasos de cumplimiento"},"approvals":{"empty":"Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.","requested":"Solicitada el {date}","waiting":"Te espera"},"changeOrders":{"empty":"Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.","noCost":"Sin costo"},"schedule":{"empty":"Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."},"reports":{"empty":"Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí.","shared":"Informes compartidos","ranAt":"Generado {time}","rows":"{n} filas","unpriced":"{n} filas aún sin precio","expires":"Compartido hasta el {date}","noRecords":"Aún no hay registros de informes compartidos. Pregunta a la organización si esperas uno."},"activation":{"empty":"Aún no hay fechas de activación. Aparecen cuando la organización las programe."},"runOfShow":{"empty":"Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.","called":"Llamado {time}","mySet":"Tu presentación"},"scope":{"statement":"Declaración de trabajo","noStatement":"Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.","milestones":"Hitos","noMilestones":"Aún no hay hitos compartidos."},"deliverables":{"empty":"Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.","submitted":"Entregado el {date}"},"entitlements":{"empty":"Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.","quantity":"Cantidad {n}","fulfilled":"Cumplido el {date}","done":"Cumplido","overdue":"Atrasado","open":"Abierto"},"rider":{"empty":"Aún no hay rider. Envía tu rider mediante el avance.","quantity":"Cantidad {n}","fulfilled":"Confirmado","pending":"Pendiente"},"setTimes":{"empty":"Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.","daySheets":"Hojas del día"},"hospitality":{"empty":"Aún no hay hospitalidad. Pide lo que necesites en el avance."},"guestList":{"empty":"Aún no hay invitados en tu lista. Agrega un invitado abajo y la producción confirma a cada uno antes del show.","request":"Agregar un invitado","listLabel":"Lista de invitados, {n} personas en total","plusOnes":"Más {n}","checkedIn":"Registrado {time}"},"roster":{"empty":"Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.","action":"Configuración de representación","noEngagements":"Aún no hay contrataciones para este artista."},"forms":{"errors":{"answer":"Escribe una respuesta antes de enviar.","decision":"Elige aprobar o rechazar.","reason":"Di por qué lo rechazas para que la organización pueda corregirlo.","deliverable":"Elige el documento y escribe un mensaje breve.","header":"Completa el número de factura y ambas fechas.","dates":"La fecha de vencimiento debe ser igual o posterior a la de emisión.","lines":"Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.","file":"Elige un archivo para subir.","fileType":"Sube un archivo PDF, JPEG, PNG, HEIC o WebP.","fileSize":"El archivo supera 25 MB. Sube un escaneo o foto más pequeño.","tin":"Escribe el identificador fiscal con 4 a 30 letras y dígitos.","subject":"Ponle un asunto a la conversación.","guestName":"Escribe el nombre del invitado antes de agregarlo.","plusOnes":"Los acompañantes van de 0 a 20.","settlementReason":"Escribe una nota o un motivo breve antes de responder."},"advance":{"answer":"Tu respuesta","submit":"Enviar respuesta","done":"Respuesta enviada. La organización la revisa después."},"approval":{"decision":"Decisión","approve":"Aprobar","reject":"Rechazar","reason":"Por qué lo rechazas","note":"Nota para la organización","done":"Decisión enviada."},"deliverable":{"document":"Documento","message":"Mensaje","submit":"Entregar","done":"Entregado. La organización lo acepta o lo devuelve.","noDocuments":"Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."},"invoice":{"title":"Factura","number":"Número de factura","issuedOn":"Fecha de emisión","dueOn":"Fecha de vencimiento","currency":"Montos en {currency}","description":"Artículo o servicio","quantity":"Cantidad","unitPrice":"Precio unitario","addLine":"Agregar línea","removeLine":"Quitar línea {n}","submit":"Enviar factura","done":"Factura enviada. Síguela en el rastreador de pagos."},"upload":{"file":"Archivo o foto","help":"PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.","submit":"Subir","done":"Subido. La organización lo verifica después."},"tax":{"title":"Formulario fiscal","kind":"Formulario","tin":"Número de identificación fiscal","tinHelp":"Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.","withholding":"Soy artista extranjero sujeto a retención","submit":"Enviar formulario fiscal","done":"Formulario fiscal enviado."},"thread":{"title":"Nueva conversación","subject":"Asunto","submit":"Iniciar conversación","done":"Conversación iniciada."},"message":{"label":"Responder","body":"Mensaje","send":"Enviar"},"rating":{"title":"Califica a {org}","score":"Puntuación","stars":"{n, plural, one {# estrella} other {# estrellas}}","comment":"Comentario público","release":"Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.","submit":"Enviar calificación","done":"Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."},"reply":{"label":"Respuesta pública","submit":"Responder","done":"Respuesta publicada."},"guest":{"title":"Agregar un invitado","name":"Nombre del invitado","plusOnes":"Acompañantes","note":"Nota para la producción (opcional)","submit":"Agregar invitado","done":"Invitado agregado. La producción lo confirma antes del show."},"settlement":{"decision":"Tu respuesta","accept":"Aceptar liquidación","dispute":"Disputar liquidación","note":"Nota","reason":"Qué debe cambiar","done":"Respuesta enviada. La organización ya la ve."}},"settlement":{"submitted":"Enviada el {date}","lines":"Líneas de {title}","unpriced":"Monto por confirmar","less":"Menos {amount}","net":"Neto para ti: {amount}","netUnpriced":"El neto aparece cuando cada línea tiene un monto.","none":"Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."}}',
+    '{"tabs":"Secciones de la contratación","representing":"Actuando por {artist}","messagesAction":"Escribir a la organización","onboardingAction":"Ver incorporación","trainingAction":"Ver capacitación","shiftsAction":"Ver turnos","invoicesAction":"Ver facturas","documentsAction":"Ver documentos","poAction":"Ver órdenes de compra","changeOrdersAction":"Ver órdenes de cambio","scheduleAction":"Ver calendario","scopeAction":"Ver alcance","advanceAction":"Abrir el avance","operationalClosed":"Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.","due":"Vence {date}","overview":{"next":"Tus próximos pasos","stages":"En qué etapa está","stage":{"offer":"Oferta","onboarding":"Incorporación","engaged":"En curso","closeOut":"Cierre"},"blocked":"Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.","rate":"Tu tarifa","rateHidden":"Se muestra mientras el área de pagos esté abierta","payBasis":"Base de pago","rated":"Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."},"documents":{"empty":"Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.","emptyKind":"Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.","expires":"Vence {date}"},"onboarding":{"empty":"No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.","progress":"{n} de {total} verificados","blocking":"Obligatorio antes de empezar","standing":{"verified":"Verificado","review":"En revisión","todo":"Pendiente","expired":"Vencido"},"signHint":"Fírmalo en Documentos; el paso se completa cuando la organización firme.","backgroundHint":"El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.","payoutHint":"Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."},"messages":{"empty":"Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.","org":"La organización","new":"Iniciar una conversación"},"invoices":{"closed":"Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.","empty":"Aún no hay facturas. Envía una abajo cuando termines tu trabajo.","submitTitle":"Enviar una factura","selfBilling":"Autofacturación","selfBillingBody":"Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.","selfBillingOn":"Autofacturación activa","selfBillingAgree":"Aceptar autofacturación","selfBillingStop":"Detener autofacturación"},"shifts":{"empty":"Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.","accept":"Aceptar turno"},"positions":{"empty":"Aún no tienes puestos asignados. Llegan cuando termines la capacitación."},"timesheets":{"empty":"Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.","hours":"{n} horas","submitted":"Enviada el {date}","submit":"Enviar","entries":"Registros de tiempo"},"time":{"empty":"Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.","out":"Salida {time}","open":"Aún con entrada marcada","break":"{n} min de descanso"},"travel":{"empty":"Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.","lodging":"Hospedaje","travel":"Viaje","itinerary":"Itinerario","route":"{from} a {to}","departs":"Sale {time}","arrives":"Llega {time}","confirmation":"Confirmación {code}"},"perDiem":{"empty":"Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.","quantity":"{n} por día","allowances":"Viáticos","amenities":"Comodidades","total":"Total: {amount}"},"credentials":{"empty":"Aún no hay credenciales. Se emiten cuando pasa la incorporación.","valid":"Vigente","revoked":"Revocada"},"training":{"empty":"No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.","sessions":"Sesiones de capacitación"},"bid":{"empty":"No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.","summary":"Oferta sellada enviada el {date}, total {total}","quantity":"Cantidad {n}"},"po":{"empty":"Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.","number":"OC {n}","sent":"Enviada el {date}","acknowledged":"Confirmada el {date}","acknowledge":"Confirmar recepción","line":"{n}. {description}"},"deliveries":{"empty":"Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.","docks":"Turnos de muelle","shipments":"Envíos"},"submittals":{"empty":"Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."},"advance":{"empty":"Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.","awaitingReview":"En espera de revisión"},"compliance":{"empty":"Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.","insurance":"Certificados de seguro","noInsurance":"No hay certificado de seguro registrado. Súbelo en Incorporación.","current":"Vigente","expired":"Vencido","prequalification":"Precalificación","validTo":"Vigente hasta {date}","items":"Pasos de cumplimiento","insureds":"Asegurados adicionales nombrados","noInsureds":"Este certificado no nombra asegurados adicionales registrados. Si la organización exige alguno, envíe un certificado que los nombre.","insuredLine":"{name}, {endorsement}"},"approvals":{"empty":"Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.","requested":"Solicitada el {date}","waiting":"Te espera"},"changeOrders":{"empty":"Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.","noCost":"Sin costo"},"schedule":{"empty":"Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."},"reports":{"empty":"Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí.","shared":"Informes compartidos","ranAt":"Generado {time}","rows":"{n} filas","unpriced":"{n} filas aún sin precio","expires":"Compartido hasta el {date}","noRecords":"Aún no hay registros de informes compartidos. Pregunta a la organización si esperas uno."},"activation":{"empty":"Aún no hay fechas de activación. Aparecen cuando la organización las programe."},"runOfShow":{"empty":"Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.","called":"Llamado {time}","mySet":"Tu presentación"},"scope":{"statement":"Declaración de trabajo","noStatement":"Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.","milestones":"Hitos","noMilestones":"Aún no hay hitos compartidos."},"deliverables":{"empty":"Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.","submitted":"Entregado el {date}"},"entitlements":{"empty":"Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.","quantity":"Cantidad {n}","fulfilled":"Cumplido el {date}","done":"Cumplido","overdue":"Atrasado","open":"Abierto"},"rider":{"empty":"Aún no hay rider. Envía tu rider mediante el avance.","quantity":"Cantidad {n}","fulfilled":"Confirmado","pending":"Pendiente"},"setTimes":{"empty":"Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.","daySheets":"Hojas del día"},"hospitality":{"empty":"Aún no hay hospitalidad. Pide lo que necesites en el avance."},"guestList":{"empty":"Aún no hay invitados en tu lista. Agrega un invitado abajo y la producción confirma a cada uno antes del show.","request":"Agregar un invitado","listLabel":"Lista de invitados, {n} personas en total","plusOnes":"Más {n}","checkedIn":"Registrado {time}"},"roster":{"empty":"Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.","action":"Configuración de representación","noEngagements":"Aún no hay contrataciones para este artista."},"forms":{"errors":{"answer":"Escribe una respuesta antes de enviar.","decision":"Elige aprobar o rechazar.","reason":"Di por qué lo rechazas para que la organización pueda corregirlo.","deliverable":"Elige el documento y escribe un mensaje breve.","header":"Completa el número de factura y ambas fechas.","dates":"La fecha de vencimiento debe ser igual o posterior a la de emisión.","lines":"Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.","file":"Elige un archivo para subir.","fileType":"Sube un archivo PDF, JPEG, PNG, HEIC o WebP.","fileSize":"El archivo supera 25 MB. Sube un escaneo o foto más pequeño.","tin":"Escribe el identificador fiscal con 4 a 30 letras y dígitos.","subject":"Ponle un asunto a la conversación.","guestName":"Escribe el nombre del invitado antes de agregarlo.","plusOnes":"Los acompañantes van de 0 a 20.","settlementReason":"Escribe una nota o un motivo breve antes de responder.","asset":"Elija aprobar, devolver o volver a enviar.","assetReason":"Indique qué cambiar para que la organización pueda revisar el recurso."},"advance":{"answer":"Tu respuesta","submit":"Enviar respuesta","done":"Respuesta enviada. La organización la revisa después."},"approval":{"decision":"Decisión","approve":"Aprobar","reject":"Rechazar","reason":"Por qué lo rechazas","note":"Nota para la organización","done":"Decisión enviada."},"deliverable":{"document":"Documento","message":"Mensaje","submit":"Entregar","done":"Entregado. La organización lo acepta o lo devuelve.","noDocuments":"Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."},"invoice":{"title":"Factura","number":"Número de factura","issuedOn":"Fecha de emisión","dueOn":"Fecha de vencimiento","currency":"Montos en {currency}","description":"Artículo o servicio","quantity":"Cantidad","unitPrice":"Precio unitario","addLine":"Agregar línea","removeLine":"Quitar línea {n}","submit":"Enviar factura","done":"Factura enviada. Síguela en el rastreador de pagos."},"upload":{"file":"Archivo o foto","help":"PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.","submit":"Subir","done":"Subido. La organización lo verifica después."},"tax":{"title":"Formulario fiscal","kind":"Formulario","tin":"Número de identificación fiscal","tinHelp":"Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.","withholding":"Soy artista extranjero sujeto a retención","submit":"Enviar formulario fiscal","done":"Formulario fiscal enviado."},"thread":{"title":"Nueva conversación","subject":"Asunto","submit":"Iniciar conversación","done":"Conversación iniciada."},"message":{"label":"Responder","body":"Mensaje","send":"Enviar"},"rating":{"title":"Califica a {org}","score":"Puntuación","stars":"{n, plural, one {# estrella} other {# estrellas}}","comment":"Comentario público","release":"Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.","submit":"Enviar calificación","done":"Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."},"reply":{"label":"Respuesta pública","submit":"Responder","done":"Respuesta publicada."},"guest":{"title":"Agregar un invitado","name":"Nombre del invitado","plusOnes":"Acompañantes","note":"Nota para la producción (opcional)","submit":"Agregar invitado","done":"Invitado agregado. La producción lo confirma antes del show."},"settlement":{"decision":"Tu respuesta","accept":"Aceptar liquidación","dispute":"Disputar liquidación","note":"Nota","reason":"Qué debe cambiar","done":"Respuesta enviada. La organización ya la ve."},"asset":{"decision":"Su respuesta","approve":"Aprobar","return":"Devolver con cambios","resubmit":"Volver a enviar","reason":"Qué cambiar","note":"Nota para la organización","done":"Respuesta enviada."}},"settlement":{"submitted":"Enviada el {date}","lines":"Líneas de {title}","unpriced":"Monto por confirmar","less":"Menos {amount}","net":"Neto para ti: {amount}","netUnpriced":"El neto aparece cuando cada línea tiene un monto.","none":"Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."},"assets":{"empty":"Aún no hay recursos de marca para revisar. La organización envía aquí pancartas, arte y textos para su aprobación.","due":"Se necesita el {date}","revision":"Revisión {n}","awaiting":"Espera su aprobación"}}',
   ),
   enums: {
     externalRoleType: {
@@ -20168,6 +20442,25 @@ var gateway_default = {
       flight: "Vuelo",
       ground: "Transporte terrestre",
     },
+    endorsementKind: {
+      additionalInsured: "Asegurado adicional",
+      primaryAndNoncontributory: "Primario y no contributivo",
+      waiverOfSubrogation: "Renuncia de subrogación",
+    },
+    sponsorAssetKind: {
+      logo: "Logotipo",
+      artwork: "Arte",
+      copy: "Texto",
+      video: "Video",
+      other: "Otro",
+    },
+    reviewState: {
+      proposed: "Borrador",
+      submitted: "Enviado",
+      approved: "Aprobado",
+      returned: "Devuelto",
+      canceled: "Cancelado",
+    },
   },
   explore: {
     title: "Explorar",
@@ -20309,6 +20602,20 @@ var gateway_default = {
         bidLines: "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
         slate: "Elige al menos un miembro del equipo para la propuesta.",
       },
+      profileSections: "Compartir también de su perfil con {org}",
+      profileSectionsHelp:
+        "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
+      sections: {
+        headline: "Titular",
+        bio: "Acerca de",
+        pronouns: "Pronombres",
+        location: "Ubicación",
+        skills: "Habilidades",
+        certifications: "Certificaciones",
+        rates: "Tarifas",
+        languages: "Idiomas",
+        links: "Enlaces",
+      },
     },
     reportForm: {
       title: "Reportar esta publicación",
@@ -20330,6 +20637,18 @@ var gateway_default = {
         "Ves una oportunidad solo cuando la organización la hizo visible para ti: por invitación, mediante sus grupos de talento o proveedores, para quienes ya trabajaron con ella, o para todo el mercado.",
       filters: "Tus filtros acotan la lista; nunca la reordenan.",
       back: "Volver a Explorar",
+    },
+    organizations: {
+      tab: "Organizaciones",
+      lead: "Organizaciones que publican un perfil público: qué hacen, si están verificadas y qué tienen abierto.",
+      searchLabel: "Buscar organizaciones",
+      results:
+        "{n, plural, =0 {Ninguna organización} one {# organización} other {# organizaciones}}",
+      empty:
+        "Ningún perfil público de organización coincide. Borre la búsqueda para ver todas las organizaciones.",
+      emptyAction: "Volver a oportunidades",
+      listLabel: "Organizaciones",
+      open: "{n, plural, =0 {Sin oportunidades abiertas} one {# oportunidad abierta} other {# oportunidades abiertas}}",
     },
   },
   home: {
@@ -20373,6 +20692,16 @@ var gateway_default = {
       empty:
         "Ahora no hay oportunidades abiertas para ti. Crea una alerta y te avisaremos cuando haya una.",
       emptyAction: "Crear alerta",
+    },
+    updates: {
+      title: "Novedades",
+      new: "Nuevo",
+      kinds: {
+        invoiceSubmitted: "{orgName} recibió la factura {title}",
+        invoiceApproved: "{orgName} aprobó la factura {title}",
+        invoiceScheduled: "{orgName} programó un pago para la factura {title}",
+        invoicePaid: "{orgName} pagó la factura {title}",
+      },
     },
   },
   messages: {
@@ -20534,6 +20863,7 @@ var gateway_default = {
       capabilities: "Capacidades",
       regions: "Regiones de servicio",
       opportunities: "Oportunidades abiertas",
+      caseStudies: "Casos de estudio",
     },
     public: {
       certifications: "Certificaciones",
@@ -20799,6 +21129,32 @@ var gateway_default = {
       dangerZone:
         "Transferir la propiedad o cerrar una cuenta de empresa se hace con el soporte de la plataforma para conservar los registros que exige la ley. El último propietario no puede salir.",
       toTeam: "Abrir equipo",
+    },
+    notifications: {
+      formLabel: "Preferencias de notificaciones",
+      save: "Guardar preferencias",
+      saved: "Guardado. Las nuevas notificaciones siguen estas opciones.",
+      channels: {
+        Email: "Correo electrónico",
+        Push: "Aviso en Compass",
+      },
+      categories: {
+        finance: {
+          label: "Facturas y pagos",
+          help: "Cada paso de sus facturas: recibida, aprobada, pago programado y pagada. Las novedades siempre aparecen en Inicio.",
+        },
+      },
+      errors: {
+        denied:
+          "No se pudieron guardar estas preferencias en su cuenta. Inicie sesión de nuevo e intente otra vez.",
+        unexpected: "Algo salió mal al guardar sus preferencias. Inténtelo de nuevo en un momento.",
+      },
+    },
+    deleteAccount: {
+      confirmTitle: "¿Eliminar su cuenta ahora?",
+      confirmBody:
+        "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
+      cancel: "Conservar mi cuenta",
     },
   },
   shell: {
@@ -22961,7 +23317,13 @@ var opportunities_default = {
       plan_limit_exceeded:
         "Se alcanzó el límite mensual de contrataciones externas de tu plan. Mejora el plan o espera al mes siguiente.",
       transition_reason_required: "Indica un motivo para el cambio.",
+      insureds_none_required:
+        "La organización no exige asegurados adicionales para este proyecto. Agréguelos en Proveedores, Certificados de seguro, Asegurados exigidos.",
+      insureds_vendor_only:
+        "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización.",
     },
+    insuredsMissing:
+      "Registrado como no aprobado. Ningún certificado vigente nombra a: {rule}. Pida al proveedor un certificado actualizado.",
   },
   requisitions: {
     title: "Requisiciones",
@@ -23069,6 +23431,38 @@ var opportunities_default = {
     engaged: "Contratación creada. Su paquete de incorporación está listo.",
     engageNeedsWrite:
       "Una persona con permiso de escritura de contrataciones crea la contratación.",
+    shared: {
+      title: "Compartido con usted",
+      none: "La persona solicitante no compartió campos de su perfil con su organización.",
+      loadFailed:
+        "No se pudo cargar lo que compartió la persona solicitante. Vuelva a cargar la página.",
+      sharedOn:
+        "Compartido al postularse, {date}. Esta es la copia que la persona solicitante consintió.",
+      revoked:
+        "Compartido el {date} y luego revocado. Su organización conserva esta copia solo según lo exige la ley.",
+      empty: "Compartido vacío",
+      rate: "{amount} por {unit}",
+      units: {
+        Hour: "hora",
+        Day: "día",
+        Week: "semana",
+        Project: "proyecto",
+      },
+      fields: {
+        fullName: "Nombre",
+        email: "Correo electrónico",
+        companyName: "Empresa",
+        headline: "Titular",
+        bio: "Acerca de",
+        pronouns: "Pronombres",
+        location: "Ubicación",
+        skills: "Habilidades",
+        certifications: "Certificaciones",
+        rates: "Tarifa",
+        languages: "Idiomas",
+        links: "Enlaces",
+      },
+    },
   },
   pools: {
     title: "Grupos",
@@ -23428,6 +23822,19 @@ var opportunities_default = {
     misleadingInformation: "Información engañosa",
     missingPayRange: "Falta el rango de pago",
     safety: "Seguridad",
+  },
+  insureds: {
+    title: "Asegurados adicionales",
+    loadFailed: "No se pudieron verificar los asegurados adicionales. Vuelva a cargar la página.",
+    named: "Nombrado en un certificado vigente",
+    missing: "Falta",
+    verify: "Verificar asegurados adicionales de {item}",
+    verified: "Todos los asegurados exigidos están nombrados. El elemento se aprueba.",
+    endorsements: {
+      AdditionalInsured: "Asegurado adicional",
+      PrimaryandNoncontributory: "Primario y no contributivo",
+      WaiverofSubrogation: "Renuncia de subrogación",
+    },
   },
 };
 var peek_default = {
@@ -28340,6 +28747,42 @@ var vendors_default = {
       "Una entrega conserva su derecho y a la persona que la registró.",
     review_decide_rpc: "Apruebe o devuelva recursos con los botones de revisión.",
     cross_org_reference: "Ese elemento pertenece a otra organización.",
+    insureds_none_required:
+      "La organización no exige asegurados adicionales para este proyecto. Agréguelos primero en Asegurados exigidos.",
+    insureds_vendor_only:
+      "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización.",
+  },
+  insureds: {
+    what: "asegurados adicionales",
+    title: "Asegurados adicionales",
+    verified: "Nombra a todos los asegurados adicionales que exige la organización.",
+    missing:
+      "{count, plural, one {Le falta # asegurado adicional exigido.} other {Le faltan # asegurados adicionales exigidos.}}",
+    empty:
+      "No hay asegurados adicionales registrados. Agregue cada parte que nombra el certificado.",
+    emptyRead: "Este certificado no tiene asegurados adicionales registrados.",
+    add: "Agregar asegurado",
+    remove: "Quitar a {name}",
+    name: "Parte nombrada",
+    nameHelp: "Tal como la imprime el certificado, por ejemplo el propietario del recinto.",
+    endorsement: "Endoso",
+    endorsements: {
+      AdditionalInsured: "Asegurado adicional",
+      PrimaryandNoncontributory: "Primario y no contributivo",
+      WaiverofSubrogation: "Renuncia de subrogación",
+    },
+    requiredWhat: "asegurados adicionales exigidos",
+    requiredTitle: "Asegurados exigidos",
+    requiredSentence:
+      "Todo certificado de proveedor debe nombrar a estas partes. Un requisito de proyecto se suma a los de toda la organización para los proveedores contratados en ese proyecto.",
+    requiredEmpty:
+      "Aún no hay asegurados exigidos. Agregue las partes que todo certificado de proveedor debe nombrar.",
+    requiredEmptyRead: "La organización aún no exige asegurados adicionales.",
+    requiredAdd: "Exigir asegurado",
+    requiredNameHelp:
+      "La parte que los proveedores deben nombrar, por ejemplo el propietario del recinto.",
+    project: "Proyecto",
+    everyProject: "Todos los proyectos",
   },
 };
 var views_default = {
@@ -32595,6 +33038,12 @@ function webhookStore(db) {
     },
   };
 }
+/** The Gateway link of a notification for an external party, or null. */
+function gatewayLink(claim, gatewayUrl) {
+  const path = claim.messageArgs["gatewayPath"];
+  if (!gatewayUrl || typeof path !== "string" || !/^\/[A-Za-z0-9/_-]*$/.test(path)) return null;
+  return `${gatewayUrl.replace(/\/$/, "")}${path}`;
+}
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
@@ -32642,6 +33091,8 @@ function notificationStore(db, options) {
       };
     },
     async linkFor(claim) {
+      const gateway = gatewayLink(claim, options.gatewayUrl);
+      if (gateway !== null) return gateway;
       return `${options.appUrl}/${await orgSlug(claim.orgId)}/inbox`;
     },
     async replyAddressFor(claim) {
@@ -35139,6 +35590,7 @@ export {
   dispatchEmail,
   dispatchWebhooks,
   edgeFunctionName,
+  gatewayLink,
   handleStripeWebhook,
   identityFromEnv,
   inboundStore,

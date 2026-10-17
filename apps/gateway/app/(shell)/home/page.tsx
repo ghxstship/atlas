@@ -18,6 +18,7 @@ import { OpportunityLinkCard } from "@/components/page/opportunity-card";
 import { PageTitle, RegionError, Section, pickView, ViewSwitcher } from "@/components/page/page";
 import { ButtonLink, Card, EmptyStateLink, Icon, PropertyList } from "@/components/ui";
 import { UpNextActions } from "@/components/page/up-next-actions";
+import { Updates } from "@/components/page/updates";
 import { acceptRepresentationAction, signDocumentAction } from "@/lib/actions/engagement";
 import { formatCountdown, formatDate, formatDateRange, formatDateTime } from "@/lib/format";
 import { needsYou, pickUpNext, UP_NEXT_KINDS, type FeedItem } from "@/lib/home";
@@ -143,6 +144,8 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
           </ul>
         )}
       </Section>
+
+      <Updates db={ctx.db} t={t} locale={locale} />
 
       {view === "feed" ? (
         <Section

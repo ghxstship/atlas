@@ -35,5 +35,10 @@
     "currency_code": "Currency",
     "valid_from": "Valid from",
     "valid_to": "Valid to"
-  }
+  },
+  "insuredsTitle": "Additional insureds read",
+  "insuredsNone": "Aurora read no additional insureds. If the certificate names any, add them on it after saving.",
+  "insuredNotRead": "A named party Aurora could not read. It is not saved.",
+  "insuredLine": "{name}, {endorsement}",
+  "insuredsFailed": "The certificate was saved, but its additional insureds were not: {detail}. Add them on the certificate."
 }

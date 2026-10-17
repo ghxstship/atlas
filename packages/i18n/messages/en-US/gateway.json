@@ -210,7 +210,10 @@
       "expired": "Expired",
       "prequalification": "Prequalification",
       "validTo": "Valid to {date}",
-      "items": "Compliance steps"
+      "items": "Compliance steps",
+      "insureds": "Additional insureds named",
+      "noInsureds": "This certificate names no additional insureds on file. If the organization requires some, send a certificate that names them.",
+      "insuredLine": "{name}, {endorsement}"
     },
     "approvals": {
       "empty": "Nothing waits for your approval. Requests from the organization appear here.",
@@ -300,7 +303,9 @@
         "subject": "Give the conversation a subject.",
         "guestName": "Write the guest's name before adding them.",
         "plusOnes": "Plus-ones run from 0 to 20.",
-        "settlementReason": "Write a short note or reason before answering."
+        "settlementReason": "Write a short note or reason before answering.",
+        "asset": "Choose approve, return or resubmit.",
+        "assetReason": "Say what to change, so the organization can revise the asset."
       },
       "advance": {
         "answer": "Your answer",
@@ -391,6 +396,15 @@
         "note": "Note",
         "reason": "What should change",
         "done": "Answer sent. The organization sees it now."
+      },
+      "asset": {
+        "decision": "Your answer",
+        "approve": "Approve",
+        "return": "Return for changes",
+        "resubmit": "Resubmit",
+        "reason": "What to change",
+        "note": "Note to the organization",
+        "done": "Answer sent."
       }
     },
     "settlement": {
@@ -401,6 +415,12 @@
       "net": "Net to you: {amount}",
       "netUnpriced": "The net shows once every line has an amount.",
       "none": "No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."
+    },
+    "assets": {
+      "empty": "No brand assets to review yet. The organization submits banners, artwork and copy here for your approval.",
+      "due": "Needed by {date}",
+      "revision": "Revision {n}",
+      "awaiting": "Awaiting your approval"
     }
   },
   "enums": {
@@ -714,6 +734,25 @@
     "travelMode": {
       "flight": "Flight",
       "ground": "Ground transport"
+    },
+    "endorsementKind": {
+      "additionalInsured": "Additional Insured",
+      "primaryAndNoncontributory": "Primary and Noncontributory",
+      "waiverOfSubrogation": "Waiver of Subrogation"
+    },
+    "sponsorAssetKind": {
+      "logo": "Logo",
+      "artwork": "Artwork",
+      "copy": "Copy",
+      "video": "Video",
+      "other": "Other"
+    },
+    "reviewState": {
+      "proposed": "Drafted",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "returned": "Returned",
+      "canceled": "Canceled"
     }
   },
   "explore": {
@@ -844,6 +883,19 @@
         "fee": "Enter the fee as a number, or leave it blank.",
         "bidLines": "Add at least one bid line with an item and a quantity above zero.",
         "slate": "Pick at least one team member for the slate."
+      },
+      "profileSections": "Also share from your profile with {org}",
+      "profileSectionsHelp": "Only the sections you check are shared, as they read today, including ones your profile keeps private. Revoke sharing at any time in Settings.",
+      "sections": {
+        "headline": "Headline",
+        "bio": "About",
+        "pronouns": "Pronouns",
+        "location": "Location",
+        "skills": "Skills",
+        "certifications": "Certifications",
+        "rates": "Rates",
+        "languages": "Languages",
+        "links": "Links"
       }
     },
     "reportForm": {
@@ -863,6 +915,16 @@
       "visibility": "You see an opportunity only when the organization made it visible to you: by invitation, through its talent or vendor pools, to people who completed work with it, or to the whole marketplace.",
       "filters": "Your filters narrow the list; they never reorder it.",
       "back": "Back to Explore"
+    },
+    "organizations": {
+      "tab": "Organizations",
+      "lead": "Organizations that publish a public profile: what they do, whether they are verified and what they have open.",
+      "searchLabel": "Search organizations",
+      "results": "{n, plural, =0 {No organizations} one {# organization} other {# organizations}}",
+      "empty": "No public organization profile matches. Clear the search to see every organization.",
+      "emptyAction": "Back to opportunities",
+      "listLabel": "Organizations",
+      "open": "{n, plural, =0 {No open opportunities} one {# open opportunity} other {# open opportunities}}"
     }
   },
   "home": {
@@ -902,6 +964,16 @@
       "all": "See all",
       "empty": "No open opportunities match you right now. Set an alert and we will tell you when one does.",
       "emptyAction": "Set an alert"
+    },
+    "updates": {
+      "title": "Updates",
+      "new": "New",
+      "kinds": {
+        "invoiceSubmitted": "{orgName} received invoice {title}",
+        "invoiceApproved": "{orgName} approved invoice {title}",
+        "invoiceScheduled": "{orgName} scheduled a payment for invoice {title}",
+        "invoicePaid": "{orgName} paid invoice {title}"
+      }
     }
   },
   "messages": {
@@ -1056,7 +1128,8 @@
       "verifiedDomain": "Verified domain",
       "capabilities": "Capabilities",
       "regions": "Service regions",
-      "opportunities": "Open opportunities"
+      "opportunities": "Open opportunities",
+      "caseStudies": "Case studies"
     },
     "public": {
       "certifications": "Certifications",
@@ -1287,6 +1360,30 @@
       "toCompanyProfile": "Open company profile",
       "dangerZone": "Transferring ownership or closing a company account is done with platform support so records the law requires are kept. The last Account Owner cannot leave.",
       "toTeam": "Open team"
+    },
+    "notifications": {
+      "formLabel": "Notification preferences",
+      "save": "Save preferences",
+      "saved": "Saved. New notifications follow these choices.",
+      "channels": {
+        "Email": "Email",
+        "Push": "Push to Compass"
+      },
+      "categories": {
+        "finance": {
+          "label": "Invoices and payments",
+          "help": "Each step of your invoices: received, approved, payment scheduled and paid. Updates always show on Home."
+        }
+      },
+      "errors": {
+        "denied": "These preferences could not be saved for your account. Sign in again and retry.",
+        "unexpected": "Something went wrong saving your preferences. Try again in a moment."
+      }
+    },
+    "deleteAccount": {
+      "confirmTitle": "Delete your account now?",
+      "confirmBody": "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
+      "cancel": "Keep my account"
     }
   },
   "shell": {

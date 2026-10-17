@@ -35,6 +35,8 @@ export interface CompassLiveActivityModule {
   start(labels: ClockLabels, content: ClockContent, context: string): Promise<string | null>;
   update(content: ClockContent): Promise<void>;
   end(): Promise<void>;
+  /** Stores the Clock In App Shortcut's payload (JSON of ClockInPrepared); "" clears it. */
+  prepareClockIn(json: string): void;
   peekQueue(): QueuedPunchRecord[];
   ackQueue(ids: readonly string[]): void;
   addListener(event: "onPunchQueued", listener: () => void): { remove(): void };

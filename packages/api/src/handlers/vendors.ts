@@ -37,6 +37,8 @@ export const handlers = defineHandlers("Vendors", {
   ...handlersFor("Vendors", tableResource("vendorClassAssignments")),
   ...handlersFor("Vendors", prequalifications),
   ...handlersFor("Vendors", tableResource("insuranceCertificates")),
+  ...handlersFor("Vendors", tableResource("insuranceCertificateInsureds")),
+  ...handlersFor("Vendors", tableResource("requiredAdditionalInsureds")),
   ...handlersFor("Vendors", tableResource("vendorScorecards")),
   ...handlersFor("Vendors", entitlements),
 

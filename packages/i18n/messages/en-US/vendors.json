@@ -258,6 +258,35 @@
     "sponsor_asset_transition_not_allowed": "That asset move is not allowed from the current state.",
     "entitlement_delivery_immutable": "A delivery keeps its entitlement and the person who recorded it.",
     "review_decide_rpc": "Approve or return assets with the review buttons.",
-    "cross_org_reference": "That item belongs to another organization."
+    "cross_org_reference": "That item belongs to another organization.",
+    "insureds_none_required": "The organization requires no additional insureds for this project. Add them under Required insureds first.",
+    "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization."
+  },
+  "insureds": {
+    "what": "additional insureds",
+    "title": "Additional insureds",
+    "verified": "Names every additional insured the organization requires.",
+    "missing": "{count, plural, one {Misses # required additional insured.} other {Misses # required additional insureds.}}",
+    "empty": "No additional insureds recorded. Add each party the certificate names.",
+    "emptyRead": "No additional insureds recorded on this certificate.",
+    "add": "Add insured",
+    "remove": "Remove {name}",
+    "name": "Party named",
+    "nameHelp": "As the certificate prints it, for example the venue owner.",
+    "endorsement": "Endorsement",
+    "endorsements": {
+      "AdditionalInsured": "Additional Insured",
+      "PrimaryandNoncontributory": "Primary and Noncontributory",
+      "WaiverofSubrogation": "Waiver of Subrogation"
+    },
+    "requiredWhat": "required additional insureds",
+    "requiredTitle": "Required insureds",
+    "requiredSentence": "Every vendor certificate must name these parties. A project requirement adds to the organization-wide ones for vendors engaged on that project.",
+    "requiredEmpty": "No required insureds yet. Add the parties every vendor certificate must name.",
+    "requiredEmptyRead": "The organization requires no additional insureds yet.",
+    "requiredAdd": "Require insured",
+    "requiredNameHelp": "The party vendors must name, for example the venue owner.",
+    "project": "Project",
+    "everyProject": "Every project"
   }
 }

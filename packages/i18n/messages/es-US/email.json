@@ -53,6 +53,18 @@
       "approved": {
         "subject": "Factura aprobada: {title}",
         "body": "{actorName} aprobó la factura {title}."
+      },
+      "submitted": {
+        "subject": "Factura recibida: {title}",
+        "body": "{actorName} recibió su factura {title}. Siga su avance en Gateway, en Dinero, Facturas."
+      },
+      "scheduled": {
+        "subject": "Pago programado: {title}",
+        "body": "{actorName} programó un pago para su factura {title}."
+      },
+      "paid": {
+        "subject": "Factura pagada: {title}",
+        "body": "{actorName} pagó por completo su factura {title}."
       }
     },
     "incident": {

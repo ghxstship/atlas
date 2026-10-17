@@ -37,7 +37,7 @@ export async function generateMetadata({
 
 /**
  * An organization's public profile at /c/{companyHandle} (Section 4.8.2, journey 62): about, a
- * verified domain badge, capabilities by canon category, service regions, the team it shows and
+ * verified domain badge, capabilities by canon category, service regions, published case studies, the team it shows and
  * its open opportunities. Indexing is off by default.
  */
 export default async function CompanyProfilePage({ params }: PageProps<"/c/[companyHandle]">) {
@@ -116,6 +116,29 @@ export default async function CompanyProfilePage({ params }: PageProps<"/c/[comp
               .map((r) => r.label)
               .join(", ")}
           </p>
+        </Section>
+      ) : null}
+      {details("case_study").length > 0 ? (
+        <Section title={t("gateway.profile.company.caseStudies")}>
+          <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,var(--ui-gateway-aside)),1fr))] gap-12 p-0">
+            {details("case_study").map((c) => {
+              // api_public.organization_profile_details labels a case study "title: summary".
+              const split = c.label.indexOf(": ");
+              const title = split > 0 ? c.label.slice(0, split) : c.label;
+              const summary = split > 0 ? c.label.slice(split + 2) : "";
+              return (
+                <li
+                  key={c.code}
+                  className="flex flex-col gap-4 rounded-card border border-border-subtle bg-bg-raised p-16"
+                >
+                  <h3 className="m-0 text-text-14 font-semibold">{title}</h3>
+                  {summary ? (
+                    <p className="m-0 text-text-13 text-text-secondary">{summary}</p>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
         </Section>
       ) : null}
       {details("team_member").length > 0 ? (

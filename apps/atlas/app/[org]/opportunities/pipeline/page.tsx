@@ -12,6 +12,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActionForm, type FieldSpec } from "@/components/opportunities/action-form";
+import { SharedProfile } from "@/components/opportunities/shared-profile";
 import {
   Muted,
   Properties,
@@ -397,6 +398,7 @@ async function ApplicationRecord({
           <Muted>{t("pipeline.noCoverNote")}</Muted>
         )}
       </Section>
+      <SharedProfile db={db} applicationId={a.id} />
       <Section id="application-answers" title={t("pipeline.answers")}>
         {must(answers, "answers").length === 0 ? <Muted>{t("pipeline.noAnswers")}</Muted> : null}
         <dl className="m-0 flex flex-col gap-8 text-text-13">

@@ -28,6 +28,7 @@ import {
   verifyItemAction,
 } from "@/app/[org]/opportunities/actions";
 import { ActionForm } from "@/components/opportunities/action-form";
+import { EngagementInsureds } from "@/components/opportunities/insured-checks";
 import {
   Muted,
   Properties,
@@ -436,6 +437,15 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
             </li>
           ))}
         </ul>
+        <EngagementInsureds
+          db={db}
+          orgSlug={ctx.org.slug}
+          engagementId={e.id}
+          items={must(items, "onboarding")
+            .filter((i) => i.method === "Reviewer" && !i.passes)
+            .map((i) => ({ itemId: i.itemId, name: i.name }))}
+          canVerify={canVerify}
+        />
       </Section>
       <Section id="engagement-documents" title={t("engagements.documents")}>
         {must(documents, "documents").length === 0 ? (

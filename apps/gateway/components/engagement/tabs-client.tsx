@@ -12,6 +12,7 @@ import { formatDate, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { ApprovalForm, DeliverableForm } from "./forms";
+import { SponsorAssetForm } from "./sponsor-forms";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 
@@ -443,10 +444,57 @@ export async function EntitlementsTab({ view, t, locale, engagementKey }: TabPro
 }
 
 /**
- * Sponsor asset approvals. No asset-approval source table exists yet (A16, sponsor work); the
- * client-approval requests the org sends for sponsor records are the approvals a sponsor answers
- * today, so the tab shows those.
+ * Sponsor asset approvals (journey 47, migration 1133): the brand assets the org submitted for the
+ * sponsor's entitlements on this project, each with its kind, revision and review state. The
+ * sponsor approves or returns a submitted asset and resubmits a returned one; approved and
+ * canceled ones are final.
  */
-export async function AssetApprovalsTab(props: TabProps) {
-  return <ApprovalsTab {...props} />;
+export async function AssetApprovalsTab({ view, t, locale, engagementKey }: TabProps) {
+  const assets = await readView(view.ctx.db, "sponsor_assets", {
+    eq: { project_id: view.engagement.projectId },
+    order: ["due_on", "asc"],
+  });
+  if (!assets.ok) return <RegionError />;
+  if (assets.data.length === 0) {
+    return (
+      <TabEmpty
+        icon="Image"
+        sentence={t("gateway.engagement.assets.empty")}
+        actionLabel={t("gateway.engagement.messagesAction")}
+        href={tabHref(engagementKey, "engagement.messages")}
+      />
+    );
+  }
+  return (
+    <RowList
+      label={t("nav.gateway.engagementTabs.assetApprovals")}
+      items={assets.data.map((a) => {
+        const state = a.asset_state ?? "Submitted";
+        return {
+          id: a.id ?? "",
+          title: a.title ?? "",
+          meta: [
+            a.asset_kind ? t(enumLabelKey("sponsorAssetKind", a.asset_kind)) : null,
+            a.entitlement_description,
+            a.due_on
+              ? t("gateway.engagement.assets.due", { date: formatDate(locale, a.due_on) })
+              : null,
+            a.revision ? t("gateway.engagement.assets.revision", { n: a.revision }) : null,
+            a.usage_note,
+          ],
+          tag: {
+            label: a.awaiting_sponsor
+              ? t("gateway.engagement.assets.awaiting")
+              : t(enumLabelKey("reviewState", state)),
+            tone: a.awaiting_sponsor ? ("accent" as const) : toneFor(state),
+          },
+          ...((state === "Submitted" || state === "Returned") && a.id
+            ? {
+                detail: <SponsorAssetForm assetId={a.id} title={a.title ?? ""} state={state} />,
+              }
+            : {}),
+        };
+      })}
+    />
+  );
 }

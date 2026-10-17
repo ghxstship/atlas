@@ -210,7 +210,10 @@
       "expired": "Vencido",
       "prequalification": "Precalificación",
       "validTo": "Vigente hasta {date}",
-      "items": "Pasos de cumplimiento"
+      "items": "Pasos de cumplimiento",
+      "insureds": "Asegurados adicionales nombrados",
+      "noInsureds": "Este certificado no nombra asegurados adicionales registrados. Si la organización exige alguno, envíe un certificado que los nombre.",
+      "insuredLine": "{name}, {endorsement}"
     },
     "approvals": {
       "empty": "Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.",
@@ -300,7 +303,9 @@
         "subject": "Ponle un asunto a la conversación.",
         "guestName": "Escribe el nombre del invitado antes de agregarlo.",
         "plusOnes": "Los acompañantes van de 0 a 20.",
-        "settlementReason": "Escribe una nota o un motivo breve antes de responder."
+        "settlementReason": "Escribe una nota o un motivo breve antes de responder.",
+        "asset": "Elija aprobar, devolver o volver a enviar.",
+        "assetReason": "Indique qué cambiar para que la organización pueda revisar el recurso."
       },
       "advance": {
         "answer": "Tu respuesta",
@@ -391,6 +396,15 @@
         "note": "Nota",
         "reason": "Qué debe cambiar",
         "done": "Respuesta enviada. La organización ya la ve."
+      },
+      "asset": {
+        "decision": "Su respuesta",
+        "approve": "Aprobar",
+        "return": "Devolver con cambios",
+        "resubmit": "Volver a enviar",
+        "reason": "Qué cambiar",
+        "note": "Nota para la organización",
+        "done": "Respuesta enviada."
       }
     },
     "settlement": {
@@ -401,6 +415,12 @@
       "net": "Neto para ti: {amount}",
       "netUnpriced": "El neto aparece cuando cada línea tiene un monto.",
       "none": "Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."
+    },
+    "assets": {
+      "empty": "Aún no hay recursos de marca para revisar. La organización envía aquí pancartas, arte y textos para su aprobación.",
+      "due": "Se necesita el {date}",
+      "revision": "Revisión {n}",
+      "awaiting": "Espera su aprobación"
     }
   },
   "enums": {
@@ -714,6 +734,25 @@
     "travelMode": {
       "flight": "Vuelo",
       "ground": "Transporte terrestre"
+    },
+    "endorsementKind": {
+      "additionalInsured": "Asegurado adicional",
+      "primaryAndNoncontributory": "Primario y no contributivo",
+      "waiverOfSubrogation": "Renuncia de subrogación"
+    },
+    "sponsorAssetKind": {
+      "logo": "Logotipo",
+      "artwork": "Arte",
+      "copy": "Texto",
+      "video": "Video",
+      "other": "Otro"
+    },
+    "reviewState": {
+      "proposed": "Borrador",
+      "submitted": "Enviado",
+      "approved": "Aprobado",
+      "returned": "Devuelto",
+      "canceled": "Cancelado"
     }
   },
   "explore": {
@@ -844,6 +883,19 @@
         "fee": "Escribe la tarifa como número o déjala en blanco.",
         "bidLines": "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
         "slate": "Elige al menos un miembro del equipo para la propuesta."
+      },
+      "profileSections": "Compartir también de su perfil con {org}",
+      "profileSectionsHelp": "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
+      "sections": {
+        "headline": "Titular",
+        "bio": "Acerca de",
+        "pronouns": "Pronombres",
+        "location": "Ubicación",
+        "skills": "Habilidades",
+        "certifications": "Certificaciones",
+        "rates": "Tarifas",
+        "languages": "Idiomas",
+        "links": "Enlaces"
       }
     },
     "reportForm": {
@@ -863,6 +915,16 @@
       "visibility": "Ves una oportunidad solo cuando la organización la hizo visible para ti: por invitación, mediante sus grupos de talento o proveedores, para quienes ya trabajaron con ella, o para todo el mercado.",
       "filters": "Tus filtros acotan la lista; nunca la reordenan.",
       "back": "Volver a Explorar"
+    },
+    "organizations": {
+      "tab": "Organizaciones",
+      "lead": "Organizaciones que publican un perfil público: qué hacen, si están verificadas y qué tienen abierto.",
+      "searchLabel": "Buscar organizaciones",
+      "results": "{n, plural, =0 {Ninguna organización} one {# organización} other {# organizaciones}}",
+      "empty": "Ningún perfil público de organización coincide. Borre la búsqueda para ver todas las organizaciones.",
+      "emptyAction": "Volver a oportunidades",
+      "listLabel": "Organizaciones",
+      "open": "{n, plural, =0 {Sin oportunidades abiertas} one {# oportunidad abierta} other {# oportunidades abiertas}}"
     }
   },
   "home": {
@@ -902,6 +964,16 @@
       "all": "Ver todas",
       "empty": "Ahora no hay oportunidades abiertas para ti. Crea una alerta y te avisaremos cuando haya una.",
       "emptyAction": "Crear alerta"
+    },
+    "updates": {
+      "title": "Novedades",
+      "new": "Nuevo",
+      "kinds": {
+        "invoiceSubmitted": "{orgName} recibió la factura {title}",
+        "invoiceApproved": "{orgName} aprobó la factura {title}",
+        "invoiceScheduled": "{orgName} programó un pago para la factura {title}",
+        "invoicePaid": "{orgName} pagó la factura {title}"
+      }
     }
   },
   "messages": {
@@ -1056,7 +1128,8 @@
       "verifiedDomain": "Dominio verificado",
       "capabilities": "Capacidades",
       "regions": "Regiones de servicio",
-      "opportunities": "Oportunidades abiertas"
+      "opportunities": "Oportunidades abiertas",
+      "caseStudies": "Casos de estudio"
     },
     "public": {
       "certifications": "Certificaciones",
@@ -1287,6 +1360,30 @@
       "toCompanyProfile": "Abrir perfil de empresa",
       "dangerZone": "Transferir la propiedad o cerrar una cuenta de empresa se hace con el soporte de la plataforma para conservar los registros que exige la ley. El último propietario no puede salir.",
       "toTeam": "Abrir equipo"
+    },
+    "notifications": {
+      "formLabel": "Preferencias de notificaciones",
+      "save": "Guardar preferencias",
+      "saved": "Guardado. Las nuevas notificaciones siguen estas opciones.",
+      "channels": {
+        "Email": "Correo electrónico",
+        "Push": "Aviso en Compass"
+      },
+      "categories": {
+        "finance": {
+          "label": "Facturas y pagos",
+          "help": "Cada paso de sus facturas: recibida, aprobada, pago programado y pagada. Las novedades siempre aparecen en Inicio."
+        }
+      },
+      "errors": {
+        "denied": "No se pudieron guardar estas preferencias en su cuenta. Inicie sesión de nuevo e intente otra vez.",
+        "unexpected": "Algo salió mal al guardar sus preferencias. Inténtelo de nuevo en un momento."
+      }
+    },
+    "deleteAccount": {
+      "confirmTitle": "¿Eliminar su cuenta ahora?",
+      "confirmBody": "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
+      "cancel": "Conservar mi cuenta"
     }
   },
   "shell": {

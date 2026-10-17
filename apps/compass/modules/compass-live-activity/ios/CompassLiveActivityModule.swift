@@ -103,6 +103,16 @@ public class CompassLiveActivityModule: Module {
       ClockPunchQueue.defaults?.removeObject(forKey: ClockPunchQueue.contextKey)
     }
 
+    /// Stores what the Clock In App Shortcut needs for the next clock in (ClockInIntent.swift reads it as
+    /// ClockInPrepared): the punch context, the activity labels and the replies, as JSON. Empty clears it.
+    Function("prepareClockIn") { (json: String) in
+      if json.isEmpty {
+        ClockPunchQueue.defaults?.removeObject(forKey: "compass.clock.next")
+      } else {
+        ClockPunchQueue.defaults?.set(Data(json.utf8), forKey: "compass.clock.next")
+      }
+    }
+
     /// The punches queued from the lock screen, oldest first. They stay queued until acknowledged.
     Function("peekQueue") { () -> [[String: Any]] in
       ClockPunchQueue.peek()

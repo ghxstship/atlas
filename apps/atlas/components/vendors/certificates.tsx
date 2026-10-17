@@ -15,6 +15,7 @@ import {
 import { CertificateExtraction } from "@/components/aurora/certificate-extraction";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
+import { CertificateInsureds, RequiredInsureds } from "@/components/vendors/insureds";
 import { emptyFor } from "@/components/collection-kit/empty";
 import {
   ActionButton,
@@ -217,6 +218,7 @@ export async function InsuranceCertificates({
         properties={properties(selected)}
         actions={controls(selected)}
       >
+        <CertificateInsureds ctx={ctx} certificateId={selected.id} />
         {editForm(selected)}
         <CollabPanels ctx={ctx} table="app.insurance_certificates" id={selected.id} />
       </RecordPage>
@@ -277,7 +279,15 @@ export async function InsuranceCertificates({
         fullHref={withQuery(path, state, { peek: selected.id, full: "1" })}
         properties={properties(selected)}
         actions={controls(selected)}
-      />
+      >
+        <CertificateInsureds ctx={ctx} certificateId={selected.id} />
+      </PeekDrawer>
+    );
+  } else if (search["required"] === "1") {
+    drawer = (
+      <FormDrawer title={t("insureds.requiredTitle")} closeHref={withQuery(path, state)}>
+        <RequiredInsureds ctx={ctx} />
+      </FormDrawer>
     );
   }
 
@@ -297,11 +307,16 @@ export async function InsuranceCertificates({
       ]}
       rows={rows}
       actions={
-        canWrite ? (
-          <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
-            {t("certificates.create")}
+        <>
+          <KitLink href={withQuery(path, state, { required: "1" })}>
+            {t("insureds.requiredTitle")}
           </KitLink>
-        ) : null
+          {canWrite ? (
+            <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">
+              {t("certificates.create")}
+            </KitLink>
+          ) : null}
+        </>
       }
       empty={emptyFor(t, canWrite, withQuery(path, state, { create: "1" }), "certificates")}
     >

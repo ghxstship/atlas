@@ -45770,6 +45770,274 @@
         "required": ["outcome"],
         "description": "Decision on a requested guest."
       },
+      "InsuranceCertificateInsuredPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InsuranceCertificateInsured" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "InsuranceCertificateInsured": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the insurance certificate insured.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "certificate_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the certificate naming the party.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insured_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Party named, as printed.",
+            "example": "Example Venue Owner LLC"
+          },
+          "endorsement_kind": {
+            "type": "string",
+            "enum": ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"],
+            "description": "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+            "example": "Additional Insured"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "certificate_id",
+          "insured_name",
+          "endorsement_kind"
+        ],
+        "description": "A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409)."
+      },
+      "InsuranceCertificateInsuredCreate": {
+        "type": "object",
+        "properties": {
+          "certificate_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the certificate naming the party.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insured_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Party named, as printed.",
+            "example": "Example Venue Owner LLC"
+          },
+          "endorsement_kind": {
+            "type": "string",
+            "enum": ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"],
+            "description": "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+            "example": "Additional Insured"
+          }
+        },
+        "required": ["certificate_id", "insured_name", "endorsement_kind"],
+        "description": "Fields accepted when creating a InsuranceCertificateInsured."
+      },
+      "InsuranceCertificateInsuredUpdate": {
+        "type": "object",
+        "properties": {
+          "insured_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Party named, as printed.",
+            "example": "Example Venue Owner LLC"
+          },
+          "endorsement_kind": {
+            "type": "string",
+            "enum": ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"],
+            "description": "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+            "example": "Additional Insured"
+          }
+        },
+        "description": "Fields accepted when updating a InsuranceCertificateInsured. Omitted fields are unchanged."
+      },
+      "RequiredAdditionalInsuredPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/RequiredAdditionalInsured" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "RequiredAdditionalInsured": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the required additional insured.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the requirement adds to; null for every project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insured_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Party that must be named.",
+            "example": "Example Venue Owner LLC"
+          },
+          "endorsement_kind": {
+            "type": "string",
+            "enum": ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"],
+            "description": "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+            "example": "Additional Insured"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "insured_name",
+          "endorsement_kind"
+        ],
+        "description": "A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them."
+      },
+      "RequiredAdditionalInsuredCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project the requirement adds to; null for every project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "insured_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Party that must be named.",
+            "example": "Example Venue Owner LLC"
+          },
+          "endorsement_kind": {
+            "type": "string",
+            "enum": ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"],
+            "description": "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+            "example": "Additional Insured"
+          }
+        },
+        "required": ["insured_name", "endorsement_kind"],
+        "description": "Fields accepted when creating a RequiredAdditionalInsured."
+      },
+      "RequiredAdditionalInsuredUpdate": {
+        "type": "object",
+        "properties": {
+          "insured_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Party that must be named.",
+            "example": "Example Venue Owner LLC"
+          },
+          "endorsement_kind": {
+            "type": "string",
+            "enum": ["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"],
+            "description": "Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.",
+            "example": "Additional Insured"
+          }
+        },
+        "description": "Fields accepted when updating a RequiredAdditionalInsured. Omitted fields are unchanged."
+      },
       "AuroraStatus": {
         "type": "object",
         "properties": {
@@ -129375,6 +129643,536 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/insurance-certificate-insureds": {
+      "get": {
+        "operationId": "insuranceCertificateInsureds.list",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.insurance_certificate_insureds",
+        "x-xos-capability": "vendors.vendor.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List insurance certificate insured rows",
+        "description": "A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns a cursor page of insurance certificate insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of insurance certificate insured rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "certificate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "insured_name": "Example Venue Owner LLC",
+                      "endorsement_kind": "Additional Insured"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/InsuranceCertificateInsuredPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "insuranceCertificateInsureds.create",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.insurance_certificate_insureds",
+        "x-xos-capability": "vendors.coi.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Create an insurance certificate insured",
+        "description": "A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Creates an insurance certificate insured. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "certificate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "insured_name": "Example Venue Owner LLC",
+                "endorsement_kind": "Additional Insured"
+              },
+              "schema": { "$ref": "#/components/schemas/InsuranceCertificateInsuredCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created insurance certificate insured.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "certificate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insured_name": "Example Venue Owner LLC",
+                  "endorsement_kind": "Additional Insured"
+                },
+                "schema": { "$ref": "#/components/schemas/InsuranceCertificateInsured" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/insurance-certificate-insureds/{id}": {
+      "get": {
+        "operationId": "insuranceCertificateInsureds.get",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.insurance_certificate_insureds",
+        "x-xos-capability": "vendors.vendor.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Get an insurance certificate insured",
+        "description": "A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Returns one insurance certificate insured with its `ETag`. A insurance certificate insured the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the insurance certificate insured.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the insurance certificate insured.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The insurance certificate insured.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "certificate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insured_name": "Example Venue Owner LLC",
+                  "endorsement_kind": "Additional Insured"
+                },
+                "schema": { "$ref": "#/components/schemas/InsuranceCertificateInsured" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "insuranceCertificateInsureds.update",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.insurance_certificate_insureds",
+        "x-xos-capability": "vendors.coi.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Update an insurance certificate insured",
+        "description": "A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the insurance certificate insured.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the insurance certificate insured.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "insured_name": "Example Venue Owner LLC",
+                "endorsement_kind": "Additional Insured"
+              },
+              "schema": { "$ref": "#/components/schemas/InsuranceCertificateInsuredUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated insurance certificate insured.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "certificate_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insured_name": "Example Venue Owner LLC",
+                  "endorsement_kind": "Additional Insured"
+                },
+                "schema": { "$ref": "#/components/schemas/InsuranceCertificateInsured" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "insuranceCertificateInsureds.delete",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.insurance_certificate_insureds",
+        "x-xos-capability": "vendors.coi.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Delete an insurance certificate insured",
+        "description": "A party a certificate of insurance names, with the endorsement it grants (1130). A name appears once per endorsement on a certificate, ignoring case and spacing (409). Soft-deletes the insurance certificate insured: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the insurance certificate insured.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the insurance certificate insured.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The insurance certificate insured moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/required-additional-insureds": {
+      "get": {
+        "operationId": "requiredAdditionalInsureds.list",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.required_additional_insureds",
+        "x-xos-capability": "vendors.vendor.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List required additional insured rows",
+        "description": "A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns a cursor page of required additional insured rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of required additional insured rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "insured_name": "Example Venue Owner LLC",
+                      "endorsement_kind": "Additional Insured"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/RequiredAdditionalInsuredPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "requiredAdditionalInsureds.create",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.required_additional_insureds",
+        "x-xos-capability": "vendors.coi.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Create a required additional insured",
+        "description": "A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Creates a required additional insured. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "insured_name": "Example Venue Owner LLC",
+                "endorsement_kind": "Additional Insured"
+              },
+              "schema": { "$ref": "#/components/schemas/RequiredAdditionalInsuredCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created required additional insured.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insured_name": "Example Venue Owner LLC",
+                  "endorsement_kind": "Additional Insured"
+                },
+                "schema": { "$ref": "#/components/schemas/RequiredAdditionalInsured" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/required-additional-insureds/{id}": {
+      "get": {
+        "operationId": "requiredAdditionalInsureds.get",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.required_additional_insureds",
+        "x-xos-capability": "vendors.vendor.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Get a required additional insured",
+        "description": "A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Returns one required additional insured with its `ETag`. A required additional insured the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the required additional insured.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the required additional insured.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The required additional insured.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insured_name": "Example Venue Owner LLC",
+                  "endorsement_kind": "Additional Insured"
+                },
+                "schema": { "$ref": "#/components/schemas/RequiredAdditionalInsured" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "requiredAdditionalInsureds.update",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.required_additional_insureds",
+        "x-xos-capability": "vendors.coi.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Update a required additional insured",
+        "description": "A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the required additional insured.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the required additional insured.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "insured_name": "Example Venue Owner LLC",
+                "endorsement_kind": "Additional Insured"
+              },
+              "schema": { "$ref": "#/components/schemas/RequiredAdditionalInsuredUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated required additional insured.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "insured_name": "Example Venue Owner LLC",
+                  "endorsement_kind": "Additional Insured"
+                },
+                "schema": { "$ref": "#/components/schemas/RequiredAdditionalInsured" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "requiredAdditionalInsureds.delete",
+        "tags": ["Vendors"],
+        "x-xos-table": "app.required_additional_insureds",
+        "x-xos-capability": "vendors.coi.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
+        "summary": "Delete a required additional insured",
+        "description": "A party the org requires its vendors' certificates to name (1130): org-wide when project_id is null, or for vendors engaged on one project as well. app.verify_onboarding_insureds checks an engagement against them. Soft-deletes the required additional insured: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the required additional insured.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the required additional insured.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The required additional insured moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }

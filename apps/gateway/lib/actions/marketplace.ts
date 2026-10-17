@@ -15,6 +15,11 @@ import {
   submitSlate,
   APP_ENUMS,
 } from "@xos/data/gateway";
+import {
+  SHAREABLE_SECTIONS,
+  shareProfileSections,
+  type ProfileSection,
+} from "@xos/data/profile-sharing";
 import { z } from "zod";
 import { outcomeFor, toAction, type ActionResult } from "@/lib/action-result";
 import { parseMoneyInput } from "@/lib/format";
@@ -101,6 +106,19 @@ export async function applyAction(_: ApplyState, form: FormData): Promise<ApplyS
     });
     if (!share.ok) return { outcome: outcomeFor(share.error) };
     profileShareId = share.data.profileShareId;
+  }
+  // Chosen profile sections join the same share, read from the person's own profile (1132).
+  const sections = strings(form, "share_section").filter((s): s is ProfileSection =>
+    (SHAREABLE_SECTIONS as readonly string[]).includes(s),
+  );
+  if (sections.length > 0 && mode === "person") {
+    const shared = await shareProfileSections(ctx.db, {
+      orgId: opp.orgId,
+      profileShareId,
+      sections,
+    });
+    if (!shared.ok) return { outcome: outcomeFor(shared.error) };
+    profileShareId = shared.data.profileShareId;
   }
 
   const asAccount = account !== null && (mode === "bid" || mode === "slate");

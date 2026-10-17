@@ -258,6 +258,35 @@
     "sponsor_asset_transition_not_allowed": "Ese cambio del recurso no se permite desde el estado actual.",
     "entitlement_delivery_immutable": "Una entrega conserva su derecho y a la persona que la registró.",
     "review_decide_rpc": "Apruebe o devuelva recursos con los botones de revisión.",
-    "cross_org_reference": "Ese elemento pertenece a otra organización."
+    "cross_org_reference": "Ese elemento pertenece a otra organización.",
+    "insureds_none_required": "La organización no exige asegurados adicionales para este proyecto. Agréguelos primero en Asegurados exigidos.",
+    "insureds_vendor_only": "Los asegurados adicionales se verifican para proveedores. Esta parte no es proveedor de la organización."
+  },
+  "insureds": {
+    "what": "asegurados adicionales",
+    "title": "Asegurados adicionales",
+    "verified": "Nombra a todos los asegurados adicionales que exige la organización.",
+    "missing": "{count, plural, one {Le falta # asegurado adicional exigido.} other {Le faltan # asegurados adicionales exigidos.}}",
+    "empty": "No hay asegurados adicionales registrados. Agregue cada parte que nombra el certificado.",
+    "emptyRead": "Este certificado no tiene asegurados adicionales registrados.",
+    "add": "Agregar asegurado",
+    "remove": "Quitar a {name}",
+    "name": "Parte nombrada",
+    "nameHelp": "Tal como la imprime el certificado, por ejemplo el propietario del recinto.",
+    "endorsement": "Endoso",
+    "endorsements": {
+      "AdditionalInsured": "Asegurado adicional",
+      "PrimaryandNoncontributory": "Primario y no contributivo",
+      "WaiverofSubrogation": "Renuncia de subrogación"
+    },
+    "requiredWhat": "asegurados adicionales exigidos",
+    "requiredTitle": "Asegurados exigidos",
+    "requiredSentence": "Todo certificado de proveedor debe nombrar a estas partes. Un requisito de proyecto se suma a los de toda la organización para los proveedores contratados en ese proyecto.",
+    "requiredEmpty": "Aún no hay asegurados exigidos. Agregue las partes que todo certificado de proveedor debe nombrar.",
+    "requiredEmptyRead": "La organización aún no exige asegurados adicionales.",
+    "requiredAdd": "Exigir asegurado",
+    "requiredNameHelp": "La parte que los proveedores deben nombrar, por ejemplo el propietario del recinto.",
+    "project": "Proyecto",
+    "everyProject": "Todos los proyectos"
   }
 }

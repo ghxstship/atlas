@@ -386,6 +386,11 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
     listOnboardingItems(view.ctx.db, view.engagement.id),
   ]);
   if (!insurance.ok || !prequal.ok || !items.ok) return <RegionError />;
+  const insureds = await readView(view.ctx.db, "vendor_certificate_insureds", {
+    in: ["certificate_id", insurance.data.flatMap((c) => (c.id ? [c.id] : []))],
+    order: ["insured_name", "asc"],
+  });
+  if (!insureds.ok) return <RegionError />;
   const compliance = items.data.filter(
     (i) => i.kind === "Document Upload" || i.kind === "Certification",
   );
@@ -440,6 +445,18 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
               tag: c.is_current
                 ? { label: t("gateway.engagement.compliance.current"), tone: "success" as const }
                 : { label: t("gateway.engagement.compliance.expired"), tone: "danger" as const },
+              detail: (
+                <CertificateInsureds
+                  t={t}
+                  names={insureds.data
+                    .filter((n) => n.certificate_id === c.id)
+                    .map((n) => ({
+                      id: n.id ?? "",
+                      name: n.insured_name ?? "",
+                      endorsement: t(enumLabelKey("endorsementKind", n.endorsement_kind ?? "")),
+                    }))}
+                />
+              ),
             }))}
           />
         )}
@@ -481,6 +498,35 @@ export async function ComplianceTab({ view, t, locale, engagementKey }: TabProps
           </ul>
         </Section>
       ) : null}
+    </div>
+  );
+}
+
+/** The parties a certificate on file names (finding A38-001), as the org recorded them. */
+function CertificateInsureds({
+  t,
+  names,
+}: {
+  t: TabProps["t"];
+  names: readonly { id: string; name: string; endorsement: string }[];
+}) {
+  if (names.length === 0) {
+    return (
+      <p className="m-0 text-text-13 text-text-secondary">
+        {t("gateway.engagement.compliance.noInsureds")}
+      </p>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <span className="text-text-12 font-medium">
+        {t("gateway.engagement.compliance.insureds")}
+      </span>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0 text-text-13">
+        {names.map((n) => (
+          <li key={n.id}>{t("gateway.engagement.compliance.insuredLine", n)}</li>
+        ))}
+      </ul>
     </div>
   );
 }

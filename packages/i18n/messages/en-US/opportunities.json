@@ -178,8 +178,11 @@
       "XOS_ENG_5": "The overtime rule is below the legal minimum here. Choose a rate card that meets it.",
       "XOS_ENG_6": "Your organization type does not permit that worker classification.",
       "plan_limit_exceeded": "Your plan's monthly limit of external engagements is reached. Upgrade or wait for next month.",
-      "transition_reason_required": "Give a reason for the change."
-    }
+      "transition_reason_required": "Give a reason for the change.",
+      "insureds_none_required": "The organization requires no additional insureds for this project. Add them under Vendors, Insurance certificates, Required insureds.",
+      "insureds_vendor_only": "Additional insureds are checked for vendors. This party is not a vendor of the organization."
+    },
+    "insuredsMissing": "Recorded as failed. No current certificate names: {rule}. Ask the vendor for an updated certificate."
   },
   "requisitions": {
     "title": "Requisitions",
@@ -272,7 +275,36 @@
     "unpaid": "Unpaid",
     "createEngagement": "Create engagement",
     "engaged": "Engagement created. Its onboarding packet is ready.",
-    "engageNeedsWrite": "Someone with engagement write access creates the engagement."
+    "engageNeedsWrite": "Someone with engagement write access creates the engagement.",
+    "shared": {
+      "title": "Shared with you",
+      "none": "The applicant shared no profile fields with your organization.",
+      "loadFailed": "What the applicant shared could not be loaded. Reload the page.",
+      "sharedOn": "Shared when applying, {date}. This is the snapshot the applicant consented to.",
+      "revoked": "Shared {date}, since revoked. Your organization keeps this snapshot only as the law requires.",
+      "empty": "Shared empty",
+      "rate": "{amount} per {unit}",
+      "units": {
+        "Hour": "hour",
+        "Day": "day",
+        "Week": "week",
+        "Project": "project"
+      },
+      "fields": {
+        "fullName": "Name",
+        "email": "Email",
+        "companyName": "Company",
+        "headline": "Headline",
+        "bio": "About",
+        "pronouns": "Pronouns",
+        "location": "Location",
+        "skills": "Skills",
+        "certifications": "Certifications",
+        "rates": "Rate",
+        "languages": "Languages",
+        "links": "Links"
+      }
+    }
   },
   "pools": {
     "title": "Pools",
@@ -620,5 +652,18 @@
     "misleadingInformation": "Misleading Information",
     "missingPayRange": "Missing Pay Range",
     "safety": "Safety"
+  },
+  "insureds": {
+    "title": "Additional insureds",
+    "loadFailed": "The additional insureds could not be checked. Reload the page.",
+    "named": "Named on a current certificate",
+    "missing": "Missing",
+    "verify": "Check additional insureds for {item}",
+    "verified": "Every required insured is named. The item passes.",
+    "endorsements": {
+      "AdditionalInsured": "Additional Insured",
+      "PrimaryandNoncontributory": "Primary and Noncontributory",
+      "WaiverofSubrogation": "Waiver of Subrogation"
+    }
   }
 }

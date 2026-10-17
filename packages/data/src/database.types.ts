@@ -2198,6 +2198,48 @@ export type Database = {
           },
         ];
       };
+      sponsor_assets: {
+        Row: {
+          account_id: string | null;
+          asset_kind: Database["app"]["Enums"]["sponsor_asset_kind"] | null;
+          asset_state: Database["app"]["Enums"]["review_state"] | null;
+          awaiting_sponsor: boolean | null;
+          decided_at: string | null;
+          due_on: string | null;
+          entitlement_description: string | null;
+          id: string | null;
+          project_id: string | null;
+          project_name: string | null;
+          revision: number | null;
+          sponsor_entitlement_id: string | null;
+          title: string | null;
+          usage_note: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "sponsor_assets_sponsor_entitlement_id_fkey";
+            columns: ["sponsor_entitlement_id"];
+            isOneToOne: false;
+            referencedRelation: "sponsor_entitlements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sponsor_entitlements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sponsor_entitlements: {
         Row: {
           account_id: string | null;
@@ -2404,6 +2446,40 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "projects";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      vendor_certificate_insureds: {
+        Row: {
+          account_id: string | null;
+          certificate_id: string | null;
+          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"] | null;
+          id: string | null;
+          insured_name: string | null;
+          org_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "counterparties_organization_id_fkey";
+            columns: ["account_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
+          },
+          {
+            foreignKeyName: "insurance_certificate_insureds_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "vendor_insurance_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "my_accounts";
+            referencedColumns: ["account_id"];
           },
         ];
       };
@@ -5676,6 +5752,13 @@ export type Database = {
             foreignKeyName: "asset_custody_custodian_engagement_id_fkey";
             columns: ["custodian_engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "asset_custody_custodian_engagement_id_fkey";
+            columns: ["custodian_engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -6987,6 +7070,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "background_checks_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -9372,6 +9462,13 @@ export type Database = {
             foreignKeyName: "client_approval_requests_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "client_approval_requests_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -9518,6 +9615,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "clock_punches_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -10812,6 +10916,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "credentials_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -12565,6 +12676,13 @@ export type Database = {
             foreignKeyName: "dock_slots_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "dock_slots_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -13260,6 +13378,13 @@ export type Database = {
             foreignKeyName: "engagement_cues_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_cues_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -13372,6 +13497,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_deliverables_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -13670,6 +13802,13 @@ export type Database = {
             foreignKeyName: "engagement_documents_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_documents_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -13835,6 +13974,13 @@ export type Database = {
             foreignKeyName: "engagement_state_transitions_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_state_transitions_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -13909,6 +14055,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "engagement_threads_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -16887,6 +17040,13 @@ export type Database = {
             foreignKeyName: "guest_list_entries_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "guest_list_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -19319,6 +19479,82 @@ export type Database = {
           },
         ];
       };
+      insurance_certificate_insureds: {
+        Row: {
+          certificate_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"];
+          id: string;
+          insured_name: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          certificate_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          endorsement_kind?: Database["app"]["Enums"]["endorsement_kind"];
+          id?: string;
+          insured_name: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          certificate_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          endorsement_kind?: Database["app"]["Enums"]["endorsement_kind"];
+          id?: string;
+          insured_name?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "insurance_certificate_insureds_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "insurance_certificate_checks";
+            referencedColumns: ["certificate_id"];
+          },
+          {
+            foreignKeyName: "insurance_certificate_insureds_certificate_id_fkey";
+            columns: ["certificate_id"];
+            isOneToOne: false;
+            referencedRelation: "insurance_certificates";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificate_insureds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificate_insureds_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificate_insureds_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       insurance_certificates: {
         Row: {
           coverage_limit_minor: number | null;
@@ -19403,6 +19639,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
           },
           {
             foreignKeyName: "insurance_certificates_vendor_id_fkey";
@@ -24071,6 +24314,13 @@ export type Database = {
             foreignKeyName: "onboarding_items_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "onboarding_items_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -27336,6 +27586,13 @@ export type Database = {
             foreignKeyName: "per_diems_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "per_diems_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -27709,6 +27966,75 @@ export type Database = {
           },
           {
             foreignKeyName: "person_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      person_notification_preferences: {
+        Row: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          enabled: boolean;
+          id: string;
+          person_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled: boolean;
+          id?: string;
+          person_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          category_code?: string;
+          channel?: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled?: boolean;
+          id?: string;
+          person_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_notification_preferences_category_code_fkey";
+            columns: ["category_code"];
+            isOneToOne: false;
+            referencedRelation: "notification_categories";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "person_notification_preferences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_notification_preferences_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_notification_preferences_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -28862,6 +29188,13 @@ export type Database = {
             foreignKeyName: "prequalifications_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "prequalifications_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -29217,6 +29550,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "profile_shares_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -30001,6 +30341,13 @@ export type Database = {
             foreignKeyName: "purchase_orders_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "purchase_orders_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -30480,6 +30827,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "ratings_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -34713,6 +35067,96 @@ export type Database = {
           },
         ];
       };
+      required_additional_insureds: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"];
+          id: string;
+          insured_name: string;
+          org_id: string;
+          project_id: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          endorsement_kind?: Database["app"]["Enums"]["endorsement_kind"];
+          id?: string;
+          insured_name: string;
+          org_id: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          endorsement_kind?: Database["app"]["Enums"]["endorsement_kind"];
+          id?: string;
+          insured_name?: string;
+          org_id?: string;
+          project_id?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "required_additional_insureds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "required_additional_insureds_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "required_additional_insureds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "required_additional_insureds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "required_additional_insureds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "required_additional_insureds_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "required_additional_insureds_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       requisition_state_transitions: {
         Row: {
           created_at: string;
@@ -35034,6 +35478,13 @@ export type Database = {
             foreignKeyName: "rfq_invitations_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "rfq_invitations_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -35193,6 +35644,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "rfq_responses_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
           },
           {
             foreignKeyName: "rfq_responses_vendor_id_fkey";
@@ -37369,6 +37827,13 @@ export type Database = {
             foreignKeyName: "self_billing_agreements_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "self_billing_agreements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -37812,6 +38277,13 @@ export type Database = {
             foreignKeyName: "settlements_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "settlements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -37929,6 +38401,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "shared_reports_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -38264,6 +38743,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "shifts_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -40159,6 +40645,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "submittals_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
           },
           {
             foreignKeyName: "submittals_vendor_id_fkey";
@@ -42609,6 +43102,13 @@ export type Database = {
             foreignKeyName: "time_entries_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "time_entries_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -43285,6 +43785,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "timesheets_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -44245,6 +44752,13 @@ export type Database = {
             foreignKeyName: "travel_segments_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "travel_segments_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -44698,6 +45212,13 @@ export type Database = {
             foreignKeyName: "vendor_bank_accounts_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_accounts_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -44788,6 +45309,13 @@ export type Database = {
             foreignKeyName: "vendor_bank_detail_changes_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_detail_changes_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -44856,6 +45384,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "vendor_classes";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_class_assignments_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
           },
           {
             foreignKeyName: "vendor_class_assignments_vendor_id_fkey";
@@ -45018,6 +45553,13 @@ export type Database = {
             foreignKeyName: "vendor_products_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "vendor_products_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -45127,6 +45669,13 @@ export type Database = {
             foreignKeyName: "vendor_scorecards_vendor_id_fkey";
             columns: ["vendor_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "vendor_scorecards_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
             referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
@@ -45194,6 +45743,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_state_transitions_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
           },
           {
             foreignKeyName: "vendor_state_transitions_vendor_id_fkey";
@@ -47941,6 +48497,57 @@ export type Database = {
           },
         ];
       };
+      engagement_insured_checks: {
+        Row: {
+          endorsement_kind: Database["app"]["Enums"]["endorsement_kind"] | null;
+          engagement_id: string | null;
+          insured_name: string | null;
+          named_on_certificate_id: string | null;
+          org_id: string | null;
+          project_id: string | null;
+          project_specific: boolean | null;
+          required_insured_id: string | null;
+          vendor_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "engagements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "engagements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       engagement_resolved: {
         Row: {
           arrangement: string | null;
@@ -48267,6 +48874,42 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      insurance_certificate_checks: {
+        Row: {
+          certificate_id: string | null;
+          insured_count: number | null;
+          insureds_verified: boolean | null;
+          is_current: boolean | null;
+          missing_count: number | null;
+          org_id: string | null;
+          required_count: number | null;
+          vendor_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "insurance_certificates_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
+          },
+          {
+            foreignKeyName: "insurance_certificates_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "vendors";
             referencedColumns: ["id"];
           },
         ];
@@ -48806,6 +49449,13 @@ export type Database = {
             columns: ["engagement_id"];
             isOneToOne: false;
             referencedRelation: "engagement_board";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "onboarding_items_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
             referencedColumns: ["engagement_id"];
           },
           {
@@ -49866,6 +50516,13 @@ export type Database = {
             foreignKeyName: "settlements_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "settlements_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -50086,6 +50743,13 @@ export type Database = {
             foreignKeyName: "timesheets_engagement_id_fkey";
             columns: ["engagement_id"];
             isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["engagement_id"];
+          },
+          {
+            foreignKeyName: "timesheets_engagement_id_fkey";
+            columns: ["engagement_id"];
+            isOneToOne: false;
             referencedRelation: "engagement_resolved";
             referencedColumns: ["engagement_id"];
           },
@@ -50190,6 +50854,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendor_bank_accounts_vendor_id_fkey";
+            columns: ["vendor_id"];
+            isOneToOne: false;
+            referencedRelation: "engagement_insured_checks";
+            referencedColumns: ["vendor_id"];
           },
           {
             foreignKeyName: "vendor_bank_accounts_vendor_id_fkey";
@@ -51110,6 +51781,19 @@ export type Database = {
           valid_to: string;
         }[];
       };
+      explore_organizations: {
+        Args: { p_limit?: number; p_query?: string };
+        Returns: {
+          about: string;
+          handle: string;
+          indexable: boolean;
+          logo_path: string;
+          name: string;
+          open_opportunities: number;
+          verified: boolean;
+          verified_domain: string;
+        }[];
+      };
       fail_integration_sync: {
         Args: {
           p_connection_error?: boolean;
@@ -51970,6 +52654,15 @@ export type Database = {
           value_type: Database["app"]["Enums"]["setting_value_type"];
         }[];
       };
+      respond_sponsor_asset: {
+        Args: {
+          p_expected: Database["app"]["Enums"]["review_state"];
+          p_next: Database["app"]["Enums"]["review_state"];
+          p_reason: string;
+          p_sponsor_asset_id: string;
+        };
+        Returns: string;
+      };
       respond_to_settlement: {
         Args: { p_accept: boolean; p_reason: string; p_settlement_id: string };
         Returns: string;
@@ -52132,6 +52825,14 @@ export type Database = {
           p_field_keys: string[];
           p_field_values: string[];
           p_org_id: string;
+        };
+        Returns: string;
+      };
+      share_profile_sections: {
+        Args: {
+          p_org_id: string;
+          p_profile_share_id: string;
+          p_sections: Database["app"]["Enums"]["profile_section"][];
         };
         Returns: string;
       };
@@ -52648,6 +53349,7 @@ export type Database = {
         };
         Returns: number;
       };
+      verify_onboarding_insureds: { Args: { p_item_id: string }; Returns: Json };
       verify_onboarding_item_automatically: {
         Args: {
           p_expires_on?: string;
@@ -52791,6 +53493,8 @@ export type Database = {
         | "Completed"
         | "Refused"
         | "Withdrawn";
+      endorsement_kind:
+        "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
       engagement_document_kind:
         | "Offer"
         | "Agreement"
@@ -59070,6 +59774,11 @@ export const Constants = {
         "Completed",
         "Refused",
         "Withdrawn",
+      ],
+      endorsement_kind: [
+        "Additional Insured",
+        "Primary and Noncontributory",
+        "Waiver of Subrogation",
       ],
       engagement_document_kind: [
         "Offer",
