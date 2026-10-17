@@ -246,6 +246,9 @@
       "lockScreenFailed": "The lock screen Live Activity did not start: {reason}. The card here keeps your clock.",
       "drainFailed": "Punches from the lock screen did not reach the upload queue: {reason}. Open Compass again to retry.",
       "drainDropped": "Punches from the lock screen that had no shift attached: {count}. They were not recorded; punch here instead."
+    },
+    "shortcut": {
+      "clockedIn": "Clocked in at {project}. Break and Clock Out are on your lock screen."
     }
   },
   "schedule": {

@@ -11,6 +11,7 @@ import type { ClockSnapshot, PunchContext } from "../domain/clock";
 import {
   activityChanged,
   activityContent,
+  clockInPayload,
   queuedPunchMutation,
   serializeContext,
   type ActivityContent,
@@ -30,9 +31,20 @@ export function useClockLiveActivity(
   snapshot: ClockSnapshot,
   context: PunchContext | null,
   labels: ClockLabels,
+  replies: { readonly clockedIn: string; readonly alreadyIn: string },
 ): string | null {
   const shown = useRef<ActivityContent | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  // While clocked out, keep the Clock In App Shortcut's payload current (Section 11.13), so Siri and the
+  // Action Button punch against the shift Today shows. While on shift the stored payload stays.
+  const payload = clockInPayload(snapshot, context, labels, replies);
+  useEffect(() => {
+    const native = CompassLiveActivity;
+    if (!native || payload === null) return;
+    Promise.resolve()
+      .then(() => native.prepareClockIn(payload))
+      .catch((error: unknown) => setFailure(message(error)));
+  }, [payload]);
   const next = activityContent(snapshot, Date.now());
   const contextJson = context ? serializeContext(context) : null;
   const labelsJson = JSON.stringify(labels);

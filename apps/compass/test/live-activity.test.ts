@@ -4,6 +4,7 @@ import type { ClockSnapshot } from "../src/domain/clock";
 import {
   activityChanged,
   activityContent,
+  clockInPayload,
   parseContext,
   queuedPunchMutation,
   serializeContext,
@@ -161,5 +162,62 @@ describe("native declarations", () => {
     expect(block("../targets/ClockActivity/_shared/ClockActivityAttributes.swift")).toContain(
       'appGroup = "group.pro.ghxstship.compass"',
     );
+  });
+});
+
+describe("Clock In App Shortcut", () => {
+  const labels = {
+    projectName: "Summer Series",
+    onShift: "On Shift",
+    onBreak: "On Break",
+    since: "Since",
+    worked: "Worked",
+    startBreak: "Start Break",
+    endBreak: "End Break",
+    clockOut: "Clock Out",
+  };
+  const replies = { clockedIn: "Clocked in at Summer Series.", alreadyIn: "Already in." };
+  const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf8");
+  const swift = read("../targets/ClockActivity/_shared/ClockInIntent.swift");
+  const moduleSwift = read("../modules/compass-live-activity/ios/CompassLiveActivityModule.swift");
+
+  it("prepares the next clock in only while clocked out with a context", () => {
+    const payload = clockInPayload(snap({}), ctx, labels, replies);
+    expect(JSON.parse(payload ?? "{}")).toEqual({
+      context: serializeContext(ctx),
+      labels,
+      clockedIn: replies.clockedIn,
+      alreadyIn: replies.alreadyIn,
+    });
+    expect(clockInPayload(snap({}), null, labels, replies)).toBeNull();
+    expect(clockInPayload(snap({ state: "on", onSince: T0 }), ctx, labels, replies)).toBeNull();
+  });
+
+  it("queues the same In punch the drain turns into record_punch", () => {
+    const payload = JSON.parse(clockInPayload(snap({}), ctx, labels, replies) ?? "{}") as {
+      context: string;
+    };
+    const mutation = queuedPunchMutation(
+      { id: "019a0000-0000-7000-8000-000000000001", kind: "In", at: T0, context: payload.context },
+      clock,
+    );
+    expect(mutation).not.toBeNull();
+    expect(swift).toContain('ClockPunchQueue.append(kind: "In", at: now)');
+  });
+
+  it("reads the payload under the key and field names the app writes", () => {
+    expect(swift).toContain('static let key = "compass.clock.next"');
+    expect(moduleSwift).toContain('forKey: "compass.clock.next"');
+    for (const field of ["context", "labels", "clockedIn", "alreadyIn", ...Object.keys(labels)]) {
+      expect(swift).toMatch(new RegExp(`var ${field}: `));
+    }
+  });
+
+  it("offers the shortcut from the app only and runs without opening Compass", () => {
+    expect(swift).toContain("struct ClockInIntent: LiveActivityIntent");
+    expect(swift).toContain("static var openAppWhenRun: Bool = false");
+    const guarded = swift.slice(swift.indexOf("#if canImport(ExpoModulesCore)"));
+    expect(guarded).toContain("struct CompassShortcuts: AppShortcutsProvider");
+    expect(guarded).toContain("#endif");
   });
 });

@@ -133,3 +133,36 @@ export function queuedPunchMutation(
   };
   return buildPunch(item.kind, ctx, event, null, [], item.at, () => item.id);
 }
+
+/** The activity labels, as ClockLabels in the native module. */
+export interface ClockInLabels {
+  readonly projectName: string;
+  readonly onShift: string;
+  readonly onBreak: string;
+  readonly since: string;
+  readonly worked: string;
+  readonly startBreak: string;
+  readonly endBreak: string;
+  readonly clockOut: string;
+}
+
+/**
+ * What the Clock In App Shortcut needs for the next clock in (Section 11.13; ClockInIntent.swift's
+ * ClockInPrepared): the punch context, the labels its Live Activity shows and its two replies, already in
+ * the person's language. Null while clocked in or before Today knows the context, so a stale shortcut never
+ * punches against yesterday's shift.
+ */
+export function clockInPayload(
+  snapshot: ClockSnapshot,
+  context: PunchContext | null,
+  labels: ClockInLabels,
+  replies: { readonly clockedIn: string; readonly alreadyIn: string },
+): string | null {
+  if (snapshot.state !== "out" || context === null) return null;
+  return JSON.stringify({
+    context: serializeContext(context),
+    labels,
+    clockedIn: replies.clockedIn,
+    alreadyIn: replies.alreadyIn,
+  });
+}

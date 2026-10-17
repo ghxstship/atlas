@@ -77,16 +77,26 @@ function ClockCard(): ReactElement {
   useEffect(() => setClockedOut(clock.snapshot.state === "out"), [clock.snapshot.state]);
   // The iOS Live Activity mirrors this clock on the lock screen and in the Dynamic Island (SIM-005); punches
   // made there arrive through the drain into the same outbox.
-  const lockScreenFailure = useClockLiveActivity(clock.snapshot, clock.context, {
-    projectName: resolved?.projects.find((p) => p.id === projectId)?.name ?? "",
-    onShift: t("compass.clock.onShift"),
-    onBreak: t("compass.clock.onBreak"),
-    since: t("compass.clock.live.since"),
-    worked: t("compass.clock.live.worked"),
-    startBreak: t("compass.clock.startBreak"),
-    endBreak: t("compass.clock.endBreak"),
-    clockOut: t("compass.clock.out"),
-  });
+  const projectName = resolved?.projects.find((p) => p.id === projectId)?.name ?? "";
+  const lockScreenFailure = useClockLiveActivity(
+    clock.snapshot,
+    clock.context,
+    {
+      projectName,
+      onShift: t("compass.clock.onShift"),
+      onBreak: t("compass.clock.onBreak"),
+      since: t("compass.clock.live.since"),
+      worked: t("compass.clock.live.worked"),
+      startBreak: t("compass.clock.startBreak"),
+      endBreak: t("compass.clock.endBreak"),
+      clockOut: t("compass.clock.out"),
+    },
+    // The Clock In App Shortcut's replies (Siri reads them aloud).
+    {
+      clockedIn: t("compass.clock.shortcut.clockedIn", { project: projectName }),
+      alreadyIn: t("compass.clock.refusal.alreadyIn"),
+    },
+  );
   const drainProblem = useLockScreenPunchDrain(engine ? enqueue : null);
   const lockScreenNotice = lockScreenFailure
     ? t("compass.clock.live.lockScreenFailed", { reason: lockScreenFailure })
