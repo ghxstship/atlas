@@ -29184,16 +29184,27 @@ var esUS = {
   workforce: workforce_default,
 };
 //#endregion
-//#region ../i18n/src/index.ts
+//#region ../i18n/src/locales.ts
+/**
+ * The shipped locales, without any catalog. Client code imports this entry (`@xos/i18n/locales`)
+ * so that checking a locale never pulls the message catalogs into a browser bundle (A24-009).
+ */
 var locales = ["en-US", "es-US"];
 var defaultLocale = "en-US";
+function isLocale(value) {
+  return locales.includes(value);
+}
+//#endregion
+//#region ../i18n/src/index.ts
 var catalogs = {
   "en-US": enUS,
   "es-US": esUS,
 };
-function isLocale(value) {
-  return locales.includes(value);
-}
+/**
+ * Every namespace of one locale. Server code only: a client component that imports this pulls the
+ * whole catalog into the browser. Client components get their copy from the next-intl provider
+ * (see `pickNamespaces`) or import one namespace file from `@xos/i18n/messages/<locale>/<ns>.json`.
+ */
 function getMessages(locale) {
   return catalogs[locale];
 }

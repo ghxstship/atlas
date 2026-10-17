@@ -1,0 +1,4 @@
+{
+  "atlasFatal": "shell.system.fatal",
+  "gatewayFatal": "gateway.system.fatal"
+}

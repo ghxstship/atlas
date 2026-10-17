@@ -1,12 +1,11 @@
-import { isLocale } from "@xos/i18n";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ThemeFollower, XOSProvider } from "@/components/ui";
-import { localeDirection } from "@/i18n/negotiate";
-import { messagesFor } from "@/i18n/request";
+import { localeDirection, type GatewayLocale } from "@/i18n/negotiate";
+import { clientMessages, uiMessages } from "@/i18n/request";
 import { brandStyle } from "@/lib/brand/brand";
 import { getRequestFacts } from "@/lib/shell/context";
 import { THEME_COOKIE, preferenceFromCookie, renderedTheme } from "@/lib/theme";
@@ -19,20 +18,6 @@ export async function generateMetadata(): Promise<Metadata> {
     title: { default: name, template: `%s · ${name}` },
     description: t("tagline"),
   };
-}
-
-/** Flat `ui` messages for @xos/ui when the locale is a pseudo-locale; shipped locales need none. */
-function uiOverrides(locale: string): Record<string, string> | undefined {
-  if (isLocale(locale)) return undefined;
-  const out: Record<string, string> = {};
-  const walk = (value: unknown, prefix: string) => {
-    if (typeof value === "string") out[prefix] = value;
-    else if (typeof value === "object" && value !== null) {
-      for (const [k, v] of Object.entries(value)) walk(v, prefix ? `${prefix}.${k}` : k);
-    }
-  };
-  walk(messagesFor(locale as Parameters<typeof messagesFor>[0]).ui, "");
-  return out;
 }
 
 /**
@@ -48,7 +33,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   ]);
   const preference = preferenceFromCookie(cookieStore.get(THEME_COOKIE)?.value);
   const theme = renderedTheme(preference, headerStore.get("sec-ch-prefers-color-scheme"));
-  const overrides = uiOverrides(locale);
+  const overrides = uiMessages(locale as GatewayLocale);
   return (
     <html
       lang={locale}
@@ -58,7 +43,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       style={brandStyle(facts.brand)}
     >
       <body>
-        <NextIntlClientProvider>
+        <NextIntlClientProvider messages={clientMessages(locale as GatewayLocale)}>
           <XOSProvider locale={locale} {...(overrides ? { messages: overrides } : {})}>
             {preference === "system" ? <ThemeFollower /> : null}
             {children}

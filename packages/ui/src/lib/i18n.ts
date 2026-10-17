@@ -1,10 +1,13 @@
-import { defaultLocale, getMessages, isLocale } from "@xos/i18n";
+import { defaultLocale } from "@xos/i18n/locales";
+import enUSui from "@xos/i18n/messages/en-US/ui.json" with { type: "json" };
 
 /**
  * Component copy (ADR 0010, D6). Every visible string comes from the `ui` namespace of the
  * @xos/i18n catalogs; keys are written without the namespace (`money.unpriced`) and this helper
- * prefixes `ui.`. Locales outside the shipped list (pseudo-locales, other languages) fall back to
- * en-US for any key their messages do not supply.
+ * prefixes `ui.`. Only the en-US `ui` namespace ships with the library: it is the source locale
+ * and the fallback. Any other locale's messages come from `XOSProvider` or `configure`, so the
+ * browser never downloads a locale it does not show (A24-009). Keys those messages do not supply
+ * fall back to en-US.
  */
 
 export type MessageVars = Record<string, string | number>;
@@ -23,17 +26,12 @@ function flatten(value: unknown, prefix: string, out: Messages): Messages {
   return out;
 }
 
-const catalogs = new Map<string, Messages>();
+let source: Messages | undefined;
 
-/** The flat `ui` catalog of a shipped locale, keyed without the namespace. */
-export function catalogFor(locale: string): Messages {
-  const shipped = isLocale(locale) ? locale : defaultLocale;
-  let catalog = catalogs.get(shipped);
-  if (catalog === undefined) {
-    catalog = flatten((getMessages(shipped) as Record<string, unknown>)[NAMESPACE], "", {});
-    catalogs.set(shipped, catalog);
-  }
-  return catalog;
+/** The flat en-US `ui` catalog, keyed without the namespace: the fallback for every locale. */
+export function catalogFor(): Messages {
+  source ??= flatten(enUSui, "", {});
+  return source;
 }
 
 /** Flattens a nested `ui` catalog (such as a pseudo-locale file) into the flat form `configure` takes. */
@@ -80,7 +78,7 @@ export function translate(
   vars?: MessageVars,
   overrides: Messages = {},
 ): string {
-  const message = overrides[key] ?? catalogFor(locale)[key] ?? catalogFor(defaultLocale)[key];
+  const message = overrides[key] ?? catalogFor()[key];
   return message === undefined ? key : format(message, locale, vars);
 }
 
