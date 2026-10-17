@@ -37,7 +37,7 @@ SUPABASE_URL=http://127.0.0.1:57421 SUPABASE_ANON_KEY=<publishable key> \
 CHROME_PATH=<a Chromium build> pnpm --filter @xos/testing lighthouse
 ```
 
-Reports and `summary.json` land in `lighthouse/results/<app>/` (ignored by git).
+Reports and `summary.json` land in `node_modules/.cache/lighthouse/<app>/`.
 
 ## Load tests (k6)
 
@@ -59,7 +59,7 @@ SUPABASE_URL=http://host.docker.internal:<api port> ATLAS_URL=http://host.docker
   sh packages/testing/load/run.sh smoke
 ```
 
-A smoke run refuses any target that is not local. Summaries land in `load/results/`.
+A smoke run refuses any target that is not local. Summaries land in `node_modules/.cache/k6/`.
 
 ### Full scale, against staging (owner only)
 
@@ -87,7 +87,7 @@ generator outside the developer laptop (k6 Cloud or a machine sized for 10,000 v
    then `api-tenant` and `compass-show` the same way. The Compass run needs an open occupancy
    counter on a project the load users can count on (`safety.incident.write`).
 
-4. Compare `load/results/*-full.json` with the thresholds; any breach is a release blocker under
+4. Compare `node_modules/.cache/k6/*-full.json` with the thresholds; any breach is a release blocker under
    Section 5.1 and goes to A26 (reliability) as a finding.
 
 ## Compass Maestro (gate 7)

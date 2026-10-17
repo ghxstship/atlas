@@ -14,7 +14,7 @@ import {
 /**
  * `pnpm --filter @xos/testing lighthouse [atlas|gateway|docs]` runs Lighthouse CI against running
  * production builds (`next start`) of each app on the local stack and writes
- * lighthouse/results/<app>/summary.json. Environment:
+ * node_modules/.cache/lighthouse/<app>/summary.json (kept out of formatting and the finish guard). Environment:
  * - SUPABASE_URL and SUPABASE_ANON_KEY: the local stack, for the signed-in pages;
  * - LH_PASSWORD: the demo password (the seed's shared demo password by default);
  * - CHROME_PATH: the Chromium build to drive;
@@ -49,7 +49,7 @@ for (const app of selected) {
   const target = lighthouseTargets[app];
   const baseUrl = baseOverride[app] ?? target.baseUrl;
   const cookie = target.email ? sessionCookieHeader("xos-auth", await signIn(target.email)) : null;
-  const outputDir = join(here, "lighthouse/results", app);
+  const outputDir = join(here, "node_modules/.cache/lighthouse", app);
   mkdirSync(outputDir, { recursive: true });
   const rcPath = join(outputDir, "lighthouserc.json");
   writeFileSync(
@@ -59,7 +59,8 @@ for (const app of selected) {
     ),
   );
   const run = spawnSync("pnpm", ["exec", "lhci", "autorun", `--config=${rcPath}`], {
-    cwd: here,
+    // lhci keeps its working files (.lighthouseci) in its cwd; keep them with the reports.
+    cwd: outputDir,
     stdio: "inherit",
   });
   if (run.status !== 0) failed = true;

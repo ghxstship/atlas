@@ -112,7 +112,7 @@ lighthouse:
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: lighthouse
-        path: packages/testing/lighthouse/results
+        path: packages/testing/node_modules/.cache/lighthouse
         if-no-files-found: ignore
 
 load-smoke:
