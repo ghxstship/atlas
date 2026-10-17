@@ -94,8 +94,12 @@ export function Icon({
   size = 24,
   label,
   tone = "primary",
+  onAccent = false,
   testID,
-}: IconProps): ReactElement | null {
+}: IconProps & {
+  /** Drawn on an accent fill (the raised Scan tab), so it uses the on-accent color. */
+  onAccent?: boolean;
+}): ReactElement | null {
   const theme = useTheme();
   const Glyph = ICONS[name];
   if (!Glyph) return null;
@@ -106,7 +110,11 @@ export function Icon({
       accessibilityLabel={label}
       importantForAccessibility={label ? "yes" : "no-hide-descendants"}
     >
-      <Glyph size={size} color={toneColor(theme, tone)} strokeWidth={theme.strokeWidth.focus} />
+      <Glyph
+        size={size}
+        color={onAccent ? theme.color.accentTextOn : toneColor(theme, tone)}
+        strokeWidth={theme.strokeWidth.focus}
+      />
     </View>
   );
 }

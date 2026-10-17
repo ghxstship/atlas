@@ -602,7 +602,7 @@ export function TabBar({
                   : undefined
               }
             >
-              <Icon name={item.icon} tone={selected || isCenter ? "accent" : "secondary"} />
+              <Icon name={item.icon} tone={selected ? "accent" : "secondary"} onAccent={isCenter} />
             </View>
             <Text variant="text12" tone={selected ? "accent" : "secondary"} numberOfLines={1}>
               {item.label}
