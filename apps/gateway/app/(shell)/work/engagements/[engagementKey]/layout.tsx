@@ -3,9 +3,11 @@ import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
 import { EngagementTabNav } from "@/components/engagement/tab-nav";
+import { ContinueOnDevice } from "@/components/handoff/continue-on-device";
 import { BrandMark, Tag } from "@/components/ui";
 import { loadEngagementView, tabHref } from "@/lib/engagement";
 import { formatDateRange } from "@/lib/format";
+import { handoffLink } from "@/lib/handoff";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
@@ -31,6 +33,8 @@ export default async function EngagementLayout({
   const view = await loadEngagementView(engagementKey);
   const [t, locale] = await Promise.all([getTranslate(), getLocale()]);
   const e = view.engagement;
+  // Continue on another device (Section 11.10 item 13, ADR 0030): the same engagement in Compass.
+  const handoff = handoffLink({ kind: "engagement", engagementKey });
   return (
     <div className="flex flex-col gap-16">
       <header className="flex flex-col gap-8">
@@ -56,6 +60,20 @@ export default async function EngagementLayout({
               })}
             </Tag>
           ) : null}
+          <span className="ms-auto">
+            <ContinueOnDevice
+              url={handoff.url}
+              labels={{
+                button: t("handoff.button"),
+                title: t("handoff.title"),
+                sentence: t(handoff.universal ? "handoff.sentenceUniversal" : "handoff.sentence", {
+                  item: e.jobTitle,
+                }),
+                qr: t("handoff.qr", { item: `${e.jobTitle} · ${e.orgName}` }),
+                link: t("handoff.link"),
+              }}
+            />
+          </span>
         </div>
         <p className="m-0 text-text-13 text-text-secondary">
           {formatDateRange(locale, e.startDate, e.endDate)} ·{" "}

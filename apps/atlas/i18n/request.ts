@@ -22,7 +22,14 @@ export function messagesFor(locale: AtlasLocale): Messages {
  * across every module namespace (the shell's sitemap labels, action forms' success keys), so the
  * split here is by surface rather than by page.
  */
-const SERVER_ONLY_NAMESPACES: readonly Namespace[] = ["compass", "docs", "email", "gateway", "ui"];
+const SERVER_ONLY_NAMESPACES: readonly Namespace[] = [
+  "compass",
+  "docs",
+  "email",
+  "gateway",
+  "handoff",
+  "ui",
+];
 
 /** The active locale's namespaces the next-intl client provider needs (A24-009). */
 export function clientMessages(locale: AtlasLocale) {

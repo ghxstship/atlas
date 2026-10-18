@@ -9,6 +9,8 @@
         "GATEWAY_SITE_URL",
         "GATEWAY_PLATFORM_HOSTS",
         "SUPABASE_INBUCKET_URL",
+        "COMPASS_APPLE_TEAM_IDS",
+        "COMPASS_ANDROID_CERT_SHA256",
         "VERCEL_GIT_COMMIT_SHA"
       ]
     },

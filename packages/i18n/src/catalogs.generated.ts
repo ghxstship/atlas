@@ -15,6 +15,7 @@ import enUS_email from "../messages/en-US/email.json" with { type: "json" };
 import enUS_finance from "../messages/en-US/finance.json" with { type: "json" };
 import enUS_gateway from "../messages/en-US/gateway.json" with { type: "json" };
 import enUS_gatewayOnboarding from "../messages/en-US/gatewayOnboarding.json" with { type: "json" };
+import enUS_handoff from "../messages/en-US/handoff.json" with { type: "json" };
 import enUS_help from "../messages/en-US/help.json" with { type: "json" };
 import enUS_home from "../messages/en-US/home.json" with { type: "json" };
 import enUS_hospitality from "../messages/en-US/hospitality.json" with { type: "json" };
@@ -65,6 +66,7 @@ import esUS_email from "../messages/es-US/email.json" with { type: "json" };
 import esUS_finance from "../messages/es-US/finance.json" with { type: "json" };
 import esUS_gateway from "../messages/es-US/gateway.json" with { type: "json" };
 import esUS_gatewayOnboarding from "../messages/es-US/gatewayOnboarding.json" with { type: "json" };
+import esUS_handoff from "../messages/es-US/handoff.json" with { type: "json" };
 import esUS_help from "../messages/es-US/help.json" with { type: "json" };
 import esUS_home from "../messages/es-US/home.json" with { type: "json" };
 import esUS_hospitality from "../messages/es-US/hospitality.json" with { type: "json" };
@@ -117,6 +119,7 @@ export const enUS = {
   finance: enUS_finance,
   gateway: enUS_gateway,
   gatewayOnboarding: enUS_gatewayOnboarding,
+  handoff: enUS_handoff,
   help: enUS_help,
   home: enUS_home,
   hospitality: enUS_hospitality,
@@ -170,6 +173,7 @@ export const esUS = {
   finance: esUS_finance,
   gateway: esUS_gateway,
   gatewayOnboarding: esUS_gatewayOnboarding,
+  handoff: esUS_handoff,
   help: esUS_help,
   home: esUS_home,
   hospitality: esUS_hospitality,

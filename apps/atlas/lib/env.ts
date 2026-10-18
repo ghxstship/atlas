@@ -19,6 +19,13 @@ const EnvSchema = z.object({
   GATEWAY_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
   /** Supabase Auth email testing inbox (Inbucket or Mailpit), development and e2e only. */
   SUPABASE_INBUCKET_URL: z.url().optional(),
+  /**
+   * Universal links for Continue on another device (ADR 0030): comma-separated Apple Developer team
+   * ids and Android signing certificate SHA-256 fingerprints of Compass. Unset, the
+   * apple-app-site-association and assetlinks.json files answer 404 and QR codes carry compass:// links.
+   */
+  COMPASS_APPLE_TEAM_IDS: z.string().optional(),
+  COMPASS_ANDROID_CERT_SHA256: z.string().optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

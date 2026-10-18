@@ -4,6 +4,8 @@ import { requireModuleNode } from "@/components/work/load";
 import { stateToken } from "@/components/work/format";
 import { loadRecordDetail, RecordBody, RecordProperties } from "@/components/work/record-detail";
 import { Breadcrumbs, RecordKindChip, StateChip, TemplateRecord } from "@/components/work/ui";
+import { ContinueOnDevice } from "@/components/handoff/continue-on-device";
+import { handoffLink } from "@/lib/handoff";
 import { getTranslate } from "@/lib/shell/translate";
 import type { RecordKind } from "@xos/ui";
 
@@ -26,6 +28,9 @@ export default async function RecordPage({ params }: PageProps<"/[org]/r/[record
   const t = await getTranslate();
   const { record } = detail;
   const org = ctx.org.slug;
+  // Continue on another device (Section 11.10 item 13, ADR 0030): the same record in Compass.
+  const handoff = handoffLink({ kind: "record", org, recordKey: record.key });
+  const item = `${record.key} · ${record.title}`;
   return (
     <TemplateRecord
       propertiesLabel={t("work.record.properties")}
@@ -51,6 +56,23 @@ export default async function RecordPage({ params }: PageProps<"/[org]/r/[record
             {record.deletedAt ? (
               <span className="text-text-12">{t("work.trash.inTrash")}</span>
             ) : null}
+            <span className="ms-auto">
+              <ContinueOnDevice
+                url={handoff.url}
+                labels={{
+                  button: t("handoff.button"),
+                  title: t("handoff.title"),
+                  sentence: t(
+                    handoff.universal ? "handoff.sentenceUniversal" : "handoff.sentence",
+                    {
+                      item: record.key,
+                    },
+                  ),
+                  qr: t("handoff.qr", { item }),
+                  link: t("handoff.link"),
+                }}
+              />
+            </span>
           </div>
           <h1 className="m-0 text-heading-24 font-semibold">{record.title}</h1>
         </header>
