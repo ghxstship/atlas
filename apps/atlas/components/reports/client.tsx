@@ -13,14 +13,12 @@ import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useActionState } from "react";
 import { revokeShareAction, runReportAction, shareReportAction } from "@/app/[org]/reports/actions";
-import {
-  ActionFeedback,
-  InlineActionButton,
-  fieldError,
-  useFinanceT,
-  useNamespaceT,
-  type Option,
-} from "@/components/finance/kit";
+import { ActionFeedback } from "@/components/finance/kit-action-feedback";
+import { InlineActionButton } from "@/components/finance/kit-inline-action-button";
+import { fieldError } from "@/components/finance/kit-field-error";
+import { useFinanceT } from "@/components/finance/kit-use-finance-t";
+import { useNamespaceT } from "@/components/finance/kit-use-namespace-t";
+import { type Option } from "@/components/finance/kit.types";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**

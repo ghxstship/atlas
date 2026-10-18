@@ -12,7 +12,10 @@ import {
   removeAttachmentAction,
   uploadAttachmentAction,
 } from "@/lib/finance/collab-actions";
-import { ActionFeedback, InlineActionButton, fieldError, useFinanceT } from "./kit";
+import { ActionFeedback } from "./kit-action-feedback";
+import { InlineActionButton } from "./kit-inline-action-button";
+import { fieldError } from "./kit-field-error";
+import { useFinanceT } from "./kit-use-finance-t";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**

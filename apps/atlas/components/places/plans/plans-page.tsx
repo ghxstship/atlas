@@ -29,7 +29,8 @@ import {
   SearchBox,
   type Search,
 } from "../kit/parts";
-import { Card, Gallery, InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { Card, InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { Gallery } from "@/components/platform/client/gallery";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { PlanCanvas, SitePlanForm } from "./plan-canvas";
 

@@ -30,7 +30,8 @@ import {
   SearchBox,
   type Search,
 } from "../kit/parts";
-import { InlineAlert, MapView, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { VenueForm } from "./venue-form";
 

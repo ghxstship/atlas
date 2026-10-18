@@ -16,8 +16,11 @@ import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
-import { JournalForm, PeriodForm } from "./forms";
-import { FormSheet, TransitionBar, type Row } from "./kit";
+import { JournalForm } from "./forms-journal-form";
+import { PeriodForm } from "./forms-period-form";
+import { FormSheet } from "./kit-form-sheet";
+import { TransitionBar } from "./kit-transition-bar";
+import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
 
 /**

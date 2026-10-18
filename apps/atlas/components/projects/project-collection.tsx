@@ -1,34 +1,37 @@
 "use client";
 
 import {
-  Board,
   Button,
-  Calendar,
   Card,
   Checkbox,
   DataTable,
-  Drawer,
   EmptyState,
-  Gallery,
   Input,
   PageHeader,
   PhaseChip,
   PropertyList,
-  RecordList,
-  RecordRow,
   StateChip,
   TemplateCollection,
-  Timeline,
 } from "@xos/ui";
-import { PROJECT_STATES, type ProjectSummary } from "@xos/data/projects";
+import type { ProjectSummary } from "@xos/data/projects";
 import type { PhaseCode, RecordState } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import { phaseCode, stateIcon } from "@/lib/projects/format";
+import { phaseCode, PROJECT_STATE_ORDER, stateIcon } from "@/lib/projects/format";
 import { CreateProjectDialog, type ProjectFormOptions } from "./create-project";
 import { CollectionViews } from "@/components/views/collection-views";
+// Views other than the default table, and the peek, load when shown (A24-009).
+import {
+  Board,
+  Calendar,
+  Drawer,
+  Gallery,
+  RecordList,
+  RecordRow,
+  Timeline,
+} from "@/components/lazy-ui";
 
 export type ProjectView = "table" | "list" | "board" | "gallery" | "timeline" | "calendar";
 
@@ -251,7 +254,7 @@ export function ProjectCollection({
               .filter((p) => p.phaseCode === ph.code)
               .map((p) => ({ key: p.key, title: p.name, meta: `${p.key} · ${stateLabel(p)}` })),
           }))
-        : PROJECT_STATES.map((s) => ({
+        : PROJECT_STATE_ORDER.map((s) => ({
             state: stateIcon(s),
             label: t(`states.${s}`),
             cards: shown

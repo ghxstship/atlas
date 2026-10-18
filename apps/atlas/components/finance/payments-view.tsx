@@ -26,8 +26,14 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { applyPaymentAction, saveSettlementLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
-import { ApplyPaymentForm, PaymentForm, SettlementForm, SettlementLineForm } from "./forms";
-import { FormSheet, InlineActionButton, TransitionBar, type Row } from "./kit";
+import { ApplyPaymentForm } from "./forms-apply-payment-form";
+import { PaymentForm } from "./forms-payment-form";
+import { SettlementForm } from "./forms-settlement-form";
+import { SettlementLineForm } from "./forms-settlement-line-form";
+import { FormSheet } from "./kit-form-sheet";
+import { InlineActionButton } from "./kit-inline-action-button";
+import { TransitionBar } from "./kit-transition-bar";
+import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
 
 /**

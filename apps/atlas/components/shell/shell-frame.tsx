@@ -31,7 +31,7 @@ import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { AuroraCenter } from "@/components/aurora/aurora-center";
 import { HelpCenter } from "@/components/help/help-center";
-import { AccountMenu, ShellOrgSwitcher } from "./deferred-menus";
+import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
@@ -293,7 +293,7 @@ export function ShellFrame(props: ShellFrameProps) {
             <Breadcrumbs items={crumbs} />
             <AuroraCenter org={org.slug} canManage={props.canManageAi} />
             <HelpCenter org={org.slug} />
-            <AccountMenu
+            <DeferredDropdownMenu
               label={t("shell.chrome.account")}
               icon="CircleUserRound"
               items={accountItems}

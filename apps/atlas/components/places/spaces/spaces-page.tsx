@@ -33,7 +33,8 @@ import {
   type Search,
 } from "../kit/parts";
 import { ButtonLink } from "@/components/ui";
-import { InlineAlert, MapView, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { SpaceForm, ZoneForm, type VenueOption } from "./forms";
 

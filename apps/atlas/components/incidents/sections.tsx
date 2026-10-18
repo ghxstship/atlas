@@ -53,7 +53,8 @@ import {
 } from "@/components/operations/kit";
 import { LiveRefresh } from "@/components/operations/peek";
 import { RecordCollab } from "@/components/operations/record-collab";
-import { EmergencyCodeCard, MapView, TemplateSplitView } from "@/components/operations/ui";
+import { EmergencyCodeCard, TemplateSplitView } from "@/components/operations/ui";
+import { MapView } from "@/components/platform/client/map-view";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   addEncounterAction,

@@ -5,7 +5,6 @@
  * (A15). Their modules use hooks and context, so server components import them from here.
  */
 export {
-  Chart,
   CoordinateMatrix,
   PageHeader,
   PropertyList,

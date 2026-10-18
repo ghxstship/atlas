@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
-import { ShareDialog } from "@/components/views/collection-views";
+import { ShareDialog } from "@/components/views/view-dialogs";
 import {
   deleteViewAction,
   renameViewAction,

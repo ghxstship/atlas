@@ -3,7 +3,7 @@
 import { EmptyState, ErrorState, RefusalNotice } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useFinanceT } from "./kit";
+import { useFinanceT } from "./kit-use-finance-t";
 
 /**
  * Page states for Finance and Reports (Section 19.6): empty with one next action, loading

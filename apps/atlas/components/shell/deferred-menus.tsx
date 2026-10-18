@@ -88,14 +88,14 @@ function Slot({
   );
 }
 
-/** The account menu: the @xos/ui DropdownMenu, deferred. */
-export function AccountMenu({
+/** The @xos/ui DropdownMenu, deferred: the shell's account menu and the saved-views menu. */
+export function DeferredDropdownMenu({
   label,
   icon,
   items,
 }: {
   label: string;
-  icon: IconName;
+  icon?: IconName;
   items: MenuItem[];
 }) {
   const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu();
@@ -104,13 +104,13 @@ export function AccountMenu({
       {loaded ? (
         <loaded.DropdownMenu
           label={label}
-          icon={icon}
+          {...(icon ? { icon } : {})}
           items={items}
           {...(openOnLoad ? { defaultOpen: true } : {})}
         />
       ) : (
         <button {...trigger} className={buttonClass()}>
-          <Icon name={icon} size={14} />
+          {icon ? <Icon name={icon} size={14} /> : null}
           {label}
           <Icon name="ChevronDown" size={14} />
         </button>

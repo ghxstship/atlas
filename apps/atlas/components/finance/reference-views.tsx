@@ -20,16 +20,16 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { saveCostCenterAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Figures, Section, SimpleTable } from "./figures";
-import { CostCenterForm, FxRateForm, UplExportForm } from "./forms";
-import {
-  CollectionTable,
-  EditButton,
-  FilterBar,
-  FormSheet,
-  InlineActionButton,
-  ViewSwitcher,
-  type Row,
-} from "./kit";
+import { CostCenterForm } from "./forms-cost-center-form";
+import { FxRateForm } from "./forms-fx-rate-form";
+import { UplExportForm } from "./forms-upl-export-form";
+import { CollectionTable } from "./kit-collection-table";
+import { EditButton } from "./kit-edit-button";
+import { FilterBar } from "./kit-filter-bar";
+import { FormSheet } from "./kit-form-sheet";
+import { InlineActionButton } from "./kit-inline-action-button";
+import { ViewSwitcher } from "./kit-view-switcher";
+import { type Row } from "./kit.types";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "./panels";
 import { RecordCollab } from "./record";
 import { PageHeader, TemplateCollection } from "./ui";

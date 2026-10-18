@@ -7,7 +7,6 @@
 export {
   Badge,
   Card,
-  DataTable,
   EmptyState,
   InlineAlert,
   Money,

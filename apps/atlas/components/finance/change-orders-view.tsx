@@ -18,8 +18,13 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { saveChangeOrderLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
-import { ChangeOrderForm, ChangeOrderLineForm } from "./forms";
-import { EditButton, FormSheet, InlineActionButton, TransitionBar, type Row } from "./kit";
+import { ChangeOrderForm } from "./forms-change-order-form";
+import { ChangeOrderLineForm } from "./forms-change-order-line-form";
+import { EditButton } from "./kit-edit-button";
+import { FormSheet } from "./kit-form-sheet";
+import { InlineActionButton } from "./kit-inline-action-button";
+import { TransitionBar } from "./kit-transition-bar";
+import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
 
 /**

@@ -14,8 +14,11 @@ import { toInputValue, exponentOf } from "@/lib/finance/money";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
 import { FinanceCollection, type RecordDetail } from "./collection";
-import { ExpenseForm } from "./forms";
-import { EditButton, FormSheet, TransitionBar, type Row } from "./kit";
+import { ExpenseForm } from "./forms-expense-form";
+import { EditButton } from "./kit-edit-button";
+import { FormSheet } from "./kit-form-sheet";
+import { TransitionBar } from "./kit-transition-bar";
+import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
 
 /**

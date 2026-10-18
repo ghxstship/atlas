@@ -1,9 +1,10 @@
 "use client";
 
-import { Button, Drawer, Input, Select, Textarea } from "@xos/ui";
+import { Button, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState } from "react";
 import { createProjectAction, type ActionState } from "@/lib/projects/actions";
+import { Drawer } from "@/components/lazy-ui";
 import { ActionError, echoed, fieldError } from "./action-error";
 
 export interface ProjectFormOptions {
@@ -193,16 +194,63 @@ export function CreateProjectDialog({
 }) {
   const t = useTranslations("projects");
   const [open, setOpen] = useState(defaultOpen);
+  // Once opened, the drawer stays mounted so it animates out and returns focus on close.
+  const [opened, setOpened] = useState(defaultOpen);
   const [state, action, pending] = useActionState(createProjectAction, {});
+  // The drawer's code loads when it first opens (A24-009); the trigger is a plain button that
+  // carries the dialog trigger's state.
+  return (
+    <>
+      <Button
+        variant="primary"
+        icon="Plus"
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        data-state={open ? "open" : "closed"}
+        onClick={() => {
+          setOpened(true);
+          setOpen(true);
+        }}
+      >
+        {t("list.newProject")}
+      </Button>
+      {opened ? (
+        <ProjectDrawer
+          open={open}
+          setOpen={setOpen}
+          org={org}
+          options={options}
+          state={state}
+          action={action}
+          pending={pending}
+        />
+      ) : null}
+    </>
+  );
+}
+
+function ProjectDrawer({
+  open,
+  setOpen,
+  org,
+  options,
+  state,
+  action,
+  pending,
+}: {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  org: string;
+  options: ProjectFormOptions;
+  state: ActionState;
+  action: (form: FormData) => void;
+  pending: boolean;
+}) {
+  const t = useTranslations("projects");
   return (
     <Drawer
       open={open}
       onOpenChange={setOpen}
-      trigger={
-        <Button variant="primary" icon="Plus">
-          {t("list.newProject")}
-        </Button>
-      }
       title={t("create.title")}
       footer={
         <>

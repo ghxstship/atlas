@@ -35,7 +35,9 @@ import {
   type ActionState,
 } from "@/app/[org]/finance/actions";
 import { parsePastedLines } from "@/lib/finance/paste";
-import { ActionFeedback, fieldError, useFinanceT } from "./kit";
+import { ActionFeedback } from "./kit-action-feedback";
+import { fieldError } from "./kit-field-error";
+import { useFinanceT } from "./kit-use-finance-t";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 /**
