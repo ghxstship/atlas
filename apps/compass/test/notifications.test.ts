@@ -73,7 +73,10 @@ describe("actionable notifications", () => {
     );
     expect(call.url).toBe(`http://localhost:3145/api/v1/notifications/${NOTE}/act`);
     expect(call.init.method).toBe("POST");
-    expect(call.init.headers).toMatchObject({ Authorization: "Bearer jwt" });
+    expect(call.init.headers).toMatchObject({
+      Authorization: "Bearer jwt",
+      "Idempotency-Key": `push-${NOTE}-reject`,
+    });
     expect(JSON.parse(String(call.init.body))).toEqual({
       action: "reject",
       comment: "Missing a day",

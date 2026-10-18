@@ -45,11 +45,35 @@ export interface NotificationActionRequest {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** The approval action a response asks for, or null when it is a tap, another category or malformed. */
+/**
+ * The push data. expo-notifications hands over the APNs `body` for a remote notification; a delivery it
+ * does not see as remote (a simulator push) hands over the whole payload, with the data still in `body`.
+ */
+function pushData(
+  content: ActionResponseLike["notification"]["request"]["content"],
+): Readonly<Record<string, unknown>> {
+  const data = content.data ?? {};
+  if (typeof data["notificationId"] === "string") return data;
+  const body = data["body"];
+  if (body && typeof body === "object" && !Array.isArray(body)) {
+    return { ...data, ...(body as Record<string, unknown>) };
+  }
+  if (typeof body === "string") {
+    try {
+      const parsed = JSON.parse(body) as unknown;
+      if (parsed && typeof parsed === "object") return { ...data, ...(parsed as object) };
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}
+
 export function readActionResponse(response: ActionResponseLike): NotificationActionRequest | null {
   const action = response.actionIdentifier;
   if (action !== APPROVE_ACTION && action !== REJECT_ACTION) return null;
   const content = response.notification.request.content;
-  const data = content.data ?? {};
+  const data = pushData(content);
   const category = content.categoryIdentifier ?? data["categoryId"];
   if (category !== APPROVAL_CATEGORY) return null;
   const notificationId = data["notificationId"];
@@ -83,6 +107,8 @@ export function actRequest(
       method: "POST",
       headers: {
         Authorization: `Bearer ${accessToken}`,
+        // One key per notification and action: a retried press never acts twice (ADR 0003).
+        "Idempotency-Key": `push-${request.notificationId}-${request.action}`,
         "Content-Type": "application/json",
         Accept: "application/json",
       },

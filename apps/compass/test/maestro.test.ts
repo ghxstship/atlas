@@ -6,6 +6,8 @@ import { parseAllDocuments } from "yaml";
 const root = new URL("..", import.meta.url).pathname;
 const flowDir = join(root, ".maestro/flows");
 const subflowDir = join(root, ".maestro/subflows");
+/** Flows that need a helper beside Maestro (journey 57's push), run by their scripts/*.sh runner. */
+const journeyDir = join(root, ".maestro/journeys");
 
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
@@ -49,6 +51,7 @@ function ids(node: unknown, out: string[] = []): string[] {
 const files = [
   ...readdirSync(flowDir).map((f) => join(flowDir, f)),
   ...readdirSync(subflowDir).map((f) => join(subflowDir, f)),
+  ...readdirSync(journeyDir).map((f) => join(journeyDir, f)),
 ];
 
 describe("Maestro flows", () => {
