@@ -11,10 +11,11 @@ import type { CrewContext } from "@/lib/crew/context";
 import { money } from "@/lib/crew/format";
 import { stateIcon } from "@/lib/crew/states";
 import { getTranslate } from "@/lib/shell/translate";
-import { ConfirmButton, DownloadButton } from "./forms";
+import { ConfirmButton } from "./forms-confirm-button";
+import { DownloadButton } from "./forms-download-button";
 import { CrewRecord } from "./record";
 import { InlineAlert } from "./ui";
-import { PeekTable } from "./views";
+import { PeekTable } from "./views-peek-table";
 
 /**
  * A payroll run in the one record anatomy, shared by Pay Periods and Payroll Exports: its lines with

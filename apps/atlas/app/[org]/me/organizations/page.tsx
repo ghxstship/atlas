@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { LeaveOrganizationButton } from "@/components/settings/leave-org";
 import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getMyOrganizations } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
 

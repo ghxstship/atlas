@@ -8,7 +8,7 @@ import {
 } from "@/components/settings/forms";
 import { ContributedPanels } from "@/components/settings/contributed-panels";
 import { SectionHeader } from "@/components/settings/section-header";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**

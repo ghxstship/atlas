@@ -14,7 +14,7 @@ import type { TreeNode } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { heldCapabilities } from "../kit/access";

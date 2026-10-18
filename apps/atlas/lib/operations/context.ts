@@ -8,7 +8,7 @@ import {
   type OperationsProject,
 } from "@xos/data/credentials";
 import { notFound } from "next/navigation";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { param, type SearchParams } from "@/components/operations/kit";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";

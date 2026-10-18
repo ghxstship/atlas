@@ -6,7 +6,7 @@ import { AssetsCollection, type CollectionRow } from "@/components/assets/collec
 import { AssetCollab } from "@/components/assets/collab";
 import { DamageForm } from "@/components/assets/forms";
 import { PropertyList } from "@/components/assets/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
 import { pageViews } from "@/lib/assets/page";
 import { ASSET_STATE_TONE, matches, readQuery } from "@/lib/assets/views";

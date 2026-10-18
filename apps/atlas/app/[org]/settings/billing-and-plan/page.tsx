@@ -1,7 +1,7 @@
 import { getSubscription } from "@xos/data";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { SectionHeader } from "@/components/settings/section-header";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { Button, Card, InlineAlert } from "@/components/ui";
 import { PLANS } from "@/lib/plans.generated";
 import { getTranslate } from "@/lib/shell/translate";

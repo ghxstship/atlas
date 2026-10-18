@@ -9,7 +9,7 @@ import { AttachmentsPanel, CommentsPanel } from "@/components/projects/collab-pa
 import { ReadinessPanel } from "@/components/projects/readiness-panel";
 import { TransitionDialog } from "@/components/projects/transition-dialog";
 import { PageHeader, PropertyList, StateChip, TemplateRecord } from "@/components/projects/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { phaseCode, stateIcon } from "@/lib/projects/format";
 import {

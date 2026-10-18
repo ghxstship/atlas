@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { DocumentsSection } from "@/components/knowledge/documents";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 

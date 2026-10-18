@@ -1,12 +1,13 @@
 "use client";
 
-import { Button, Dialog, Select, Textarea } from "@xos/ui";
+import { Button, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { transitionAction } from "@/lib/projects/actions";
 import { ActionError, echoed, fieldError, useClosingAction } from "./action-error";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { DeferredDialog } from "@/components/lazy-ui/deferred";
 /**
  * Moves a project or its production to another state through the lifecycle RPC (Section 3.12).
  * Only the moves the database's rule table allows from the current state are offered, and every
@@ -37,7 +38,7 @@ export function TransitionDialog({
     );
   }
   return (
-    <Dialog
+    <DeferredDialog
       open={open}
       onOpenChange={setOpen}
       trigger={
@@ -89,6 +90,6 @@ export function TransitionDialog({
           error={fieldError(t, state, "reason")}
         />
       </form>
-    </Dialog>
+    </DeferredDialog>
   );
 }

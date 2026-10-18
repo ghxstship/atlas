@@ -3,10 +3,11 @@ import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
 import { createAssignmentAction, transitionAssignmentAction } from "@/app/[org]/people/actions";
-import { ConfirmButton, DrawerForm } from "@/components/crew/forms";
+import { ConfirmButton } from "@/components/crew/forms-confirm-button";
+import { DrawerForm } from "@/components/crew/forms-drawer-form";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
-import { PeekTable } from "@/components/crew/views";
+import { PeekTable } from "@/components/crew/views-peek-table";
 import { ButtonLink } from "@/components/ui";
 import {
   flatParams,

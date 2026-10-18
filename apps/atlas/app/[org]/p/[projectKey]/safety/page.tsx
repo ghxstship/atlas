@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { SafetyTiles } from "@/components/safety/landing/safety-landing";
 import { PermitsView } from "@/components/safety/permits/permits-page";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";

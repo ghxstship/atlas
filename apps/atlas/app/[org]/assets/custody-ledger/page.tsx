@@ -5,7 +5,7 @@ import type { Route } from "next";
 import { AssetsCollection, type CollectionRow } from "@/components/assets/collection";
 import { CustodyDesk } from "@/components/assets/custody";
 import { PropertyList } from "@/components/assets/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
 import { pageViews } from "@/lib/assets/page";
 import { matches, readQuery } from "@/lib/assets/views";

@@ -3,7 +3,7 @@ import { EmptyPanel, ErrorPanel } from "@/components/platform/kit";
 import { InlineAlert } from "@/components/platform/client/inline-alert";
 import { StatTile } from "@/components/platform/client/stat-tile";
 import { PartnerFrame } from "@/components/partner/partner-frame";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
 
 /** Partner console overview (Section 4.6.1): clients, joined Owners, open support sessions and terms. */

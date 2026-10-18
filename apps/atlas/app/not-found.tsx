@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { SystemPage } from "@/components/ui";
+import { SystemPage } from "@/components/system-page";
 
 /** 404, and every hidden page (ADR 0006): the System template, with no hint whether it exists. */
 export default async function NotFound() {

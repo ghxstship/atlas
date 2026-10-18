@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 import { ProjectSettings } from "@/components/projects/project-settings";
 import { projectFormOptions } from "@/components/projects/projects-page";
 import { PageHeader } from "@/components/projects/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { loadTransitions, must } from "@/lib/projects/loaders";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";

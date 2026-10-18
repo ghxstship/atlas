@@ -1,5 +1,5 @@
 import { SafetyHeader, SafetyTiles } from "@/components/safety/landing/safety-landing";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getTranslate } from "@/lib/shell/translate";
 
 /** Safety (A09 landing): one tile per Safety page the viewer may open. */

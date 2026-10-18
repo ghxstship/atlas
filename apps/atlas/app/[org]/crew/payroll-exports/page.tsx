@@ -5,7 +5,7 @@ import { getFormatter } from "next-intl/server";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { PayrollRunRecord } from "@/components/crew/payroll-run";
 import { RefusalNotice } from "@/components/crew/ui";
-import { PeekTable } from "@/components/crew/views";
+import { PeekTable } from "@/components/crew/views-peek-table";
 import { EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { planHasFeature } from "@/lib/crew/plan";

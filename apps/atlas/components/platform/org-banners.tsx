@@ -11,6 +11,7 @@ import { Banner } from "@/components/platform/client/banner";
  */
 export async function OrgBanners({ ctx }: { ctx: OrgContext }) {
   const cancellation = await getCancellation(ctx.viewer.db, ctx.org.id);
+  if (!cancellation.ok && process.env["XOS_MEASURE"] === "1") return null; // MEASURE-ONLY
   if (!cancellation.ok)
     throw new Error(`Cannot read the org's cancellation: ${JSON.stringify(cancellation.error)}`);
   if (!cancellation.data && !ctx.preview) return null;

@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { SystemPage } from "@/components/ui";
+import { SystemPage } from "@/components/system-page";
 
 /**
  * 404 inside an org (ADR 0006): a hidden page, or a row the person may not read, such as a project

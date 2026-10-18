@@ -31,7 +31,7 @@ import {
   recordStateToken,
   withQuery,
 } from "@/components/places/kit/views";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";

@@ -2,7 +2,7 @@ import { listClientOrgs, listClientUsage, monthStart } from "@xos/data/partner";
 import { EmptyPanel, ErrorPanel } from "@/components/platform/kit";
 import { DataTable } from "@/components/platform/client/data-table";
 import { PartnerFrame } from "@/components/partner/partner-frame";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
 
 const METERS = ["emails_sent", "sms_segments", "push_sent", "api_requests", "ai_tokens"] as const;

@@ -10,7 +10,7 @@ import {
 } from "@xos/data/crew";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 
 /**

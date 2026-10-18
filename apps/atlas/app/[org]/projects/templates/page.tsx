@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { TemplatesView } from "@/components/workflow/templates-view";
 
 /** Projects > Templates (A33): project templates, their versions and creating projects from them. */

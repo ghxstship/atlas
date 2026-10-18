@@ -6,7 +6,7 @@ import {
 } from "@xos/data/advancing";
 import { isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 

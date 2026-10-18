@@ -1,12 +1,14 @@
 "use client";
 
 import type { ActivityEntry } from "@xos/data/activity";
-import { ActivityFeedItem, Button, DataTable, EmptyState, SegmentedControl } from "@xos/ui";
+import { ActivityFeedItem, Button, EmptyState, SegmentedControl } from "@xos/ui";
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { CollectionViews } from "@/components/views/collection-views";
+// The table is an alternative to the feed (A24-009).
+import { DataTable } from "@/components/lazy-ui";
 import { useDescribe } from "./describe";
 
 export type ActivityView = "feed" | "list" | "table";

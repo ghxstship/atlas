@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
 import { SavedViewsList, type SavedViewItem } from "@/components/saved-views/saved-views-list";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { collectionLabelKey } from "@/lib/views/collections";

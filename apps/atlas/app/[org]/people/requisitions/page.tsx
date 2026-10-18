@@ -15,10 +15,14 @@ import {
   transitionRequisitionAction,
   updateRequisitionAction,
 } from "@/app/[org]/people/actions";
-import { ConfirmButton, DrawerForm, type FieldSpec } from "@/components/crew/forms";
+import { ConfirmButton } from "@/components/crew/forms-confirm-button";
+import { DrawerForm } from "@/components/crew/forms-drawer-form";
+import { type FieldSpec } from "@/components/crew/forms.types";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
-import { FilterSelect, PeekBoard, PeekTable } from "@/components/crew/views";
+import { FilterSelect } from "@/components/crew/views-filter-select";
+import { PeekBoard } from "@/components/crew/views-peek-board";
+import { PeekTable } from "@/components/crew/views-peek-table";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,

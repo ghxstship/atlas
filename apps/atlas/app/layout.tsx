@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
-import { XOSProvider } from "@/components/ui";
+import { XOSProvider } from "@/components/xos-provider";
 import { localeDirection, type AtlasLocale } from "@/i18n/negotiate";
 import { clientMessages, uiMessages } from "@/i18n/request";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";

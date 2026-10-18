@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { AuditLog } from "@/components/activity/audit-log";
 import { LoadError } from "@/components/projects/load-error";
 import { PageHeader } from "@/components/projects/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 
 /** Activity > Audit log (Section 4.5.5): the compliance ledger, Owner and Admin only. */

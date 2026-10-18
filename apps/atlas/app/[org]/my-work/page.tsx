@@ -6,7 +6,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { MyWorkView, type MyWorkRow } from "@/components/my-work/my-work-view";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { pickView } from "@/lib/home/views";
 import { enumKey } from "@/lib/projects/format";
 import { nodeHref } from "@/lib/shell/sitemap";

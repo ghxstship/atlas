@@ -3,7 +3,7 @@ import { listProjects } from "@xos/data/projects";
 import { getTranslations } from "next-intl/server";
 import { RecentView } from "@/components/home/home-views";
 import { PageHeader } from "@/components/projects/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { pickView } from "@/lib/home/views";
 import { must } from "@/lib/projects/loaders";
 import { nodeHref } from "@/lib/shell/sitemap";

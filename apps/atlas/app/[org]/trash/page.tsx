@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { TrashView } from "@/components/workflow/trash-view";
 
 /** Trash (A33): deleted rows the viewer may read, restorable for their retention period. */

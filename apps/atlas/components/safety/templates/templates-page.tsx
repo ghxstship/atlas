@@ -20,7 +20,7 @@ import {
 } from "@/components/places/kit/parts";
 import { InlineAlert, PropertyList, Tag, TemplateRecord } from "@/components/places/kit/ui";
 import { chooseView, matchesSearch, param, withQuery } from "@/components/places/kit/views";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
