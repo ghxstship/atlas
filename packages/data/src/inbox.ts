@@ -92,9 +92,14 @@ export function sortInbox(items: readonly InboxItem[]): InboxItem[] {
   });
 }
 
-/** True when an item can be approved or rejected from the Inbox now. */
+/**
+ * True when an item can be approved or rejected from the Inbox now: an approval in review, or a
+ * submitted timesheet (migration 1140; its request leaves the Inbox once the timesheet is decided).
+ */
 export function isActionableApproval(item: InboxItem): boolean {
-  return item.kind === "approval.requested" && item.approval?.state === "In Review";
+  if (item.kind !== "approval.requested") return false;
+  if (item.subjectTable === "timesheets") return item.subjectId !== null;
+  return item.approval?.state === "In Review";
 }
 
 /** Approve, reject (with a reason) or mark Done; the item leaves the Inbox once decided. */

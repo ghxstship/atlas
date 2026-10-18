@@ -1,0 +1,62 @@
+appId: pro.ghxstship.compass
+name: Journey 57, the Producer approves a timesheet from the push notification without opening it
+---
+# Needs the push helper (scripts/journey-57-push.sh starts it and runs this flow): Maestro scripts cannot
+# run xcrun simctl push, so the helper submits the Demo Field Tech's timesheet, which migration 1140
+# turns into an approval request for the Demo Producer, and pushes it to Compass the way Expo would
+# (category approval_request, the notification id in the data). Kept out of flows/ because it needs it.
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- tapOn:
+    id: "tab-inbox"
+- extendedWaitUntil:
+    visible:
+      id: "inbox"
+    timeout: 10000
+# Asked in context, from the Inbox; a device that already allowed notifications shows no prompt.
+- runFlow:
+    when:
+      visible:
+        id: "inbox-notifications-on"
+    commands:
+      - tapOn:
+          id: "inbox-notifications-on"
+      # Maestro may answer the system prompt itself; tap Allow when it still shows.
+      - runFlow:
+          when:
+            visible: "Allow"
+          commands:
+            - tapOn: "Allow"
+- extendedWaitUntil:
+    notVisible:
+      id: "inbox-notifications"
+    timeout: 10000
+- runScript:
+    file: ../scripts/push-helper.js
+    env:
+      STEP: push
+- assertTrue: ${output.helper.ok}
+# The request arrives as a banner: pull it down for its actions and choose Approve. No record opens.
+- extendedWaitUntil:
+    visible: ".*Approval requested.*"
+    timeout: 10000
+# Press and hold the banner for its actions. The action menu belongs to SpringBoard and is not in the
+# hierarchy Maestro reads, so Approve (the first action, under the banner) is tapped by its position.
+- longPressOn: ".*Approval requested.*"
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    point: "34%,25%"
+# Compass answers through notifications.act and confirms with its own notification.
+- extendedWaitUntil:
+    visible: ".*Approved. Nothing else to do.*"
+    timeout: 30000
+- assertVisible:
+    id: "inbox"
+- runScript:
+    file: ../scripts/push-helper.js
+    env:
+      STEP: verify
+- assertTrue: ${output.helper.ok}
