@@ -34,7 +34,8 @@ async function PayTransparencyPanel({ ctx }: SettingsPanelProps) {
           {pending > 0 ? (
             <InlineAlert tone="warning">{t("counselPending", { count: pending })}</InlineAlert>
           ) : null}
-          <div className="overflow-x-auto">
+          {/* A labelled, focusable region, so keyboard users can scroll the table sideways. */}
+          <div role="region" aria-label={t("caption")} tabIndex={0} className="overflow-x-auto">
             <table className="w-full border-collapse text-text-13">
               <caption className="sr-only">{t("caption")}</caption>
               <thead>

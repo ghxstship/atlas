@@ -241,7 +241,7 @@ function Tile({
           {t("reporting.dashboards.tileEmpty")}
         </p>
       ) : (
-        <div className="overflow-x-auto">
+        <div role="region" aria-label={tile.reportName} tabIndex={0} className="overflow-x-auto">
           <table className="w-full border-collapse text-text-12">
             <caption className="sr-only">{tile.reportName}</caption>
             <thead>
