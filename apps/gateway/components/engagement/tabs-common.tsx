@@ -86,7 +86,7 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
                     <ActionButton
                       action={signDocumentAction.bind(null, d.id)}
                       label={t("gateway.common.sign")}
-                      variant="primary"
+                      variant="secondary"
                       done={t("gateway.common.signed")}
                     />
                   ),
@@ -209,7 +209,7 @@ export async function DocumentsTab({
                 <ActionButton
                   action={signDocumentAction.bind(null, d.id)}
                   label={t("gateway.common.sign")}
-                  variant="primary"
+                  variant="secondary"
                   done={t("gateway.common.signed")}
                 />
               ),

@@ -5,6 +5,7 @@ import { sitemap } from "../../ia/sitemap.generated";
 import { issueAdvanceLink, issueSigningLink } from "../fixtures";
 import {
   axeProblems,
+  cognitiveLoadProblems,
   focusProblems,
   iconControlProblems,
   overflowProblems,
@@ -53,6 +54,7 @@ async function checkPage(
   }
   if ((page.viewportSize()?.width ?? 1280) < 400) problems.push(...(await overflowProblems(page)));
   problems.push(...(await iconControlProblems(page)));
+  problems.push(...(await cognitiveLoadProblems(page)));
   problems.push(...(await focusProblems(page, { skipLink })));
   const result = triage(problems, { route, project: info.project.name, role: who });
   for (const k of result.known) info.annotations.push({ type: "known", description: k });

@@ -72,7 +72,7 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
                 <ActionButton
                   action={acceptShiftAction.bind(null, s.id)}
                   label={t("gateway.engagement.shifts.accept")}
-                  variant="primary"
+                  variant="secondary"
                 />
               ),
             }

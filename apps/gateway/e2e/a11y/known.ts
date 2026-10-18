@@ -15,7 +15,32 @@ export interface KnownProblem {
   readonly roles?: readonly string[];
 }
 
-export const KNOWN_PROBLEMS: readonly KnownProblem[] = [];
+export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
+  // Gate 27 cognitive load (finding A47-002): screens with more than one primary action.
+  ...(
+    [
+      [["anonymous"], ["/auth/sign-in", "/auth/sign-up"]],
+      [
+        ["crew", "vendor"],
+        ["home", "profile", "settings", "settings.profile"],
+      ],
+      [["vendor"], ["explore", "messages"]],
+    ] as const
+  ).map(([roles, routes]) => ({
+    finding: "A47-002",
+    pattern: /^cognitive load: \d+ primary actions/,
+    roles,
+    routes,
+  })),
+
+  // Gate 27 cognitive load (finding A47-002): forms with more than 7 visible fields.
+  {
+    finding: "A47-002",
+    pattern: /^cognitive load: \d+ visible fields/,
+    roles: ["crew", "vendor"],
+    routes: ["explore", "settings.profile-privacy"],
+  },
+];
 
 export interface Triage {
   readonly open: string[];
