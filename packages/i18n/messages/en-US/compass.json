@@ -509,7 +509,17 @@
     "failed": "The photo did not save: {reason}. Try again."
   },
   "record": {
-    "sentence": "{key} opens on the web for now."
+    "sentence": "{key} opens on the web for now.",
+    "missing": "{key} is not available to you in Compass. Open it on Atlas to see whether you can view it.",
+    "engagement": "{key} opens on Gateway. Your shifts for it are on your schedule here.",
+    "due": "Due",
+    "starts": "Starts",
+    "owner": "Owner",
+    "open": {
+      "schedule": "Open Schedule",
+      "inspections": "Open Inspections",
+      "training": "Open Training"
+    }
   },
   "audience": {
     "field": "Field",
@@ -648,5 +658,20 @@
     "doneSentence": "Your sign-in, name and profile are erased. Organizations told: {count}.",
     "done": "Done",
     "signOutFailed": "Compass could not clear this device: {reason}. Try Done again."
+  },
+  "notifications": {
+    "title": "Compass",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reason": "Why are you rejecting it?",
+    "approved": "Approved. Nothing else to do.",
+    "rejected": "Rejected with your reason.",
+    "refused": "Not done: {detail}",
+    "failed": "Not done: Compass could not reach the server. Try again from the Inbox.",
+    "signedOut": "Not done: sign in to Compass, then try again from the Inbox.",
+    "promptTitle": "Approve from notifications",
+    "prompt": "Turn on notifications to approve timesheets and other requests right from the alert.",
+    "denied": "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
+    "turnOn": "Turn On Notifications"
   }
 }

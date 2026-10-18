@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { dispatchQueue, type IncidentRow, type Severity } from "../../src/domain/incidents";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
+import { useNotificationPermission } from "../../src/runtime/notifications";
 import {
   formatDay,
   ProjectPicker,
@@ -11,7 +12,7 @@ import {
   useAllowed,
   useRoleTitle,
 } from "../../src/screens/common";
-import { Card, EmptyState, ListRow, Screen } from "../../src/ui";
+import { Button, Card, EmptyState, ListRow, Screen, Text } from "../../src/ui";
 
 /**
  * One inbox model (Section 11.10 item 5): Needs You first, then For Your Information. Compass fills it
@@ -25,6 +26,7 @@ export default function InboxScreen(): ReactElement {
   const { resolved, projectId, status } = useCompass();
   const canDispatch = useAllowed("incidents.dispatch");
   const identity = resolved?.identity;
+  const permission = useNotificationPermission();
   const { rows: shifts } = useRows<
     Row & {
       project_id: string;
@@ -81,6 +83,25 @@ export default function InboxScreen(): ReactElement {
     <Screen testID="inbox" title={t("compass.inbox.title")}>
       <ProjectPicker />
       <SyncBanner />
+      {permission.state === "ask" || permission.state === "denied" ? (
+        <Card testID="inbox-notifications" title={t("compass.notifications.promptTitle")}>
+          <Text tone="secondary">
+            {t(
+              permission.state === "ask"
+                ? "compass.notifications.prompt"
+                : "compass.notifications.denied",
+            )}
+          </Text>
+          {permission.state === "ask" ? (
+            <Button
+              testID="inbox-notifications-on"
+              icon="inbox"
+              label={t("compass.notifications.turnOn")}
+              onPress={() => void permission.request()}
+            />
+          ) : null}
+        </Card>
+      ) : null}
       {needs.length === 0 ? (
         <EmptyState
           testID="inbox-empty"

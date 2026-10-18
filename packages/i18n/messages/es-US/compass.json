@@ -509,7 +509,17 @@
     "failed": "La foto no se guardó: {reason}. Vuelve a intentarlo."
   },
   "record": {
-    "sentence": "{key} se abre en la web por ahora."
+    "sentence": "{key} se abre en la web por ahora.",
+    "missing": "{key} no está disponible para ti en Compass. Ábrelo en Atlas para ver si puedes consultarlo.",
+    "engagement": "{key} se abre en Gateway. Tus turnos para este compromiso están en tu horario aquí.",
+    "due": "Vence",
+    "starts": "Comienza",
+    "owner": "Responsable",
+    "open": {
+      "schedule": "Abrir horario",
+      "inspections": "Abrir inspecciones",
+      "training": "Abrir capacitación"
+    }
   },
   "audience": {
     "field": "Campo",
@@ -648,5 +658,20 @@
     "doneSentence": "Tu acceso, tu nombre y tu perfil están borrados. Organizaciones avisadas: {count}.",
     "done": "Listo",
     "signOutFailed": "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez."
+  },
+  "notifications": {
+    "title": "Compass",
+    "approve": "Aprobar",
+    "reject": "Rechazar",
+    "reason": "¿Por qué lo rechazas?",
+    "approved": "Aprobado. No hay nada más que hacer.",
+    "rejected": "Rechazado con tu motivo.",
+    "refused": "No se hizo: {detail}",
+    "failed": "No se hizo: Compass no pudo conectar con el servidor. Inténtalo de nuevo desde la bandeja.",
+    "signedOut": "No se hizo: inicia sesión en Compass e inténtalo de nuevo desde la bandeja.",
+    "promptTitle": "Aprobar desde notificaciones",
+    "prompt": "Activa las notificaciones para aprobar hojas de horas y otras solicitudes desde la alerta.",
+    "denied": "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
+    "turnOn": "Activar notificaciones"
   }
 }

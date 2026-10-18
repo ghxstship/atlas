@@ -1,0 +1,36 @@
+appId: pro.ghxstship.compass
+name: Journey 58, the Continue on another device QR code in Atlas opens the same record in Compass
+---
+# The Atlas half (apps/atlas/e2e/a45-handoff.spec.ts) decodes the QR code on the Inspection record NWS-14
+# as the Demo Field Lead and, with E2E_HANDOFF_OUT set, writes the link it carries. Pass that link as
+# HANDOFF_LINK (apps/compass/scripts/handoff-journey-58.sh runs both halves); without it the flow opens the link the
+# spec asserts. The link is opened the way the camera hands a scanned code to iOS (simctl openurl).
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- openLink: '${typeof HANDOFF_LINK !== "undefined" && HANDOFF_LINK !== "" ? HANDOFF_LINK : "compass://r/NWS-14?org=demo-productions"}'
+# iOS asks before an app opens a link it was handed; answer for Compass when it does.
+- runFlow:
+    when:
+      visible: "Open"
+    commands:
+      - tapOn: "Open"
+- extendedWaitUntil:
+    visible:
+      id: "record-native"
+    timeout: 30000
+# The same record: its key, its title, its kind and state, on Compass's own screen.
+- assertVisible: "NWS-14"
+- assertVisible: ".*Fire Marshal Walk.*"
+- assertVisible: ".*Inspection.*"
+- assertVisible: "NWS · .*"
+# An Inspection opens Compass's inspection walk in one tap; the record can still open on Atlas.
+- assertVisible:
+    id: "record-open"
+- tapOn:
+    id: "record-open-native"
+- extendedWaitUntil:
+    visible:
+      id: "inspections"
+    timeout: 10000
