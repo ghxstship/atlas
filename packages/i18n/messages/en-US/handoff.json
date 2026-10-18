@@ -1,0 +1,8 @@
+{
+  "button": "Continue on phone",
+  "title": "Continue on another device",
+  "sentence": "Scan with your phone's camera to open {item} in Compass.",
+  "sentenceUniversal": "Scan with your phone's camera to open {item} in Compass, or on the web where Compass is not installed.",
+  "qr": "QR code that opens {item} in Compass",
+  "link": "Link:"
+}

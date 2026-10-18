@@ -19,6 +19,27 @@ export function AppShell({
   const sideId = useId().replace(/:/g, "");
   const [open, setOpen] = useState(false);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  // A scrolling region keyboard users cannot reach fails WCAG 2.1.1. When the page overflows and holds
+  // nothing focusable (a long read-only table), the region itself takes focus so arrow keys scroll it;
+  // otherwise it stays out of the tab order.
+  useEffect(() => {
+    const el = content.current;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const sync = () => {
+      const overflows = el.scrollHeight > el.clientHeight;
+      const focusable = el.querySelector(
+        "a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex='-1'])",
+      );
+      if (overflows && !focusable) el.setAttribute("tabindex", "0");
+      else el.removeAttribute("tabindex");
+    };
+    sync();
+    const observer = new ResizeObserver(sync);
+    observer.observe(el);
+    for (const child of Array.from(el.children)) observer.observe(child);
+    return () => observer.disconnect();
+  }, [children]);
   useEffect(() => {
     if (!open) return undefined;
     const onKey = (e: KeyboardEvent) => {
@@ -88,6 +109,7 @@ export function AppShell({
           ) : null}
         </div>
         <div
+          ref={content}
           data-xos-bottom-bar-scroll={mobileNav ? "" : undefined}
           className="flex flex-col gap-16 min-h-0 px-24 py-16 max-lg:p-16 overflow-y-auto [&>*]:shrink-0"
         >

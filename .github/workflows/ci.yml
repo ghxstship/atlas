@@ -42,10 +42,19 @@ jobs:
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.120.0
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Apply migrations from empty
         run: supabase db start
       - name: Run pgTAP suites
         run: supabase test db
+      # database.types.ts must match what the migrations generate (Section 3.15).
+      - name: Database types match the migrations
+        run: pnpm --filter @xos/data types:check
 
   secrets:
     name: Secret scan
@@ -133,3 +142,102 @@ jobs:
         if: env.ANTHROPIC_API_KEY != ''
       - run: pnpm --filter @xos/ai evals
         if: env.ANTHROPIC_API_KEY != ''
+
+  # Gate 6. Chromium only: the Firefox and WebKit legs (E2E_ENGINES) triple the minutes and wait on
+  # the owner (A24-008). Journeys run against production builds, since dev compiles each route on
+  # first visit and typing before hydration is the race they guard against. Gateway's external role
+  # journeys also drive Atlas, so its job serves both apps.
+  e2e:
+    name: Playwright journeys (${{ matrix.app }}) (gate 6)
+    runs-on: ubuntu-24.04
+    # Atlas runs about 150 journeys and page checks, about 40 minutes on a laptop.
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [atlas, gateway, docs]
+    env:
+      E2E_ENGINES: chromium
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/${{ matrix.app }}
+      # The full stack (Auth, PostgREST, Storage, Mailpit) with migrations and the demo seed.
+      - run: supabase start
+      - name: Write the app environment from the stack
+        run: |
+          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
+          echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
+          echo "E2E_GATEWAY_URL=http://127.0.0.1:3127" >> "$GITHUB_ENV"
+          echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
+          echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
+          echo "E2E_INBUCKET_URL=http://127.0.0.1:55424" >> "$GITHUB_ENV"
+          # The local stack's well-known development service key; the import and report journeys
+          # run their workers against it.
+          echo "E2E_SUPABASE_SERVICE_KEY=$(supabase status -o env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')" >> "$GITHUB_ENV"
+      - run: pnpm turbo run build --filter=@xos/${{ matrix.app }} ${{ matrix.app == 'gateway' && '--filter=@xos/atlas' || '' }}
+      - name: Start the production server
+        if: matrix.app != 'docs'
+        run: |
+          PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+          (cd apps/${{ matrix.app }} && nohup pnpm exec next start --port "$PORT" > /tmp/app.log 2>&1 &)
+          if [ "${{ matrix.app }}" = gateway ]; then (cd apps/atlas && nohup pnpm exec next start --port 3006 > /tmp/atlas.log 2>&1 &); fi
+          for i in $(seq 60); do curl -fs -o /dev/null "http://127.0.0.1:$PORT" && break; sleep 2; done
+          echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
+          # Production builds offer no pseudo-locales; the ar-XB journey runs in e2e-pseudo-locales.
+          echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
+      - run: pnpm exec playwright test
+        working-directory: apps/${{ matrix.app }}
+      # Gate 8: axe on every signed-in page per role, both themes, desktop and 375 px.
+      - name: Axe on every page
+        if: matrix.app != 'docs'
+        run: pnpm test:a11y
+        working-directory: apps/${{ matrix.app }}
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-${{ matrix.app }}
+          path: |
+            apps/${{ matrix.app }}/node_modules/.cache/playwright
+            /tmp/*.log
+          if-no-files-found: ignore
+
+  # Gate 16. Pseudo-locales exist only on next dev, which the Atlas config starts itself.
+  e2e-pseudo-locales:
+    name: Pseudo-locale journeys on next dev (gate 16)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+        working-directory: apps/atlas
+      - run: supabase start
+      - name: Write the Atlas environment from the stack
+        run: |
+          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\n' "$ANON" > apps/atlas/.env.local
+      - run: pnpm turbo run build --filter=@xos/atlas^...
+      - run: pnpm exec playwright test views-help.spec.ts -g "right to left"
+        working-directory: apps/atlas
+        env:
+          E2E_ENGINES: chromium

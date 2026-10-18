@@ -2726,7 +2726,20 @@ var compass_default$1 = {
     take: "Take Photo",
     failed: "The photo did not save: {reason}. Try again.",
   },
-  record: { sentence: "{key} opens on the web for now." },
+  record: {
+    sentence: "{key} opens on the web for now.",
+    missing:
+      "{key} is not available to you in Compass. Open it on Atlas to see whether you can view it.",
+    engagement: "{key} opens on Gateway. Your shifts for it are on your schedule here.",
+    due: "Due",
+    starts: "Starts",
+    owner: "Owner",
+    open: {
+      schedule: "Open Schedule",
+      inspections: "Open Inspections",
+      training: "Open Training",
+    },
+  },
   audience: {
     field: "Field",
     "field-supervisor": "Field Supervisor",
@@ -2875,6 +2888,22 @@ var compass_default$1 = {
     doneSentence: "Your sign-in, name and profile are erased. Organizations told: {count}.",
     done: "Done",
     signOutFailed: "Compass could not clear this device: {reason}. Try Done again.",
+  },
+  notifications: {
+    title: "Compass",
+    approve: "Approve",
+    reject: "Reject",
+    reason: "Why are you rejecting it?",
+    approved: "Approved. Nothing else to do.",
+    rejected: "Rejected with your reason.",
+    refused: "Not done: {detail}",
+    failed: "Not done: Compass could not reach the server. Try again from the Inbox.",
+    signedOut: "Not done: sign in to Compass, then try again from the Inbox.",
+    promptTitle: "Approve from notifications",
+    prompt: "Turn on notifications to approve timesheets and other requests right from the alert.",
+    denied:
+      "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
+    turnOn: "Turn On Notifications",
   },
 };
 var credentials_default$1 = {
@@ -6189,6 +6218,15 @@ var gatewayOnboarding_default$1 = {
   acknowledge: "I have read and acknowledge this",
   acknowledged: "Acknowledged. The organization verifies it next.",
   acknowledgeHint: "Read the briefing the organization shared, then acknowledge it here.",
+};
+var handoff_default$1 = {
+  button: "Continue on phone",
+  title: "Continue on another device",
+  sentence: "Scan with your phone's camera to open {item} in Compass.",
+  sentenceUniversal:
+    "Scan with your phone's camera to open {item} in Compass, or on the web where Compass is not installed.",
+  qr: "QR code that opens {item} in Compass",
+  link: "Link:",
 };
 var help_default$1 = {
   button: "Help",
@@ -18096,7 +18134,21 @@ var compass_default = {
     take: "Tomar foto",
     failed: "La foto no se guardó: {reason}. Vuelve a intentarlo.",
   },
-  record: { sentence: "{key} se abre en la web por ahora." },
+  record: {
+    sentence: "{key} se abre en la web por ahora.",
+    missing:
+      "{key} no está disponible para ti en Compass. Ábrelo en Atlas para ver si puedes consultarlo.",
+    engagement:
+      "{key} se abre en Gateway. Tus turnos para este compromiso están en tu horario aquí.",
+    due: "Vence",
+    starts: "Comienza",
+    owner: "Responsable",
+    open: {
+      schedule: "Abrir horario",
+      inspections: "Abrir inspecciones",
+      training: "Abrir capacitación",
+    },
+  },
   audience: {
     field: "Campo",
     "field-supervisor": "Supervisor de campo",
@@ -18249,6 +18301,24 @@ var compass_default = {
       "Tu acceso, tu nombre y tu perfil están borrados. Organizaciones avisadas: {count}.",
     done: "Listo",
     signOutFailed: "Compass no pudo limpiar este dispositivo: {reason}. Toca Listo otra vez.",
+  },
+  notifications: {
+    title: "Compass",
+    approve: "Aprobar",
+    reject: "Rechazar",
+    reason: "¿Por qué lo rechazas?",
+    approved: "Aprobado. No hay nada más que hacer.",
+    rejected: "Rechazado con tu motivo.",
+    refused: "No se hizo: {detail}",
+    failed:
+      "No se hizo: Compass no pudo conectar con el servidor. Inténtalo de nuevo desde la bandeja.",
+    signedOut: "No se hizo: inicia sesión en Compass e inténtalo de nuevo desde la bandeja.",
+    promptTitle: "Aprobar desde notificaciones",
+    prompt:
+      "Activa las notificaciones para aprobar hojas de horas y otras solicitudes desde la alerta.",
+    denied:
+      "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
+    turnOn: "Activar notificaciones",
   },
 };
 var credentials_default = {
@@ -21510,6 +21580,15 @@ var gatewayOnboarding_default = {
   acknowledge: "Lo he leído y lo acepto",
   acknowledged: "Aceptado. La organización lo verifica a continuación.",
   acknowledgeHint: "Lee la sesión informativa que compartió la organización y luego acéptala aquí.",
+};
+var handoff_default = {
+  button: "Continuar en teléfono",
+  title: "Continuar en otro dispositivo",
+  sentence: "Escanea con la cámara de tu teléfono para abrir {item} en Compass.",
+  sentenceUniversal:
+    "Escanea con la cámara de tu teléfono para abrir {item} en Compass, o en la web donde Compass no esté instalado.",
+  qr: "Código QR que abre {item} en Compass",
+  link: "Enlace:",
 };
 var help_default = {
   button: "Ayuda",
@@ -31740,6 +31819,7 @@ var enUS = {
   finance: finance_default$1,
   gateway: gateway_default$1,
   gatewayOnboarding: gatewayOnboarding_default$1,
+  handoff: handoff_default$1,
   help: help_default$1,
   home: home_default$1,
   hospitality: hospitality_default$1,
@@ -31792,6 +31872,7 @@ var esUS = {
   finance: finance_default,
   gateway: gateway_default,
   gatewayOnboarding: gatewayOnboarding_default,
+  handoff: handoff_default,
   help: help_default,
   home: home_default,
   hospitality: hospitality_default,

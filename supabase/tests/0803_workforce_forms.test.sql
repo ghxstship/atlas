@@ -106,7 +106,8 @@ select is((select count(*)::integer from app.form_submission_state_transitions w
 select pg_temp.as_user('carol');
 insert into k select 'own', app.submit_form((select id from k where key = 'tpl'), '{"hoist_ok": true, "photos": ["org/forms/b.jpg"]}'::jsonb, null,
   '{"latitude": 25.77, "longitude": -80.19}', '{"signer_name": "Carol Nguyen", "signature_path": "org/sig/c.png"}');
-select throws_ok($$select app.decide_form_submission((select id from k where key = 'own'), true)$$, 'XR001', null, 'nobody approves their own submission');
+select throws_ok($$select app.decide_form_submission((select id from k where key = 'own'), true)$$, 'XR001',
+  'sod_form_submitter: The person who submitted a form cannot approve or reject it.', 'nobody approves their own submission');
 select pg_temp.as_user('dave');
 select app.retire_form_template((select id from k where key = 'tpl'), 'Replaced by the 2027 check.');
 select pg_temp.as_user('frank');

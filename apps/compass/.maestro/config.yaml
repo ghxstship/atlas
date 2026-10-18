@@ -26,6 +26,7 @@ executionOrder:
     - field-asset-scan
     - desk-asset-custody
     - field-run-of-show
+    - handoff-open-record
     - supervisor-kiosk
     - crew-external-today
     - vendor-external-scan

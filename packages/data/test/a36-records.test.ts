@@ -347,6 +347,15 @@ describe("inbox repository", () => {
     });
     expect(inbox.data[2]?.args).toEqual({ title: "PO 1", amount: "3" });
     expect(inbox.data.map(isActionableApproval)).toEqual([false, true, false]);
+    // A timesheet approval request (migration 1140) is approvable while it is in the Inbox.
+    const timesheet = {
+      ...(inbox.data[1] as NonNullable<(typeof inbox.data)[1]>),
+      subjectTable: "timesheets",
+      subjectId: "t1",
+      approval: null,
+    };
+    expect(isActionableApproval(timesheet)).toBe(true);
+    expect(isActionableApproval({ ...timesheet, kind: "mention.created" })).toBe(false);
     expect(await actOnInboxItem(db, { id: "n1", action: "approve" })).toEqual({
       ok: true,
       data: "n1",

@@ -9,6 +9,7 @@ import { CompassProvider, useCompass } from "../src/runtime/CompassProvider";
 import { playHaptic } from "../src/runtime/haptics";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
+import { useActionableNotifications } from "../src/runtime/notifications";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
 import { SignIn } from "../src/screens/SignIn";
@@ -23,6 +24,12 @@ import {
 } from "../src/ui";
 
 initI18n();
+
+/** Actionable push notifications (journey 57) for the signed-in person; renders nothing. */
+function NotificationActions(): null {
+  useActionableNotifications();
+  return null;
+}
 
 function Gatekeeper(): ReactElement {
   const { phase, retryIdentity, settings, client, signOut } = useCompass();
@@ -92,6 +99,7 @@ function Gatekeeper(): ReactElement {
   return (
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
+      <NotificationActions />
       <BiometricLock enabled={settings.biometric}>
         <Stack
           screenOptions={{
