@@ -73,13 +73,19 @@ export default defineConfig({
       timeout: 120_000,
     },
     // Journeys 35 and 36 (aurora-journeys.spec.ts) need Aurora's fixture model, which exists only
-    // outside production (finding A24-007), so they run against their own development server.
-    {
-      command: `pnpm exec next dev --port ${new URL(auroraURL).port}`,
-      url: `${auroraURL}/auth/sign-in`,
-      reuseExistingServer: true,
-      timeout: 180_000,
-      env: { XOS_AI_FAKE: "1", ATLAS_SITE_URL: auroraURL },
-    },
+    // outside production (finding A24-007), so they run against their own development server. Runs
+    // that already serve Atlas with next dev (E2E_SKIP_AURORA=1) skip it: Next refuses a second dev
+    // server in the same project.
+    ...(process.env["E2E_SKIP_AURORA"] === "1"
+      ? []
+      : [
+          {
+            command: `pnpm exec next dev --port ${new URL(auroraURL).port}`,
+            url: `${auroraURL}/auth/sign-in`,
+            reuseExistingServer: true,
+            timeout: 180_000,
+            env: { XOS_AI_FAKE: "1", ATLAS_SITE_URL: auroraURL },
+          },
+        ]),
   ],
 });

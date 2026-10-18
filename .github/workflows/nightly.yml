@@ -28,7 +28,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
-      - run: supabase start
+      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
       - name: Serve the three production builds and run Lighthouse
         run: |
@@ -66,7 +67,8 @@ jobs:
         with:
           version: 2.120.0
       - run: pnpm install --frozen-lockfile
-      - run: supabase start
+      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - run: pnpm turbo run build --filter=@xos/atlas
       - name: Smoke the three scripts through grafana/k6:2.3.0
         run: |

@@ -148,14 +148,21 @@ jobs:
   # first visit and typing before hydration is the race they guard against. Gateway's external role
   # journeys also drive Atlas, so its job serves both apps.
   e2e:
-    name: Playwright journeys (${{ matrix.app }}) (gate 6)
+    name: Playwright ${{ matrix.suite }} (${{ matrix.app }}) (gates 6, 8)
     runs-on: ubuntu-24.04
     # Atlas runs about 150 journeys and page checks, about 40 minutes on a laptop.
     timeout-minutes: 90
     strategy:
       fail-fast: false
+      # Journeys (gate 6) and axe on every signed-in page per role (gate 8) run on separate runners;
+      # together they pass the time limit of one.
       matrix:
-        app: [atlas, gateway, docs]
+        include:
+          - { app: atlas, suite: journeys }
+          - { app: atlas, suite: axe }
+          - { app: gateway, suite: journeys }
+          - { app: gateway, suite: axe }
+          - { app: docs, suite: journeys }
     env:
       E2E_ENGINES: chromium
     steps:
@@ -172,7 +179,8 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/${{ matrix.app }}
       # The full stack (Auth, PostgREST, Storage, Mailpit) with migrations and the demo seed.
-      - run: supabase start
+      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environment from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
@@ -197,17 +205,19 @@ jobs:
           echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
           # Production builds offer no pseudo-locales; the ar-XB journey runs in e2e-pseudo-locales.
           echo "E2E_PRODUCTION_BUILD=1" >> "$GITHUB_ENV"
-      - run: pnpm exec playwright test
+      - name: Journeys
+        if: matrix.suite == 'journeys'
+        run: pnpm exec playwright test
         working-directory: apps/${{ matrix.app }}
       # Gate 8: axe on every signed-in page per role, both themes, desktop and 375 px.
       - name: Axe on every page
-        if: matrix.app != 'docs'
+        if: matrix.suite == 'axe'
         run: pnpm test:a11y
         working-directory: apps/${{ matrix.app }}
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: e2e-${{ matrix.app }}
+          name: e2e-${{ matrix.app }}-${{ matrix.suite }}
           path: |
             apps/${{ matrix.app }}/node_modules/.cache/playwright
             /tmp/*.log
@@ -231,7 +241,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
-      - run: supabase start
+      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the Atlas environment from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
@@ -241,3 +252,4 @@ jobs:
         working-directory: apps/atlas
         env:
           E2E_ENGINES: chromium
+          E2E_SKIP_AURORA: "1"
