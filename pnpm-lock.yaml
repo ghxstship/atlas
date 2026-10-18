@@ -71,6 +71,9 @@ importers:
       cmdk:
         specifier: 1.1.1
         version: 1.1.1(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      icu-minify:
+        specifier: 4.14.9
+        version: 4.14.9
       lucide-react:
         specifier: 1.53.0
         version: 1.53.0(@types/react@19.3.0)(react@19.3.0)
@@ -96,6 +99,9 @@ importers:
       '@axe-core/playwright':
         specifier: 4.13.0
         version: 4.13.0(playwright-core@1.64.0)
+      '@formatjs/icu-messageformat-parser':
+        specifier: 3.5.21
+        version: 3.5.21
       '@playwright/test':
         specifier: 1.64.0
         version: 1.64.0
@@ -120,6 +126,9 @@ importers:
       eslint-config-next:
         specifier: 16.4.0
         version: 16.4.0(eslint@10.12.0(jiti@2.7.0))(typescript@6.0.3)
+      intl-messageformat:
+        specifier: 11.2.15
+        version: 11.2.15
       prettier:
         specifier: 3.9.9
         version: 3.9.9
@@ -2265,7 +2274,7 @@ packages:
 
   '@expo/bunyan@4.0.1':
     resolution: {integrity: sha512-+Lla7nYSiHZirgK+U/uYzsLv/X+HaJienbD5AKX1UQZHYfWaP+9uuQluRB4GrEVWF0GZ7vEVp/jzaOT9k/SQlg==}
-    engines: {'0': node >=0.10.0}
+    engines: {node: '>=0.10.0'}
 
   '@expo/cli@57.0.30':
     resolution: {integrity: sha512-xyPD5pkNvEojk9oI3xs2kR3JHSrkOPcCmuLnHkw4fcU/zSuqcoY3y6z/t/IIUlTpnuTFeTpDIiIvafBTO/mtKA==}

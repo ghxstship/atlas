@@ -5,10 +5,13 @@ import type { Route } from "next";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { RecordPeek } from "@/components/work/record-peek";
 import { withQuery } from "@/components/work/format";
 import { loadShellPeekAction, type ShellPeekResult } from "@/lib/shell/peek-actions";
 import { pageOwnsPeek } from "@/lib/shell/peek";
+import { onDemand, useOnDemand } from "./on-demand";
+
+/** The side peek loads with the first record the shell opens (A24-009). */
+const peek = onDemand(() => import("@/components/work/record-peek"));
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -33,6 +36,7 @@ export function ShellPeek({ org }: { org: string }) {
   const [unclaimed, setUnclaimed] = useState<string | null>(null);
   const active = key !== null && key.length > 0 && (!owned || unclaimed === `${pathname}?${key}`);
   const [result, setResult] = useState<{ key: string; value: ShellPeekResult } | null>(null);
+  const loaded = useOnDemand(peek, active);
 
   useEffect(() => {
     if (!owned || key === null || key.length === 0) return;
@@ -64,7 +68,7 @@ export function ShellPeek({ org }: { org: string }) {
   const close = () =>
     router.replace(withQuery(pathname, search, { peek: null }) as Route, { scroll: false });
   const current = result?.key === key ? result.value : null;
-  if (current === null) {
+  if (current === null || (current.ok && loaded === null)) {
     return (
       <p role="status" className="sr-only" data-testid="shell-peek-loading">
         {t("loading", { key })}
@@ -105,6 +109,8 @@ export function ShellPeek({ org }: { org: string }) {
         ]
       : []),
   ];
+  if (loaded === null) return null;
+  const { RecordPeek } = loaded;
   return (
     <RecordPeek
       org={org}

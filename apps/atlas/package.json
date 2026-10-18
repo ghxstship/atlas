@@ -33,6 +33,7 @@
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
     "cmdk": "1.1.1",
+    "icu-minify": "4.14.9",
     "lucide-react": "1.53.0",
     "next": "16.4.0",
     "next-intl": "4.14.9",
@@ -43,6 +44,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "4.13.0",
+    "@formatjs/icu-messageformat-parser": "3.5.21",
     "@playwright/test": "1.64.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "22.20.5",
@@ -51,6 +53,7 @@
     "@xos/config": "workspace:*",
     "eslint": "10.12.0",
     "eslint-config-next": "16.4.0",
+    "intl-messageformat": "11.2.15",
     "prettier": "3.9.9",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.3",

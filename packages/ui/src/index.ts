@@ -161,6 +161,7 @@ export {
   DropdownMenu,
   ContextMenu,
   OrgSwitcher,
+  orgSwitcherTriggerClass,
   type MenuItem,
   type DropdownMenuProps,
   type ContextMenuProps,

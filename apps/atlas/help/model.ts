@@ -78,6 +78,9 @@ export interface HelpIndex {
   readonly whatsNew: readonly WhatsNewEntry[];
 }
 
+/** The tours and tips, which the shell checks on every page (guides.generated.ts). */
+export type HelpGuides = Pick<HelpIndex, "tours" | "tips">;
+
 /** Article bodies by locale and slug, loaded when the help panel opens. */
 export type HelpBodies = Readonly<Record<HelpLocale, Readonly<Record<string, readonly Block[]>>>>;
 

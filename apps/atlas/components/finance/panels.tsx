@@ -1,6 +1,6 @@
 "use client";
 
-import { EmptyState, ErrorState, RefusalNotice, Skeleton } from "@xos/ui";
+import { EmptyState, ErrorState, RefusalNotice } from "@xos/ui";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useFinanceT } from "./kit";
@@ -57,17 +57,5 @@ export function RefusalPanel({ capability, href }: { capability: string; href: s
       actionLabel={t("common.backHome")}
       onAction={() => router.push(href as Route)}
     />
-  );
-}
-
-export function LoadingPanel({ label }: { label: string }) {
-  return (
-    <div role="status" aria-label={label} className="flex flex-col gap-8">
-      <Skeleton height={28} width="40%" />
-      <Skeleton height={36} />
-      <Skeleton height={36} />
-      <Skeleton height={36} />
-      <Skeleton height={36} />
-    </div>
   );
 }

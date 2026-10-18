@@ -5,9 +5,6 @@ import {
   AppShell,
   Breadcrumbs,
   Button,
-  CommandMenu,
-  DropdownMenu,
-  OrgSwitcher,
   Select,
   Sidebar,
   TabBar,
@@ -26,15 +23,20 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { sitemap } from "@/ia/sitemap.generated";
+import { clientSitemap } from "@/ia/sitemap.client.generated";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { AuroraCenter } from "@/components/aurora/aurora-center";
-import { HelpCenter, helpCommandItems, openHelpArticle } from "@/components/help/help-center";
+import { HelpCenter } from "@/components/help/help-center";
+import { AccountMenu, ShellOrgSwitcher } from "./deferred-menus";
+import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
+
+/** The command menu (cmdk and the help article index) loads the first time it opens (A24-009). */
+const commandMenu = onDemand(() => import("./shell-command"));
 
 export interface ShellFrameProps {
   readonly org: { readonly name: string; readonly slug: string };
@@ -68,6 +70,7 @@ export function ShellFrame(props: ShellFrameProps) {
   const tRoot = useTranslations();
   const t = tRoot as unknown as Translate;
   const [commandOpen, setCommandOpen] = useState(false);
+  const command = useOnDemand(commandMenu, commandOpen);
   const [focus, setFocus] = useState(false);
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const signOutForm = useRef<HTMLFormElement>(null);
@@ -106,6 +109,9 @@ export function ShellFrame(props: ShellFrameProps) {
       if ((event.metaKey || event.ctrlKey) && event.key === ".") {
         event.preventDefault();
         setFocus((f) => !f);
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setCommandOpen((o) => !o);
       } else if (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey) {
         event.preventDefault();
         setCommandOpen(true);
@@ -117,7 +123,7 @@ export function ShellFrame(props: ShellFrameProps) {
 
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;
   const crumbs = resolveBreadcrumbs(
-    sitemap,
+    clientSitemap,
     pathname,
     workspaceName ? { workspace: workspaceName } : {},
   ).map((c) => {
@@ -170,6 +176,8 @@ export function ShellFrame(props: ShellFrameProps) {
         icon="Search"
         shortcut="Mod+K"
         className="w-full justify-start"
+        onPointerEnter={() => void commandMenu.load().catch(() => undefined)}
+        onFocus={() => void commandMenu.load().catch(() => undefined)}
         onClick={() => setCommandOpen(true)}
       >
         {t("shell.chrome.search")}
@@ -267,7 +275,7 @@ export function ShellFrame(props: ShellFrameProps) {
       ) : null}
       <AppShell
         brand={
-          <OrgSwitcher
+          <ShellOrgSwitcher
             current={org.name}
             heading={t("shell.chrome.organizations")}
             orgs={props.orgs.map((o) => ({ name: o.name, role: o.role }))}
@@ -285,7 +293,7 @@ export function ShellFrame(props: ShellFrameProps) {
             <Breadcrumbs items={crumbs} />
             <AuroraCenter org={org.slug} canManage={props.canManageAi} />
             <HelpCenter org={org.slug} />
-            <DropdownMenu
+            <AccountMenu
               label={t("shell.chrome.account")}
               icon="CircleUserRound"
               items={accountItems}
@@ -320,35 +328,15 @@ export function ShellFrame(props: ShellFrameProps) {
           {props.children}
         </div>
       </AppShell>
-      <CommandMenu
-        open={commandOpen}
-        onOpenChange={setCommandOpen}
-        placeholder={t("shell.chrome.searchHint")}
-        groups={[
-          ...nav.commands.map((g) => ({
-            label: g.label,
-            items: g.items.map((item) => ({
-              label: item.label,
-              icon: item.icon,
-              onSelect: () => {
-                setCommandOpen(false);
-                go(item.href);
-              },
-            })),
-          })),
-          {
-            label: t("help.title"),
-            items: helpCommandItems(props.locale).map((a) => ({
-              label: a.title,
-              icon: "BookOpen",
-              onSelect: () => {
-                setCommandOpen(false);
-                openHelpArticle(a.slug);
-              },
-            })),
-          },
-        ]}
-      />
+      {command ? (
+        <command.ShellCommand
+          open={commandOpen}
+          onOpenChange={setCommandOpen}
+          commands={nav.commands}
+          locale={props.locale}
+          go={go}
+        />
+      ) : null}
       <form
         ref={signOutForm}
         method="post"
