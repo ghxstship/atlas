@@ -153,3 +153,10 @@ Renovate opens pinned upgrade pull requests weekly. Every runtime library above 
 | Data and Edge | `pdfkit` (server-only report PDFs; Edge `npm:pdfkit@0.20.2`) | 0.20.2  |
 | Data          | `@types/pdfkit` (dev)                                        | 0.17.6  |
 | Edge          | `exceljs` added to the Edge import map (`npm:exceljs@4.4.0`) | 4.4.0   |
+
+## Amendment (2026-10-18): Continue on another device (A45)
+
+| Area    | Package                                                                                    | Version |
+| ------- | ------------------------------------------------------------------------------------------ | ------- |
+| Compass | `expo-notifications` (actionable approval pushes; Expo SDK 57's bundled `~57.0.22`)        | 57.0.22 |
+| Testing | `jsqr` (devDependency of `apps/atlas`; decodes the handoff QR code in a45-handoff.spec.ts) | 1.4.0   |
