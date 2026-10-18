@@ -73,6 +73,7 @@ export function AddTileForm({
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       className="flex flex-wrap items-end gap-12"
       aria-label={t("tile.title")}
       noValidate

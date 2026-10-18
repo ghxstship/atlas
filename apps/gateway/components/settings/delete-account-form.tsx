@@ -3,6 +3,7 @@
 import { Button, buttonClass, Dialog, InlineAlert, Input } from "@xos/ui";
 import { useActionState, useState } from "react";
 import { deleteAccountAction, type DeleteAccountState } from "@/lib/actions/account";
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 
 /** Copy the server translates from Compass's catalog (compass.account), so both apps say the same. */
 export interface DeleteAccountCopy {
@@ -69,7 +70,13 @@ export function DeleteAccountForm({ email, copy }: { email: string; copy: Delete
   }
 
   return (
-    <form id="delete-account" action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      id="delete-account"
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       <Input
         id="delete-account-email"
         name="email"

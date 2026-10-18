@@ -7,6 +7,7 @@ import {
   saveNotificationPreferencesAction,
   type PreferencesState,
 } from "@/lib/actions/notifications";
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
@@ -28,7 +29,12 @@ export function NotificationPreferences({ rows }: { rows: readonly PreferenceRow
   );
   const categories = [...new Set(rows.map((r) => r.category))];
   return (
-    <form action={action} aria-label={t("formLabel")} className="flex flex-col gap-12">
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      aria-label={t("formLabel")}
+      className="flex flex-col gap-12"
+    >
       {categories.map((category) => (
         <fieldset
           key={category}
