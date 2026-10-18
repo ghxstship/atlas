@@ -38,6 +38,8 @@ test("journey 35: blocked permits with the records cited, and NO ANSWER for an u
   page,
 }) => {
   await signIn(page, "owner@example.com");
+  // The shortcut works once the shell has hydrated and attached it.
+  await page.locator("html[data-aurora-ready]").waitFor({ state: "attached" });
   await page.keyboard.press("ControlOrMeta+j");
   const panel = page.getByRole("dialog", { name: "Aurora" });
   await expect(panel).toBeVisible();

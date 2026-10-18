@@ -47,7 +47,10 @@ export function AuroraCenter({ org, canManage }: AuroraCenterProps) {
     };
     window.addEventListener("keydown", onKey);
     window.addEventListener(AURORA_EVENT, onOpen);
+    // Marks the document once Cmd or Ctrl+J works, which is from hydration on.
+    document.documentElement.dataset["auroraReady"] = "";
     return () => {
+      delete document.documentElement.dataset["auroraReady"];
       window.removeEventListener("keydown", onKey);
       window.removeEventListener(AURORA_EVENT, onOpen);
     };

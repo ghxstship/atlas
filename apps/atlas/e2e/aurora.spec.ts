@@ -21,6 +21,8 @@ test("the Aurora panel and AI Features settings refuse cleanly on a plan without
   for (const scheme of ["dark", "light"] as const) {
     await page.emulateMedia({ colorScheme: scheme, reducedMotion: "reduce" });
     await page.goto(`/${slug}/home`);
+    // The shortcut works once the shell has hydrated and attached it.
+    await page.locator("html[data-aurora-ready]").waitFor({ state: "attached" });
     await page.keyboard.press("ControlOrMeta+j");
     const panel = page.getByRole("dialog", { name: "Aurora" });
     await expect(panel).toBeVisible();
