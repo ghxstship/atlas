@@ -48,3 +48,9 @@ Additive changes stay allowed without an ADR: new API operations within `/v1`, n
 - A03 extends `private.scope_org` and `private.is_assigned_to_scope` to projects and records (ADR 0008).
 - The hand-written plan seed in `0201` duplicates the generated `0207`; the orchestrator removes it in its own correction range once Wave 2 starts.
 - CI gains `canon:check` once the owner resolves decision 1, and the oasdiff gate once v1 has a released baseline.
+
+## Amendment (2026-10-18): plan seed carry-over closed
+
+The plan rows that `0201` seeds by hand stay in place. Migrations are immutable once applied, and staging has applied `0201`. Instead, every generated plan seed (`0207`, `0900`, `0902`) upserts the whole registry, and the `@xos/schemas` tests fail when the latest one differs from `plans.yaml`. After a reset, the database holds exactly the registry: 5 plans, 25 limits and 55 features, with no rows that only `0201` added.
+
+The frozen-contract test (gate 20, `packages/api/test/corrections.test.ts`) guards against breaking changes in v1 on every push. oasdiff joins it at the v4.0.0 tag, when a released baseline exists. `canon:check` still waits on decision 1.

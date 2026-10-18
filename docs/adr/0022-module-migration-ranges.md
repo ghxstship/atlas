@@ -68,3 +68,7 @@ A32 adds `api_external` views in its own range because A28 is complete; the proj
 ## Amendment (2026-10-17): orchestrator integration range
 
 Fixes that join two agents' work after both have merged (for example A43's individual payees and A44's invoice notifications) take numbers 1190 to 1199, so they sort after every agent range in use.
+
+## Amendment (2026-10-18): A45 and A47
+
+A45 (Continue on another device and push approval) takes 1140 to 1144. A47 (gate audit fixes) takes 1150 to 1154.
