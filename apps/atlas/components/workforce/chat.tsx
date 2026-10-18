@@ -251,7 +251,7 @@ export async function ChatSection({
                         action={startConversationAction}
                         hidden={{ org: ctx.org.slug, membershipId: p.membershipId }}
                         label={t("chat.messagePerson", { name: p.preferredName ?? p.name })}
-                        variant="primary"
+                        variant="secondary"
                         refusals={REFUSALS}
                       />
                       {tel ? (

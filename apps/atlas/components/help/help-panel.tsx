@@ -349,7 +349,7 @@ export function HelpPanel({
             >
               {t("tours.offerLater")}
             </Button>
-            <Button variant="primary" onClick={() => startTour(offered)}>
+            <Button variant="secondary" onClick={() => startTour(offered)}>
               {t("tours.offerStart")}
             </Button>
           </div>

@@ -123,3 +123,70 @@ export async function iconControlProblems(page: Page): Promise<string[]> {
     return out;
   });
 }
+
+/**
+ * Gate 27 (cognitive load): no screen has more than one primary action, more than 5 visible toolbar
+ * actions, or more than 7 visible form fields before "More fields" (collapsed fields are not
+ * visible). An open dialog is its own screen; the page behind it is not counted.
+ */
+export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const out: string[] = [];
+    const visible = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      return r.width > 0 && r.height > 0 && s.visibility !== "hidden";
+    };
+    const dialog = [...document.querySelectorAll("[role='dialog'], [role='alertdialog']")].find(
+      visible,
+    );
+    const screen = dialog ?? document.querySelector("main") ?? document.body;
+    const primaries = [...screen.querySelectorAll("button.xos-fill-accent, a.xos-fill-accent")]
+      .filter(visible)
+      .filter((el) => dialog || !el.closest("[role='dialog'], [role='alertdialog']"));
+    if (primaries.length > 1) {
+      const names = primaries.map(
+        (p) => (p.textContent ?? "").trim() || p.getAttribute("aria-label"),
+      );
+      out.push(`cognitive load: ${primaries.length} primary actions (${names.join(", ")})`);
+    }
+    const groups = [
+      ...screen.querySelectorAll("[role='toolbar']"),
+      ...[...screen.querySelectorAll("header")].map((h) =>
+        h.querySelector(":scope > div:last-child"),
+      ),
+    ].filter((g): g is Element => g !== null && visible(g));
+    for (const g of groups) {
+      const actions = [...g.querySelectorAll("button, a[href], [role='button']")]
+        .filter(visible)
+        .filter((el) => !el.closest("[role='radiogroup'], [role='tablist']"));
+      if (actions.length > 5) {
+        const label = g.getAttribute("aria-label") ?? "page header";
+        out.push(`cognitive load: ${actions.length} toolbar actions in ${label}`);
+      }
+    }
+    const forms = dialog ? [dialog] : [...screen.querySelectorAll("form")];
+    for (const f of forms) {
+      const seen = new Set<string>();
+      let count = 0;
+      for (const el of f.querySelectorAll<HTMLElement>(
+        "input, select, textarea, [role='combobox'], [role='switch']",
+      )) {
+        if (!visible(el)) continue;
+        const type = el.getAttribute("type") ?? "";
+        if (["hidden", "submit", "button", "reset"].includes(type)) continue;
+        if (type === "search") continue;
+        const key =
+          type === "radio" ? `radio:${el.getAttribute("name")}` : `el:${count}:${seen.size}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        count += 1;
+      }
+      if (count > 7) {
+        const label = f.getAttribute("aria-label") ?? f.id ?? (dialog ? "dialog" : "form");
+        out.push(`cognitive load: ${count} visible fields in ${label || "a form"}`);
+      }
+    }
+    return out;
+  });
+}

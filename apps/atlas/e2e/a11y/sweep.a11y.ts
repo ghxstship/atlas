@@ -4,6 +4,7 @@ import { DELEGATED } from "../../ia/routes.config";
 import { sitemap } from "../../ia/sitemap.generated";
 import {
   axeProblems,
+  cognitiveLoadProblems,
   focusProblems,
   iconControlProblems,
   overflowProblems,
@@ -70,6 +71,7 @@ for (const { role } of activeRoles()) {
           problems.push(...(await overflowProblems(page)));
         }
         problems.push(...(await iconControlProblems(page)));
+        problems.push(...(await cognitiveLoadProblems(page)));
         problems.push(...(await focusProblems(page)));
         const result = triage(problems, { route: route.id, project: info.project.name, role });
         for (const k of result.known) info.annotations.push({ type: "known", description: k });
