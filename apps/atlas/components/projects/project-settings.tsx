@@ -14,7 +14,7 @@ import {
 } from "@/lib/projects/actions";
 import { enumKey, stateIcon } from "@/lib/projects/format";
 import { ActionError, echoed, useClosingAction } from "./action-error";
-import { ProjectFields, type ProjectFormOptions } from "./create-project";
+import { ProjectFields, type ProjectFormOptions } from "./project-fields";
 import { TransitionDialog } from "./transition-dialog";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";

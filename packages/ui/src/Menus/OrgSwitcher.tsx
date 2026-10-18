@@ -23,10 +23,7 @@ export function OrgSwitcher({
   const t = useT();
   return (
     <RDropdownMenu.Root {...(defaultOpen === undefined ? {} : { defaultOpen })} modal={false}>
-      <RDropdownMenu.Trigger
-        aria-label={current}
-        className={orgSwitcherTriggerClass}
-      >
+      <RDropdownMenu.Trigger aria-label={current} className={orgSwitcherTriggerClass}>
         <BrandMark name={current} size="sm" />
         <Icon name="ChevronsUpDown" size={14} color="var(--color-text-secondary)" />
       </RDropdownMenu.Trigger>
