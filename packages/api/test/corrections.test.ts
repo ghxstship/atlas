@@ -191,7 +191,8 @@ describe("gate 20: the frozen v1 contract", () => {
       "changes that no correction in src/catalog lists",
     ).toEqual([]);
     expect(attributed().unlisted, "components changed but not listed").toEqual([]);
-  });
+    // Rebuilds the document once per correction; CI runners under coverage take several times longer.
+  }, 180_000);
 
   it("fails on a correction that changes a shared component it does not list", () => {
     const polluting: ResolvedCorrection = {
