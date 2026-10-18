@@ -36,11 +36,14 @@ import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/li
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { CrewFrame, resolveView } from "./frame";
-import { ConfirmButton, DrawerForm, type FieldSpec } from "./forms";
+import { ConfirmButton } from "./forms-confirm-button";
+import { type FieldSpec } from "./forms.types";
 import { CrewRecord } from "./record";
 import { ScheduleGrid } from "./schedule-grid";
 import { InlineAlert } from "./ui";
-import { FilterSelect, PeekCalendar, PeekTable } from "./views";
+import { FilterSelect } from "./views-filter-select";
+// The table and calendar views and the drawers render only in some states (A24-009).
+import { DrawerForm, PeekCalendar, PeekTable } from "./lazy";
 
 /**
  * Shifts in every view the registry offers (resource schedule, list, table, calendar), for the org

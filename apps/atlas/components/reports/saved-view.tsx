@@ -8,12 +8,10 @@ import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";
 import { Section, SimpleTable } from "@/components/finance/figures";
-import {
-  CollectionList,
-  CollectionTable,
-  RecordPeek,
-  ViewSwitcher,
-} from "@/components/finance/kit";
+import { CollectionList } from "@/components/finance/kit-collection-list";
+import { CollectionTable } from "@/components/finance/kit-collection-table";
+import { RecordPeek } from "@/components/finance/kit-record-peek";
+import { ViewSwitcher } from "@/components/finance/kit-view-switcher";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panels";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { RevokeShareButton, RunReportForm, ShareReportForm } from "./client";

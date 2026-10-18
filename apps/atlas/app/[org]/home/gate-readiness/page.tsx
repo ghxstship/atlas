@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { ReadinessView } from "@/components/home/home-views";
 import { PageHeader } from "@/components/projects/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { loadReadinessBoard } from "@/lib/home/data";
 import { pickView } from "@/lib/home/views";
 import { nodeHref } from "@/lib/shell/sitemap";

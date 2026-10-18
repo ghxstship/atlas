@@ -15,6 +15,7 @@ import {
   type ArticleSummary,
   type HelpBodies,
   type HelpContent,
+  type HelpGuides,
   type HelpIndex,
   type HelpLocale,
 } from "./model";
@@ -117,6 +118,21 @@ export function renderHelpModule(content: HelpContent): string {
     'import type { HelpIndex } from "./model";',
     "",
     `export const HELP_CONTENT: HelpIndex = ${JSON.stringify(index)};`,
+    "",
+  ].join("\n");
+}
+
+/**
+ * The tours and tips alone: the shell reads them on every page to know whether this page offers one,
+ * and loads the help panel (with the article index) only when it does or the person opens Help.
+ */
+export function renderHelpGuides(content: HelpContent): string {
+  const guides: HelpGuides = { tours: content.tours, tips: content.tips };
+  return [
+    ...HEADER,
+    'import type { HelpGuides } from "./model";',
+    "",
+    `export const HELP_GUIDES: HelpGuides = ${JSON.stringify(guides)};`,
     "",
   ].join("\n");
 }

@@ -1,9 +1,16 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { beforeAll, describe, expect, it } from "vitest";
-import { flattenRoutes, matchRoute, routesOverlap } from "@xos/ia";
+import {
+  findRoute,
+  flattenRoutes,
+  getNode,
+  matchRoute,
+  resolveBreadcrumbs,
+  routesOverlap,
+} from "@xos/ia";
 import { loadSitemapFile } from "@xos/ia/node";
-import { pageFile } from "../ia/generate";
+import { clientSitemap, listNodeIds, pageFile } from "../ia/generate";
 import { appRoot, renderGeneratedFiles, routeFiles, stampedFiles } from "../ia/generate-node";
 import { IMPLEMENTED } from "../ia/implemented";
 import { DELEGATED, SHELL_ROUTES } from "../ia/routes.config";
@@ -91,5 +98,45 @@ describe("gate 15: sitemap and routes", () => {
       }
     }
     expect(matchRoute("/{org}/home", "/auth/home", sitemap.params)).toBeNull();
+  });
+});
+
+describe("client sitemap", () => {
+  const samples: Record<string, string> = {
+    slug: "demo-productions",
+    "project-key": "NWS",
+    "record-key": "NWS-12",
+    "display-key": "NWS-A1",
+    handle: "maria",
+    uuid: "4f5c3a2e-1b2c-4d3e-8f9a-0b1c2d3e4f5a",
+    token: "abcdefghijklmnop1234",
+  };
+  const client = clientSitemap(sitemap);
+
+  it("matches and crumbs every route as the full sitemap does", () => {
+    for (const r of flattenRoutes(sitemap)) {
+      const path = r.route.replace(/\{(\w+)\}/g, (_, name: string) => {
+        const type = sitemap.params[name]?.type ?? "slug";
+        return samples[type] ?? "x";
+      });
+      expect(findRoute(client, path), path).toEqual(findRoute(sitemap, path));
+      expect(resolveBreadcrumbs(client, path, { workspace: "Tour" }), path).toEqual(
+        resolveBreadcrumbs(sitemap, path, { workspace: "Tour" }),
+      );
+    }
+  });
+
+  it("lists exactly the routed nodes with a list", () => {
+    const withList = flattenRoutes(sitemap)
+      .filter((r) => getNode(sitemap, r.id).node.list !== undefined)
+      .map((r) => r.id);
+    expect(listNodeIds(sitemap)).toEqual(withList);
+  });
+
+  it("carries no visibility, list or persona data", () => {
+    const text = JSON.stringify(client);
+    for (const field of ['"visibility"', '"list"', '"personas"', '"chrome"', '"tags"']) {
+      expect(text).not.toContain(field);
+    }
   });
 });

@@ -6,8 +6,8 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";
 import { FinanceCollection } from "./collection";
-import { Form1099ExportForm } from "./forms";
-import type { Row } from "./kit";
+import { Form1099ExportForm } from "./forms-form1099-export-form";
+import type { Row } from "./kit.types";
 
 /** Tax years offered: the current year and the three before it; the default is last year. */
 export function taxYears(today: Date = new Date()): number[] {

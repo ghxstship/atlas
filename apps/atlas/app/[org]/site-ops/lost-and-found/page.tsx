@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { LostFoundSection } from "@/components/workforce/lost-found";
 import { nodeHref } from "@/lib/shell/sitemap";
 

@@ -21,9 +21,11 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy, type FinanceCopy } from "@/lib/finance/copy";
 import { sitemap } from "@/lib/shell/sitemap";
 import { Figures, Section, SimpleTable } from "@/components/finance/figures";
-import { FilterBar, ViewSwitcher } from "@/components/finance/kit";
+import { FilterBar } from "@/components/finance/kit-filter-bar";
+import { ViewSwitcher } from "@/components/finance/kit-view-switcher";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panels";
-import { Chart, PageHeader, TemplateCollection } from "@/components/finance/ui";
+import { PageHeader, TemplateCollection } from "@/components/finance/ui";
+import { Chart } from "@/components/platform/client/chart";
 import { ExportCsvButton, MatrixWithDrill } from "./client";
 
 /**

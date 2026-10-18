@@ -5,7 +5,8 @@ import type { Transition } from "@xos/data/finance";
 import { cache } from "react";
 import type { OrgContext } from "@/lib/shell/context";
 import { ActivityTimeline } from "./figures";
-import { FinanceAttachments, FinanceComments } from "./collab";
+// Comments and attachments render in a record's peek or page, not on a list (A24-009).
+import { FinanceAttachments, FinanceComments } from "./lazy";
 
 /**
  * The shared lower half of every finance record (Section 11.2 rule 4): the activity built from the

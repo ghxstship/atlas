@@ -9,7 +9,7 @@ import {
   listVenues,
 } from "@xos/data/projects";
 import { getTranslations } from "next-intl/server";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import type { OrgContext } from "@/lib/shell/context";

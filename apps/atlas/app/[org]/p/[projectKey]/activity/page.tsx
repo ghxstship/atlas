@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ActivityPage } from "@/components/activity/activity-page";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 
 /** Project Activity (Section 4.5.4): the project's activity feed. */

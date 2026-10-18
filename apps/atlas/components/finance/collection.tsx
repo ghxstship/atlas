@@ -1,20 +1,15 @@
 import type { DataTableColumn, RecordState } from "@xos/ui";
 import type { ReactNode } from "react";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
-import {
-  BackToList,
-  CollectionBoard,
-  CollectionList,
-  CollectionTable,
-  CreateButton,
-  FilterBar,
-  RecordPeek,
-  ViewSwitcher,
-  type BoardColumn,
-  type ListItem,
-  type Option,
-  type Row,
-} from "./kit";
+import { BackToList } from "./kit-back-to-list";
+import { CollectionBoard } from "./kit-collection-board";
+import { CollectionList } from "./kit-collection-list";
+import { CollectionTable } from "./kit-collection-table";
+import { CreateButton } from "./kit-create-button";
+import { FilterBar } from "./kit-filter-bar";
+import { RecordPeek } from "./kit-record-peek";
+import { ViewSwitcher } from "./kit-view-switcher";
+import { type BoardColumn, type ListItem, type Option, type Row } from "./kit.types";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "./panels";
 import { PageHeader, PropertyList, StateChip, TemplateCollection, TemplateRecord } from "./ui";
 

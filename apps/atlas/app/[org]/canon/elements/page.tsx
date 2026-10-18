@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { CanonElements } from "@/components/canon/elements";
 import { nodeHref } from "@/lib/shell/sitemap";
 

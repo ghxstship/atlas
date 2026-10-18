@@ -1,10 +1,24 @@
+import { createRequire } from "node:module";
+import { relative, sep } from "node:path";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
+/**
+ * Messages reach next-intl precompiled (i18n/request.ts, ADR 0027), so `use-intl/format-message`
+ * resolves to its format-only build and the ICU parser never ships (A24-009). use-intl is
+ * next-intl's dependency, so it is resolved from there; Turbopack takes a project-relative path.
+ */
+const require = createRequire(import.meta.url);
+const formatOnly = createRequire(require.resolve("next-intl")).resolve(
+  "use-intl/format-message/format-only",
+);
+const formatOnlyAlias = `./${relative(process.cwd(), formatOnly).split(sep).join("/")}`;
+
 const config: NextConfig = {
   reactStrictMode: true,
+  productionBrowserSourceMaps: process.env["XOS_SOURCEMAPS"] === "1",
   poweredByHeader: false,
   transpilePackages: [
     "@xos/i18n",
@@ -16,6 +30,7 @@ const config: NextConfig = {
     "@xos/ui",
   ],
   typedRoutes: true,
+  turbopack: { resolveAlias: { "use-intl/format-message": formatOnlyAlias } },
   // The release on browser error reports (instrumentation-client.ts). Always defined, so the build
   // inlines a string instead of shipping a process.env lookup.
   env: { NEXT_PUBLIC_XOS_RELEASE: process.env["VERCEL_GIT_COMMIT_SHA"] ?? "" },

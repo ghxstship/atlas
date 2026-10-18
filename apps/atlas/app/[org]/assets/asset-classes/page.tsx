@@ -6,7 +6,7 @@ import { AssetCollab } from "@/components/assets/collab";
 import { ClassActions } from "@/components/assets/class-actions";
 import { NewClassForm } from "@/components/assets/forms";
 import { PropertyList } from "@/components/assets/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { assetCapabilities, must } from "@/lib/assets/context";
 import { pageViews } from "@/lib/assets/page";
 import { matches, readQuery } from "@/lib/assets/views";

@@ -21,20 +21,21 @@ import { exponentOf, getExponents, moneyFormatter } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { deleteBudgetAction } from "@/app/[org]/finance/actions";
-import { BudgetEditor } from "./budget-editor";
 import { Figures, Section, SimpleTable } from "./figures";
-import { BudgetForm } from "./forms";
+import { CreateButton } from "./kit-create-button";
+import { FilterBar } from "./kit-filter-bar";
+import { ViewSwitcher } from "./kit-view-switcher";
+import { type Row } from "./kit.types";
+// The grid, table view, peek and sheets render only in some states (A24-009).
 import {
+  BudgetEditor,
+  BudgetForm,
   CollectionTable,
-  CreateButton,
   EditButton,
-  FilterBar,
   FormSheet,
   InlineActionButton,
   RecordPeek,
-  ViewSwitcher,
-  type Row,
-} from "./kit";
+} from "./lazy";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "./panels";
 import { RecordCollab } from "./record";
 

@@ -1,6 +1,6 @@
 import { getNode, isNodeVisible } from "@xos/ia";
 import { SectionNav } from "@/components/shell/section-nav";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { TemplateSettings } from "@/components/ui";
 import { navigableChildren, nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";

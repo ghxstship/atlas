@@ -21,12 +21,14 @@ import {
   updateRateCardAction,
   updateRateLineAction,
 } from "@/app/[org]/crew/actions";
-import { ConfirmButton, DrawerForm, type FieldSpec } from "@/components/crew/forms";
+import { ConfirmButton } from "@/components/crew/forms-confirm-button";
+import { DrawerForm } from "@/components/crew/forms-drawer-form";
+import { type FieldSpec } from "@/components/crew/forms.types";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { RateGrid } from "@/components/crew/rate-grid";
 import { CrewRecord } from "@/components/crew/record";
 import { InlineAlert, StateChip } from "@/components/crew/ui";
-import { PeekTable } from "@/components/crew/views";
+import { PeekTable } from "@/components/crew/views-peek-table";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {
   flatParams,

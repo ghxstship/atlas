@@ -1,5 +1,5 @@
 import { UnitsView } from "@/components/assets/units-view";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { readQuery } from "@/lib/assets/views";
 
 /**

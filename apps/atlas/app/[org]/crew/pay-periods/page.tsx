@@ -8,11 +8,13 @@ import {
   transitionPayPeriodAction,
   updatePayPeriodAction,
 } from "@/app/[org]/crew/actions";
-import { ConfirmButton, DrawerForm } from "@/components/crew/forms";
+import { ConfirmButton } from "@/components/crew/forms-confirm-button";
+import { DrawerForm } from "@/components/crew/forms-drawer-form";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { PayrollRunRecord } from "@/components/crew/payroll-run";
 import { CrewRecord } from "@/components/crew/record";
-import { FilterSelect, PeekTable } from "@/components/crew/views";
+import { FilterSelect } from "@/components/crew/views-filter-select";
+import { PeekTable } from "@/components/crew/views-peek-table";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { planHasFeature } from "@/lib/crew/plan";

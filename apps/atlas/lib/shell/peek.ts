@@ -1,5 +1,5 @@
-import { findRoute, getNode } from "@xos/ia";
-import { sitemap } from "./sitemap";
+import { findRoute } from "@xos/ia";
+import { clientSitemap, listNodes } from "@/ia/sitemap.client.generated";
 
 /**
  * The shell's global `?peek={recordKey}` (Section 4.5.3: the side peek uses `?peek={recordKey}` on any
@@ -12,9 +12,9 @@ import { sitemap } from "./sitemap";
 const OWN_PEEK_NODES: ReadonlySet<string> = new Set(["saved-view"]);
 
 export function pageOwnsPeek(pathname: string): boolean {
-  const match = findRoute(sitemap, pathname.split("?")[0] ?? pathname);
+  const match = findRoute(clientSitemap, pathname.split("?")[0] ?? pathname);
   if (!match) return false;
-  return OWN_PEEK_NODES.has(match.id) || getNode(sitemap, match.id).node.list !== undefined;
+  return OWN_PEEK_NODES.has(match.id) || listNodes.has(match.id);
 }
 
 /**

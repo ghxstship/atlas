@@ -14,7 +14,8 @@ import {
   ErrorPanel,
   KitSection,
 } from "@/components/collection-kit/kit";
-import { DataTable, InlineAlert, PageHeader, StateChip } from "@/components/collection-kit/ui";
+import { InlineAlert, PageHeader, StateChip } from "@/components/collection-kit/ui";
+import { DataTable } from "@/components/platform/client/data-table";
 import { EmptyStateLink } from "@/components/ui";
 import {
   addAlertRoleAction,

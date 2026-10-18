@@ -11,7 +11,7 @@ import { AssetsCollection, type CollectionRow } from "@/components/assets/collec
 import { AssetCollab } from "@/components/assets/collab";
 import { MaintenanceForm } from "@/components/assets/forms";
 import { Money, PropertyList } from "@/components/assets/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { assetCapabilities, must, todayIso } from "@/lib/assets/context";
 import { majorUnits } from "@/lib/assets/money";
 import { DEFAULT_CURRENCY, monthOf, pageViews } from "@/lib/assets/page";

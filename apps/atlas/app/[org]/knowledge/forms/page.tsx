@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { FormsSection } from "@/components/workforce/forms";
 import { nodeHref } from "@/lib/shell/sitemap";
 

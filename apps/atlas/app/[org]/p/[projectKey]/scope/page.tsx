@@ -10,7 +10,7 @@ import { getTranslations } from "next-intl/server";
 import { ReconciliationPanel } from "@/components/places/reconciliation/reconciliation-panel";
 import { ScopeView } from "@/components/projects/scope-view";
 import { PageHeader } from "@/components/projects/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { must } from "@/lib/projects/loaders";
 

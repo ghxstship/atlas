@@ -10,7 +10,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter } from "next-intl/server";
 import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { heldCapabilities } from "../kit/access";
@@ -29,7 +29,8 @@ import {
   SearchBox,
   type Search,
 } from "../kit/parts";
-import { Card, Gallery, InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { Card, InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { Gallery } from "@/components/platform/client/gallery";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { PlanCanvas, SitePlanForm } from "./plan-canvas";
 

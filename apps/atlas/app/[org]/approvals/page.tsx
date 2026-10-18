@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { ApprovalsView } from "@/components/workflow/approvals-view";
 
 /** Approvals (A33): spend documents going through the org's approval policies. */

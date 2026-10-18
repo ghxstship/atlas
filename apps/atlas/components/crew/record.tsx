@@ -8,9 +8,9 @@ import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { CrewContext } from "@/lib/crew/context";
 import { getTranslate } from "@/lib/shell/translate";
-import { CrewCollab } from "./collab";
 import { PropertyList, StateChip, TemplateRecord } from "./ui";
-import { PeekPanel } from "./views";
+// A record renders in a peek or its own page, not with a list (A24-009).
+import { CrewCollab, PeekPanel } from "./lazy";
 
 /**
  * The one record anatomy (Section 11.2, rule 4) for People and Crew entities, in the side peek and on

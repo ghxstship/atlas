@@ -1,12 +1,12 @@
 "use client";
 
-import { Button, Dialog, InlineAlert, Input } from "@xos/ui";
-import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
-import { reauthenticate, type FormState } from "@/app/auth/actions";
+import { useEffect, useState } from "react";
+import { onDemand, useOnDemand } from "./on-demand";
 
-import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+/** The sign-in dialog loads only when the session has expired (A24-009). */
+const dialog = onDemand(() => import("./session-dialog"));
+
 /**
  * Session continuity (Section 11.7). Tokens refresh silently through the proxy; when the session is
  * gone (`/auth/session` answers 401), a sign-in dialog opens over the page, so nothing typed on the
@@ -17,14 +17,9 @@ export const SESSION_CHANNEL = "xos-session";
 const POLL_MS = 60_000;
 
 export function SessionWatcher({ email }: { email: string | null }) {
-  const t = useTranslations("shell.auth");
   const router = useRouter();
   const [expired, setExpired] = useState(false);
-  const [state, action, pending] = useActionState<FormState, FormData>(async (prev, form) => {
-    const result = await reauthenticate(prev, form);
-    if (result.ok) setExpired(false);
-    return result;
-  }, {});
+  const loaded = useOnDemand(dialog, expired);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,50 +53,9 @@ export function SessionWatcher({ email }: { email: string | null }) {
   }, [router]);
 
   if (!expired) return null;
-  return (
-    <Dialog
-      open
-      onOpenChange={() => undefined}
-      title={t("session.expiredTitle")}
-      description={t("session.expiredBody")}
-      actions={
-        <Button type="submit" form="session-reauth" variant="primary" loading={pending}>
-          {t("session.submit")}
-        </Button>
-      }
-    >
-      <form
-        id="session-reauth"
-        action={action}
-        onSubmit={keepInputOnSubmit(action)}
-        className="flex flex-col gap-12"
-        noValidate
-      >
-        {state.error ? (
-          <InlineAlert tone="danger">
-            {t(`errors.${state.error}` as "errors.unexpected")}
-          </InlineAlert>
-        ) : null}
-        <Input
-          id="session-email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          width="100%"
-          label={t("fields.email")}
-          defaultValue={state.values?.["email"] ?? email ?? ""}
-        />
-        <Input
-          id="session-password"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          width="100%"
-          label={t("fields.password")}
-        />
-      </form>
-    </Dialog>
-  );
+  return loaded ? (
+    <loaded.SessionDialog email={email} onSignedIn={() => setExpired(false)} />
+  ) : null;
 }
 
 /** Tells the other tabs that this one signed out or changed a preference. */

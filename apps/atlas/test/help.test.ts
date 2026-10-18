@@ -4,7 +4,13 @@ import { format, resolveConfig } from "prettier";
 import { describe, expect, it } from "vitest";
 import enHelp from "../../../packages/i18n/messages/en-US/help.json";
 import esHelp from "../../../packages/i18n/messages/es-US/help.json";
-import { loadHelpContent, parseArticle, renderHelpBodies, renderHelpModule } from "../help/load";
+import {
+  loadHelpContent,
+  parseArticle,
+  renderHelpBodies,
+  renderHelpGuides,
+  renderHelpModule,
+} from "../help/load";
 import {
   articlesForNode,
   coversNode,
@@ -26,13 +32,16 @@ import { sitemap } from "../ia/sitemap.generated";
 const content = loadHelpContent();
 const target = fileURLToPath(new URL("../help/content.generated.ts", import.meta.url));
 const bodiesTarget = fileURLToPath(new URL("../help/bodies.generated.ts", import.meta.url));
+const guidesTarget = fileURLToPath(new URL("../help/guides.generated.ts", import.meta.url));
 const formatted = async (source: string, file: string) =>
   format(source, { ...((await resolveConfig(file)) ?? {}), filepath: file });
 const expected = await formatted(renderHelpModule(content), target);
 const expectedBodies = await formatted(renderHelpBodies(content), bodiesTarget);
+const expectedGuides = await formatted(renderHelpGuides(content), guidesTarget);
 if (process.env["XOS_WRITE_GENERATED"] === "1") {
   writeFileSync(target, expected);
   writeFileSync(bodiesTarget, expectedBodies);
+  writeFileSync(guidesTarget, expectedGuides);
 }
 
 function nodeIds(): Set<string> {
@@ -60,6 +69,7 @@ describe("help content", () => {
   it("matches the generated module", () => {
     expect(existsSync(target) ? readFileSync(target, "utf8") : "").toBe(expected);
     expect(existsSync(bodiesTarget) ? readFileSync(bodiesTarget, "utf8") : "").toBe(expectedBodies);
+    expect(existsSync(guidesTarget) ? readFileSync(guidesTarget, "utf8") : "").toBe(expectedGuides);
   });
 
   it("keeps article bodies out of the index the shell loads on every page", () => {

@@ -11,7 +11,7 @@ import type { XosClient } from "@xos/data";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter } from "next-intl/server";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
@@ -30,7 +30,8 @@ import {
   SearchBox,
   type Search,
 } from "../kit/parts";
-import { InlineAlert, MapView, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { InlineAlert, PropertyList, Tag, TemplateRecord } from "../kit/ui";
+import { MapView } from "@/components/platform/client/map-view";
 import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { VenueForm } from "./venue-form";
 

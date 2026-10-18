@@ -21,7 +21,8 @@ import {
   RecordPage,
 } from "@/components/collection-kit/kit";
 import type { KitRow, ViewKind } from "@/components/collection-kit/types";
-import { DataTable, PageHeader } from "@/components/collection-kit/ui";
+import { PageHeader } from "@/components/collection-kit/ui";
+import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";

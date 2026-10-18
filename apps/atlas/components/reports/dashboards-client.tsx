@@ -10,7 +10,8 @@ import {
   createScheduleAction,
 } from "@/app/[org]/reports/dashboards/actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import { ActionFeedback, type Option } from "@/components/finance/kit";
+import { ActionFeedback } from "@/components/finance/kit-action-feedback";
+import { type Option } from "@/components/finance/kit.types";
 
 /**
  * Client forms of dashboards and scheduled report email (A43, finding A38-004; journey 29). Field

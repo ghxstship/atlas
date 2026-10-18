@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { RecordsPage } from "@/components/work/records-page";
 import { getProjectContextFor } from "@/lib/projects/context";
 

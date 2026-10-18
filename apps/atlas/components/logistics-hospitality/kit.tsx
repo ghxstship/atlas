@@ -13,7 +13,7 @@ import {
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { cache, type ReactNode } from "react";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabPanels } from "./collab";
 import type { CollabSubject } from "./collab-actions";

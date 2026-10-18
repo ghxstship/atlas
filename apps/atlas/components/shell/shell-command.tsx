@@ -1,0 +1,66 @@
+"use client";
+
+import { CommandMenu } from "@xos/ui";
+import { useTranslations } from "next-intl";
+import { HELP_CONTENT } from "@/help/content.generated";
+import { HELP_LOCALES, type HelpLocale } from "@/help/model";
+import type { ShellNav } from "@/lib/shell/nav-model";
+import { openHelpArticle } from "@/components/help/help-center";
+
+/** Help articles for the command menu, in the person's locale. */
+export function helpCommandItems(locale: string): { slug: string; title: string }[] {
+  const lang: HelpLocale = (HELP_LOCALES as readonly string[]).includes(locale)
+    ? (locale as HelpLocale)
+    : "en-US";
+  return [...HELP_CONTENT.articles[lang]]
+    .sort((a, b) => a.order - b.order)
+    .map((a) => ({ slug: a.slug, title: a.title }));
+}
+
+export interface ShellCommandProps {
+  readonly open: boolean;
+  readonly onOpenChange: (open: boolean) => void;
+  readonly commands: ShellNav["commands"];
+  readonly locale: string;
+  readonly go: (href: string) => void;
+}
+
+/**
+ * The shell's command menu (Cmd or Ctrl+K, and `/`): every page the person may open and the help
+ * articles. It loads the first time it opens (A24-009); the shell frame owns the shortcuts.
+ */
+export function ShellCommand({ open, onOpenChange, commands, locale, go }: ShellCommandProps) {
+  const t = useTranslations();
+  return (
+    <CommandMenu
+      open={open}
+      onOpenChange={onOpenChange}
+      hotkey={false}
+      placeholder={t("shell.chrome.searchHint")}
+      groups={[
+        ...commands.map((g) => ({
+          label: g.label,
+          items: g.items.map((item) => ({
+            label: item.label,
+            icon: item.icon,
+            onSelect: () => {
+              onOpenChange(false);
+              go(item.href);
+            },
+          })),
+        })),
+        {
+          label: t("help.title"),
+          items: helpCommandItems(locale).map((a) => ({
+            label: a.title,
+            icon: "BookOpen",
+            onSelect: () => {
+              onOpenChange(false);
+              openHelpArticle(a.slug);
+            },
+          })),
+        },
+      ]}
+    />
+  );
+}

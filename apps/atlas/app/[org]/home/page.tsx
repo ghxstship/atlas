@@ -4,7 +4,7 @@ import { CircleCheck, Circle } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ButtonLink, PageHeader } from "@/components/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { HomeTiles } from "@/components/home/home-tiles";

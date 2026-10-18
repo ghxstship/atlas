@@ -1,4 +1,4 @@
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { ReportBuilderView } from "@/components/workflow/report-builder-view";
 
 /** Reports builder (A33): build, preview, save and run reports on A18's report definitions. */

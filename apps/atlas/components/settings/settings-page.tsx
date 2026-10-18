@@ -1,5 +1,5 @@
 import { EmptyStateLink } from "@/components/ui";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { pageSettings } from "@/lib/settings/registry";
 import { emptyStateHref, pageCopyKey } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";

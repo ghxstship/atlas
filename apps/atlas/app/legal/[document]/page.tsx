@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { SystemPage } from "@/components/ui";
+import { SystemPage } from "@/components/system-page";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
 
 /**

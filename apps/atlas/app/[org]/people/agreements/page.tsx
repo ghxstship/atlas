@@ -13,11 +13,13 @@ import {
   transitionAgreementAction,
   updateAgreementAction,
 } from "@/app/[org]/people/actions";
-import { ConfirmButton, DrawerForm } from "@/components/crew/forms";
+import { ConfirmButton } from "@/components/crew/forms-confirm-button";
+import { DrawerForm } from "@/components/crew/forms-drawer-form";
 import { CrewFrame, resolveView } from "@/components/crew/frame";
 import { CrewRecord } from "@/components/crew/record";
 import { InlineAlert } from "@/components/crew/ui";
-import { FilterSelect, PeekTable } from "@/components/crew/views";
+import { FilterSelect } from "@/components/crew/views-filter-select";
+import { PeekTable } from "@/components/crew/views-peek-table";
 import { SendAgreementButton, SignAgreementForm } from "@/components/people/send-agreement";
 import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import {

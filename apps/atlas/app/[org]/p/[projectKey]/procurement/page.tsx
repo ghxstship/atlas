@@ -4,7 +4,7 @@ import { PurchaseOrdersSection } from "@/components/procurement/purchase-orders"
 import { ReceiptsSection } from "@/components/procurement/receipts";
 import { RfqsSection } from "@/components/procurement/rfqs";
 import { SubmittalsSection } from "@/components/procurement/submittals";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { nodeHref } from "@/lib/shell/sitemap";

@@ -3,7 +3,7 @@ import { listDashboards, listDeliveries, listSchedules } from "@xos/data/dashboa
 import { resolveSettings } from "@xos/data/settings";
 import { getLocale, getTranslations } from "next-intl/server";
 import { deleteScheduleAction, pauseScheduleAction } from "@/app/[org]/reports/dashboards/actions";
-import { InlineActionButton } from "@/components/finance/kit";
+import { InlineActionButton } from "@/components/finance/kit-inline-action-button";
 import type { OrgContext } from "@/lib/shell/context";
 import { AddTileForm, ScheduleForm } from "./dashboards-client";
 

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { RunsPage } from "@/components/show/show-pages";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 
 /** Project Show (Section 4.5.4): the project's running orders, cues and live cue calls. */

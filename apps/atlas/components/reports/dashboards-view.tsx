@@ -11,7 +11,7 @@ import Link from "next/link";
 import type { Route } from "next";
 import type { CSSProperties } from "react";
 import { deleteDashboardAction, removeTileAction } from "@/app/[org]/reports/dashboards/actions";
-import { InlineActionButton } from "@/components/finance/kit";
+import { InlineActionButton } from "@/components/finance/kit-inline-action-button";
 import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panels";
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { withQuery, type FinancePage } from "@/lib/finance/context";

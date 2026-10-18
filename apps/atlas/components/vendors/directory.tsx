@@ -38,7 +38,8 @@ import {
   TransitionButtons,
 } from "@/components/collection-kit/kit";
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
-import { DataTable, PageHeader } from "@/components/collection-kit/ui";
+import { PageHeader } from "@/components/collection-kit/ui";
+import { DataTable } from "@/components/platform/client/data-table";
 import { collectionState, today, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
 import { EmptyStateLink } from "@/components/ui";

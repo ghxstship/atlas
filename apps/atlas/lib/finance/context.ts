@@ -3,7 +3,7 @@ import { listProjects, type ProjectRef } from "@xos/data/finance";
 import { getNode, isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getProjectContextFor } from "@/lib/projects/context";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";

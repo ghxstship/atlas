@@ -5,7 +5,7 @@
  * components import them from here, never from "@xos/ui" directly. The wrappers below adapt
  * callback props (onAction) to links, because server components can only pass serializable props.
  */
-import { buttonClass, EmptyState, TemplateSystem, type ButtonProps } from "@xos/ui";
+import { buttonClass, EmptyState, type ButtonProps } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,7 +31,6 @@ export {
   TemplateAuth,
   TemplateDashboard,
   TemplateSettings,
-  XOSProvider,
 } from "@xos/ui";
 
 /** A link styled as an @xos/ui Button. */
@@ -55,26 +54,6 @@ export function ButtonLink({
     >
       {children}
     </NextLink>
-  );
-}
-
-/** @xos/ui TemplateSystem whose one action navigates. */
-export function SystemPage(props: {
-  icon: string;
-  title: string;
-  sentence: string;
-  actionLabel: string;
-  href: string;
-}) {
-  const router = useRouter();
-  return (
-    <TemplateSystem
-      icon={props.icon}
-      title={props.title}
-      sentence={props.sentence}
-      actionLabel={props.actionLabel}
-      onAction={() => router.push(props.href as Route)}
-    />
   );
 }
 

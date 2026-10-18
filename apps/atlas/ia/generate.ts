@@ -1,4 +1,11 @@
-import { flattenRoutes, parseRoute, validateSitemap, formatIssues, type Sitemap } from "@xos/ia";
+import {
+  flattenRoutes,
+  parseRoute,
+  validateSitemap,
+  formatIssues,
+  type Sitemap,
+  type SitemapNode,
+} from "@xos/ia";
 import { getMessages } from "@xos/i18n";
 import { parse } from "yaml";
 import { IMPLEMENTED } from "./implemented";
@@ -28,6 +35,42 @@ export function pageFile(route: string): string {
 /** The Next.js route key PageProps takes (`/[org]/finance/budgets`). */
 export function routeKey(route: string): string {
   return `/${routeSegments(route).join("/")}`;
+}
+
+/**
+ * The sitemap reduced to what route matching and breadcrumbs read: routed nodes with their id, kind,
+ * label and route. Groups and actions are not navigation steps, so a group gives way to its children
+ * and an action without a route is dropped; `findRoute` and `resolveBreadcrumbs` answer the same.
+ */
+export function clientSitemap(sitemap: Sitemap): Sitemap {
+  const slim = (node: SitemapNode): SitemapNode[] => {
+    const children = (node.children ?? []).flatMap(slim);
+    if (node.route === undefined) return children;
+    return [
+      {
+        id: node.id,
+        kind: node.kind,
+        label: node.label,
+        route: node.route,
+        ...(children.length > 0 ? { children } : {}),
+      },
+    ];
+  };
+  return {
+    schemaVersion: sitemap.schemaVersion,
+    shell: sitemap.shell,
+    home: sitemap.home,
+    params: sitemap.params,
+    audience: sitemap.audience,
+    nodes: sitemap.nodes.flatMap(slim),
+  };
+}
+
+/** The ids of nodes with a list, in declared order. */
+export function listNodeIds(sitemap: Sitemap): string[] {
+  return flattenRoutes(sitemap)
+    .filter((r) => r.views !== undefined)
+    .map((r) => r.id);
 }
 
 function pageSource(id: string, route: string): string {
@@ -142,6 +185,22 @@ import type { Sitemap } from "@xos/ia";
 
 /** The Atlas sitemap as data, so the proxy and pages read it without parsing YAML at runtime. */
 export const sitemap: Sitemap = ${JSON.stringify(sitemap)};
+`,
+  );
+  files.set(
+    "ia/sitemap.client.generated.ts",
+    `${GENERATED_STAMP}
+import type { Sitemap } from "@xos/ia";
+
+/**
+ * The routed part of the Atlas sitemap for client components (breadcrumbs, the help panel's page):
+ * ids, kinds, labels and routes only, so the browser never downloads visibility, list or persona
+ * data it does not read (A24-009). Server code reads ia/sitemap.generated.ts.
+ */
+export const clientSitemap: Sitemap = ${JSON.stringify(clientSitemap(sitemap))};
+
+/** Nodes with a list (a collection page), which open their own rows in the side peek. */
+export const listNodes: ReadonlySet<string> = new Set(${JSON.stringify(listNodeIds(sitemap))});
 `,
   );
   files.set("lib/legal.generated.ts", legalSource(legal));

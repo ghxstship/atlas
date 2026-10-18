@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { InboxView, type InboxRow } from "@/components/inbox/inbox-view";
 import { ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
-import { requireNode } from "@/components/shell/sitemap-page";
+import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
 
 /** Notification kinds whose email catalog copy needs only a title, an actor and a decision. */
