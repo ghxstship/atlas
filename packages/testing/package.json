@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
     "design:audit": "node --experimental-strip-types --no-warnings src/design-audit-cli.ts",
-    "lighthouse": "lhci autorun --config=lighthouse/lighthouserc.cjs",
+    "lighthouse": "node --experimental-strip-types --no-warnings src/lighthouse-cli.ts",
     "load:smoke": "sh load/run.sh smoke",
     "budget:js": "node --experimental-strip-types --no-warnings src/bundle-budget-cli.ts"
   },
