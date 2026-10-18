@@ -13,12 +13,14 @@
     "./tsconfig/nextjs.json": "./tsconfig/nextjs.json",
     "./finish-guard": "./src/finish-guard.ts",
     "./tailwind/preset.js": "./tailwind/preset.js",
-    "./stylelint": "./stylelint/index.mjs"
+    "./stylelint": "./stylelint/index.mjs",
+    "./license-check": "./src/license-check.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "licenses:check": "node --experimental-strip-types --no-warnings src/license-check-cli.ts"
   },
   "dependencies": {
     "@eslint/js": "10.0.1",
