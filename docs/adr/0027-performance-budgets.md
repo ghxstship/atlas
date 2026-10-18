@@ -32,3 +32,25 @@ This ADR records how those numbers are kept.
 Web icons draw from one SVG sprite generated from the `@xos/icons` registry (`@xos/icons/sprite.svg`, 207 icons, 10 KB gzip). `@xos/ui` `<Icon>` renders `<svg><use href="{sprite}#{Name}"/></svg>` with stroke and size on the outer element. The bundler emits the sprite as a content-hashed, immutable static asset. Web bundles import `@xos/icons/glyphs` and `@xos/icons/names`, never the component registry, which stays for server and native use. No icon data ships in page JavaScript.
 
 Every key page dropped 15 to 19 KB. Gateway is now 184 to 195 KB, inside the 200 KB budget, and its ceilings are removed. The Atlas ceilings were lowered to the new measurements plus 3 KB.
+
+## Amendment (2026-10-18): conditional components load on demand (A46)
+
+Six of the seven Atlas signed-in key pages are now under 200 KB:
+
+| Page             | Size                     |
+| ---------------- | ------------------------ |
+| home             | 180 KB                   |
+| inbox            | 195 KB                   |
+| crew shifts      | 197 KB                   |
+| finance budgets  | 195 KB                   |
+| project overview | 200 KB (174 bytes under) |
+| projects         | 219 KB                   |
+
+Projects keeps a ceiling. The rules that keep the pages here:
+
+1. **A page imports directly only what it renders in its default state.** Views a person switches to, and overlays, sheets, forms and peeks that open on an action, go through `next/dynamic`. Shared wrappers live in `apps/atlas/components/lazy-ui` and per-module `lazy.tsx` files. Deferring a component a page shows by default only hides it from the budget, so it is not allowed.
+2. **Shell overlays load on first use.** These are the command menu, the help and Aurora panels, the session dialog, the record peek, and the account and org menus (a Radix-free closed trigger). The breadcrumbs read a routed-only client sitemap.
+3. **One component per client module, no re-export files in app code.** A `"use client"` module ships whole, and a static re-export pulls in its target even when the consumer loads it dynamically.
+4. **Messages reach next-intl precompiled.** The ICU parser stays on the server.
+
+The next reduction for Projects is a DataTable that registers only the TanStack features each table uses.
