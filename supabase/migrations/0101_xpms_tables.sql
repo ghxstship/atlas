@@ -1375,7 +1375,7 @@ create table xpms.intake (
   intake_state xpms.canon_text not null references xpms.dim_state(state),
   primary key (source_file, source_sheet, source_row, source_column)
 );
-comment on table xpms.intake is 'Staging for proposed canon additions and changes awaiting an owner decision. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here.';
+comment on table xpms.intake is 'Staging for proposed canon additions and changes. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here as Proposed until the owner decides. A Playbook value an owner decision does not adopt stays here as Canceled, so the Playbook round trip still reproduces the source; an adopted value leaves intake for canon and xpms.playbook_sourced_value.';
 comment on column xpms.intake.source_file is 'Canon input file the value comes from.';
 comment on column xpms.intake.source_sheet is 'Sheet, tab or CSV the value comes from.';
 comment on column xpms.intake.source_row is 'Source row number.';
@@ -1385,6 +1385,49 @@ comment on column xpms.intake.target_key is 'Natural key of the target row.';
 comment on column xpms.intake.target_column is 'Column the value would change.';
 comment on column xpms.intake.proposed_value is 'Value as the source states it; NULL when the source is blank.';
 comment on column xpms.intake.canon_value is 'Value canon currently holds; NULL when canon is silent.';
-comment on column xpms.intake.reason is 'Why the value is held for a decision.';
-comment on column xpms.intake.intake_state is 'State of the proposal; Proposed until the owner decides.';
+comment on column xpms.intake.reason is 'Why the value is held, and for a decided value the decision that settled it.';
+comment on column xpms.intake.intake_state is 'State of the proposal: Proposed until the owner decides; Canceled when a decision keeps canon''s value.';
 create index intake_intake_state_idx on xpms.intake (intake_state);
+
+create table xpms.playbook_sourced_value (
+  target_table xpms.canon_code not null,
+  target_key xpms.canon_text not null,
+  target_column xpms.canon_code not null,
+  value_text xpms.canon_text not null,
+  source_file xpms.canon_text not null,
+  source_sheet xpms.canon_text not null,
+  source_row integer not null,
+  source_column xpms.canon_text not null,
+  decision xpms.canon_code not null,
+  primary key (target_table, target_key, target_column)
+);
+comment on table xpms.playbook_sourced_value is 'Canon values imported from the Production Playbook because the Bible states none (owner decision 25, 2026-10-19). Each row marks one stored value as Playbook-sourced so it can be reviewed later; wherever the Bible states a value, canon keeps the Bible''s.';
+comment on column xpms.playbook_sourced_value.target_table is 'xpms table holding the imported value.';
+comment on column xpms.playbook_sourced_value.target_key is 'Natural key of the row holding the value.';
+comment on column xpms.playbook_sourced_value.target_column is 'Column holding the value; for a price band, amount_minor and the grade (amount_minor:base).';
+comment on column xpms.playbook_sourced_value.value_text is 'The value as the Playbook states it (a price in currency units, not minor units).';
+comment on column xpms.playbook_sourced_value.source_file is 'Playbook workbook the value comes from.';
+comment on column xpms.playbook_sourced_value.source_sheet is 'Playbook sheet the value comes from.';
+comment on column xpms.playbook_sourced_value.source_row is 'Playbook row the value comes from.';
+comment on column xpms.playbook_sourced_value.source_column is 'Playbook column header.';
+comment on column xpms.playbook_sourced_value.decision is 'Owner decision that imported the value (D25).';
+
+create table xpms.label_mapping (
+  source_list xpms.canon_text not null,
+  playbook_label xpms.canon_text not null,
+  target_domain xpms.canon_code not null,
+  canon_value xpms.canon_text,
+  basis xpms.canon_code not null check (basis in ('casing-or-punctuation', 'same-label', 'closest-state', 'closest-value', 'not-added', 'deferred')),
+  decision xpms.canon_code not null,
+  note xpms.canon_text,
+  primary key (source_list, playbook_label),
+  check ((basis = 'deferred') = (canon_value is null))
+);
+comment on table xpms.label_mapping is 'Playbook labels that are not canon values, each mapped to the closest existing canon or lifecycle value (owner decision 25, 2026-10-19). The Bible wins on structure, so no state, code or list entry is added; a label the decision does not cover has no canon value and basis deferred.';
+comment on column xpms.label_mapping.source_list is 'Where the label appears: an Enumerations domain, a Bible-mirrored sheet, or the Production Template sheet and column.';
+comment on column xpms.label_mapping.playbook_label is 'The label as the Playbook states it.';
+comment on column xpms.label_mapping.target_domain is 'Vocabulary the label maps into: state (canon states), unit, element_kind, counterparty_type, order_type, freight_type, record_kind, record_subtype, phase, department, category, or an app lifecycle (production_state, work_order_state, asset_state, shift_state).';
+comment on column xpms.label_mapping.canon_value is 'The existing value the label maps to (a record subtype as kind · subtype); NULL when the decision does not cover it.';
+comment on column xpms.label_mapping.basis is 'Why: casing-or-punctuation, same-label, closest-state, closest-value, not-added (a Playbook-only row) or deferred.';
+comment on column xpms.label_mapping.decision is 'Owner decision that set the mapping (D25).';
+comment on column xpms.label_mapping.note is 'Reasoning for the mapping.';

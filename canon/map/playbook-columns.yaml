@@ -205,9 +205,9 @@ sheets:
         header: OPERATIONAL STATE
         key: operational_state
         disposition: field
-        target: app.projects.operational_state
+        target: app.projects.production_state
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Active, Complete and Scheduled, against project_state Proposed to Canceled) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Production lifecycle state (owner decision 25): Active and Complete are production states; Scheduled maps to the closest existing state, Active (xpms.label_mapping). No state is added."
       - letter: Q
         header: GOVERNING GATE
         key: governing_gate
@@ -465,9 +465,9 @@ sheets:
         header: ACTIVITY TYPE
         key: activity_type
         disposition: field
-        target: app.records.activity_type
+        target: app.records.record_kind
         type: text
-        transform: "Blocked on owner (RRR-64): activity types (Summary Activity, Milestone Gate) are not among the 26 record kinds (Bible tab 24); which kind each becomes needs the owner's ruling alongside RRR-64."
+        transform: "Record kind (owner decision 25): Summary Activity maps to Timeline and Milestone Gate to Milestone, the closest of the 26 record kinds (xpms.label_mapping)."
       - letter: K
         header: DELIVERABLE
         key: deliverable
@@ -696,9 +696,9 @@ sheets:
         header: PRIORITY
         key: priority
         disposition: field
-        target: app.records.priority
+        target: xpms.production_template_values.value_text
         type: text
-        transform: "Blocked on owner (RRR-64): records have no priority, and the Enumerations library defines only Incident Priority, labeled Critical (P1) to Low (P4); a record priority list needs the owner's ruling alongside RRR-64's enumeration labels."
+        transform: "Template only: records have no priority, and owner decision 25 adds no structure the Bible lacks (the Bible wins on structure), so the label stays in the template. Incident Priority is a different list."
       - letter: R
         header: DELIVERABLE
         key: deliverable
@@ -797,16 +797,16 @@ sheets:
         header: WORK ORDER TYPE
         key: work_order_type
         disposition: field
-        target: app.records.work_order_type
+        target: app.records.record_subtype
         type: text
-        transform: "Blocked on owner (RRR-64): work order types (AVL Installation, Facility Setup and others) are not record subtypes (Bible tab 25); mapping them needs the owner's ruling alongside RRR-64."
+        transform: "Subtype of the work order's record (work_orders.record_id), a Build record. Owner decision 25: AVL Installation, Network Deployment and Rigging & Focus map to Systems, Facility Setup to Structural and Security Commissioning to Commissioning (xpms.label_mapping)."
       - letter: G
         header: PRIORITY
         key: priority
         disposition: field
-        target: app.records.priority
+        target: xpms.production_template_values.value_text
         type: text
-        transform: "Blocked on owner (RRR-64): records have no priority, and the Enumerations library defines only Incident Priority, labeled Critical (P1) to Low (P4); a record priority list needs the owner's ruling alongside RRR-64's enumeration labels."
+        transform: "Template only: records have no priority, and owner decision 25 adds no structure the Bible lacks (the Bible wins on structure), so the label stays in the template. Incident Priority is a different list."
       - letter: H
         header: LOCATION ID
         key: location_id
@@ -955,9 +955,9 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.records.status
+        target: app.work_orders.work_order_state
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Completed, In Progress and Scheduled, against work_order_state Draft to Canceled) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Work order state (owner decision 25): Completed maps to Complete, In Progress is a state, and Scheduled maps to the closest existing state, Awarded (xpms.label_mapping). No state is added."
       - letter: AB
         header: FLAG
         key: flag
@@ -1359,23 +1359,23 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.spaces.department
+        target: app.spaces.urid
         type: text
-        transform: "Blocked on owner (RRR-64): the Locations sheet classifies spaces with labels that are not canon departments or categories (Site Operations, Stage, Main Stage); the space's URID (spaces.urid) cannot be assigned without the owner's ruling, and Section 2.1 lets neither file silently win."
+        transform: "Department segment of the space's URID. Owner decision 25: each Locations department label maps to the closest canon department (xpms.label_mapping); where the category's URID sits in another department, the URID wins (the Bible wins on hierarchy)."
       - letter: D
         header: CATEGORY
         key: category
         disposition: field
-        target: app.spaces.category
+        target: app.spaces.urid
         type: text
-        transform: "Blocked on owner (RRR-64): the Locations sheet classifies spaces with labels that are not canon departments or categories (Site Operations, Stage, Main Stage); the space's URID (spaces.urid) cannot be assigned without the owner's ruling, and Section 2.1 lets neither file silently win."
+        transform: "Category of the space's URID. Owner decision 25: each Locations category label maps to the closest canon category (xpms.label_mapping)."
       - letter: E
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.spaces.sub_category
+        target: xpms.production_template_values.value_text
         type: text
-        transform: "Blocked on owner (RRR-64): the Locations sheet classifies spaces with labels that are not canon departments or categories (Site Operations, Stage, Main Stage); the space's URID (spaces.urid) cannot be assigned without the owner's ruling, and Section 2.1 lets neither file silently win."
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: F
         header: LOCATION
         key: location
@@ -1635,9 +1635,9 @@ sheets:
         header: FREIGHT TYPE
         key: freight_type
         disposition: field
-        target: app.shipments.freight_type
+        target: app.shipments.freight_type_enum_id
         type: text
-        transform: "Blocked on owner (RRR-64): the freight type Ground Freight is not a Freight Type enumeration label (LTL Freight, Full Truckload and others); the mapping is an enumeration ruling of the RRR-64 kind."
+        transform: "Freight Type enumeration row (Standard Library) matched by label. Owner decision 25: Ground Freight maps to the closest existing label, Full Truckload (xpms.label_mapping)."
       - letter: AB
         header: TRACKING NUMBER
         key: tracking_number
@@ -1658,9 +1658,9 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.shipments.status
+        target: app.shipments.ships_at
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Scheduled; shipments have no lifecycle column, and tracking status is the carrier's) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Derived, not stored. Owner decision 25: shipments have no lifecycle column and none is added; Scheduled is the canon state Scheduled, which holds while ships_at is set and the freight has not arrived (xpms.label_mapping)."
       - letter: AE
         header: FLAG
         key: flag
@@ -1850,9 +1850,9 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.marshalling_log.status
+        target: app.gate_queue.arrived_at
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Staged; log entries have no lifecycle and gate queue state is derived from arrived_at and released_at) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Derived, not stored. Owner decision 25: log entries have no lifecycle column and none is added; Staged maps to the closest canon state, Ready, which holds while the vehicle has checked in (gate_queue.arrived_at) and is not released (xpms.label_mapping)."
       - letter: V
         header: FLAG
         key: flag
@@ -2372,9 +2372,9 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.asset_units.status
+        target: app.asset_units.asset_state
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Active, against asset_state Proposed to Retired) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Asset state (owner decision 25): Active maps to the closest existing state, Available (xpms.label_mapping). No state is added."
       - letter: Q
         header: FLAG
         key: flag
@@ -2771,9 +2771,9 @@ sheets:
         header: EVENT PHASE
         key: event_phase
         disposition: field
-        target: app.requisitions.event_phase
+        target: app.budget_lines.phase_code
         type: text
-        transform: "Blocked on owner (RRR-64): event phases (Pre-Production, Site Build & Load-In and others) are not the nine canon phases (Section 3.4); mapping them needs the owner's ruling alongside RRR-64."
+        transform: "Phase of the budget line the requisition draws on (requisitions.budget_line_id). Owner decision 25: each event phase maps to the closest of the nine canon phases (xpms.label_mapping)."
       - letter: C
         header: ROLE CODE
         key: role_code
@@ -3009,9 +3009,9 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.shifts.status
+        target: app.shifts.shift_state
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Confirmed, against shift_state Draft to Canceled) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Shift state (owner decision 25): Confirmed maps to the closest existing state, Accepted (xpms.label_mapping). No state is added."
       - letter: T
         header: FLAG
         key: flag
@@ -4046,17 +4046,17 @@ sheets:
         header: VENDOR
         key: vendor
         disposition: field
-        target: app.budget_lines.vendor
+        target: app.purchase_orders.vendor_id
         type: text
-        transform: "Blocked on owner (RRR-64): the vendor column names the Landlord, a counterparty type only the Playbook has (RRR-64, Landlord counterparty type), and a proposal note; the line's counterparty cannot be resolved until the owner rules."
+        transform: "Vendor of the purchase order whose line draws on this budget line (po_lines.budget_line_id). Owner decision 25: Landlord is not a canon counterparty type, so the Landlord resolves to a counterparty of the existing type Facilities Services (xpms.label_mapping); a cell holding the Landlord's proposal note resolves the same way."
         real_world: company
       - letter: AC
         header: STATUS
         key: status
         disposition: field
-        target: app.budget_lines.status
+        target: xpms.production_template_values.value_text
         type: text
-        transform: "Blocked on owner (RRR-64): the Playbook status labels (Open and Estimated; budget lines have no lifecycle, and pricing state is derived as is_unpriced) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
+        transform: "Template only: budget lines have no lifecycle column, and owner decision 25 adds none. Open maps to the canon state Active and Estimated to Quoted (xpms.label_mapping); a line's commitment is derived from the purchase order lines that draw on it."
       - letter: AD
         header: FLAG
         key: flag
@@ -4199,9 +4199,9 @@ sheets:
         header: CHANGE ORDER TYPE
         key: change_order_type
         disposition: field
-        target: app.change_orders.change_order_type
+        target: app.change_orders.order_type_enum_id
         type: text
-        transform: "Blocked on owner (RRR-64): the change order types (Scope Addition, Material Upgrade) are not Order Type enumeration labels (Scope Expansion, Equipment Substitution and others); which label each maps to is an enumeration ruling of the RRR-64 kind."
+        transform: "Order Type enumeration row (Standard Library) matched by label. Owner decision 25: Scope Addition maps to Scope Expansion and Material Upgrade to Equipment Substitution (xpms.label_mapping)."
       - letter: I
         header: REASON CODE
         key: reason_code

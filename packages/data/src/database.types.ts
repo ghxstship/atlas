@@ -57942,6 +57942,37 @@ export type Database = {
           },
         ];
       };
+      label_mapping: {
+        Row: {
+          basis: string;
+          canon_value: string | null;
+          decision: string;
+          note: string | null;
+          playbook_label: string;
+          source_list: string;
+          target_domain: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          basis: string;
+          canon_value?: string | null;
+          decision: string;
+          note?: string | null;
+          playbook_label: string;
+          source_list: string;
+          target_domain: string;
+        };
+        Update: {
+          basis?: string;
+          canon_value?: string | null;
+          decision?: string;
+          note?: string | null;
+          playbook_label?: string;
+          source_list?: string;
+          target_domain?: string;
+        };
+        Relationships: [];
+      };
       operational_domain: {
         Row: {
           domain: string;
@@ -58116,6 +58147,43 @@ export type Database = {
           sheet_key?: string;
           sheet_name?: string;
           used_range?: string | null;
+        };
+        Relationships: [];
+      };
+      playbook_sourced_value: {
+        Row: {
+          decision: string;
+          source_column: string;
+          source_file: string;
+          source_row: number;
+          source_sheet: string;
+          target_column: string;
+          target_key: string;
+          target_table: string;
+          value_text: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          decision: string;
+          source_column: string;
+          source_file: string;
+          source_row: number;
+          source_sheet: string;
+          target_column: string;
+          target_key: string;
+          target_table: string;
+          value_text: string;
+        };
+        Update: {
+          decision?: string;
+          source_column?: string;
+          source_file?: string;
+          source_row?: number;
+          source_sheet?: string;
+          target_column?: string;
+          target_key?: string;
+          target_table?: string;
+          value_text?: string;
         };
         Relationships: [];
       };

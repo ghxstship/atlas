@@ -137,24 +137,44 @@ describe("Playbook model", () => {
     expect((result.tables.get("playbook_sheet") ?? []).length).toBe(46);
   });
 
-  it("cross-checks mirrored sheets and holds every difference in intake", () => {
+  it("cross-checks mirrored sheets and resolves every difference under decision 25", () => {
     expect(MIRRORS).toHaveLength(8);
     expect(mirrorFor("Teams").table).toBe("dim_team");
     expect(() => mirrorFor("Projects")).toThrow(/No mirror/);
+    expect(result.diff.filter((d) => d.resolution === undefined)).toEqual([]);
     const values = result.diff.filter((d) => d.kind === "value");
+    const inIntake = (d: (typeof values)[number]) =>
+      result.intake.find(
+        (i) =>
+          i.source_sheet === d.sheet &&
+          i.source_row === String(d.row) &&
+          i.source_column === d.column,
+      );
+    const sourced = result.tables.get("playbook_sourced_value") ?? [];
     for (const d of values) {
-      expect(
-        result.intake.some(
-          (i) =>
-            i.source_sheet === d.sheet &&
-            i.source_row === String(d.row) &&
-            i.source_column === d.column,
-        ),
-      ).toBe(true);
+      if (d.resolution?.outcome === "playbook-imported") {
+        // An imported value leaves intake for canon and is marked as from the Playbook.
+        expect(inIntake(d)).toBeUndefined();
+        expect(
+          sourced.some((s) => s["source_sheet"] === d.sheet && s["source_row"] === String(d.row)),
+        ).toBe(true);
+      } else {
+        // A value the Bible keeps stays in intake, Canceled, so the round trip reproduces the source.
+        expect(inIntake(d)?.intake_state).toBe("Canceled");
+      }
     }
-    expect(result.diff.some((d) => d.kind === "playbook-only-row" && d.key === "Landlord")).toBe(
-      true,
+    const landlord = result.diff.find(
+      (d) => d.kind === "playbook-only-row" && d.key === "Landlord",
     );
+    expect(landlord?.resolution).toMatchObject({
+      outcome: "mapped-to-existing",
+      canon: "Facilities Services",
+    });
+    expect(
+      (result.tables.get("dim_counterparty_type") ?? []).some(
+        (t) => t["counterparty_type"] === "Landlord",
+      ),
+    ).toBe(false);
     const dept = (result.tables.get("dim_department") ?? []).find((d) => d["dept_code"] === "4000");
     expect(dept?.["source_row"]).toBe("6");
     expect(dept?.["executive_lead"]).toBeTruthy();

@@ -13,23 +13,14 @@ import { schemaColumns } from "../src/playbook/targets.ts";
  * The `app.*` targets were written as `<entity>.<column key>` skeletons before the domain schema existed (finding
  * legal/qa/findings/A47-001.md). A51 reconciled them: each now names its real column (in the row's table or one
  * reached through a foreign key, the path stated in its transform), a column migration 1180 added, or the
- * template's own value store with a "Template only:" reason. What remains unresolved waits on an owner ruling:
- * OWNER_BLOCKED holds those per table, each entry says "Blocked on owner (RRR-64):", and the count only goes down.
+ * template's own value store with a "Template only:" reason. The 18 that waited on an owner ruling were settled
+ * by owner decision 25 (canon/rulings/decision-25.yaml), so OWNER_BLOCKED is empty and must stay so.
  */
 const repo = (path: string) => fileURLToPath(new URL(`../../../${path}`, import.meta.url));
 
-const OWNER_BLOCKED: Readonly<Record<string, number>> = {
-  "app.asset_units": 1,
-  "app.budget_lines": 2,
-  "app.change_orders": 1,
-  "app.marshalling_log": 1,
-  "app.projects": 1,
-  "app.records": 5,
-  "app.requisitions": 1,
-  "app.shifts": 1,
-  "app.shipments": 2,
-  "app.spaces": 3,
-};
+// Owner decision 25 (2026-10-19) settled the 18 targets that waited on it (finding A47-001, now Fixed); the
+// count holds at zero, so a new unresolved domain target fails until it is reconciled.
+const OWNER_BLOCKED: Readonly<Record<string, number>> = {};
 
 const TEMPLATE_VALUES = "xpms.production_template_values.value_text";
 const OWNER_PREFIX = "Blocked on owner (RRR-64): ";
