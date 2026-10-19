@@ -19,8 +19,8 @@ select is((
   'every Playbook field target is a real column unless it is blocked on an owner ruling');
 select is((
   select count(*)::int from xpms.playbook_column pc
-  where pc.disposition = 'field' and pc.note like 'Blocked on owner (RRR-64):%'), 18,
-  'eighteen Playbook columns wait on the owner');
+  where pc.disposition = 'field' and pc.note like 'Blocked on owner (RRR-64):%'), 0,
+  'no Playbook column waits on the owner: decision 25 settled the eighteen (A56, RRR-101)');
 select is((
   select count(*)::int from xpms.playbook_column pc
   where pc.target = 'xpms.production_template_values.value_text'
