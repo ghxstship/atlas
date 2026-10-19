@@ -13018,6 +13018,7 @@ var ui_default$1 = {
     remove: "Remove filter {field}",
   },
   fmt: { multiplier: "{n}x" },
+  form: { moreFields: "More fields" },
   gate: {
     allMet: "All blocking criteria met.",
     blocking: "Blocking",
@@ -28562,6 +28563,7 @@ var ui_default = {
     remove: "Quitar filtro {field}",
   },
   fmt: { multiplier: "{n}x" },
+  form: { moreFields: "Más campos" },
   gate: {
     allMet: "Se cumplen todos los criterios bloqueantes.",
     blocking: "Bloqueante",
