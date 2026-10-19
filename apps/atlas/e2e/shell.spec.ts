@@ -25,6 +25,8 @@ test("the shell navigates from the sitemap: sidebar, command menu, breadcrumbs, 
 
   // Command menu: Cmd or Ctrl+K, search, Enter.
   await page.keyboard.press("ControlOrMeta+k");
+  // The menu loads on first use; typing before it opens would be lost.
+  await expect(page.getByRole("dialog").filter({ has: page.getByRole("combobox") })).toBeVisible();
   await page.keyboard.type("Purchase Orders");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(new RegExp(`/${slug}/procurement/purchase-orders$`));

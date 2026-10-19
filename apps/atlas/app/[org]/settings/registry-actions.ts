@@ -7,9 +7,12 @@ import {
   setSetting,
   type SettingScopeKind,
 } from "@xos/data/settings";
+import { networkAccess } from "@xos/data/access-controls";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { clientIp } from "@/lib/auth/legal";
 import { parseSettingValue, settingByKey, settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext } from "@/lib/shell/context";
 
@@ -84,6 +87,12 @@ export async function saveSettingAction(
   } else {
     const value = parseSettingValue(def, raw);
     if (!value.ok) return { error: value.error, value: raw ?? "" };
+    // Turning the IP allow-list on (migration 1201) must keep the person who does it inside.
+    if (def.key === "security.ip_allowlist" && value.value === true && input.group === "org") {
+      const access = await networkAccess(ctx.viewer.db, ctx.org.id, clientIp(await headers()));
+      if (!access.ok) return { error: settingErrorKey(access.error), value: raw ?? "" };
+      if (!access.data.covered) return { error: "ip_allowlist_self_lockout", value: raw ?? "" };
+    }
     result =
       input.group === "personal"
         ? await setPersonalSetting(ctx.viewer.db, {

@@ -45,6 +45,8 @@ export const KNOWN_SETTING_ERRORS = new Set([
   "module_not_switchable",
   "domain_immutable",
   "auto_join_role_band",
+  "ip_allowlist_empty",
+  "plan_feature_ip_allowlist",
 ]);
 
 /** The `settings.errors.*` key for a repository error. */

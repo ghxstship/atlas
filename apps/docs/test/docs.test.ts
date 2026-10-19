@@ -1,5 +1,5 @@
 /** Content, links, copy and the API reference model of the docs site. */
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -35,6 +35,18 @@ const OPERATION_ROUTE = join(
   "page.tsx",
 );
 const BUILT_PAGES = join(APP, ".next", "server", "app", "en-US", "reference");
+const OPERATION_PAGE = join(
+  APP,
+  "app",
+  "[locale]",
+  "reference",
+  "[resource]",
+  "[operation]",
+  "page.tsx",
+);
+// Checks a build made from the current operation route only; a build left from before it is skipped.
+const FRESH_BUILD =
+  existsSync(BUILT_PAGES) && statSync(BUILT_PAGES).mtimeMs >= statSync(OPERATION_PAGE).mtimeMs;
 
 describe("markdown", () => {
   it("parses headings, paragraphs, lists, notes, code and tables", () => {
@@ -272,7 +284,7 @@ describe("API reference", () => {
   });
 
   // After `next build`, every operation page exists as prerendered HTML in both locales.
-  it.runIf(existsSync(BUILT_PAGES))("prerenders every operation page in every locale", () => {
+  it.runIf(FRESH_BUILD)("prerenders every operation page in every locale", () => {
     const missing = LOCALES.flatMap((locale) =>
       operationPages()
         .map((p) => `${locale}/reference/${p.resource}/${p.operation}.html`)

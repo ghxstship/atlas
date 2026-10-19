@@ -1010,6 +1010,17 @@
       "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
       "slug_taken": "That web address is already in use. Choose another.",
       "slug_reserved": "That web address is reserved by Atlas. Choose another."
+    },
+    "networkRestricted": {
+      "title": "Your network is not allowed",
+      "body": "{org} accepts sign-ins only from its allowed networks. Connect from an allowed network, such as the office or the company VPN, or ask an Admin to add yours.",
+      "bodyNoOrg": "This organization accepts sign-ins only from its allowed networks. Connect from an allowed network or ask an Admin to add yours.",
+      "ownerTitle": "Emergency access",
+      "ownerBody": "As an Owner you can take full access for one hour with a second factor and a written reason. Every Owner and Admin is notified.",
+      "reason": "Why do you need emergency access?",
+      "reasonHelp": "At least 20 characters.",
+      "start": "Take emergency access",
+      "back": "Choose another organization"
     }
   },
   "roles": {

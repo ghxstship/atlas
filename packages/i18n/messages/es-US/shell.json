@@ -1010,6 +1010,17 @@
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Atlas reserva esa dirección web. Elige otra."
+    },
+    "networkRestricted": {
+      "title": "Su red no está permitida",
+      "body": "{org} solo acepta inicios de sesión desde sus redes permitidas. Conéctese desde una red permitida, como la oficina o la VPN de la empresa, o pida a un Administrador que agregue la suya.",
+      "bodyNoOrg": "Esta organización solo acepta inicios de sesión desde sus redes permitidas. Conéctese desde una red permitida o pida a un Administrador que agregue la suya.",
+      "ownerTitle": "Acceso de emergencia",
+      "ownerBody": "Como Propietario puede tomar acceso completo durante una hora con un segundo factor y un motivo escrito. Se notifica a todos los Propietarios y Administradores.",
+      "reason": "¿Por qué necesita acceso de emergencia?",
+      "reasonHelp": "Al menos 20 caracteres.",
+      "start": "Tomar acceso de emergencia",
+      "back": "Elegir otra organización"
     }
   },
   "roles": {

@@ -160,6 +160,12 @@
         "subject": "Alerta de clima: {level}",
         "body": "Una lectura de {hazard} de {reading} alcanzó el umbral de {level}. Sigue el plan de emergencia."
       }
+    },
+    "access": {
+      "break_glass_started": {
+        "subject": "Acceso de emergencia en {orgName}",
+        "body": "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}"
+      }
     }
   },
   "notification": {

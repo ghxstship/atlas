@@ -47,7 +47,9 @@ select is(
        'person_profiles', 'profile_section_visibility', 'person_skills', 'person_languages', 'person_links',
        'portfolio_items', 'person_references', 'person_certifications',
        -- person-owned notification choices of external parties, keyed by person_id (A44, migration 1131)
-       'person_notification_preferences')
+       'person_notification_preferences',
+       -- person-owned blocks keyed by person_id, readable only by the blocker (A52, migration 1206)
+       'blocks')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),

@@ -61,7 +61,10 @@
     "fileType": "Sube un archivo PNG, WebP o ICO.",
     "fileSize": "Sube un archivo de 2 MB o menos.",
     "uploadFailed": "La subida no terminó. Inténtalo de nuevo en un momento.",
-    "hostname": "Escribe un nombre de host como gateway.example.com, sin https://."
+    "hostname": "Escribe un nombre de host como gateway.example.com, sin https://.",
+    "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
+    "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
+    "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan."
   },
   "fields": {
     "legalName": {
@@ -101,8 +104,8 @@
       "help": "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440."
     },
     "ipAllowlist": {
-      "label": "Lista de IP permitidas",
-      "help": "Una dirección o rango CIDR por línea. Déjalo vacío para permitir el acceso desde cualquier lugar."
+      "label": "Aplicar la lista de IP permitidas",
+      "help": "Cuando está activa, Atlas y la API solo aceptan solicitudes de las redes permitidas que aparecen abajo. Agregue primero al menos una red."
     },
     "autoJoin": {
       "label": "Unión automática",
@@ -436,5 +439,184 @@
     "teams": "Los equipos agrupan a los miembros que comparten trabajo. Cada equipo muestra sus miembros.",
     "workspaces": "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     "accessReviews": "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado."
+  },
+  "accessControls": {
+    "saved": "Guardado.",
+    "unknownPerson": "Un exmiembro",
+    "fieldErrors": {
+      "invalid": "Revise este valor e inténtelo de nuevo.",
+      "cidr": "Escriba una dirección o una red como 203.0.113.0/24.",
+      "reason": "Escriba por qué necesita acceso de emergencia, con al menos 20 caracteres."
+    },
+    "errors": {
+      "legal_entity_primary": "Marque primero otra entidad legal como principal. La organización siempre conserva una entidad principal.",
+      "tax_identifier_format": "Un identificador fiscal tiene de 4 a 30 letras y dígitos.",
+      "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
+      "ip_allowlist_last_entry": "Desactive la lista de IP permitidas arriba antes de quitar su última red.",
+      "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
+      "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
+      "break_glass_reason": "Escriba por qué necesita acceso de emergencia, con al menos 20 caracteres.",
+      "break_glass_open": "Ya tiene acceso de emergencia. Termínelo antes de tomarlo de nuevo.",
+      "break_glass_closed": "Este acceso de emergencia ya terminó.",
+      "break_glass_session_only": "El acceso de emergencia se toma en una sesión iniciada, nunca con una clave de API.",
+      "step_up_required": "Verifique primero con su segundo factor y vuelva a intentarlo.",
+      "access_review_due_past": "Elija una fecha límite a partir de hoy.",
+      "access_review_decided": "Este acceso ya se revisó. La decisión es definitiva.",
+      "access_review_closed": "Esta revisión ya no está activa. Vuelva a cargar la página.",
+      "sod_self_review": "Otro revisor decide sobre su propio acceso.",
+      "role_band": "Solo puede revisar roles de su nivel o inferiores.",
+      "block_handle_unknown": "No hay ningún perfil visible para usted con este identificador. Revíselo e inténtelo de nuevo.",
+      "block_self": "No puede bloquearse a sí mismo.",
+      "block_own_org": "Salga de una organización antes de bloquearla.",
+      "denied": "No tiene permiso para esto, o ya no existe. Vuelva a cargar la página.",
+      "conflict": "Eso ya está en la lista.",
+      "invalid": "Revise los valores e inténtelo de nuevo.",
+      "unexpected": "Algo salió mal de nuestro lado. Inténtelo de nuevo en un momento.",
+      "project_role_lead": "Cambie primero el rol principal del miembro; aquí no se puede quitar.",
+      "project_member_ended": "Esta persona ya no está en el proyecto.",
+      "sod_self_grant": "No puede asignarse un rol a sí mismo.",
+      "project_share_own_org": "Un proyecto se comparte con otra organización, nunca con la suya.",
+      "project_share_deleted_project": "Un proyecto eliminado no se puede compartir."
+    },
+    "legalEntities": {
+      "title": "Entidades legales",
+      "description": "Las empresas con las que opera su organización. La entidad principal aparece en facturas, órdenes de compra y otros documentos.",
+      "none": "Aún no hay entidades legales. Agregue la empresa que firma sus contratos.",
+      "addLabel": "Agregar una entidad legal",
+      "legalName": "Razón social",
+      "country": "País",
+      "countryHelp": "Dos letras, como US o GB.",
+      "fiscalYearStart": "El año fiscal empieza en",
+      "baseCurrency": "Moneda base",
+      "taxIdentifier": "Identificador fiscal (opcional)",
+      "taxIdentifierHelp": "EIN, IVA o GST. Se guarda cifrado; solo se muestran los últimos cuatro.",
+      "add": "Agregar entidad legal",
+      "primary": "Principal",
+      "summary": "{country} · El año fiscal empieza en {month} · {currency}",
+      "taxShown": "Identificador fiscal {value}",
+      "taxMasked": "Identificador fiscal terminado en {last4}",
+      "taxNone": "Sin identificador fiscal",
+      "makePrimary": "Hacer principal",
+      "makePrimaryNamed": "Hacer de {name} la entidad legal principal",
+      "remove": "Quitar",
+      "removeNamed": "Quitar {name}"
+    },
+    "network": {
+      "title": "Redes permitidas",
+      "description": "Cuando la lista de IP permitidas está activa, Atlas y la API solo aceptan solicitudes de estas redes.",
+      "notInPlan": "La lista de IP permitidas forma parte de los planes Team y Enterprise.",
+      "enforced": "La lista de IP permitidas está activa.",
+      "notEnforced": "La lista de IP permitidas está desactivada, así que cualquier red puede llegar a su organización.",
+      "addressUnknown": "No se pudo leer su dirección actual.",
+      "addressCovered": "Su dirección actual, {ip}, está dentro de una red de la lista.",
+      "addressOutside": "Su dirección actual, {ip}, está fuera de todas las redes de la lista.",
+      "none": "No hay redes en la lista.",
+      "addLabel": "Agregar una red",
+      "cidr": "Dirección o red",
+      "cidrHelp": "Una dirección, o un rango como 203.0.113.0/24.",
+      "label": "Etiqueta",
+      "add": "Agregar red",
+      "remove": "Quitar",
+      "removeNamed": "Quitar la red {label}"
+    },
+    "breakGlass": {
+      "title": "Acceso de emergencia",
+      "description": "Un Propietario puede tomar acceso completo durante una hora con un segundo factor y un motivo escrito. Se notifica a todos los Propietarios y Administradores y queda registrado en el registro de auditoría.",
+      "startLabel": "Tomar acceso de emergencia",
+      "reason": "¿Por qué necesita acceso de emergencia?",
+      "reasonHelp": "Al menos 20 caracteres. Los Propietarios y Administradores ven este motivo.",
+      "start": "Tomar acceso de emergencia",
+      "open": "Tiene acceso de emergencia hasta {until}.",
+      "end": "Terminar acceso de emergencia",
+      "none": "Nadie ha tomado acceso de emergencia.",
+      "history": "Historial de acceso de emergencia",
+      "entry": "{name}, {start}",
+      "stillOpen": "Sigue abierto",
+      "endedEarly": "Terminó {end}",
+      "expired": "Cumplió su hora, terminó {end}"
+    },
+    "reviews": {
+      "title": "Revisión de accesos",
+      "description": "Confirme o quite los roles de cada miembro. El acceso sin revisar se marca después del período de gracia y se quita si la revisión lo indica.",
+      "openLabel": "Abrir una revisión de accesos",
+      "name": "Nombre de la revisión",
+      "dueOn": "Fecha límite",
+      "autoRemove": "Quitar el acceso que siga sin revisar después del período de gracia",
+      "open": "Abrir revisión",
+      "defaultName": "Revisión de accesos T{quarter} {year}",
+      "noneActive": "No hay ninguna revisión de accesos abierta.",
+      "progress": "{decided} de {total} revisados · Vence el {due}",
+      "autoRemoveOn": "El acceso sin revisar se quita después del período de gracia.",
+      "autoRemoveOff": "El acceso sin revisar se marca después del período de gracia.",
+      "cancel": "Cancelar revisión",
+      "flagged": "{count, plural, one {# rol sigue} other {# roles siguen}} sin revisar después del período de gracia.",
+      "itemsLabel": "Roles por revisar",
+      "subject": "rol {role} de {person}",
+      "self": "Su propio acceso",
+      "confirm": "Confirmar",
+      "confirmNamed": "Confirmar el {subject}",
+      "remove": "Quitar",
+      "removeNamed": "Quitar el {subject}",
+      "unknownRole": "Rol",
+      "unreviewed": "Sin revisar",
+      "unreviewedFlagged": "Sin revisar, marcado",
+      "decisions": {
+        "Confirmed": "Confirmado",
+        "Removed": "Quitado"
+      },
+      "pastLabel": "Revisiones anteriores",
+      "closed": {
+        "Complete": "Completada el {date}",
+        "Canceled": "Cancelada el {date}"
+      }
+    },
+    "blocks": {
+      "title": "Personas y organizaciones bloqueadas",
+      "description": "Bloquear oculta su perfil a ellos y el de ellos a usted. El trabajo compartido, las membresías y las contrataciones continúan.",
+      "none": "No ha bloqueado a nadie.",
+      "addLabel": "Bloquear un perfil",
+      "kind": "Tipo de perfil",
+      "kinds": {
+        "person": "Persona",
+        "organization": "Organización"
+      },
+      "handle": "Identificador del perfil",
+      "handleHelp": "La parte después de /u/ o /c/ en la dirección del perfil.",
+      "block": "Bloquear",
+      "unblock": "Desbloquear",
+      "unblockNamed": "Desbloquear a {name}"
+    },
+    "projectRoles": {
+      "title": "Roles de proyecto adicionales",
+      "lead": "Un miembro puede tener varios roles en este proyecto. Sus capacidades son la unión de todos sus roles.",
+      "none": "Ningún miembro tiene más de un rol en este proyecto.",
+      "entry": "rol {role} de {name}",
+      "alsoHolds": "{lead}, también {role}",
+      "addLabel": "Dar a un miembro otro rol de proyecto",
+      "member": "Miembro",
+      "role": "Rol adicional",
+      "add": "Agregar rol",
+      "remove": "Quitar",
+      "removeNamed": "Quitar el {label}"
+    },
+    "shares": {
+      "title": "Compartido con organizaciones socias",
+      "lead": "Los miembros de la organización socia ven el nombre, las fechas y el alcance compartido de este proyecto, nunca presupuestos ni notas internas, y actúan con el rol que usted elija. Los registros de auditoría de ambas organizaciones guardan el acceso compartido.",
+      "none": "Este proyecto no está compartido.",
+      "noPartners": "Agregue una organización con la que trabaje como proveedor o cliente para compartir con ella.",
+      "unnamedPartner": "Organización socia",
+      "asRole": "Los miembros de la socia actúan como {role}",
+      "addLabel": "Compartir este proyecto",
+      "partner": "Organización socia",
+      "role": "Rol de proyecto para los miembros de la socia",
+      "roleHelp": "Todos los miembros de la organización socia tienen este rol en el proyecto.",
+      "share": "Compartir proyecto",
+      "revoke": "Dejar de compartir",
+      "revokeNamed": "Dejar de compartir con {name}"
+    },
+    "sharedWithUs": {
+      "title": "Compartido con su organización",
+      "entry": "Compartido por {owner} · Sus miembros actúan como {role}"
+    }
   }
 }
