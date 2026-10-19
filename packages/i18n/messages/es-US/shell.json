@@ -897,6 +897,13 @@
     "current": "Plan actual",
     "unlimited": "Ilimitado",
     "includesPrevious": "Todo lo de {plan}, más:",
+    "perYear": "{price} al año",
+    "seatsIncluded": "{count, plural, one {# asiento incluido} other {# asientos incluidos}}",
+    "seatsUnlimited": "Asientos ilimitados",
+    "extraSeat": "Asientos adicionales a {price} cada uno al mes",
+    "noExtraSeats": "Sin asientos adicionales; mejora el plan para agregar asientos",
+    "quoteFrom": "Desde {price} al mes, con contrato anual",
+    "fieldCrewUnlimited": "Personal de campo ilimitado",
     "limits": {
       "seats": "Asientos",
       "active_projects": "Proyectos activos",
@@ -980,7 +987,9 @@
       "refused": {
         "invite_invalid": "Esta invitación ya no es válida o se envió a otro correo. Pide una nueva a la persona que te invitó.",
         "invite_rate_limited": "Demasiados intentos. Espera 15 minutos y vuelve a abrir el enlace de la invitación.",
-        "invite_inviter_inactive": "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización."
+        "invite_inviter_inactive": "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización.",
+        "seat_limit_reached": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
+        "seat_limit_upgrade": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación."
       },
       "home": "Ir a Atlas"
     },
@@ -1088,6 +1097,8 @@
         "grant_exceeds_holder": "Solo puedes asignar roles cuyas capacidades tienes tú.",
         "sole_owner": "Una organización conserva al menos un propietario. Primero nombra a otra persona propietaria.",
         "plan_limit_exceeded": "Tu plan no tiene asientos libres para ese rol. Elige Observador o Campo, o compara planes.",
+        "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+        "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
         "not_member": "Esa membresía ya terminó.",
         "not-found": "Ese miembro o invitación ya no está aquí. Recarga la página.",
         "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
@@ -1115,7 +1126,24 @@
       "current": "{org} está en el plan {plan}.",
       "perMonth": "{price} al mes",
       "choose": "Elegir {plan}",
-      "notAvailable": "Los planes de pago se abren cuando se conecte la facturación. Hasta entonces, todas las organizaciones siguen en Access."
+      "notAvailable": "Los planes de pago se abren cuando se conecte la facturación. Hasta entonces, todas las organizaciones siguen en Access.",
+      "perYear": "{price} al año, dos meses gratis",
+      "seats": "Asientos",
+      "seatUsage": "{used} de {limit} asientos en uso.",
+      "seatUsageUnlimited": "{used, plural, one {# asiento} other {# asientos}} en uso. Tu plan tiene asientos ilimitados.",
+      "extraSeats": "{count, plural, one {Incluye # asiento adicional comprado} other {Incluye # asientos adicionales comprados}} además del plan.",
+      "grandfathered": "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",
+      "seatsFull": "Todos los asientos están en uso. Compra asientos adicionales o mejora el plan para agregar miembros por encima de Campo.",
+      "seatsFullUpgrade": "Todos los asientos están en uso y tu plan no vende asientos adicionales. Mejora el plan para agregar miembros por encima de Campo.",
+      "buySeats": "Comprar asientos adicionales",
+      "contactSales": "Hablar con ventas",
+      "auroraPack": {
+        "title": "Paquetes de solicitudes de Aurora",
+        "body": "{amount} solicitudes adicionales de Aurora por {price}, sumadas a la asignación de este mes. Los paquetes son para Core, Pro y Team.",
+        "buy": "Comprar un paquete"
+      },
+      "foundingOffer": "Clientes fundadores: las primeras {count} organizaciones de pago obtienen un {percent} por ciento de descuento durante sus primeros {months} meses con el código {code}.",
+      "pricesInUsd": "Precios en dólares estadounidenses antes de impuestos. Los precios en EUR, GBP, CAD y AUD se aplican al pagar."
     },
     "organizations": {
       "leave": "Salir",

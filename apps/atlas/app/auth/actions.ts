@@ -187,14 +187,21 @@ export async function createOrganizationAction(_: FormState, form: FormData): Pr
 
 // Invitations -------------------------------------------------------------------------------------
 
+/** Invitation link refusals shown as they are; every other link refusal reads as an invalid link. */
+const PASSED_LINK_REFUSALS = new Set([
+  "invite_rate_limited",
+  "seat_limit_reached",
+  "seat_limit_upgrade",
+]);
+
 export async function acceptInvitation(_: FormState, form: FormData): Promise<FormState> {
   const token = text(form, "token");
   const db = await createServerSupabase();
   // Invitation links (xlnk_, migration 0861) are not tied to an email address; their refusals map to
-  // the invitation messages.
+  // the invitation messages. A full org says so either way (seat refusals, ADR 0034).
   const accepted = token.startsWith("xlnk_")
     ? await acceptInviteLink(db, token).then((r) =>
-        r.ok || r.error.kind !== "refusal" || r.error.rule === "invite_rate_limited"
+        r.ok || r.error.kind !== "refusal" || PASSED_LINK_REFUSALS.has(r.error.rule)
           ? r
           : { ok: false as const, error: { ...r.error, rule: "invite_invalid" } },
       )

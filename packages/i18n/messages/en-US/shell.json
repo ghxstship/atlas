@@ -897,6 +897,13 @@
     "current": "Current plan",
     "unlimited": "Unlimited",
     "includesPrevious": "Everything in {plan}, plus:",
+    "perYear": "{price} a year",
+    "seatsIncluded": "{count, plural, one {# seat included} other {# seats included}}",
+    "seatsUnlimited": "Unlimited seats",
+    "extraSeat": "Extra seats {price} each a month",
+    "noExtraSeats": "No extra seats; upgrade to add seats",
+    "quoteFrom": "From {price} a month, annual contract",
+    "fieldCrewUnlimited": "Unlimited field crew",
     "limits": {
       "seats": "Seats",
       "active_projects": "Active projects",
@@ -980,7 +987,9 @@
       "refused": {
         "invite_invalid": "This invitation is no longer valid, or it was sent to a different email address. Ask the person who invited you for a new one.",
         "invite_rate_limited": "Too many attempts. Wait 15 minutes, then open the invitation link again.",
-        "invite_inviter_inactive": "The person who invited you can no longer add members. Ask an admin of the organization for a new invitation."
+        "invite_inviter_inactive": "The person who invited you can no longer add members. Ask an admin of the organization for a new invitation.",
+        "seat_limit_reached": "This organization has no seat left for your role. Ask its Owner to buy extra seats or upgrade the plan, then open the invitation again.",
+        "seat_limit_upgrade": "This organization has no seat left for your role. Ask its Owner to upgrade the plan, then open the invitation again."
       },
       "home": "Go to Atlas"
     },
@@ -1088,6 +1097,8 @@
         "grant_exceeds_holder": "You can give only roles whose capabilities you hold yourself.",
         "sole_owner": "An organization keeps at least one Owner. Make someone else Owner first.",
         "plan_limit_exceeded": "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+        "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+        "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
         "not_member": "That membership has already ended.",
         "not-found": "That member or invitation is no longer here. Reload the page.",
         "unexpected": "Something went wrong on our side. Try again in a moment."
@@ -1115,7 +1126,24 @@
       "current": "{org} is on the {plan} plan.",
       "perMonth": "{price} per month",
       "choose": "Choose {plan}",
-      "notAvailable": "Paid plans open when billing is connected. Until then every organization stays on Access."
+      "notAvailable": "Paid plans open when billing is connected. Until then every organization stays on Access.",
+      "perYear": "{price} a year, two months free",
+      "seats": "Seats",
+      "seatUsage": "{used} of {limit} seats in use.",
+      "seatUsageUnlimited": "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
+      "extraSeats": "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
+      "grandfathered": "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
+      "seatsFull": "Every seat is in use. Buy extra seats or upgrade the plan to add members above Field.",
+      "seatsFullUpgrade": "Every seat is in use, and your plan sells no extra seats. Upgrade the plan to add members above Field.",
+      "buySeats": "Buy extra seats",
+      "contactSales": "Talk to sales",
+      "auroraPack": {
+        "title": "Aurora request packs",
+        "body": "{amount} extra Aurora requests for {price}, added to this month's allowance. Packs are for Core, Pro and Team.",
+        "buy": "Buy a pack"
+      },
+      "foundingOffer": "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
+      "pricesInUsd": "Prices in US dollars before tax. EUR, GBP, CAD and AUD prices apply at checkout."
     },
     "organizations": {
       "leave": "Leave",

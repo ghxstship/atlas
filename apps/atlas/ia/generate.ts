@@ -180,6 +180,34 @@ interface RawPlanRegistry {
     plans: string[];
     prices: Record<string, number>;
   }[];
+  offers?: {
+    code: string;
+    percent_off: number;
+    duration_months: number;
+    max_redemptions: number;
+    stripe: { promotion_code: string };
+  }[];
+}
+
+/** A promotion offer as the Billing and Plan page names it (ADR 0034). */
+export interface OfferSummary {
+  readonly code: string;
+  readonly percentOff: number;
+  readonly durationMonths: number;
+  readonly maxRedemptions: number;
+  readonly promotionCode: string;
+}
+
+/** The promotion offers of plans.yaml. */
+export function parseOffers(text: string): OfferSummary[] {
+  const data = parse(text) as RawPlanRegistry;
+  return (data.offers ?? []).map((o) => ({
+    code: o.code,
+    percentOff: o.percent_off,
+    durationMonths: o.duration_months,
+    maxRedemptions: o.max_redemptions,
+    promotionCode: o.stripe.promotion_code,
+  }));
 }
 
 export function parsePlanRegistry(text: string): PlanSummary[] {
@@ -220,6 +248,7 @@ export function generateFiles(
   legal: readonly LegalDocument[],
   plans: readonly PlanSummary[] = [],
   addons: readonly AddonSummary[] = [],
+  offers: readonly OfferSummary[] = [],
 ): Map<string, string> {
   const issues = validateSitemap(sitemap, { messages: getMessages("en-US") });
   if (issues.length > 0) throw new Error(`ia/sitemap.yaml is invalid:\n${formatIssues(issues)}`);
@@ -259,13 +288,16 @@ export const listNodes: ReadonlySet<string> = new Set(${JSON.stringify(listNodeI
   files.set(
     "lib/plans.generated.ts",
     `${GENERATED_STAMP.replace("ia/sitemap.yaml", "packages/schemas/plans.yaml")}
-import type { AddonSummary, PlanSummary } from "@/ia/generate";
+import type { AddonSummary, OfferSummary, PlanSummary } from "@/ia/generate";
 
 /** Plans from the free plan upward (Section 16), from packages/schemas/plans.yaml. */
 export const PLANS: readonly PlanSummary[] = ${JSON.stringify(plans)};
 
 /** One-time add-ons, such as Aurora request packs (ADR 0034), from packages/schemas/plans.yaml. */
 export const ADDONS: readonly AddonSummary[] = ${JSON.stringify(addons)};
+
+/** Promotion offers, such as the founding-customer code (ADR 0034), from packages/schemas/plans.yaml. */
+export const OFFERS: readonly OfferSummary[] = ${JSON.stringify(offers)};
 `,
   );
   for (const node of generatedNodes(sitemap)) {

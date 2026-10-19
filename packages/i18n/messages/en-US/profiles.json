@@ -24,6 +24,8 @@
     "join_request_decided": "This request was already decided or withdrawn. Reload the page.",
     "sod_self_grant": "You cannot approve your own request or change your own role.",
     "plan_limit_exceeded": "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+    "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "not_member": "Choose someone who still belongs to the organization.",
     "offboarding_open_records": "Reassign every open record before completing the offboarding.",
     "offboarding_completed": "This offboarding is already complete.",

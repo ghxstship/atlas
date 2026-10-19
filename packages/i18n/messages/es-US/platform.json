@@ -37,6 +37,8 @@
     "slug_reserved": "Esa dirección web está reservada por la plataforma. Elija otra.",
     "plan_unknown": "Ese plan no existe.",
     "plan_limit_exceeded": "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+    "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "plan_feature_required": "Su plan no incluye esto. Mejore el plan para usarlo.",
     "import_file_type": "Suba una hoja de cálculo .csv o .xlsx.",
     "import_xls_unsupported": "Los archivos .xls antiguos no se pueden leer. Guarde la hoja como .xlsx o .csv y súbala de nuevo.",

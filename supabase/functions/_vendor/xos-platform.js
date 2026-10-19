@@ -10228,6 +10228,10 @@ var platform_default$1 = {
     plan_unknown: "That plan does not exist.",
     plan_limit_exceeded:
       "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    seat_limit_reached:
+      "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    seat_limit_upgrade:
+      "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     plan_feature_required: "Your plan does not include this. Upgrade the plan to use it.",
     import_file_type: "Upload a .csv or .xlsx spreadsheet.",
     import_xls_unsupported:
@@ -11269,6 +11273,10 @@ var profiles_default$1 = {
     sod_self_grant: "You cannot approve your own request or change your own role.",
     plan_limit_exceeded:
       "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+    seat_limit_reached:
+      "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    seat_limit_upgrade:
+      "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     not_member: "Choose someone who still belongs to the organization.",
     offboarding_open_records: "Reassign every open record before completing the offboarding.",
     offboarding_completed: "This offboarding is already complete.",
@@ -12830,6 +12838,13 @@ var shell_default$1 = {
     current: "Current plan",
     unlimited: "Unlimited",
     includesPrevious: "Everything in {plan}, plus:",
+    perYear: "{price} a year",
+    seatsIncluded: "{count, plural, one {# seat included} other {# seats included}}",
+    seatsUnlimited: "Unlimited seats",
+    extraSeat: "Extra seats {price} each a month",
+    noExtraSeats: "No extra seats; upgrade to add seats",
+    quoteFrom: "From {price} a month, annual contract",
+    fieldCrewUnlimited: "Unlimited field crew",
     limits: {
       seats: "Seats",
       active_projects: "Active projects",
@@ -12919,6 +12934,10 @@ var shell_default$1 = {
           "Too many attempts. Wait 15 minutes, then open the invitation link again.",
         invite_inviter_inactive:
           "The person who invited you can no longer add members. Ask an admin of the organization for a new invitation.",
+        seat_limit_reached:
+          "This organization has no seat left for your role. Ask its Owner to buy extra seats or upgrade the plan, then open the invitation again.",
+        seat_limit_upgrade:
+          "This organization has no seat left for your role. Ask its Owner to upgrade the plan, then open the invitation again.",
       },
       home: "Go to Atlas",
     },
@@ -13032,6 +13051,10 @@ var shell_default$1 = {
         sole_owner: "An organization keeps at least one Owner. Make someone else Owner first.",
         plan_limit_exceeded:
           "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+        seat_limit_reached:
+          "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+        seat_limit_upgrade:
+          "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
         not_member: "That membership has already ended.",
         "not-found": "That member or invitation is no longer here. Reload the page.",
         unexpected: "Something went wrong on our side. Try again in a moment.",
@@ -13064,6 +13087,30 @@ var shell_default$1 = {
       choose: "Choose {plan}",
       notAvailable:
         "Paid plans open when billing is connected. Until then every organization stays on Access.",
+      perYear: "{price} a year, two months free",
+      seats: "Seats",
+      seatUsage: "{used} of {limit} seats in use.",
+      seatUsageUnlimited:
+        "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
+      extraSeats:
+        "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
+      grandfathered:
+        "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
+      seatsFull:
+        "Every seat is in use. Buy extra seats or upgrade the plan to add members above Field.",
+      seatsFullUpgrade:
+        "Every seat is in use, and your plan sells no extra seats. Upgrade the plan to add members above Field.",
+      buySeats: "Buy extra seats",
+      contactSales: "Talk to sales",
+      auroraPack: {
+        title: "Aurora request packs",
+        body: "{amount} extra Aurora requests for {price}, added to this month's allowance. Packs are for Core, Pro and Team.",
+        buy: "Buy a pack",
+      },
+      foundingOffer:
+        "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
+      pricesInUsd:
+        "Prices in US dollars before tax. EUR, GBP, CAD and AUD prices apply at checkout.",
     },
     organizations: {
       leave: "Leave",
@@ -25940,6 +25987,10 @@ var platform_default = {
     slug_reserved: "Esa dirección web está reservada por la plataforma. Elija otra.",
     plan_unknown: "Ese plan no existe.",
     plan_limit_exceeded: "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    seat_limit_reached:
+      "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+    seat_limit_upgrade:
+      "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     plan_feature_required: "Su plan no incluye esto. Mejore el plan para usarlo.",
     import_file_type: "Suba una hoja de cálculo .csv o .xlsx.",
     import_xls_unsupported:
@@ -27021,6 +27072,10 @@ var profiles_default = {
     sod_self_grant: "No puedes aprobar tu propia solicitud ni cambiar tu propio rol.",
     plan_limit_exceeded:
       "Tu plan no tiene plazas para ese rol. Elige lector o campo, o compara planes.",
+    seat_limit_reached:
+      "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+    seat_limit_upgrade:
+      "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     not_member: "Elige a alguien que siga perteneciendo a la organización.",
     offboarding_open_records: "Reasigna todos los registros abiertos antes de completar la salida.",
     offboarding_completed: "Esta salida ya está completa.",
@@ -28619,6 +28674,13 @@ var shell_default = {
     current: "Plan actual",
     unlimited: "Ilimitado",
     includesPrevious: "Todo lo de {plan}, más:",
+    perYear: "{price} al año",
+    seatsIncluded: "{count, plural, one {# asiento incluido} other {# asientos incluidos}}",
+    seatsUnlimited: "Asientos ilimitados",
+    extraSeat: "Asientos adicionales a {price} cada uno al mes",
+    noExtraSeats: "Sin asientos adicionales; mejora el plan para agregar asientos",
+    quoteFrom: "Desde {price} al mes, con contrato anual",
+    fieldCrewUnlimited: "Personal de campo ilimitado",
     limits: {
       seats: "Asientos",
       active_projects: "Proyectos activos",
@@ -28708,6 +28770,10 @@ var shell_default = {
           "Demasiados intentos. Espera 15 minutos y vuelve a abrir el enlace de la invitación.",
         invite_inviter_inactive:
           "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización.",
+        seat_limit_reached:
+          "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
+        seat_limit_upgrade:
+          "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación.",
       },
       home: "Ir a Atlas",
     },
@@ -28826,6 +28892,10 @@ var shell_default = {
           "Una organización conserva al menos un propietario. Primero nombra a otra persona propietaria.",
         plan_limit_exceeded:
           "Tu plan no tiene asientos libres para ese rol. Elige Observador o Campo, o compara planes.",
+        seat_limit_reached:
+          "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+        seat_limit_upgrade:
+          "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
         not_member: "Esa membresía ya terminó.",
         "not-found": "Ese miembro o invitación ya no está aquí. Recarga la página.",
         unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
@@ -28858,6 +28928,30 @@ var shell_default = {
       choose: "Elegir {plan}",
       notAvailable:
         "Los planes de pago se abren cuando se conecte la facturación. Hasta entonces, todas las organizaciones siguen en Access.",
+      perYear: "{price} al año, dos meses gratis",
+      seats: "Asientos",
+      seatUsage: "{used} de {limit} asientos en uso.",
+      seatUsageUnlimited:
+        "{used, plural, one {# asiento} other {# asientos}} en uso. Tu plan tiene asientos ilimitados.",
+      extraSeats:
+        "{count, plural, one {Incluye # asiento adicional comprado} other {Incluye # asientos adicionales comprados}} además del plan.",
+      grandfathered:
+        "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",
+      seatsFull:
+        "Todos los asientos están en uso. Compra asientos adicionales o mejora el plan para agregar miembros por encima de Campo.",
+      seatsFullUpgrade:
+        "Todos los asientos están en uso y tu plan no vende asientos adicionales. Mejora el plan para agregar miembros por encima de Campo.",
+      buySeats: "Comprar asientos adicionales",
+      contactSales: "Hablar con ventas",
+      auroraPack: {
+        title: "Paquetes de solicitudes de Aurora",
+        body: "{amount} solicitudes adicionales de Aurora por {price}, sumadas a la asignación de este mes. Los paquetes son para Core, Pro y Team.",
+        buy: "Comprar un paquete",
+      },
+      foundingOffer:
+        "Clientes fundadores: las primeras {count} organizaciones de pago obtienen un {percent} por ciento de descuento durante sus primeros {months} meses con el código {code}.",
+      pricesInUsd:
+        "Precios en dólares estadounidenses antes de impuestos. Los precios en EUR, GBP, CAD y AUD se aplican al pagar.",
     },
     organizations: {
       leave: "Salir",

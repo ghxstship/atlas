@@ -37,6 +37,8 @@
     "slug_reserved": "That web address is reserved by the platform. Choose another.",
     "plan_unknown": "That plan does not exist.",
     "plan_limit_exceeded": "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    "seat_limit_reached": "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    "seat_limit_upgrade": "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     "plan_feature_required": "Your plan does not include this. Upgrade the plan to use it.",
     "import_file_type": "Upload a .csv or .xlsx spreadsheet.",
     "import_xls_unsupported": "Older .xls files cannot be read. Save the sheet as .xlsx or .csv and upload it again.",

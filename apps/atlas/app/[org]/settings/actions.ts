@@ -37,6 +37,8 @@ const KNOWN_REFUSALS = new Set([
   "grant_exceeds_holder",
   "sole_owner",
   "plan_limit_exceeded",
+  "seat_limit_reached",
+  "seat_limit_upgrade",
   "not_member",
 ]);
 
