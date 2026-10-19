@@ -1346,7 +1346,7 @@ export interface ChangeOrderLine {
 /** Change orders the viewer may read, newest first, with their NULL-aware totals. */
 export async function listChangeOrders(
   db: XosClient,
-  input: { readonly orgId: string; readonly projectId?: string | null },
+  input: { readonly orgId: string; readonly projectId?: string | null; readonly id?: string },
 ): Promise<Result<ChangeOrder[]>> {
   let query = db
     .from("change_orders")
@@ -1357,6 +1357,7 @@ export async function listChangeOrders(
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (input.projectId) query = query.eq("project_id", input.projectId);
+  if (input.id) query = query.eq("id", input.id);
   const orders = await rows(query, (r) => r);
   if (!orders.ok) return orders;
   if (orders.data.length === 0) return ok([]);
@@ -1597,7 +1598,7 @@ export interface InvoiceLine {
 /** Invoices the viewer may read, newest first, with NULL-aware totals and the amount applied. */
 export async function listInvoices(
   db: XosClient,
-  input: { readonly orgId: string; readonly projectId?: string | null },
+  input: { readonly orgId: string; readonly projectId?: string | null; readonly id?: string },
 ): Promise<Result<Invoice[]>> {
   let query = db
     .from("invoices")
@@ -1608,6 +1609,7 @@ export async function listInvoices(
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (input.projectId) query = query.eq("project_id", input.projectId);
+  if (input.id) query = query.eq("id", input.id);
   const invoices = await rows(query, (r) => r);
   if (!invoices.ok) return invoices;
   if (invoices.data.length === 0) return ok([]);

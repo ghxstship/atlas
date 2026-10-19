@@ -563,10 +563,12 @@ export async function listInspections(
     readonly orgId: string;
     readonly projectId?: string;
     readonly archive?: "live" | "archived" | "all";
+    readonly id?: string;
   },
 ): Promise<Result<Inspection[]>> {
   let query = db.from("inspections").select(INSPECTION_COLUMNS).eq("org_id", filter.orgId);
   if (filter.projectId) query = query.eq("project_id", filter.projectId);
+  if (filter.id) query = query.eq("id", filter.id);
   const archive = filter.archive ?? "live";
   if (archive === "live") query = query.is("deleted_at", null);
   if (archive === "archived") query = query.not("deleted_at", "is", null);
