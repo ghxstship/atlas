@@ -101,11 +101,11 @@ select throws_ok(
 -- Invariant 24: no em dash in canon or verbiage text -------------------------------------
 select throws_ok(
   format($$insert into xpms.dim_tag values ('TAG-999', 'Compliance', %L)$$, 'A' || chr(8212) || 'B'),
-  '23514', null, 'canon text refuses an em dash'
+  '23514', null, 'inv_24_no_em_dash: canon text refuses an em dash'
 );
 select throws_ok(
   format($$insert into xpms.dim_tag values (%L, 'Compliance', 'Fine')$$, 'TAG' || chr(8212) || '1'),
-  '23514', null, 'canon codes refuse an em dash'
+  '23514', null, 'inv_24_no_em_dash: canon codes refuse an em dash'
 );
 select is(
   (select count(*)::int from xpms.dim_metric where strpos(item, chr(8212)) > 0 or strpos(coalesce(qualifier, ''), chr(8212)) > 0),

@@ -37,12 +37,12 @@ select pg_temp.as_platform();
 
 -- Invariant 2 and role bands ---------------------------------------------------------------------------
 select pg_temp.as_user('dave');
-select is(pg_temp.visible_projects(), array[pg_temp.id('prj_a')], 'a Member reads only the project they belong to (invariant 2)');
+select is(pg_temp.visible_projects(), array[pg_temp.id('prj_a')], 'inv_02_project_read_scope: a Member reads only the project they belong to (invariant 2)');
 select is((select count(*)::int from app.scope_nodes where project_id = pg_temp.id('prj_a2')), 0, 'a Member reads no scope nodes of a project they do not belong to');
 select pg_temp.as_user('frank');
-select is(pg_temp.visible_projects(), array[pg_temp.id('prj_a')], 'a Field member reads the project they are assigned to');
+select is(pg_temp.visible_projects(), array[pg_temp.id('prj_a')], 'inv_02_project_read_scope: a Field member reads the project they are assigned to');
 select pg_temp.as_user('gina');
-select is(pg_temp.visible_projects(), '{}'::uuid[], 'a Viewer outside every project reads no projects, not the whole org');
+select is(pg_temp.visible_projects(), '{}'::uuid[], 'inv_02_project_read_scope: a Viewer outside every project reads no projects, not the whole org');
 select pg_temp.as_user('carol');
 select is(pg_temp.visible_projects(), array[pg_temp.id('prj_a'), pg_temp.id('prj_a2')], 'a Manager oversees every project of the org');
 select pg_temp.as_user('mia');
@@ -148,7 +148,7 @@ select throws_ok($$select app.transition_production((select id from world where 
   'XR001', null, 'a Closed production cannot reopen');
 select pg_temp.as_platform();
 select throws_ok($$select private.assert_production_open((select id from world where key = 'prj_a'))$$,
-  'XR001', null, 'a Closed production refuses new spend (invariant 10)');
+  'XR001', null, 'inv_10_closed_production: a Closed production refuses new spend (invariant 10)');
 
 -- Gate transition (invariant 9) ---------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -159,7 +159,7 @@ select throws_ok($$select app.pass_gate((select id from world where key = 'prj_a
 select pg_temp.as_user('dave');
 select throws_ok($$select app.pass_gate((select id from world where key = 'prj_a'), 'SCP', 'Go.')$$,
   'XR001', 'gate_criteria_unmet: Gate 1 needs evidence for every blocking criterion; missing: G1.BUDGET_ENVELOPE, G1.GONOGO, G1.JURISDICTION, G1.SCOPE_LOCK.',
-  'a gate with unevidenced blocking criteria is refused, naming them');
+  'inv_09_gate_transition: a gate with unevidenced blocking criteria is refused, naming them');
 select lives_ok($$insert into app.gate_evidence (project_id, criterion_id, evidence_uri, assertion_rank)
   select (select id from world where key = 'prj_a'), c, 'docs/' || c || '.pdf', 0 from unnest(array['G1.BUDGET_ENVELOPE', 'G1.GONOGO', 'G1.JURISDICTION', 'G1.SCOPE_LOCK']) c$$,
   'a Member attests rank 0 evidence on an assigned project');
@@ -174,8 +174,8 @@ select lives_ok($$insert into app.gate_evidence (project_id, criterion_id, evide
   'the last blocking criterion gets evidence');
 select is((select attested_by from app.gate_evidence where evidence_uri = 'docs/scope-lock.pdf'), pg_temp.id('dave'), 'evidence is attested by the session person');
 select throws_ok($$select app.pass_gate((select id from world where key = 'prj_a'), 'ENG', 'Go.')$$,
-  'XR001', null, 'a wrong expected phase is refused (compare-and-set)');
-select is(app.pass_gate(pg_temp.id('prj_a'), 'SCP', 'Go decision recorded.'), 'ENG', 'gate 1 passes once every blocking criterion has evidence');
+  'XR001', null, 'inv_09_gate_transition: a wrong expected phase is refused (compare-and-set)');
+select is(app.pass_gate(pg_temp.id('prj_a'), 'SCP', 'Go decision recorded.'), 'ENG', 'inv_09_gate_transition: gate 1 passes once every blocking criterion has evidence');
 select is((select current_phase_code from app.projects where id = pg_temp.id('prj_a')), 'ENG', 'the project is now in Engage');
 select throws_ok($$select app.pass_gate((select id from world where key = 'prj_a'), 'SCP', 'Again.')$$,
   'XR001', null, 'the same gate cannot be passed twice');

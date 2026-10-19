@@ -192,15 +192,15 @@ with x as (insert into app.invoice_matches (invoice_id, purchase_order_id, goods
 select pg_temp.as_platform();
 select is((select variance_minor from app.invoice_match_results where invoice_match_id = pg_temp.id('match')), 2000::bigint, 'the variance between invoice and receipt is derived');
 select is((select is_matched from app.invoice_match_results where invoice_match_id = pg_temp.id('match')), false, 'a priced difference is a mismatch');
-select is((select invoice_state::text from app.invoices where id = pg_temp.id('inv')), 'Proposed', 'matching never approves an invoice by itself');
+select is((select invoice_state::text from app.invoices where id = pg_temp.id('inv')), 'Proposed', 'inv_17_three_way_match: matching never approves an invoice by itself');
 select pg_temp.as_user('carol');
 with x as (insert into app.invoices (project_id, direction, counterparty_id, currency_code) values (pg_temp.id('prj_a'), 'Payable', pg_temp.id('cp_v'), 'USD') returning id)
   insert into world select 'inv_dup', id from x;
 select throws_ok($$insert into app.invoice_matches (invoice_id, purchase_order_id, goods_receipt_id) values ((select id from world where key = 'inv_dup'), (select id from world where key = 'po'), (select id from world where key = 'gr'))$$,
-  '23505', null, 'a goods receipt is matched to one invoice once (invariant 17)');
+  '23505', null, 'inv_17_three_way_match: a goods receipt is matched to one invoice once (invariant 17)');
 select pg_temp.as_user('bob');
 select throws_ok($$select app.approve_invoice((select id from world where key = 'inv'), 'Pay.')$$,
-  'XR001', 'invoice_match_mismatch: The invoice does not match its purchase order and receipt; resolve the mismatch before approving.', 'a mismatched invoice is never approved (invariant 17)');
+  'XR001', 'invoice_match_mismatch: The invoice does not match its purchase order and receipt; resolve the mismatch before approving.', 'inv_17_three_way_match: a mismatched invoice is never approved (invariant 17)');
 select pg_temp.as_user('carol');
 select throws_ok($$update app.invoice_matches set resolution_note = 'Freight surcharge agreed.' where id = (select id from world where key = 'match')$$,
   'XR001', null, 'the matcher cannot accept their own mismatch');

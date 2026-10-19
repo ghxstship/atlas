@@ -198,10 +198,10 @@ with r as (
   values (pg_temp.id('org_b'), pg_temp.id('ws_a'), pg_temp.id('dave@org_a'))
   returning org_id
 )
-select is((select org_id from r), pg_temp.id('org_a'), 'org_id comes from the parent row, never from the caller');
+select is((select org_id from r), pg_temp.id('org_a'), 'inv_01_tenant_derivation: org_id comes from the parent row, never from the caller');
 select throws_like(
   $$insert into app.workspace_members (workspace_id, membership_id) values (pg_temp.id('ws_a'), pg_temp.id('xavier@org_b'))$$,
-  'cross_org_reference:%', 'a workspace member from another org is refused');
+  'cross_org_reference:%', 'inv_01_tenant_derivation: a workspace member from another org is refused');
 select throws_like(
   $$insert into app.team_members (team_id, membership_id) values (pg_temp.id('team_b'), pg_temp.id('dave@org_a'))$$,
   'cross_org_reference:%', 'a team member from another org is refused');
@@ -219,10 +219,10 @@ select throws_like(
   'cross_org_reference:%', 'a grant scoped to another org''s workspace is refused');
 select throws_like(
   $$update app.workspaces set org_id = pg_temp.id('org_b') where id = pg_temp.id('ws_a')$$,
-  'tenant_move:%', 'a workspace cannot move to another org');
+  'tenant_move:%', 'inv_01_tenant_derivation: a workspace cannot move to another org');
 select throws_like(
   $$update app.workspace_members set workspace_id = pg_temp.id('ws_b') where membership_id = pg_temp.id('frank@org_a')$$,
-  'tenant_move:%', 're-parenting a row into another org is a tenant move');
+  'tenant_move:%', 'inv_01_tenant_derivation: re-parenting a row into another org is a tenant move');
 select throws_like(
   $$update app.memberships set org_id = pg_temp.id('org_b') where id = pg_temp.id('dave@org_a')$$,
   'tenant_move:%', 'a membership cannot move to another org');
@@ -294,11 +294,11 @@ select throws_like(
 -- Invariant 4: sole Owner --------------------------------------------------------------------------
 select pg_temp.as_user('alice');
 select throws_like($$select app.leave_organization(pg_temp.id('org_a'))$$,
-  'sole_owner:%', 'the sole Owner cannot leave');
+  'sole_owner:%', 'inv_04_sole_owner: the sole Owner cannot leave');
 select throws_like(
   $$update app.membership_roles set deleted_at = now()
     where membership_id = pg_temp.id('alice@org_a') and role_id = pg_temp.system_role('owner')$$,
-  'sole_owner:%', 'the sole Owner cannot demote themselves');
+  'sole_owner:%', 'inv_04_sole_owner: the sole Owner cannot demote themselves');
 select pg_temp.as_user('bob');
 select throws_like(
   $$update app.membership_roles set deleted_at = now()
@@ -328,17 +328,17 @@ select pg_temp.as_platform();
 select pg_temp.as_user('dave');
 select isnt_empty($$select 1 from app.workspaces where org_id = pg_temp.id('org_a')$$, 'before leaving, dave sees Northwind workspaces');
 select lives_ok($$select app.leave_organization(pg_temp.id('org_a'))$$, 'a member leaves');
-select is_empty($$select 1 from app.workspaces where org_id = pg_temp.id('org_a')$$, 'after leaving, dave sees no Northwind workspace');
+select is_empty($$select 1 from app.workspaces where org_id = pg_temp.id('org_a')$$, 'inv_03_leaving_ends_access: after leaving, dave sees no Northwind workspace');
 select is_empty($$select 1 from app.organizations where id = pg_temp.id('org_a')$$, 'after leaving, dave no longer sees the org');
 select pg_temp.claims('dave');
 select ok(not private.is_member(pg_temp.id('org_a')), 'after leaving, dave is not a member');
-select ok(not private.has_capability(pg_temp.id('org_a'), 'org.integrations.manage'), 'after leaving, direct grants stop too');
+select ok(not private.has_capability(pg_temp.id('org_a'), 'org.integrations.manage'), 'inv_03_leaving_ends_access: after leaving, direct grants stop too');
 select pg_temp.as_user('carol');
 select throws_ok($$select app.end_membership(pg_temp.id('erin@org_a'))$$, '42501', null, 'a manager cannot remove members');
 select pg_temp.as_user('bob');
 select lives_ok($$select app.end_membership(pg_temp.id('erin@org_a'))$$, 'an owner removes a member');
 select pg_temp.claims('erin');
-select ok(not private.is_member(pg_temp.id('org_a')), 'a removed member loses access at once');
+select ok(not private.is_member(pg_temp.id('org_a')), 'inv_03_leaving_ends_access: a removed member loses access at once');
 select pg_temp.as_platform();
 
 select * from finish();

@@ -211,10 +211,10 @@ select pg_temp.as_anon();
 select throws_ok('select 1 from app.agreements', '42501', null, 'anon cannot read the table');
 
 -- Token signing (invariant 8)
-select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr1'), '00000000')), 0, 'a wrong access code reads nothing');
+select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr1'), '00000000')), 0, 'inv_08_token_rpcs_hashed_secrets: a wrong access code reads nothing');
 select is((select count(*)::int from api_public.read_agreement('xagr_unknown', (select code from tokens where key = 'agr1'))), 0, 'an unknown token reads nothing');
 select is((select title from api_public.read_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'))),
-  'Production Manager Offer Letter', 'the token and access code read the agreement');
+  'Production Manager Offer Letter', 'inv_08_token_rpcs_hashed_secrets: the token and access code read the agreement');
 select is(api_public.sign_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'), 'Nina Patel', repeat('0', 64)),
   false, 'a signature over other text is refused');
 select is(api_public.sign_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'), 'Nina Patel',
@@ -232,7 +232,7 @@ select is((select count(*)::int from app.domain_events where event_type = 'agree
 -- Lock at 5
 select pg_temp.as_anon();
 select is((select count(*)::int from generate_series(1, 5) g cross join lateral api_public.read_agreement((select token from tokens where key = 'agr_lock'), repeat('1', 8 + 0 * g)) r), 0, 'five wrong access codes');
-select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr_lock'), (select code from tokens where key = 'agr_lock'))), 0, 'lock the token even for the right code');
+select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr_lock'), (select code from tokens where key = 'agr_lock'))), 0, 'inv_08_token_rpcs_hashed_secrets: lock the token even for the right code');
 select pg_temp.as_platform();
 select is((select failed_attempts::int from app.agreements where id = pg_temp.id('agr_lock')), 5, 'the token locked at 5');
 
@@ -252,7 +252,7 @@ select lives_ok($$select app.transition_agreement((select id from world where ke
 select pg_temp.as_anon();
 select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr_nda'), (select code from tokens where key = 'agr_nda'))), 0, 'a recalled token reads nothing');
 select pg_temp.as_user('carol');
-select throws_ok($$select app.send_agreement((select id from world where key = 'agr_nda'), 'Too long.', interval '1 year')$$, 'XR001', null, 'a signing token lives at most 90 days');
+select throws_ok($$select app.send_agreement((select id from world where key = 'agr_nda'), 'Too long.', interval '1 year')$$, 'XR001', null, 'inv_08_token_rpcs_hashed_secrets: a signing token lives at most 90 days');
 select lives_ok($$select app.send_agreement((select id from world where key = 'agr_nda'), 'Sent again.')$$, 'it is sent again');
 select pg_temp.as_user('mia');
 select throws_ok($$select app.sign_agreement((select id from world where key = 'agr_nda'), 'Mia Takahashi', repeat('0', 64))$$, '42501', null, 'only the person named signs while signed in');

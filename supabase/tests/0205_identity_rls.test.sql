@@ -192,17 +192,17 @@ select is(
   (select coalesce(string_agg(tablename || '.' || policyname, ', '), '') from pg_policies
    where schemaname = 'app'
      and (replace(coalesce(qual, '') || coalesce(with_check, ''), 'SELECT auth.uid() AS uid', '') ~ 'auth\.uid\(\)')),
-  '', 'every policy wraps auth.uid() in a subselect');
+  '', 'inv_05_policy_shape: every policy wraps auth.uid() in a subselect');
 select is(
   (select coalesce(string_agg(tablename || '.' || policyname, ', '), '') from pg_policies
    where schemaname = 'app' and coalesce(qual, with_check) <> 'true'
      and (coalesce(qual, '') || coalesce(with_check, '')) !~ '(private\.|auth\.uid)'),
-  '', 'every restricting policy calls helpers from private or auth.uid()');
+  '', 'inv_05_policy_shape: every restricting policy calls helpers from private or auth.uid()');
 select is(
   (select coalesce(string_agg(c.relname, ', '), '') from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'app' and c.relkind = 'r'
      and not exists (select 1 from pg_policies p where p.schemaname = 'app' and p.tablename = c.relname and p.cmd in ('SELECT', 'ALL'))),
-  '', 'every app table has a read policy');
+  '', 'inv_05_policy_shape: every app table has a read policy');
 select is(
   (select coalesce(string_agg(c.relname || ':' || priv.cmd, ', '), '')
    from pg_class c join pg_namespace n on n.oid = c.relnamespace
@@ -211,26 +211,26 @@ select is(
      and (has_table_privilege('authenticated', c.oid, priv.cmd)
           or (priv.cmd <> 'DELETE' and has_any_column_privilege('authenticated', c.oid, priv.cmd)))
      and not exists (select 1 from pg_policies p where p.schemaname = 'app' and p.tablename = c.relname and p.cmd in (priv.cmd, 'ALL'))),
-  '', 'every write authenticated may attempt has a matching write policy');
+  '', 'inv_05_policy_shape: every write authenticated may attempt has a matching write policy');
 
 -- Invariant 6: functions -------------------------------------------------------------------------------------
 select is(
   (select coalesce(string_agg(p.oid::regprocedure::text, ', '), '') from pg_proc p
    join pg_namespace n on n.oid = p.pronamespace
    where n.nspname in ('app', 'private') and not ('search_path=""' = any(coalesce(p.proconfig, '{}')))),
-  '', 'every function in app and private pins an empty search_path');
+  '', 'inv_06_function_hardening: every function in app and private pins an empty search_path');
 select is(
   (select coalesce(string_agg(p.oid::regprocedure::text, ', '), '') from pg_proc p
    join pg_namespace n on n.oid = p.pronamespace
    where n.nspname in ('app', 'private') and p.prosecdef and has_function_privilege('anon', p.oid, 'execute')),
-  '', 'no SECURITY DEFINER function is executable by anon');
+  '', 'inv_06_function_hardening: no SECURITY DEFINER function is executable by anon');
 
 -- Invariant 7: anon reaches no app or private table ---------------------------------------------------------
 select is(
   (select coalesce(string_agg(c.oid::regclass::text, ', '), '') from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname in ('app', 'private') and c.relkind in ('r', 'v')
      and (has_table_privilege('anon', c.oid, 'select') or has_any_column_privilege('anon', c.oid, 'select'))),
-  '', 'anon holds no privilege on app or private tables');
+  '', 'inv_07_anon_surface: anon holds no privilege on app or private tables');
 
 select * from finish();
 rollback;

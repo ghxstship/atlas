@@ -36,15 +36,15 @@ select throws_ok($$update app.incidents set severity_enum_id = 'ENM-100', incide
   'XR001', 'incident_relabel_and_close: A critical incident cannot be relabeled and closed in one statement.', 'a critical incident cannot be relabeled and closed in one statement (invariant 22)');
 select throws_ok($$update app.incidents set incident_state = 'Closed' where id = (select id from world where key = 'inc')$$, 'XR001', null, 'an incident never closes by a direct update');
 select throws_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Reported', 'Closed', 'Done.')$$,
-  'XR001', 'incident_close_rpc: Close an incident through app.close_incident, which records sign-off.', 'closing goes through the sign-off RPC');
+  'XR001', 'incident_close_rpc: Close an incident through app.close_incident, which records sign-off.', 'inv_22_critical_incident_close: closing goes through the sign-off RPC');
 select lives_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Reported', 'Dispatched', 'Riggers sent.')$$, 'Reported to Dispatched');
 select lives_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Dispatched', 'Contained', 'Area cleared.')$$, 'Dispatched to Contained');
 select throws_ok($$select app.close_incident((select id from world where key = 'inc'), 'Signed off.')$$,
   'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'the reporter cannot sign off a critical incident');
-select throws_ok($$update app.incidents set closed_signed_off_by = (select id from world where key = 'carol') where id = (select id from world where key = 'inc')$$, 'XR001', null, 'sign-off is never written directly');
+select throws_ok($$update app.incidents set closed_signed_off_by = (select id from world where key = 'carol') where id = (select id from world where key = 'inc')$$, 'XR001', null, 'inv_22_critical_incident_close: sign-off is never written directly');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.close_incident((select id from world where key = 'inc'), 'Inspected and signed off by safety lead.')$$, 'another eligible person signs off and closes it');
-select is((select closed_signed_off_by from app.incidents where id = pg_temp.id('inc')), pg_temp.id('carol'), 'the sign-off is recorded');
+select is((select closed_signed_off_by from app.incidents where id = pg_temp.id('inc')), pg_temp.id('carol'), 'inv_22_critical_incident_close: the sign-off is recorded');
 select throws_ok($$update app.incidents set severity_enum_id = 'ENM-101' where id = (select id from world where key = 'inc')$$, 'XR001', null, 'a closed incident is never relabeled');
 select throws_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Closed', 'Dispatched', 'Again.')$$, 'XR001', null, 'Closed is terminal');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'incident'), 5, 'the incident lifecycle declares five moves');
@@ -103,7 +103,7 @@ select pg_temp.as_platform();
 -- Knowledge (invariant 24) -----------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
 select throws_ok(format($$insert into app.verbiage_terms (org_id, term, casing_rule, definition) values ((select id from world where key = 'org_a'), 'Load%sIn', 'Title Case', 'The move into the venue.')$$, chr(8212)),
-  '23514', null, 'verbiage refuses the em dash (invariant 24)');
+  '23514', null, 'inv_24_no_em_dash: verbiage refuses the em dash (invariant 24)');
 select throws_ok($$insert into app.verbiage_terms (org_id, term, casing_rule, definition) values ((select id from world where key = 'org_a'), 'Load-In', 'Title Case', 'No period')$$,
   '23514', null, 'a definition is a period-terminated sentence');
 with x as (insert into app.sops (org_id, code, title, body) values (pg_temp.id('org_a'), 'SOP-001', 'Working at Height', 'Wear a harness.') returning id) insert into world select 'sop', id from x;

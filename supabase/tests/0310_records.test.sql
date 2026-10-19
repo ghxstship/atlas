@@ -169,7 +169,7 @@ select pg_temp.as_user('dave');
 insert into world values ('appr1', pg_temp.new_record('prj_a', 'Approval', 'Lighting Plot'));
 insert into app.record_approval (record_id, subject_record_id, requester_person_id) values (pg_temp.id('appr1'), pg_temp.id('task3'), pg_temp.id('dave'));
 select throws_ok($$update app.record_approval set decision = 'Approved' where record_id = (select id from world where key = 'appr1')$$,
-  'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'the requester cannot approve (invariant 18)');
+  'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'inv_18_eligible_approver: the requester cannot approve (invariant 18)');
 select pg_temp.as_user('alice');
 select lives_ok($$update app.record_approval set decision = 'Approved' where record_id = (select id from world where key = 'appr1')$$, 'another eligible person approves');
 select is((select approver_person_id from app.record_approval where record_id = pg_temp.id('appr1')), pg_temp.id('alice'), 'the approver is the session person');
