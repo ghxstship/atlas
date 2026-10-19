@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(22);
+select plan(23);
 
 select has_table('app', 'org_ip_allowlist', 'app.org_ip_allowlist exists');
 select is((select value_type::text || ':' || default_boolean::text from app.setting_definitions where setting_key = 'security.ip_allowlist'),
@@ -42,6 +42,8 @@ select results_eq($$select enforced, allowed from app.network_access((select id 
   $$values (true, true)$$, 'an address inside the office network passes');
 select results_eq($$select enforced, allowed from app.network_access((select id from world where key = 'org_a'), '198.51.100.7')$$,
   $$values (true, false)$$, 'an address outside every listed network is refused');
+select results_eq($$select enforced, allowed from app.network_access((select id from world where key = 'org_a'), '::ffff:203.0.113.40')$$,
+  $$values (true, true)$$, 'an IPv4 address written as IPv4-mapped IPv6 is compared as IPv4');
 select results_eq($$select enforced, allowed from app.network_access((select id from world where key = 'org_a'), 'not-an-address')$$,
   $$values (true, false)$$, 'an unknown address fails closed while enforcing');
 select throws_ok($$insert into app.org_ip_allowlist (org_id, cidr, label) values ((select id from world where key = 'org_a'), '198.51.100.0/24', 'Home')$$,

@@ -188,6 +188,10 @@ begin
   exception when invalid_text_representation then
     v_ip := null;
   end;
+  -- An IPv4 client behind a dual-stack proxy arrives as ::ffff:a.b.c.d; compare it as IPv4.
+  if v_ip is not null and family(v_ip) = 6 and host(v_ip) ~ '^::ffff:[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+$' then
+    v_ip := substr(host(v_ip), 8)::inet;
+  end if;
   return query select private.ip_allowlist_enforced(p_org_id), private.ip_allowed(p_org_id, v_ip),
     (v_ip is not null and exists (select 1 from app.org_ip_allowlist a
                                   where a.org_id = p_org_id and a.deleted_at is null and v_ip <<= a.cidr));
