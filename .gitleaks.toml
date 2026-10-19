@@ -38,6 +38,8 @@ regexes = [
   '''^eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiIxMjM0NTY3ODkwIn0\.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U$''',
   # A fake Stripe test key in the billing unit test
   '''^sk_test_abcdefghij$''',
+  # The kiosk device key example in the OpenAPI document (catalog/modules/crew.ts, A50, 2026-10-19)
+  '''^xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b$''',
   # A TypeScript type name the Dropbox rule mistakes for a token
   '''^StorageProvider$''',
 ]

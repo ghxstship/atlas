@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,6 +27,9 @@ const messagesFor = (locale: string): unknown =>
   );
 
 const dir = mkdtempSync(join(tmpdir(), "xos-verapdf-"));
+// mkdtemp makes the folder owner-only; on Linux the veraPDF container runs as another user and
+// would see no files at all. The PDFs hold fixture data only.
+chmodSync(dir, 0o755);
 const files: string[] = [];
 for (const locale of LOCALES) {
   const messages = messagesFor(locale);
@@ -40,7 +43,7 @@ for (const locale of LOCALES) {
     });
     for (const paper of PAPERS) {
       const name = `${kind}.${locale}.${paper}.pdf`;
-      writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }));
+      writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
       files.push(name);
     }
   }

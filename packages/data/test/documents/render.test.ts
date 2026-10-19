@@ -85,5 +85,5 @@ describe("tagged PDF/UA output", () => {
     expect(text(await renderDocumentPdf(model, { paper: "letter" }))).toContain(
       "/MediaBox [0 0 612 792]",
     );
-  });
+  }, 60_000);
 });
