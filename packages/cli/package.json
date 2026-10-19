@@ -1,17 +1,37 @@
 {
   "name": "@xos/cli",
-  "version": "0.0.0",
-  "private": true,
+  "version": "4.0.0",
   "description": "xos: the command line for the XOS public API. Sign in, choose an organization, call any operation, import, export, validate canon codes and test webhooks.",
   "license": "MIT",
+  "author": "GHXSTSHIP Industries LLC",
+  "homepage": "https://github.com/ghxstship/atlas/tree/main/packages/cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghxstship/atlas.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/ghxstship/atlas/issues"
+  },
+  "keywords": [
+    "xos",
+    "atlas",
+    "cli",
+    "api"
+  ],
   "type": "module",
   "bin": {
     "xos": "./dist/main.js"
   },
   "files": [
     "dist",
+    "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "engines": {
     "node": ">=22.12.0"
   },
@@ -19,7 +39,8 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --coverage"
+    "test": "vitest run --coverage",
+    "prepack": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
     "@xos/sdk": "workspace:*"

@@ -1,9 +1,26 @@
 {
   "name": "@xos/sdk",
-  "version": "0.0.0",
-  "private": true,
+  "version": "4.0.0",
   "description": "TypeScript SDK for the XOS public API, generated from the OpenAPI v1 document.",
   "license": "MIT",
+  "author": "GHXSTSHIP Industries LLC",
+  "homepage": "https://github.com/ghxstship/atlas/tree/main/packages/sdk-ts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ghxstship/atlas.git",
+    "directory": "packages/sdk-ts"
+  },
+  "bugs": {
+    "url": "https://github.com/ghxstship/atlas/issues"
+  },
+  "keywords": [
+    "xos",
+    "atlas",
+    "api",
+    "sdk",
+    "openapi",
+    "production-management"
+  ],
   "type": "module",
   "sideEffects": false,
   "exports": {
@@ -20,8 +37,24 @@
   },
   "files": [
     "dist",
+    "README.md",
     "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true,
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./webhooks": {
+        "types": "./dist/runtime/webhooks.d.ts",
+        "default": "./dist/runtime/webhooks.js"
+      },
+      "./package.json": "./package.json"
+    }
+  },
   "engines": {
     "node": ">=22.12.0"
   },
@@ -30,7 +63,8 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "node --experimental-strip-types --no-warnings scripts/generate.ts --target ts --check && vitest run --coverage"
+    "test": "node --experimental-strip-types --no-warnings scripts/generate.ts --target ts --check && vitest run --coverage",
+    "prepack": "tsc -p tsconfig.build.json"
   },
   "devDependencies": {
     "@types/node": "22.20.5",

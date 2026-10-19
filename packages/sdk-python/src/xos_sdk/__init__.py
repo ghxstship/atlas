@@ -42,7 +42,7 @@ from ._runtime.webhooks import (
     verify_webhook_signature,
 )
 
-__version__ = "0.0.0"
+__version__ = "4.0.0"
 
 __all__ = [
     "API_TITLE",
