@@ -248,7 +248,6 @@ import {
   MembershipsResource,
   MembershipRolesResource,
   ProjectAssignmentsResource,
-  ProjectAssignmentRolesResource,
   AccountMembershipsResource,
   AccountMembershipRolesResource,
   OrganizationRelationshipsResource,
@@ -260,11 +259,8 @@ import {
   OffboardingChecklistsResource,
   PersonProfilesResource,
   OrganizationProfilesResource,
-  ProfileSectionsResource,
   ProfileVisibilityRulesResource,
-  ProfileHandlesResource,
   VerificationsResource,
-  BlocksResource,
   SubscriptionsResource,
   PlansResource,
   WorkspacesResource,
@@ -955,9 +951,6 @@ export class XosClient extends XosClientCore {
   readonly membershipRoles: MembershipRolesResource = new MembershipRolesResource(this);
   /** Identity: operations on `projectAssignments`. */
   readonly projectAssignments: ProjectAssignmentsResource = new ProjectAssignmentsResource(this);
-  /** Identity: operations on `projectAssignmentRoles`. */
-  readonly projectAssignmentRoles: ProjectAssignmentRolesResource =
-    new ProjectAssignmentRolesResource(this);
   /** Identity: operations on `accountMemberships`. */
   readonly accountMemberships: AccountMembershipsResource = new AccountMembershipsResource(this);
   /** Identity: operations on `accountMembershipRoles`. */
@@ -986,17 +979,11 @@ export class XosClient extends XosClientCore {
   readonly organizationProfiles: OrganizationProfilesResource = new OrganizationProfilesResource(
     this,
   );
-  /** Identity: operations on `profileSections`. */
-  readonly profileSections: ProfileSectionsResource = new ProfileSectionsResource(this);
   /** Identity: operations on `profileVisibilityRules`. */
   readonly profileVisibilityRules: ProfileVisibilityRulesResource =
     new ProfileVisibilityRulesResource(this);
-  /** Identity: operations on `profileHandles`. */
-  readonly profileHandles: ProfileHandlesResource = new ProfileHandlesResource(this);
   /** Identity: operations on `verifications`. */
   readonly verifications: VerificationsResource = new VerificationsResource(this);
-  /** Identity: operations on `blocks`. */
-  readonly blocks: BlocksResource = new BlocksResource(this);
   /** Settings: operations on `subscriptions`. */
   readonly subscriptions: SubscriptionsResource = new SubscriptionsResource(this);
   /** Settings: operations on `plans`. */

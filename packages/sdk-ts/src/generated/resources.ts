@@ -28,7 +28,6 @@ import type {
   AccountMembershipCreate,
   AccountMembershipRole,
   AccountMembershipRoleCreate,
-  AccountMembershipUpdate,
   AccountingPeriod,
   AccountingPeriodCreate,
   AccountingPeriodTransitionRequest,
@@ -143,8 +142,6 @@ import type {
   BillingDraw,
   BillingDrawCreate,
   BillingDrawUpdate,
-  Block,
-  BlockCreate,
   BreakGlassSession,
   BreakGlassSessionCreate,
   Budget,
@@ -498,7 +495,6 @@ import type {
   Membership,
   MembershipRole,
   MembershipRoleCreate,
-  MembershipUpdate,
   MergeReview,
   MergeReviewUpdate,
   ModerationAction,
@@ -627,12 +623,6 @@ import type {
   PriceBook,
   PriceBookCreate,
   PriceBookUpdate,
-  ProfileHandle,
-  ProfileHandleCreate,
-  ProfileHandleUpdate,
-  ProfileSection,
-  ProfileSectionCreate,
-  ProfileSectionUpdate,
   ProfileShare,
   ProfileShareCreate,
   ProfileVisibilityRule,
@@ -641,8 +631,6 @@ import type {
   Project,
   ProjectAssignment,
   ProjectAssignmentCreate,
-  ProjectAssignmentRole,
-  ProjectAssignmentRoleCreate,
   ProjectAssignmentUpdate,
   ProjectCreate,
   ProjectPhaseTransition,
@@ -717,7 +705,6 @@ import type {
   ReportScheduleUpdate,
   Representation,
   RepresentationCreate,
-  RepresentationUpdate,
   RequiredAdditionalInsured,
   RequiredAdditionalInsuredCreate,
   RequiredAdditionalInsuredUpdate,
@@ -954,7 +941,6 @@ import type {
   VerbiageTermCreate,
   VerbiageTermUpdate,
   Verification,
-  VerificationCreate,
   VerifiedDomain,
   VerifiedDomainCreate,
   VerifiedDomainUpdate,
@@ -24136,26 +24122,6 @@ export class MembershipsResource extends $Resource {
   }
 
   /**
-   * Update a membership
-   *
-   * A person in an organization as an internal member, with time-boxed validity. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /memberships/{id}` (operation `memberships.update`).
-   * Requires the capability `org.members.manage`.
-   */
-  update(
-    id: string,
-    body: MembershipUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<Membership>> {
-    return this.client.request<Membership>(
-      $OPERATIONS["memberships.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
    * Leave the organization
    *
    * Ends the caller's membership in the organization the credential is bound to, now, through `app.leave_organization`; access ends at once (Section 7.5 invariant 3). The sole Owner is refused with 422. Returns the ended membership. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
@@ -24425,108 +24391,6 @@ export class ProjectAssignmentsResource extends $Resource {
 }
 
 /**
- * Operations on `projectAssignmentRoles`, in the Identity module.
- *
- * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
- */
-export class ProjectAssignmentRolesResource extends $Resource {
-  /**
-   * List project assignment role rows
-   *
-   * A project role held through a project assignment. Returns a cursor page of project assignment role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /project-assignment-roles` (operation `projectAssignmentRoles.list`).
-   * Requires the capability `projects.project.read`.
-   */
-  list(
-    params?: $ListParams<ProjectAssignmentRole>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProjectAssignmentRole>> {
-    return this.client.requestPage<ProjectAssignmentRole>(
-      $OPERATIONS["projectAssignmentRoles.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List project assignment role rows
-   *
-   * A project role held through a project assignment. Returns a cursor page of project assignment role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /project-assignment-roles` (operation `projectAssignmentRoles.list`).
-   * Requires the capability `projects.project.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProjectAssignmentRole>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProjectAssignmentRole, void, undefined> {
-    return this.client.paginate<ProjectAssignmentRole>(
-      $OPERATIONS["projectAssignmentRoles.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a project assignment role
-   *
-   * A project role held through a project assignment. Creates a project assignment role. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /project-assignment-roles` (operation `projectAssignmentRoles.create`).
-   * Requires the capability `projects.members.manage`.
-   */
-  create(
-    body: ProjectAssignmentRoleCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<ProjectAssignmentRole>> {
-    return this.client.request<ProjectAssignmentRole>(
-      $OPERATIONS["projectAssignmentRoles.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get a project assignment role
-   *
-   * A project role held through a project assignment. Returns one project assignment role with its `ETag`. A project assignment role the caller may not see returns 404.
-   *
-   * `GET /project-assignment-roles/{id}` (operation `projectAssignmentRoles.get`).
-   * Requires the capability `projects.project.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<ProjectAssignmentRole>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<ProjectAssignmentRole>> {
-    return this.client.request<ProjectAssignmentRole>(
-      $OPERATIONS["projectAssignmentRoles.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Delete a project assignment role
-   *
-   * A project role held through a project assignment. Soft-deletes the project assignment role: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /project-assignment-roles/{id}` (operation `projectAssignmentRoles.delete`).
-   * Requires the capability `projects.members.manage`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["projectAssignmentRoles.delete"],
-      { path: { id } },
-      options,
-    );
-  }
-}
-
-/**
  * Operations on `accountMemberships`, in the Identity module.
  *
  * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
@@ -24607,26 +24471,6 @@ export class AccountMembershipsResource extends $Resource {
     return this.client.request<AccountMembership>(
       $OPERATIONS["accountMemberships.get"],
       { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update an account membership
-   *
-   * A person in an external organization's account. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /account-memberships/{id}` (operation `accountMemberships.update`).
-   * Requires the capability `me.account.write`.
-   */
-  update(
-    id: string,
-    body: AccountMembershipUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<AccountMembership>> {
-    return this.client.request<AccountMembership>(
-      $OPERATIONS["accountMemberships.update"],
-      { path: { id }, body },
       options,
     );
   }
@@ -24953,26 +24797,6 @@ export class RepresentationsResource extends $Resource {
     return this.client.request<Representation>(
       $OPERATIONS["representations.get"],
       { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update a representation
-   *
-   * One party acting for another, with scopes and expiry. The artist accepts it. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /representations/{id}` (operation `representations.update`).
-   * Requires the capability `me.profile.write`.
-   */
-  update(
-    id: string,
-    body: RepresentationUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<Representation>> {
-    return this.client.request<Representation>(
-      $OPERATIONS["representations.update"],
-      { path: { id }, body },
       options,
     );
   }
@@ -25461,22 +25285,6 @@ export class VerifiedDomainsResource extends $Resource {
       options,
     );
   }
-
-  /**
-   * Verify a domain
-   *
-   * Checks the DNS record and marks the domain verified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /verified-domains/{id}/verify` (operation `verifiedDomains.verify`).
-   * Requires the capability `org.security.write`.
-   */
-  verify(id: string, options?: $MutationOptions): Promise<$ApiResponse<VerifiedDomain>> {
-    return this.client.request<VerifiedDomain>(
-      $OPERATIONS["verifiedDomains.verify"],
-      { path: { id } },
-      options,
-    );
-  }
 }
 
 /**
@@ -25779,128 +25587,6 @@ export class OrganizationProfilesResource extends $Resource {
 }
 
 /**
- * Operations on `profileSections`, in the Identity module.
- *
- * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
- */
-export class ProfileSectionsResource extends $Resource {
-  /**
-   * List profile section rows
-   *
-   * A section of a profile page with its own visibility, never higher than the profile. Returns a cursor page of profile section rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /profile-sections` (operation `profileSections.list`).
-   * Requires the capability `people.directory.read`.
-   */
-  list(
-    params?: $ListParams<ProfileSection>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProfileSection>> {
-    return this.client.requestPage<ProfileSection>(
-      $OPERATIONS["profileSections.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List profile section rows
-   *
-   * A section of a profile page with its own visibility, never higher than the profile. Returns a cursor page of profile section rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /profile-sections` (operation `profileSections.list`).
-   * Requires the capability `people.directory.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProfileSection>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProfileSection, void, undefined> {
-    return this.client.paginate<ProfileSection>(
-      $OPERATIONS["profileSections.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a profile section
-   *
-   * A section of a profile page with its own visibility, never higher than the profile. Creates a profile section. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /profile-sections` (operation `profileSections.create`).
-   * Requires the capability `me.profile.write`.
-   */
-  create(
-    body: ProfileSectionCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<ProfileSection>> {
-    return this.client.request<ProfileSection>(
-      $OPERATIONS["profileSections.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get a profile section
-   *
-   * A section of a profile page with its own visibility, never higher than the profile. Returns one profile section with its `ETag`. A profile section the caller may not see returns 404.
-   *
-   * `GET /profile-sections/{id}` (operation `profileSections.get`).
-   * Requires the capability `people.directory.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<ProfileSection>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<ProfileSection>> {
-    return this.client.request<ProfileSection>(
-      $OPERATIONS["profileSections.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update a profile section
-   *
-   * A section of a profile page with its own visibility, never higher than the profile. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /profile-sections/{id}` (operation `profileSections.update`).
-   * Requires the capability `me.profile.write`.
-   */
-  update(
-    id: string,
-    body: ProfileSectionUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<ProfileSection>> {
-    return this.client.request<ProfileSection>(
-      $OPERATIONS["profileSections.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete a profile section
-   *
-   * A section of a profile page with its own visibility, never higher than the profile. Soft-deletes the profile section: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /profile-sections/{id}` (operation `profileSections.delete`).
-   * Requires the capability `me.profile.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["profileSections.delete"],
-      { path: { id } },
-      options,
-    );
-  }
-}
-
-/**
  * Operations on `profileVisibilityRules`, in the Identity module.
  *
  * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
@@ -26023,112 +25709,6 @@ export class ProfileVisibilityRulesResource extends $Resource {
 }
 
 /**
- * Operations on `profileHandles`, in the Identity module.
- *
- * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
- */
-export class ProfileHandlesResource extends $Resource {
-  /**
-   * List profile handle rows
-   *
-   * A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns a cursor page of profile handle rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /profile-handles` (operation `profileHandles.list`).
-   * Requires the capability `people.directory.read`.
-   */
-  list(
-    params?: $ListParams<ProfileHandle>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProfileHandle>> {
-    return this.client.requestPage<ProfileHandle>(
-      $OPERATIONS["profileHandles.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List profile handle rows
-   *
-   * A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns a cursor page of profile handle rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /profile-handles` (operation `profileHandles.list`).
-   * Requires the capability `people.directory.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProfileHandle>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProfileHandle, void, undefined> {
-    return this.client.paginate<ProfileHandle>(
-      $OPERATIONS["profileHandles.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a profile handle
-   *
-   * A unique profile handle, changeable once every 30 days, with 90-day redirects. Creates a profile handle. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /profile-handles` (operation `profileHandles.create`).
-   * Requires the capability `me.profile.write`.
-   */
-  create(
-    body: ProfileHandleCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<ProfileHandle>> {
-    return this.client.request<ProfileHandle>(
-      $OPERATIONS["profileHandles.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get a profile handle
-   *
-   * A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns one profile handle with its `ETag`. A profile handle the caller may not see returns 404.
-   *
-   * `GET /profile-handles/{id}` (operation `profileHandles.get`).
-   * Requires the capability `people.directory.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<ProfileHandle>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<ProfileHandle>> {
-    return this.client.request<ProfileHandle>(
-      $OPERATIONS["profileHandles.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update a profile handle
-   *
-   * A unique profile handle, changeable once every 30 days, with 90-day redirects. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /profile-handles/{id}` (operation `profileHandles.update`).
-   * Requires the capability `me.profile.write`.
-   */
-  update(
-    id: string,
-    body: ProfileHandleUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<ProfileHandle>> {
-    return this.client.request<ProfileHandle>(
-      $OPERATIONS["profileHandles.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-}
-
-/**
  * Operations on `verifications`, in the Identity module.
  *
  * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
@@ -26175,25 +25755,6 @@ export class VerificationsResource extends $Resource {
   }
 
   /**
-   * Create a verification
-   *
-   * A verification badge, shown only after the platform or a provider checks the claim. Creates a verification. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /verifications` (operation `verifications.create`).
-   * Requires the capability `org.profile.write`.
-   */
-  create(
-    body: VerificationCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<Verification>> {
-    return this.client.request<Verification>(
-      $OPERATIONS["verifications.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
    * Get a verification
    *
    * A verification badge, shown only after the platform or a provider checks the claim. Returns one verification with its `ETag`. A verification the caller may not see returns 404.
@@ -26211,86 +25772,6 @@ export class VerificationsResource extends $Resource {
       { path: { id }, query: params },
       options,
     );
-  }
-}
-
-/**
- * Operations on `blocks`, in the Identity module.
- *
- * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
- */
-export class BlocksResource extends $Resource {
-  /**
-   * List block rows
-   *
-   * A block between two profiles. Returns a cursor page of block rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /blocks` (operation `blocks.list`).
-   * Requires the capability `me.account.write`.
-   */
-  list(params?: $ListParams<Block>, options?: $RequestOptions): Promise<$Page<Block>> {
-    return this.client.requestPage<Block>($OPERATIONS["blocks.list"], { query: params }, options);
-  }
-
-  /**
-   * List block rows
-   *
-   * A block between two profiles. Returns a cursor page of block rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /blocks` (operation `blocks.list`).
-   * Requires the capability `me.account.write`.
-   */
-  listAll(
-    params?: $ListAllParams<Block>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<Block, void, undefined> {
-    return this.client.paginate<Block>($OPERATIONS["blocks.list"], { query: params }, options);
-  }
-
-  /**
-   * Create a block
-   *
-   * A block between two profiles. Creates a block. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /blocks` (operation `blocks.create`).
-   * Requires the capability `me.account.write`.
-   */
-  create(body: BlockCreate, options?: $MutationOptions): Promise<$ApiResponse<Block>> {
-    return this.client.request<Block>($OPERATIONS["blocks.create"], { body }, options);
-  }
-
-  /**
-   * Get a block
-   *
-   * A block between two profiles. Returns one block with its `ETag`. A block the caller may not see returns 404.
-   *
-   * `GET /blocks/{id}` (operation `blocks.get`).
-   * Requires the capability `me.account.write`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<Block>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<Block>> {
-    return this.client.request<Block>(
-      $OPERATIONS["blocks.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Delete a block
-   *
-   * A block between two profiles. Soft-deletes the block: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /blocks/{id}` (operation `blocks.delete`).
-   * Requires the capability `me.account.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>($OPERATIONS["blocks.delete"], { path: { id } }, options);
   }
 }
 

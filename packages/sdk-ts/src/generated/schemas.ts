@@ -24734,22 +24734,6 @@ export interface Membership {
 }
 
 /**
- * Fields accepted when updating a Membership. Omitted fields are unchanged.
- */
-export interface MembershipUpdate {
-  /**
-   * Start of membership.
-   * Format: `date-time`.
-   */
-  readonly valid_from?: string;
-  /**
-   * End of membership.
-   * Format: `date-time`.
-   */
-  readonly valid_to?: string | null;
-}
-
-/**
  * One page of results with a cursor to the next page.
  */
 export interface MembershipRolePage {
@@ -24960,80 +24944,6 @@ export interface ProjectAssignmentUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
-export interface ProjectAssignmentRolePage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<ProjectAssignmentRole>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A project role held through a project assignment.
- */
-export interface ProjectAssignmentRole {
-  /**
-   * Identifier of the project assignment role.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * Identifier of the project assignment.
-   * Format: `uuid`.
-   */
-  readonly project_assignment_id: string;
-  readonly role: ProjectRole;
-}
-
-/**
- * Project role (Section 8).
- */
-export type ProjectRole =
-  "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
-
-/**
- * Fields accepted when creating a ProjectAssignmentRole.
- */
-export interface ProjectAssignmentRoleCreate {
-  /**
-   * Identifier of the project assignment.
-   * Format: `uuid`.
-   */
-  readonly project_assignment_id: string;
-  readonly role: ProjectRole;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
 export interface AccountMembershipPage {
   /**
    * Items on this page, in the documented default order.
@@ -25090,33 +25000,13 @@ export interface AccountMembershipCreate {
    * Format: `uuid`.
    */
   readonly person_id: string;
-  /**
-   * Start of account membership.
-   * Format: `date-time`.
-   */
-  readonly valid_from?: string;
-  /**
-   * End of account membership.
-   * Format: `date-time`.
-   */
-  readonly valid_to?: string | null;
+  readonly account_role: AccountRole;
 }
 
 /**
- * Fields accepted when updating a AccountMembership. Omitted fields are unchanged.
+ * Role inside an external account.
  */
-export interface AccountMembershipUpdate {
-  /**
-   * Start of account membership.
-   * Format: `date-time`.
-   */
-  readonly valid_from?: string;
-  /**
-   * End of account membership.
-   * Format: `date-time`.
-   */
-  readonly valid_to?: string | null;
-}
+export type AccountRole = "Account Owner" | "Account Admin" | "Account Finance" | "Account Member";
 
 /**
  * One page of results with a cursor to the next page.
@@ -25163,11 +25053,6 @@ export interface AccountMembershipRole {
    */
   readonly granted_by: string | null;
 }
-
-/**
- * Role inside an external account.
- */
-export type AccountRole = "Account Owner" | "Account Admin" | "Account Finance" | "Account Member";
 
 /**
  * Fields accepted when creating a AccountMembershipRole.
@@ -25233,20 +25118,9 @@ export interface OrganizationRelationship {
    * Identifier of the related organization.
    * Format: `uuid`.
    */
-  readonly related_organization_id: string;
-  readonly kind: OrganizationRelationshipKind;
+  readonly organization_id: string;
   readonly counterparty_type: CounterpartyType | null;
-  /**
-   * Internal notes.
-   * Length: 1 to 20000.
-   */
-  readonly internal_notes: string | null;
 }
-
-/**
- * Kind of relationship one organization holds to another.
- */
-export type OrganizationRelationshipKind = "Vendor Of" | "Client Of" | "Partner Of" | "Represents";
 
 /**
  * Fields accepted when creating a OrganizationRelationship.
@@ -25256,14 +25130,8 @@ export interface OrganizationRelationshipCreate {
    * Identifier of the related organization.
    * Format: `uuid`.
    */
-  readonly related_organization_id: string;
-  readonly kind: OrganizationRelationshipKind;
+  readonly organization_id: string;
   readonly counterparty_type?: CounterpartyType | null;
-  /**
-   * Internal notes.
-   * Length: 1 to 20000.
-   */
-  readonly internal_notes?: string | null;
 }
 
 /**
@@ -25271,11 +25139,6 @@ export interface OrganizationRelationshipCreate {
  */
 export interface OrganizationRelationshipUpdate {
   readonly counterparty_type?: CounterpartyType | null;
-  /**
-   * Internal notes.
-   * Length: 1 to 20000.
-   */
-  readonly internal_notes?: string | null;
 }
 
 /**
@@ -25370,21 +25233,6 @@ export interface RepresentationCreate {
    * Format: `date`.
    */
   readonly expires_on: string;
-}
-
-/**
- * Fields accepted when updating a Representation. Omitted fields are unchanged.
- */
-export interface RepresentationUpdate {
-  /**
-   * Delegated scopes, stored as junction rows.
-   */
-  readonly scopes?: ReadonlyArray<RepresentationScope>;
-  /**
-   * Expiry.
-   * Format: `date`.
-   */
-  readonly expires_on?: string;
 }
 
 /**
@@ -25994,6 +25842,16 @@ export interface PersonProfile {
    * Whether search engines may index a public profile.
    */
   readonly search_indexing: boolean;
+  /**
+   * Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+   * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
+   */
+  readonly handle: string;
+  /**
+   * When the handle last changed; null until the first change. Set by the database.
+   * Format: `date-time`.
+   */
+  readonly handle_changed_at: string | null;
 }
 
 /**
@@ -26076,6 +25934,11 @@ export interface PersonProfileUpdate {
    * Whether search engines may index a public profile.
    */
   readonly search_indexing?: boolean;
+  /**
+   * Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+   * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
+   */
+  readonly handle?: string;
 }
 
 /**
@@ -26126,6 +25989,16 @@ export interface OrganizationProfile {
    * Whether search engines may index a public profile.
    */
   readonly search_indexing: boolean;
+  /**
+   * Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+   * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
+   */
+  readonly handle: string;
+  /**
+   * When the handle last changed; null until the first change. Set by the database.
+   * Format: `date-time`.
+   */
+  readonly handle_changed_at: string | null;
 }
 
 /**
@@ -26163,101 +26036,11 @@ export interface OrganizationProfileUpdate {
    * Whether search engines may index a public profile.
    */
   readonly search_indexing?: boolean;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface ProfileSectionPage {
   /**
-   * Items on this page, in the documented default order.
+   * Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+   * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
    */
-  readonly data: ReadonlyArray<ProfileSection>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A section of a profile page with its own visibility, never higher than the profile.
- */
-export interface ProfileSection {
-  /**
-   * Identifier of the profile section.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn: string;
-  /**
-   * Section key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly section_key: string;
-  /**
-   * Display order.
-   * Range: 1 to unbounded.
-   */
-  readonly position: number;
-  readonly visibility: ProfileVisibility;
-}
-
-/**
- * Fields accepted when creating a ProfileSection.
- */
-export interface ProfileSectionCreate {
-  /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn: string;
-  /**
-   * Section key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly section_key: string;
-  /**
-   * Display order.
-   * Range: 1 to unbounded.
-   */
-  readonly position: number;
-  readonly visibility: ProfileVisibility;
-}
-
-/**
- * Fields accepted when updating a ProfileSection. Omitted fields are unchanged.
- */
-export interface ProfileSectionUpdate {
-  /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn?: string;
-  /**
-   * Section key.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly section_key?: string;
-  /**
-   * Display order.
-   * Range: 1 to unbounded.
-   */
-  readonly position?: number;
-  readonly visibility?: ProfileVisibility;
+  readonly handle?: string;
 }
 
 /**
@@ -26368,88 +26151,6 @@ export interface ProfileVisibilityRuleUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
-export interface ProfileHandlePage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<ProfileHandle>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A unique profile handle, changeable once every 30 days, with 90-day redirects.
- */
-export interface ProfileHandle {
-  /**
-   * Identifier of the profile handle.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn: string;
-  /**
-   * Handle.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly handle: string;
-  /**
-   * When the handle last changed.
-   * Format: `date-time`.
-   */
-  readonly changed_at: string;
-}
-
-/**
- * Fields accepted when creating a ProfileHandle.
- */
-export interface ProfileHandleCreate {
-  /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn: string;
-  /**
-   * Handle.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly handle: string;
-}
-
-/**
- * Fields accepted when updating a ProfileHandle. Omitted fields are unchanged.
- */
-export interface ProfileHandleUpdate {
-  /**
-   * URN of the profile owner.
-   * Length: 1 to 300.
-   */
-  readonly owner_urn?: string;
-  /**
-   * Handle.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly handle?: string;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
 export interface VerificationPage {
   /**
    * Items on this page, in the documented default order.
@@ -26509,77 +26210,6 @@ export interface Verification {
    * Length: 1 to 20000.
    */
   readonly revocation_reason: string | null;
-}
-
-/**
- * Fields accepted when creating a Verification.
- */
-export interface VerificationCreate {
-  /**
-   * How the organization was verified.
-   */
-  readonly method: "Stripe Identity" | "Business Registry";
-  /**
-   * The provider's verification or registry record reference.
-   * Length: 1 to 300.
-   */
-  readonly provider_reference: string;
-  /**
-   * When the verification lapses; null when it does not.
-   * Format: `date-time`.
-   */
-  readonly expires_at?: string | null;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface BlockPage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<Block>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A block between two profiles.
- */
-export interface Block {
-  /**
-   * Identifier of the block.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * URN of the blocked profile.
-   * Length: 1 to 300.
-   */
-  readonly blocked_urn: string;
-}
-
-/**
- * Fields accepted when creating a Block.
- */
-export interface BlockCreate {
-  /**
-   * URN of the blocked profile.
-   * Length: 1 to 300.
-   */
-  readonly blocked_urn: string;
 }
 
 /**

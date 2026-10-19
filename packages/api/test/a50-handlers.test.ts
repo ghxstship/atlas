@@ -8,6 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { handlers as finance } from "../src/handlers/finance.ts";
 import { handlers as hospitality } from "../src/handlers/hospitality.ts";
+import { handlers as identity } from "../src/handlers/identity.ts";
 import { handlers as logistics } from "../src/handlers/logistics.ts";
 import { handlers as people } from "../src/handlers/people.ts";
 import { contractApp, expectContract, testContext } from "./support/contract.ts";
@@ -586,5 +587,82 @@ describe("Logistics: shipments, dock slots, the gate queue and the marshalling l
       http.post("/marshalling-log", { project_id: PROJECT, entry: "Released to dock 1." }),
     );
     await expectContract(create, "marshallingLogEntries.create");
+  });
+});
+
+describe("Identity: organization relationships and account memberships", () => {
+  const RELATIONSHIP = id(501);
+  const OTHER_ORG = id(502);
+  const PERSON = id(503);
+
+  function world() {
+    const db = memoryDb(
+      {
+        counterparties: [
+          tenantRow(RELATIONSHIP, ORG, { organization_id: OTHER_ORG, counterparty_type: null }),
+        ],
+        account_memberships: [],
+      },
+      {
+        add_account_member: (args, db) => {
+          if (args["p_role"] === "Account Owner") throw refusal("account_owner_by_transfer");
+          const row = tenantRow(id(504), String(args["p_account_id"]), {
+            person_id: args["p_person_id"],
+            valid_from: "2026-10-02T09:00:00.000Z",
+            valid_to: null,
+          });
+          db.tables["account_memberships"]?.push(row);
+          return row["id"];
+        },
+      },
+      { counterparties: { counterparty_type: null } },
+    );
+    return { db, http: requests(contractApp({ handlers: [identity], db })) };
+  }
+
+  it("serves the org's relationships to other organizations", async () => {
+    const { http } = world();
+    await expectContract(
+      await success(http.get("/organization-relationships")),
+      "organizationRelationships.list",
+    );
+    await expectContract(
+      await success(http.get(`/organization-relationships/${RELATIONSHIP}`)),
+      "organizationRelationships.get",
+    );
+    expect((await http.get(`/organization-relationships/${MISSING}`)).status).toBe(404);
+    const create = await success(
+      http.post("/organization-relationships", { organization_id: id(505) }),
+    );
+    await expectContract(create, "organizationRelationships.create");
+    const update = await success(
+      http.patch(`/organization-relationships/${RELATIONSHIP}`, { counterparty_type: null }),
+    );
+    await expectContract(update, "organizationRelationships.update");
+    await expectContract(
+      await success(http.delete(`/organization-relationships/${RELATIONSHIP}`)),
+      "organizationRelationships.delete",
+    );
+  });
+
+  it("adds a person to the caller's external account with a first role", async () => {
+    const { db, http } = world();
+    const create = await success(
+      http.post("/account-memberships", { person_id: PERSON, account_role: "Account Member" }),
+    );
+    const made = (await expectContract(create, "accountMemberships.create")) as {
+      person_id: string;
+    };
+    expect(made.person_id).toBe(PERSON);
+    expect(db.calls[0]?.args).toEqual({
+      p_account_id: ORG,
+      p_person_id: PERSON,
+      p_role: "Account Member",
+    });
+    const owner = await http.post("/account-memberships", {
+      person_id: PERSON,
+      account_role: "Account Owner",
+    });
+    expect(owner.status).toBe(422);
   });
 });

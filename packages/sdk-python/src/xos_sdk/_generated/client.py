@@ -254,7 +254,6 @@ from .resources import (
     MembershipsResource,
     MembershipRolesResource,
     ProjectAssignmentsResource,
-    ProjectAssignmentRolesResource,
     AccountMembershipsResource,
     AccountMembershipRolesResource,
     OrganizationRelationshipsResource,
@@ -266,11 +265,8 @@ from .resources import (
     OffboardingChecklistsResource,
     PersonProfilesResource,
     OrganizationProfilesResource,
-    ProfileSectionsResource,
     ProfileVisibilityRulesResource,
-    ProfileHandlesResource,
     VerificationsResource,
-    BlocksResource,
     SubscriptionsResource,
     PlansResource,
     WorkspacesResource,
@@ -661,7 +657,6 @@ class XosClient(XosClientCore):
     memberships: MembershipsResource
     membership_roles: MembershipRolesResource
     project_assignments: ProjectAssignmentsResource
-    project_assignment_roles: ProjectAssignmentRolesResource
     account_memberships: AccountMembershipsResource
     account_membership_roles: AccountMembershipRolesResource
     organization_relationships: OrganizationRelationshipsResource
@@ -673,11 +668,8 @@ class XosClient(XosClientCore):
     offboarding_checklists: OffboardingChecklistsResource
     person_profiles: PersonProfilesResource
     organization_profiles: OrganizationProfilesResource
-    profile_sections: ProfileSectionsResource
     profile_visibility_rules: ProfileVisibilityRulesResource
-    profile_handles: ProfileHandlesResource
     verifications: VerificationsResource
-    blocks: BlocksResource
     subscriptions: SubscriptionsResource
     plans: PlansResource
     workspaces: WorkspacesResource
@@ -1056,7 +1048,6 @@ class XosClient(XosClientCore):
         self.memberships = MembershipsResource(self)
         self.membership_roles = MembershipRolesResource(self)
         self.project_assignments = ProjectAssignmentsResource(self)
-        self.project_assignment_roles = ProjectAssignmentRolesResource(self)
         self.account_memberships = AccountMembershipsResource(self)
         self.account_membership_roles = AccountMembershipRolesResource(self)
         self.organization_relationships = OrganizationRelationshipsResource(self)
@@ -1068,11 +1059,8 @@ class XosClient(XosClientCore):
         self.offboarding_checklists = OffboardingChecklistsResource(self)
         self.person_profiles = PersonProfilesResource(self)
         self.organization_profiles = OrganizationProfilesResource(self)
-        self.profile_sections = ProfileSectionsResource(self)
         self.profile_visibility_rules = ProfileVisibilityRulesResource(self)
-        self.profile_handles = ProfileHandlesResource(self)
         self.verifications = VerificationsResource(self)
-        self.blocks = BlocksResource(self)
         self.subscriptions = SubscriptionsResource(self)
         self.plans = PlansResource(self)
         self.workspaces = WorkspacesResource(self)

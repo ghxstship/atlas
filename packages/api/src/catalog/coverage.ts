@@ -347,7 +347,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Settings",
     entity: "Members",
-    operations: [...read("memberships"), "memberships.update", "memberships.end", "invites.create"],
+    operations: [...read("memberships"), "memberships.end", "invites.create"],
   },
   { module: "Settings", entity: "Roles", operations: [...crud("roles"), "capabilities.list"] },
   {
@@ -386,12 +386,22 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Gateway",
     entity: "Representation",
-    operations: [...crud("representations"), "representations.accept"],
+    // Changing the terms is a new proposal the artist accepts (ADR 0031).
+    operations: [
+      ...read("representations"),
+      "representations.create",
+      "representations.accept",
+      "representations.delete",
+    ],
   },
   {
     module: "Gateway",
     entity: "External accounts",
-    operations: [...crud("accountMemberships"), "accountMembershipRoles.create"],
+    operations: [
+      ...read("accountMemberships"),
+      "accountMemberships.create",
+      "accountMembershipRoles.create",
+    ],
   },
   {
     module: "Gateway",
@@ -454,7 +464,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Membership",
     operations: [
       ...read("memberships"),
-      "memberships.update",
+      "memberships.end",
       ...read("membershipRoles"),
       "memberships.offboard",
     ],
@@ -463,15 +473,28 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Identity",
     entity: "Project Assignment",
-    operations: [...crud("projectAssignments"), "projectAssignmentRoles.create"],
+    // One project role per assignment row, app.project_members.project_role (ADR 0031).
+    operations: crud("projectAssignments"),
   },
-  { module: "Identity", entity: "Account Membership", operations: crud("accountMemberships") },
+  {
+    module: "Identity",
+    entity: "Account Membership",
+    operations: [
+      ...read("accountMemberships"),
+      "accountMemberships.create",
+      "accountMemberships.delete",
+    ],
+  },
   {
     module: "Identity",
     entity: "Organization Relationship",
     operations: crud("organizationRelationships"),
   },
-  { module: "Identity", entity: "Representation", operations: crud("representations") },
+  {
+    module: "Identity",
+    entity: "Representation",
+    operations: [...read("representations"), "representations.create", "representations.delete"],
+  },
   {
     module: "Identity",
     entity: "Ways to join",
@@ -486,16 +509,17 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Identity",
     entity: "Profile pages",
-    operations: [
-      ...crud("personProfiles"),
-      ...crud("organizationProfiles"),
-      ...crud("profileSections"),
-    ],
+    operations: [...crud("personProfiles"), ...crud("organizationProfiles")],
   },
   {
     module: "Identity",
     entity: "Profile visibility and handles",
-    operations: [...crud("profileVisibilityRules"), ...crud("profileHandles")],
+    // Sections are profileVisibilityRules rows and handles are profile fields (ADR 0031).
+    operations: [
+      ...crud("profileVisibilityRules"),
+      "personProfiles.update",
+      "organizationProfiles.update",
+    ],
   },
   { module: "Identity", entity: "Verification badges", operations: read("verifications") },
 

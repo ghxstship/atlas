@@ -146,13 +146,15 @@ async function systemRoleId(db: XosClient, role: OrgRole): Promise<string> {
 // Profiles -----------------------------------------------------------------------------------------
 
 const PERSON_COLUMNS =
-  "id, created_at, updated_at, person_id, headline, bio, pronouns, city, country_code, visibility, search_indexing";
+  "id, created_at, updated_at, person_id, handle, handle_changed_at, headline, bio, pronouns, city, country_code, visibility, search_indexing";
 
 interface PersonRow {
   id: string;
   created_at: string;
   updated_at: string;
   person_id: string;
+  handle: string;
+  handle_changed_at: string | null;
   headline: string | null;
   bio: string | null;
   pronouns: string | null;
@@ -168,6 +170,8 @@ function toPersonProfile(row: PersonRow): PersonProfile {
     created_at: row.created_at,
     updated_at: row.updated_at,
     person_id: row.person_id,
+    handle: row.handle,
+    handle_changed_at: row.handle_changed_at,
     headline: row.headline,
     bio: row.bio,
     pronouns: row.pronouns,
@@ -191,13 +195,15 @@ async function readPersonProfile(db: XosClient, id: string): Promise<PersonRow> 
 }
 
 const ORG_PROFILE_COLUMNS =
-  "id, created_at, updated_at, org_id, about, visibility, search_indexing";
+  "id, created_at, updated_at, org_id, handle, handle_changed_at, about, visibility, search_indexing";
 
 interface OrgProfileRow {
   id: string;
   created_at: string;
   updated_at: string;
   org_id: string;
+  handle: string;
+  handle_changed_at: string | null;
   about: string | null;
   visibility: Components["ProfileVisibility"];
   search_indexing: boolean;
@@ -209,6 +215,8 @@ function toOrganizationProfile(row: OrgProfileRow): OrganizationProfile {
     created_at: row.created_at,
     updated_at: row.updated_at,
     organization_id: row.org_id,
+    handle: row.handle,
+    handle_changed_at: row.handle_changed_at,
     about: row.about,
     visibility: row.visibility,
     search_indexing: row.search_indexing,
@@ -442,6 +450,7 @@ export const handlers = defineHandlers("Identity", {
     const { error } = await db
       .from("person_profiles")
       .update({
+        ...(body.handle !== undefined ? { handle: body.handle } : {}),
         ...(body.headline !== undefined ? { headline: body.headline } : {}),
         ...(body.bio !== undefined ? { bio: body.bio } : {}),
         ...(body.pronouns !== undefined ? { pronouns: body.pronouns } : {}),
@@ -496,6 +505,7 @@ export const handlers = defineHandlers("Identity", {
     const { data, error } = await db
       .from("organization_profiles")
       .update({
+        ...(body.handle !== undefined ? { handle: body.handle } : {}),
         ...(body.about !== undefined ? { about: body.about } : {}),
         ...(body.visibility !== undefined ? { visibility: body.visibility } : {}),
         ...(body.search_indexing !== undefined ? { search_indexing: body.search_indexing } : {}),

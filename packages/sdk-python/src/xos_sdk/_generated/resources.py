@@ -32,7 +32,6 @@ if TYPE_CHECKING:
         AccountMembershipRole,
         AccountMembershipRoleCreate,
         AccountMembershipRolePage,
-        AccountMembershipUpdate,
         AccountingPeriod,
         AccountingPeriodCreate,
         AccountingPeriodPage,
@@ -183,9 +182,6 @@ if TYPE_CHECKING:
         BillingDrawCreate,
         BillingDrawPage,
         BillingDrawUpdate,
-        Block,
-        BlockCreate,
-        BlockPage,
         BreakGlassSession,
         BreakGlassSessionCreate,
         BreakGlassSessionPage,
@@ -688,7 +684,6 @@ if TYPE_CHECKING:
         MembershipRole,
         MembershipRoleCreate,
         MembershipRolePage,
-        MembershipUpdate,
         MergeReview,
         MergeReviewPage,
         MergeReviewUpdate,
@@ -863,14 +858,6 @@ if TYPE_CHECKING:
         PriceBookCreate,
         PriceBookPage,
         PriceBookUpdate,
-        ProfileHandle,
-        ProfileHandleCreate,
-        ProfileHandlePage,
-        ProfileHandleUpdate,
-        ProfileSection,
-        ProfileSectionCreate,
-        ProfileSectionPage,
-        ProfileSectionUpdate,
         ProfileShare,
         ProfileShareCreate,
         ProfileSharePage,
@@ -882,9 +869,6 @@ if TYPE_CHECKING:
         ProjectAssignment,
         ProjectAssignmentCreate,
         ProjectAssignmentPage,
-        ProjectAssignmentRole,
-        ProjectAssignmentRoleCreate,
-        ProjectAssignmentRolePage,
         ProjectAssignmentUpdate,
         ProjectCreate,
         ProjectPage,
@@ -986,7 +970,6 @@ if TYPE_CHECKING:
         Representation,
         RepresentationCreate,
         RepresentationPage,
-        RepresentationUpdate,
         RequiredAdditionalInsured,
         RequiredAdditionalInsuredCreate,
         RequiredAdditionalInsuredPage,
@@ -1314,7 +1297,6 @@ if TYPE_CHECKING:
         VerbiageTermPage,
         VerbiageTermUpdate,
         Verification,
-        VerificationCreate,
         VerificationPage,
         VerifiedDomain,
         VerifiedDomainCreate,
@@ -22801,23 +22783,6 @@ class MembershipsResource(Resource):
         """
         return self._client.request(OPERATIONS["memberships.get"], path={"id": id}, query={"fields": fields}, options=options)
 
-    def update(
-        self,
-        id: str,
-        body: MembershipUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Membership]:
-        """Update a membership
-
-        A person in an organization as an internal member, with time-boxed validity. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /memberships/{id}`` (operation ``memberships.update``).
-        Requires the capability ``org.members.manage``.
-        """
-        return self._client.request(OPERATIONS["memberships.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
     def leave(
         self,
         *,
@@ -23063,96 +23028,6 @@ class ProjectAssignmentsResource(Resource):
         return self._client.request(OPERATIONS["projectAssignments.delete"], path={"id": id}, options=options)
 
 
-class ProjectAssignmentRolesResource(Resource):
-    """Operations on ``projectAssignmentRoles``, in the Identity module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[ProjectAssignmentRole]:
-        """List project assignment role rows
-
-        A project role held through a project assignment. Returns a cursor page of project assignment role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /project-assignment-roles`` (operation ``projectAssignmentRoles.list``).
-        Requires the capability ``projects.project.read``.
-        """
-        return self._client.request_page(OPERATIONS["projectAssignmentRoles.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[ProjectAssignmentRole]:
-        """List project assignment role rows
-
-        A project role held through a project assignment. Returns a cursor page of project assignment role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /project-assignment-roles`` (operation ``projectAssignmentRoles.list``).
-        Requires the capability ``projects.project.read``.
-        """
-        return self._client.paginate(OPERATIONS["projectAssignmentRoles.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: ProjectAssignmentRoleCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProjectAssignmentRole]:
-        """Create a project assignment role
-
-        A project role held through a project assignment. Creates a project assignment role. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /project-assignment-roles`` (operation ``projectAssignmentRoles.create``).
-        Requires the capability ``projects.members.manage``.
-        """
-        return self._client.request(OPERATIONS["projectAssignmentRoles.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProjectAssignmentRole]:
-        """Get a project assignment role
-
-        A project role held through a project assignment. Returns one project assignment role with its `ETag`. A project assignment role the caller may not see returns 404.
-
-        ``GET /project-assignment-roles/{id}`` (operation ``projectAssignmentRoles.get``).
-        Requires the capability ``projects.project.read``.
-        """
-        return self._client.request(OPERATIONS["projectAssignmentRoles.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete a project assignment role
-
-        A project role held through a project assignment. Soft-deletes the project assignment role: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /project-assignment-roles/{id}`` (operation ``projectAssignmentRoles.delete``).
-        Requires the capability ``projects.members.manage``.
-        """
-        return self._client.request(OPERATIONS["projectAssignmentRoles.delete"], path={"id": id}, options=options)
-
-
 class AccountMembershipsResource(Resource):
     """Operations on ``accountMemberships``, in the Identity module."""
 
@@ -23226,23 +23101,6 @@ class AccountMembershipsResource(Resource):
         Requires the capability ``me.account.write``.
         """
         return self._client.request(OPERATIONS["accountMemberships.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: AccountMembershipUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[AccountMembership]:
-        """Update an account membership
-
-        A person in an external organization's account. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /account-memberships/{id}`` (operation ``accountMemberships.update``).
-        Requires the capability ``me.account.write``.
-        """
-        return self._client.request(OPERATIONS["accountMemberships.update"], path={"id": id}, body=body, if_match=if_match, options=options)
 
     def delete(
         self,
@@ -23530,23 +23388,6 @@ class RepresentationsResource(Resource):
         Requires the capability ``me.profile.write``.
         """
         return self._client.request(OPERATIONS["representations.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: RepresentationUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Representation]:
-        """Update a representation
-
-        One party acting for another, with scopes and expiry. The artist accepts it. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /representations/{id}`` (operation ``representations.update``).
-        Requires the capability ``me.profile.write``.
-        """
-        return self._client.request(OPERATIONS["representations.update"], path={"id": id}, body=body, if_match=if_match, options=options)
 
     def delete(
         self,
@@ -24006,22 +23847,6 @@ class VerifiedDomainsResource(Resource):
         """
         return self._client.request(OPERATIONS["verifiedDomains.delete"], path={"id": id}, options=options)
 
-    def verify(
-        self,
-        id: str,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[VerifiedDomain]:
-        """Verify a domain
-
-        Checks the DNS record and marks the domain verified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-
-        ``POST /verified-domains/{id}/verify`` (operation ``verifiedDomains.verify``).
-        Requires the capability ``org.security.write``.
-        """
-        return self._client.request(OPERATIONS["verifiedDomains.verify"], path={"id": id}, idempotency_key=idempotency_key, options=options)
-
 
 class OffboardingChecklistsResource(Resource):
     """Operations on ``offboardingChecklists``, in the Identity module."""
@@ -24283,113 +24108,6 @@ class OrganizationProfilesResource(Resource):
         return self._client.request(OPERATIONS["organizationProfiles.update"], path={"id": id}, body=body, if_match=if_match, options=options)
 
 
-class ProfileSectionsResource(Resource):
-    """Operations on ``profileSections``, in the Identity module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[ProfileSection]:
-        """List profile section rows
-
-        A section of a profile page with its own visibility, never higher than the profile. Returns a cursor page of profile section rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /profile-sections`` (operation ``profileSections.list``).
-        Requires the capability ``people.directory.read``.
-        """
-        return self._client.request_page(OPERATIONS["profileSections.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[ProfileSection]:
-        """List profile section rows
-
-        A section of a profile page with its own visibility, never higher than the profile. Returns a cursor page of profile section rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /profile-sections`` (operation ``profileSections.list``).
-        Requires the capability ``people.directory.read``.
-        """
-        return self._client.paginate(OPERATIONS["profileSections.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: ProfileSectionCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProfileSection]:
-        """Create a profile section
-
-        A section of a profile page with its own visibility, never higher than the profile. Creates a profile section. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /profile-sections`` (operation ``profileSections.create``).
-        Requires the capability ``me.profile.write``.
-        """
-        return self._client.request(OPERATIONS["profileSections.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProfileSection]:
-        """Get a profile section
-
-        A section of a profile page with its own visibility, never higher than the profile. Returns one profile section with its `ETag`. A profile section the caller may not see returns 404.
-
-        ``GET /profile-sections/{id}`` (operation ``profileSections.get``).
-        Requires the capability ``people.directory.read``.
-        """
-        return self._client.request(OPERATIONS["profileSections.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: ProfileSectionUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProfileSection]:
-        """Update a profile section
-
-        A section of a profile page with its own visibility, never higher than the profile. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /profile-sections/{id}`` (operation ``profileSections.update``).
-        Requires the capability ``me.profile.write``.
-        """
-        return self._client.request(OPERATIONS["profileSections.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete a profile section
-
-        A section of a profile page with its own visibility, never higher than the profile. Soft-deletes the profile section: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /profile-sections/{id}`` (operation ``profileSections.delete``).
-        Requires the capability ``me.profile.write``.
-        """
-        return self._client.request(OPERATIONS["profileSections.delete"], path={"id": id}, options=options)
-
-
 class ProfileVisibilityRulesResource(Resource):
     """Operations on ``profileVisibilityRules``, in the Identity module."""
 
@@ -24497,98 +24215,6 @@ class ProfileVisibilityRulesResource(Resource):
         return self._client.request(OPERATIONS["profileVisibilityRules.delete"], path={"id": id}, options=options)
 
 
-class ProfileHandlesResource(Resource):
-    """Operations on ``profileHandles``, in the Identity module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[ProfileHandle]:
-        """List profile handle rows
-
-        A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns a cursor page of profile handle rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /profile-handles`` (operation ``profileHandles.list``).
-        Requires the capability ``people.directory.read``.
-        """
-        return self._client.request_page(OPERATIONS["profileHandles.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[ProfileHandle]:
-        """List profile handle rows
-
-        A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns a cursor page of profile handle rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /profile-handles`` (operation ``profileHandles.list``).
-        Requires the capability ``people.directory.read``.
-        """
-        return self._client.paginate(OPERATIONS["profileHandles.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: ProfileHandleCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProfileHandle]:
-        """Create a profile handle
-
-        A unique profile handle, changeable once every 30 days, with 90-day redirects. Creates a profile handle. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /profile-handles`` (operation ``profileHandles.create``).
-        Requires the capability ``me.profile.write``.
-        """
-        return self._client.request(OPERATIONS["profileHandles.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProfileHandle]:
-        """Get a profile handle
-
-        A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns one profile handle with its `ETag`. A profile handle the caller may not see returns 404.
-
-        ``GET /profile-handles/{id}`` (operation ``profileHandles.get``).
-        Requires the capability ``people.directory.read``.
-        """
-        return self._client.request(OPERATIONS["profileHandles.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: ProfileHandleUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProfileHandle]:
-        """Update a profile handle
-
-        A unique profile handle, changeable once every 30 days, with 90-day redirects. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /profile-handles/{id}`` (operation ``profileHandles.update``).
-        Requires the capability ``me.profile.write``.
-        """
-        return self._client.request(OPERATIONS["profileHandles.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-
 class VerificationsResource(Resource):
     """Operations on ``verifications``, in the Identity module."""
 
@@ -24631,22 +24257,6 @@ class VerificationsResource(Resource):
         """
         return self._client.paginate(OPERATIONS["verifications.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
-    def create(
-        self,
-        body: VerificationCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Verification]:
-        """Create a verification
-
-        A verification badge, shown only after the platform or a provider checks the claim. Creates a verification. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /verifications`` (operation ``verifications.create``).
-        Requires the capability ``org.profile.write``.
-        """
-        return self._client.request(OPERATIONS["verifications.create"], body=body, idempotency_key=idempotency_key, options=options)
-
     def get(
         self,
         id: str,
@@ -24662,96 +24272,6 @@ class VerificationsResource(Resource):
         Requires the capability ``people.directory.read``.
         """
         return self._client.request(OPERATIONS["verifications.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-
-class BlocksResource(Resource):
-    """Operations on ``blocks``, in the Identity module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[Block]:
-        """List block rows
-
-        A block between two profiles. Returns a cursor page of block rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /blocks`` (operation ``blocks.list``).
-        Requires the capability ``me.account.write``.
-        """
-        return self._client.request_page(OPERATIONS["blocks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[Block]:
-        """List block rows
-
-        A block between two profiles. Returns a cursor page of block rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /blocks`` (operation ``blocks.list``).
-        Requires the capability ``me.account.write``.
-        """
-        return self._client.paginate(OPERATIONS["blocks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: BlockCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Block]:
-        """Create a block
-
-        A block between two profiles. Creates a block. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /blocks`` (operation ``blocks.create``).
-        Requires the capability ``me.account.write``.
-        """
-        return self._client.request(OPERATIONS["blocks.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Block]:
-        """Get a block
-
-        A block between two profiles. Returns one block with its `ETag`. A block the caller may not see returns 404.
-
-        ``GET /blocks/{id}`` (operation ``blocks.get``).
-        Requires the capability ``me.account.write``.
-        """
-        return self._client.request(OPERATIONS["blocks.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete a block
-
-        A block between two profiles. Soft-deletes the block: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /blocks/{id}`` (operation ``blocks.delete``).
-        Requires the capability ``me.account.write``.
-        """
-        return self._client.request(OPERATIONS["blocks.delete"], path={"id": id}, options=options)
 
 
 class SubscriptionsResource(Resource):

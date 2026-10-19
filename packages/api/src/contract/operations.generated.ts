@@ -95,7 +95,7 @@ export interface Components {
     valid_from: string;
     valid_to: string | null;
   };
-  AccountMembershipCreate: { person_id: string; valid_from?: string; valid_to?: string | null };
+  AccountMembershipCreate: { person_id: string; account_role: Components["AccountRole"] };
   AccountMembershipPage: {
     data: Array<Components["AccountMembership"]>;
     next_cursor: string | null;
@@ -116,7 +116,6 @@ export interface Components {
     data: Array<Components["AccountMembershipRole"]>;
     next_cursor: string | null;
   };
-  AccountMembershipUpdate: { valid_from?: string; valid_to?: string | null };
   AccountRole: "Account Owner" | "Account Admin" | "Account Finance" | "Account Member";
   AccountingPeriod: {
     id: string;
@@ -1073,9 +1072,6 @@ export interface Components {
     amount_requested_minor?: number;
     currency_code?: string;
   };
-  Block: { id: string; created_at: string; updated_at: string; blocked_urn: string };
-  BlockCreate: { blocked_urn: string };
-  BlockPage: { data: Array<Components["Block"]>; next_cursor: string | null };
   BreakGlassSession: {
     id: string;
     org_id: string;
@@ -4074,7 +4070,6 @@ export interface Components {
   };
   MembershipRoleCreate: { membership_id: string; role_id: string };
   MembershipRolePage: { data: Array<Components["MembershipRole"]>; next_cursor: string | null };
-  MembershipUpdate: { valid_from?: string; valid_to?: string | null };
   MergeReview: {
     id: string;
     org_id: string;
@@ -4688,6 +4683,8 @@ export interface Components {
     about: string | null;
     visibility: Components["ProfileVisibility"];
     search_indexing: boolean;
+    handle: string;
+    handle_changed_at: string | null;
   };
   OrganizationProfileCreate: {
     organization_id: string;
@@ -4703,6 +4700,7 @@ export interface Components {
     about?: string | null;
     visibility?: Components["ProfileVisibility"];
     search_indexing?: boolean;
+    handle?: string;
   };
   OrganizationRelationship: {
     id: string;
@@ -4711,25 +4709,19 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    related_organization_id: string;
-    kind: Components["OrganizationRelationshipKind"];
-    counterparty_type: Components["CounterpartyType"] & (string | null);
-    internal_notes: string | null;
+    organization_id: string;
+    counterparty_type: Components["CounterpartyType"] | null;
   };
   OrganizationRelationshipCreate: {
-    related_organization_id: string;
-    kind: Components["OrganizationRelationshipKind"];
-    counterparty_type?: Components["CounterpartyType"] & (string | null);
-    internal_notes?: string | null;
+    organization_id: string;
+    counterparty_type?: Components["CounterpartyType"] | null;
   };
-  OrganizationRelationshipKind: "Vendor Of" | "Client Of" | "Partner Of" | "Represents";
   OrganizationRelationshipPage: {
     data: Array<Components["OrganizationRelationship"]>;
     next_cursor: string | null;
   };
   OrganizationRelationshipUpdate: {
     counterparty_type?: Components["CounterpartyType"] & (string | null);
-    internal_notes?: string | null;
   };
   OrganizationUpdate: {
     name?: string;
@@ -4941,6 +4933,8 @@ export interface Components {
     country: string | null;
     visibility: Components["ProfileVisibility"];
     search_indexing: boolean;
+    handle: string;
+    handle_changed_at: string | null;
   };
   PersonProfileCreate: {
     person_id: string;
@@ -4961,6 +4955,7 @@ export interface Components {
     country?: string | null;
     visibility?: Components["ProfileVisibility"];
     search_indexing?: boolean;
+    handle?: string;
   };
   PersonUpdate: { full_name?: string | null };
   PhaseCode: string;
@@ -5168,39 +5163,6 @@ export interface Components {
   PriceBookPage: { data: Array<Components["PriceBook"]>; next_cursor: string | null };
   PriceBookUpdate: { name?: string; currency_code?: string };
   Problem: { type: string; title: string; status: number; detail?: string; instance?: string };
-  ProfileHandle: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    owner_urn: string;
-    handle: string;
-    changed_at: string;
-  };
-  ProfileHandleCreate: { owner_urn: string; handle: string };
-  ProfileHandlePage: { data: Array<Components["ProfileHandle"]>; next_cursor: string | null };
-  ProfileHandleUpdate: { owner_urn?: string; handle?: string };
-  ProfileSection: {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    owner_urn: string;
-    section_key: string;
-    position: number;
-    visibility: Components["ProfileVisibility"];
-  };
-  ProfileSectionCreate: {
-    owner_urn: string;
-    section_key: string;
-    position: number;
-    visibility: Components["ProfileVisibility"];
-  };
-  ProfileSectionPage: { data: Array<Components["ProfileSection"]>; next_cursor: string | null };
-  ProfileSectionUpdate: {
-    owner_urn?: string;
-    section_key?: string;
-    position?: number;
-    visibility?: Components["ProfileVisibility"];
-  };
   ProfileShare: {
     id: string;
     created_at: string;
@@ -5314,21 +5276,6 @@ export interface Components {
     data: Array<Components["ProjectAssignment"]>;
     next_cursor: string | null;
   };
-  ProjectAssignmentRole: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    project_assignment_id: string;
-    role: Components["ProjectRole"];
-  };
-  ProjectAssignmentRoleCreate: { project_assignment_id: string; role: Components["ProjectRole"] };
-  ProjectAssignmentRolePage: {
-    data: Array<Components["ProjectAssignmentRole"]>;
-    next_cursor: string | null;
-  };
   ProjectAssignmentUpdate: {
     valid_from?: string;
     valid_to?: string | null;
@@ -5366,7 +5313,6 @@ export interface Components {
     data: Array<Components["ProjectPhaseTransition"]>;
     next_cursor: string | null;
   };
-  ProjectRole: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
   ProjectShare: {
     id: string;
     org_id: string;
@@ -6017,7 +5963,6 @@ export interface Components {
   };
   RepresentationPage: { data: Array<Components["Representation"]>; next_cursor: string | null };
   RepresentationScope: "Offers" | "Advance" | "Settlement" | "Documents";
-  RepresentationUpdate: { scopes?: Array<Components["RepresentationScope"]>; expires_on?: string };
   RequiredAdditionalInsured: {
     id: string;
     org_id: string;
@@ -8025,11 +7970,6 @@ export interface Components {
     expires_at: string | null;
     revoked_at: string | null;
     revocation_reason: string | null;
-  };
-  VerificationCreate: {
-    method: "Stripe Identity" | "Business Registry";
-    provider_reference: string;
-    expires_at?: string | null;
   };
   VerificationPage: { data: Array<Components["Verification"]>; next_cursor: string | null };
   VerifiedDomain: {
@@ -18239,15 +18179,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["Membership"] };
   };
-  "memberships.update": {
-    module: "Identity";
-    method: "patch";
-    path: "/memberships/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["MembershipUpdate"];
-    responses: { 200: Components["Membership"] };
-  };
   "memberships.leave": {
     module: "Identity";
     method: "post";
@@ -18368,48 +18299,6 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "projectAssignmentRoles.list": {
-    module: "Identity";
-    method: "get";
-    path: "/project-assignment-roles";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProjectAssignmentRolePage"] };
-  };
-  "projectAssignmentRoles.create": {
-    module: "Identity";
-    method: "post";
-    path: "/project-assignment-roles";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ProjectAssignmentRoleCreate"];
-    responses: { 201: Components["ProjectAssignmentRole"] };
-  };
-  "projectAssignmentRoles.get": {
-    module: "Identity";
-    method: "get";
-    path: "/project-assignment-roles/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProjectAssignmentRole"] };
-  };
-  "projectAssignmentRoles.delete": {
-    module: "Identity";
-    method: "delete";
-    path: "/project-assignment-roles/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
   "accountMemberships.list": {
     module: "Identity";
     method: "get";
@@ -18441,15 +18330,6 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
-    responses: { 200: Components["AccountMembership"] };
-  };
-  "accountMemberships.update": {
-    module: "Identity";
-    method: "patch";
-    path: "/account-memberships/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AccountMembershipUpdate"];
     responses: { 200: Components["AccountMembership"] };
   };
   "accountMemberships.delete": {
@@ -18585,15 +18465,6 @@ export interface Operations {
     params: { id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
-    responses: { 200: Components["Representation"] };
-  };
-  "representations.update": {
-    module: "Identity";
-    method: "patch";
-    path: "/representations/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["RepresentationUpdate"];
     responses: { 200: Components["Representation"] };
   };
   "representations.delete": {
@@ -18818,15 +18689,6 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "verifiedDomains.verify": {
-    module: "Identity";
-    method: "post";
-    path: "/verified-domains/{id}/verify";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 200: Components["VerifiedDomain"] };
-  };
   "offboardingChecklists.list": {
     module: "Identity";
     method: "get";
@@ -18944,57 +18806,6 @@ export interface Operations {
     body: Components["OrganizationProfileUpdate"];
     responses: { 200: Components["OrganizationProfile"] };
   };
-  "profileSections.list": {
-    module: "Identity";
-    method: "get";
-    path: "/profile-sections";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProfileSectionPage"] };
-  };
-  "profileSections.create": {
-    module: "Identity";
-    method: "post";
-    path: "/profile-sections";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ProfileSectionCreate"];
-    responses: { 201: Components["ProfileSection"] };
-  };
-  "profileSections.get": {
-    module: "Identity";
-    method: "get";
-    path: "/profile-sections/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProfileSection"] };
-  };
-  "profileSections.update": {
-    module: "Identity";
-    method: "patch";
-    path: "/profile-sections/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["ProfileSectionUpdate"];
-    responses: { 200: Components["ProfileSection"] };
-  };
-  "profileSections.delete": {
-    module: "Identity";
-    method: "delete";
-    path: "/profile-sections/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
   "profileVisibilityRules.list": {
     module: "Identity";
     method: "get";
@@ -19046,48 +18857,6 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
-  "profileHandles.list": {
-    module: "Identity";
-    method: "get";
-    path: "/profile-handles";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProfileHandlePage"] };
-  };
-  "profileHandles.create": {
-    module: "Identity";
-    method: "post";
-    path: "/profile-handles";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ProfileHandleCreate"];
-    responses: { 201: Components["ProfileHandle"] };
-  };
-  "profileHandles.get": {
-    module: "Identity";
-    method: "get";
-    path: "/profile-handles/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProfileHandle"] };
-  };
-  "profileHandles.update": {
-    module: "Identity";
-    method: "patch";
-    path: "/profile-handles/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["ProfileHandleUpdate"];
-    responses: { 200: Components["ProfileHandle"] };
-  };
   "verifications.list": {
     module: "Identity";
     method: "get";
@@ -19103,15 +18872,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["VerificationPage"] };
   };
-  "verifications.create": {
-    module: "Identity";
-    method: "post";
-    path: "/verifications";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["VerificationCreate"];
-    responses: { 201: Components["Verification"] };
-  };
   "verifications.get": {
     module: "Identity";
     method: "get";
@@ -19120,48 +18880,6 @@ export interface Operations {
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["Verification"] };
-  };
-  "blocks.list": {
-    module: "Identity";
-    method: "get";
-    path: "/blocks";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["BlockPage"] };
-  };
-  "blocks.create": {
-    module: "Identity";
-    method: "post";
-    path: "/blocks";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["BlockCreate"];
-    responses: { 201: Components["Block"] };
-  };
-  "blocks.get": {
-    module: "Identity";
-    method: "get";
-    path: "/blocks/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["Block"] };
-  };
-  "blocks.delete": {
-    module: "Identity";
-    method: "delete";
-    path: "/blocks/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
   };
   "subscriptions.list": {
     module: "Settings";
@@ -25834,7 +25552,6 @@ export interface ModuleOperations {
     | "organizations.createClient"
     | "memberships.list"
     | "memberships.get"
-    | "memberships.update"
     | "memberships.leave"
     | "memberships.end"
     | "memberships.offboard"
@@ -25847,14 +25564,9 @@ export interface ModuleOperations {
     | "projectAssignments.get"
     | "projectAssignments.update"
     | "projectAssignments.delete"
-    | "projectAssignmentRoles.list"
-    | "projectAssignmentRoles.create"
-    | "projectAssignmentRoles.get"
-    | "projectAssignmentRoles.delete"
     | "accountMemberships.list"
     | "accountMemberships.create"
     | "accountMemberships.get"
-    | "accountMemberships.update"
     | "accountMemberships.delete"
     | "accountMembershipRoles.list"
     | "accountMembershipRoles.create"
@@ -25868,7 +25580,6 @@ export interface ModuleOperations {
     | "representations.list"
     | "representations.create"
     | "representations.get"
-    | "representations.update"
     | "representations.delete"
     | "representations.accept"
     | "joinRequests.list"
@@ -25891,7 +25602,6 @@ export interface ModuleOperations {
     | "verifiedDomains.get"
     | "verifiedDomains.update"
     | "verifiedDomains.delete"
-    | "verifiedDomains.verify"
     | "offboardingChecklists.list"
     | "offboardingChecklists.get"
     | "offboardingChecklists.update"
@@ -25903,27 +25613,13 @@ export interface ModuleOperations {
     | "organizationProfiles.create"
     | "organizationProfiles.get"
     | "organizationProfiles.update"
-    | "profileSections.list"
-    | "profileSections.create"
-    | "profileSections.get"
-    | "profileSections.update"
-    | "profileSections.delete"
     | "profileVisibilityRules.list"
     | "profileVisibilityRules.create"
     | "profileVisibilityRules.get"
     | "profileVisibilityRules.update"
     | "profileVisibilityRules.delete"
-    | "profileHandles.list"
-    | "profileHandles.create"
-    | "profileHandles.get"
-    | "profileHandles.update"
     | "verifications.list"
-    | "verifications.create"
-    | "verifications.get"
-    | "blocks.list"
-    | "blocks.create"
-    | "blocks.get"
-    | "blocks.delete";
+    | "verifications.get";
   Platform:
     | "customObjectTypes.list"
     | "customObjectTypes.create"

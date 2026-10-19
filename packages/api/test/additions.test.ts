@@ -117,7 +117,9 @@ describe("additive operations", () => {
     ).toThrow(/tagged Finance/);
     const lift = itemAction("create", { summary: "s", description: "d." });
     expect(() =>
-      applyAdditions(frozenCatalog, [defineAdditions("Identity", { actions: { blocks: [lift] } })]),
+      applyAdditions(frozenCatalog, [
+        defineAdditions("Identity", { actions: { joinRequests: [lift] } }),
+      ]),
     ).toThrow(/collides/);
     expect(() =>
       applyAdditions(frozenCatalog, [defineAdditions("Identity", { actions: { nope: [] } })]),

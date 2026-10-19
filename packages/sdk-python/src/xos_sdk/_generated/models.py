@@ -870,7 +870,6 @@ __all__ = [
     "CreateClientOrganizationRequest",
     "MembershipPage",
     "Membership",
-    "MembershipUpdate",
     "MembershipRolePage",
     "MembershipRole",
     "MembershipRoleCreate",
@@ -878,28 +877,21 @@ __all__ = [
     "ProjectAssignment",
     "ProjectAssignmentCreate",
     "ProjectAssignmentUpdate",
-    "ProjectAssignmentRolePage",
-    "ProjectAssignmentRole",
-    "ProjectRole",
-    "ProjectAssignmentRoleCreate",
     "AccountMembershipPage",
     "AccountMembership",
     "AccountMembershipCreate",
-    "AccountMembershipUpdate",
+    "AccountRole",
     "AccountMembershipRolePage",
     "AccountMembershipRole",
-    "AccountRole",
     "AccountMembershipRoleCreate",
     "OrganizationRelationshipPage",
     "OrganizationRelationship",
-    "OrganizationRelationshipKind",
     "OrganizationRelationshipCreate",
     "OrganizationRelationshipUpdate",
     "RepresentationPage",
     "Representation",
     "RepresentationScope",
     "RepresentationCreate",
-    "RepresentationUpdate",
     "JoinRequestPage",
     "JoinRequest",
     "JoinRequestCreate",
@@ -930,24 +922,12 @@ __all__ = [
     "OrganizationProfile",
     "OrganizationProfileCreate",
     "OrganizationProfileUpdate",
-    "ProfileSectionPage",
-    "ProfileSection",
-    "ProfileSectionCreate",
-    "ProfileSectionUpdate",
     "ProfileVisibilityRulePage",
     "ProfileVisibilityRule",
     "ProfileVisibilityRuleCreate",
     "ProfileVisibilityRuleUpdate",
-    "ProfileHandlePage",
-    "ProfileHandle",
-    "ProfileHandleCreate",
-    "ProfileHandleUpdate",
     "VerificationPage",
     "Verification",
-    "VerificationCreate",
-    "BlockPage",
-    "Block",
-    "BlockCreate",
     "SubscriptionPage",
     "Subscription",
     "SubscriptionUpdate",
@@ -14188,15 +14168,6 @@ class Membership(TypedDict):
     valid_to: Optional[str]
 
 
-class MembershipUpdate(TypedDict, total=False):
-    """Fields accepted when updating a Membership. Omitted fields are unchanged."""
-
-    #: Start of membership.
-    valid_from: str
-    #: End of membership.
-    valid_to: Optional[str]
-
-
 class MembershipRolePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -14303,43 +14274,6 @@ class ProjectAssignmentUpdate(TypedDict, total=False):
     project_role: Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 
-class ProjectAssignmentRolePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProjectAssignmentRole]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProjectAssignmentRole(TypedDict):
-    """A project role held through a project assignment."""
-
-    #: Identifier of the project assignment role.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the project assignment.
-    project_assignment_id: str
-    role: ProjectRole
-
-
-class ProjectAssignmentRoleCreate(TypedDict):
-    """Fields accepted when creating a ProjectAssignmentRole."""
-
-    #: Identifier of the project assignment.
-    project_assignment_id: str
-    role: ProjectRole
-
-
 class AccountMembershipPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -14366,27 +14300,12 @@ class AccountMembership(TypedDict):
     valid_to: Optional[str]
 
 
-class _AccountMembershipCreateRequired(TypedDict):
-    #: Identifier of the member.
-    person_id: str
-
-
-class AccountMembershipCreate(_AccountMembershipCreateRequired, total=False):
+class AccountMembershipCreate(TypedDict):
     """Fields accepted when creating a AccountMembership."""
 
-    #: Start of account membership.
-    valid_from: str
-    #: End of account membership.
-    valid_to: Optional[str]
-
-
-class AccountMembershipUpdate(TypedDict, total=False):
-    """Fields accepted when updating a AccountMembership. Omitted fields are unchanged."""
-
-    #: Start of account membership.
-    valid_from: str
-    #: End of account membership.
-    valid_to: Optional[str]
+    #: Identifier of the member.
+    person_id: str
+    account_role: AccountRole
 
 
 class AccountMembershipRolePage(TypedDict):
@@ -14447,33 +14366,25 @@ class OrganizationRelationship(TypedDict):
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
     #: Identifier of the related organization.
-    related_organization_id: str
-    kind: OrganizationRelationshipKind
+    organization_id: str
     counterparty_type: Optional[CounterpartyType]
-    #: Internal notes.
-    internal_notes: Optional[str]
 
 
 class _OrganizationRelationshipCreateRequired(TypedDict):
     #: Identifier of the related organization.
-    related_organization_id: str
-    kind: OrganizationRelationshipKind
+    organization_id: str
 
 
 class OrganizationRelationshipCreate(_OrganizationRelationshipCreateRequired, total=False):
     """Fields accepted when creating a OrganizationRelationship."""
 
     counterparty_type: Optional[CounterpartyType]
-    #: Internal notes.
-    internal_notes: Optional[str]
 
 
 class OrganizationRelationshipUpdate(TypedDict, total=False):
     """Fields accepted when updating a OrganizationRelationship. Omitted fields are unchanged."""
 
     counterparty_type: Optional[CounterpartyType]
-    #: Internal notes.
-    internal_notes: Optional[str]
 
 
 class RepresentationPage(TypedDict):
@@ -14522,15 +14433,6 @@ class RepresentationCreate(_RepresentationCreateRequired, total=False):
 
     #: Identifier of the representative.
     representative_person_id: Optional[str]
-
-
-class RepresentationUpdate(TypedDict, total=False):
-    """Fields accepted when updating a Representation. Omitted fields are unchanged."""
-
-    #: Delegated scopes, stored as junction rows.
-    scopes: List[RepresentationScope]
-    #: Expiry.
-    expires_on: str
 
 
 class JoinRequestPage(TypedDict):
@@ -14850,6 +14752,10 @@ class PersonProfile(TypedDict):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
+    #: When the handle last changed; null until the first change. Set by the database.
+    handle_changed_at: Optional[str]
 
 
 class _PersonProfileCreateRequired(TypedDict):
@@ -14891,6 +14797,8 @@ class PersonProfileUpdate(TypedDict, total=False):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
 
 
 class OrganizationProfilePage(TypedDict):
@@ -14918,6 +14826,10 @@ class OrganizationProfile(TypedDict):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
+    #: When the handle last changed; null until the first change. Set by the database.
+    handle_changed_at: Optional[str]
 
 
 class _OrganizationProfileCreateRequired(TypedDict):
@@ -14943,57 +14855,8 @@ class OrganizationProfileUpdate(TypedDict, total=False):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
-
-
-class ProfileSectionPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProfileSection]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProfileSection(TypedDict):
-    """A section of a profile page with its own visibility, never higher than the profile."""
-
-    #: Identifier of the profile section.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section key.
-    section_key: str
-    #: Display order.
-    position: int
-    visibility: ProfileVisibility
-
-
-class ProfileSectionCreate(TypedDict):
-    """Fields accepted when creating a ProfileSection."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section key.
-    section_key: str
-    #: Display order.
-    position: int
-    visibility: ProfileVisibility
-
-
-class ProfileSectionUpdate(TypedDict, total=False):
-    """Fields accepted when updating a ProfileSection. Omitted fields are unchanged."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section key.
-    section_key: str
-    #: Display order.
-    position: int
-    visibility: ProfileVisibility
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
 
 
 class ProfileVisibilityRulePage(TypedDict):
@@ -15040,50 +14903,6 @@ class ProfileVisibilityRuleUpdate(TypedDict, total=False):
     visibility: Literal["Private", "Network", "Public"]
 
 
-class ProfileHandlePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProfileHandle]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProfileHandle(TypedDict):
-    """A unique profile handle, changeable once every 30 days, with 90-day redirects."""
-
-    #: Identifier of the profile handle.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Handle.
-    handle: str
-    #: When the handle last changed.
-    changed_at: str
-
-
-class ProfileHandleCreate(TypedDict):
-    """Fields accepted when creating a ProfileHandle."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Handle.
-    handle: str
-
-
-class ProfileHandleUpdate(TypedDict, total=False):
-    """Fields accepted when updating a ProfileHandle. Omitted fields are unchanged."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Handle.
-    handle: str
-
-
 class VerificationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15114,49 +14933,6 @@ class Verification(TypedDict):
     revoked_at: Optional[str]
     #: Why it was revoked.
     revocation_reason: Optional[str]
-
-
-class _VerificationCreateRequired(TypedDict):
-    #: How the organization was verified.
-    method: Literal["Stripe Identity", "Business Registry"]
-    #: The provider's verification or registry record reference.
-    provider_reference: str
-
-
-class VerificationCreate(_VerificationCreateRequired, total=False):
-    """Fields accepted when creating a Verification."""
-
-    #: When the verification lapses; null when it does not.
-    expires_at: Optional[str]
-
-
-class BlockPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[Block]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class Block(TypedDict):
-    """A block between two profiles."""
-
-    #: Identifier of the block.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: URN of the blocked profile.
-    blocked_urn: str
-
-
-class BlockCreate(TypedDict):
-    """Fields accepted when creating a Block."""
-
-    #: URN of the blocked profile.
-    blocked_urn: str
 
 
 class SubscriptionPage(TypedDict):
@@ -22994,14 +22770,8 @@ StdCode = str
 #: URN in the `urn:xpms` namespace.
 Urn = str
 
-#: Project role (Section 8).
-ProjectRole = Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
-
 #: Role inside an external account.
 AccountRole = Literal["Account Owner", "Account Admin", "Account Finance", "Account Member"]
-
-#: Kind of relationship one organization holds to another.
-OrganizationRelationshipKind = Literal["Vendor Of", "Client Of", "Partner Of", "Represents"]
 
 #: Scope a representation delegates.
 RepresentationScope = Literal["Offers", "Advance", "Settlement", "Documents"]

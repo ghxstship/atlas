@@ -32967,24 +32967,6 @@
         ],
         "description": "A person in an organization as an internal member, with time-boxed validity."
       },
-      "MembershipUpdate": {
-        "type": "object",
-        "properties": {
-          "valid_from": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Start of membership.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "valid_to": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "End of membership.",
-            "example": "2026-10-08T14:30:00Z"
-          }
-        },
-        "description": "Fields accepted when updating a Membership. Omitted fields are unchanged."
-      },
       "MembershipRolePage": {
         "type": "object",
         "properties": {
@@ -33255,102 +33237,6 @@
         },
         "description": "Fields accepted when updating a ProjectAssignment. Omitted fields are unchanged."
       },
-      "ProjectAssignmentRolePage": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ProjectAssignmentRole" },
-            "description": "Items on this page, in the documented default order."
-          },
-          "next_cursor": {
-            "type": ["string", "null"],
-            "description": "Opaque cursor for the next page; null on the last page.",
-            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
-          }
-        },
-        "required": ["data", "next_cursor"],
-        "description": "One page of results with a cursor to the next page."
-      },
-      "ProjectAssignmentRole": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project assignment role.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "org_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "created_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who created the row; null when a seed, platform or system process created it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_by": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "project_assignment_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project assignment.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "role": { "$ref": "#/components/schemas/ProjectRole" }
-        },
-        "required": [
-          "id",
-          "org_id",
-          "created_at",
-          "created_by",
-          "updated_at",
-          "updated_by",
-          "project_assignment_id",
-          "role"
-        ],
-        "description": "A project role held through a project assignment."
-      },
-      "ProjectRole": {
-        "type": "string",
-        "enum": ["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"],
-        "description": "Project role (Section 8).",
-        "example": "Producer"
-      },
-      "ProjectAssignmentRoleCreate": {
-        "type": "object",
-        "properties": {
-          "project_assignment_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the project assignment.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "role": { "$ref": "#/components/schemas/ProjectRole" }
-        },
-        "required": ["project_assignment_id", "role"],
-        "description": "Fields accepted when creating a ProjectAssignmentRole."
-      },
       "AccountMembershipPage": {
         "type": "object",
         "properties": {
@@ -33420,39 +33306,16 @@
             "description": "Identifier of the member.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "valid_from": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Start of account membership.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "valid_to": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "End of account membership.",
-            "example": "2026-10-08T14:30:00Z"
-          }
+          "account_role": { "$ref": "#/components/schemas/AccountRole" }
         },
-        "required": ["person_id"],
+        "required": ["person_id", "account_role"],
         "description": "Fields accepted when creating a AccountMembership."
       },
-      "AccountMembershipUpdate": {
-        "type": "object",
-        "properties": {
-          "valid_from": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Start of account membership.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "valid_to": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "End of account membership.",
-            "example": "2026-10-08T14:30:00Z"
-          }
-        },
-        "description": "Fields accepted when updating a AccountMembership. Omitted fields are unchanged."
+      "AccountRole": {
+        "type": "string",
+        "enum": ["Account Owner", "Account Admin", "Account Finance", "Account Member"],
+        "description": "Role inside an external account.",
+        "example": "Account Finance"
       },
       "AccountMembershipRolePage": {
         "type": "object",
@@ -33515,12 +33378,6 @@
           "granted_by"
         ],
         "description": "An account role held through an account membership."
-      },
-      "AccountRole": {
-        "type": "string",
-        "enum": ["Account Owner", "Account Admin", "Account Finance", "Account Member"],
-        "description": "Role inside an external account.",
-        "example": "Account Finance"
       },
       "AccountMembershipRoleCreate": {
         "type": "object",
@@ -33592,25 +33449,14 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "related_organization_id": {
+          "organization_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier of the related organization.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "kind": { "$ref": "#/components/schemas/OrganizationRelationshipKind" },
           "counterparty_type": {
-            "allOf": [
-              { "$ref": "#/components/schemas/CounterpartyType" },
-              { "type": ["string", "null"] }
-            ]
-          },
-          "internal_notes": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Internal notes.",
-            "example": "Preferred staging supplier."
+            "anyOf": [{ "$ref": "#/components/schemas/CounterpartyType" }, { "type": "null" }]
           }
         },
         "required": [
@@ -33620,44 +33466,25 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "related_organization_id",
-          "kind",
-          "counterparty_type",
-          "internal_notes"
+          "organization_id",
+          "counterparty_type"
         ],
         "description": "One organization's relationship to another, with the org-owned facts. Never visible to another org."
-      },
-      "OrganizationRelationshipKind": {
-        "type": "string",
-        "enum": ["Vendor Of", "Client Of", "Partner Of", "Represents"],
-        "description": "Kind of relationship one organization holds to another.",
-        "example": "Vendor Of"
       },
       "OrganizationRelationshipCreate": {
         "type": "object",
         "properties": {
-          "related_organization_id": {
+          "organization_id": {
             "type": "string",
             "format": "uuid",
             "description": "Identifier of the related organization.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "kind": { "$ref": "#/components/schemas/OrganizationRelationshipKind" },
           "counterparty_type": {
-            "allOf": [
-              { "$ref": "#/components/schemas/CounterpartyType" },
-              { "type": ["string", "null"] }
-            ]
-          },
-          "internal_notes": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Internal notes.",
-            "example": "Preferred staging supplier."
+            "anyOf": [{ "$ref": "#/components/schemas/CounterpartyType" }, { "type": "null" }]
           }
         },
-        "required": ["related_organization_id", "kind"],
+        "required": ["organization_id"],
         "description": "Fields accepted when creating a OrganizationRelationship."
       },
       "OrganizationRelationshipUpdate": {
@@ -33668,13 +33495,6 @@
               { "$ref": "#/components/schemas/CounterpartyType" },
               { "type": ["string", "null"] }
             ]
-          },
-          "internal_notes": {
-            "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Internal notes.",
-            "example": "Preferred staging supplier."
           }
         },
         "description": "Fields accepted when updating a OrganizationRelationship. Omitted fields are unchanged."
@@ -33803,24 +33623,6 @@
         },
         "required": ["artist_person_id", "scopes", "expires_on"],
         "description": "Fields accepted when creating a Representation."
-      },
-      "RepresentationUpdate": {
-        "type": "object",
-        "properties": {
-          "scopes": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/RepresentationScope" },
-            "description": "Delegated scopes, stored as junction rows.",
-            "example": ["Offers", "Advance"]
-          },
-          "expires_on": {
-            "type": "string",
-            "format": "date",
-            "description": "Expiry.",
-            "example": "2026-10-08"
-          }
-        },
-        "description": "Fields accepted when updating a Representation. Omitted fields are unchanged."
       },
       "JoinRequestPage": {
         "type": "object",
@@ -34619,6 +34421,18 @@
             "type": "boolean",
             "description": "Whether search engines may index a public profile.",
             "example": false
+          },
+          "handle": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$",
+            "description": "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
+            "example": "northwind-live"
+          },
+          "handle_changed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the handle last changed; null until the first change. Set by the database.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -34632,7 +34446,9 @@
           "locality",
           "country",
           "visibility",
-          "search_indexing"
+          "search_indexing",
+          "handle",
+          "handle_changed_at"
         ],
         "description": "A person's profile page, owned by the person. New profiles start Private."
       },
@@ -34737,6 +34553,12 @@
             "type": "boolean",
             "description": "Whether search engines may index a public profile.",
             "example": false
+          },
+          "handle": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$",
+            "description": "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
+            "example": "northwind-live"
           }
         },
         "description": "Fields accepted when updating a PersonProfile. Omitted fields are unchanged."
@@ -34797,6 +34619,18 @@
             "type": "boolean",
             "description": "Whether search engines may index a public profile.",
             "example": false
+          },
+          "handle": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$",
+            "description": "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
+            "example": "northwind-live"
+          },
+          "handle_changed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the handle last changed; null until the first change. Set by the database.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -34806,7 +34640,9 @@
           "organization_id",
           "about",
           "visibility",
-          "search_indexing"
+          "search_indexing",
+          "handle",
+          "handle_changed_at"
         ],
         "description": "An organization's profile page. New organizations start Network."
       },
@@ -34851,132 +34687,15 @@
             "type": "boolean",
             "description": "Whether search engines may index a public profile.",
             "example": false
+          },
+          "handle": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$",
+            "description": "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
+            "example": "northwind-live"
           }
         },
         "description": "Fields accepted when updating a OrganizationProfile. Omitted fields are unchanged."
-      },
-      "ProfileSectionPage": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ProfileSection" },
-            "description": "Items on this page, in the documented default order."
-          },
-          "next_cursor": {
-            "type": ["string", "null"],
-            "description": "Opaque cursor for the next page; null on the last page.",
-            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
-          }
-        },
-        "required": ["data", "next_cursor"],
-        "description": "One page of results with a cursor to the next page."
-      },
-      "ProfileSection": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the profile section.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "section_key": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Section key.",
-            "example": "certifications"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order.",
-            "example": 3
-          },
-          "visibility": { "$ref": "#/components/schemas/ProfileVisibility" }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "owner_urn",
-          "section_key",
-          "position",
-          "visibility"
-        ],
-        "description": "A section of a profile page with its own visibility, never higher than the profile."
-      },
-      "ProfileSectionCreate": {
-        "type": "object",
-        "properties": {
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "section_key": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Section key.",
-            "example": "certifications"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order.",
-            "example": 3
-          },
-          "visibility": { "$ref": "#/components/schemas/ProfileVisibility" }
-        },
-        "required": ["owner_urn", "section_key", "position", "visibility"],
-        "description": "Fields accepted when creating a ProfileSection."
-      },
-      "ProfileSectionUpdate": {
-        "type": "object",
-        "properties": {
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "section_key": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Section key.",
-            "example": "certifications"
-          },
-          "position": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Display order.",
-            "example": 3
-          },
-          "visibility": { "$ref": "#/components/schemas/ProfileVisibility" }
-        },
-        "description": "Fields accepted when updating a ProfileSection. Omitted fields are unchanged."
       },
       "ProfileVisibilityRulePage": {
         "type": "object",
@@ -35105,106 +34824,6 @@
         },
         "description": "Fields accepted when updating a ProfileVisibilityRule. Omitted fields are unchanged."
       },
-      "ProfileHandlePage": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/ProfileHandle" },
-            "description": "Items on this page, in the documented default order."
-          },
-          "next_cursor": {
-            "type": ["string", "null"],
-            "description": "Opaque cursor for the next page; null on the last page.",
-            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
-          }
-        },
-        "required": ["data", "next_cursor"],
-        "description": "One page of results with a cursor to the next page."
-      },
-      "ProfileHandle": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the profile handle.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "handle": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Handle.",
-            "example": "alex-rivera"
-          },
-          "changed_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the handle last changed.",
-            "example": "2026-10-08T14:30:00Z"
-          }
-        },
-        "required": ["id", "created_at", "updated_at", "owner_urn", "handle", "changed_at"],
-        "description": "A unique profile handle, changeable once every 30 days, with 90-day redirects."
-      },
-      "ProfileHandleCreate": {
-        "type": "object",
-        "properties": {
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "handle": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Handle.",
-            "example": "alex-rivera"
-          }
-        },
-        "required": ["owner_urn", "handle"],
-        "description": "Fields accepted when creating a ProfileHandle."
-      },
-      "ProfileHandleUpdate": {
-        "type": "object",
-        "properties": {
-          "owner_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the profile owner.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "handle": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Handle.",
-            "example": "alex-rivera"
-          }
-        },
-        "description": "Fields accepted when updating a ProfileHandle. Omitted fields are unchanged."
-      },
       "VerificationPage": {
         "type": "object",
         "properties": {
@@ -35294,95 +34913,6 @@
           "revocation_reason"
         ],
         "description": "A verification badge, shown only after the platform or a provider checks the claim."
-      },
-      "VerificationCreate": {
-        "type": "object",
-        "properties": {
-          "method": {
-            "type": "string",
-            "enum": ["Stripe Identity", "Business Registry"],
-            "description": "How the organization was verified.",
-            "example": "Stripe Identity"
-          },
-          "provider_reference": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "The provider's verification or registry record reference.",
-            "example": "vs_1Pq2Rs3Tu4"
-          },
-          "expires_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the verification lapses; null when it does not.",
-            "example": "2026-10-08T14:30:00Z"
-          }
-        },
-        "required": ["method", "provider_reference"],
-        "description": "Fields accepted when creating a Verification."
-      },
-      "BlockPage": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/Block" },
-            "description": "Items on this page, in the documented default order."
-          },
-          "next_cursor": {
-            "type": ["string", "null"],
-            "description": "Opaque cursor for the next page; null on the last page.",
-            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
-          }
-        },
-        "required": ["data", "next_cursor"],
-        "description": "One page of results with a cursor to the next page."
-      },
-      "Block": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the block.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "blocked_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the blocked profile.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
-        },
-        "required": ["id", "created_at", "updated_at", "blocked_urn"],
-        "description": "A block between two profiles."
-      },
-      "BlockCreate": {
-        "type": "object",
-        "properties": {
-          "blocked_urn": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "URN of the blocked profile.",
-            "example": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
-        },
-        "required": ["blocked_urn"],
-        "description": "Fields accepted when creating a Block."
       },
       "SubscriptionPage": {
         "type": "object",
@@ -108914,76 +108444,6 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
-      },
-      "patch": {
-        "operationId": "memberships.update",
-        "tags": ["Identity"],
-        "x-xos-table": "app.memberships",
-        "x-xos-capability": "org.members.manage",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Update a membership",
-        "description": "A person in an organization as an internal member, with time-boxed validity. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the membership.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the membership.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
-              },
-              "schema": { "$ref": "#/components/schemas/MembershipUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated membership.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/Membership" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
       }
     },
     "/memberships/leave": {
@@ -109620,197 +109080,6 @@
         }
       }
     },
-    "/project-assignment-roles": {
-      "get": {
-        "operationId": "projectAssignmentRoles.list",
-        "tags": ["Identity"],
-        "x-xos-table": "app.project_assignment_roles",
-        "x-xos-capability": "projects.project.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
-        "summary": "List project assignment role rows",
-        "description": "A project role held through a project assignment. Returns a cursor page of project assignment role rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
-        "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Fields" },
-          { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of project assignment role rows.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "project_assignment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "role": "Producer"
-                    }
-                  ],
-                  "next_cursor": null
-                },
-                "schema": { "$ref": "#/components/schemas/ProjectAssignmentRolePage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "projectAssignmentRoles.create",
-        "tags": ["Identity"],
-        "x-xos-table": "app.project_assignment_roles",
-        "x-xos-capability": "projects.members.manage",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "summary": "Create a project assignment role",
-        "description": "A project role held through a project assignment. Creates a project assignment role. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "project_assignment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role": "Producer"
-              },
-              "schema": { "$ref": "#/components/schemas/ProjectAssignmentRoleCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created project assignment role.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_assignment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role": "Producer"
-                },
-                "schema": { "$ref": "#/components/schemas/ProjectAssignmentRole" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/project-assignment-roles/{id}": {
-      "get": {
-        "operationId": "projectAssignmentRoles.get",
-        "tags": ["Identity"],
-        "x-xos-table": "app.project_assignment_roles",
-        "x-xos-capability": "projects.project.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "summary": "Get a project assignment role",
-        "description": "A project role held through a project assignment. Returns one project assignment role with its `ETag`. A project assignment role the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the project assignment role.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the project assignment role.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The project assignment role.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_assignment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "role": "Producer"
-                },
-                "schema": { "$ref": "#/components/schemas/ProjectAssignmentRole" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "delete": {
-        "operationId": "projectAssignmentRoles.delete",
-        "tags": ["Identity"],
-        "x-xos-table": "app.project_assignment_roles",
-        "x-xos-capability": "projects.members.manage",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
-        "summary": "Delete a project assignment role",
-        "description": "A project role held through a project assignment. Soft-deletes the project assignment role: it moves to Trash and can be restored for its table's retention period.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the project assignment role.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the project assignment role.",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": { "description": "The project assignment role moved to Trash." },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/account-memberships": {
       "get": {
         "operationId": "accountMemberships.list",
@@ -109875,8 +109144,7 @@
             "application/json": {
               "example": {
                 "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
+                "account_role": "Account Finance"
               },
               "schema": { "$ref": "#/components/schemas/AccountMembershipCreate" }
             }
@@ -109963,73 +109231,6 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "accountMemberships.update",
-        "tags": ["Identity"],
-        "x-xos-table": "app.account_memberships",
-        "x-xos-capability": "me.account.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Update an account membership",
-        "description": "A person in an external organization's account. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the account membership.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the account membership.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "valid_from": "2026-10-08T14:30:00Z",
-                "valid_to": "2026-10-08T14:30:00Z"
-              },
-              "schema": { "$ref": "#/components/schemas/AccountMembershipUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated account membership.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "valid_from": "2026-10-08T14:30:00Z",
-                  "valid_to": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/AccountMembership" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       },
@@ -110253,7 +109454,7 @@
       "get": {
         "operationId": "organizationRelationships.list",
         "tags": ["Identity"],
-        "x-xos-table": "app.organization_relationships",
+        "x-xos-table": "app.counterparties",
         "x-xos-capability": "vendors.vendor.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
         "x-xos-order": { "by": ["created_at"], "numeric": false },
@@ -110285,10 +109486,8 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "related_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "kind": "Vendor Of",
-                      "counterparty_type": "AV Integrator",
-                      "internal_notes": "Preferred staging supplier."
+                      "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "counterparty_type": "AV Integrator"
                     }
                   ],
                   "next_cursor": null
@@ -110305,7 +109504,7 @@
       "post": {
         "operationId": "organizationRelationships.create",
         "tags": ["Identity"],
-        "x-xos-table": "app.organization_relationships",
+        "x-xos-table": "app.counterparties",
         "x-xos-capability": "vendors.vendor.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
         "summary": "Create an organization relationship",
@@ -110316,10 +109515,8 @@
           "content": {
             "application/json": {
               "example": {
-                "related_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "kind": "Vendor Of",
-                "counterparty_type": "AV Integrator",
-                "internal_notes": "Preferred staging supplier."
+                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "counterparty_type": "AV Integrator"
               },
               "schema": { "$ref": "#/components/schemas/OrganizationRelationshipCreate" }
             }
@@ -110343,10 +109540,8 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "related_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Vendor Of",
-                  "counterparty_type": "AV Integrator",
-                  "internal_notes": "Preferred staging supplier."
+                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_type": "AV Integrator"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationRelationship" }
               }
@@ -110364,7 +109559,7 @@
       "get": {
         "operationId": "organizationRelationships.get",
         "tags": ["Identity"],
-        "x-xos-table": "app.organization_relationships",
+        "x-xos-table": "app.counterparties",
         "x-xos-capability": "vendors.vendor.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
         "summary": "Get an organization relationship",
@@ -110402,10 +109597,8 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "related_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Vendor Of",
-                  "counterparty_type": "AV Integrator",
-                  "internal_notes": "Preferred staging supplier."
+                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_type": "AV Integrator"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationRelationship" }
               }
@@ -110420,7 +109613,7 @@
       "patch": {
         "operationId": "organizationRelationships.update",
         "tags": ["Identity"],
-        "x-xos-table": "app.organization_relationships",
+        "x-xos-table": "app.counterparties",
         "x-xos-capability": "vendors.vendor.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
         "summary": "Update an organization relationship",
@@ -110444,10 +109637,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "counterparty_type": "AV Integrator",
-                "internal_notes": "Preferred staging supplier."
-              },
+              "example": { "counterparty_type": "AV Integrator" },
               "schema": { "$ref": "#/components/schemas/OrganizationRelationshipUpdate" }
             }
           }
@@ -110470,10 +109660,8 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "related_organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Vendor Of",
-                  "counterparty_type": "AV Integrator",
-                  "internal_notes": "Preferred staging supplier."
+                  "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "counterparty_type": "AV Integrator"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationRelationship" }
               }
@@ -110491,7 +109679,7 @@
       "delete": {
         "operationId": "organizationRelationships.delete",
         "tags": ["Identity"],
-        "x-xos-table": "app.organization_relationships",
+        "x-xos-table": "app.counterparties",
         "x-xos-capability": "vendors.vendor.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["vendors"] }],
         "summary": "Delete an organization relationship",
@@ -110681,73 +109869,6 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "representations.update",
-        "tags": ["Identity"],
-        "x-xos-table": "app.representations",
-        "x-xos-capability": "me.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Update a representation",
-        "description": "One party acting for another, with scopes and expiry. The artist accepts it. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the representation.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the representation.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": { "scopes": ["Offers", "Advance"], "expires_on": "2026-10-08" },
-              "schema": { "$ref": "#/components/schemas/RepresentationUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated representation.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "representative_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "artist_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "scopes": ["Offers", "Advance"],
-                  "expires_on": "2026-10-08",
-                  "accepted_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/Representation" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       },
@@ -111919,68 +111040,6 @@
         }
       }
     },
-    "/verified-domains/{id}/verify": {
-      "post": {
-        "operationId": "verifiedDomains.verify",
-        "tags": ["Identity"],
-        "x-xos-table": "app.org_domains",
-        "x-xos-capability": "org.security.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Verify a domain",
-        "description": "Checks the DNS record and marks the domain verified. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the verified domain.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the verified domain.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "hostname": "gateway.northwindlive.example",
-                  "purpose": "Atlas",
-                  "verification_state": "Pending",
-                  "verification_token": "xos-verify=6f1c2d",
-                  "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/offboarding-checklists": {
       "get": {
         "operationId": "offboardingChecklists.list",
@@ -112201,7 +111260,9 @@
                       "locality": "Miami",
                       "country": "US",
                       "visibility": "Private",
-                      "search_indexing": false
+                      "search_indexing": false,
+                      "handle": "northwind-live",
+                      "handle_changed_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -112264,7 +111325,9 @@
                   "locality": "Miami",
                   "country": "US",
                   "visibility": "Private",
-                  "search_indexing": false
+                  "search_indexing": false,
+                  "handle": "northwind-live",
+                  "handle_changed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/PersonProfile" }
               }
@@ -112324,7 +111387,9 @@
                   "locality": "Miami",
                   "country": "US",
                   "visibility": "Private",
-                  "search_indexing": false
+                  "search_indexing": false,
+                  "handle": "northwind-live",
+                  "handle_changed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/PersonProfile" }
               }
@@ -112370,7 +111435,8 @@
                 "locality": "Miami",
                 "country": "US",
                 "visibility": "Private",
-                "search_indexing": false
+                "search_indexing": false,
+                "handle": "northwind-live"
               },
               "schema": { "$ref": "#/components/schemas/PersonProfileUpdate" }
             }
@@ -112398,7 +111464,9 @@
                   "locality": "Miami",
                   "country": "US",
                   "visibility": "Private",
-                  "search_indexing": false
+                  "search_indexing": false,
+                  "handle": "northwind-live",
+                  "handle_changed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/PersonProfile" }
               }
@@ -112450,7 +111518,9 @@
                       "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "about": "Live event production for waterfront venues.",
                       "visibility": "Private",
-                      "search_indexing": false
+                      "search_indexing": false,
+                      "handle": "northwind-live",
+                      "handle_changed_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -112505,7 +111575,9 @@
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "about": "Live event production for waterfront venues.",
                   "visibility": "Private",
-                  "search_indexing": false
+                  "search_indexing": false,
+                  "handle": "northwind-live",
+                  "handle_changed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationProfile" }
               }
@@ -112561,7 +111633,9 @@
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "about": "Live event production for waterfront venues.",
                   "visibility": "Private",
-                  "search_indexing": false
+                  "search_indexing": false,
+                  "handle": "northwind-live",
+                  "handle_changed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationProfile" }
               }
@@ -112603,7 +111677,8 @@
               "example": {
                 "about": "Live event production for waterfront venues.",
                 "visibility": "Private",
-                "search_indexing": false
+                "search_indexing": false,
+                "handle": "northwind-live"
               },
               "schema": { "$ref": "#/components/schemas/OrganizationProfileUpdate" }
             }
@@ -112627,7 +111702,9 @@
                   "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "about": "Live event production for waterfront venues.",
                   "visibility": "Private",
-                  "search_indexing": false
+                  "search_indexing": false,
+                  "handle": "northwind-live",
+                  "handle_changed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationProfile" }
               }
@@ -112639,266 +111716,6 @@
           "412": { "$ref": "#/components/responses/PreconditionFailed" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/profile-sections": {
-      "get": {
-        "operationId": "profileSections.list",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_sections",
-        "x-xos-capability": "people.directory.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
-        "summary": "List profile section rows",
-        "description": "A section of a profile page with its own visibility, never higher than the profile. Returns a cursor page of profile section rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
-        "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Fields" },
-          { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of profile section rows.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "section_key": "certifications",
-                      "position": 3,
-                      "visibility": "Private"
-                    }
-                  ],
-                  "next_cursor": null
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileSectionPage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "profileSections.create",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_sections",
-        "x-xos-capability": "me.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Create a profile section",
-        "description": "A section of a profile page with its own visibility, never higher than the profile. Creates a profile section. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "section_key": "certifications",
-                "position": 3,
-                "visibility": "Private"
-              },
-              "schema": { "$ref": "#/components/schemas/ProfileSectionCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created profile section.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "section_key": "certifications",
-                  "position": 3,
-                  "visibility": "Private"
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileSection" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/profile-sections/{id}": {
-      "get": {
-        "operationId": "profileSections.get",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_sections",
-        "x-xos-capability": "people.directory.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
-        "summary": "Get a profile section",
-        "description": "A section of a profile page with its own visibility, never higher than the profile. Returns one profile section with its `ETag`. A profile section the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the profile section.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the profile section.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The profile section.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "section_key": "certifications",
-                  "position": 3,
-                  "visibility": "Private"
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileSection" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "profileSections.update",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_sections",
-        "x-xos-capability": "me.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Update a profile section",
-        "description": "A section of a profile page with its own visibility, never higher than the profile. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the profile section.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the profile section.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "section_key": "certifications",
-                "position": 3,
-                "visibility": "Private"
-              },
-              "schema": { "$ref": "#/components/schemas/ProfileSectionUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated profile section.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "section_key": "certifications",
-                  "position": 3,
-                  "visibility": "Private"
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileSection" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "delete": {
-        "operationId": "profileSections.delete",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_sections",
-        "x-xos-capability": "me.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Delete a profile section",
-        "description": "A section of a profile page with its own visibility, never higher than the profile. Soft-deletes the profile section: it moves to Trash and can be restored for its table's retention period.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the profile section.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the profile section.",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": { "description": "The profile section moved to Trash." },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -113153,228 +111970,6 @@
         }
       }
     },
-    "/profile-handles": {
-      "get": {
-        "operationId": "profileHandles.list",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_handles",
-        "x-xos-capability": "people.directory.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
-        "summary": "List profile handle rows",
-        "description": "A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns a cursor page of profile handle rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
-        "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Fields" },
-          { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of profile handle rows.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "handle": "alex-rivera",
-                      "changed_at": "2026-10-08T14:30:00Z"
-                    }
-                  ],
-                  "next_cursor": null
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileHandlePage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "profileHandles.create",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_handles",
-        "x-xos-capability": "me.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Create a profile handle",
-        "description": "A unique profile handle, changeable once every 30 days, with 90-day redirects. Creates a profile handle. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "handle": "alex-rivera"
-              },
-              "schema": { "$ref": "#/components/schemas/ProfileHandleCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created profile handle.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "handle": "alex-rivera",
-                  "changed_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileHandle" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/profile-handles/{id}": {
-      "get": {
-        "operationId": "profileHandles.get",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_handles",
-        "x-xos-capability": "people.directory.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["people"] }],
-        "summary": "Get a profile handle",
-        "description": "A unique profile handle, changeable once every 30 days, with 90-day redirects. Returns one profile handle with its `ETag`. A profile handle the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the profile handle.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the profile handle.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The profile handle.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "handle": "alex-rivera",
-                  "changed_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileHandle" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "patch": {
-        "operationId": "profileHandles.update",
-        "tags": ["Identity"],
-        "x-xos-table": "app.profile_handles",
-        "x-xos-capability": "me.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Update a profile handle",
-        "description": "A unique profile handle, changeable once every 30 days, with 90-day redirects. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the profile handle.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the profile handle.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IfMatch" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "handle": "alex-rivera"
-              },
-              "schema": { "$ref": "#/components/schemas/ProfileHandleUpdate" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The updated profile handle.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "owner_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "handle": "alex-rivera",
-                  "changed_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/ProfileHandle" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/verifications": {
       "get": {
         "operationId": "verifications.list",
@@ -113424,61 +112019,6 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "verifications.create",
-        "tags": ["Identity"],
-        "x-xos-table": "app.organization_verifications",
-        "x-xos-capability": "org.profile.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
-        "summary": "Create a verification",
-        "description": "A verification badge, shown only after the platform or a provider checks the claim. Creates a verification. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "method": "Stripe Identity",
-                "provider_reference": "vs_1Pq2Rs3Tu4",
-                "expires_at": "2026-10-08T14:30:00Z"
-              },
-              "schema": { "$ref": "#/components/schemas/VerificationCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created verification.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "verified_at": "2026-10-08T14:30:00Z",
-                  "method": "Stripe Identity",
-                  "provider_reference": "vs_1Pq2Rs3Tu4",
-                  "expires_at": "2026-10-08T14:30:00Z",
-                  "revoked_at": "2026-10-08T14:30:00Z",
-                  "revocation_reason": "The registry record lapsed."
-                },
-                "schema": { "$ref": "#/components/schemas/Verification" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
@@ -113536,182 +112076,6 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/blocks": {
-      "get": {
-        "operationId": "blocks.list",
-        "tags": ["Identity"],
-        "x-xos-table": "app.blocks",
-        "x-xos-capability": "me.account.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
-        "summary": "List block rows",
-        "description": "A block between two profiles. Returns a cursor page of block rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
-        "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Fields" },
-          { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of block rows.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "blocked_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                    }
-                  ],
-                  "next_cursor": null
-                },
-                "schema": { "$ref": "#/components/schemas/BlockPage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "blocks.create",
-        "tags": ["Identity"],
-        "x-xos-table": "app.blocks",
-        "x-xos-capability": "me.account.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Create a block",
-        "description": "A block between two profiles. Creates a block. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": { "blocked_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
-              "schema": { "$ref": "#/components/schemas/BlockCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created block.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "blocked_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "schema": { "$ref": "#/components/schemas/Block" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/blocks/{id}": {
-      "get": {
-        "operationId": "blocks.get",
-        "tags": ["Identity"],
-        "x-xos-table": "app.blocks",
-        "x-xos-capability": "me.account.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Get a block",
-        "description": "A block between two profiles. Returns one block with its `ETag`. A block the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the block.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the block.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The block.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "blocked_urn": "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "schema": { "$ref": "#/components/schemas/Block" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "delete": {
-        "operationId": "blocks.delete",
-        "tags": ["Identity"],
-        "x-xos-table": "app.blocks",
-        "x-xos-capability": "me.account.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
-        "summary": "Delete a block",
-        "description": "A block between two profiles. Soft-deletes the block: it moves to Trash and can be restored for its table's retention period.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the block.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the block.",
-            "name": "id",
-            "in": "path"
-          }
-        ],
-        "responses": {
-          "204": { "description": "The block moved to Trash." },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }
