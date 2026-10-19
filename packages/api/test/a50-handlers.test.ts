@@ -8,6 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { handlers as finance } from "../src/handlers/finance.ts";
 import { handlers as hospitality } from "../src/handlers/hospitality.ts";
+import { handlers as logistics } from "../src/handlers/logistics.ts";
 import { handlers as people } from "../src/handlers/people.ts";
 import { contractApp, expectContract, testContext } from "./support/contract.ts";
 import { memoryDb, refusal, requests, success, tenantRow } from "./support/memory-db.ts";
@@ -417,5 +418,173 @@ describe("Hospitality: fulfillments, lines, BEOs and BEO lines", () => {
     const change = await success(http.patch(`/beo-lines/${BEO_LINE}`, { quantity: 85 }));
     await expectContract(change, "beoLines.update");
     await expectContract(await success(http.delete(`/beo-lines/${BEO_LINE}`)), "beoLines.delete");
+  });
+});
+
+describe("Logistics: shipments, dock slots, the gate queue and the marshalling log", () => {
+  const PROJECT = id(401);
+  const SHIPMENT = id(402);
+  const LINE = id(403);
+  const SLOT = id(404);
+  const ENTRY = id(405);
+  const LOG = id(406);
+  const ZONE = id(407);
+  const NOW = "2026-10-02T09:00:00.000Z";
+
+  function world() {
+    const db = memoryDb(
+      {
+        shipments: [
+          tenantRow(SHIPMENT, ORG, {
+            project_id: PROJECT,
+            direction: "Inbound",
+            carrier_counterparty_id: null,
+            freight_type_enum_id: null,
+            tracking_identifier: "1Z999AA10123456784",
+            ships_at: "2027-05-30T12:00:00.000Z",
+            arrives_at: null,
+            shipment_number: 7,
+          }),
+        ],
+        shipment_lines: [
+          tenantRow(LINE, ORG, {
+            shipment_id: SHIPMENT,
+            description: "Line array cases",
+            element_id: null,
+            quantity: 12,
+          }),
+        ],
+        dock_slots: [
+          tenantRow(SLOT, ORG, {
+            project_id: PROJECT,
+            zone_id: ZONE,
+            shipment_id: SHIPMENT,
+            starts_at: "2027-06-01T08:00:00.000Z",
+            ends_at: "2027-06-01T09:00:00.000Z",
+            checked_in_at: null,
+            checked_in_by: null,
+          }),
+        ],
+        gate_queue: [
+          tenantRow(ENTRY, ORG, {
+            project_id: PROJECT,
+            shipment_id: SHIPMENT,
+            vehicle_identifier: "FL TRK-2231",
+            arrived_at: "2027-06-01T07:40:00.000Z",
+            released_at: null,
+            released_by: null,
+          }),
+        ],
+        marshalling_log: [
+          tenantRow(LOG, ORG, {
+            project_id: PROJECT,
+            shipment_id: SHIPMENT,
+            zone_id: ZONE,
+            entry: "Staged in lane 2.",
+            logged_at: "2027-06-01T07:45:00.000Z",
+          }),
+        ],
+      },
+      {},
+      {
+        shipments: { shipment_number: 8, carrier_counterparty_id: null, arrives_at: null },
+        shipment_lines: { quantity: 1, element_id: null },
+        dock_slots: { checked_in_at: null, checked_in_by: null, shipment_id: null },
+        gate_queue: { arrived_at: NOW, released_at: null, released_by: null, shipment_id: null },
+        marshalling_log: { logged_at: NOW, shipment_id: null, zone_id: null },
+      },
+    );
+    return { db, http: requests(contractApp({ handlers: [logistics], db })) };
+  }
+
+  it("serves shipments and their lines", async () => {
+    const { db, http } = world();
+    await expectContract(await success(http.get("/shipments")), "shipments.list");
+    await expectContract(await success(http.get(`/shipments/${SHIPMENT}`)), "shipments.get");
+    expect((await http.get(`/shipments/${MISSING}`)).status).toBe(404);
+    const create = await success(
+      http.post("/shipments", { project_id: PROJECT, direction: "Outbound" }),
+    );
+    const made = (await expectContract(create, "shipments.create")) as { id: string };
+    const update = await success(
+      http.patch(`/shipments/${SHIPMENT}`, { arrives_at: "2027-06-01T07:30:00.000Z" }),
+    );
+    await expectContract(update, "shipments.update");
+
+    await expectContract(await success(http.get("/shipment-lines")), "shipmentLines.list");
+    await expectContract(await success(http.get(`/shipment-lines/${LINE}`)), "shipmentLines.get");
+    const line = await success(
+      http.post("/shipment-lines", { shipment_id: SHIPMENT, description: "Rigging motors" }),
+    );
+    await expectContract(line, "shipmentLines.create");
+    const change = await success(http.patch(`/shipment-lines/${LINE}`, { quantity: 14 }));
+    await expectContract(change, "shipmentLines.update");
+    await expectContract(
+      await success(http.delete(`/shipment-lines/${LINE}`)),
+      "shipmentLines.delete",
+    );
+
+    db.fail("shipments", refusal("shipment_in_use"));
+    const refusedDelete = await http.delete(`/shipments/${made.id}`);
+    expect(refusedDelete.status).toBe(422);
+    await expectContract(await success(http.delete(`/shipments/${made.id}`)), "shipments.delete");
+    expect((await http.get(`/shipments/${made.id}`)).status).toBe(404);
+  });
+
+  it("books dock slots and checks a shipment in once", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/dock-slots")), "dockSlots.list");
+    await expectContract(await success(http.get(`/dock-slots/${SLOT}`)), "dockSlots.get");
+    const create = await success(
+      http.post("/dock-slots", {
+        project_id: PROJECT,
+        zone_id: ZONE,
+        starts_at: "2027-06-01T10:00:00.000Z",
+        ends_at: "2027-06-01T11:00:00.000Z",
+      }),
+    );
+    const made = (await expectContract(create, "dockSlots.create")) as { id: string };
+    const update = await success(
+      http.patch(`/dock-slots/${SLOT}`, { ends_at: "2027-06-01T09:30:00.000Z" }),
+    );
+    await expectContract(update, "dockSlots.update");
+
+    const checkedIn = await success(http.post(`/dock-slots/${SLOT}/check-in`));
+    const slot = (await expectContract(checkedIn, "dockSlots.checkIn")) as {
+      checked_in_at: string | null;
+    };
+    expect(slot.checked_in_at).not.toBeNull();
+    expect((await http.post(`/dock-slots/${SLOT}/check-in`)).status).toBe(422);
+    await expectContract(await success(http.delete(`/dock-slots/${made.id}`)), "dockSlots.delete");
+  });
+
+  it("queues vehicles at the gate and releases them once", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/gate-queue")), "gateQueueEntries.list");
+    await expectContract(await success(http.get(`/gate-queue/${ENTRY}`)), "gateQueueEntries.get");
+    const create = await success(
+      http.post("/gate-queue", { project_id: PROJECT, vehicle_identifier: "GA VAN-0412" }),
+    );
+    await expectContract(create, "gateQueueEntries.create");
+    const update = await success(
+      http.patch(`/gate-queue/${ENTRY}`, { vehicle_identifier: "FL TRK-2232" }),
+    );
+    await expectContract(update, "gateQueueEntries.update");
+    const release = await success(http.post(`/gate-queue/${ENTRY}/release`));
+    await expectContract(release, "gateQueueEntries.release");
+    expect((await http.post(`/gate-queue/${ENTRY}/release`)).status).toBe(422);
+  });
+
+  it("appends to the marshalling log", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/marshalling-log")), "marshallingLogEntries.list");
+    await expectContract(
+      await success(http.get(`/marshalling-log/${LOG}`)),
+      "marshallingLogEntries.get",
+    );
+    const create = await success(
+      http.post("/marshalling-log", { project_id: PROJECT, entry: "Released to dock 1." }),
+    );
+    await expectContract(create, "marshallingLogEntries.create");
   });
 });

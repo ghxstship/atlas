@@ -600,7 +600,7 @@ describe("suggestions, requests and usage", () => {
   });
 
   it("returns the suggestion to Proposed and answers the refusal when the operation is unavailable", async () => {
-    const proposal = { ...suggestion, operation_id: "marshallingLogEntries.create" };
+    const proposal = { ...suggestion, operation_id: "moderationActions.create" };
     const { api, calls } = app({
       "from:ai_suggestions": [ok(proposal)],
       "from:ai_suggestion_fields": [ok([field])],

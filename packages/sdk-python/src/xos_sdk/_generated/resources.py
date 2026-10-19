@@ -1106,7 +1106,6 @@ if TYPE_CHECKING:
         ShipmentLinePage,
         ShipmentLineUpdate,
         ShipmentPage,
-        ShipmentTransitionRequest,
         ShipmentUpdate,
         Shortlist,
         ShortlistCreate,
@@ -5031,7 +5030,7 @@ class ShipmentsResource(Resource):
     ) -> Page[Shipment]:
         """List shipment rows
 
-        A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `ships_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /shipments`` (operation ``shipments.list``).
         Requires the capability ``logistics.shipment.read``.
@@ -5049,7 +5048,7 @@ class ShipmentsResource(Resource):
     ) -> Iterator[Shipment]:
         """List shipment rows
 
-        A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+        A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `ships_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -5121,23 +5120,6 @@ class ShipmentsResource(Resource):
         Requires the capability ``logistics.shipment.write``.
         """
         return self._client.request(OPERATIONS["shipments.delete"], path={"id": id}, options=options)
-
-    def transition(
-        self,
-        id: str,
-        body: ShipmentTransitionRequest,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Shipment]:
-        """Transition the shipment state
-
-        Moves the shipment lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-
-        ``POST /shipments/{id}/transitions`` (operation ``shipments.transition``).
-        Requires the capability ``logistics.shipment.write``.
-        """
-        return self._client.request(OPERATIONS["shipments.transition"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class ShipmentLinesResource(Resource):

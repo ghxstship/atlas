@@ -2341,26 +2341,27 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    venue_id: string;
     shipment_id: string | null;
     starts_at: string;
     ends_at: string;
-    dock: string;
     checked_in_at: string | null;
+    project_id: string;
+    zone_id: string;
+    checked_in_by: string | null;
   };
   DockSlotCreate: {
-    venue_id: string;
     shipment_id?: string | null;
     starts_at: string;
     ends_at: string;
-    dock: string;
+    project_id: string;
+    zone_id: string;
   };
   DockSlotPage: { data: Array<Components["DockSlot"]>; next_cursor: string | null };
   DockSlotUpdate: {
     shipment_id?: string | null;
     starts_at?: string;
     ends_at?: string;
-    dock?: string;
+    zone_id?: string;
   };
   Document: {
     id: string;
@@ -2963,25 +2964,24 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    venue_id: string;
-    dock_slot_id: string | null;
-    vehicle_plate: string;
+    vehicle_identifier: string;
     arrived_at: string;
     released_at: string | null;
+    project_id: string;
+    shipment_id: string | null;
+    released_by: string | null;
   };
   GateQueueEntryCreate: {
-    venue_id: string;
-    dock_slot_id?: string | null;
-    vehicle_plate: string;
-    arrived_at: string;
-    released_at?: string | null;
+    vehicle_identifier: string;
+    arrived_at?: string;
+    project_id: string;
+    shipment_id?: string | null;
   };
   GateQueueEntryPage: { data: Array<Components["GateQueueEntry"]>; next_cursor: string | null };
   GateQueueEntryUpdate: {
-    dock_slot_id?: string | null;
-    vehicle_plate?: string;
+    vehicle_identifier?: string;
     arrived_at?: string;
-    released_at?: string | null;
+    shipment_id?: string | null;
   };
   GateReadiness: {
     project_id: string;
@@ -4001,18 +4001,18 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    venue_id: string;
-    vehicle_plate: string;
-    event: string;
+    entry: string;
     logged_at: string;
-    notes: string | null;
+    project_id: string;
+    shipment_id: string | null;
+    zone_id: string | null;
   };
   MarshallingLogEntryCreate: {
-    venue_id: string;
-    vehicle_plate: string;
-    event: string;
-    logged_at: string;
-    notes?: string | null;
+    entry: string;
+    logged_at?: string;
+    project_id: string;
+    shipment_id?: string | null;
+    zone_id?: string | null;
   };
   MarshallingLogEntryPage: {
     data: Array<Components["MarshallingLogEntry"]>;
@@ -6711,18 +6711,22 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    carrier: string;
-    tracking_number: string | null;
+    tracking_identifier: string | null;
     direction: string;
-    shipment_state: string;
-    expected_at: string;
+    ships_at: string | null;
+    carrier_counterparty_id: string | null;
+    freight_type_enum_id: string | null;
+    arrives_at: string | null;
+    shipment_number: number;
   };
   ShipmentCreate: {
     project_id: string;
-    carrier: string;
-    tracking_number?: string | null;
+    tracking_identifier?: string | null;
     direction: string;
-    expected_at: string;
+    ships_at?: string | null;
+    carrier_counterparty_id?: string | null;
+    freight_type_enum_id?: string | null;
+    arrives_at?: string | null;
   };
   ShipmentLine: {
     id: string;
@@ -6734,30 +6738,24 @@ export interface Components {
     shipment_id: string;
     description: string;
     quantity: number;
-    unit: Components["UnitCode"];
-    asset_class_id: string | null;
+    element_id: string | null;
   };
   ShipmentLineCreate: {
     shipment_id: string;
     description: string;
-    quantity: number;
-    unit: Components["UnitCode"];
-    asset_class_id?: string | null;
+    quantity?: number;
+    element_id?: string | null;
   };
   ShipmentLinePage: { data: Array<Components["ShipmentLine"]>; next_cursor: string | null };
-  ShipmentLineUpdate: {
-    description?: string;
-    quantity?: number;
-    unit?: Components["UnitCode"];
-    asset_class_id?: string | null;
-  };
+  ShipmentLineUpdate: { description?: string; quantity?: number; element_id?: string | null };
   ShipmentPage: { data: Array<Components["Shipment"]>; next_cursor: string | null };
-  ShipmentTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ShipmentUpdate: {
-    carrier?: string;
-    tracking_number?: string | null;
+    tracking_identifier?: string | null;
     direction?: string;
-    expected_at?: string;
+    ships_at?: string | null;
+    carrier_counterparty_id?: string | null;
+    freight_type_enum_id?: string | null;
+    arrives_at?: string | null;
   };
   Shortlist: {
     id: string;
@@ -10191,15 +10189,6 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
-  };
-  "shipments.transition": {
-    module: "Logistics";
-    method: "post";
-    path: "/shipments/{id}/transitions";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["ShipmentTransitionRequest"];
-    responses: { 200: Components["Shipment"] };
   };
   "shipmentLines.list": {
     module: "Logistics";
@@ -24848,7 +24837,6 @@ export interface ModuleOperations {
     | "shipments.get"
     | "shipments.update"
     | "shipments.delete"
-    | "shipments.transition"
     | "shipmentLines.list"
     | "shipmentLines.create"
     | "shipmentLines.get"

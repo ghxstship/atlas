@@ -6506,14 +6506,7 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "carrier": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Carrier name.",
-            "example": "Coastal Freight"
-          },
-          "tracking_number": {
+          "tracking_identifier": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Carrier tracking identifier.",
@@ -6525,17 +6518,35 @@
             "description": "Inbound or outbound.",
             "example": "inbound"
           },
-          "shipment_state": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Shipment state. A Title Case value from the lifecycle's database enum.",
-            "example": "Scheduled"
-          },
-          "expected_at": {
-            "type": "string",
+          "ships_at": {
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "Expected arrival or departure.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "carrier_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the carrier, as a counterparty of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "freight_type_enum_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon freight type, from xpms.std_enumeration.",
+            "example": "ENM-041"
+          },
+          "arrives_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the shipment is due to arrive.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "shipment_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number within the project; the display key is {project_key}-{shipment_number}.",
+            "example": 7
           }
         },
         "required": [
@@ -6546,11 +6557,13 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "carrier",
-          "tracking_number",
+          "tracking_identifier",
           "direction",
-          "shipment_state",
-          "expected_at"
+          "ships_at",
+          "carrier_counterparty_id",
+          "freight_type_enum_id",
+          "arrives_at",
+          "shipment_number"
         ],
         "description": "A shipment into or out of a venue."
       },
@@ -6563,14 +6576,7 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "carrier": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Carrier name.",
-            "example": "Coastal Freight"
-          },
-          "tracking_number": {
+          "tracking_identifier": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Carrier tracking identifier.",
@@ -6582,27 +6588,38 @@
             "description": "Inbound or outbound.",
             "example": "inbound"
           },
-          "expected_at": {
-            "type": "string",
+          "ships_at": {
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "Expected arrival or departure.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "carrier_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the carrier, as a counterparty of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "freight_type_enum_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon freight type, from xpms.std_enumeration.",
+            "example": "ENM-041"
+          },
+          "arrives_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the shipment is due to arrive.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
-        "required": ["project_id", "carrier", "direction", "expected_at"],
+        "required": ["project_id", "direction"],
         "description": "Fields accepted when creating a Shipment."
       },
       "ShipmentUpdate": {
         "type": "object",
         "properties": {
-          "carrier": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "Carrier name.",
-            "example": "Coastal Freight"
-          },
-          "tracking_number": {
+          "tracking_identifier": {
             "type": ["string", "null"],
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Carrier tracking identifier.",
@@ -6614,39 +6631,32 @@
             "description": "Inbound or outbound.",
             "example": "inbound"
           },
-          "expected_at": {
-            "type": "string",
+          "ships_at": {
+            "type": ["string", "null"],
             "format": "date-time",
             "description": "Expected arrival or departure.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "carrier_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the carrier, as a counterparty of the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "freight_type_enum_id": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon freight type, from xpms.std_enumeration.",
+            "example": "ENM-041"
+          },
+          "arrives_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the shipment is due to arrive.",
             "example": "2026-10-08T14:30:00Z"
           }
         },
         "description": "Fields accepted when updating a Shipment. Omitted fields are unchanged."
-      },
-      "ShipmentTransitionRequest": {
-        "type": "object",
-        "properties": {
-          "expected_state": {
-            "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Scheduled"
-          },
-          "to_state": {
-            "type": "string",
-            "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
-            "description": "Target state.",
-            "example": "Active"
-          },
-          "reason": {
-            "type": "string",
-            "minLength": 1,
-            "description": "Reason, required by some transitions.",
-            "example": "Client approved the revised scope."
-          }
-        },
-        "required": ["expected_state", "to_state"],
-        "description": "Request to move a lifecycle to another state."
       },
       "ShipmentLinePage": {
         "type": "object",
@@ -6718,12 +6728,11 @@
             "example": "Truss sections, 10 ft"
           },
           "quantity": { "type": "number", "description": "Quantity.", "example": 24 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "asset_class_id": {
+          "element_id": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the asset class.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon element carried.",
+            "example": "4000.01.01-XPMS-001"
           }
         },
         "required": [
@@ -6736,8 +6745,7 @@
           "shipment_id",
           "description",
           "quantity",
-          "unit",
-          "asset_class_id"
+          "element_id"
         ],
         "description": "A line on a shipping manifest."
       },
@@ -6758,15 +6766,14 @@
             "example": "Truss sections, 10 ft"
           },
           "quantity": { "type": "number", "description": "Quantity.", "example": 24 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "asset_class_id": {
+          "element_id": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the asset class.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon element carried.",
+            "example": "4000.01.01-XPMS-001"
           }
         },
-        "required": ["shipment_id", "description", "quantity", "unit"],
+        "required": ["shipment_id", "description"],
         "description": "Fields accepted when creating a ShipmentLine."
       },
       "ShipmentLineUpdate": {
@@ -6780,12 +6787,11 @@
             "example": "Truss sections, 10 ft"
           },
           "quantity": { "type": "number", "description": "Quantity.", "example": 24 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
-          "asset_class_id": {
+          "element_id": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the asset class.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon element carried.",
+            "example": "4000.01.01-XPMS-001"
           }
         },
         "description": "Fields accepted when updating a ShipmentLine. Omitted fields are unchanged."
@@ -6846,12 +6852,6 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "venue_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "shipment_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -6870,17 +6870,29 @@
             "description": "Slot end.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "dock": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Dock door.",
-            "example": "D2"
-          },
           "checked_in_at": {
             "type": ["string", "null"],
             "format": "date-time",
             "description": "When the vehicle checked in.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project whose site the dock is at.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the loading dock zone of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "checked_in_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who checked the shipment in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -6890,24 +6902,19 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "venue_id",
           "shipment_id",
           "starts_at",
           "ends_at",
-          "dock",
-          "checked_in_at"
+          "checked_in_at",
+          "project_id",
+          "zone_id",
+          "checked_in_by"
         ],
         "description": "A dock slot booking."
       },
       "DockSlotCreate": {
         "type": "object",
         "properties": {
-          "venue_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "shipment_id": {
             "type": ["string", "null"],
             "format": "uuid",
@@ -6926,14 +6933,20 @@
             "description": "Slot end.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "dock": {
+          "project_id": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Dock door.",
-            "example": "D2"
+            "format": "uuid",
+            "description": "Identifier of the project whose site the dock is at.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the loading dock zone of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["venue_id", "starts_at", "ends_at", "dock"],
+        "required": ["starts_at", "ends_at", "project_id", "zone_id"],
         "description": "Fields accepted when creating a DockSlot."
       },
       "DockSlotUpdate": {
@@ -6957,11 +6970,11 @@
             "description": "Slot end.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "dock": {
+          "zone_id": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Dock door.",
-            "example": "D2"
+            "format": "uuid",
+            "description": "Identifier of the loading dock zone of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a DockSlot. Omitted fields are unchanged."
@@ -7022,23 +7035,12 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "venue_id": {
+          "vehicle_identifier": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "dock_slot_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the dock slot.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "vehicle_plate": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Vehicle plate.",
-            "example": "FL-ABC123"
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Plate or trailer number as written.",
+            "example": "FL TRK-2231"
           },
           "arrived_at": {
             "type": "string",
@@ -7051,6 +7053,24 @@
             "format": "date-time",
             "description": "When the vehicle was released.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project whose site the gate is at.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shipment_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the shipment the vehicle carries.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "released_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who released the vehicle.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -7060,34 +7080,24 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "venue_id",
-          "dock_slot_id",
-          "vehicle_plate",
+          "vehicle_identifier",
           "arrived_at",
-          "released_at"
+          "released_at",
+          "project_id",
+          "shipment_id",
+          "released_by"
         ],
         "description": "A vehicle waiting at the venue gate."
       },
       "GateQueueEntryCreate": {
         "type": "object",
         "properties": {
-          "venue_id": {
+          "vehicle_identifier": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "dock_slot_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the dock slot.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "vehicle_plate": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Vehicle plate.",
-            "example": "FL-ABC123"
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Plate or trailer number as written.",
+            "example": "FL TRK-2231"
           },
           "arrived_at": {
             "type": "string",
@@ -7095,30 +7105,31 @@
             "description": "When the vehicle arrived.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "released_at": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project whose site the gate is at.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shipment_id": {
             "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the vehicle was released.",
-            "example": "2026-10-08T14:30:00Z"
+            "format": "uuid",
+            "description": "Identifier of the shipment the vehicle carries.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["venue_id", "vehicle_plate", "arrived_at"],
+        "required": ["vehicle_identifier", "project_id"],
         "description": "Fields accepted when creating a GateQueueEntry."
       },
       "GateQueueEntryUpdate": {
         "type": "object",
         "properties": {
-          "dock_slot_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the dock slot.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "vehicle_plate": {
+          "vehicle_identifier": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Vehicle plate.",
-            "example": "FL-ABC123"
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Plate or trailer number as written.",
+            "example": "FL TRK-2231"
           },
           "arrived_at": {
             "type": "string",
@@ -7126,11 +7137,11 @@
             "description": "When the vehicle arrived.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "released_at": {
+          "shipment_id": {
             "type": ["string", "null"],
-            "format": "date-time",
-            "description": "When the vehicle was released.",
-            "example": "2026-10-08T14:30:00Z"
+            "format": "uuid",
+            "description": "Identifier of the shipment the vehicle carries.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a GateQueueEntry. Omitted fields are unchanged."
@@ -7191,23 +7202,12 @@
             "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "venue_id": {
+          "entry": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "vehicle_plate": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Vehicle plate.",
-            "example": "FL-ABC123"
-          },
-          "event": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Log event.",
-            "example": "staged"
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "What happened in the yard.",
+            "example": "Staged in lane 2."
           },
           "logged_at": {
             "type": "string",
@@ -7215,12 +7215,23 @@
             "description": "When the event was logged.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "notes": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project whose yard the entry records.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shipment_id": {
             "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Notes.",
-            "example": "Held for the second dock window."
+            "format": "uuid",
+            "description": "Identifier of the shipment concerned.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the yard zone concerned.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -7230,34 +7241,23 @@
           "created_by",
           "updated_at",
           "updated_by",
-          "venue_id",
-          "vehicle_plate",
-          "event",
+          "entry",
           "logged_at",
-          "notes"
+          "project_id",
+          "shipment_id",
+          "zone_id"
         ],
         "description": "A marshalling yard log entry: staging and release."
       },
       "MarshallingLogEntryCreate": {
         "type": "object",
         "properties": {
-          "venue_id": {
+          "entry": {
             "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the venue.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "vehicle_plate": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Vehicle plate.",
-            "example": "FL-ABC123"
-          },
-          "event": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Log event.",
-            "example": "staged"
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "What happened in the yard.",
+            "example": "Staged in lane 2."
           },
           "logged_at": {
             "type": "string",
@@ -7265,15 +7265,26 @@
             "description": "When the event was logged.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "notes": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project whose yard the entry records.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shipment_id": {
             "type": ["string", "null"],
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Notes.",
-            "example": "Held for the second dock window."
+            "format": "uuid",
+            "description": "Identifier of the shipment concerned.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "zone_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the yard zone concerned.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["venue_id", "vehicle_plate", "event", "logged_at"],
+        "required": ["entry", "project_id"],
         "description": "Fields accepted when creating a MarshallingLogEntry."
       },
       "AdvancePacketPage": {
@@ -65503,9 +65514,9 @@
         "x-xos-table": "app.shipments",
         "x-xos-capability": "logistics.shipment.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "x-xos-order": { "by": ["ships_at"], "numeric": false },
         "summary": "List shipment rows",
-        "description": "A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `ships_at` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -65533,11 +65544,13 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "carrier": "Coastal Freight",
-                      "tracking_number": "CF123456789",
+                      "tracking_identifier": "CF123456789",
                       "direction": "inbound",
-                      "shipment_state": "Scheduled",
-                      "expected_at": "2026-10-08T14:30:00Z"
+                      "ships_at": "2026-10-08T14:30:00Z",
+                      "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "freight_type_enum_id": "ENM-041",
+                      "arrives_at": "2026-10-08T14:30:00Z",
+                      "shipment_number": 7
                     }
                   ],
                   "next_cursor": null
@@ -65566,10 +65579,12 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "carrier": "Coastal Freight",
-                "tracking_number": "CF123456789",
+                "tracking_identifier": "CF123456789",
                 "direction": "inbound",
-                "expected_at": "2026-10-08T14:30:00Z"
+                "ships_at": "2026-10-08T14:30:00Z",
+                "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "freight_type_enum_id": "ENM-041",
+                "arrives_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/ShipmentCreate" }
             }
@@ -65594,11 +65609,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "carrier": "Coastal Freight",
-                  "tracking_number": "CF123456789",
+                  "tracking_identifier": "CF123456789",
                   "direction": "inbound",
-                  "shipment_state": "Scheduled",
-                  "expected_at": "2026-10-08T14:30:00Z"
+                  "ships_at": "2026-10-08T14:30:00Z",
+                  "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "freight_type_enum_id": "ENM-041",
+                  "arrives_at": "2026-10-08T14:30:00Z",
+                  "shipment_number": 7
                 },
                 "schema": { "$ref": "#/components/schemas/Shipment" }
               }
@@ -65655,11 +65672,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "carrier": "Coastal Freight",
-                  "tracking_number": "CF123456789",
+                  "tracking_identifier": "CF123456789",
                   "direction": "inbound",
-                  "shipment_state": "Scheduled",
-                  "expected_at": "2026-10-08T14:30:00Z"
+                  "ships_at": "2026-10-08T14:30:00Z",
+                  "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "freight_type_enum_id": "ENM-041",
+                  "arrives_at": "2026-10-08T14:30:00Z",
+                  "shipment_number": 7
                 },
                 "schema": { "$ref": "#/components/schemas/Shipment" }
               }
@@ -65699,10 +65718,12 @@
           "content": {
             "application/json": {
               "example": {
-                "carrier": "Coastal Freight",
-                "tracking_number": "CF123456789",
+                "tracking_identifier": "CF123456789",
                 "direction": "inbound",
-                "expected_at": "2026-10-08T14:30:00Z"
+                "ships_at": "2026-10-08T14:30:00Z",
+                "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "freight_type_enum_id": "ENM-041",
+                "arrives_at": "2026-10-08T14:30:00Z"
               },
               "schema": { "$ref": "#/components/schemas/ShipmentUpdate" }
             }
@@ -65727,11 +65748,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "carrier": "Coastal Freight",
-                  "tracking_number": "CF123456789",
+                  "tracking_identifier": "CF123456789",
                   "direction": "inbound",
-                  "shipment_state": "Scheduled",
-                  "expected_at": "2026-10-08T14:30:00Z"
+                  "ships_at": "2026-10-08T14:30:00Z",
+                  "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "freight_type_enum_id": "ENM-041",
+                  "arrives_at": "2026-10-08T14:30:00Z",
+                  "shipment_number": 7
                 },
                 "schema": { "$ref": "#/components/schemas/Shipment" }
               }
@@ -65777,81 +65800,6 @@
         }
       }
     },
-    "/shipments/{id}/transitions": {
-      "post": {
-        "operationId": "shipments.transition",
-        "tags": ["Logistics"],
-        "x-xos-table": "app.shipments",
-        "x-xos-capability": "logistics.shipment.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["logistics"] }],
-        "summary": "Transition the shipment state",
-        "description": "Moves the shipment lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the shipment.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the shipment.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "expected_state": "Scheduled",
-                "to_state": "Active",
-                "reason": "Client approved the revised scope."
-              },
-              "schema": { "$ref": "#/components/schemas/ShipmentTransitionRequest" }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "The result.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "carrier": "Coastal Freight",
-                  "tracking_number": "CF123456789",
-                  "direction": "inbound",
-                  "shipment_state": "Scheduled",
-                  "expected_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/Shipment" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/shipment-lines": {
       "get": {
         "operationId": "shipmentLines.list",
@@ -65891,8 +65839,7 @@
                       "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "description": "Truss sections, 10 ft",
                       "quantity": 24,
-                      "unit": "each",
-                      "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "element_id": "4000.01.01-XPMS-001"
                     }
                   ],
                   "next_cursor": null
@@ -65923,8 +65870,7 @@
                 "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "description": "Truss sections, 10 ft",
                 "quantity": 24,
-                "unit": "each",
-                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "element_id": "4000.01.01-XPMS-001"
               },
               "schema": { "$ref": "#/components/schemas/ShipmentLineCreate" }
             }
@@ -65951,8 +65897,7 @@
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Truss sections, 10 ft",
                   "quantity": 24,
-                  "unit": "each",
-                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "element_id": "4000.01.01-XPMS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/ShipmentLine" }
               }
@@ -66011,8 +65956,7 @@
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Truss sections, 10 ft",
                   "quantity": 24,
-                  "unit": "each",
-                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "element_id": "4000.01.01-XPMS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/ShipmentLine" }
               }
@@ -66054,8 +65998,7 @@
               "example": {
                 "description": "Truss sections, 10 ft",
                 "quantity": 24,
-                "unit": "each",
-                "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "element_id": "4000.01.01-XPMS-001"
               },
               "schema": { "$ref": "#/components/schemas/ShipmentLineUpdate" }
             }
@@ -66082,8 +66025,7 @@
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Truss sections, 10 ft",
                   "quantity": 24,
-                  "unit": "each",
-                  "asset_class_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "element_id": "4000.01.01-XPMS-001"
                 },
                 "schema": { "$ref": "#/components/schemas/ShipmentLine" }
               }
@@ -66165,12 +66107,13 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "starts_at": "2026-10-08T14:30:00Z",
                       "ends_at": "2026-10-08T14:30:00Z",
-                      "dock": "D2",
-                      "checked_in_at": "2026-10-08T14:30:00Z"
+                      "checked_in_at": "2026-10-08T14:30:00Z",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -66198,11 +66141,11 @@
           "content": {
             "application/json": {
               "example": {
-                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "starts_at": "2026-10-08T14:30:00Z",
                 "ends_at": "2026-10-08T14:30:00Z",
-                "dock": "D2"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/DockSlotCreate" }
             }
@@ -66226,12 +66169,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "dock": "D2",
-                  "checked_in_at": "2026-10-08T14:30:00Z"
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DockSlot" }
               }
@@ -66287,12 +66231,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "dock": "D2",
-                  "checked_in_at": "2026-10-08T14:30:00Z"
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DockSlot" }
               }
@@ -66335,7 +66280,7 @@
                 "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "starts_at": "2026-10-08T14:30:00Z",
                 "ends_at": "2026-10-08T14:30:00Z",
-                "dock": "D2"
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/DockSlotUpdate" }
             }
@@ -66359,12 +66304,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "dock": "D2",
-                  "checked_in_at": "2026-10-08T14:30:00Z"
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DockSlot" }
               }
@@ -66452,12 +66398,13 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "starts_at": "2026-10-08T14:30:00Z",
                   "ends_at": "2026-10-08T14:30:00Z",
-                  "dock": "D2",
-                  "checked_in_at": "2026-10-08T14:30:00Z"
+                  "checked_in_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "checked_in_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/DockSlot" }
               }
@@ -66508,11 +66455,12 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "vehicle_plate": "FL-ABC123",
+                      "vehicle_identifier": "FL TRK-2231",
                       "arrived_at": "2026-10-08T14:30:00Z",
-                      "released_at": "2026-10-08T14:30:00Z"
+                      "released_at": "2026-10-08T14:30:00Z",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -66540,11 +66488,10 @@
           "content": {
             "application/json": {
               "example": {
-                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "vehicle_plate": "FL-ABC123",
+                "vehicle_identifier": "FL TRK-2231",
                 "arrived_at": "2026-10-08T14:30:00Z",
-                "released_at": "2026-10-08T14:30:00Z"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/GateQueueEntryCreate" }
             }
@@ -66568,11 +66515,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "vehicle_plate": "FL-ABC123",
+                  "vehicle_identifier": "FL TRK-2231",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "released_at": "2026-10-08T14:30:00Z"
+                  "released_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66628,11 +66576,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "vehicle_plate": "FL-ABC123",
+                  "vehicle_identifier": "FL TRK-2231",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "released_at": "2026-10-08T14:30:00Z"
+                  "released_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66672,10 +66621,9 @@
           "content": {
             "application/json": {
               "example": {
-                "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "vehicle_plate": "FL-ABC123",
+                "vehicle_identifier": "FL TRK-2231",
                 "arrived_at": "2026-10-08T14:30:00Z",
-                "released_at": "2026-10-08T14:30:00Z"
+                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/GateQueueEntryUpdate" }
             }
@@ -66699,11 +66647,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "vehicle_plate": "FL-ABC123",
+                  "vehicle_identifier": "FL TRK-2231",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "released_at": "2026-10-08T14:30:00Z"
+                  "released_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66761,11 +66710,12 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "dock_slot_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "vehicle_plate": "FL-ABC123",
+                  "vehicle_identifier": "FL TRK-2231",
                   "arrived_at": "2026-10-08T14:30:00Z",
-                  "released_at": "2026-10-08T14:30:00Z"
+                  "released_at": "2026-10-08T14:30:00Z",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66816,11 +66766,11 @@
                       "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "vehicle_plate": "FL-ABC123",
-                      "event": "staged",
+                      "entry": "Staged in lane 2.",
                       "logged_at": "2026-10-08T14:30:00Z",
-                      "notes": "Held for the second dock window."
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -66848,11 +66798,11 @@
           "content": {
             "application/json": {
               "example": {
-                "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "vehicle_plate": "FL-ABC123",
-                "event": "staged",
+                "entry": "Staged in lane 2.",
                 "logged_at": "2026-10-08T14:30:00Z",
-                "notes": "Held for the second dock window."
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/MarshallingLogEntryCreate" }
             }
@@ -66876,11 +66826,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "vehicle_plate": "FL-ABC123",
-                  "event": "staged",
+                  "entry": "Staged in lane 2.",
                   "logged_at": "2026-10-08T14:30:00Z",
-                  "notes": "Held for the second dock window."
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/MarshallingLogEntry" }
               }
@@ -66936,11 +66886,11 @@
                   "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "vehicle_plate": "FL-ABC123",
-                  "event": "staged",
+                  "entry": "Staged in lane 2.",
                   "logged_at": "2026-10-08T14:30:00Z",
-                  "notes": "Held for the second dock window."
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/MarshallingLogEntry" }
               }

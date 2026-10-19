@@ -4669,30 +4669,40 @@ export interface Shipment {
    */
   readonly project_id: string;
   /**
-   * Carrier name.
-   * Length: 1 to 300.
-   */
-  readonly carrier: string;
-  /**
    * Carrier tracking identifier.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly tracking_number: string | null;
+  readonly tracking_identifier: string | null;
   /**
    * Inbound or outbound.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly direction: string;
   /**
-   * Shipment state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly shipment_state: string;
-  /**
    * Expected arrival or departure.
    * Format: `date-time`.
    */
-  readonly expected_at: string;
+  readonly ships_at: string | null;
+  /**
+   * Identifier of the carrier, as a counterparty of the org.
+   * Format: `uuid`.
+   */
+  readonly carrier_counterparty_id: string | null;
+  /**
+   * Canon freight type, from xpms.std_enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly freight_type_enum_id: string | null;
+  /**
+   * When the shipment is due to arrive.
+   * Format: `date-time`.
+   */
+  readonly arrives_at: string | null;
+  /**
+   * Number within the project; the display key is {project_key}-{shipment_number}.
+   * Range: 1 to unbounded.
+   */
+  readonly shipment_number: number;
 }
 
 /**
@@ -4705,15 +4715,10 @@ export interface ShipmentCreate {
    */
   readonly project_id: string;
   /**
-   * Carrier name.
-   * Length: 1 to 300.
-   */
-  readonly carrier: string;
-  /**
    * Carrier tracking identifier.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly tracking_number?: string | null;
+  readonly tracking_identifier?: string | null;
   /**
    * Inbound or outbound.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -4723,7 +4728,22 @@ export interface ShipmentCreate {
    * Expected arrival or departure.
    * Format: `date-time`.
    */
-  readonly expected_at: string;
+  readonly ships_at?: string | null;
+  /**
+   * Identifier of the carrier, as a counterparty of the org.
+   * Format: `uuid`.
+   */
+  readonly carrier_counterparty_id?: string | null;
+  /**
+   * Canon freight type, from xpms.std_enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly freight_type_enum_id?: string | null;
+  /**
+   * When the shipment is due to arrive.
+   * Format: `date-time`.
+   */
+  readonly arrives_at?: string | null;
 }
 
 /**
@@ -4731,15 +4751,10 @@ export interface ShipmentCreate {
  */
 export interface ShipmentUpdate {
   /**
-   * Carrier name.
-   * Length: 1 to 300.
-   */
-  readonly carrier?: string;
-  /**
    * Carrier tracking identifier.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly tracking_number?: string | null;
+  readonly tracking_identifier?: string | null;
   /**
    * Inbound or outbound.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
@@ -4749,28 +4764,22 @@ export interface ShipmentUpdate {
    * Expected arrival or departure.
    * Format: `date-time`.
    */
-  readonly expected_at?: string;
-}
-
-/**
- * Request to move a lifecycle to another state.
- */
-export interface ShipmentTransitionRequest {
+  readonly ships_at?: string | null;
   /**
-   * The state the caller believes the row is in (compare-and-set).
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   * Identifier of the carrier, as a counterparty of the org.
+   * Format: `uuid`.
    */
-  readonly expected_state: string;
+  readonly carrier_counterparty_id?: string | null;
   /**
-   * Target state.
-   * Pattern: `^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$`.
+   * Canon freight type, from xpms.std_enumeration.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly to_state: string;
+  readonly freight_type_enum_id?: string | null;
   /**
-   * Reason, required by some transitions.
-   * Length: 1 to unbounded.
+   * When the shipment is due to arrive.
+   * Format: `date-time`.
    */
-  readonly reason?: string;
+  readonly arrives_at?: string | null;
 }
 
 /**
@@ -4835,12 +4844,11 @@ export interface ShipmentLine {
    * Quantity.
    */
   readonly quantity: number;
-  readonly unit: UnitCode;
   /**
-   * Identifier of the asset class.
-   * Format: `uuid`.
+   * Canon element carried.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly asset_class_id: string | null;
+  readonly element_id: string | null;
 }
 
 /**
@@ -4860,13 +4868,12 @@ export interface ShipmentLineCreate {
   /**
    * Quantity.
    */
-  readonly quantity: number;
-  readonly unit: UnitCode;
+  readonly quantity?: number;
   /**
-   * Identifier of the asset class.
-   * Format: `uuid`.
+   * Canon element carried.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly asset_class_id?: string | null;
+  readonly element_id?: string | null;
 }
 
 /**
@@ -4882,12 +4889,11 @@ export interface ShipmentLineUpdate {
    * Quantity.
    */
   readonly quantity?: number;
-  readonly unit?: UnitCode;
   /**
-   * Identifier of the asset class.
-   * Format: `uuid`.
+   * Canon element carried.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly asset_class_id?: string | null;
+  readonly element_id?: string | null;
 }
 
 /**
@@ -4939,11 +4945,6 @@ export interface DockSlot {
    */
   readonly updated_by: string | null;
   /**
-   * Identifier of the venue.
-   * Format: `uuid`.
-   */
-  readonly venue_id: string;
-  /**
    * Identifier of the shipment.
    * Format: `uuid`.
    */
@@ -4959,26 +4960,31 @@ export interface DockSlot {
    */
   readonly ends_at: string;
   /**
-   * Dock door.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly dock: string;
-  /**
    * When the vehicle checked in.
    * Format: `date-time`.
    */
   readonly checked_in_at: string | null;
+  /**
+   * Identifier of the project whose site the dock is at.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the loading dock zone of the project.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
+  /**
+   * Identifier of the person who checked the shipment in.
+   * Format: `uuid`.
+   */
+  readonly checked_in_by: string | null;
 }
 
 /**
  * Fields accepted when creating a DockSlot.
  */
 export interface DockSlotCreate {
-  /**
-   * Identifier of the venue.
-   * Format: `uuid`.
-   */
-  readonly venue_id: string;
   /**
    * Identifier of the shipment.
    * Format: `uuid`.
@@ -4995,10 +5001,15 @@ export interface DockSlotCreate {
    */
   readonly ends_at: string;
   /**
-   * Dock door.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Identifier of the project whose site the dock is at.
+   * Format: `uuid`.
    */
-  readonly dock: string;
+  readonly project_id: string;
+  /**
+   * Identifier of the loading dock zone of the project.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string;
 }
 
 /**
@@ -5021,10 +5032,10 @@ export interface DockSlotUpdate {
    */
   readonly ends_at?: string;
   /**
-   * Dock door.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   * Identifier of the loading dock zone of the project.
+   * Format: `uuid`.
    */
-  readonly dock?: string;
+  readonly zone_id?: string;
 }
 
 /**
@@ -5076,20 +5087,10 @@ export interface GateQueueEntry {
    */
   readonly updated_by: string | null;
   /**
-   * Identifier of the venue.
-   * Format: `uuid`.
+   * Plate or trailer number as written.
+   * Length: 1 to 100.
    */
-  readonly venue_id: string;
-  /**
-   * Identifier of the dock slot.
-   * Format: `uuid`.
-   */
-  readonly dock_slot_id: string | null;
-  /**
-   * Vehicle plate.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly vehicle_plate: string;
+  readonly vehicle_identifier: string;
   /**
    * When the vehicle arrived.
    * Format: `date-time`.
@@ -5100,6 +5101,21 @@ export interface GateQueueEntry {
    * Format: `date-time`.
    */
   readonly released_at: string | null;
+  /**
+   * Identifier of the project whose site the gate is at.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the shipment the vehicle carries.
+   * Format: `uuid`.
+   */
+  readonly shipment_id: string | null;
+  /**
+   * Identifier of the person who released the vehicle.
+   * Format: `uuid`.
+   */
+  readonly released_by: string | null;
 }
 
 /**
@@ -5107,30 +5123,25 @@ export interface GateQueueEntry {
  */
 export interface GateQueueEntryCreate {
   /**
-   * Identifier of the venue.
-   * Format: `uuid`.
+   * Plate or trailer number as written.
+   * Length: 1 to 100.
    */
-  readonly venue_id: string;
-  /**
-   * Identifier of the dock slot.
-   * Format: `uuid`.
-   */
-  readonly dock_slot_id?: string | null;
-  /**
-   * Vehicle plate.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly vehicle_plate: string;
+  readonly vehicle_identifier: string;
   /**
    * When the vehicle arrived.
    * Format: `date-time`.
    */
-  readonly arrived_at: string;
+  readonly arrived_at?: string;
   /**
-   * When the vehicle was released.
-   * Format: `date-time`.
+   * Identifier of the project whose site the gate is at.
+   * Format: `uuid`.
    */
-  readonly released_at?: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the shipment the vehicle carries.
+   * Format: `uuid`.
+   */
+  readonly shipment_id?: string | null;
 }
 
 /**
@@ -5138,25 +5149,20 @@ export interface GateQueueEntryCreate {
  */
 export interface GateQueueEntryUpdate {
   /**
-   * Identifier of the dock slot.
-   * Format: `uuid`.
+   * Plate or trailer number as written.
+   * Length: 1 to 100.
    */
-  readonly dock_slot_id?: string | null;
-  /**
-   * Vehicle plate.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly vehicle_plate?: string;
+  readonly vehicle_identifier?: string;
   /**
    * When the vehicle arrived.
    * Format: `date-time`.
    */
   readonly arrived_at?: string;
   /**
-   * When the vehicle was released.
-   * Format: `date-time`.
+   * Identifier of the shipment the vehicle carries.
+   * Format: `uuid`.
    */
-  readonly released_at?: string | null;
+  readonly shipment_id?: string | null;
 }
 
 /**
@@ -5208,30 +5214,30 @@ export interface MarshallingLogEntry {
    */
   readonly updated_by: string | null;
   /**
-   * Identifier of the venue.
-   * Format: `uuid`.
+   * What happened in the yard.
+   * Length: 1 to 1000.
    */
-  readonly venue_id: string;
-  /**
-   * Vehicle plate.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly vehicle_plate: string;
-  /**
-   * Log event.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly event: string;
+  readonly entry: string;
   /**
    * When the event was logged.
    * Format: `date-time`.
    */
   readonly logged_at: string;
   /**
-   * Notes.
-   * Length: 1 to 20000.
+   * Identifier of the project whose yard the entry records.
+   * Format: `uuid`.
    */
-  readonly notes: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the shipment concerned.
+   * Format: `uuid`.
+   */
+  readonly shipment_id: string | null;
+  /**
+   * Identifier of the yard zone concerned.
+   * Format: `uuid`.
+   */
+  readonly zone_id: string | null;
 }
 
 /**
@@ -5239,30 +5245,30 @@ export interface MarshallingLogEntry {
  */
 export interface MarshallingLogEntryCreate {
   /**
-   * Identifier of the venue.
-   * Format: `uuid`.
+   * What happened in the yard.
+   * Length: 1 to 1000.
    */
-  readonly venue_id: string;
-  /**
-   * Vehicle plate.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly vehicle_plate: string;
-  /**
-   * Log event.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly event: string;
+  readonly entry: string;
   /**
    * When the event was logged.
    * Format: `date-time`.
    */
-  readonly logged_at: string;
+  readonly logged_at?: string;
   /**
-   * Notes.
-   * Length: 1 to 20000.
+   * Identifier of the project whose yard the entry records.
+   * Format: `uuid`.
    */
-  readonly notes?: string | null;
+  readonly project_id: string;
+  /**
+   * Identifier of the shipment concerned.
+   * Format: `uuid`.
+   */
+  readonly shipment_id?: string | null;
+  /**
+   * Identifier of the yard zone concerned.
+   * Format: `uuid`.
+   */
+  readonly zone_id?: string | null;
 }
 
 /**

@@ -806,7 +806,6 @@ import type {
   ShipmentLine,
   ShipmentLineCreate,
   ShipmentLineUpdate,
-  ShipmentTransitionRequest,
   ShipmentUpdate,
   Shortlist,
   ShortlistCreate,
@@ -4817,7 +4816,7 @@ export class ShipmentsResource extends $Resource {
   /**
    * List shipment rows
    *
-   * A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `ships_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /shipments` (operation `shipments.list`).
    * Requires the capability `logistics.shipment.read`.
@@ -4833,7 +4832,7 @@ export class ShipmentsResource extends $Resource {
   /**
    * List shipment rows
    *
-   * A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   * A shipment into or out of a venue. Returns a cursor page of shipment rows the caller may see. The default order is `ships_at` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -4915,26 +4914,6 @@ export class ShipmentsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["shipments.delete"],
       { path: { id } },
-      options,
-    );
-  }
-
-  /**
-   * Transition the shipment state
-   *
-   * Moves the shipment lifecycle to another state through its transition RPC, which writes the transition ledger. Uses compare-and-set on `expected_state`; a disallowed transition returns a 422 refusal. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
-   *
-   * `POST /shipments/{id}/transitions` (operation `shipments.transition`).
-   * Requires the capability `logistics.shipment.write`.
-   */
-  transition(
-    id: string,
-    body: ShipmentTransitionRequest,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<Shipment>> {
-    return this.client.request<Shipment>(
-      $OPERATIONS["shipments.transition"],
-      { path: { id }, body },
       options,
     );
   }

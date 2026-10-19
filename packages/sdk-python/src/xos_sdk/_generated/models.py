@@ -172,7 +172,6 @@ __all__ = [
     "Shipment",
     "ShipmentCreate",
     "ShipmentUpdate",
-    "ShipmentTransitionRequest",
     "ShipmentLinePage",
     "ShipmentLine",
     "ShipmentLineCreate",
@@ -3783,61 +3782,59 @@ class Shipment(TypedDict):
     updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Carrier name.
-    carrier: str
     #: Carrier tracking identifier.
-    tracking_number: Optional[str]
+    tracking_identifier: Optional[str]
     #: Inbound or outbound.
     direction: str
-    #: Shipment state. A Title Case value from the lifecycle's database enum.
-    shipment_state: str
     #: Expected arrival or departure.
-    expected_at: str
+    ships_at: Optional[str]
+    #: Identifier of the carrier, as a counterparty of the org.
+    carrier_counterparty_id: Optional[str]
+    #: Canon freight type, from xpms.std_enumeration.
+    freight_type_enum_id: Optional[str]
+    #: When the shipment is due to arrive.
+    arrives_at: Optional[str]
+    #: Number within the project; the display key is {project_key}-{shipment_number}.
+    shipment_number: int
 
 
 class _ShipmentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Carrier name.
-    carrier: str
     #: Inbound or outbound.
     direction: str
-    #: Expected arrival or departure.
-    expected_at: str
 
 
 class ShipmentCreate(_ShipmentCreateRequired, total=False):
     """Fields accepted when creating a Shipment."""
 
     #: Carrier tracking identifier.
-    tracking_number: Optional[str]
+    tracking_identifier: Optional[str]
+    #: Expected arrival or departure.
+    ships_at: Optional[str]
+    #: Identifier of the carrier, as a counterparty of the org.
+    carrier_counterparty_id: Optional[str]
+    #: Canon freight type, from xpms.std_enumeration.
+    freight_type_enum_id: Optional[str]
+    #: When the shipment is due to arrive.
+    arrives_at: Optional[str]
 
 
 class ShipmentUpdate(TypedDict, total=False):
     """Fields accepted when updating a Shipment. Omitted fields are unchanged."""
 
-    #: Carrier name.
-    carrier: str
     #: Carrier tracking identifier.
-    tracking_number: Optional[str]
+    tracking_identifier: Optional[str]
     #: Inbound or outbound.
     direction: str
     #: Expected arrival or departure.
-    expected_at: str
-
-
-class _ShipmentTransitionRequestRequired(TypedDict):
-    #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
-    #: Target state.
-    to_state: str
-
-
-class ShipmentTransitionRequest(_ShipmentTransitionRequestRequired, total=False):
-    """Request to move a lifecycle to another state."""
-
-    #: Reason, required by some transitions.
-    reason: str
+    ships_at: Optional[str]
+    #: Identifier of the carrier, as a counterparty of the org.
+    carrier_counterparty_id: Optional[str]
+    #: Canon freight type, from xpms.std_enumeration.
+    freight_type_enum_id: Optional[str]
+    #: When the shipment is due to arrive.
+    arrives_at: Optional[str]
 
 
 class ShipmentLinePage(TypedDict):
@@ -3870,9 +3867,8 @@ class ShipmentLine(TypedDict):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
-    #: Identifier of the asset class.
-    asset_class_id: Optional[str]
+    #: Canon element carried.
+    element_id: Optional[str]
 
 
 class _ShipmentLineCreateRequired(TypedDict):
@@ -3880,16 +3876,15 @@ class _ShipmentLineCreateRequired(TypedDict):
     shipment_id: str
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: float
-    unit: UnitCode
 
 
 class ShipmentLineCreate(_ShipmentLineCreateRequired, total=False):
     """Fields accepted when creating a ShipmentLine."""
 
-    #: Identifier of the asset class.
-    asset_class_id: Optional[str]
+    #: Quantity.
+    quantity: float
+    #: Canon element carried.
+    element_id: Optional[str]
 
 
 class ShipmentLineUpdate(TypedDict, total=False):
@@ -3899,9 +3894,8 @@ class ShipmentLineUpdate(TypedDict, total=False):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
-    #: Identifier of the asset class.
-    asset_class_id: Optional[str]
+    #: Canon element carried.
+    element_id: Optional[str]
 
 
 class DockSlotPage(TypedDict):
@@ -3928,29 +3922,31 @@ class DockSlot(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    #: Identifier of the venue.
-    venue_id: str
     #: Identifier of the shipment.
     shipment_id: Optional[str]
     #: Slot start.
     starts_at: str
     #: Slot end.
     ends_at: str
-    #: Dock door.
-    dock: str
     #: When the vehicle checked in.
     checked_in_at: Optional[str]
+    #: Identifier of the project whose site the dock is at.
+    project_id: str
+    #: Identifier of the loading dock zone of the project.
+    zone_id: str
+    #: Identifier of the person who checked the shipment in.
+    checked_in_by: Optional[str]
 
 
 class _DockSlotCreateRequired(TypedDict):
-    #: Identifier of the venue.
-    venue_id: str
     #: Slot start.
     starts_at: str
     #: Slot end.
     ends_at: str
-    #: Dock door.
-    dock: str
+    #: Identifier of the project whose site the dock is at.
+    project_id: str
+    #: Identifier of the loading dock zone of the project.
+    zone_id: str
 
 
 class DockSlotCreate(_DockSlotCreateRequired, total=False):
@@ -3969,8 +3965,8 @@ class DockSlotUpdate(TypedDict, total=False):
     starts_at: str
     #: Slot end.
     ends_at: str
-    #: Dock door.
-    dock: str
+    #: Identifier of the loading dock zone of the project.
+    zone_id: str
 
 
 class GateQueueEntryPage(TypedDict):
@@ -3997,47 +3993,45 @@ class GateQueueEntry(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    #: Identifier of the venue.
-    venue_id: str
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
-    #: Vehicle plate.
-    vehicle_plate: str
+    #: Plate or trailer number as written.
+    vehicle_identifier: str
     #: When the vehicle arrived.
     arrived_at: str
     #: When the vehicle was released.
     released_at: Optional[str]
+    #: Identifier of the project whose site the gate is at.
+    project_id: str
+    #: Identifier of the shipment the vehicle carries.
+    shipment_id: Optional[str]
+    #: Identifier of the person who released the vehicle.
+    released_by: Optional[str]
 
 
 class _GateQueueEntryCreateRequired(TypedDict):
-    #: Identifier of the venue.
-    venue_id: str
-    #: Vehicle plate.
-    vehicle_plate: str
-    #: When the vehicle arrived.
-    arrived_at: str
+    #: Plate or trailer number as written.
+    vehicle_identifier: str
+    #: Identifier of the project whose site the gate is at.
+    project_id: str
 
 
 class GateQueueEntryCreate(_GateQueueEntryCreateRequired, total=False):
     """Fields accepted when creating a GateQueueEntry."""
 
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
-    #: When the vehicle was released.
-    released_at: Optional[str]
+    #: When the vehicle arrived.
+    arrived_at: str
+    #: Identifier of the shipment the vehicle carries.
+    shipment_id: Optional[str]
 
 
 class GateQueueEntryUpdate(TypedDict, total=False):
     """Fields accepted when updating a GateQueueEntry. Omitted fields are unchanged."""
 
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
-    #: Vehicle plate.
-    vehicle_plate: str
+    #: Plate or trailer number as written.
+    vehicle_identifier: str
     #: When the vehicle arrived.
     arrived_at: str
-    #: When the vehicle was released.
-    released_at: Optional[str]
+    #: Identifier of the shipment the vehicle carries.
+    shipment_id: Optional[str]
 
 
 class MarshallingLogEntryPage(TypedDict):
@@ -4064,34 +4058,34 @@ class MarshallingLogEntry(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    #: Identifier of the venue.
-    venue_id: str
-    #: Vehicle plate.
-    vehicle_plate: str
-    #: Log event.
-    event: str
+    #: What happened in the yard.
+    entry: str
     #: When the event was logged.
     logged_at: str
-    #: Notes.
-    notes: Optional[str]
+    #: Identifier of the project whose yard the entry records.
+    project_id: str
+    #: Identifier of the shipment concerned.
+    shipment_id: Optional[str]
+    #: Identifier of the yard zone concerned.
+    zone_id: Optional[str]
 
 
 class _MarshallingLogEntryCreateRequired(TypedDict):
-    #: Identifier of the venue.
-    venue_id: str
-    #: Vehicle plate.
-    vehicle_plate: str
-    #: Log event.
-    event: str
-    #: When the event was logged.
-    logged_at: str
+    #: What happened in the yard.
+    entry: str
+    #: Identifier of the project whose yard the entry records.
+    project_id: str
 
 
 class MarshallingLogEntryCreate(_MarshallingLogEntryCreateRequired, total=False):
     """Fields accepted when creating a MarshallingLogEntry."""
 
-    #: Notes.
-    notes: Optional[str]
+    #: When the event was logged.
+    logged_at: str
+    #: Identifier of the shipment concerned.
+    shipment_id: Optional[str]
+    #: Identifier of the yard zone concerned.
+    zone_id: Optional[str]
 
 
 class AdvancePacketPage(TypedDict):

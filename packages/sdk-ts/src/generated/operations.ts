@@ -178,7 +178,6 @@ export type OperationId =
   | "shipments.get"
   | "shipments.update"
   | "shipments.delete"
-  | "shipments.transition"
   | "shipmentLines.list"
   | "shipmentLines.create"
   | "shipmentLines.get"
@@ -5495,29 +5494,6 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Logistics",
     summary: "Delete a shipment",
-    capability: "logistics.shipment.write",
-    scopes: ["logistics"],
-  },
-  "shipments.transition": {
-    id: "shipments.transition",
-    resource: "shipments",
-    verb: "transition",
-    method: "POST",
-    path: "/shipments/{id}/transitions",
-    pathParams: ["id"],
-    queryParams: [],
-    requiredQueryParams: [],
-    paged: false,
-    fields: false,
-    idempotent: true,
-    ifMatch: false,
-    body: "ShipmentTransitionRequest",
-    bodyRequired: true,
-    successStatus: 200,
-    response: "Shipment",
-    item: null,
-    tag: "Logistics",
-    summary: "Transition the shipment state",
     capability: "logistics.shipment.write",
     scopes: ["logistics"],
   },
@@ -37527,7 +37503,6 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "shipments.get",
       "shipments.update",
       "shipments.delete",
-      "shipments.transition",
     ],
   },
   {

@@ -1,39 +1,53 @@
 /**
- * Logistics handlers (A11, RRR-23). Add one entry per operationId of the Logistics module;
- * operations left out stay document-only. See "Adding handlers" in packages/api/README.md.
- *
- * The frozen v1 contract describes shipments, dock slots, the gate queue and the marshalling log
- * with fields the schema does not hold (a carrier name instead of a counterparty, shipment states,
- * venue and dock names instead of a project and zone, vehicle plates on the log). Until A04C's
- * contract corrections land, only the deletes, whose shape the contract and schema share, are
- * served; every other Logistics operation stays document-only rather than answer with invented
- * fields.
+ * Logistics handlers (A11 schema, A50 handlers). Shipments, their lines, dock slots, the gate queue
+ * and the marshalling log are tables read and written as the caller in the shapes corrected in
+ * catalog/modules/logistics.ts (ADR 0023), so row level security and the guards decide every
+ * refusal. Dock check-in and gate release set their stamp column and the database stamps it once,
+ * with its own time and the session person (guard_dock_check_in, guard_gate_release); the release
+ * needs logistics.release.approve. The marshalling log is append-only.
  */
-import type { XosClient } from "@xos/data";
-import { notFound } from "../problem.ts";
-import { defineHandlers, noContent } from "../runtime/handler.ts";
+import { checkInDockSlot, releaseVehicle } from "@xos/data/logistics";
+import { refused } from "../problem.ts";
+import { defineHandlers, ok } from "../runtime/handler.ts";
+import type { HandlerSet } from "../runtime/handler.ts";
+import { tableResource, unwrap } from "./support/table.ts";
 
-type SoftDeletable = "shipments" | "shipment_lines" | "dock_slots";
+const shipments = tableResource("shipments");
+const shipmentLines = tableResource("shipmentLines");
+const dockSlots = tableResource("dockSlots");
+const gateQueue = tableResource("gateQueueEntries");
+const marshallingLog = tableResource("marshallingLogEntries");
 
-/** Moves a row to Trash (deleted_at), restorable for its retention period; 404 when not visible. */
-async function softDelete(db: XosClient, table: SoftDeletable, id: string, label: string) {
-  const { data, error } = await db
-    .from(table)
-    .update({ deleted_at: new Date().toISOString() })
-    .eq("id", id)
-    .is("deleted_at", null)
-    .select("id")
-    .maybeSingle();
-  if (error !== null) throw error;
-  if (data === null) throw notFound(`No ${label} with id ${id} is visible to you.`);
-  return noContent();
-}
+const tables = {
+  ...shipments.handlers,
+  ...shipmentLines.handlers,
+  ...dockSlots.handlers,
+  ...gateQueue.handlers,
+  ...marshallingLog.handlers,
+} as unknown as HandlerSet<"Logistics">;
 
 export const handlers = defineHandlers("Logistics", {
-  "shipments.delete": async ({ params }, { db }) =>
-    softDelete(db, "shipments", params.id, "shipment"),
-  "shipmentLines.delete": async ({ params }, { db }) =>
-    softDelete(db, "shipment_lines", params.id, "shipment line"),
-  "dockSlots.delete": async ({ params }, { db }) =>
-    softDelete(db, "dock_slots", params.id, "dock slot"),
+  ...tables,
+
+  "dockSlots.checkIn": async ({ params }, context) => {
+    const slot = await dockSlots.read(context, params.id, ["id", "checked_in_at"]);
+    if (slot["checked_in_at"] !== null) {
+      throw refused(
+        "REFUSE",
+        "The shipment is already checked in at this dock slot.",
+        "dock_slot_checked_in",
+      );
+    }
+    unwrap(await checkInDockSlot(context.db, params.id));
+    return ok((await dockSlots.read(context, params.id)) as never);
+  },
+
+  "gateQueueEntries.release": async ({ params }, context) => {
+    const entry = await gateQueue.read(context, params.id, ["id", "released_at"]);
+    if (entry["released_at"] !== null) {
+      throw refused("REFUSE", "The vehicle is already released into the site.", "vehicle_released");
+    }
+    unwrap(await releaseVehicle(context.db, params.id));
+    return ok((await gateQueue.read(context, params.id)) as never);
+  },
 });
