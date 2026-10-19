@@ -34162,33 +34162,56 @@ function parseClamdReply(reply) {
     };
   throw new ScannerUnavailableError(`clamd gave no verdict: ${text.slice(0, 200)}`);
 }
+/** Rejects after `ms`, so a clamd that stops answering cannot hold a worker for ever. */
+function withTimeout(work, ms, onTimeout) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      onTimeout();
+      reject(new ScannerUnavailableError(`clamd did not answer within ${ms} ms`));
+    }, ms);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+}
 function clamavScanner(options) {
   const chunkSize = options.chunkSize ?? 65536;
+  const timeoutMs = options.timeoutMs ?? 6e4;
   return {
-    async scan(bytes) {
-      let connection;
-      try {
-        connection = await options.connect();
-      } catch (error) {
-        throw new ScannerUnavailableError("clamd is unreachable", { cause: error });
-      }
-      try {
-        await connection.write(COMMAND);
-        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-          const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
-          await connection.write(lengthPrefix(chunk.length));
-          await connection.write(chunk);
-        }
-        await connection.write(lengthPrefix(0));
-        return parseClamdReply(new TextDecoder().decode(await connection.readReply()));
-      } catch (error) {
-        if (error instanceof ScannerUnavailableError) throw error;
-        throw new ScannerUnavailableError("clamd stopped answering", { cause: error });
-      } finally {
-        connection.close();
-      }
+    scan(bytes) {
+      let open;
+      return withTimeout(
+        scanOnce(bytes, (connection) => {
+          open = connection;
+        }),
+        timeoutMs,
+        () => open?.close(),
+      );
     },
   };
+  async function scanOnce(bytes, opened) {
+    let connection;
+    try {
+      connection = await options.connect();
+    } catch (error) {
+      throw new ScannerUnavailableError("clamd is unreachable", { cause: error });
+    }
+    opened(connection);
+    try {
+      await connection.write(COMMAND);
+      for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+        const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
+        await connection.write(lengthPrefix(chunk.length));
+        await connection.write(chunk);
+      }
+      await connection.write(lengthPrefix(0));
+      return parseClamdReply(new TextDecoder().decode(await connection.readReply()));
+    } catch (error) {
+      if (error instanceof ScannerUnavailableError) throw error;
+      throw new ScannerUnavailableError("clamd stopped answering", { cause: error });
+    } finally {
+      connection.close();
+    }
+  }
 }
 //#endregion
 //#region src/scanning/content.ts
@@ -34296,18 +34319,18 @@ function startsWith(bytes, signature, offset = 0) {
 function ascii(bytes, offset, length) {
   return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
+/**
+ * Text: no NUL byte and almost no control characters in the first 8 KiB. UTF-8 and single-byte
+ * encodings both pass, so a spreadsheet saved as CSV in Windows-1252 is still accepted for import.
+ */
 function looksLikeText(bytes) {
   const sample = bytes.subarray(0, 8192);
-  if (sample.includes(0)) return false;
-  try {
-    new TextDecoder("utf-8", { fatal: true }).decode(
-      sample.length === bytes.length ? sample : bytes,
-    );
-    return true;
-  } catch (error) {
-    if (error instanceof TypeError) return false;
-    throw error;
+  let control = 0;
+  for (const byte of sample) {
+    if (byte === 0) return false;
+    if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 12 && byte !== 13) control += 1;
   }
+  return control * 100 <= sample.length;
 }
 /** The signature families the leading bytes match. */
 function sniffFamilies(bytes) {
@@ -34791,6 +34814,107 @@ function supabaseStorage(client) {
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
     },
   };
+}
+//#endregion
+//#region src/scanning/select.ts
+/**
+ * Chooses the virus scanner from the environment (owner decision 10, ADR 0033).
+ *
+ * - `XOS_CLAMAV_HOST` set: ClamAV (clamd over TCP, INSTREAM) at that host and `XOS_CLAMAV_PORT`
+ *   (default 3310). This is the production scanner: self-hosted `clamav/clamav`, pinned in ADR 0001.
+ * - No host, local development: a pass-through that marks every file clean and logs a warning on
+ *   every file it lets through, so a developer can use uploads without running clamd. Local means
+ *   `SUPABASE_URL` names a loopback or Docker-internal host and `XOS_ENV` is not `production`.
+ * - No host anywhere else: no scanner. The worker must not claim scans, so files stay quarantined
+ *   (Scanning) and attempts are not used up while the scanner is missing (ADR 0026: fail closed).
+ */
+var CLAMAV_DEFAULT_PORT = 3310;
+/** Hosts a local Supabase stack or a developer's machine uses; never a production deployment's. */
+var LOCAL_HOSTS$1 = /* @__PURE__ */ new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "[::1]",
+  "kong",
+  "host.docker.internal",
+]);
+function present(env, name) {
+  const value = env(name)?.trim();
+  return value === void 0 || value === "" ? void 0 : value;
+}
+/** True only for a local development stack: a loopback or Docker-internal SUPABASE_URL. */
+function isLocalDevelopment(env) {
+  if (present(env, "XOS_ENV")?.toLowerCase() === "production") return false;
+  const url = present(env, "SUPABASE_URL");
+  if (url === void 0) return false;
+  let host;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return LOCAL_HOSTS$1.has(host) || host.endsWith(".localhost");
+}
+/** Reads the scanner configuration. Throws on a port that is not a TCP port number. */
+function scannerChoice(env) {
+  const host = present(env, "XOS_CLAMAV_HOST");
+  if (host !== void 0) {
+    const rawPort = present(env, "XOS_CLAMAV_PORT");
+    const port = rawPort === void 0 ? CLAMAV_DEFAULT_PORT : Number(rawPort);
+    if (!Number.isInteger(port) || port < 1 || port > 65535)
+      throw new Error(`XOS_CLAMAV_PORT must be a TCP port number, not ${rawPort ?? ""}.`);
+    return {
+      kind: "clamav",
+      host,
+      port,
+    };
+  }
+  if (isLocalDevelopment(env))
+    return {
+      kind: "pass-through",
+      reason:
+        "XOS_CLAMAV_HOST is not set on a local stack: uploads are marked clean without a virus scan.",
+    };
+  return {
+    kind: "none",
+    reason: "XOS_CLAMAV_HOST is not set: uploads stay quarantined until a scanner is configured.",
+  };
+}
+/**
+ * Development only: lets every file through as clean and warns on each one. `selectVirusScanner`
+ * returns it only for a local stack; nothing else should construct it.
+ */
+function passThroughScanner(warn) {
+  return {
+    async scan(bytes) {
+      warn(
+        `UPLOAD SCAN PASS-THROUGH (local development only): ${bytes.length} bytes marked clean without a virus scan. Set XOS_CLAMAV_HOST to scan with ClamAV.`,
+      );
+      return { clean: true };
+    },
+  };
+}
+/** The scanner for this environment, with the choice that produced it for logs and responses. */
+function selectVirusScanner(options) {
+  const choice = scannerChoice(options.env);
+  switch (choice.kind) {
+    case "clamav":
+      return {
+        choice,
+        scanner: clamavScanner({ connect: () => options.connect(choice.host, choice.port) }),
+      };
+    case "pass-through":
+      options.warn(choice.reason);
+      return {
+        choice,
+        scanner: passThroughScanner(options.warn),
+      };
+    case "none":
+      return {
+        choice,
+        scanner: null,
+      };
+  }
 }
 //#endregion
 //#region ../../infra/observability/src/redact.ts
@@ -37016,6 +37140,7 @@ var planRegistry = parsePlanRegistry(plans_default);
 export {
   ATTACHMENT_SCAN_JOB,
   BillingNotConfiguredError,
+  CLAMAV_DEFAULT_PORT,
   MAX_SCAN_ATTEMPTS,
   PUNCH_KINDS,
   PlatformDbError,
@@ -37046,6 +37171,7 @@ export {
   identityFromEnv,
   inboundStore,
   internalErrorResponse,
+  isLocalDevelopment,
   isPublicAddress,
   isTestKey,
   kioskPunch,
@@ -37056,6 +37182,7 @@ export {
   observe,
   observeEdgeFunction,
   parseClamdReply,
+  passThroughScanner,
   planForLookupKey,
   planRegistry,
   readBillingEnv,
@@ -37073,6 +37200,8 @@ export {
   runScheduledReports,
   runUploadScans,
   scanStore,
+  scannerChoice,
+  selectVirusScanner,
   signWebhook,
   sniffFamilies,
   stripQuotedText,

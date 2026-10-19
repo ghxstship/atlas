@@ -110,3 +110,13 @@ export {
   type ScanStore,
 } from "./scanning/worker.ts";
 export { scanStore, supabaseStorage } from "./scanning/stores.ts";
+export {
+  CLAMAV_DEFAULT_PORT,
+  isLocalDevelopment,
+  passThroughScanner,
+  scannerChoice,
+  selectVirusScanner,
+  type ScannerChoice,
+  type ScannerEnv,
+  type SelectedScanner,
+} from "./scanning/select.ts";
