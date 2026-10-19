@@ -12,6 +12,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --coverage",
+    "stripe:setup": "node --experimental-strip-types --no-warnings scripts/stripe-setup.ts",
     "bundle:edge": "node --experimental-strip-types --no-warnings edge/build.ts",
     "bundle:edge:check": "node --experimental-strip-types --no-warnings edge/build.ts --check"
   },

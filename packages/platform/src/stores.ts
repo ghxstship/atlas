@@ -108,8 +108,22 @@ export function billingStore(db: PlatformDb): BillingStore {
         p_stripe_status: input.status,
         p_current_period_end: input.currentPeriodEnd?.toISOString() ?? null,
         p_livemode: input.livemode,
+        p_extra_seats: input.extraSeats,
       });
       return String(state);
+    },
+    async recordAddonPurchase(input) {
+      const id = await db.rpc("record_addon_purchase_from_stripe", {
+        p_org_id: input.orgId,
+        p_addon_code: input.addonCode,
+        p_quantity: input.quantity,
+        p_stripe_checkout_session_id: input.checkoutSessionId,
+        p_currency_code: input.currency,
+        p_amount_total_minor: input.amountTotalMinor,
+        p_livemode: input.livemode,
+        p_paid_at: input.paidAt.toISOString(),
+      });
+      return String(id);
     },
   };
 }

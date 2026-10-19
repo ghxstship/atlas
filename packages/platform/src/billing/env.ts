@@ -58,6 +58,7 @@ export interface StripeClient {
   readonly billingPortal: {
     readonly sessions: Pick<Stripe["billingPortal"]["sessions"], "create">;
   };
+  readonly subscriptions: Pick<Stripe["subscriptions"], "retrieve" | "update">;
 }
 
 /**

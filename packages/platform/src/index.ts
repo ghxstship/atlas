@@ -8,16 +8,25 @@ export {
   type StripeClient,
 } from "./billing/env.ts";
 export {
+  NotSelfServeError,
+  addonForLookupKey,
+  extraSeatForLookupKey,
+  extraSeatLookupKeyFor,
   lookupKeyFor,
   planForLookupKey,
   type BillingInterval,
   type StripePlanMatch,
 } from "./billing/plans.ts";
 export {
+  MAX_ADDON_QUANTITY,
+  MAX_EXTRA_SEATS,
   PriceNotFoundError,
+  createAddonCheckoutSession,
   createCheckoutSession,
   createPortalSession,
   resolvePriceId,
+  setExtraSeats,
+  type AddonCheckoutRequest,
   type CheckoutRequest,
 } from "./billing/checkout.ts";
 export {
