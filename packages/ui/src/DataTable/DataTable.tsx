@@ -3,19 +3,15 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentType,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type ReactElement,
   type ReactNode,
+  type TouchEvent,
 } from "react";
-import {
-  columnPinningFeature,
-  columnResizingFeature,
-  columnSizingFeature,
-  tableFeatures,
-  useTable,
-  type Column,
-} from "@tanstack/react-table";
+import type { ColumnSizingState, Updater, columnResizingState } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Direction } from "radix-ui";
 import type {
@@ -28,6 +24,7 @@ import { useT } from "../lib/context.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Money } from "../Forms/Forms.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
+import type { DataTableResizer, StartResize } from "./DataTableResizer.tsx";
 
 export interface DataTableColumn extends ReferenceDataTableColumn {
   /** Width in pixels; defaults by type. */
@@ -51,15 +48,41 @@ export type DataTableProps = Omit<ReferenceDataTableProps, "columns"> & {
   onRowActivate?: (row: Record<string, unknown>, index: number) => void;
 };
 
-const features = tableFeatures({
-  columnSizingFeature,
-  columnResizingFeature,
-  columnPinningFeature,
-});
-
-type Row = Record<string, unknown>;
+/** A column as the grid lays it out: its id and label, current width and pinned position. */
+interface LaidColumn {
+  id: string;
+  label: string;
+  size: number;
+  pinned: "start" | "end" | false;
+  /** Offset from the logical start among start-pinned columns, or from the end among end-pinned ones. */
+  offset: number;
+}
 
 const NONE: string[] = [];
+
+const MIN_WIDTH = 64;
+const MAX_WIDTH = 640;
+
+const IDLE_RESIZE: columnResizingState = {
+  startOffset: null,
+  startSize: null,
+  deltaOffset: null,
+  deltaPercentage: null,
+  isResizingColumn: false,
+  columnSizingStart: [],
+};
+
+const RELEASE_EVENTS = ["mouseup", "touchend", "touchcancel"] as const;
+
+type ResizerComponent = ComponentType<Parameters<typeof DataTableResizer>[0]>;
+
+/** The pointer resize engine (TanStack Table) loads on the first approach to a resize handle. */
+let resizerModule: Promise<{ DataTableResizer: typeof DataTableResizer }> | null = null;
+const loadResizer = () => (resizerModule ??= import("./DataTableResizer.tsx"));
+
+function apply<T>(updater: Updater<T>, old: T): T {
+  return typeof updater === "function" ? (updater as (old: T) => T)(old) : updater;
+}
 
 const DEFAULT_WIDTH: Record<NonNullable<ReferenceDataTableColumn["type"]>, number> = {
   text: 200,
@@ -119,15 +142,56 @@ function CellValue({
   return String(value);
 }
 
-function pinStyle(column: Column<typeof features, Row, unknown>): CSSProperties {
-  const pinned = column.getIsPinned();
+function defaultWidth(column: DataTableColumn): number {
+  return column.width ?? (column.wrap ? 280 : DEFAULT_WIDTH[column.type ?? "text"]);
+}
+
+function pinStyle(column: LaidColumn): CSSProperties {
   return {
-    inlineSize: column.getSize(),
-    ...(pinned === "start"
-      ? { position: "sticky", insetInlineStart: column.getStart("start") }
-      : {}),
-    ...(pinned === "end" ? { position: "sticky", insetInlineEnd: column.getAfter("end") } : {}),
+    inlineSize: column.size,
+    ...(column.pinned === "start" ? { position: "sticky", insetInlineStart: column.offset } : {}),
+    ...(column.pinned === "end" ? { position: "sticky", insetInlineEnd: column.offset } : {}),
   };
+}
+
+/**
+ * Lays the columns out as TanStack Table's sizing and pinning features do: a width is the resized
+ * width or the default, clamped to 64 to 640 px; start-pinned columns are offset from the logical
+ * start in pinning order, end-pinned ones from the end.
+ */
+function layColumns(
+  columns: DataTableColumn[],
+  sizing: ColumnSizingState,
+  pinning: { start: string[]; end: string[] },
+): LaidColumn[] {
+  const laid = columns.map((c): LaidColumn => {
+    const size = Object.hasOwn(sizing, c.key) ? sizing[c.key] : defaultWidth(c);
+    return {
+      id: c.key,
+      label: c.label,
+      size: Math.min(Math.max(MIN_WIDTH, size ?? 0), MAX_WIDTH),
+      pinned: pinning.start.includes(c.key) ? "start" : pinning.end.includes(c.key) ? "end" : false,
+      offset: 0,
+    };
+  });
+  const byId = new Map(laid.map((c) => [c.id, c]));
+  let start = 0;
+  for (const id of pinning.start) {
+    const c = byId.get(id);
+    if (c) {
+      c.offset = start;
+      start += c.size;
+    }
+  }
+  let after = 0;
+  for (const id of [...pinning.end].reverse()) {
+    const c = byId.get(id);
+    if (c) {
+      c.offset = after;
+      after += c.size;
+    }
+  }
+  return laid;
 }
 
 const cellClass = cx(
@@ -135,9 +199,13 @@ const cellClass = cx(
 );
 
 /**
- * The table on TanStack Table and TanStack Virtual inside a ScrollRegion: a keyboard grid (arrow
- * keys, Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates the row), with
+ * The table inside a ScrollRegion, virtualized with TanStack Virtual: a keyboard grid (arrow keys,
+ * Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates the row), with
  * column pinning and resizing. Null money renders Unpriced; long text columns wrap.
+ *
+ * The grid lays its columns out from its own column state. Keyboard resizing and reset change that
+ * state directly. A pointer drag on a resize handle runs on TanStack Table, which loads when a
+ * pointer first enters a handle or a handle takes focus, and then drives the same state (ADR 0027).
  */
 export function DataTable({
   columns: givenColumns,
@@ -170,26 +238,85 @@ export function DataTable({
     [givenColumns, pinStart, pinEnd],
   );
 
-  const columnDefs = useMemo(
+  // Pinning is fixed at mount, as the table's initial state.
+  const [pinning] = useState(() => ({ start: pinStart, end: pinEnd }));
+  // Column state updates synchronously, as TanStack Table's own store does: one drag step sets the
+  // transient resize state and then commits the widths computed from it.
+  const [resizing, setResizingState] = useState<columnResizingState>(IDLE_RESIZE);
+  const [sizing, setSizingState] = useState<ColumnSizingState>({});
+  const resizingRef = useRef(resizing);
+  const sizingRef = useRef(sizing);
+  const setResizing = (updater: Updater<columnResizingState>) => {
+    resizingRef.current = apply(updater, resizingRef.current);
+    setResizingState(resizingRef.current);
+  };
+  const setSizing = (updater: Updater<ColumnSizingState>) => {
+    sizingRef.current = apply(updater, sizingRef.current);
+    setSizingState(sizingRef.current);
+  };
+
+  const leafColumns = useMemo(
+    () => layColumns(columns, sizing, pinning),
+    [columns, sizing, pinning],
+  );
+  // Header order: start-pinned in pinning order, then the rest, then end-pinned in pinning order.
+  const headers = useMemo(() => {
+    const byId = new Map(leafColumns.map((c) => [c.id, c]));
+    const pick = (ids: string[]) =>
+      ids.map((id) => byId.get(id)).filter((c): c is LaidColumn => c !== undefined);
+    return [
+      ...pick(pinning.start),
+      ...leafColumns.filter((c) => !pinning.start.includes(c.id) && !pinning.end.includes(c.id)),
+      ...pick(pinning.end),
+    ];
+  }, [leafColumns, pinning]);
+  const totalSize = leafColumns.reduce((sum, c) => sum + c.size, 0);
+  const resizerColumns = useMemo(
     () =>
       columns.map((c) => ({
         id: c.key,
-        accessorFn: (row: Row) => row[c.key],
-        header: c.label,
-        size: c.width ?? (c.wrap ? 280 : DEFAULT_WIDTH[c.type ?? "text"]),
-        minSize: 64,
-        maxSize: 640,
+        size: defaultWidth(c),
+        minSize: MIN_WIDTH,
+        maxSize: MAX_WIDTH,
       })),
     [columns],
   );
-  const table = useTable({
-    features,
-    columns: columnDefs,
-    data: rows,
-    columnResizeMode: "onChange",
-    columnResizeDirection: dir,
-    initialState: { columnPinning: { start: pinStart, end: pinEnd } },
-  });
+
+  const [Resizer, setResizer] = useState<ResizerComponent | null>(null);
+  const startRef = useRef<StartResize | null>(null);
+  const pendingStart = useRef<Parameters<StartResize> | null>(null);
+  const prepareResize = () => {
+    if (Resizer) return;
+    void loadResizer().then((m) => setResizer(() => m.DataTableResizer));
+  };
+  const startResize = (
+    columnId: string,
+    e: MouseEvent<HTMLDivElement> | TouchEvent<HTMLDivElement>,
+  ) => {
+    if (startRef.current) {
+      startRef.current(columnId, e);
+      return;
+    }
+    // The engine is still loading: the drag starts from this press once it is ready, unless the
+    // pointer is released first.
+    pendingStart.current = [
+      columnId,
+      "touches" in e
+        ? { type: e.type, touches: Array.from(e.touches, (touch) => ({ clientX: touch.clientX })) }
+        : { type: e.type, clientX: e.clientX },
+    ];
+    const release = () => {
+      pendingStart.current = null;
+      for (const type of RELEASE_EVENTS) document.removeEventListener(type, release);
+    };
+    for (const type of RELEASE_EVENTS) document.addEventListener(type, release);
+    prepareResize();
+  };
+  const onResizerReady = () => {
+    const pending = pendingStart.current;
+    pendingStart.current = null;
+    if (pending) startRef.current?.(...pending);
+  };
 
   const virtual = rows.length > virtualizeAbove;
   const rowHeight = ROW_HEIGHT[density];
@@ -202,16 +329,14 @@ export function DataTable({
     enabled: virtual,
   });
 
-  const tableRows = table.getRowModel().rows;
   const items = virtual
     ? virtualizer.getVirtualItems()
-    : tableRows.map((_, index) => ({ index, start: index * rowHeight, size: rowHeight }));
+    : rows.map((_, index) => ({ index, start: index * rowHeight, size: rowHeight }));
   const before = virtual && items.length > 0 ? (items[0]?.start ?? 0) : 0;
   const after =
     virtual && items.length > 0
       ? virtualizer.getTotalSize() - (items[items.length - 1]?.start ?? 0) - rowHeight
       : 0;
-  const leafColumns = table.getAllLeafColumns();
 
   useEffect(() => {
     if (!focusPending) return;
@@ -259,21 +384,19 @@ export function DataTable({
     }
   };
 
-  const resizeByKey = (
-    column: Column<typeof features, Row, unknown>,
-    e: KeyboardEvent<HTMLDivElement>,
-  ) => {
+  const resizeByKey = (column: LaidColumn, e: KeyboardEvent<HTMLDivElement>) => {
     const grow = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
     const shrink = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
     const delta = e.key === grow ? 16 : e.key === shrink ? -16 : 0;
     if (delta === 0) return;
     e.preventDefault();
-    const next = Math.max(64, Math.min(640, column.getSize() + delta));
-    table.setColumnSizing((sizing) => ({ ...sizing, [column.id]: next }));
+    const next = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, column.size + delta));
+    setSizing((old) => ({ ...old, [column.id]: next }));
   };
+  const resetSize = (column: LaidColumn) =>
+    setSizing((old) => Object.fromEntries(Object.entries(old).filter(([id]) => id !== column.id)));
 
-  const pinnedClass = (column: Column<typeof features, Row, unknown>) =>
-    column.getIsPinned() ? "z-sticky bg-bg-canvas" : undefined;
+  const pinnedClass = (column: LaidColumn) => (column.pinned ? "z-sticky bg-bg-canvas" : undefined);
 
   return (
     <ScrollRegion
@@ -281,17 +404,29 @@ export function DataTable({
       label={label ?? caption ?? t("scroll.region")}
       {...(virtual ? { style: { maxBlockSize: height }, className: "overflow-y-auto" } : {})}
     >
+      {Resizer ? (
+        <Resizer
+          columns={resizerColumns}
+          sizing={sizing}
+          resizing={resizing}
+          onSizingChange={setSizing}
+          onResizingChange={setResizing}
+          direction={dir === "rtl" ? "rtl" : "ltr"}
+          startRef={startRef}
+          onReady={onResizerReady}
+        />
+      ) : null}
       <table
         role="grid"
         aria-rowcount={rows.length + 1 + (totals ? 1 : 0)}
         aria-colcount={leafColumns.length}
         className="border-separate border-spacing-0 table-fixed text-text-13 print:text-paper-ink"
-        style={{ inlineSize: table.getTotalSize() }}
+        style={{ inlineSize: totalSize }}
       >
         {caption ? <caption className="pb-8 text-start font-semibold">{caption}</caption> : null}
         <thead className="sticky top-0 z-sticky">
           <tr aria-rowindex={1}>
-            {table.getFlatHeaders().map((header, ci) => {
+            {headers.map((header, ci) => {
               const column = columns[ci];
               return (
                 <th
@@ -302,30 +437,30 @@ export function DataTable({
                     "relative h-control-lg px-12 font-medium text-text-12 text-text-secondary bg-bg-surface",
                     "border-b border-border-subtle box-border",
                     column && isNumeric(column) ? "text-end" : "text-start",
-                    header.column.getIsPinned() && "z-sticky",
+                    header.pinned && "z-sticky",
                   )}
-                  style={pinStyle(header.column)}
+                  style={pinStyle(header)}
                 >
-                  {String(header.column.columnDef.header ?? "")}
+                  {header.label}
                   {resizable ? (
                     <div
                       role="separator"
                       aria-orientation="vertical"
-                      aria-label={t("table.resizeColumn", {
-                        column: String(header.column.columnDef.header ?? ""),
-                      })}
-                      aria-valuenow={header.column.getSize()}
-                      aria-valuemin={64}
-                      aria-valuemax={640}
+                      aria-label={t("table.resizeColumn", { column: header.label })}
+                      aria-valuenow={header.size}
+                      aria-valuemin={MIN_WIDTH}
+                      aria-valuemax={MAX_WIDTH}
                       tabIndex={0}
-                      onMouseDown={header.getResizeHandler()}
-                      onTouchStart={header.getResizeHandler()}
-                      onDoubleClick={() => header.column.resetSize()}
-                      onKeyDown={(e) => resizeByKey(header.column, e)}
+                      onPointerEnter={prepareResize}
+                      onFocus={prepareResize}
+                      onMouseDown={(e) => startResize(header.id, e)}
+                      onTouchStart={(e) => startResize(header.id, e)}
+                      onDoubleClick={() => resetSize(header)}
+                      onKeyDown={(e) => resizeByKey(header, e)}
                       className={cx(
                         "absolute inset-y-0 end-0 w-(--ui-handle) cursor-col-resize touch-none select-none",
                         "hover:bg-accent focus-visible:bg-accent",
-                        header.column.getIsResizing() && "bg-accent",
+                        resizing.isResizingColumn === header.id && "bg-accent",
                       )}
                     />
                   ) : null}
@@ -341,18 +476,16 @@ export function DataTable({
             </tr>
           ) : null}
           {items.map((item) => {
-            const row = tableRows[item.index];
+            const row = rows[item.index];
             if (!row) return null;
             return (
               <tr
-                key={row.id}
+                key={item.index}
                 aria-rowindex={item.index + 2}
                 className={cx(ROW_CLASS[density], "hover:[&>td]:bg-bg-hover")}
-                onDoubleClick={
-                  onRowActivate ? () => onRowActivate(row.original, item.index) : undefined
-                }
+                onDoubleClick={onRowActivate ? () => onRowActivate(row, item.index) : undefined}
               >
-                {row.getAllCells().map((cell, ci) => {
+                {leafColumns.map((cell, ci) => {
                   const column = columns[ci];
                   const isActive = active[0] === item.index && active[1] === ci;
                   return (
@@ -373,11 +506,11 @@ export function DataTable({
                         column && isNumeric(column) && "text-end",
                         column?.wrap && "whitespace-normal py-8",
                         "focus-visible:outline-offset-[calc(var(--stroke-width-focus)*-1)]",
-                        pinnedClass(cell.column),
+                        pinnedClass(cell),
                       )}
-                      style={pinStyle(cell.column)}
+                      style={pinStyle(cell)}
                     >
-                      {column ? <CellValue column={column} value={cell.getValue()} /> : null}
+                      {column ? <CellValue column={column} value={row[column.key]} /> : null}
                     </td>
                   );
                 })}
