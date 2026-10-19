@@ -106,7 +106,7 @@ select pg_temp.as_platform();
 select is(pg_temp.offer_state('offer_ivy'), 'Accepted', 'the offer is Accepted');
 select is(pg_temp.app_state('app_ivy'), 'Accepted', 'and the application with it');
 select pg_temp.as_user('ivy');
-select throws_ok(format($$select app.decline_offer('%s', 'Changed my mind.')$$, pg_temp.id('offer_ivy')), 'XR001', null,
+select throws_ok(format($$select app.decline_offer('%s', 'Changed my mind.')$$, pg_temp.id('offer_ivy')), 'XR001', 'offer_transition_not_allowed: A offer cannot move from Accepted to Declined.',
   'Accepted is final: no decline after acceptance');
 select pg_temp.as_platform();
 

@@ -46,7 +46,7 @@ select pg_temp.as_user('carol');
 select lives_ok($$select app.close_incident((select id from world where key = 'inc'), 'Inspected and signed off by safety lead.')$$, 'another eligible person signs off and closes it');
 select is((select closed_signed_off_by from app.incidents where id = pg_temp.id('inc')), pg_temp.id('carol'), 'inv_22_critical_incident_close: the sign-off is recorded');
 select throws_ok($$update app.incidents set severity_enum_id = 'ENM-101' where id = (select id from world where key = 'inc')$$, 'XR001', null, 'a closed incident is never relabeled');
-select throws_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Closed', 'Dispatched', 'Again.')$$, 'XR001', null, 'Closed is terminal');
+select throws_ok($$select app.transition_incident((select id from world where key = 'inc'), 'Closed', 'Dispatched', 'Again.')$$, 'XR001', 'incident_transition_not_allowed: A incident cannot move from Closed to Dispatched.', 'Closed is terminal');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'incident'), 5, 'the incident lifecycle declares five moves');
 select pg_temp.as_user('dave');
 with x as (insert into app.incidents (project_id, title, severity_enum_id, occurred_at) values (pg_temp.id('prj_a'), 'Minor Trip Hazard', 'ENM-100', now()) returning id) insert into world select 'inc2', id from x;

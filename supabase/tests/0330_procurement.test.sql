@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(75);
+select plan(77);
 
 -- World -----------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');
@@ -32,12 +32,12 @@ select is((select vendor_state::text from app.vendors where id = pg_temp.id('ven
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'vendor'), 9, 'the vendor lifecycle declares nine moves');
 select pg_temp.as_user('carol');
 select throws_ok($$update app.vendors set vendor_state = 'Active' where id = (select id from world where key = 'ven')$$, 'XR001', null, 'the vendor state changes only through its RPC');
-select throws_ok($$select app.transition_vendor((select id from world where key = 'ven'), 'Prospect', 'Active', 'Skip.')$$, 'XR001', null, 'a Prospect cannot jump to Active');
+select throws_ok($$select app.transition_vendor((select id from world where key = 'ven'), 'Prospect', 'Active', 'Skip.')$$, 'XR001', 'vendor_transition_not_allowed: A vendor cannot move from Prospect to Active.', 'a Prospect cannot jump to Active');
 select lives_ok($$select app.transition_vendor((select id from world where key = 'ven'), 'Prospect', 'Onboarded', 'Paperwork in.')$$, 'Prospect to Onboarded');
 select lives_ok($$select app.transition_vendor((select id from world where key = 'ven'), 'Onboarded', 'Active', 'Approved for use.')$$, 'Onboarded to Active');
 select lives_ok($$select app.transition_vendor((select id from world where key = 'ven2'), 'Prospect', 'Onboarded', 'In.')$$, 'second vendor onboarded');
 select lives_ok($$select app.transition_vendor((select id from world where key = 'ven2'), 'Onboarded', 'Blocked', 'COI lapsed.')$$, 'Onboarded to Blocked');
-select throws_ok($$select app.transition_vendor((select id from world where key = 'ven2'), 'Blocked', 'Prospect', 'Back.')$$, 'XR001', null, 'a Blocked vendor cannot return to Prospect');
+select throws_ok($$select app.transition_vendor((select id from world where key = 'ven2'), 'Blocked', 'Prospect', 'Back.')$$, 'XR001', 'vendor_transition_not_allowed: A vendor cannot move from Blocked to Prospect.', 'a Blocked vendor cannot return to Prospect');
 select pg_temp.as_user('dave');
 select throws_ok($$select app.transition_vendor((select id from world where key = 'ven'), 'Active', 'Blocked', 'x')$$, '42501', null, 'a Member cannot change vendor state');
 select throws_ok($$insert into app.vendors (counterparty_id) values ((select id from world where key = 'cp_v'))$$, '42501', null, 'a Member cannot create vendors');
@@ -112,6 +112,8 @@ select pg_temp.as_user('dave');
 select is((select count(*)::int from app.rfq_responses), 1, 'a project member reads responses once unsealed');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_rfq((select id from world where key = 'rfq'), 'Closed', 'Awarded', 'Best value.')$$, 'Closed to Awarded');
+select throws_ok($$select app.transition_rfq((select id from world where key = 'rfq'), 'Awarded', 'Issued', 'Again.')$$,
+  'XR001', 'rfq_transition_not_allowed: A rfq cannot move from Awarded to Issued.', 'an Awarded RFQ is not issued again');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'rfq'), 6, 'the RFQ lifecycle declares six moves');
 select pg_temp.as_platform();
 
@@ -147,7 +149,7 @@ select pg_temp.as_platform();
 select is((select count(*)::int from app.domain_events where event_type = 'po.approved' and subject_id = pg_temp.id('po')), 1, 'po.approved was emitted');
 select pg_temp.as_user('carol');
 select throws_ok($$update app.po_lines set unit_price_minor = 1 where id = (select id from world where key = 'pol')$$, 'XR001', null, 'approved order lines are locked');
-select throws_ok($$select app.transition_purchase_order((select id from world where key = 'po'), 'Approved', 'Closed', 'Skip.')$$, 'XR001', null, 'an Approved order cannot close before it is sent');
+select throws_ok($$select app.transition_purchase_order((select id from world where key = 'po'), 'Approved', 'Closed', 'Skip.')$$, 'XR001', 'purchase_order_transition_not_allowed: A purchase order cannot move from Approved to Closed.', 'an Approved order cannot close before it is sent');
 select lives_ok($$select app.transition_purchase_order((select id from world where key = 'po'), 'Approved', 'Sent', 'Emailed.')$$, 'Approved to Sent');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'purchase_order'), 6, 'the purchase order lifecycle declares six moves');
 select pg_temp.as_user('dave');
@@ -168,6 +170,8 @@ select pg_temp.as_user('carol');
 update app.po_change_orders set amount_delta_minor = 5000 where id = pg_temp.id('pco');
 select pg_temp.as_user('bob');
 select is(app.decide_po_change_order(pg_temp.id('pco'), 'Approved', 'Go.'), true, 'a priced PO change order is approved');
+select throws_ok($$select app.decide_po_change_order((select id from world where key = 'pco'), 'Rejected', 'Second thoughts.')$$,
+  'XR001', 'po_change_order_state_conflict: The po change order is not in the expected state Proposed.', 'a decided PO change order takes no second decision');
 select is((select approved_changes_minor from app.purchase_order_totals where purchase_order_id = pg_temp.id('po')), 5000::bigint, 'the approved delta sits beside the order total');
 select pg_temp.as_platform();
 

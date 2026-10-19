@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(107);
+select plan(111);
 
 -- World ----------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -123,7 +123,7 @@ select lives_ok($$select app.reject_expense((select id from world where key = 'e
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Rejected', 'Proposed', 'Resubmitted.')$$, 'the submitter resubmits');
 select lives_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Proposed', 'Canceled', 'Withdrawn.')$$, 'the submitter cancels');
-select throws_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', null, 'Canceled is terminal');
+select throws_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', 'expense_transition_not_allowed: A expense cannot move from Canceled to Proposed.', 'Canceled is terminal');
 select throws_ok($$select app.transition_expense((select id from world where key = 'exp1'), 'Approved', 'Rejected', 'No.')$$, 'XR001', null, 'rejection only through its RPC');
 select lives_ok($$select app.transition_expense((select id from world where key = 'exp1'), 'Approved', 'Paid', 'Wired.')$$, 'Approved to Paid');
 select pg_temp.as_platform();
@@ -142,6 +142,8 @@ select throws_ok($$select app.post_journal_entry((select id from world where key
   'XR001', 'sod_journal_preparer: The preparer of a journal entry cannot post it.', 'the preparer cannot post');
 select pg_temp.as_user('alice');
 select lives_ok($$select app.post_journal_entry((select id from world where key = 'je1'), 'Reviewed.')$$, 'another person posts the balanced entry');
+select throws_ok($$select app.cancel_journal_entry((select id from world where key = 'je1'), 'Too late.')$$,
+  'XR001', 'journal_state_conflict: The journal is not in the expected state Proposed.', 'a posted journal entry cannot be canceled');
 select is((select posted_by from app.journal_entries where id = pg_temp.id('je1')), pg_temp.id('alice'), 'the poster is recorded');
 select throws_ok($$update app.journal_lines set debit_minor = 6000 where journal_entry_id = (select id from world where key = 'je1') and line_number = 1$$,
   'XR001', null, 'a posted entry''s lines never change');
@@ -152,13 +154,13 @@ select is((select string_agg(from_state || '>' || to_state, ' ' order by from_st
 select pg_temp.as_user('carol');
 select throws_ok($$select app.transition_accounting_period((select id from world where key = 'per_jul'), 'Open', 'Audited', 'Skip.')$$,
   'XR001', 'accounting_period_transition_not_allowed: A accounting period cannot move from Open to Audited.', 'inv_13_period_postings: an Open period cannot become Audited without Closed (invariant 13)');
-select throws_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Open', 'Closed', 'Skip.')$$, 'XR001', null, 'an Open period cannot jump to Closed');
+select throws_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Open', 'Closed', 'Skip.')$$, 'XR001', 'accounting_period_transition_not_allowed: A accounting period cannot move from Open to Closed.', 'an Open period cannot jump to Closed');
 select lives_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Open', 'In Period', 'June starts.')$$, 'Open to In Period');
 select lives_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'In Period', 'Closing', 'Month end.')$$, 'In Period to Closing');
 select lives_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Closing', 'In Period', 'Late invoice.')$$, 'Closing back to In Period');
 select lives_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'In Period', 'Closing', 'Month end.')$$, 'In Period to Closing again');
 select lives_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Closing', 'Closed', 'Books closed.')$$, 'Closing to Closed');
-select throws_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Closed', 'Open', 'Reopen.')$$, 'XR001', null, 'a Closed period cannot reopen');
+select throws_ok($$select app.transition_accounting_period((select id from world where key = 'per_jun'), 'Closed', 'Open', 'Reopen.')$$, 'XR001', 'accounting_period_transition_not_allowed: A accounting period cannot move from Closed to Open.', 'a Closed period cannot reopen');
 with x as (insert into app.expenses (budget_line_id, description, incurred_on, amount_minor, currency_code) values (pg_temp.id('line_stage'), 'Late receipt.', '2027-06-20', 1000, 'USD') returning id) insert into world select 'exp_late', id from x;
 select pg_temp.as_user('bob');
 select throws_ok($$select app.approve_expense((select id from world where key = 'exp_late'), 'Late.')$$,
@@ -207,6 +209,8 @@ insert into app.spend_authorities (org_id, role_id, document_type, currency_code
 select pg_temp.as_user('alice');
 select is(app.approve_change_order(pg_temp.id('co1'), 'Approved.'), true, 'an eligible approver within limit approves');
 select is((select change_order_state::text from app.change_orders where id = pg_temp.id('co1')), 'Approved', 'the change order is Approved');
+select throws_ok($$select app.transition_change_order((select id from world where key = 'co1'), 'Approved', 'Proposed', 'Reopen.')$$,
+  'XR001', 'change_order_transition_not_allowed: A change order cannot move from Approved to Proposed.', 'an Approved change order does not return to Proposed');
 select is((select count(*)::int from app.change_order_state_transitions where change_order_id = pg_temp.id('co1')), 3, 'the change order ledger holds creation, Priced and Approved');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'change_order'), 7, 'the change order lifecycle declares seven moves');
 select pg_temp.as_platform();
@@ -223,6 +227,8 @@ select pg_temp.as_platform();
 select is((select count(*)::int from app.domain_events where event_type = 'invoice.issued' and subject_id = pg_temp.id('inv1')), 1, 'invoice.issued was emitted');
 select pg_temp.as_user('carol');
 select throws_ok($$update app.invoice_lines set unit_price_minor = 1 where invoice_id = (select id from world where key = 'inv1')$$, 'XR001', null, 'issued invoice lines are locked');
+select throws_ok($$select app.transition_invoice((select id from world where key = 'inv1'), 'Issued', 'Proposed', 'Recall.')$$,
+  'XR001', 'invoice_transition_not_allowed: A invoice cannot move from Issued to Proposed.', 'an Issued invoice does not return to Proposed');
 with x as (insert into app.payments (counterparty_id, direction, amount_minor, currency_code, paid_on) values (pg_temp.id('cp_client'), 'Receivable', 30000, 'USD', '2027-07-05') returning id) insert into world select 'pay1', id from x;
 select lives_ok($$insert into app.payment_applications (payment_id, invoice_id, amount_minor) values ((select id from world where key = 'pay1'), (select id from world where key = 'inv1'), 20000)$$, 'a payment is applied to an invoice');
 select throws_ok($$insert into app.payment_applications (payment_id, invoice_id, amount_minor) values ((select id from world where key = 'pay1'), (select id from world where key = 'inv1'), 1000)$$,
@@ -246,6 +252,9 @@ select throws_ok($$select app.approve_payment((select id from world where key = 
   'XR001', 'sod_vendor_payment: A person who creates a vendor or edits its bank details cannot approve payment to it.', 'the person who created the vendor cannot approve payment to it');
 select pg_temp.as_user('bob');
 select lives_ok($$select app.approve_payment((select id from world where key = 'pay_v'), 'Pay.')$$, 'another eligible person approves the vendor payment');
+select pg_temp.as_user('carol');
+select throws_ok($$select app.cancel_payment((select id from world where key = 'pay_v'), 'Stop.')$$,
+  'XR001', 'payment_state_conflict: The payment is not in the expected state Proposed.', 'an Approved payment cannot be canceled');
 select pg_temp.as_user('carol');
 with x as (insert into app.invoices (project_id, direction, counterparty_id, invoice_number, currency_code) values (pg_temp.id('prj_a'), 'Payable', pg_temp.id('cp_vendor'), 'PRC-7781', 'USD') returning id) insert into world select 'inv_p', id from x;
 insert into app.invoice_lines (invoice_id, line_number, description, unit_price_minor) values (pg_temp.id('inv_p'), 1, 'Rigging.', 4000);

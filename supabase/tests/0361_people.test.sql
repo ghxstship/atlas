@@ -105,7 +105,7 @@ select lives_ok($$select app.reject_requisition((select id from world where key 
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Rejected', 'Proposed', 'Reduced.')$$, 'the requester resubmits');
 select lives_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Proposed', 'Canceled', 'Withdrawn.')$$, 'and cancels');
-select throws_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', null, 'Canceled is terminal');
+select throws_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', 'requisition_transition_not_allowed: A requisition cannot move from Canceled to Proposed.', 'Canceled is terminal');
 select pg_temp.as_platform();
 select is((select string_agg(from_state || '>' || to_state, ' ' order by from_state, to_state) from app.lifecycle_transition_rules where lifecycle = 'requisition'),
   'Approved>Canceled Approved>Filled Proposed>Approved Proposed>Canceled Proposed>Rejected Rejected>Proposed', 'the requisition lifecycle moves');
@@ -165,7 +165,7 @@ select is((select count(*)::int from app.role_assignments), 0, 'another org read
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Proposed', 'Active', 'Started.')$$, 'Proposed to Active');
 select lives_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Active', 'Complete', 'Wrapped.')$$, 'Active to Complete');
-select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Complete', 'Active', 'Again.')$$, 'XR001', null, 'Complete is terminal');
+select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Complete', 'Active', 'Again.')$$, 'XR001', 'role_assignment_transition_not_allowed: A role assignment cannot move from Complete to Active.', 'Complete is terminal');
 select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra2'), 'Active', 'Complete', 'Stale.')$$, 'XR001', null, 'compare-and-set refuses a stale expected state');
 select pg_temp.as_user('dave');
 select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra2'), 'Proposed', 'Canceled', 'Member.')$$, '42501', null, 'a Member cannot move assignments');
@@ -238,8 +238,8 @@ select is((select failed_attempts::int from app.agreements where id = pg_temp.id
 
 -- Signed agreements are never revoked or unsigned (journey 9)
 select pg_temp.as_user('carol');
-select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Canceled', 'Revoke.')$$, 'XR001', null, 'a signed agreement cannot be revoked');
-select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Proposed', 'Unsign.')$$, 'XR001', null, 'or unsigned');
+select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Canceled', 'Revoke.')$$, 'XR001', 'agreement_transition_not_allowed: A agreement cannot move from Signed to Canceled.', 'a signed agreement cannot be revoked');
+select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Proposed', 'Unsign.')$$, 'XR001', 'agreement_transition_not_allowed: A agreement cannot move from Signed to Proposed.', 'or unsigned');
 select throws_ok($$update app.agreements set title = 'Edited' where id = (select id from world where key = 'agr1')$$,
   'XR001', 'agreement_signed_permanent: A signed agreement is never revoked, unsigned or edited; supersede it with a new agreement.', 'or edited');
 select throws_ok($$update app.agreements set deleted_at = now() where id = (select id from world where key = 'agr1')$$, 'XR001', null, 'or deleted');

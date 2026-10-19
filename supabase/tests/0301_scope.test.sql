@@ -125,8 +125,7 @@ select lives_ok($$select app.transition_project((select id from world where key 
 select lives_ok($$select app.transition_project((select id from world where key = 'prj_a'), 'Active', 'Complete', 'Delivered.')$$, 'Active to Complete');
 select lives_ok($$select app.transition_project((select id from world where key = 'prj_a'), 'Complete', 'Active', 'Reopened.')$$, 'Complete to Active');
 select lives_ok($$select app.transition_project((select id from world where key = 'prj_a2'), 'Proposed', 'Canceled', 'Lost the bid.')$$, 'Proposed to Canceled');
-select throws_ok($$select app.transition_project((select id from world where key = 'prj_a2'), 'Canceled', 'Active', 'Revive.')$$,
-  'XR001', null, 'Canceled is terminal');
+select throws_ok($$select app.transition_project((select id from world where key = 'prj_a2'), 'Canceled', 'Active', 'Revive.')$$, 'XR001', 'project_transition_not_allowed: A project cannot move from Canceled to Active.', 'Canceled is terminal');
 select is((select count(*)::int from app.project_state_transitions where project_id = pg_temp.id('prj_a')), 6, 'the creation entry and five moves are in the ledger');
 select is((select count(*)::int from app.domain_events where event_type = 'project.state_changed' and project_id = pg_temp.id('prj_a')), 5, 'each move emitted project.state_changed');
 select pg_temp.as_platform();
@@ -137,15 +136,13 @@ select is((select count(*)::int from private.lifecycle_transition_rules where li
 select ok(not exists (select 1 from private.lifecycle_transition_rules where lifecycle = 'production' and from_state = 'Closed'), 'Closed is terminal');
 select pg_temp.as_user('alice');
 select lives_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Proposed', 'Active', 'Load-in.')$$, 'production Proposed to Active');
-select throws_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Active', 'Closed', 'Skip.')$$,
-  'XR001', null, 'an Active production cannot close without completing');
+select throws_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Active', 'Closed', 'Skip.')$$, 'XR001', 'production_transition_not_allowed: A production cannot move from Active to Closed.', 'an Active production cannot close without completing');
 select lives_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Active', 'Complete', 'Wrapped.')$$, 'production Active to Complete');
 select pg_temp.as_platform();
 select lives_ok($$select private.assert_production_open((select id from world where key = 'prj_a'))$$, 'a Complete production is still open for spend');
 select pg_temp.as_user('alice');
 select lives_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Complete', 'Closed', 'Books closed.')$$, 'production Complete to Closed');
-select throws_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Closed', 'Active', 'Reopen.')$$,
-  'XR001', null, 'a Closed production cannot reopen');
+select throws_ok($$select app.transition_production((select id from world where key = 'prj_a'), 'Closed', 'Active', 'Reopen.')$$, 'XR001', 'production_transition_not_allowed: A production cannot move from Closed to Active.', 'a Closed production cannot reopen');
 select pg_temp.as_platform();
 select throws_ok($$select private.assert_production_open((select id from world where key = 'prj_a'))$$,
   'XR001', null, 'inv_10_closed_production: a Closed production refuses new spend (invariant 10)');

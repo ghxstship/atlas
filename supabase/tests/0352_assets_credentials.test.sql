@@ -20,13 +20,13 @@ select is((select asset_state::text from app.asset_units where id = pg_temp.id('
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'asset'), 17, 'the asset lifecycle declares seventeen moves');
 select is((select count(*)::int from unnest(enum_range(null::app.asset_state))), 9, 'the asset lifecycle has nine values');
 select throws_ok($$update app.asset_units set asset_state = 'Available' where id = (select id from world where key = 'unit')$$, 'XR001', null, 'the asset state changes only through its RPC');
-select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Deployed', 'Skip.')$$, 'XR001', null, 'a Proposed asset cannot jump to Deployed');
+select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Deployed', 'Skip.')$$, 'XR001', 'asset_transition_not_allowed: A asset cannot move from Proposed to Deployed.', 'a Proposed asset cannot jump to Deployed');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Received', 'Delivered.')$$, 'Proposed to Received');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Received', 'Available', 'Checked in.')$$, 'Received to Available');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Available', 'Deployed', 'Out to the Pier.')$$, 'Available to Deployed');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Deployed', 'Damaged', 'Cracked panel.')$$, 'Deployed to Damaged');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Damaged', 'Retired', 'Written off.')$$, 'Damaged to Retired');
-select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Retired', 'Available', 'Back.')$$, 'XR001', null, 'Retired is terminal');
+select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Retired', 'Available', 'Back.')$$, 'XR001', 'asset_transition_not_allowed: A asset cannot move from Retired to Available.', 'Retired is terminal');
 select lives_ok($$insert into app.asset_custody (asset_unit_id, custodian_membership_id, project_id) values ((select id from world where key = 'unit'), (select id from world where key = 'frank@org_a'), (select id from world where key = 'prj_a'))$$, 'custody is handed to a member');
 select throws_ok($$update app.asset_custody set note = 'Edited.'$$, '42501', null, 'the custody ledger is append-only for signed-in callers');
 select throws_ok($$insert into app.asset_identifiers (asset_unit_id, identifier_class, scheme, value) values ((select id from world where key = 'unit'), 'code', 'serial', 'X1')$$,

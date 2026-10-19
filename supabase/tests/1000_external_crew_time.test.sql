@@ -59,7 +59,7 @@ select is((select job_title from api_external.shifts), 'Head Arena / Festival Ri
 select pg_temp.as_user('quinn');
 select throws_ok(format($$select app.accept_engaged_shift('%s')$$, pg_temp.id('shift')), '42501', null, 'another person cannot accept the shift');
 select pg_temp.as_user('ivy');
-select throws_ok(format($$select app.accept_engaged_shift('%s')$$, pg_temp.id('shift_draft')), 'XR001', null, 'a draft shift cannot be accepted');
+select throws_ok(format($$select app.accept_engaged_shift('%s')$$, pg_temp.id('shift_draft')), 'XR001', 'shift_state_conflict: The shift is not in the expected state Published.', 'a draft shift cannot be accepted');
 select lives_ok(format($$select app.accept_engaged_shift('%s')$$, pg_temp.id('shift')), 'the engaged person accepts the published shift');
 select is((select shift_state::text from api_external.shifts), 'Accepted', 'the shift is Accepted');
 select pg_temp.as_platform();

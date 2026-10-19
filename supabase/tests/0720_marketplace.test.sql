@@ -62,8 +62,7 @@ select is((select position_count from app.opportunity_position_counts where oppo
   'the number of positions is derived from the positions');
 select throws_ok($$insert into app.opportunity_requirements (opportunity_id, requirement_kind, description) values ((select id from world where key = 'opp_crew'), 'Insurance', 'Liability.')$$,
   '23514', null, 'an insurance requirement states its minimum');
-select throws_ok($$select app.transition_opportunity((select id from world where key = 'opp_crew'), 'Draft', 'Published', 'Skip approval.')$$,
-  'XR001', null, 'Draft cannot jump to Published: publishing passes through approval');
+select throws_ok($$select app.transition_opportunity((select id from world where key = 'opp_crew'), 'Draft', 'Published', 'Skip approval.')$$, 'XR001', 'opportunity_transition_not_allowed: A opportunity cannot move from Draft to Published.', 'Draft cannot jump to Published: publishing passes through approval');
 select pg_temp.as_user('dave');
 select throws_ok($$select app.transition_opportunity((select id from world where key = 'opp_crew'), 'Draft', 'Pending Approval', 'Submit.')$$,
   '42501', null, 'a Member cannot submit postings');
@@ -102,8 +101,7 @@ select lives_ok($$select app.transition_opportunity((select id from world where 
 select lives_ok($$select app.transition_opportunity((select id from world where key = 'opp_cycle'), 'Paused', 'Published', 'Resume.')$$, 'Paused to Published');
 select lives_ok($$select app.transition_opportunity((select id from world where key = 'opp_cycle'), 'Published', 'Filled', 'All hired.')$$, 'Published to Filled');
 select lives_ok($$select app.transition_opportunity((select id from world where key = 'opp_cycle'), 'Filled', 'Closed', 'Done.')$$, 'Filled to Closed');
-select throws_ok($$select app.transition_opportunity((select id from world where key = 'opp_cycle'), 'Closed', 'Published', 'Again.')$$,
-  'XR001', null, 'Closed is terminal');
+select throws_ok($$select app.transition_opportunity((select id from world where key = 'opp_cycle'), 'Closed', 'Published', 'Again.')$$, 'XR001', 'opportunity_transition_not_allowed: A opportunity cannot move from Closed to Published.', 'Closed is terminal');
 select is((select count(*)::int from app.opportunity_state_transitions where opportunity_id = pg_temp.id('opp_cycle')), 7, 'every move is in the ledger');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'opportunity'), 14, 'the opportunity lifecycle declares fourteen moves');
 select throws_ok($$update app.opportunities set opportunity_state = 'Closed' where id = (select id from world where key = 'opp_crew')$$,
@@ -203,8 +201,7 @@ select pg_temp.as_platform();
 select pg_temp.as_user('ivy');
 select throws_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Submitted', 'In Review', 'Me.')$$,
   '42501', null, 'the applicant cannot review their own application');
-select throws_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Submitted', 'Accepted', 'Yes.')$$,
-  'XR001', null, 'Submitted cannot jump to Accepted');
+select throws_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Submitted', 'Accepted', 'Yes.')$$, 'XR001', 'application_transition_not_allowed: A application cannot move from Submitted to Accepted.', 'Submitted cannot jump to Accepted');
 select pg_temp.as_user('dave');
 select throws_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Submitted', 'In Review', 'Look.')$$,
   '42501', null, 'a Member cannot review applications');
@@ -227,8 +224,7 @@ select pg_temp.as_user('ivy');
 select is((select count(*)::int from app.shortlists), 0, 'shortlists stay internal');
 select is((select count(*)::int from app.interviews), 0, 'interview rows with their internal notes stay internal');
 select lives_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Offered', 'Accepted', 'Accepting.')$$, 'the applicant accepts the offer');
-select throws_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Accepted', 'Withdrawn', 'Changed my mind.')$$,
-  'XR001', null, 'Accepted is terminal');
+select throws_ok($$select app.transition_application((select id from world where key = 'app_ivy'), 'Accepted', 'Withdrawn', 'Changed my mind.')$$, 'XR001', 'application_transition_not_allowed: A application cannot move from Accepted to Withdrawn.', 'Accepted is terminal');
 select pg_temp.as_user('rita');
 select lives_ok($$select app.transition_application((select id from world where key = 'app_art'), 'Submitted', 'Withdrawn', 'Conflict.')$$, 'the representative withdraws for the artist');
 select pg_temp.as_platform();

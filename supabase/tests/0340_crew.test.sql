@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(78);
+select plan(82);
 
 -- Shifts (invariant 20) ------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -46,6 +46,8 @@ select is((select count(*)::int from app.shift_swaps), 1, 'the proposed person s
 select is((select count(*)::int from app.projects), 0, 'but not the project before taking the shift');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_shift_swap((select id from world where key = 'swap1'), 'Approved', 'Covered.')$$, 'a Manager approves the swap');
+select throws_ok($$select app.decide_shift_swap((select id from world where key = 'swap1'), 'Rejected', 'Late.')$$,
+  'XR001', 'swap_state_conflict: The swap is not in the expected state Proposed.', 'a decided swap takes no second decision');
 select is((select membership_id from app.shifts where id = pg_temp.id('shift_f')), pg_temp.id('mia@org_a'), 'the shift is reassigned');
 select pg_temp.as_user('mia');
 select is((select array_agg(id) from app.projects), array[pg_temp.id('prj_a')], 'inv_02_project_read_scope: crew assigned to a shift read its project header (invariant 2)');
@@ -112,6 +114,8 @@ select pg_temp.as_user('frank');
 select app.submit_timesheet(pg_temp.id('ts1'), 'Resubmitted after correction.');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_timesheet((select id from world where key = 'ts1'), 'Rejected', 'Overtime not authorized.')$$, 'Submitted to Rejected');
+select throws_ok($$select app.decide_timesheet((select id from world where key = 'ts1'), 'Approved', 'Changed my mind.')$$,
+  'XR001', 'timesheet_state_conflict: The timesheet is not in the expected state Submitted.', 'a Rejected timesheet is not decided again until resubmitted');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'timesheet'), 6, 'the timesheet lifecycle declares six moves');
 select pg_temp.as_platform();
 
@@ -122,6 +126,8 @@ with x as (insert into app.time_entry_corrections (time_entry_id, proposed_clock
 select throws_ok($$select app.decide_time_entry_correction((select id from world where key = 'corr'), 'Approved', 'Mine.')$$, '42501', null, 'a Field member cannot approve corrections');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_time_entry_correction((select id from world where key = 'corr'), 'Approved', 'Truck log agrees.')$$, 'a Manager approves the correction');
+select throws_ok($$select app.decide_time_entry_correction((select id from world where key = 'corr'), 'Rejected', 'Second look.')$$,
+  'XR001', 'correction_state_conflict: The correction is not in the expected state Proposed.', 'a decided correction takes no second decision');
 select is((select clock_in from app.time_entries where id = pg_temp.id('te1')), '2027-06-01 07:30+00'::timestamptz, 'the entry is rewritten');
 select is((select count(*)::int from app.time_entry_audit where time_entry_id = pg_temp.id('te1')), 2, 'and the rewrite is audited');
 select throws_ok($$update app.time_entry_corrections set reason = 'Edited.' where id = (select id from world where key = 'corr')$$, 'XR001', null, 'a decided correction is not edited');
@@ -203,6 +209,8 @@ with x as (insert into app.time_off_requests (time_off_policy_id, membership_id,
 select throws_ok($$select app.decide_time_off((select id from world where key = 'to1'), 'Approved', 'Mine.')$$, '42501', null, 'a Field member cannot approve time off');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_time_off((select id from world where key = 'to1'), 'Approved', 'Covered.')$$, 'a Manager approves time off');
+select throws_ok($$select app.cancel_time_off((select id from world where key = 'to1'), 'Rejected', 'Wrong state.')$$,
+  'XR001', 'time_off_transition_not_allowed: A time off cannot move from Rejected to Canceled.', 'Rejected time off has no move to Canceled');
 with x as (insert into app.time_off_requests (time_off_policy_id, membership_id, starts_on, ends_on, hours) values (pg_temp.id('pto'), pg_temp.id('carol@org_a'), '2027-07-05', '2027-07-05', 8) returning id)
   insert into world select 'to2', id from x;
 select throws_ok($$select app.decide_time_off((select id from world where key = 'to2'), 'Approved', 'Self.')$$,

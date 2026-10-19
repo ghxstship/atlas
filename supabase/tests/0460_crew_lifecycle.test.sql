@@ -37,8 +37,7 @@ select throws_ok($$insert into app.shifts (project_id, starts_at, ends_at, time_
   'XR001', null, 'a shift cannot be created already published');
 select throws_ok($$update app.shifts set shift_state = 'Published' where id = (select id from world where key = 'sh1')$$,
   'XR001', null, 'the state changes only through the RPCs');
-select throws_ok($$select app.transition_shift((select id from world where key = 'sh1'), 'Draft', 'Accepted', 'Skip.')$$,
-  'XR001', null, 'a writer cannot accept for the crew member');
+select throws_ok($$select app.transition_shift((select id from world where key = 'sh1'), 'Draft', 'Accepted', 'Skip.')$$, 'XR001', null, 'a writer cannot accept for the crew member');
 select throws_ok($$select app.accept_shift((select id from world where key = 'sh1'))$$,
   '42501', null, 'only the person assigned accepts');
 select is(app.publish_shifts(array[pg_temp.id('sh1'), pg_temp.id('open1'), pg_temp.id('open_overlap')]), 3, 'a Manager publishes drafted shifts in one call');
@@ -54,7 +53,7 @@ select throws_ok($$update app.shifts set ends_at = '2027-06-01 23:00+00' where i
 select lives_ok($$select app.accept_shift((select id from world where key = 'sh1'), 'See you there.')$$, 'the assigned crew member accepts (journey 10)');
 select is((select shift_state::text from app.shifts where id = pg_temp.id('sh1')), 'Accepted', 'the shift is Accepted');
 select throws_ok($$select app.accept_shift((select id from world where key = 'sh1'))$$,
-  'XR001', null, 'an accepted shift is not accepted twice');
+  'XR001', 'shift_state_conflict: The shift is not in the expected state Published.', 'an accepted shift is not accepted twice');
 
 -- Claiming open shifts (journey 66) ------------------------------------------------------------------------
 select lives_ok($$select app.claim_open_shift((select id from world where key = 'open1'))$$, 'a Field member claims a published open shift');

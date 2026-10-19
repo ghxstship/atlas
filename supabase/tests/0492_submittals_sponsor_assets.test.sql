@@ -36,13 +36,12 @@ select throws_ok($$update app.submittals set decided_at = now() where id = (sele
   'XR001', null, 'decision columns change only through the RPC');
 select throws_ok($$update app.submittals set vendor_id = (select id from world where key = 'ven') , project_id = (select id from world where key = 'prj_a2') where id = (select id from world where key = 'sub')$$,
   'XR001', null, 'the project never changes');
-select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Approved', 'Skip.')$$,
-  'XR001', null, 'a Proposed submittal cannot be approved before it is submitted');
+select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Approved', 'Skip.')$$, 'XR001', null, 'a Proposed submittal cannot be approved before it is submitted');
 select lives_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Submitted', 'Drawings attached.')$$, 'Proposed to Submitted');
 select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Submitted', 'Approved', 'Mine.')$$,
   'XR001', null, 'the creator cannot approve (sod_approval_requester)');
 select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Submitted', 'Stale.')$$,
-  'XR001', null, 'compare-and-set refuses a stale state');
+  'XR001', 'submittal_state_conflict: The submittal is not in the expected state Proposed.', 'compare-and-set refuses a stale state');
 select pg_temp.as_user('bob');
 select lives_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Submitted', 'Returned', 'Add connection details.')$$, 'another person returns it');
 select is((select decided_by from app.submittals where id = pg_temp.id('sub')), pg_temp.id('bob'), 'the reviewer is recorded');
@@ -51,8 +50,7 @@ select lives_ok($$select app.transition_submittal((select id from world where ke
 select is((select revision from app.submittals where id = pg_temp.id('sub')), 1, 'resubmitting raises the revision');
 select pg_temp.as_user('bob');
 select lives_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Submitted', 'Approved', 'Approved as drawn.')$$, 'another person approves');
-select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Approved', 'Canceled', 'Late.')$$,
-  'XR001', null, 'an approved submittal is final');
+select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Approved', 'Canceled', 'Late.')$$, 'XR001', 'submittal_transition_not_allowed: A submittal cannot move from Approved to Canceled.', 'an approved submittal is final');
 select is((select count(*)::int from app.domain_events where subject_id = pg_temp.id('sub') and event_type = 'submittal.state_changed'), 4, 'each move emits submittal.state_changed');
 select pg_temp.as_user('dave');
 select is((select count(*)::int from app.submittals where id = pg_temp.id('sub')), 1, 'a project member reads the submittal');
@@ -80,8 +78,7 @@ select throws_ok($$select app.transition_sponsor_asset((select id from world whe
   'XR001', null, 'the uploader cannot approve');
 select pg_temp.as_user('bob');
 select lives_ok($$select app.transition_sponsor_asset((select id from world where key = 'asset'), 'Submitted', 'Approved', 'Brand approved.')$$, 'another person approves');
-select throws_ok($$select app.transition_sponsor_asset((select id from world where key = 'asset'), 'Approved', 'Returned', 'Undo.')$$,
-  'XR001', null, 'an approved asset is final');
+select throws_ok($$select app.transition_sponsor_asset((select id from world where key = 'asset'), 'Approved', 'Returned', 'Undo.')$$, 'XR001', 'sponsor_asset_transition_not_allowed: A sponsor asset cannot move from Approved to Returned.', 'an approved asset is final');
 select pg_temp.as_user('dave');
 select throws_ok($$insert into app.sponsor_assets (sponsor_entitlement_id, asset_kind, title) values ((select id from world where key = 'ent'), 'Copy', 'Member try')$$,
   '42501', null, 'a Member cannot add sponsor assets');

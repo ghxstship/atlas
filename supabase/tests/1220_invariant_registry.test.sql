@@ -6,7 +6,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(9);
+select plan(10);
 
 -- The registry ----------------------------------------------------------------------------------------------------
 select is((select count(*)::int from private.invariants), 24, 'the registry holds the 24 Section 7.5 invariants');
@@ -62,6 +62,10 @@ select is(
      and not exists (select 1 from pg_constraint c where c.contypid = t.oid and c.contype = 'c'
        and (pg_get_constraintdef(c.oid) like '%chr(8212)%' or pg_get_constraintdef(c.oid) like '%~%'))),
   '', 'inv_24_no_em_dash: every text column of a canon table has a domain check that refuses the em dash');
+
+-- Invariant 8: second factors sit with Supabase Auth; no tenant role reads them (finding A54-001) --------------------
+select ok(not has_table_privilege('anon', 'auth.mfa_factors', 'select') and not has_table_privilege('authenticated', 'auth.mfa_factors', 'select'),
+  'inv_08_token_rpcs_hashed_secrets: neither anon nor a signed-in caller can read second factors');
 
 select * from finish();
 rollback;

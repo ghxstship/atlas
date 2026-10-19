@@ -179,8 +179,7 @@ select throws_ok($$select app.sign_engagement_document((select id from world whe
   'XR001', null, 'a signed document cannot be signed again');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_engagement_document((select id from world where key = 'doc_ivy'), 'Signed', 'Executed', 'Countersigned.')$$, 'the org countersigns (Signed to Executed)');
-select throws_ok($$select app.transition_engagement_document((select id from world where key = 'doc_ivy'), 'Executed', 'Proposed', 'Undo.')$$,
-  'XR001', null, 'an executed document never returns to draft');
+select throws_ok($$select app.transition_engagement_document((select id from world where key = 'doc_ivy'), 'Executed', 'Proposed', 'Undo.')$$, 'XR001', 'engagement_document_transition_not_allowed: A engagement document cannot move from Executed to Proposed.', 'an executed document never returns to draft');
 select throws_ok($$update app.engagement_documents set title = 'Changed' where id = (select id from world where key = 'doc_ivy')$$,
   'XR001', 'engagement_document_signed: A signed document cannot be edited; issue a new document that supersedes it.', 'an executed document is never edited');
 select lives_ok($$select app.transition_engagement_document((select id from world where key = 'doc_ivy'), 'Executed', 'Superseded', 'Amended.')$$, 'Executed to Superseded');
