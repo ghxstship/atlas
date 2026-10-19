@@ -10,6 +10,7 @@ import {
   routesOverlap,
 } from "@xos/ia";
 import { loadSitemapFile } from "@xos/ia/node";
+import { packNodes, unpackNodes } from "../ia/client-sitemap-codec";
 import { clientSitemap, listNodeIds, pageFile } from "../ia/generate";
 import { appRoot, renderGeneratedFiles, routeFiles, stampedFiles } from "../ia/generate-node";
 import { IMPLEMENTED } from "../ia/implemented";
@@ -131,6 +132,11 @@ describe("client sitemap", () => {
       .filter((r) => getNode(sitemap, r.id).node.list !== undefined)
       .map((r) => r.id);
     expect(listNodeIds(sitemap)).toEqual(withList);
+  });
+
+  it("ships nodes packed that unpack to exactly the client sitemap", () => {
+    const packed = packNodes(client.nodes);
+    expect(unpackNodes(JSON.parse(JSON.stringify(packed)) as typeof packed)).toEqual(client.nodes);
   });
 
   it("carries no visibility, list or persona data", () => {
