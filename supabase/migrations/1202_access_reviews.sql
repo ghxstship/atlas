@@ -96,6 +96,10 @@ grant update (decision) on app.access_review_items to authenticated;
 call private.install_default_retention('app.access_review_items');
 call private.install_audit_trail('app.access_review_items');
 
+insert into private.separation_of_duties_rules (code, enforced_on, description) values
+  ('sod_self_review', 'Access reviews', 'A person cannot confirm or remove their own access in an access review.')
+on conflict (code) do nothing;
+
 -- Campaign lifecycle -----------------------------------------------------------------------------------------------------
 
 create or replace function private.guard_access_review_campaign()

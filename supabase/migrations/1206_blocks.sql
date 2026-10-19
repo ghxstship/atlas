@@ -58,6 +58,9 @@ grant insert (blocked_urn) on app.blocks to authenticated;
 grant update (deleted_at) on app.blocks to authenticated;
 grant all on app.blocks to service_role;
 
+-- Lifted blocks are personal data with no further use: purged 90 days after they were lifted.
+call private.install_default_retention('app.blocks', interval '90 days');
+
 create policy blocks_owner_read on app.blocks for select to authenticated
   using (person_id = (select private.current_person_id()));
 create policy blocks_owner_insert on app.blocks for insert to authenticated

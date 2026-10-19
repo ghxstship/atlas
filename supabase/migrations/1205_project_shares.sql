@@ -74,8 +74,24 @@ call private.describe('app.project_share_scope_nodes', 'Scope nodes a project sh
   'scope_node_id', 'Scope node opened to the partner, with everything under it. Belongs to the shared project.'
 ]);
 
+create or replace function private.visible_project_share_ids()
+returns setof uuid
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select s.id from app.project_shares s
+  where s.project_id in (select private.readable_project_ids())
+     or s.org_id in (select private.oversight_org_ids('projects.project.read'))
+     or s.partner_organization_id in (select private.my_org_ids());
+$$;
+
+comment on function private.visible_project_share_ids() is 'Project shares the signed-in person may read: on projects they read in the owning org, or shared with an org they belong to.';
+revoke all on function private.visible_project_share_ids() from public, anon, authenticated;
+
 call private.install_policies('app.project_share_scope_nodes',
-  $$project_share_id in (select s.id from app.project_shares s)$$,
+  $$project_share_id in (select private.visible_project_share_ids())$$,
   $$org_id in (select private.orgs_with_capability('org.access_grants.manage'))$$);
 
 revoke insert, update on app.project_share_scope_nodes from authenticated;
