@@ -17,6 +17,14 @@ import { stdColumnName, stdTableSpec } from "./tables.ts";
 import { STD_TABLES } from "./column-map.ts";
 import { buildReferenceModel } from "./reference-model.ts";
 import type { Rulings } from "../rulings.ts";
+import {
+  deferredEntry,
+  labelMappingRows,
+  libraryLabel,
+  playbookOnlyRow,
+  resolveValue,
+} from "../decision25.ts";
+import type { Decision25, Resolution } from "../decision25.ts";
 
 export const TEMPLATE_CODE = "XOS-4.0";
 export const PLAYBOOK_FILE = "XOS-4.0_Production-Playbook_2026.xlsx";
@@ -32,6 +40,8 @@ export interface DiffEntry {
   readonly bible: string | null;
   readonly playbook: string | null;
   readonly note: string;
+  /** How owner decision 25 resolves the difference; absent when nothing explains it. */
+  readonly resolution?: Resolution;
 }
 
 export interface RealWorldRow {
@@ -48,6 +58,14 @@ export interface PlaybookResult {
   readonly realWorld: RealWorldRow[];
   /** Every Playbook value an owner ruling changes (canon/reports/migration-report.txt). */
   readonly report: string[];
+  /** Decision 25 entries that matched a difference, for the stale-entry check. */
+  readonly used: DecisionUse;
+}
+
+export interface DecisionUse {
+  readonly rows: Set<string>;
+  readonly library: Set<string>;
+  readonly deferred: Set<string>;
 }
 
 function same(a: string | null, b: string | null): boolean {
@@ -83,6 +101,7 @@ function intakeRow(
   proposed: string | null,
   canon: string | null,
   reason: string,
+  state = "Proposed",
 ): IntakeRow {
   return {
     source_file: PLAYBOOK_FILE,
@@ -95,7 +114,7 @@ function intakeRow(
     proposed_value: proposed,
     canon_value: canon,
     reason,
-    intake_state: "Proposed",
+    intake_state: state,
   };
 }
 
@@ -105,6 +124,9 @@ function applyMirrors(
   intake: IntakeRow[],
   diff: DiffEntry[],
   findings: Findings,
+  d25: Decision25,
+  sourced: SqlRow[],
+  used: Set<string>,
 ): void {
   const csvIntake = new Map<string, string | null>();
   for (const i of intake)
@@ -141,6 +163,7 @@ function applyMirrors(
                 : map.kind === "canon"
                   ? map.column
                   : "normal_balance";
+            const decided = playbookOnlyRow(d25, spec.sheet, key);
             intake.push(
               intakeRow(
                 spec.sheet,
@@ -149,7 +172,8 @@ function applyMirrors(
                 { table: spec.table, key, column },
                 value,
                 null,
-                `Row ${key} is in the Playbook ${spec.sheet} sheet but not in the Bible.`,
+                `Row ${key} is in the Playbook ${spec.sheet} sheet but not in the Bible.${decided ? ` ${decided.note}` : ""}`,
+                decided ? "Canceled" : "Proposed",
               ),
             );
           }
@@ -170,17 +194,38 @@ function applyMirrors(
           ? map.read(canonRow, ctx)
           : (canonRow[map.column] as string | null);
         if (!same(canonValue, value)) {
-          intake.push(
-            intakeRow(
-              spec.sheet,
-              r,
-              header,
-              { table: map.table, key, column: map.column },
-              value,
-              canonValue,
-              `Playbook ${spec.sheet} differs from the Bible; neither silently wins.`,
-            ),
-          );
+          const importable = map.read === undefined || map.assign !== undefined;
+          const resolution = resolveValue(map.table, map.column, canonValue, value, importable);
+          if (resolution?.outcome === "playbook-imported") {
+            if (map.assign) map.assign(canonRow, cell, tables);
+            else canonRow[map.column] = normalizeTyped(map.column, cell, value ?? "");
+            sourced.push({
+              target_table: map.table,
+              target_key: key,
+              target_column: map.column,
+              value_text: value,
+              source_file: PLAYBOOK_FILE,
+              source_sheet: spec.sheet,
+              source_row: String(r),
+              source_column: header,
+              decision: d25.decision,
+            });
+          } else {
+            intake.push(
+              intakeRow(
+                spec.sheet,
+                r,
+                header,
+                { table: map.table, key, column: map.column },
+                value,
+                canonValue,
+                resolution
+                  ? `Playbook ${spec.sheet} differs from the Bible. ${resolution.note}`
+                  : `Playbook ${spec.sheet} differs from the Bible; neither silently wins.`,
+                resolution ? "Canceled" : "Proposed",
+              ),
+            );
+          }
           diff.push({
             kind: "value",
             sheet: spec.sheet,
@@ -190,10 +235,13 @@ function applyMirrors(
             bible: canonValue,
             playbook: value,
             note: `${map.table}.${map.column}`,
+            ...(resolution ? { resolution } : {}),
           });
         }
       });
       if (!canonRow) {
+        const resolution = playbookOnlyRow(d25, spec.sheet, key);
+        if (resolution) used.add(`${spec.sheet}|${key}`);
         diff.push({
           kind: "playbook-only-row",
           sheet: spec.sheet,
@@ -203,6 +251,7 @@ function applyMirrors(
           bible: null,
           playbook: keyValue,
           note: "Row is in the Playbook but not in the Bible; held in xpms.intake.",
+          ...(resolution ? { resolution } : {}),
         });
       }
     }
@@ -218,6 +267,12 @@ function applyMirrors(
           bible: key,
           playbook: null,
           note: "Row is in the Bible but not in the Playbook sheet.",
+          resolution: {
+            outcome: "bible-kept",
+            basis: "bible-label",
+            canon: key,
+            note: "Owner decision 25: the Bible wins on structure, so the Bible's row is kept.",
+          },
         });
       }
     }
@@ -335,11 +390,16 @@ function crossCheckLibrary(
   playbook: WorkbookData,
   tables: Map<string, SqlRow[]>,
   diff: DiffEntry[],
-): void {
+  d25: Decision25,
+  used: DecisionUse,
+): { domain: string; label: string; resolution: Resolution }[] {
+  const mapped: { domain: string; label: string; resolution: Resolution }[] = [];
   const roles = new Set((tables.get("dim_role") ?? []).map((r) => r["role_code"]));
   for (const r of tables.get("role") ?? []) {
     const code = r["role_code"];
     if (!roles.has(code)) {
+      const resolution = deferredEntry(d25, "Roles Library", String(code));
+      if (resolution) used.deferred.add(`Roles Library|${String(code)}`);
       diff.push({
         kind: "library-conflict",
         sheet: "Roles Library",
@@ -349,6 +409,7 @@ function crossCheckLibrary(
         bible: null,
         playbook: String(code),
         note: "Role code is not in Bible tab 27; the Roles Library owns role codes (ruling D12).",
+        ...(resolution ? { resolution } : {}),
       });
     }
   }
@@ -374,6 +435,12 @@ function crossCheckLibrary(
     const v = vocab[domain];
     if (!v) continue;
     if (!v.values.has(label)) {
+      const key = String(e["record_id"] ?? "");
+      const resolution = libraryLabel(d25, domain, label, key, v.values);
+      if (resolution?.outcome === "deferred") used.deferred.add(`Enumerations|${key}`);
+      else if (resolution && resolution.basis !== "casing-or-punctuation")
+        used.library.add(`${domain}|${label}`);
+      if (resolution) mapped.push({ domain, label, resolution });
       diff.push({
         kind: "library-conflict",
         sheet: "Enumerations",
@@ -383,10 +450,12 @@ function crossCheckLibrary(
         bible: null,
         playbook: `${domain}: ${label}`,
         note: `Label is not in ${v.name}.`,
+        ...(resolution ? { resolution } : {}),
       });
     }
   }
   void playbook;
+  return mapped;
 }
 
 function buildTemplate(
@@ -513,7 +582,10 @@ export function applyPlaybook(
   for (const [k, v] of canon) start.set(k, [...v]);
   const intake = [...canonIntake];
   const diff: DiffEntry[] = [];
-  applyMirrors(playbook, start, intake, diff, findings);
+  const d25 = rulings.decision_25;
+  const sourced: SqlRow[] = [];
+  const used: DecisionUse = { rows: new Set(), library: new Set(), deferred: new Set() };
+  applyMirrors(playbook, start, intake, diff, findings, d25, sourced, used.rows);
   const reference = buildReferenceModel(playbook, rulings, start, findings);
   const tables = reference.tables;
   const report = [...reference.report];
@@ -525,11 +597,13 @@ export function applyPlaybook(
     rulings.retired_enumeration_domains,
     report,
   );
-  crossCheckLibrary(playbook, tables, diff);
+  const library = crossCheckLibrary(playbook, tables, diff, d25, used);
+  tables.set("playbook_sourced_value", sourced);
+  tables.set("label_mapping", labelMappingRows(d25, library));
   registry(playbook, map, tables);
   const realWorld = buildTemplate(playbook, map, tables, findings, sha);
   report.push(...jurisdictionReport(tables), ...rulingNotes(rulings));
-  return { tables, intake, diff, realWorld, report };
+  return { tables, intake, diff, realWorld, report, used };
 }
 
 function jurisdictionReport(tables: ReadonlyMap<string, readonly SqlRow[]>): string[] {

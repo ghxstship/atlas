@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parse } from "yaml";
+import { loadDecision25 } from "./decision25.ts";
+import type { Decision25 } from "./decision25.ts";
 
 /**
  * Owner canon rulings (canon/rulings/owner-rulings.yaml): decisions D11 to D17
@@ -43,6 +45,8 @@ export interface Rulings {
   readonly agency_functions: readonly [string, string, boolean, number][];
   readonly jurisdiction_agencies: readonly [string, string, string, string | null][];
   readonly retired_enumeration_domains: readonly string[];
+  /** Owner decision 25 (canon/rulings/decision-25.yaml): how Playbook to Bible differences resolve. */
+  readonly decision_25: Decision25;
 }
 
 const KEYS: readonly (keyof Rulings)[] = [
@@ -64,14 +68,19 @@ const KEYS: readonly (keyof Rulings)[] = [
   "retired_enumeration_domains",
 ];
 
-export function parseRulings(text: string): Rulings {
+export function parseRulings(text: string, decision25?: Decision25): Rulings {
   const doc = parse(text) as Partial<Rulings> | null;
   if (!doc || typeof doc !== "object") throw new Error("Rulings file is empty");
   const missing = KEYS.filter((k) => doc[k] === undefined);
   if (missing.length > 0) throw new Error(`Rulings file lacks ${missing.join(", ")}`);
-  return doc as Rulings;
+  if (decision25 === undefined)
+    throw new Error("Rulings need owner decision 25 (decision-25.yaml)");
+  return { ...(doc as Omit<Rulings, "decision_25">), decision_25: decision25 };
 }
 
 export function loadRulings(canonDir: string): Rulings {
-  return parseRulings(readFileSync(join(canonDir, "rulings", "owner-rulings.yaml"), "utf8"));
+  return parseRulings(
+    readFileSync(join(canonDir, "rulings", "owner-rulings.yaml"), "utf8"),
+    loadDecision25(canonDir),
+  );
 }

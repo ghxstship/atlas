@@ -1,5 +1,7 @@
 import type { SqlRow } from "../sql.ts";
-import { fromMinorUnits } from "../model/values.ts";
+import type { Cell } from "../cell.ts";
+import { fromMinorUnits, toMinorUnits } from "../model/values.ts";
+import { normalizeNumber } from "../normalize.ts";
 
 /**
  * How each column of a Bible-mirrored Playbook sheet relates to canon
@@ -21,6 +23,11 @@ export type MirrorColumn =
       readonly column: string;
       /** Canon value for the mirrored row; defaults to the row's own column. */
       readonly read?: (row: SqlRow, ctx: MirrorContext) => string | null;
+      /**
+       * Stores a Playbook value canon lacks (owner decision 25) for a column with its own read; a column
+       * without a read stores it on the canon row. A read column without one cannot import.
+       */
+      readonly assign?: (row: SqlRow, cell: Cell, tables: Map<string, SqlRow[]>) => void;
     }
   | { readonly kind: "playbook"; readonly column: string }
   | { readonly kind: "account-type-balance" };
@@ -261,6 +268,21 @@ function band(grade: string): MirrorColumn {
     kind: "canon",
     table: "element_price_bands",
     column: `amount_minor:${grade}`,
+    assign: (row, cell, tables) => {
+      if (cell.kind !== "number")
+        throw new Error(`Price for ${String(row["element_id"])} ${grade} is not a number`);
+      const bands = tables.get("element_price_bands") ?? [];
+      bands.push({
+        element_id: row["element_id"] ?? null,
+        grade_code: grade,
+        amount_minor: toMinorUnits(normalizeNumber(Number(cell.text))),
+        currency_code: "USD",
+        assertion_word: null,
+        valid_from: null,
+        valid_to: null,
+      });
+      tables.set("element_price_bands", bands);
+    },
     read: (row, ctx) => {
       const b = ctx.tables
         .get("element_price_bands")

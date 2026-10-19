@@ -22,6 +22,12 @@ import { PLAYBOOK_TABLES, stdTableSpecs } from "./playbook/tables.ts";
 import { compareWithReference, parseReferenceSeed } from "./reference.ts";
 import type { ReferenceDiff } from "./reference.ts";
 import { diffReport, doctrineReport, importReport } from "./reports.ts";
+import {
+  canonVocabulary,
+  mappingProblems,
+  staleEntries,
+  templateLabelProblems,
+} from "./decision25.ts";
 import type { TableSpec } from "./schema/types.ts";
 import { insertStatements, tableDdl } from "./sql.ts";
 import type { SqlRow } from "./sql.ts";
@@ -42,6 +48,10 @@ export interface GenerateResult {
   readonly diff: readonly DiffEntry[];
   readonly reference: readonly ReferenceDiff[];
   readonly report: readonly string[];
+  /** Differences owner decision 25 does not explain; canon:check fails on any. */
+  readonly unresolved: readonly DiffEntry[];
+  /** Stale or invalid decision 25 entries; canon:check fails on any. */
+  readonly decisionProblems: readonly string[];
 }
 
 export const SCHEMA_TABLES: readonly TableSpec[] = [
@@ -155,6 +165,13 @@ export function generateCanon(inputs: LoadedInputs, options: GenerateOptions): G
       ? []
       : compareWithReference(parseReferenceSeed(options.referenceSeed), tables);
 
+  const d25 = inputs.rulings.decision_25;
+  const unresolved = playbook.diff.filter((d) => d.resolution === undefined);
+  const decisionProblems = [
+    ...staleEntries(d25, playbook.used),
+    ...mappingProblems(tables.get("label_mapping") ?? [], canonVocabulary(tables)),
+    ...templateLabelProblems(d25, options.map, tables),
+  ];
   const seed = seedMigration(
     seedTables,
     tables,
@@ -197,7 +214,7 @@ export function generateCanon(inputs: LoadedInputs, options: GenerateOptions): G
     },
     {
       path: "canon/reports/doctrine-findings.md",
-      content: doctrineReport(findings.items),
+      content: doctrineReport(findings.items, d25.accepted_findings),
       committed: false,
     },
     {
@@ -224,6 +241,8 @@ export function generateCanon(inputs: LoadedInputs, options: GenerateOptions): G
     diff: playbook.diff,
     reference,
     report: playbook.report,
+    unresolved,
+    decisionProblems,
   };
 }
 

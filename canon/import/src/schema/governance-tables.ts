@@ -89,7 +89,7 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
   {
     name: "intake",
     comment:
-      "Staging for proposed canon additions and changes awaiting an owner decision. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here.",
+      "Staging for proposed canon additions and changes. Neither source silently wins: a value that disagrees with canon or cannot be resolved waits here as Proposed until the owner decides. A Playbook value an owner decision does not adopt stays here as Canceled, so the Playbook round trip still reproduces the source; an adopted value leaves intake for canon and xpms.playbook_sourced_value.",
     primaryKey: ["source_file", "source_sheet", "source_row", "source_column"],
     columns: [
       { name: "source_file", type: "text", comment: "Canon input file the value comes from." },
@@ -111,13 +111,84 @@ export const GOVERNANCE_TABLES: readonly TableSpec[] = [
         nullable: true,
         comment: "Value canon currently holds; NULL when canon is silent.",
       },
-      { name: "reason", type: "text", comment: "Why the value is held for a decision." },
+      {
+        name: "reason",
+        type: "text",
+        comment: "Why the value is held, and for a decided value the decision that settled it.",
+      },
       {
         name: "intake_state",
         type: "text",
         references: "dim_state(state)",
-        comment: "State of the proposal; Proposed until the owner decides.",
+        comment:
+          "State of the proposal: Proposed until the owner decides; Canceled when a decision keeps canon's value.",
       },
     ],
+  },
+  {
+    name: "playbook_sourced_value",
+    comment:
+      "Canon values imported from the Production Playbook because the Bible states none (owner decision 25, 2026-10-19). Each row marks one stored value as Playbook-sourced so it can be reviewed later; wherever the Bible states a value, canon keeps the Bible's.",
+    primaryKey: ["target_table", "target_key", "target_column"],
+    columns: [
+      { name: "target_table", type: "code", comment: "xpms table holding the imported value." },
+      { name: "target_key", type: "text", comment: "Natural key of the row holding the value." },
+      {
+        name: "target_column",
+        type: "code",
+        comment:
+          "Column holding the value; for a price band, amount_minor and the grade (amount_minor:base).",
+      },
+      {
+        name: "value_text",
+        type: "text",
+        comment:
+          "The value as the Playbook states it (a price in currency units, not minor units).",
+      },
+      { name: "source_file", type: "text", comment: "Playbook workbook the value comes from." },
+      { name: "source_sheet", type: "text", comment: "Playbook sheet the value comes from." },
+      { name: "source_row", type: "int", comment: "Playbook row the value comes from." },
+      { name: "source_column", type: "text", comment: "Playbook column header." },
+      { name: "decision", type: "code", comment: "Owner decision that imported the value (D25)." },
+    ],
+  },
+  {
+    name: "label_mapping",
+    comment:
+      "Playbook labels that are not canon values, each mapped to the closest existing canon or lifecycle value (owner decision 25, 2026-10-19). The Bible wins on structure, so no state, code or list entry is added; a label the decision does not cover has no canon value and basis deferred.",
+    primaryKey: ["source_list", "playbook_label"],
+    columns: [
+      {
+        name: "source_list",
+        type: "text",
+        comment:
+          "Where the label appears: an Enumerations domain, a Bible-mirrored sheet, or the Production Template sheet and column.",
+      },
+      { name: "playbook_label", type: "text", comment: "The label as the Playbook states it." },
+      {
+        name: "target_domain",
+        type: "code",
+        comment:
+          "Vocabulary the label maps into: state (canon states), unit, element_kind, counterparty_type, order_type, freight_type, record_kind, record_subtype, phase, department, category, or an app lifecycle (production_state, work_order_state, asset_state, shift_state).",
+      },
+      {
+        name: "canon_value",
+        type: "text",
+        nullable: true,
+        comment:
+          "The existing value the label maps to (a record subtype as kind · subtype); NULL when the decision does not cover it.",
+      },
+      {
+        name: "basis",
+        type: "code",
+        comment:
+          "Why: casing-or-punctuation, same-label, closest-state, closest-value, not-added (a Playbook-only row) or deferred.",
+        check:
+          "basis in ('casing-or-punctuation', 'same-label', 'closest-state', 'closest-value', 'not-added', 'deferred')",
+      },
+      { name: "decision", type: "code", comment: "Owner decision that set the mapping (D25)." },
+      { name: "note", type: "text", nullable: true, comment: "Reasoning for the mapping." },
+    ],
+    checks: ["(basis = 'deferred') = (canon_value is null)"],
   },
 ];
