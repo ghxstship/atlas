@@ -54,3 +54,40 @@ Projects keeps a ceiling. The rules that keep the pages here:
 4. **Messages reach next-intl precompiled.** The ICU parser stays on the server.
 
 The next reduction for Projects is a DataTable that registers only the TanStack features each table uses.
+
+## Amendment (2026-10-19): Projects under budget, and no ceilings (A48)
+
+Every key page is under 200 KB. Projects is 196 KB (201,135 bytes, from 224,466) and project
+overview 192 KB (196,361 bytes, from 204,656). `packages/testing/bundle-ceilings.json` holds no
+ceiling; a page that passes the budget again fails CI.
+
+Registering fewer TanStack features was not the fix. The source maps showed tree shaking already
+worked: unregistered features left about 1.5 KB. The chunk was TanStack Table itself (about 11 KB
+with its store and React bindings), TanStack Virtual (6.6 KB) and DataTable. The rules that keep
+the pages here:
+
+1. **DataTable lays out a table without TanStack Table.** It computes widths (the resized or
+   default width, clamped to 64 to 640 px) and pinned offsets (in pinning order) as TanStack's
+   sizing and pinning features do, and keyboard resize and reset change that state directly. A
+   pointer drag on a resize handle runs on TanStack Table, controlled, from `DataTableResizer.tsx`.
+   It loads when a pointer enters a handle or a handle takes focus, and a press that arrives first
+   starts its drag once the engine is ready. This defers an interaction, not a view: everything a
+   table renders by default stays in the route budget, TanStack Virtual included. ADR 0001's stack
+   is unchanged.
+2. **Boundaries that load on every visit import only what they render.** Loading, error and
+   not-found boundaries are part of every route under them. The page skeleton is its own client
+   module, `@xos/ui` Skeleton has its own module, and the org error boundary navigates home the way
+   the shell sidebar does, an anchor whose plain click goes through the router, instead of
+   next/link.
+3. **The client sitemap ships packed.** Node ids, label keys and routes that follow the sitemap's
+   naming rules are rebuilt at load (`apps/atlas/ia/client-sitemap-codec.ts`); the generator writes
+   only what departs from a rule.
+4. **Atlas merges Turbopack chunks below 200,000 raw bytes** (`experimental.turbopackChunking.minChunkSize`,
+   default 50,000). A signed-in page loads 13 chunks instead of 19 and 3 KB less gzip. The cost is
+   shared code merged into page chunks, which a navigation can fetch again; revisit if Lighthouse
+   navigation timings regress.
+
+The next reductions, if a page needs them: the root error and not-found boundaries each carry their
+own copy of Button, Icon and Kbd (about 5 KB on every page), because Turbopack does not share
+modules between boundaries above the org layout; and the collection view switcher's Radix toggle
+group (6 KB).

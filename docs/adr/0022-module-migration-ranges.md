@@ -72,3 +72,7 @@ Fixes that join two agents' work after both have merged (for example A43's indiv
 ## Amendment (2026-10-18): A45 and A47
 
 A45 (Continue on another device and push approval) takes 1140 to 1144. A47 (gate audit fixes) takes 1150 to 1154.
+
+## Amendment (2026-10-19): A49, A50 and A51
+
+A49 (generated document templates, gate 19) takes 1160 to 1164. A50 (API contract handlers, gate 5) takes 1170 to 1179. A51 (Playbook field targets and cognitive load) takes 1180 to 1184. A48 (route JavaScript) has no range.

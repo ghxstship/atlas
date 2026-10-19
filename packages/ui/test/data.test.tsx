@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -100,6 +100,35 @@ describe("DataTable", () => {
     expect(handle.getAttribute("aria-valuenow")).toBe("144");
     fireEvent.doubleClick(handle);
     expect(handle.getAttribute("aria-valuenow")).toBe("128");
+  });
+
+  it("resizes a column by pointer drag once the resize engine loads", async () => {
+    render(<DataTable columns={columns.slice(0, 2)} rows={rows} pinStart={["code"]} />);
+    const handle = screen.getByRole("separator", { name: /Code/ });
+    // The press arrives before the engine has loaded; the drag starts from it once it is ready.
+    fireEvent.mouseDown(handle, { clientX: 100 });
+    await waitFor(() => expect(handle.className.split(" ")).toContain("bg-accent"));
+    fireEvent.mouseMove(document, { clientX: 140 });
+    fireEvent.mouseUp(document, { clientX: 140 });
+    await waitFor(() => expect(handle.getAttribute("aria-valuenow")).toBe("168"));
+    expect(handle.className.split(" ")).not.toContain("bg-accent");
+    // The engine is loaded now: a second drag starts at once, and widths stay within 64 to 640 px.
+    fireEvent.mouseDown(handle, { clientX: 0 });
+    fireEvent.mouseMove(document, { clientX: -900 });
+    fireEvent.mouseUp(document, { clientX: -900 });
+    await waitFor(() => expect(handle.getAttribute("aria-valuenow")).toBe("64"));
+  });
+
+  it("drops a press released before the resize engine is ready", async () => {
+    render(<DataTable columns={columns.slice(0, 2)} rows={rows} />);
+    const handle = screen.getByRole("separator", { name: /Line/ });
+    fireEvent.mouseDown(handle, { clientX: 100 });
+    fireEvent.mouseUp(document, { clientX: 300 });
+    fireEvent.pointerEnter(handle);
+    await new Promise((r) => setTimeout(r, 50));
+    fireEvent.mouseMove(document, { clientX: 400 });
+    expect(handle.getAttribute("aria-valuenow")).toBe("200");
+    expect(handle.className.split(" ")).not.toContain("bg-accent");
   });
 
   it("virtualizes 10,000 rows and keeps the row count for assistive technology", async () => {

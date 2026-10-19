@@ -8,6 +8,7 @@ import {
 } from "@xos/ia";
 import { getMessages } from "@xos/i18n";
 import { parse } from "yaml";
+import { packNodes } from "./client-sitemap-codec";
 import { IMPLEMENTED } from "./implemented";
 import { DELEGATED } from "./routes.config";
 
@@ -187,17 +188,23 @@ import type { Sitemap } from "@xos/ia";
 export const sitemap: Sitemap = ${JSON.stringify(sitemap)};
 `,
   );
+  const { nodes: clientNodes, ...clientHeader } = clientSitemap(sitemap);
   files.set(
     "ia/sitemap.client.generated.ts",
     `${GENERATED_STAMP}
 import type { Sitemap } from "@xos/ia";
+import { unpackNodes } from "./client-sitemap-codec";
 
 /**
  * The routed part of the Atlas sitemap for client components (breadcrumbs, the help panel's page):
  * ids, kinds, labels and routes only, so the browser never downloads visibility, list or persona
- * data it does not read (A24-009). Server code reads ia/sitemap.generated.ts.
+ * data it does not read (A24-009). The nodes ship packed (ia/client-sitemap-codec.ts). Server code
+ * reads ia/sitemap.generated.ts.
  */
-export const clientSitemap: Sitemap = ${JSON.stringify(clientSitemap(sitemap))};
+export const clientSitemap: Sitemap = {
+  ...${JSON.stringify(clientHeader)},
+  nodes: unpackNodes(${JSON.stringify(packNodes(clientNodes))}),
+};
 
 /** Nodes with a list (a collection page), which open their own rows in the side peek. */
 export const listNodes: ReadonlySet<string> = new Set(${JSON.stringify(listNodeIds(sitemap))});
