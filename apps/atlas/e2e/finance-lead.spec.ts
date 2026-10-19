@@ -53,6 +53,8 @@ test("journey 51: Hospitality turned off leaves the sidebar and the command menu
   expect(await commandFinds()).toBeGreaterThan(0);
 
   await page.goto(`/${ORG}/settings/modules`);
+
+  await page.getByRole("button", { name: "More fields" }).click();
   await page.getByRole("checkbox", { name: "Hospitality" }).uncheck();
   await page.getByRole("button", { name: "Save modules" }).click();
   await expect(page.getByText("Saved.")).toBeVisible();
@@ -65,6 +67,7 @@ test("journey 51: Hospitality turned off leaves the sidebar and the command menu
     await expectAccessible(page);
   } finally {
     await page.goto(`/${ORG}/settings/modules`);
+    await page.getByRole("button", { name: "More fields" }).click();
     await page.getByRole("checkbox", { name: "Hospitality" }).check();
     await page.getByRole("button", { name: "Save modules" }).click();
     await expect(page.getByText("Saved.")).toBeVisible();

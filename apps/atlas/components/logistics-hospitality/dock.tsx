@@ -429,6 +429,7 @@ export async function DockSection({
             sentence={t("dock.empty")}
             actionLabel={t("dock.book")}
             href={createHref}
+            secondary
           />
         ) : (
           <EmptyStateLink

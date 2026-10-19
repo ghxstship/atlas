@@ -129,11 +129,14 @@ export function EmptyPanel({
   actionLabel,
   href,
   icon = "Inbox",
+  secondary = false,
 }: {
   sentence: string;
   actionLabel: string;
   href: string;
   icon?: string;
+  /** The page already holds its primary action, so this button is secondary (gate 27). */
+  secondary?: boolean;
 }) {
   const router = useRouter();
   return (
@@ -141,6 +144,7 @@ export function EmptyPanel({
       icon={icon}
       sentence={sentence}
       actionLabel={actionLabel}
+      actionVariant={secondary ? "secondary" : "primary"}
       onAction={() => router.push(href as Route)}
     />
   );

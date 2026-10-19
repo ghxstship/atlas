@@ -537,6 +537,30 @@ describe("Tabs, SegmentedControl and Accordion", () => {
     expect(screen.getByText("Advanced body")).toBeTruthy();
     await expectAccessible(container);
   });
+
+  it("keeps collapsed More fields mounted and hidden so they submit with the form", async () => {
+    const { container } = render(
+      <form aria-label="Profile">
+        <Accordion
+          keepMounted
+          items={[
+            {
+              title: "More fields",
+              content: <input aria-label="Website" name="website" defaultValue="x" />,
+            },
+          ]}
+        />
+      </form>,
+    );
+    const field = container.querySelector<HTMLInputElement>("input[name='website']");
+    expect(field).not.toBeNull();
+    expect(field?.closest("[data-state='closed']")?.className).toContain("hidden");
+    expect(new FormData(container.querySelector("form") as HTMLFormElement).get("website")).toBe(
+      "x",
+    );
+    await userEvent.click(screen.getByRole("button", { name: /More fields/ }));
+    expect(field?.closest("[data-state]")?.getAttribute("data-state")).toBe("open");
+  });
 });
 
 describe("navigation", () => {

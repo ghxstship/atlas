@@ -197,6 +197,7 @@ async function ProfileSection(props: SectionProps) {
           action={saveProfileAction}
           label={t("gateway.settings.profile.about")}
           errorsNamespace="gateway.profile.errors"
+          variant="secondary"
           submitLabel={t("settings.save")}
           doneLabel={t("settings.saved")}
           fields={[

@@ -135,6 +135,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
             sentence={t("gateway.home.needsYou.empty")}
             actionLabel={t("gateway.home.needsYou.emptyAction")}
             href="/work/upcoming"
+            secondary
           />
         ) : (
           <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle bg-bg-raised p-0">
@@ -164,6 +165,7 @@ export default async function HomePage({ searchParams }: PageProps<"/home">) {
               sentence={t("gateway.home.recommended.empty")}
               actionLabel={t("gateway.home.recommended.emptyAction")}
               href="/explore/alerts"
+              secondary
             />
           ) : (
             <ul className="m-0 grid list-none grid-cols-[repeat(auto-fill,minmax(min(100%,var(--ui-gateway-aside)),1fr))] gap-12 p-0">
@@ -312,7 +314,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         <ActionButton
           action={signDocumentAction.bind(null, item.document.id)}
           label={t("gateway.common.sign")}
-          variant="primary"
+          variant="secondary"
           done={t("gateway.common.signed")}
         />,
       );
@@ -322,7 +324,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         "Handshake",
         t("gateway.home.needsYou.offer", { title: o?.title ?? "" }),
         o?.orgName ?? "",
-        <ButtonLink href="/work/applications?view=list" variant="primary" size="sm">
+        <ButtonLink href="/work/applications?view=list" variant="secondary" size="sm">
           {t("gateway.home.needsYou.offerAction")}
         </ButtonLink>,
       );
@@ -336,7 +338,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
           : item.engagement.jobTitle,
         <ButtonLink
           href={engagementHref(item.engagement, "onboarding")}
-          variant="primary"
+          variant="secondary"
           size="sm"
         >
           {t("gateway.home.needsYou.onboardingAction")}
@@ -350,7 +352,7 @@ function FeedRow({ item, locale, t }: { item: FeedItem; locale: string; t: Trans
         <ActionButton
           action={acceptRepresentationAction.bind(null, item.representation.id)}
           label={t("gateway.home.needsYou.representationAction")}
-          variant="primary"
+          variant="secondary"
         />,
       );
     case "interview":

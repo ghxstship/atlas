@@ -41,6 +41,8 @@ test("journey 61: a Network profile with rates hidden, shared with one org", asy
   await signIn(page, "crew@example.com", "/settings/profile-privacy");
   const form = page.getByRole("form", { name: "Profile privacy" });
   await form.getByLabel("Who sees your profile").selectOption("Network");
+  // Sections past the seventh field sit under More fields (gate 27).
+  await form.getByRole("button", { name: "More fields" }).click();
   await form.getByLabel("Rates").selectOption("Private");
   await form.getByRole("button", { name: "Save" }).click();
   await expect(form.getByText(/^Saved/)).toBeVisible();

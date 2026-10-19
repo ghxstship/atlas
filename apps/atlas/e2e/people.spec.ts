@@ -46,6 +46,7 @@ async function newOrg(page: Page, browser: Browser) {
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill("NWL");
   await dialog.getByLabel("Project name").fill("Northwind Summer Series");
+  await dialog.getByRole("button", { name: "More fields" }).click();
   await dialog.getByLabel("Jurisdiction").selectOption("US-FL-MIAMI-DADE");
   await dialog.getByLabel("Tier of experience").selectOption({ index: 5 });
   await dialog.getByRole("button", { name: "Create project" }).click();

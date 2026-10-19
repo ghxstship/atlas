@@ -5,7 +5,7 @@ import { Icon } from "../Icon/Icon.tsx";
 import { type AccordionProps } from "./Navigation.types.ts";
 
 /** Progressively discloses sections; each header is a button that Enter or Space toggles. */
-export function Accordion({ items }: AccordionProps): ReactElement {
+export function Accordion({ items, keepMounted = false }: AccordionProps): ReactElement {
   return (
     <RAccordion.Root
       type="multiple"
@@ -36,7 +36,13 @@ export function Accordion({ items }: AccordionProps): ReactElement {
               ) : null}
             </RAccordion.Trigger>
           </RAccordion.Header>
-          <RAccordion.Content className="pb-12 ps-(--ui-accordion-indent) pe-12 text-text-secondary">
+          <RAccordion.Content
+            {...(keepMounted ? { forceMount: true as const } : {})}
+            className={cx(
+              "pb-12 ps-(--ui-accordion-indent) pe-12 text-text-secondary",
+              keepMounted && "data-[state=closed]:hidden",
+            )}
+          >
             {it.content}
           </RAccordion.Content>
         </RAccordion.Item>

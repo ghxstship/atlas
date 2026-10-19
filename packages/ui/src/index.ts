@@ -176,6 +176,8 @@ export {
   Tabs,
   SegmentedControl,
   Accordion,
+  MoreFields,
+  type MoreFieldsProps,
   Breadcrumbs,
   Pagination,
   Sidebar,

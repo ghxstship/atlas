@@ -337,6 +337,7 @@ export async function HelpDeskSection({
             sentence={t("helpDesk.empty")}
             actionLabel={t("helpDesk.create")}
             href={createHref}
+            secondary
           />
         ) : (
           <EmptyRefresh icon="LifeBuoy" sentence={t("helpDesk.noTeamsBody")} />

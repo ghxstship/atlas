@@ -36,6 +36,7 @@ async function createProject(page: Page, slug: string, key: string, jurisdiction
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill(key);
   await dialog.getByLabel("Project name").fill(`Permit Test ${key}`);
+  await dialog.getByRole("button", { name: "More fields" }).click();
   if (jurisdiction) await dialog.getByLabel("Jurisdiction").selectOption(jurisdiction);
   await dialog.getByLabel("Tier of experience").selectOption({ index: 5 });
   await dialog.getByLabel("First production day").fill("2027-03-12");

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Textarea } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, MoreFields, Textarea } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useRef } from "react";
@@ -8,6 +8,9 @@ import { OutcomeAlert } from "@/components/actions/action-button";
 import { keepInputOnSubmit } from "./keep-input";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
+
+/** Fields shown before More fields (Section 11.10, gate 27); the rest stay mounted under it. */
+const VISIBLE_FIELDS = 7;
 
 export interface FieldSpec {
   readonly name: string;
@@ -77,6 +80,71 @@ export function SimpleForm({
       router.refresh();
     }
   }, [state, resetOnDone, router]);
+  const renderField = (f: FieldSpec) => {
+    const fieldId = `${id}-${f.name}`;
+    if (f.kind === "textarea") {
+      return (
+        <Textarea
+          key={f.name}
+          id={fieldId}
+          name={f.name}
+          label={f.label}
+          rows={3}
+          width="100%"
+          required={f.required}
+          defaultValue={f.defaultValue ?? ""}
+          {...(f.help ? { help: f.help } : {})}
+        />
+      );
+    }
+    if (f.kind === "checkbox") {
+      return (
+        <Checkbox
+          key={f.name}
+          id={fieldId}
+          name={f.name}
+          label={f.label}
+          defaultChecked={f.defaultChecked ?? false}
+        />
+      );
+    }
+    if (f.kind === "select") {
+      return (
+        <label key={f.name} htmlFor={fieldId} className="flex min-w-0 flex-col gap-4 text-text-13">
+          <span className="font-medium">{f.label}</span>
+          <select
+            id={fieldId}
+            name={f.name}
+            required={f.required}
+            defaultValue={f.defaultValue ?? ""}
+            className="min-h-touch-min w-full min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
+          >
+            {(f.options ?? []).map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+          {f.help ? <span className="text-text-12 text-text-secondary">{f.help}</span> : null}
+        </label>
+      );
+    }
+    return (
+      <Input
+        key={f.name}
+        id={fieldId}
+        name={f.name}
+        label={f.label}
+        type={f.kind ?? "text"}
+        required={f.required}
+        defaultValue={f.defaultValue ?? ""}
+        {...(f.help ? { help: f.help } : {})}
+        {...(f.inputMode ? { inputMode: f.inputMode } : {})}
+        {...(f.autoComplete ? { autoComplete: f.autoComplete } : {})}
+        {...(f.width !== undefined ? { width: f.width } : {})}
+      />
+    );
+  };
   return (
     <form
       ref={ref}
@@ -97,76 +165,15 @@ export function SimpleForm({
         <input key={name} type="hidden" name={name} value={value} />
       ))}
       <div className="flex flex-wrap items-end gap-8">
-        {fields.map((f) => {
-          const fieldId = `${id}-${f.name}`;
-          if (f.kind === "textarea") {
-            return (
-              <Textarea
-                key={f.name}
-                id={fieldId}
-                name={f.name}
-                label={f.label}
-                rows={3}
-                width="100%"
-                required={f.required}
-                defaultValue={f.defaultValue ?? ""}
-                {...(f.help ? { help: f.help } : {})}
-              />
-            );
-          }
-          if (f.kind === "checkbox") {
-            return (
-              <Checkbox
-                key={f.name}
-                id={fieldId}
-                name={f.name}
-                label={f.label}
-                defaultChecked={f.defaultChecked ?? false}
-              />
-            );
-          }
-          if (f.kind === "select") {
-            return (
-              <label
-                key={f.name}
-                htmlFor={fieldId}
-                className="flex min-w-0 flex-col gap-4 text-text-13"
-              >
-                <span className="font-medium">{f.label}</span>
-                <select
-                  id={fieldId}
-                  name={f.name}
-                  required={f.required}
-                  defaultValue={f.defaultValue ?? ""}
-                  className="min-h-touch-min w-full min-w-0 max-w-full rounded-control border border-border-control bg-bg-surface px-8 text-text-14 text-text-primary"
-                >
-                  {(f.options ?? []).map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-                {f.help ? <span className="text-text-12 text-text-secondary">{f.help}</span> : null}
-              </label>
-            );
-          }
-          return (
-            <Input
-              key={f.name}
-              id={fieldId}
-              name={f.name}
-              label={f.label}
-              type={f.kind ?? "text"}
-              required={f.required}
-              defaultValue={f.defaultValue ?? ""}
-              {...(f.help ? { help: f.help } : {})}
-              {...(f.inputMode ? { inputMode: f.inputMode } : {})}
-              {...(f.autoComplete ? { autoComplete: f.autoComplete } : {})}
-              {...(f.width !== undefined ? { width: f.width } : {})}
-            />
-          );
-        })}
+        {fields.slice(0, VISIBLE_FIELDS).map(renderField)}
       </div>
+      {fields.length > VISIBLE_FIELDS ? (
+        <MoreFields>
+          <div className="flex flex-wrap items-end gap-8">
+            {fields.slice(VISIBLE_FIELDS).map(renderField)}
+          </div>
+        </MoreFields>
+      ) : null}
       <div>
         <Button type="submit" variant={variant} size="sm" disabled={pending} aria-busy={pending}>
           {submitLabel}

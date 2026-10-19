@@ -50,6 +50,7 @@ export default async function MessagesPage({ searchParams }: PageProps<"/message
           sentence={t("gateway.messages.empty")}
           actionLabel={t("gateway.messages.emptyAction")}
           href="/work/engagements"
+          secondary
         />
       ) : (
         <div

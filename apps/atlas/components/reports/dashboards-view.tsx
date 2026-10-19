@@ -76,6 +76,7 @@ export async function DashboardsView({ page }: { page: FinancePage }) {
               sentence={t("reporting.dashboards.empty")}
               actionLabel={t("reporting.dashboards.emptyAction")}
               href={`/${org}/reports/saved-reports`}
+              secondary
             />
           ) : (
             <ul className="m-0 grid list-none grid-cols-3 gap-12 p-0 max-lg:grid-cols-2 max-sm:grid-cols-1">

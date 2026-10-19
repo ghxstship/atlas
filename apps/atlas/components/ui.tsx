@@ -63,6 +63,8 @@ export function EmptyStateLink(props: {
   actionLabel: string;
   icon?: string;
   href: string;
+  /** The page header already holds this primary action, so the button is secondary (gate 27). */
+  secondary?: boolean;
 }) {
   const router = useRouter();
   return (
@@ -70,6 +72,7 @@ export function EmptyStateLink(props: {
       sentence={props.sentence}
       actionLabel={props.actionLabel}
       {...(props.icon ? { icon: props.icon } : {})}
+      {...(props.secondary ? { actionVariant: "secondary" as const } : {})}
       onAction={() => router.push(props.href as Route)}
     />
   );
