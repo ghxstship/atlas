@@ -1,10 +1,11 @@
 /**
  * Identity handlers added for API parity (A04P, ADR 0023), beside A30's handlers in identity.ts:
  * the caller (`me`), people, organizations, memberships and their roles, project assignments,
- * external account memberships and roles, representations, invites, verified domains, profile
- * section visibility and organization verifications. Tables are read and written as the caller;
- * organization creation, client organizations, leaving, ending a membership, invites and
- * representations go through their RPCs, so the database decides every refusal.
+ * external account memberships and roles, organization relationships (app.counterparties),
+ * representations, invites, verified domains, profile section visibility and organization
+ * verifications. Tables are read and written as the caller; organization creation, client
+ * organizations, leaving, ending a membership, account memberships, invites and representations go
+ * through their RPCs, so the database decides every refusal.
  */
 import {
   endMembership,
@@ -163,6 +164,17 @@ export const identityParity = {
   ...handlersFor("Identity", tableResource("membershipRoles", { orgColumn: false })),
   ...handlersFor("Identity", tableResource("projectAssignments")),
   ...handlersFor("Identity", accountMemberships),
+  // Adding a person to the caller's external account opens the membership with its first role.
+  "accountMemberships.create": async ({ body }, context) => {
+    const { membershipId } = unwrap(
+      await addAccountMember(context.db, {
+        accountId: requireOrg(context).id,
+        personId: body.person_id,
+        role: body.account_role,
+      }),
+    );
+    return created((await accountMemberships.read(context, membershipId)) as never);
+  },
   "accountMemberships.delete": async ({ params }, context) => {
     await accountMemberships.read(context, params.id, ["id"]);
     unwrap(await endAccountMembership(context.db, params.id));
@@ -261,6 +273,9 @@ export const identityParity = {
     const accepted = unwrap(await acceptInvite(context.db, body.token));
     return ok({ membership_id: accepted.membershipId });
   },
+
+  // The org's relationship row to another organization; written with vendors.vendor.write.
+  ...handlersFor("Identity", tableResource("organizationRelationships")),
 
   ...handlersFor("Identity", tableResource("verifiedDomains")),
   ...handlersFor("Identity", tableResource("profileVisibilityRules")),

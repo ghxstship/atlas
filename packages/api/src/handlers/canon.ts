@@ -5,10 +5,10 @@
  * The resolvers call xpms.resolve_element and xpms.resolve_gtin and answer NO_ANSWER when nothing
  * matches: they never guess.
  *
- * Left document-only for the canon owner (ADR 0023, "Canon deferred to the canon owner"): the
- * Playbook library mirrors other than emergency codes, canonStdRoles, canonStdLaborRateCards,
- * canonProductionTemplates, canonSupersessions, canonRatifications, canonIntake, canonExtensions
- * and canonUrns, whose shapes wait on the open owner decisions of ADR 0014.
+ * The Playbook library mirrors, the Roles Library, the canon labor rate cards, supersessions and
+ * ratifications read their xpms tables in the shapes corrected in catalog/modules/canon.ts (A50,
+ * ADR 0032). canonUrns.resolve calls xpms.urn_resolve, which follows supersessions. The private
+ * Production Template and the canon intake staging are not offered (ADR 0032).
  *
  * canonExtensions.propose (A16) records the org's proposal in app.canon_extension_proposals (0490):
  * a discipline under its department or a category under its discipline, in the .50 to .99 range.
@@ -96,6 +96,18 @@ export const handlers = defineHandlers("Canon", {
   ...canon("canonUrnNamespaces"),
   ...canon("canonLocales"),
   ...canon("canonStdEmergencyCodes"),
+  ...canon("canonStdDocumentLibrary"),
+  ...canon("canonStdEnumerations"),
+  ...canon("canonStdLaborRateCards"),
+  ...canon("canonStdRadioChannels"),
+  ...canon("canonStdRoles"),
+  ...canon("canonStdSops"),
+  ...canon("canonStdVendorClasses"),
+  ...canon("canonStdVendorEntitlements"),
+  ...canon("canonStdVerbiage"),
+  // A code is unique within its domain; lists order by domain, then code.
+  ...canon("canonSupersessions", { key: "code" }),
+  ...canon("canonRatifications"),
   ...canon("canonVersions"),
 
   // Elements and their bridges ---------------------------------------------------------------------
@@ -118,6 +130,17 @@ export const handlers = defineHandlers("Canon", {
   ...canon("canonCrosswalkCoverage"),
 
   // Resolvers ---------------------------------------------------------------------------------------
+  "canonUrns.resolve": async ({ query }, { db }) => {
+    const rows = await run<
+      { kind: string; key: string; resolved_key: string; label: string; is_superseded: boolean }[]
+    >(db.schema("xpms").rpc("urn_resolve" as never, { urn: query.urn } as never));
+    const row = rows[0];
+    if (row === undefined) {
+      throw noAnswer(`${query.urn} does not resolve to a canon row.`);
+    }
+    return ok({ urn: query.urn, ...row });
+  },
+
   "canonElements.resolve": async ({ query }, { db }) => {
     const rows = await run<{ element_id: string; item: string; urid: string; match: string }[]>(
       db.schema("xpms").rpc("resolve_element" as never, { query: query.query } as never),

@@ -3,8 +3,9 @@
  * read models, and writes through the RPCs and policies of those migrations, so the database decides every refusal
  * (Section 8.7 scoping, the lifecycle engine, separation of duties). The frozen v1 shapes name some columns
  * differently from the schema (position for sort_order, level for standing, answer for answer_text); the mapping is
- * here. Operations whose v1 shape cannot be filled faithfully from the schema stay document-only and are listed in A28's
- * report for a contract revision. See packages/api/README.md.
+ * here. Engagements are created from an accepted application (app.create_engagement_from_application), and the engaged
+ * party submits an onboarding item through app.submit_onboarding_item, as corrected in catalog/modules/opportunities.ts
+ * (ADR 0023). See packages/api/README.md.
  */
 import type { XosClient } from "@xos/data";
 import type { Components } from "../contract/operations.generated.ts";
@@ -131,7 +132,7 @@ interface Chain extends PromiseLike<{ data: unknown; error: unknown }> {
 
 // Engagements -----------------------------------------------------------------------------------------------------
 
-const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
+const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
 
 interface EngagementRow extends AuditRow {
   project_id: string;
@@ -139,6 +140,11 @@ interface EngagementRow extends AuditRow {
   role_type: Engagement["role_type"];
   engagement_state: Engagement["engagement_state"];
   application_id: string | null;
+  worker_classification: string;
+  pay_basis: string | null;
+  arrangement: string | null;
+  start_date: string;
+  end_date: string | null;
   counterparty: { organization_id: string } | null;
   transitions: { to_state: string; created_at: string }[] | null;
   application: {
@@ -166,17 +172,24 @@ function toEngagement(row: EngagementRow): Engagement {
     engagement_state: row.engagement_state,
     activated_at: firstAt(row, "Active"),
     completed_at: firstAt(row, "Complete"),
+    application_id: row.application_id,
+    worker_classification: row.worker_classification,
+    pay_basis: row.pay_basis,
+    arrangement: row.arrangement,
+    start_date: row.start_date,
+    end_date: row.end_date,
   };
 }
 
 // Onboarding -------------------------------------------------------------------------------------------------------
 
-const ITEM_COLUMNS = `${AUDIT}, engagement_id, onboarding_requirement_id, document_id`;
+const ITEM_COLUMNS = `${AUDIT}, engagement_id, onboarding_requirement_id, document_id, submitted_at`;
 
 interface ItemRow extends AuditRow {
   engagement_id: string;
   onboarding_requirement_id: string;
   document_id: string | null;
+  submitted_at: string | null;
 }
 
 interface ItemStatus {
@@ -217,6 +230,7 @@ async function withItemStatus(db: XosClient, rows: readonly ItemRow[]): Promise<
       onboarding_item_state: itemState(s),
       expires_on: s?.expires_on ?? null,
       carried_over: Boolean(s?.carried_over),
+      submitted_at: row.submitted_at,
     };
   });
 }
@@ -602,6 +616,29 @@ export const handlers = defineHandlers("Opportunities", {
       ),
     ),
 
+  "engagements.create": async ({ body }, { db }) => {
+    const { data, error } = await db.rpc("create_engagement_from_application", {
+      p_application_id: body.application_id,
+      p_worker_classification: body.worker_classification,
+      p_pay_basis: (body.pay_basis ?? null) as string,
+      p_arrangement: (body.arrangement ?? null) as string,
+      p_start_date: (body.start_date ?? null) as string,
+      p_end_date: (body.end_date ?? null) as string,
+    });
+    if (error !== null) throw error;
+    return created(
+      toEngagement(
+        await readOne<EngagementRow>(
+          db,
+          "engagements",
+          ENGAGEMENT_COLUMNS,
+          String(data),
+          "engagement",
+        ),
+      ),
+    );
+  },
+
   "engagements.transition": async ({ params, body }, { db }) => {
     const { error } = await db.rpc("transition_engagement", {
       p_engagement_id: params.id,
@@ -638,6 +675,41 @@ export const handlers = defineHandlers("Opportunities", {
   },
 
   "onboardingItems.get": async ({ params }, { db }) => {
+    const row = await readOne<ItemRow>(
+      db,
+      "onboarding_items",
+      ITEM_COLUMNS,
+      params.id,
+      "onboarding item",
+    );
+    const [item] = await withItemStatus(db, [row]);
+    return ok(item as OnboardingItem);
+  },
+
+  "onboardingItems.create": async ({ body }, { db }) => {
+    const row = await writeOne<ItemRow>(
+      db
+        .from("onboarding_items")
+        .insert({
+          engagement_id: body.engagement_id,
+          onboarding_requirement_id: body.onboarding_requirement_id,
+        } as never)
+        .select(ITEM_COLUMNS)
+        .single(),
+    );
+    const [item] = await withItemStatus(db, [row]);
+    return created(item as OnboardingItem);
+  },
+
+  "onboardingItems.submit": async ({ params, body }, { db }) => {
+    await readOne<ItemRow>(db, "onboarding_items", "id", params.id, "onboarding item");
+    const { error } = await db.rpc("submit_onboarding_item", {
+      p_item_id: params.id,
+      ...(body.document_id === undefined || body.document_id === null
+        ? {}
+        : { p_document_id: body.document_id }),
+    });
+    if (error !== null) throw error;
     const row = await readOne<ItemRow>(
       db,
       "onboarding_items",
@@ -955,6 +1027,23 @@ export const handlers = defineHandlers("Opportunities", {
       ),
     ),
 
+  "applicationAnswers.create": async ({ body }, { db }) =>
+    created(
+      toAnswer(
+        await writeOne<AnswerRow>(
+          db
+            .from("application_answers")
+            .insert({
+              application_id: body.application_id,
+              opportunity_question_id: body.opportunity_question_id,
+              answer_text: body.answer,
+            } as never)
+            .select(ANSWER_COLUMNS)
+            .single(),
+        ),
+      ),
+    ),
+
   "opportunityQuestions.list": async ({ query }, context) => {
     const org = requireOrg(context);
     const { rows, size } = await listRows<QuestionRow>(
@@ -1061,6 +1150,55 @@ export const handlers = defineHandlers("Opportunities", {
         await readOne<BidLineRow>(db, "bid_lines", BID_LINE_COLUMNS, params.id, "bid line"),
       ),
     ),
+
+  "bidLines.create": async ({ body }, { db }) =>
+    created(
+      toBidLine(
+        await writeOne<BidLineRow>(
+          db
+            .from("bid_lines")
+            .insert({
+              bid_id: body.bid_id,
+              description: body.description,
+              ...(body.quantity === undefined ? {} : { quantity: body.quantity }),
+              unit_price_minor: body.unit_price_minor ?? null,
+            } as never)
+            .select(BID_LINE_COLUMNS)
+            .single(),
+        ),
+      ),
+    ),
+
+  "bidLines.update": async ({ params, body, ifMatch }, { db }) => {
+    const current = toBidLine(
+      await readOne<BidLineRow>(db, "bid_lines", BID_LINE_COLUMNS, params.id, "bid line"),
+    );
+    assertIfMatch(ifMatch ?? "*", current);
+    const patch: Record<string, unknown> = {};
+    if (body.description !== undefined) patch["description"] = body.description;
+    if (body.quantity !== undefined) patch["quantity"] = body.quantity;
+    if (body.unit_price_minor !== undefined) patch["unit_price_minor"] = body.unit_price_minor;
+    if (Object.keys(patch).length === 0) return ok(current);
+    const row = await writeOne<BidLineRow>(
+      db
+        .from("bid_lines")
+        .update(patch as never)
+        .eq("id", params.id)
+        .select(BID_LINE_COLUMNS)
+        .single(),
+    );
+    return ok(toBidLine(row));
+  },
+
+  "bidLines.delete": async ({ params }, { db }) => {
+    await readOne<BidLineRow>(db, "bid_lines", "id", params.id, "bid line");
+    const { error } = await db
+      .from("bid_lines")
+      .update({ deleted_at: new Date().toISOString() } as never)
+      .eq("id", params.id);
+    if (error !== null) throw error;
+    return noContent();
+  },
 
   "payTransparencyRules.list": async ({ query }, { db }) => {
     const size = pageSize(query.limit);

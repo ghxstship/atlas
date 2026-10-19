@@ -6,7 +6,29 @@
 import { z } from "@hono/zod-openapi";
 import { AccountRole, OrgRole, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { all, editShape, orNull, setTable } from "../correct.ts";
+import { all, editShape, orNull, removeActions, removeVerbs, setTable } from "../correct.ts";
+
+/** A profile handle as app.person_profiles and app.organization_profiles store it (0860). */
+const handle = {
+  schema: z
+    .string()
+    .regex(/^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$/)
+    .meta({
+      description:
+        "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
+      example: "northwind-live",
+    }),
+  update: true,
+};
+const handleChangedAt = {
+  schema: orNull(
+    fields.instant(
+      "When the handle last changed; null until the first change. Set by the database.",
+    ),
+  ),
+};
+
+const A50 = "1.0.0-draft.2";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -377,6 +399,126 @@ export const additions = defineAdditions("Identity", {
           a.verb === "create" ? { ...a, response: spec.def.read } : a,
         ),
       }),
+    },
+
+    // A50 (gate 5, RRR-94, ADR 0032) ----------------------------------------------------------------
+    {
+      id: "membership-validity-through-rpcs",
+      since: A50,
+      resources: ["memberships"],
+      change:
+        "Removes `memberships.update`: a membership's validity changes only by ending it (`memberships.end`, `memberships.offboard`, `memberships.leave`).",
+      reason:
+        "app.memberships (0202) grants callers no update: `valid_from` is set when the membership is created through the join paths, and `valid_to` only by app.end_membership and app.leave_organization, which also open the offboarding checklist (0861). Decided in ADR 0032.",
+      apply: removeVerbs("update"),
+    },
+    {
+      id: "project-role-on-assignment",
+      since: A50,
+      resources: ["projectAssignmentRoles"],
+      components: ["schemas/ProjectRole"],
+      change:
+        "Removes every projectAssignmentRoles operation, and with them the `ProjectRole` component they alone used: the project role is `project_role` on the project assignment itself.",
+      reason:
+        "Project assignments are app.project_members (0301, correction project-assignment-members), one row per membership and project (project_members_project_membership_key) carrying its `project_role`; there is no app.project_assignment_roles table. Decided in ADR 0032.",
+      apply: removeVerbs("list", "get", "create", "delete"),
+    },
+    {
+      id: "account-membership-through-rpc",
+      since: A50,
+      resources: ["accountMemberships"],
+      change:
+        "Creating an account membership adds the person to the caller's external account with a required, write-only `account_role` (app.add_account_member); `valid_from` and `valid_to` are server-set. Removes `accountMemberships.update`.",
+      reason:
+        "app.account_memberships (0710) grants callers no insert or update: app.add_account_member opens the membership with its first role (an account membership always holds one), app.end_account_membership ends it, and roles change through accountMembershipRoles. Decided in ADR 0032.",
+      apply: all(
+        editShape({
+          serverSet: ["valid_from", "valid_to"],
+          add: { account_role: { schema: AccountRole, create: "required", read: false } },
+        }),
+        removeVerbs("update"),
+      ),
+    },
+    {
+      id: "organization-relationship-counterparties",
+      since: A50,
+      resources: ["organizationRelationships"],
+      components: ["schemas/OrganizationRelationshipKind"],
+      change:
+        "The resource reads `app.counterparties`: `related_organization_id` becomes `organization_id` (fixed once created); `kind` and `internal_notes` are removed, and the `OrganizationRelationshipKind` component with them; `counterparty_type` accepts null.",
+      reason:
+        "The org-owned relationship row to another organization is app.counterparties (0301, Section 3.15 item 4): the other organization and its canon counterparty type, read by the org's members and written with vendors.vendor.write. It has no kind or notes column; whether the other organization is a vendor, a client or a represented party follows from its vendor facet, its projects and its representations.",
+      apply: all(
+        setTable("app.counterparties"),
+        editShape({
+          rename: { related_organization_id: "organization_id" },
+          remove: ["kind", "internal_notes"],
+          nullable: ["counterparty_type"],
+          immutable: ["organization_id"],
+        }),
+      ),
+    },
+    {
+      id: "representation-terms-accepted",
+      since: A50,
+      resources: ["representations"],
+      change:
+        "Removes `representations.update`: changing a representation's scopes or expiry is a new proposal that the artist accepts.",
+      reason:
+        "app.representations (0710) grants callers no update; its scopes and expiry are what the artist accepted (app.propose_representation, app.accept_representation). Changing them without a new acceptance would extend an agency's reach beyond the artist's consent, so a change revokes the representation and proposes a new one. Decided in ADR 0032.",
+      apply: removeVerbs("update"),
+    },
+    {
+      id: "verified-domain-service-check",
+      since: A50,
+      resources: ["verifiedDomains"],
+      change:
+        "Removes `verifiedDomains.verify`: the platform verification service checks each pending domain's DNS record and records the result.",
+      reason:
+        "app.record_domain_verification (0850) is granted to the service role only, and guard_org_domain refuses any other change to the verification fields, so no caller of the public API can mark a domain verified. Decided in ADR 0032.",
+      apply: removeActions("verify"),
+    },
+    {
+      id: "profile-sections-are-visibility-rules",
+      since: A50,
+      resources: ["profileSections"],
+      change:
+        "Removes every profileSections operation: a section's visibility is a profileVisibilityRules row.",
+      reason:
+        "Profile sections are the fixed list app.profile_section (0860), each shown in its product order; a section's own visibility, never higher than the profile, is app.profile_visibility (correction profile-visibility-sections). There is no app.profile_sections table, and a second one would store the same visibility twice (Section 3.15). Decided in ADR 0032.",
+      apply: removeVerbs("list", "get", "create", "update", "delete"),
+    },
+    {
+      id: "profile-handle-on-profile",
+      since: A50,
+      resources: ["profileHandles", "personProfiles", "organizationProfiles"],
+      change:
+        "Removes every profileHandles operation; person and organization profiles gain `handle` (changed on update) and the server-set `handle_changed_at`.",
+      reason:
+        "A handle is a column of app.person_profiles and app.organization_profiles (0860), issued with the profile and changed under guard_handle's 30-day rule with its 90-day redirect; there is no app.profile_handles table. Decided in ADR 0032.",
+      apply: (spec) =>
+        spec.op === "profileHandles"
+          ? removeVerbs("list", "get", "create", "update")(spec)
+          : editShape({ add: { handle, handle_changed_at: handleChangedAt } })(spec),
+    },
+    {
+      id: "verification-recorded-by-provider",
+      since: A50,
+      resources: ["verifications"],
+      change:
+        "Removes `verifications.create`: a verification badge is recorded by the provider integration or the platform.",
+      reason:
+        "app.organization_verifications (0860) grants callers no insert: Section 4.8.3 shows a badge only after the platform or a provider (Stripe Identity, a business registry) checks the claim, and those record the result with the service role. Decided in ADR 0032.",
+      apply: removeVerbs("create"),
+    },
+    {
+      id: "blocks-not-offered",
+      since: A50,
+      resources: ["blocks"],
+      change: "Removes every blocks operation.",
+      reason:
+        "There is no app.blocks table, and no section of the spec defines what a block hides or where it is enforced. An endpoint that stores a block nothing enforces would tell a person they are protected when they are not, so the operations leave v1 until blocking is specified and enforced. Decided in ADR 0032.",
+      apply: removeVerbs("list", "get", "create", "delete"),
     },
   ],
 });

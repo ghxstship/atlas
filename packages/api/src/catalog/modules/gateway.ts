@@ -13,7 +13,7 @@ import {
   fields,
 } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { all, editShape, orNull, setTable } from "../correct.ts";
+import { all, editShape, orNull, removeVerbs, setTable } from "../correct.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -177,6 +177,16 @@ export const additions = defineAdditions("Gateway", {
           decided_at: { schema: fields.instant("When the decision was made.") },
         },
       }),
+    },
+    {
+      id: "moderation-action-platform-decision",
+      since: "1.0.0-draft.2",
+      resources: ["moderationActions"],
+      change:
+        "Removes `moderationActions.create`: the public API lists and reads moderation decisions, and the platform operator console records them.",
+      reason:
+        "app.moderation_actions (0720) is append-only and written only by the platform: install_policies grants tenants a read policy and no insert policy, because a Digital Services Act decision is the platform's, never the listing organization's (Section 4.10, platform operator console). Decided in ADR 0032.",
+      apply: removeVerbs("create"),
     },
     {
       id: "profile-share-snapshot",

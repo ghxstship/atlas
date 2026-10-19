@@ -354,6 +354,8 @@ describe("coverage of the spec", () => {
 
   it("serves every catalog resource under its declared path", () => {
     for (const spec of catalog) {
+      // A resource whose every operation a correction retired has no path (ADR 0032).
+      if (spec.verbs.length === 0 && spec.actions.length === 0) continue;
       const has = Object.keys(doc.paths).some(
         (p) => p === spec.path || p.startsWith(`${spec.path}/`),
       );

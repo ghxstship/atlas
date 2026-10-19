@@ -475,6 +475,8 @@ export function canonRule(op: string): CapabilityRule | undefined {
  * fails when a capability is neither used nor listed here.
  */
 export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
+  "hospitality.accommodation.write":
+    "Accommodation blocks and room assignments (0440) are written in Atlas through @xos/data/hospitality; fulfillment lines check hospitality.fulfillment.write (0351, ADR 0023), and no v1 operation writes blocks yet.",
   "org.separation_of_duties.write":
     "The separation of duties rules are the platform's, read through the view app.separation_of_duties_rules (0320); no operation writes them (ADR 0023).",
   "procurement.bid.unseal":
@@ -512,8 +514,10 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.legal.accept": "Legal acceptance records arrive with A21.",
   "org.ownership.transfer": "Ownership transfer arrives with A30 offboarding in Wave 3.",
   "org.organization.archive": "Org lifecycle operations arrive with A18 billing.",
-  "org.organization.delete":
-    "Org deletion follows the cancellation timeline of Section 14.7 (A21).",
+  "org.access_reviews.manage":
+    "Access review campaigns are not built yet; the capability governs the access_reviews settings (0851) until they are (ADR 0032).",
+  "org.break_glass.use":
+    "Break-glass access is not built yet: it needs MFA, a one-hour limit and an Admin notice (Section 8.4), and its operations return with it (ADR 0032).",
   "org.departments.write": "Departments in use are setting values.",
   "org.locations.write": "Location defaults are setting values.",
   "org.templates.write": "Org templates use projects.template.write on the templates resource.",

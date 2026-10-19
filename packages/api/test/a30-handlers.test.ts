@@ -329,6 +329,8 @@ const personRow = {
   created_at: T,
   updated_at: T,
   person_id: ME,
+  handle: "alex-rivera",
+  handle_changed_at: null,
   headline: "Rigger, arena tours",
   bio: null,
   pronouns: null,
@@ -342,6 +344,8 @@ const orgProfileRow = {
   created_at: T,
   updated_at: T,
   org_id: ORG,
+  handle: "northwind-live",
+  handle_changed_at: null,
   about: null,
   visibility: "Public",
   search_indexing: false,
@@ -367,7 +371,7 @@ describe("Identity contract: profiles and offboarding", () => {
         ok(personRow),
         ok(personRow),
         ok(null),
-        ok({ ...personRow, headline: "Head rigger" }),
+        ok({ ...personRow, headline: "Head rigger", handle: "alex-rigs", handle_changed_at: T }),
       ],
       "rpc:ensure_my_profile": [ok(id(40))],
     });
@@ -390,9 +394,13 @@ describe("Identity contract: profiles and offboarding", () => {
     await expectContract(r23, "personProfiles.create");
     const r24 = await api.request(
       `/person-profiles/${id(40)}`,
-      patch({ headline: "Head rigger", locality: "Miami", country: "US" }),
+      patch({ handle: "alex-rigs", headline: "Head rigger", locality: "Miami", country: "US" }),
     );
-    await expectContract(r24, "personProfiles.update");
+    const changed = (await expectContract(r24, "personProfiles.update")) as {
+      handle: string;
+      handle_changed_at: string | null;
+    };
+    expect(changed).toMatchObject({ handle: "alex-rigs", handle_changed_at: T });
   });
 
   it("refuses a profile for someone else, and a stale If-Match", async () => {

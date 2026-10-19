@@ -172,7 +172,6 @@ __all__ = [
     "Shipment",
     "ShipmentCreate",
     "ShipmentUpdate",
-    "ShipmentTransitionRequest",
     "ShipmentLinePage",
     "ShipmentLine",
     "ShipmentLineCreate",
@@ -284,6 +283,7 @@ __all__ = [
     "Agreement",
     "AgreementCreate",
     "AgreementUpdate",
+    "AgreementSignRequest",
     "ShiftPage",
     "Shift",
     "ShiftCreate",
@@ -294,7 +294,7 @@ __all__ = [
     "ShiftSwapCreate",
     "TimeEntryPage",
     "TimeEntry",
-    "TimeEntryCreate",
+    "TimeEntryClockInRequest",
     "TimeEntryCorrectionPage",
     "TimeEntryCorrection",
     "TimeEntryCorrectionCreate",
@@ -661,7 +661,7 @@ __all__ = [
     "OnboardingItemPage",
     "OnboardingItem",
     "OnboardingItemCreate",
-    "OnboardingItemUpdate",
+    "OnboardingItemSubmitRequest",
     "OnboardingVerificationPage",
     "OnboardingVerification",
     "OnboardingVerificationCreate",
@@ -693,7 +693,6 @@ __all__ = [
     "ListingReportCreate",
     "ModerationActionPage",
     "ModerationAction",
-    "ModerationActionCreate",
     "ProfileSharePage",
     "ProfileShare",
     "ProfileShareCreate",
@@ -838,17 +837,12 @@ __all__ = [
     "StdVendorEntitlement",
     "StdVerbiagePage",
     "StdVerbiage",
-    "CanonProductionTemplatePage",
-    "CanonProductionTemplate",
     "CanonSupersessionPage",
     "CanonSupersession",
     "CanonRatificationPage",
     "CanonRatification",
     "CanonVersionPage",
     "CanonVersion",
-    "CanonIntakePage",
-    "CanonIntake",
-    "CanonIntakeCreate",
     "CoordinateMatrixCellPage",
     "CoordinateMatrixCell",
     "PhaseCoveragePage",
@@ -859,6 +853,8 @@ __all__ = [
     "CrosswalkCoverage",
     "UrnResolution",
     "Urn",
+    "CanonIntake",
+    "CanonIntakeCreate",
     "Me",
     "PersonPage",
     "Person",
@@ -871,7 +867,6 @@ __all__ = [
     "CreateClientOrganizationRequest",
     "MembershipPage",
     "Membership",
-    "MembershipUpdate",
     "MembershipRolePage",
     "MembershipRole",
     "MembershipRoleCreate",
@@ -879,28 +874,21 @@ __all__ = [
     "ProjectAssignment",
     "ProjectAssignmentCreate",
     "ProjectAssignmentUpdate",
-    "ProjectAssignmentRolePage",
-    "ProjectAssignmentRole",
-    "ProjectRole",
-    "ProjectAssignmentRoleCreate",
     "AccountMembershipPage",
     "AccountMembership",
     "AccountMembershipCreate",
-    "AccountMembershipUpdate",
+    "AccountRole",
     "AccountMembershipRolePage",
     "AccountMembershipRole",
-    "AccountRole",
     "AccountMembershipRoleCreate",
     "OrganizationRelationshipPage",
     "OrganizationRelationship",
-    "OrganizationRelationshipKind",
     "OrganizationRelationshipCreate",
     "OrganizationRelationshipUpdate",
     "RepresentationPage",
     "Representation",
     "RepresentationScope",
     "RepresentationCreate",
-    "RepresentationUpdate",
     "JoinRequestPage",
     "JoinRequest",
     "JoinRequestCreate",
@@ -931,27 +919,14 @@ __all__ = [
     "OrganizationProfile",
     "OrganizationProfileCreate",
     "OrganizationProfileUpdate",
-    "ProfileSectionPage",
-    "ProfileSection",
-    "ProfileSectionCreate",
-    "ProfileSectionUpdate",
     "ProfileVisibilityRulePage",
     "ProfileVisibilityRule",
     "ProfileVisibilityRuleCreate",
     "ProfileVisibilityRuleUpdate",
-    "ProfileHandlePage",
-    "ProfileHandle",
-    "ProfileHandleCreate",
-    "ProfileHandleUpdate",
     "VerificationPage",
     "Verification",
-    "VerificationCreate",
-    "BlockPage",
-    "Block",
-    "BlockCreate",
     "SubscriptionPage",
     "Subscription",
-    "SubscriptionUpdate",
     "PlanPage",
     "Plan",
     "WorkspacePage",
@@ -972,14 +947,6 @@ __all__ = [
     "OrgBranding",
     "OrgBrandingCreate",
     "OrgBrandingUpdate",
-    "OrgLegalEntityPage",
-    "OrgLegalEntity",
-    "OrgLegalEntityCreate",
-    "OrgLegalEntityUpdate",
-    "OrgIpAllowlistEntryPage",
-    "OrgIpAllowlistEntry",
-    "OrgIpAllowlistEntryCreate",
-    "OrgIpAllowlistEntryUpdate",
     "RolePage",
     "Role",
     "RoleCreate",
@@ -1010,20 +977,6 @@ __all__ = [
     "ColumnClassificationPage",
     "ColumnClassification",
     "Classification",
-    "AccessReviewCampaignPage",
-    "AccessReviewCampaign",
-    "AccessReviewCampaignCreate",
-    "AccessReviewCampaignUpdate",
-    "AccessReviewItemPage",
-    "AccessReviewItem",
-    "AccessReviewItemUpdate",
-    "BreakGlassSessionPage",
-    "BreakGlassSession",
-    "BreakGlassSessionCreate",
-    "ProjectSharePage",
-    "ProjectShare",
-    "ProjectShareCreate",
-    "ProjectShareUpdate",
     "ScimGroupMappingPage",
     "ScimGroupMapping",
     "ScimGroupMappingCreate",
@@ -1082,7 +1035,6 @@ __all__ = [
     "RetentionPolicy",
     "OrgExportPage",
     "OrgExport",
-    "ExportFormat",
     "OrgExportCreate",
     "AiSettingsPage",
     "AiSettings",
@@ -1094,6 +1046,7 @@ __all__ = [
     "ReportDefinitionUpdate",
     "ReportRunPage",
     "ReportRun",
+    "ExportFormat",
     "ReportRunCreate",
     "ReportSchedulePage",
     "ReportSchedule",
@@ -3783,61 +3736,59 @@ class Shipment(TypedDict):
     updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    #: Carrier name.
-    carrier: str
     #: Carrier tracking identifier.
-    tracking_number: Optional[str]
+    tracking_identifier: Optional[str]
     #: Inbound or outbound.
     direction: str
-    #: Shipment state. A Title Case value from the lifecycle's database enum.
-    shipment_state: str
     #: Expected arrival or departure.
-    expected_at: str
+    ships_at: Optional[str]
+    #: Identifier of the carrier, as a counterparty of the org.
+    carrier_counterparty_id: Optional[str]
+    #: Canon freight type, from xpms.std_enumeration.
+    freight_type_enum_id: Optional[str]
+    #: When the shipment is due to arrive.
+    arrives_at: Optional[str]
+    #: Number within the project; the display key is {project_key}-{shipment_number}.
+    shipment_number: int
 
 
 class _ShipmentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: Carrier name.
-    carrier: str
     #: Inbound or outbound.
     direction: str
-    #: Expected arrival or departure.
-    expected_at: str
 
 
 class ShipmentCreate(_ShipmentCreateRequired, total=False):
     """Fields accepted when creating a Shipment."""
 
     #: Carrier tracking identifier.
-    tracking_number: Optional[str]
+    tracking_identifier: Optional[str]
+    #: Expected arrival or departure.
+    ships_at: Optional[str]
+    #: Identifier of the carrier, as a counterparty of the org.
+    carrier_counterparty_id: Optional[str]
+    #: Canon freight type, from xpms.std_enumeration.
+    freight_type_enum_id: Optional[str]
+    #: When the shipment is due to arrive.
+    arrives_at: Optional[str]
 
 
 class ShipmentUpdate(TypedDict, total=False):
     """Fields accepted when updating a Shipment. Omitted fields are unchanged."""
 
-    #: Carrier name.
-    carrier: str
     #: Carrier tracking identifier.
-    tracking_number: Optional[str]
+    tracking_identifier: Optional[str]
     #: Inbound or outbound.
     direction: str
     #: Expected arrival or departure.
-    expected_at: str
-
-
-class _ShipmentTransitionRequestRequired(TypedDict):
-    #: The state the caller believes the row is in (compare-and-set).
-    expected_state: str
-    #: Target state.
-    to_state: str
-
-
-class ShipmentTransitionRequest(_ShipmentTransitionRequestRequired, total=False):
-    """Request to move a lifecycle to another state."""
-
-    #: Reason, required by some transitions.
-    reason: str
+    ships_at: Optional[str]
+    #: Identifier of the carrier, as a counterparty of the org.
+    carrier_counterparty_id: Optional[str]
+    #: Canon freight type, from xpms.std_enumeration.
+    freight_type_enum_id: Optional[str]
+    #: When the shipment is due to arrive.
+    arrives_at: Optional[str]
 
 
 class ShipmentLinePage(TypedDict):
@@ -3870,9 +3821,8 @@ class ShipmentLine(TypedDict):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
-    #: Identifier of the asset class.
-    asset_class_id: Optional[str]
+    #: Canon element carried.
+    element_id: Optional[str]
 
 
 class _ShipmentLineCreateRequired(TypedDict):
@@ -3880,16 +3830,15 @@ class _ShipmentLineCreateRequired(TypedDict):
     shipment_id: str
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: float
-    unit: UnitCode
 
 
 class ShipmentLineCreate(_ShipmentLineCreateRequired, total=False):
     """Fields accepted when creating a ShipmentLine."""
 
-    #: Identifier of the asset class.
-    asset_class_id: Optional[str]
+    #: Quantity.
+    quantity: float
+    #: Canon element carried.
+    element_id: Optional[str]
 
 
 class ShipmentLineUpdate(TypedDict, total=False):
@@ -3899,9 +3848,8 @@ class ShipmentLineUpdate(TypedDict, total=False):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
-    #: Identifier of the asset class.
-    asset_class_id: Optional[str]
+    #: Canon element carried.
+    element_id: Optional[str]
 
 
 class DockSlotPage(TypedDict):
@@ -3928,29 +3876,31 @@ class DockSlot(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    #: Identifier of the venue.
-    venue_id: str
     #: Identifier of the shipment.
     shipment_id: Optional[str]
     #: Slot start.
     starts_at: str
     #: Slot end.
     ends_at: str
-    #: Dock door.
-    dock: str
     #: When the vehicle checked in.
     checked_in_at: Optional[str]
+    #: Identifier of the project whose site the dock is at.
+    project_id: str
+    #: Identifier of the loading dock zone of the project.
+    zone_id: str
+    #: Identifier of the person who checked the shipment in.
+    checked_in_by: Optional[str]
 
 
 class _DockSlotCreateRequired(TypedDict):
-    #: Identifier of the venue.
-    venue_id: str
     #: Slot start.
     starts_at: str
     #: Slot end.
     ends_at: str
-    #: Dock door.
-    dock: str
+    #: Identifier of the project whose site the dock is at.
+    project_id: str
+    #: Identifier of the loading dock zone of the project.
+    zone_id: str
 
 
 class DockSlotCreate(_DockSlotCreateRequired, total=False):
@@ -3969,8 +3919,8 @@ class DockSlotUpdate(TypedDict, total=False):
     starts_at: str
     #: Slot end.
     ends_at: str
-    #: Dock door.
-    dock: str
+    #: Identifier of the loading dock zone of the project.
+    zone_id: str
 
 
 class GateQueueEntryPage(TypedDict):
@@ -3997,47 +3947,45 @@ class GateQueueEntry(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    #: Identifier of the venue.
-    venue_id: str
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
-    #: Vehicle plate.
-    vehicle_plate: str
+    #: Plate or trailer number as written.
+    vehicle_identifier: str
     #: When the vehicle arrived.
     arrived_at: str
     #: When the vehicle was released.
     released_at: Optional[str]
+    #: Identifier of the project whose site the gate is at.
+    project_id: str
+    #: Identifier of the shipment the vehicle carries.
+    shipment_id: Optional[str]
+    #: Identifier of the person who released the vehicle.
+    released_by: Optional[str]
 
 
 class _GateQueueEntryCreateRequired(TypedDict):
-    #: Identifier of the venue.
-    venue_id: str
-    #: Vehicle plate.
-    vehicle_plate: str
-    #: When the vehicle arrived.
-    arrived_at: str
+    #: Plate or trailer number as written.
+    vehicle_identifier: str
+    #: Identifier of the project whose site the gate is at.
+    project_id: str
 
 
 class GateQueueEntryCreate(_GateQueueEntryCreateRequired, total=False):
     """Fields accepted when creating a GateQueueEntry."""
 
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
-    #: When the vehicle was released.
-    released_at: Optional[str]
+    #: When the vehicle arrived.
+    arrived_at: str
+    #: Identifier of the shipment the vehicle carries.
+    shipment_id: Optional[str]
 
 
 class GateQueueEntryUpdate(TypedDict, total=False):
     """Fields accepted when updating a GateQueueEntry. Omitted fields are unchanged."""
 
-    #: Identifier of the dock slot.
-    dock_slot_id: Optional[str]
-    #: Vehicle plate.
-    vehicle_plate: str
+    #: Plate or trailer number as written.
+    vehicle_identifier: str
     #: When the vehicle arrived.
     arrived_at: str
-    #: When the vehicle was released.
-    released_at: Optional[str]
+    #: Identifier of the shipment the vehicle carries.
+    shipment_id: Optional[str]
 
 
 class MarshallingLogEntryPage(TypedDict):
@@ -4064,34 +4012,34 @@ class MarshallingLogEntry(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    #: Identifier of the venue.
-    venue_id: str
-    #: Vehicle plate.
-    vehicle_plate: str
-    #: Log event.
-    event: str
+    #: What happened in the yard.
+    entry: str
     #: When the event was logged.
     logged_at: str
-    #: Notes.
-    notes: Optional[str]
+    #: Identifier of the project whose yard the entry records.
+    project_id: str
+    #: Identifier of the shipment concerned.
+    shipment_id: Optional[str]
+    #: Identifier of the yard zone concerned.
+    zone_id: Optional[str]
 
 
 class _MarshallingLogEntryCreateRequired(TypedDict):
-    #: Identifier of the venue.
-    venue_id: str
-    #: Vehicle plate.
-    vehicle_plate: str
-    #: Log event.
-    event: str
-    #: When the event was logged.
-    logged_at: str
+    #: What happened in the yard.
+    entry: str
+    #: Identifier of the project whose yard the entry records.
+    project_id: str
 
 
 class MarshallingLogEntryCreate(_MarshallingLogEntryCreateRequired, total=False):
     """Fields accepted when creating a MarshallingLogEntry."""
 
-    #: Notes.
-    notes: Optional[str]
+    #: When the event was logged.
+    logged_at: str
+    #: Identifier of the shipment concerned.
+    shipment_id: Optional[str]
+    #: Identifier of the yard zone concerned.
+    zone_id: Optional[str]
 
 
 class AdvancePacketPage(TypedDict):
@@ -4512,23 +4460,25 @@ class Fulfillment(TypedDict):
     updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    kind: FulfillmentKind
-    #: Identifier of the engagement served.
-    engagement_id: Optional[str]
+    fulfillment_kind: FulfillmentKind
     #: Fulfillment title.
     title: str
-    #: Fulfillment state. A Title Case value from the lifecycle's database enum.
-    fulfillment_state: str
+    #: Fulfillment state.
+    fulfillment_state: Literal["Proposed", "Active", "Blocked", "Complete", "Canceled"]
     #: Service start.
     starts_at: Optional[str]
     #: Service end.
     ends_at: Optional[str]
+    #: Identifier of the supplier, such as the hotel or caterer.
+    counterparty_id: Optional[str]
+    #: Number within the project; the display key is {project_key}-{fulfillment_number}.
+    fulfillment_number: int
 
 
 class _FulfillmentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    kind: FulfillmentKind
+    fulfillment_kind: FulfillmentKind
     #: Fulfillment title.
     title: str
 
@@ -4536,26 +4486,26 @@ class _FulfillmentCreateRequired(TypedDict):
 class FulfillmentCreate(_FulfillmentCreateRequired, total=False):
     """Fields accepted when creating a Fulfillment."""
 
-    #: Identifier of the engagement served.
-    engagement_id: Optional[str]
     #: Service start.
     starts_at: Optional[str]
     #: Service end.
     ends_at: Optional[str]
+    #: Identifier of the supplier, such as the hotel or caterer.
+    counterparty_id: Optional[str]
 
 
 class FulfillmentUpdate(TypedDict, total=False):
     """Fields accepted when updating a Fulfillment. Omitted fields are unchanged."""
 
-    kind: FulfillmentKind
-    #: Identifier of the engagement served.
-    engagement_id: Optional[str]
+    fulfillment_kind: FulfillmentKind
     #: Fulfillment title.
     title: str
     #: Service start.
     starts_at: Optional[str]
     #: Service end.
     ends_at: Optional[str]
+    #: Identifier of the supplier, such as the hotel or caterer.
+    counterparty_id: Optional[str]
 
 
 class _FulfillmentTransitionRequestRequired(TypedDict):
@@ -4602,11 +4552,12 @@ class FulfillmentLine(TypedDict):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
+    #: Identifier of the guest the line is for, such as a room night.
+    person_id: Optional[str]
 
 
 class _FulfillmentLineCreateRequired(TypedDict):
@@ -4614,18 +4565,19 @@ class _FulfillmentLineCreateRequired(TypedDict):
     fulfillment_id: str
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: float
-    unit: UnitCode
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class FulfillmentLineCreate(_FulfillmentLineCreateRequired, total=False):
     """Fields accepted when creating a FulfillmentLine."""
 
+    #: Quantity.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
+    #: Identifier of the guest the line is for, such as a room night.
+    person_id: Optional[str]
 
 
 class FulfillmentLineUpdate(TypedDict, total=False):
@@ -4635,11 +4587,12 @@ class FulfillmentLineUpdate(TypedDict, total=False):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
+    #: Identifier of the guest the line is for, such as a room night.
+    person_id: Optional[str]
 
 
 class BeoPage(TypedDict):
@@ -4670,23 +4623,23 @@ class Beo(TypedDict):
     project_id: str
     #: Identifier of the catering fulfillment.
     fulfillment_id: Optional[str]
-    #: BEO title.
-    title: str
     #: Service time.
-    service_at: str
+    event_at: str
     #: Guaranteed count.
-    guest_count: int
+    guest_count: Optional[int]
+    #: Number within the project; the display key is {project_key}-{beo_number}.
+    beo_number: int
+    #: When the BEO was approved.
+    approved_at: Optional[str]
+    #: Identifier of the person who approved the BEO; never its author.
+    approved_by: Optional[str]
 
 
 class _BeoCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: BEO title.
-    title: str
     #: Service time.
-    service_at: str
-    #: Guaranteed count.
-    guest_count: int
+    event_at: str
 
 
 class BeoCreate(_BeoCreateRequired, total=False):
@@ -4694,6 +4647,8 @@ class BeoCreate(_BeoCreateRequired, total=False):
 
     #: Identifier of the catering fulfillment.
     fulfillment_id: Optional[str]
+    #: Guaranteed count.
+    guest_count: Optional[int]
 
 
 class BeoUpdate(TypedDict, total=False):
@@ -4701,12 +4656,10 @@ class BeoUpdate(TypedDict, total=False):
 
     #: Identifier of the catering fulfillment.
     fulfillment_id: Optional[str]
-    #: BEO title.
-    title: str
     #: Service time.
-    service_at: str
+    event_at: str
     #: Guaranteed count.
-    guest_count: int
+    guest_count: Optional[int]
 
 
 class BeoLinePage(TypedDict):
@@ -4741,8 +4694,8 @@ class BeoLine(TypedDict):
     quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
 
 
 class _BeoLineCreateRequired(TypedDict):
@@ -4750,17 +4703,17 @@ class _BeoLineCreateRequired(TypedDict):
     beo_id: str
     #: Menu item or service.
     description: str
-    #: Quantity.
-    quantity: float
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class BeoLineCreate(_BeoLineCreateRequired, total=False):
     """Fields accepted when creating a BeoLine."""
 
+    #: Quantity.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
 
 
 class BeoLineUpdate(TypedDict, total=False):
@@ -4772,8 +4725,8 @@ class BeoLineUpdate(TypedDict, total=False):
     quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
 
 
 class AssetClassPage(TypedDict):
@@ -5681,6 +5634,15 @@ class AgreementUpdate(TypedDict, total=False):
     counterparty_id: Optional[str]
 
 
+class AgreementSignRequest(TypedDict):
+    """The signature on an agreement."""
+
+    #: Name the signer types as their signature.
+    signed_name: str
+    #: SHA-256 of the agreement text the signer read, lowercase hex.
+    body_sha256: str
+
+
 class ShiftPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -5878,28 +5840,32 @@ class TimeEntry(TypedDict):
     needs_review: bool
 
 
-class _TimeEntryCreateRequired(TypedDict):
-    #: Identifier of the person.
-    person_id: str
-    #: Clock in.
-    clock_in_at: str
-    #: Break minutes.
-    break_minutes: int
+class _TimeEntryClockInRequestRequired(TypedDict):
+    #: Identifier of the project the caller clocks in on.
+    project_id: str
 
 
-class TimeEntryCreate(_TimeEntryCreateRequired, total=False):
-    """Fields accepted when creating a TimeEntry."""
+class TimeEntryClockInRequest(_TimeEntryClockInRequestRequired, total=False):
+    """The punch that opens the caller's time entry."""
 
-    #: Identifier of the shift.
+    #: Identifier of the Accepted shift of the caller.
     shift_id: Optional[str]
-    #: Clock out.
-    clock_out_at: Optional[str]
+    #: Identifier of the caller's open engagement, when they work as external crew.
+    engagement_id: Optional[str]
+    #: Client punch id; a replay with the same id returns the same entry.
+    punch_id: str
+    #: When the punch was made on the device; defaults to now.
+    device_time: str
+    #: Milliseconds since the punch on the device's monotonic clock, for a punch queued offline.
+    monotonic_offset_ms: int
     #: WGS 84 latitude.
     latitude: Optional[float]
     #: WGS 84 longitude.
     longitude: Optional[float]
-    #: Identifier of the kiosk device.
-    kiosk_device_id: Optional[str]
+    #: Location accuracy in metres.
+    accuracy_m: Optional[float]
+    #: Identifier of the geofence the location is checked against.
+    geofence_id: Optional[str]
 
 
 class TimeEntryCorrectionPage(TypedDict):
@@ -6112,6 +6078,8 @@ class KioskDevice(TypedDict):
     name: str
     #: Identifier of the project the kiosk serves.
     project_id: Optional[str]
+    #: Device key the kiosk signs in with. Returned once, in the create response; null on every read, because only its hash is kept (invariant 8).
+    device_key: Optional[str]
     #: Last time the kiosk checked in.
     last_seen_at: Optional[str]
     #: When the kiosk was revoked; it accepts no punches.
@@ -8593,7 +8561,7 @@ class PriceBook(TypedDict):
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class PriceBookCreate(TypedDict):
@@ -8602,7 +8570,7 @@ class PriceBookCreate(TypedDict):
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class PriceBookUpdate(TypedDict, total=False):
@@ -8611,7 +8579,7 @@ class PriceBookUpdate(TypedDict, total=False):
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class RfqPage(TypedDict):
@@ -11248,8 +11216,8 @@ class BidLine(TypedDict):
     bid_id: str
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: Optional[float]
+    #: Quantity; defaults to 1.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
@@ -11261,15 +11229,13 @@ class _BidLineCreateRequired(TypedDict):
     bid_id: str
     #: Line description.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class BidLineCreate(_BidLineCreateRequired, total=False):
     """Fields accepted when creating a BidLine."""
 
-    #: Quantity.
-    quantity: Optional[float]
+    #: Quantity; defaults to 1.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
 
@@ -11279,12 +11245,10 @@ class BidLineUpdate(TypedDict, total=False):
 
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: Optional[float]
+    #: Quantity; defaults to 1.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class AgencySlatePage(TypedDict):
@@ -11490,23 +11454,38 @@ class Engagement(TypedDict):
     activated_at: Optional[str]
     #: When it became Complete.
     completed_at: Optional[str]
+    #: Identifier of the accepted application the engagement came from.
+    application_id: Optional[str]
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: str
+    #: Pay basis; with the arrangement a permitted canon pair.
+    pay_basis: Optional[str]
+    #: Arrangement; with the pay basis a permitted canon pair.
+    arrangement: Optional[str]
+    #: First day of the engagement; defaults to the offer's or the opportunity's.
+    start_date: str
+    #: Last day of the engagement; defaults to the offer's or the opportunity's.
+    end_date: Optional[str]
 
 
 class _EngagementCreateRequired(TypedDict):
-    role_type: ExternalRoleType
+    #: Identifier of the accepted application the engagement comes from.
+    application_id: str
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: str
 
 
 class EngagementCreate(_EngagementCreateRequired, total=False):
     """Fields accepted when creating a Engagement."""
 
-    #: Identifier of the engaged person.
-    person_id: Optional[str]
-    #: Identifier of the engaged external account.
-    organization_id: Optional[str]
-    #: Identifier of the project.
-    project_id: Optional[str]
-    #: Identifier of the accepted offer.
-    offer_id: Optional[str]
+    #: Pay basis; with the arrangement a permitted canon pair.
+    pay_basis: Optional[str]
+    #: Arrangement; with the pay basis a permitted canon pair.
+    arrangement: Optional[str]
+    #: First day of the engagement; defaults to the offer's or the opportunity's.
+    start_date: str
+    #: Last day of the engagement; defaults to the offer's or the opportunity's.
+    end_date: Optional[str]
 
 
 class _EngagementTransitionRequestRequired(TypedDict):
@@ -11710,31 +11689,24 @@ class OnboardingItem(TypedDict):
     expires_on: Optional[str]
     #: Whether a verified item carried over from an earlier engagement.
     carried_over: bool
+    #: When the engaged party submitted the item.
+    submitted_at: Optional[str]
 
 
-class _OnboardingItemCreateRequired(TypedDict):
+class OnboardingItemCreate(TypedDict):
+    """Fields accepted when creating a OnboardingItem."""
+
     #: Identifier of the engagement.
     engagement_id: str
     #: Identifier of the onboarding requirement.
     onboarding_requirement_id: str
 
 
-class OnboardingItemCreate(_OnboardingItemCreateRequired, total=False):
-    """Fields accepted when creating a OnboardingItem."""
+class OnboardingItemSubmitRequest(TypedDict, total=False):
+    """The document submitted with the item, if any."""
 
-    #: Identifier of the submitted document.
+    #: Identifier of the document of the org submitted for the item.
     document_id: Optional[str]
-    #: Expiry.
-    expires_on: Optional[str]
-
-
-class OnboardingItemUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OnboardingItem. Omitted fields are unchanged."""
-
-    #: Identifier of the submitted document.
-    document_id: Optional[str]
-    #: Expiry.
-    expires_on: Optional[str]
 
 
 class OnboardingVerificationPage(TypedDict):
@@ -12242,22 +12214,6 @@ class ModerationAction(TypedDict):
     opportunity_id: str
     #: When the decision was made.
     decided_at: str
-
-
-class _ModerationActionCreateRequired(TypedDict):
-    #: Decision taken.
-    action: Literal["Removed", "Restricted", "Restored", "No Action"]
-    #: Statement of reasons.
-    statement_of_reasons: str
-    #: Identifier of the opportunity decided on.
-    opportunity_id: str
-
-
-class ModerationActionCreate(_ModerationActionCreateRequired, total=False):
-    """Fields accepted when creating a ModerationAction."""
-
-    #: Identifier of the listing report.
-    listing_report_id: Optional[str]
 
 
 class ProfileSharePage(TypedDict):
@@ -13617,10 +13573,31 @@ class StdDocumentPage(TypedDict):
 class StdDocument(TypedDict):
     """A document and asset library entry. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Document title.
-    title: str
-    urid: UridAtAnyGrain
+    record_id: StdCode
+    #: Document name.
+    document_name: Optional[str]
+    #: Document type.
+    document_type: Optional[str]
+    #: Reference identifier.
+    reference_id: Optional[str]
+    #: File format.
+    file_format: Optional[str]
+    #: Version.
+    version: Optional[str]
+    #: Issue date.
+    issue_date: Optional[str]
+    #: Expiration date.
+    expiration_date: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdEmergencyCodePage(TypedDict):
@@ -13658,11 +13635,33 @@ class StdEnumerationPage(TypedDict):
 class StdEnumeration(TypedDict):
     """A controlled enumeration value. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Enumeration name.
-    enumeration: str
-    #: Value.
-    value: str
+    record_id: StdCode
+    #: Enumeration the value belongs to.
+    enum_domain: Optional[str]
+    #: Code of the value.
+    enum_code: Optional[str]
+    #: Label of the value.
+    enum_label: Optional[str]
+    #: What the value means.
+    description: Optional[str]
+    #: Order within the enumeration.
+    sort_order: Optional[float]
+    #: Display color as the sheet stores it.
+    color_code: Optional[str]
+    #: Record the enumeration applies to.
+    target_entity: Optional[str]
+    #: Whether the value is the default.
+    is_default: Optional[bool]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdLaborRateCardPage(TypedDict):
@@ -13677,13 +13676,40 @@ class StdLaborRateCardPage(TypedDict):
 class StdLaborRateCard(TypedDict):
     """A labor rate card line. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
+    #: Canon rate card identifier.
+    rate_card_id: str
     role_code: RoleCode
-    #: Rate per unit. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    unit: UnitCode
+    #: Job title of the role.
+    job_title: Optional[str]
+    class_code: DeptCode
+    #: Department of the role.
+    department: str
+    #: Worker classification label.
+    worker_classification: str
+    #: Pay basis.
+    pay_basis: str
+    #: Arrangement.
+    arrangement: str
+    #: Standard rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    standard_rate_minor: Optional[int]
+    #: Lowest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    min_grade_rate_minor: Optional[int]
+    #: Highest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    max_grade_rate_minor: Optional[int]
+    #: Per diem rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    per_diem_rate_minor: Optional[int]
+    #: ISO 4217 currency of the rates.
+    currency_code: str
+    #: Canon overtime rule.
+    overtime_rule_id: str
+    #: Overtime multiplier.
+    ot_multiplier: float
+    #: Double time multiplier.
+    dt_multiplier: float
+    #: Expense GL account of the role's department.
+    gl_account: Optional[str]
+    #: Name of that GL account.
+    gl_account_name: Optional[str]
 
 
 class StdRadioChannelPage(TypedDict):
@@ -13698,11 +13724,23 @@ class StdRadioChannelPage(TypedDict):
 class StdRadioChannel(TypedDict):
     """A radio channel plan entry. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Channel number.
-    channel: int
-    #: Channel name.
-    name: str
+    record_id: StdCode
+    #: Radio channel number.
+    channel: Optional[float]
+    #: Radio zone.
+    zone: Optional[float]
+    #: Who the channel is assigned to.
+    assignment: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdRolePage(TypedDict):
@@ -13717,10 +13755,30 @@ class StdRolePage(TypedDict):
 class StdRole(TypedDict):
     """A Roles Library entry. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
     role_code: RoleCode
-    #: Role description.
-    description: str
+    class_code: DeptCode
+    #: Job title; the one home of the title.
+    job_title: str
+    #: Discipline.
+    discipline: str
+    #: Rank.
+    rank: str
+    #: Job summary.
+    job_summary: Optional[str]
+    #: Key responsibilities.
+    key_responsibilities: Optional[str]
+    #: Qualifications.
+    qualifications: Optional[str]
+    #: Physical requirements.
+    physical_requirements: Optional[str]
+    #: Required certifications.
+    required_certifications: Optional[str]
+    #: Default clearance tier.
+    default_clearance_tier: Optional[str]
+    #: Default radio channel.
+    default_radio_channel: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdSopPage(TypedDict):
@@ -13735,11 +13793,39 @@ class StdSopPage(TypedDict):
 class StdSop(TypedDict):
     """A standard operating procedure. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
+    sop_id: StdCode
     #: SOP title.
-    title: str
-    #: SOP body.
-    body: str
+    title: Optional[str]
+    #: Operational domain.
+    operational_domain: Optional[str]
+    #: Revision.
+    revision: Optional[str]
+    #: Accountable role code.
+    accountable_role_code: Optional[str]
+    #: Required PPE and compliance tags.
+    required_ppe_compliance_tag: Optional[str]
+    #: Prerequisites and hazards.
+    prerequisites_and_hazards: Optional[str]
+    #: Procedure step 1.
+    procedure_step_1: Optional[str]
+    #: Procedure step 2.
+    procedure_step_2: Optional[str]
+    #: Procedure step 3.
+    procedure_step_3: Optional[str]
+    #: Procedure step 4.
+    procedure_step_4: Optional[str]
+    #: Reference document.
+    reference_doc_id: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdVendorClassPage(TypedDict):
@@ -13751,13 +13837,22 @@ class StdVendorClassPage(TypedDict):
     next_cursor: Optional[str]
 
 
-class StdVendorClass(TypedDict):
-    """A vendor class. Standard Library row, copied into each new org as editable org data."""
-
-    code: StdCode
-    #: Vendor class name.
-    name: str
-    counterparty_type: CounterpartyType
+# A vendor class. Standard Library row, copied into each new org as editable org data.
+StdVendorClass = TypedDict(
+    "StdVendorClass",
+    {
+    "record_id": StdCode,
+    "class": Optional[str],
+    "description": Optional[str],
+    "clearance_tier": Optional[str],
+    "department": Optional[str],
+    "category": Optional[str],
+    "sub_category": Optional[str],
+    "status": Optional[str],
+    "notes": Optional[str],
+    },
+    total=True,
+)
 
 
 class StdVendorEntitlementPage(TypedDict):
@@ -13772,11 +13867,17 @@ class StdVendorEntitlementPage(TypedDict):
 class StdVendorEntitlement(TypedDict):
     """A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Entitlement name.
-    name: str
-    #: Entitlement description.
-    description: str
+    record_id: StdCode
+    #: Vendor class the entitlement is for.
+    vendor_class: Optional[str]
+    #: Module the class may use.
+    module: Optional[str]
+    #: Whether the class may use the module.
+    permitted: Optional[bool]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdVerbiagePage(TypedDict):
@@ -13791,31 +13892,25 @@ class StdVerbiagePage(TypedDict):
 class StdVerbiage(TypedDict):
     """A controlled vocabulary term. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
+    record_id: StdCode
     #: Term.
-    term: str
-    #: Usage rule.
-    usage: str
-
-
-class CanonProductionTemplatePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[CanonProductionTemplate]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class CanonProductionTemplate(TypedDict):
-    """The XOS 4.0 Production Template, with the Cover Page as metadata."""
-
-    #: Template identifier.
-    template_id: str
-    #: Template title.
-    title: str
-    #: Number of record-template sheets.
-    sheet_count: int
+    verbiage: Optional[str]
+    #: Title.
+    title: Optional[str]
+    #: Text.
+    body: Optional[str]
+    #: When the text is used.
+    description: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class CanonSupersessionPage(TypedDict):
@@ -13831,11 +13926,15 @@ class CanonSupersession(TypedDict):
     """A supersession edge. The graph stays acyclic."""
 
     #: Code that was superseded.
-    superseded_code: str
+    code: str
     #: Code that supersedes it.
-    superseded_by: str
-    #: Ratification that recorded the supersession.
-    ratification_id: str
+    successor_code: str
+    #: Code domain, such as phase.
+    domain: str
+    #: Label the superseded code carried.
+    label: str
+    #: Why the code was superseded.
+    reason: str
 
 
 class CanonRatificationPage(TypedDict):
@@ -13850,14 +13949,14 @@ class CanonRatificationPage(TypedDict):
 class CanonRatification(TypedDict):
     """A ratification record. 4.0 grammar is proposed until a named ratifier is recorded."""
 
-    #: Identifier of the ratification.
-    ratification_id: str
     #: What was ratified.
     subject: str
     #: Named ratifier.
     ratifier: str
     #: When it was ratified.
     ratified_at: str
+    #: Ratification note.
+    note: Optional[str]
 
 
 class CanonVersionPage(TypedDict):
@@ -13878,49 +13977,6 @@ class CanonVersion(TypedDict):
     generation: int
     #: Generation time stated in the Bible _generated tab: a wall-clock time without a zone.
     bible_generated_at: str
-
-
-class CanonIntakePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[CanonIntake]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class CanonIntake(TypedDict):
-    """A proposed canon addition, staged for ratification."""
-
-    #: Identifier of the canon intake.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: What kind of canon value is proposed.
-    proposed_kind: str
-    #: Proposed code.
-    proposed_code: str
-    #: Proposed label.
-    proposed_label: str
-    #: Why the addition is needed.
-    rationale: str
-    #: Intake state. A Title Case value from the lifecycle's database enum.
-    intake_state: str
-
-
-class CanonIntakeCreate(TypedDict):
-    """Fields accepted when creating a CanonIntake."""
-
-    #: What kind of canon value is proposed.
-    proposed_kind: str
-    #: Proposed code.
-    proposed_code: str
-    #: Proposed label.
-    proposed_label: str
-    #: Why the addition is needed.
-    rationale: str
 
 
 class CoordinateMatrixCellPage(TypedDict):
@@ -14039,6 +14095,44 @@ class UrnResolution(TypedDict):
     key: str
     #: Display label of the row.
     label: str
+    #: Key of the live row after following supersessions.
+    resolved_key: str
+    #: Whether the asked key was superseded.
+    is_superseded: bool
+
+
+class CanonIntake(TypedDict):
+    """A proposed canon addition, staged for ratification."""
+
+    #: Identifier of the canon intake.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: What kind of canon value is proposed.
+    proposed_kind: str
+    #: Proposed code.
+    proposed_code: str
+    #: Proposed label.
+    proposed_label: str
+    #: Why the addition is needed.
+    rationale: str
+    #: Intake state. A Title Case value from the lifecycle's database enum.
+    intake_state: str
+
+
+class CanonIntakeCreate(TypedDict):
+    """Fields accepted when creating a CanonIntake."""
+
+    #: What kind of canon value is proposed.
+    proposed_kind: str
+    #: Proposed code.
+    proposed_code: str
+    #: Proposed label.
+    proposed_label: str
+    #: Why the addition is needed.
+    rationale: str
 
 
 class Me(TypedDict):
@@ -14192,15 +14286,6 @@ class Membership(TypedDict):
     valid_to: Optional[str]
 
 
-class MembershipUpdate(TypedDict, total=False):
-    """Fields accepted when updating a Membership. Omitted fields are unchanged."""
-
-    #: Start of membership.
-    valid_from: str
-    #: End of membership.
-    valid_to: Optional[str]
-
-
 class MembershipRolePage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -14307,43 +14392,6 @@ class ProjectAssignmentUpdate(TypedDict, total=False):
     project_role: Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 
-class ProjectAssignmentRolePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProjectAssignmentRole]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProjectAssignmentRole(TypedDict):
-    """A project role held through a project assignment."""
-
-    #: Identifier of the project assignment role.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the project assignment.
-    project_assignment_id: str
-    role: ProjectRole
-
-
-class ProjectAssignmentRoleCreate(TypedDict):
-    """Fields accepted when creating a ProjectAssignmentRole."""
-
-    #: Identifier of the project assignment.
-    project_assignment_id: str
-    role: ProjectRole
-
-
 class AccountMembershipPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -14370,27 +14418,12 @@ class AccountMembership(TypedDict):
     valid_to: Optional[str]
 
 
-class _AccountMembershipCreateRequired(TypedDict):
-    #: Identifier of the member.
-    person_id: str
-
-
-class AccountMembershipCreate(_AccountMembershipCreateRequired, total=False):
+class AccountMembershipCreate(TypedDict):
     """Fields accepted when creating a AccountMembership."""
 
-    #: Start of account membership.
-    valid_from: str
-    #: End of account membership.
-    valid_to: Optional[str]
-
-
-class AccountMembershipUpdate(TypedDict, total=False):
-    """Fields accepted when updating a AccountMembership. Omitted fields are unchanged."""
-
-    #: Start of account membership.
-    valid_from: str
-    #: End of account membership.
-    valid_to: Optional[str]
+    #: Identifier of the member.
+    person_id: str
+    account_role: AccountRole
 
 
 class AccountMembershipRolePage(TypedDict):
@@ -14451,33 +14484,25 @@ class OrganizationRelationship(TypedDict):
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
     #: Identifier of the related organization.
-    related_organization_id: str
-    kind: OrganizationRelationshipKind
+    organization_id: str
     counterparty_type: Optional[CounterpartyType]
-    #: Internal notes.
-    internal_notes: Optional[str]
 
 
 class _OrganizationRelationshipCreateRequired(TypedDict):
     #: Identifier of the related organization.
-    related_organization_id: str
-    kind: OrganizationRelationshipKind
+    organization_id: str
 
 
 class OrganizationRelationshipCreate(_OrganizationRelationshipCreateRequired, total=False):
     """Fields accepted when creating a OrganizationRelationship."""
 
     counterparty_type: Optional[CounterpartyType]
-    #: Internal notes.
-    internal_notes: Optional[str]
 
 
 class OrganizationRelationshipUpdate(TypedDict, total=False):
     """Fields accepted when updating a OrganizationRelationship. Omitted fields are unchanged."""
 
     counterparty_type: Optional[CounterpartyType]
-    #: Internal notes.
-    internal_notes: Optional[str]
 
 
 class RepresentationPage(TypedDict):
@@ -14526,15 +14551,6 @@ class RepresentationCreate(_RepresentationCreateRequired, total=False):
 
     #: Identifier of the representative.
     representative_person_id: Optional[str]
-
-
-class RepresentationUpdate(TypedDict, total=False):
-    """Fields accepted when updating a Representation. Omitted fields are unchanged."""
-
-    #: Delegated scopes, stored as junction rows.
-    scopes: List[RepresentationScope]
-    #: Expiry.
-    expires_on: str
 
 
 class JoinRequestPage(TypedDict):
@@ -14854,6 +14870,10 @@ class PersonProfile(TypedDict):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
+    #: When the handle last changed; null until the first change. Set by the database.
+    handle_changed_at: Optional[str]
 
 
 class _PersonProfileCreateRequired(TypedDict):
@@ -14895,6 +14915,8 @@ class PersonProfileUpdate(TypedDict, total=False):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
 
 
 class OrganizationProfilePage(TypedDict):
@@ -14922,6 +14944,10 @@ class OrganizationProfile(TypedDict):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
+    #: When the handle last changed; null until the first change. Set by the database.
+    handle_changed_at: Optional[str]
 
 
 class _OrganizationProfileCreateRequired(TypedDict):
@@ -14947,57 +14973,8 @@ class OrganizationProfileUpdate(TypedDict, total=False):
     visibility: ProfileVisibility
     #: Whether search engines may index a public profile.
     search_indexing: bool
-
-
-class ProfileSectionPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProfileSection]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProfileSection(TypedDict):
-    """A section of a profile page with its own visibility, never higher than the profile."""
-
-    #: Identifier of the profile section.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section key.
-    section_key: str
-    #: Display order.
-    position: int
-    visibility: ProfileVisibility
-
-
-class ProfileSectionCreate(TypedDict):
-    """Fields accepted when creating a ProfileSection."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section key.
-    section_key: str
-    #: Display order.
-    position: int
-    visibility: ProfileVisibility
-
-
-class ProfileSectionUpdate(TypedDict, total=False):
-    """Fields accepted when updating a ProfileSection. Omitted fields are unchanged."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Section key.
-    section_key: str
-    #: Display order.
-    position: int
-    visibility: ProfileVisibility
+    #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
+    handle: str
 
 
 class ProfileVisibilityRulePage(TypedDict):
@@ -15044,50 +15021,6 @@ class ProfileVisibilityRuleUpdate(TypedDict, total=False):
     visibility: Literal["Private", "Network", "Public"]
 
 
-class ProfileHandlePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProfileHandle]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProfileHandle(TypedDict):
-    """A unique profile handle, changeable once every 30 days, with 90-day redirects."""
-
-    #: Identifier of the profile handle.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Handle.
-    handle: str
-    #: When the handle last changed.
-    changed_at: str
-
-
-class ProfileHandleCreate(TypedDict):
-    """Fields accepted when creating a ProfileHandle."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Handle.
-    handle: str
-
-
-class ProfileHandleUpdate(TypedDict, total=False):
-    """Fields accepted when updating a ProfileHandle. Omitted fields are unchanged."""
-
-    #: URN of the profile owner.
-    owner_urn: str
-    #: Handle.
-    handle: str
-
-
 class VerificationPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15120,49 +15053,6 @@ class Verification(TypedDict):
     revocation_reason: Optional[str]
 
 
-class _VerificationCreateRequired(TypedDict):
-    #: How the organization was verified.
-    method: Literal["Stripe Identity", "Business Registry"]
-    #: The provider's verification or registry record reference.
-    provider_reference: str
-
-
-class VerificationCreate(_VerificationCreateRequired, total=False):
-    """Fields accepted when creating a Verification."""
-
-    #: When the verification lapses; null when it does not.
-    expires_at: Optional[str]
-
-
-class BlockPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[Block]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class Block(TypedDict):
-    """A block between two profiles."""
-
-    #: Identifier of the block.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: URN of the blocked profile.
-    blocked_urn: str
-
-
-class BlockCreate(TypedDict):
-    """Fields accepted when creating a Block."""
-
-    #: URN of the blocked profile.
-    blocked_urn: str
-
-
 class SubscriptionPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15191,13 +15081,6 @@ class Subscription(TypedDict):
     plan_code: str
     #: Subscription status as Stripe reports it; read_only after the grace period.
     subscription_state: Literal["trialing", "active", "past_due", "read_only", "canceled"]
-
-
-class SubscriptionUpdate(TypedDict, total=False):
-    """Fields accepted when updating a Subscription. Omitted fields are unchanged."""
-
-    #: Plan code from `plans.yaml`.
-    plan_code: str
 
 
 class PlanPage(TypedDict):
@@ -15498,122 +15381,6 @@ class OrgBrandingUpdate(TypedDict, total=False):
     legal_entity_name: Optional[str]
     #: True hides Powered by XOS; it takes effect only while the plan includes white label.
     suppress_powered_by: bool
-
-
-class OrgLegalEntityPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[OrgLegalEntity]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class OrgLegalEntity(TypedDict):
-    """A legal entity of the organization with its fiscal settings."""
-
-    #: Identifier of the org legal entity.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Legal name.
-    legal_name: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
-    tax_identifier: Optional[Union[str, Masked]]
-    #: Fiscal year start month.
-    fiscal_year_start_month: int
-    #: Base currency.
-    base_currency: str
-
-
-class _OrgLegalEntityCreateRequired(TypedDict):
-    #: Legal name.
-    legal_name: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
-    #: Fiscal year start month.
-    fiscal_year_start_month: int
-    #: Base currency.
-    base_currency: str
-
-
-class OrgLegalEntityCreate(_OrgLegalEntityCreateRequired, total=False):
-    """Fields accepted when creating a OrgLegalEntity."""
-
-    #: Tax identifier.
-    tax_identifier: Optional[str]
-
-
-class OrgLegalEntityUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OrgLegalEntity. Omitted fields are unchanged."""
-
-    #: Legal name.
-    legal_name: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
-    #: Tax identifier.
-    tax_identifier: Optional[str]
-    #: Fiscal year start month.
-    fiscal_year_start_month: int
-    #: Base currency.
-    base_currency: str
-
-
-class OrgIpAllowlistEntryPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[OrgIpAllowlistEntry]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class OrgIpAllowlistEntry(TypedDict):
-    """An allowed network for Atlas and the API."""
-
-    #: Identifier of the org ip allowlist entry.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: CIDR block.
-    cidr: str
-    #: Label.
-    label: str
-
-
-class OrgIpAllowlistEntryCreate(TypedDict):
-    """Fields accepted when creating a OrgIpAllowlistEntry."""
-
-    #: CIDR block.
-    cidr: str
-    #: Label.
-    label: str
-
-
-class OrgIpAllowlistEntryUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OrgIpAllowlistEntry. Omitted fields are unchanged."""
-
-    #: CIDR block.
-    cidr: str
-    #: Label.
-    label: str
 
 
 class RolePage(TypedDict):
@@ -16117,195 +15884,6 @@ class ColumnClassification(TypedDict):
     classification: Classification
     #: Capability that unmasks it.
     read_capability: Optional[str]
-
-
-class AccessReviewCampaignPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[AccessReviewCampaign]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class AccessReviewCampaign(TypedDict):
-    """A quarterly access review campaign."""
-
-    #: Identifier of the access review campaign.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Campaign name.
-    name: str
-    #: Due date.
-    due_on: str
-    #: Remove access left unreviewed after 14 days.
-    auto_remove_unreviewed: bool
-    #: Campaign state. A Title Case value from the lifecycle's database enum.
-    campaign_state: str
-
-
-class AccessReviewCampaignCreate(TypedDict):
-    """Fields accepted when creating a AccessReviewCampaign."""
-
-    #: Campaign name.
-    name: str
-    #: Due date.
-    due_on: str
-    #: Remove access left unreviewed after 14 days.
-    auto_remove_unreviewed: bool
-
-
-class AccessReviewCampaignUpdate(TypedDict, total=False):
-    """Fields accepted when updating a AccessReviewCampaign. Omitted fields are unchanged."""
-
-    #: Campaign name.
-    name: str
-    #: Due date.
-    due_on: str
-    #: Remove access left unreviewed after 14 days.
-    auto_remove_unreviewed: bool
-
-
-class AccessReviewItemPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[AccessReviewItem]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class AccessReviewItem(TypedDict):
-    """One membership role to confirm or remove."""
-
-    #: Identifier of the access review item.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the campaign.
-    access_review_campaign_id: str
-    #: Identifier of the membership role.
-    membership_role_id: str
-    #: Decision. A Title Case value from the lifecycle's database enum.
-    decision: Optional[str]
-
-
-class AccessReviewItemUpdate(TypedDict, total=False):
-    """Fields accepted when updating a AccessReviewItem. Omitted fields are unchanged."""
-
-    #: Decision. A Title Case value from the lifecycle's database enum.
-    decision: Optional[str]
-
-
-class BreakGlassSessionPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[BreakGlassSession]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class BreakGlassSession(TypedDict):
-    """One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified."""
-
-    #: Identifier of the break glass session.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the Owner.
-    person_id: str
-    #: Written reason.
-    reason: str
-    #: Start.
-    started_at: str
-    #: End, one hour after start.
-    expires_at: str
-
-
-class BreakGlassSessionCreate(TypedDict):
-    """Fields accepted when creating a BreakGlassSession."""
-
-    #: Written reason.
-    reason: str
-
-
-class ProjectSharePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProjectShare]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProjectShare(TypedDict):
-    """A project shared with a partner org, mapping its roles onto project roles."""
-
-    #: Identifier of the project share.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the project.
-    project_id: str
-    #: Identifier of the partner organization.
-    partner_organization_id: str
-    #: End of the share.
-    valid_to: Optional[str]
-
-
-class _ProjectShareCreateRequired(TypedDict):
-    #: Identifier of the project.
-    project_id: str
-    #: Identifier of the partner organization.
-    partner_organization_id: str
-
-
-class ProjectShareCreate(_ProjectShareCreateRequired, total=False):
-    """Fields accepted when creating a ProjectShare."""
-
-    #: End of the share.
-    valid_to: Optional[str]
-
-
-class ProjectShareUpdate(TypedDict, total=False):
-    """Fields accepted when updating a ProjectShare. Omitted fields are unchanged."""
-
-    #: End of the share.
-    valid_to: Optional[str]
 
 
 class ScimGroupMappingPage(TypedDict):
@@ -17157,17 +16735,27 @@ class OrgExport(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    format: ExportFormat
-    #: Export state. A Title Case value from the lifecycle's database enum.
-    export_state: str
-    #: Identifier of the export file.
-    document_id: Optional[str]
+    #: Tables in the archive.
+    table_count: int
+    #: Rows across every table.
+    row_count: int
+    #: Stored files included.
+    file_count: int
+    #: SHA-256 of the archive's manifest.json, lowercase hex.
+    manifest_sha256: str
 
 
 class OrgExportCreate(TypedDict):
     """Fields accepted when creating a OrgExport."""
 
-    format: ExportFormat
+    #: Tables in the archive.
+    table_count: int
+    #: Rows across every table.
+    row_count: int
+    #: Stored files included.
+    file_count: int
+    #: SHA-256 of the archive's manifest.json, lowercase hex.
+    manifest_sha256: str
 
 
 class AiSettingsPage(TypedDict):
@@ -22998,14 +22586,8 @@ StdCode = str
 #: URN in the `urn:xpms` namespace.
 Urn = str
 
-#: Project role (Section 8).
-ProjectRole = Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
-
 #: Role inside an external account.
 AccountRole = Literal["Account Owner", "Account Admin", "Account Finance", "Account Member"]
-
-#: Kind of relationship one organization holds to another.
-OrganizationRelationshipKind = Literal["Vendor Of", "Client Of", "Partner Of", "Represents"]
 
 #: Scope a representation delegates.
 RepresentationScope = Literal["Offers", "Advance", "Settlement", "Documents"]

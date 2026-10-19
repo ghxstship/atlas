@@ -6,7 +6,16 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { all, editShape, orNull, removeActions } from "../correct.ts";
+import {
+  all,
+  editShape,
+  orNull,
+  putActions,
+  removeActions,
+  removeVerbs,
+  setCapabilities,
+} from "../correct.ts";
+import { itemAction } from "../define.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -379,6 +388,132 @@ export const additions = defineAdditions("Opportunities", {
           },
         },
       }),
+    },
+    {
+      id: "bid-line-currency-from-bid",
+      since: "1.0.0-draft.2",
+      resources: ["bidLines"],
+      change:
+        "`currency` is server-set from the bid and no longer accepted on create or update; `quantity` is never null and defaults to 1 on create.",
+      reason:
+        "app.bid_lines (0720) has no currency column: a line is priced in its bid's `currency_code` (correction bid-currency-and-validity). `quantity` is NOT NULL with a default of 1.",
+      apply: editShape({
+        serverSet: ["currency"],
+        add: {
+          quantity: {
+            schema: z
+              .number()
+              .positive()
+              .meta({ description: "Quantity; defaults to 1.", example: 2 }),
+            create: "optional",
+          },
+        },
+      }),
+    },
+    {
+      id: "engagement-from-application",
+      since: "1.0.0-draft.2",
+      resources: ["engagements"],
+      change:
+        "An engagement is created from an accepted application: the create body is `application_id` with the canon `worker_classification` (required), `pay_basis` and `arrangement` (a permitted pair, optional) and optional `start_date` and `end_date`; the party, project, role type and offer are server-set from the application. The read shape gains `application_id`, `worker_classification`, `pay_basis`, `arrangement`, `start_date` and `end_date`. Creating needs opportunities.engagement.write.",
+      reason:
+        "app.engagements (0700) requires a project, a canon role and worker classification and a start date that the frozen body cannot carry, and names the account as a counterparty. app.create_engagement_from_application (0775) is the path the UI takes (Section 4.4.4 stage 5 to 6): it takes the project and role from the opportunity, the party from the application, the rate and dates from the accepted offer, and needs opportunities.engagement.write on the project.",
+      apply: all(
+        editShape({
+          serverSet: ["person_id", "organization_id", "project_id", "offer_id", "role_type"],
+          add: {
+            application_id: {
+              schema: orNull(fields.ref("accepted application the engagement came from")),
+              writeSchema: fields.ref("accepted application the engagement comes from"),
+              create: "required",
+              update: false,
+            },
+            worker_classification: {
+              schema: fields.code(
+                "Worker classification, from xpms.worker_classification.",
+                "INDEPENDENT_CONTRACTOR",
+              ),
+              create: "required",
+              update: false,
+            },
+            pay_basis: {
+              schema: orNull(
+                fields.text("Pay basis; with the arrangement a permitted canon pair.", "Day Rate"),
+              ),
+              create: "optional",
+              update: false,
+            },
+            arrangement: {
+              schema: orNull(
+                fields.text(
+                  "Arrangement; with the pay basis a permitted canon pair.",
+                  "Per Engagement",
+                ),
+              ),
+              create: "optional",
+              update: false,
+            },
+            start_date: {
+              schema: fields.date(
+                "First day of the engagement; defaults to the offer's or the opportunity's.",
+              ),
+              create: "optional",
+              update: false,
+            },
+            end_date: {
+              schema: orNull(
+                fields.date(
+                  "Last day of the engagement; defaults to the offer's or the opportunity's.",
+                ),
+              ),
+              create: "optional",
+              update: false,
+            },
+          },
+        }),
+        setCapabilities({ create: "opportunities.engagement.write" }),
+      ),
+    },
+    {
+      id: "onboarding-item-submission",
+      since: "1.0.0-draft.2",
+      resources: ["onboardingItems"],
+      change:
+        "`document_id` and `expires_on` are server-set and the read shape gains `submitted_at`. `onboardingItems.update` gives way to `onboardingItems.submit`, through which the engaged party submits the item, optionally attaching a document.",
+      reason:
+        "app.onboarding_items (0730) grants insert of `engagement_id` and `onboarding_requirement_id` only; `document_id` and `submitted_at` are written by app.submit_onboarding_item, which only the engaged party may call while onboarding is open, and `expires_on` is the latest verification's (app.onboarding_item_status), not a column of the item.",
+      apply: all(
+        editShape({
+          serverSet: ["document_id", "expires_on"],
+          add: {
+            submitted_at: {
+              schema: orNull(fields.instant("When the engaged party submitted the item.")),
+            },
+          },
+        }),
+        removeVerbs("update"),
+        putActions(
+          [
+            itemAction("submit", {
+              summary: "Submit an onboarding item",
+              description:
+                "The engaged party submits the item while onboarding is open, optionally attaching a document of the org. Anyone else is refused (403).",
+              rpc: "submit_onboarding_item",
+              body: z
+                .object({
+                  document_id: orNull(
+                    fields.ref("document of the org submitted for the item"),
+                  ).optional(),
+                })
+                .meta({
+                  id: "OnboardingItemSubmitRequest",
+                  description: "The document submitted with the item, if any.",
+                }),
+            }),
+          ],
+          { submit: "me.work_details.write" },
+        ),
+      ),
     },
   ],
 });

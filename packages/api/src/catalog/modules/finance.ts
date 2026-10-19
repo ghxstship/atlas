@@ -573,5 +573,14 @@ export const additions = defineAdditions("Finance", {
       reason: "app.fx_rates (0321) names the reference date `effective_on`.",
       apply: editShape({ rename: { rate_date: "effective_on" } }),
     },
+    {
+      id: "price-book-currency-code",
+      since: SINCE,
+      resources: ["priceBooks"],
+      change: "`currency` becomes `currency_code`.",
+      reason:
+        "app.price_books (1170, built for this operation by ADR 0032) names the column `currency_code`, as every money table does.",
+      apply: editShape({ rename: { currency: "currency_code" } }),
+    },
   ],
 });

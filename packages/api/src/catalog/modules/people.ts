@@ -213,6 +213,39 @@ const peopleCorrections = [
       },
     }),
   },
+  {
+    id: "agreement-sign-typed-name",
+    since: "1.0.0-draft.2",
+    resources: ["agreements"],
+    change:
+      "`agreements.sign` takes the signer's typed `signed_name` and the `body_sha256` of the text they read; a Sent agreement that names the caller is signed, and a changed text or an agreement that is not Sent is refused (422).",
+    reason:
+      "app.sign_agreement (0361) signs as the signed-in person the agreement names and needs the typed name and the SHA-256 of the text they read, which it compares with the stored body; the frozen action had no body to carry them.",
+    apply: putActions([
+      itemAction("sign", {
+        summary: "Sign an agreement",
+        description:
+          "The person the agreement names signs it with their typed name and the SHA-256 of the text they read. A signed agreement cannot be revoked or unsigned; a second signature, a changed text or an agreement that is not Sent is refused (422).",
+        rpc: "sign_agreement",
+        body: z
+          .object({
+            signed_name: fields.text(
+              "Name the signer types as their signature.",
+              "Alex Rivera",
+              200,
+            ),
+            body_sha256: z
+              .string()
+              .regex(/^[0-9a-f]{64}$/)
+              .meta({
+                description: "SHA-256 of the agreement text the signer read, lowercase hex.",
+                example: "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
+              }),
+          })
+          .meta({ id: "AgreementSignRequest", description: "The signature on an agreement." }),
+      }),
+    ]),
+  },
 ] as const;
 
 /** The terms of one offer version, as app.send_offer, revise_offer and counter_offer take them. */

@@ -347,16 +347,15 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Settings",
     entity: "Members",
-    operations: [...read("memberships"), "memberships.update", "memberships.end", "invites.create"],
+    operations: [...read("memberships"), "memberships.end", "invites.create"],
   },
   { module: "Settings", entity: "Roles", operations: [...crud("roles"), "capabilities.list"] },
   {
     module: "Settings",
     entity: "Security",
     operations: [
-      ...crud("orgIpAllowlistEntries"),
+      // The IP allow-list and break-glass are not built yet (ADR 0032).
       ...crud("verifiedDomains"),
-      "breakGlassSessions.create",
     ],
   },
   { module: "Settings", entity: "White label", operations: crud("orgBrandings") },
@@ -386,12 +385,22 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Gateway",
     entity: "Representation",
-    operations: [...crud("representations"), "representations.accept"],
+    // Changing the terms is a new proposal the artist accepts (ADR 0032).
+    operations: [
+      ...read("representations"),
+      "representations.create",
+      "representations.accept",
+      "representations.delete",
+    ],
   },
   {
     module: "Gateway",
     entity: "External accounts",
-    operations: [...crud("accountMemberships"), "accountMembershipRoles.create"],
+    operations: [
+      ...read("accountMemberships"),
+      "accountMemberships.create",
+      "accountMembershipRoles.create",
+    ],
   },
   {
     module: "Gateway",
@@ -408,7 +417,8 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Gateway",
     entity: "Abuse reports",
-    operations: [...read("listingReports"), "moderationActions.create"],
+    // Decisions are recorded by the platform operator console (Section 4.10); ADR 0032.
+    operations: [...read("listingReports"), ...read("moderationActions")],
   },
   {
     module: "Gateway",
@@ -453,7 +463,7 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     entity: "Membership",
     operations: [
       ...read("memberships"),
-      "memberships.update",
+      "memberships.end",
       ...read("membershipRoles"),
       "memberships.offboard",
     ],
@@ -462,15 +472,28 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Identity",
     entity: "Project Assignment",
-    operations: [...crud("projectAssignments"), "projectAssignmentRoles.create"],
+    // One project role per assignment row, app.project_members.project_role (ADR 0032).
+    operations: crud("projectAssignments"),
   },
-  { module: "Identity", entity: "Account Membership", operations: crud("accountMemberships") },
+  {
+    module: "Identity",
+    entity: "Account Membership",
+    operations: [
+      ...read("accountMemberships"),
+      "accountMemberships.create",
+      "accountMemberships.delete",
+    ],
+  },
   {
     module: "Identity",
     entity: "Organization Relationship",
     operations: crud("organizationRelationships"),
   },
-  { module: "Identity", entity: "Representation", operations: crud("representations") },
+  {
+    module: "Identity",
+    entity: "Representation",
+    operations: [...read("representations"), "representations.create", "representations.delete"],
+  },
   {
     module: "Identity",
     entity: "Ways to join",
@@ -485,16 +508,17 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Identity",
     entity: "Profile pages",
-    operations: [
-      ...crud("personProfiles"),
-      ...crud("organizationProfiles"),
-      ...crud("profileSections"),
-    ],
+    operations: [...crud("personProfiles"), ...crud("organizationProfiles")],
   },
   {
     module: "Identity",
     entity: "Profile visibility and handles",
-    operations: [...crud("profileVisibilityRules"), ...crud("profileHandles")],
+    // Sections are profileVisibilityRules rows and handles are profile fields (ADR 0032).
+    operations: [
+      ...crud("profileVisibilityRules"),
+      "personProfiles.update",
+      "organizationProfiles.update",
+    ],
   },
   { module: "Identity", entity: "Verification badges", operations: read("verifications") },
 
@@ -575,11 +599,12 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     module: "Canon",
     entity: "Governance and views",
     operations: [
-      ...read("canonProductionTemplates"),
-      ...read("canonSupersessions"),
+      // The Production Template stays private and intake is the owner's staging; supersessions
+      // are keyed by domain and code, so they are listed, not read by one key (ADR 0032).
+      "canonSupersessions.list",
       ...read("canonRatifications"),
       ...read("canonVersions"),
-      "canonIntake.create",
+      "canonExtensions.propose",
       "canonPhaseCoverage.list",
       "canonElementEconomics.list",
       "canonCrosswalkCoverage.list",

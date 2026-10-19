@@ -20,7 +20,7 @@ import {
   setTable,
 } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
-import type { ResourceSpec } from "../types.ts";
+import type { ActionSpec, ResourceSpec } from "../types.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -152,6 +152,61 @@ export const additions = defineAdditions("Crew", {
       ),
     },
     {
+      id: "time-entry-clock-in-punch",
+      since: SINCE,
+      resources: ["timeEntries"],
+      components: ["schemas/TimeEntryClockInRequest"],
+      change:
+        "`timeEntries.clockIn` takes the punch that opens the entry: a required `project_id`, the optional `shift_id`, `engagement_id` (for external crew), client `punch_id`, `device_time` and `monotonic_offset_ms`, and the location with its `geofence_id`. The worker is always the caller; `timeEntries.clockOut` closes the caller's open entry with an Out punch.",
+      reason:
+        "Clocking goes through app.record_punch (0941): it opens or closes the signed-in worker's own entry exactly once per client punch id, counts the device time within the skew tolerance and checks the geofence. The frozen body named another person, the old column names and no project, which the punch path cannot take.",
+      apply: (spec) =>
+        putActions([
+          {
+            ...(spec.actions.find((a) => a.verb === "clockIn") as ActionSpec),
+            body: z
+              .object({
+                project_id: fields.ref("project the caller clocks in on"),
+                shift_id: orNull(fields.ref("Accepted shift of the caller")).optional(),
+                engagement_id: orNull(
+                  fields.ref("caller's open engagement, when they work as external crew"),
+                ).optional(),
+                punch_id: fields
+                  .uuid("Client punch id; a replay with the same id returns the same entry.")
+                  .optional(),
+                device_time: fields
+                  .instant("When the punch was made on the device; defaults to now.")
+                  .optional(),
+                monotonic_offset_ms: z
+                  .int()
+                  .min(0)
+                  .meta({
+                    description:
+                      "Milliseconds since the punch on the device's monotonic clock, for a punch queued offline.",
+                    example: 0,
+                    format: "int64",
+                  })
+                  .optional(),
+                latitude: orNull(fields.latitude()).optional(),
+                longitude: orNull(fields.longitude()).optional(),
+                accuracy_m: orNull(
+                  z
+                    .number()
+                    .min(0)
+                    .meta({ description: "Location accuracy in metres.", example: 12 }),
+                ).optional(),
+                geofence_id: orNull(
+                  fields.ref("geofence the location is checked against"),
+                ).optional(),
+              })
+              .meta({
+                id: "TimeEntryClockInRequest",
+                description: "The punch that opens the caller's time entry.",
+              }),
+          },
+        ])(spec),
+    },
+    {
       id: "time-entry-correction-proposed-times",
       since: SINCE,
       resources: ["timeEntryCorrections"],
@@ -243,15 +298,27 @@ export const additions = defineAdditions("Crew", {
       since: SINCE,
       resources: ["kioskDevices"],
       change:
-        "A kiosk serves an optional `project_id` and reports `last_seen_at` and `revoked_at`; removes `venue_id` and `active`.",
+        "A kiosk serves an optional `project_id` and reports `last_seen_at` and `revoked_at`; removes `venue_id` and `active`. Adds `device_key`, present only in the create response.",
       reason:
-        "app.kiosk_devices (0340) belongs to a project, not a venue, and is retired by stamping `revoked_at`. Its device key is issued once by app.register_kiosk_device and stored only as a hash that callers never read.",
+        "app.kiosk_devices (0340) belongs to a project, not a venue, and is retired by stamping `revoked_at` or deleting it. Its device key is issued once by app.register_kiosk_device and stored only as a hash that callers never read, so the create response is the one place the key can be handed over.",
       apply: editShape({
         remove: ["venue_id", "active"],
         add: {
           project_id: {
             schema: orNull(fields.ref("project the kiosk serves")),
             create: "optional",
+          },
+          device_key: {
+            schema: orNull(
+              z
+                .string()
+                .regex(/^xkio_[0-9a-f]{64}$/)
+                .meta({
+                  description:
+                    "Device key the kiosk signs in with. Returned once, in the create response; null on every read, because only its hash is kept (invariant 8).",
+                  example: "xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
+                }),
+            ),
           },
           last_seen_at: { schema: orNull(fields.instant("Last time the kiosk checked in.")) },
           revoked_at: {

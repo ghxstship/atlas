@@ -6,7 +6,15 @@
 import { z } from "@hono/zod-openapi";
 import { fields, platform as pf } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { all, editShape, orNull, putActions, removeVerbs, setTable } from "../correct.ts";
+import {
+  all,
+  editShape,
+  orNull,
+  putActions,
+  removeVerbs,
+  setCapabilities,
+  setTable,
+} from "../correct.ts";
 import { collectionAction } from "../define.ts";
 import type { ResourceSpec } from "../types.ts";
 import {
@@ -877,5 +885,85 @@ export const additions = defineAdditions("Settings", {
       }),
     },
     ...integrationCorrections,
+
+    // A50 (gate 5, RRR-94, ADR 0032) ----------------------------------------------------------------
+    {
+      id: "subscription-plan-through-billing",
+      since: "1.0.0-draft.2",
+      resources: ["subscriptions"],
+      change:
+        "Removes `subscriptions.update`: the plan changes through billing checkout, which the billing service applies.",
+      reason:
+        "A plan is paid for: app.sync_subscription_from_stripe (0560), granted to the service role only, is the one path from a Stripe subscription to app.subscriptions, and it sets the plan the server resolved from the paid price. Writing `plan_code` directly would grant a plan nobody paid for. Decided in ADR 0032.",
+      apply: removeVerbs("update"),
+    },
+    {
+      id: "org-export-log",
+      since: "1.0.0-draft.2",
+      resources: ["orgExports"],
+      change:
+        "An org export is the log of a full export the Owner built: `table_count`, `row_count`, `file_count` and `manifest_sha256` (all required on create) replace `format`, `export_state` and `document_id`. Creating needs org.organization.delete.",
+      reason:
+        "app.org_exports (1063) is append-only and logs each full export (Section 14.7) with its counts and the SHA-256 of its manifest; the archive is built with the Owner's own row level security from app.org_export_tables and recorded through app.record_org_export. There is no export job, state or stored document. Decided in ADR 0032.",
+      apply: all(
+        editShape({
+          remove: ["format", "export_state", "document_id"],
+          add: {
+            table_count: {
+              schema: fields.int("Tables in the archive.", 412),
+              create: "required",
+              update: false,
+            },
+            row_count: {
+              schema: z.int().min(0).meta({
+                description: "Rows across every table.",
+                example: 182340,
+                format: "int64",
+              }),
+              create: "required",
+              update: false,
+            },
+            file_count: {
+              schema: fields.int("Stored files included.", 96),
+              create: "required",
+              update: false,
+            },
+            manifest_sha256: {
+              schema: z
+                .string()
+                .regex(/^[0-9a-f]{64}$/)
+                .meta({
+                  description: "SHA-256 of the archive's manifest.json, lowercase hex.",
+                  example: "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
+                }),
+              create: "required",
+              update: false,
+            },
+          },
+        }),
+        setCapabilities({ read: "org.organization.delete", create: "org.organization.delete" }),
+      ),
+    },
+    {
+      id: "settings-features-not-built",
+      since: "1.0.0-draft.2",
+      resources: [
+        "orgLegalEntities",
+        "orgIpAllowlistEntries",
+        "accessReviewCampaigns",
+        "accessReviewItems",
+        "breakGlassSessions",
+        "projectShares",
+      ],
+      change:
+        "Removes every operation of orgLegalEntities, orgIpAllowlistEntries, accessReviewCampaigns, accessReviewItems, breakGlassSessions and projectShares.",
+      reason:
+        "None of these has a table or a behavior behind it: app.org_legal_entities, app.org_ip_allowlist, app.access_review_campaigns, app.access_review_items, app.break_glass_sessions and app.project_shares were never built, and only setting definitions exist (org.fiscal_year_start_month, org.base_currency, security.ip_allowlist, access_reviews.*, 0851). Sections 4.5 and 8.4 give them enforcement (the allow-list refusing other addresses, break-glass needing MFA, a one-hour limit and an Admin notice, reviews removing unreviewed access, shares opening a project to a partner). A table without that enforcement would report protection that does not exist, so the operations leave v1 until each feature is built and return additively then. Decided in ADR 0032.",
+      apply: (spec) =>
+        removeVerbs(...spec.verbs)({
+          ...spec,
+          actions: [],
+        }),
+    },
   ],
 });

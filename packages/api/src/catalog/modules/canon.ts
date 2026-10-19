@@ -6,7 +6,7 @@
 import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
-import { all, editShape, orNull, setTable } from "../correct.ts";
+import { all, editShape, orNull, removeVerbs, setOrder, setTable } from "../correct.ts";
 
 const TITLE_CASE = /^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$/;
 
@@ -17,6 +17,35 @@ const canonLabel = (description: string, example: string) =>
 const flag = (description: string, example = false) => ({
   schema: fields.bool(description, example),
 });
+
+// Playbook library mirrors (A50, ADR 0032) -----------------------------------------------------------
+// The Standard Library sheets are mirrored cell for cell in xpms (0105): every cell is nullable text,
+// and the row is keyed by the sheet's RECORD ID (SOP ID for SOPs). The shapes below are those columns,
+// leaving out the sheet bookkeeping (source row, flag, created by, created and updated at).
+
+const cell = (description: string, example: string, max = 20000) => ({
+  schema: orNull(fields.text(description, example, max)),
+});
+const numberCell = (description: string, example: number) => ({
+  schema: orNull(z.number().meta({ description, example })),
+});
+const boolCell = (description: string, example: boolean) => ({
+  schema: orNull(z.boolean().meta({ description, example })),
+});
+const dateCell = (description: string) => ({ schema: orNull(fields.date(description)) });
+
+/** The department, category, sub-category, status and notes columns every library sheet carries. */
+const sheetColumns = {
+  department: cell("Department as the sheet names it.", "5000 Production", 200),
+  category: cell("Category code or name as the sheet gives it.", "5000.05.02", 200),
+  sub_category: cell("Sub-category as the sheet names it.", "Overhead Rigging", 200),
+  status: cell("Row status in the sheet.", "Active", 200),
+  notes: cell("Notes in the sheet.", "Primary life safety and incident response"),
+};
+
+const MIRROR = "1.0.0-draft.2";
+const mirrorReason = (table: string, sheet: string) =>
+  `${table} (0105) mirrors the Playbook ${sheet} sheet cell for cell: the row is keyed by its RECORD ID and every other cell is nullable text, number or boolean as the sheet holds it. The frozen shape named fields the sheet does not have. ADR 0023 left these mirrors for the canon owner; their columns are fixed by the import (Section 2.1), so the shape follows them (ADR 0032).`;
 
 export const additions = defineAdditions("Canon", {
   corrections: [
@@ -593,6 +622,302 @@ export const additions = defineAdditions("Canon", {
         "The view xpms.v_crosswalk_coverage (0104) names categories as canon writes them, such as `FF&E (Furniture, Fixtures & Equipment)`, which the label pattern rejects.",
       apply: editShape({
         add: { category: { schema: fields.text("Category name.", "Production Leadership", 200) } },
+      }),
+    },
+
+    // A50 (gate 5, RRR-94, ADR 0032) ------------------------------------------------------------------
+    {
+      id: "canon-std-document-library-columns",
+      since: MIRROR,
+      resources: ["canonStdDocumentLibrary"],
+      change:
+        "The key `code` becomes `record_id`; `title` and `urid` give way to the sheet's columns: `document_name`, `document_type`, `reference_id`, `file_format`, `version`, `issue_date`, `expiration_date` and the shared department, category, sub-category, status and notes.",
+      reason: mirrorReason("xpms.std_document_library", "Document & Asset Library"),
+      apply: editShape({
+        rename: { code: "record_id" },
+        remove: ["title", "urid"],
+        add: {
+          document_name: cell("Document name.", "Venue Load-In Guide", 500),
+          document_type: cell("Document type.", "Guide", 200),
+          reference_id: cell("Reference identifier.", "DOC-004", 200),
+          file_format: cell("File format.", "PDF", 100),
+          version: cell("Version.", "v2.0", 100),
+          issue_date: dateCell("Issue date."),
+          expiration_date: dateCell("Expiration date."),
+          ...sheetColumns,
+        },
+      }),
+    },
+    {
+      id: "canon-std-enumeration-columns",
+      since: MIRROR,
+      resources: ["canonStdEnumerations"],
+      change:
+        "The key `code` becomes `record_id`; `enumeration` and `value` give way to `enum_domain`, `enum_code`, `enum_label`, `description`, `sort_order`, `color_code`, `target_entity`, `is_default` and the shared sheet columns.",
+      reason: mirrorReason("xpms.std_enumeration", "Enumerations"),
+      apply: editShape({
+        rename: { code: "record_id" },
+        remove: ["enumeration", "value"],
+        add: {
+          enum_domain: cell("Enumeration the value belongs to.", "Incident Severity", 200),
+          enum_code: cell("Code of the value.", "SEV_L3_MODERATE", 200),
+          enum_label: cell("Label of the value.", "Level 3 - Moderate", 500),
+          description: cell("What the value means.", "Non-life-threatening medical case."),
+          sort_order: numberCell("Order within the enumeration.", 3),
+          color_code: cell("Display color as the sheet stores it.", "Amber", 50),
+          target_entity: cell("Record the enumeration applies to.", "Incident CAD Log", 200),
+          is_default: boolCell("Whether the value is the default.", false),
+          ...sheetColumns,
+        },
+      }),
+    },
+    {
+      id: "canon-std-labor-rate-card-resolved",
+      since: MIRROR,
+      resources: ["canonStdLaborRateCards"],
+      change:
+        "The resource reads `xpms.rate_card_resolved`: the key `code` becomes `rate_card_id`; `rate_minor`, `currency` and `unit` give way to the canon combination (`worker_classification`, `pay_basis`, `arrangement`), the standard, grade and per diem rates in `currency_code`, the overtime rule with its multipliers, and the role's job title, department and expense GL account.",
+      reason:
+        "There is no std_labor_rate_card table: the Labor Rate Cards sheet is xpms.rate_card (0101), one canon rate per role and permitted classification, pay basis and arrangement, and xpms.rate_card_resolved (0107) adds the job title, department, overtime multipliers and expense account a reader needs. Rates are integer minor units, NULL where the sheet leaves them unpriced. Decided in ADR 0032.",
+      apply: all(
+        setTable("xpms.rate_card_resolved"),
+        editShape({
+          rename: { code: "rate_card_id" },
+          remove: ["rate_minor", "currency", "unit"],
+          add: {
+            rate_card_id: {
+              schema: fields.code("Canon rate card identifier.", "LRC-001"),
+            },
+            job_title: cell("Job title of the role.", "Head Rigger", 300),
+            class_code: { schema: canonCodes.DeptCode },
+            department: { schema: fields.text("Department of the role.", "Production", 200) },
+            worker_classification: {
+              schema: fields.text("Worker classification label.", "Employee", 200),
+            },
+            pay_basis: { schema: fields.text("Pay basis.", "Hourly", 200) },
+            arrangement: { schema: fields.text("Arrangement.", "Per Engagement", 200) },
+            standard_rate_minor: { schema: fields.money("Standard rate.", 4500) },
+            min_grade_rate_minor: { schema: fields.money("Lowest grade rate.", 3800) },
+            max_grade_rate_minor: { schema: fields.money("Highest grade rate.", 5200) },
+            per_diem_rate_minor: { schema: fields.money("Per diem rate.", 6500) },
+            currency_code: { schema: fields.currency("ISO 4217 currency of the rates.") },
+            overtime_rule_id: { schema: fields.code("Canon overtime rule.", "OTR-001") },
+            ot_multiplier: {
+              schema: z.number().meta({ description: "Overtime multiplier.", example: 1.5 }),
+            },
+            dt_multiplier: {
+              schema: z.number().meta({ description: "Double time multiplier.", example: 2 }),
+            },
+            gl_account: cell("Expense GL account of the role's department.", "5400", 50),
+            gl_account_name: cell("Name of that GL account.", "Production Labor", 300),
+          },
+        }),
+      ),
+    },
+    {
+      id: "canon-std-radio-channel-columns",
+      since: MIRROR,
+      resources: ["canonStdRadioChannels"],
+      change:
+        "The key `code` becomes `record_id`; `channel` becomes a nullable number, `name` gives way to `assignment`, and adds `zone` and the shared sheet columns.",
+      reason: mirrorReason("xpms.std_radio_channel", "Radio Channels"),
+      apply: editShape({
+        rename: { code: "record_id" },
+        remove: ["name"],
+        add: {
+          channel: numberCell("Radio channel number.", 1),
+          zone: numberCell("Radio zone.", 1),
+          assignment: cell("Who the channel is assigned to.", "Emergency", 300),
+          ...sheetColumns,
+        },
+      }),
+    },
+    {
+      id: "canon-std-roles-library",
+      since: MIRROR,
+      resources: ["canonStdRoles"],
+      change:
+        "The resource reads the Roles Library `xpms.role`, keyed by `role_code` (`code` and `description` are removed): adds `class_code`, `job_title`, `discipline`, `rank`, `job_summary`, `key_responsibilities`, `qualifications`, `physical_requirements`, `required_certifications`, `default_clearance_tier`, `default_radio_channel` and `notes`.",
+      reason:
+        "There is no std_role table: the Playbook Roles Library sheet is xpms.role (0101), which owns role codes and job titles (decision D12) and keys each role by its code. Decided in ADR 0032.",
+      apply: all(
+        setTable("xpms.role"),
+        editShape({
+          remove: ["code", "description"],
+          key: "role_code",
+          add: {
+            class_code: { schema: canonCodes.DeptCode },
+            job_title: {
+              schema: fields.text("Job title; the one home of the title.", "Head Rigger", 300),
+            },
+            discipline: { schema: fields.text("Discipline.", "Rigging", 200) },
+            rank: { schema: fields.text("Rank.", "Lead", 200) },
+            job_summary: cell("Job summary.", "Leads the rigging crew."),
+            key_responsibilities: cell("Key responsibilities.", "Plans and signs off every point."),
+            qualifications: cell("Qualifications.", "ETCP Certified Rigger."),
+            physical_requirements: cell("Physical requirements.", "Works at height."),
+            required_certifications: cell("Required certifications.", "ETCP"),
+            default_clearance_tier: cell("Default clearance tier.", "Tier 2", 200),
+            default_radio_channel: cell("Default radio channel.", "RCH-004", 200),
+            notes: cell("Notes in the sheet.", "Union call."),
+          },
+        }),
+      ),
+    },
+    {
+      id: "canon-std-sop-columns",
+      since: MIRROR,
+      resources: ["canonStdSops"],
+      change:
+        "The key `code` becomes `sop_id`; `title` becomes nullable and `body` gives way to the sheet's columns: `operational_domain`, `revision`, `accountable_role_code`, `required_ppe_compliance_tag`, `prerequisites_and_hazards`, `procedure_step_1` to `procedure_step_4`, `reference_doc_id` and the shared sheet columns.",
+      reason: mirrorReason("xpms.std_sop", "SOPs"),
+      apply: editShape({
+        rename: { code: "sop_id" },
+        remove: ["body"],
+        nullable: ["title"],
+        add: {
+          operational_domain: cell("Operational domain.", "Structural & Rigging Safety", 300),
+          revision: cell("Revision.", "v2.0", 100),
+          accountable_role_code: cell("Accountable role code.", "5000.51.02", 100),
+          required_ppe_compliance_tag: cell("Required PPE and compliance tags.", "TAG-002 OSHA"),
+          prerequisites_and_hazards: cell("Prerequisites and hazards.", "Verify the drop zone."),
+          procedure_step_1: cell("Procedure step 1.", "Inspect every hoist."),
+          procedure_step_2: cell("Procedure step 2.", "Lift to trim."),
+          procedure_step_3: cell("Procedure step 3.", "Load test."),
+          procedure_step_4: cell("Procedure step 4.", "Sign off."),
+          reference_doc_id: cell("Reference document.", "DOC-004", 200),
+          ...sheetColumns,
+        },
+      }),
+    },
+    {
+      id: "canon-std-vendor-class-columns",
+      since: MIRROR,
+      resources: ["canonStdVendorClasses"],
+      change:
+        "The key `code` becomes `record_id`; `name` becomes the nullable `class`, `counterparty_type` is removed, and adds `description`, `clearance_tier` and the shared sheet columns.",
+      reason: mirrorReason("xpms.std_vendor_class", "Vendor Classes"),
+      apply: editShape({
+        rename: { code: "record_id" },
+        remove: ["name", "counterparty_type"],
+        add: {
+          class: cell("Vendor class.", "Staging Vendor", 300),
+          description: cell("What the class covers.", "Stages, decks and risers."),
+          clearance_tier: cell("Clearance tier.", "Tier 2", 200),
+          ...sheetColumns,
+        },
+      }),
+    },
+    {
+      id: "canon-std-vendor-entitlement-columns",
+      since: MIRROR,
+      resources: ["canonStdVendorEntitlements"],
+      change:
+        "The key `code` becomes `record_id`; `name` and `description` give way to `vendor_class`, `module`, `permitted`, `status` and `notes`.",
+      reason: mirrorReason("xpms.std_vendor_entitlement", "Vendor Entitlements"),
+      apply: editShape({
+        rename: { code: "record_id" },
+        remove: ["name", "description"],
+        add: {
+          vendor_class: cell("Vendor class the entitlement is for.", "VCL-001", 100),
+          module: cell("Module the class may use.", "Advance", 200),
+          permitted: boolCell("Whether the class may use the module.", true),
+          status: sheetColumns.status,
+          notes: sheetColumns.notes,
+        },
+      }),
+    },
+    {
+      id: "canon-std-verbiage-columns",
+      since: MIRROR,
+      resources: ["canonStdVerbiage"],
+      change:
+        "The key `code` becomes `record_id`; `term` becomes the nullable `verbiage`, `usage` gives way to `title`, `body` and `description`, and adds the shared sheet columns.",
+      reason: mirrorReason("xpms.std_verbiage", "Verbiage"),
+      apply: editShape({
+        rename: { code: "record_id", term: "verbiage" },
+        remove: ["usage"],
+        nullable: ["verbiage"],
+        add: {
+          title: cell("Title.", "Load-In Announcement", 500),
+          body: cell("Text.", "All crew to the loading dock."),
+          description: cell("When the text is used.", "Read at the start of load-in."),
+          ...sheetColumns,
+        },
+      }),
+    },
+    {
+      id: "canon-production-template-private",
+      since: MIRROR,
+      resources: ["canonProductionTemplates"],
+      change: "Removes every canonProductionTemplates operation.",
+      reason:
+        "xpms.production_template (0105) holds real-world rows and stays private: 0199 grants tenants no read on it until the owner approves publishing it (ADR 0014 owner decision 8, Section 2.1). An operation that every caller is refused leaves v1; it returns additively once the template is published. Decided in ADR 0032.",
+      apply: removeVerbs("list", "get"),
+    },
+    {
+      id: "canon-supersession-by-domain",
+      since: MIRROR,
+      resources: ["canonSupersessions"],
+      change:
+        "`superseded_code` becomes `code` and `superseded_by` becomes `successor_code`; `ratification_id` is removed and adds `domain`, `label` and `reason`. Lists order by domain and code, and `canonSupersessions.get` is removed: a code is unique only within its domain.",
+      reason:
+        "xpms.supersession (0101) keys a supersession by its code domain and code, records the successor, the label the old code carried and why it was superseded, and names no ratification. One code can be superseded in two domains, so no single path key identifies a row; filter the list by domain and code instead. Decided in ADR 0032.",
+      apply: all(
+        editShape({
+          rename: { superseded_code: "code", superseded_by: "successor_code" },
+          remove: ["ratification_id"],
+          add: {
+            domain: { schema: fields.code("Code domain, such as phase.", "phase") },
+            label: { schema: fields.text("Label the superseded code carried.", "Discovery", 300) },
+            reason: {
+              schema: fields.text("Why the code was superseded.", "Renamed in 4.0.", 2000),
+            },
+          },
+        }),
+        removeVerbs("get"),
+        setOrder({ by: ["domain", "code"], numeric: false }),
+      ),
+    },
+    {
+      id: "canon-ratification-by-subject",
+      since: MIRROR,
+      resources: ["canonRatifications"],
+      change:
+        "A ratification is keyed by its `subject` (path parameter included); `ratification_id` is removed and adds `note`.",
+      reason:
+        "xpms.ratification (0101) keys each ratification by what it ratifies, such as the 4.0 grammar, and has no identifier column; it records the named ratifier, the time and a note. Decided in ADR 0032.",
+      apply: editShape({
+        remove: ["ratification_id"],
+        key: "subject",
+        add: { note: cell("Ratification note.", "Ratified at the canon review.", 4000) },
+      }),
+    },
+    {
+      id: "canon-intake-not-tenant-proposals",
+      since: MIRROR,
+      resources: ["canonIntake"],
+      change:
+        "Removes every canonIntake operation. An org proposes canon through `canonExtensions.propose`.",
+      reason:
+        "xpms.intake (0101) is the canon pipeline's staging of Playbook and Bible cells awaiting an owner decision (ADR 0014 owner decision 1), keyed by source file, sheet, row and column. It holds no tenant proposals, and the shared CanonIntake shape describes the proposals that canonExtensions.propose records in app.canon_extension_proposals (0490). Decided in ADR 0032.",
+      apply: removeVerbs("list", "get", "create"),
+    },
+    {
+      id: "canon-urn-resolution-superseded",
+      since: MIRROR,
+      resources: ["canonUrns"],
+      change:
+        "The resolution adds `resolved_key`, the live key after following supersessions, and `is_superseded`.",
+      reason:
+        "xpms.urn_resolve (0103) follows the supersession graph, so `urn:xpms:phase:DIS` resolves to SCP; it returns the asked key, the resolved key and whether a supersession was followed, which the frozen shape could not carry.",
+      apply: editShape({
+        add: {
+          resolved_key: {
+            schema: fields.code("Key of the live row after following supersessions.", "SCP"),
+          },
+          is_superseded: { schema: fields.bool("Whether the asked key was superseded.", false) },
+        },
       }),
     },
   ],
