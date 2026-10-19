@@ -229,9 +229,11 @@ tools appear only for resources or modules named with `--write`, and delete also
 | D      | Oversized uploads                                 | Per-bucket size caps (2 MB to 50 MB) and type allowlists                 | `9908` control assertion     |
 
 Uploads are sniffed and scanned by the `upload-scan` worker; private buckets serve only Clean files to
-anyone but the uploader (A22-011, fixed in 1041). Residual risk: production needs a reachable scanner,
-an owner decision recorded in `infra/runbooks/hosted-security-settings.md`; until then files fail
-closed.
+anyone but the uploader (A22-011, fixed in 1041). The imports and support-screenshots buckets are
+scanned too, and an import is parsed only once its file is Clean (1240). The scanner is self-hosted
+ClamAV (ADR 0033). Residual risk: without a reachable clamd, `upload-scan` claims nothing and files stay
+quarantined. Public buckets cannot gate reads, so a file there is readable by URL until the worker
+removes it.
 
 ## Review method
 

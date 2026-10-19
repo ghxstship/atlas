@@ -119,7 +119,7 @@ For a self-hosted stack, mount `supabase/functions` into the Compose stack's fun
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Who may receive email; set `XOS_EMAIL_DELIVER_TO_ANY=true` only in production                    |
 | `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email                                                            |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, only if you bill through Stripe                                                |
-| `CLAMD_HOST`, `CLAMD_PORT`                                | `upload-scan`, the ClamAV daemon (`infra/scanning` has a Compose file)                           |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, the ClamAV daemon; the port defaults to 3310 (see Upload scanning below)          |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Optional error reporting and log level                                                           |
 
 ### Schedule the workers
@@ -140,6 +140,21 @@ $$);
 ```
 
 Repeat for the other three functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them.
+
+### Upload scanning
+
+Every upload is scanned by ClamAV that you run yourself, the `clamav/clamav:1.5.4` image. Files stay quarantined until they scan clean, and an infected file is deleted while its uploader is told why.
+
+1. Run clamd on a host the Edge Functions can reach privately. The image is published for linux/amd64 only. Give it at least 2 vCPU and 4 GiB of memory and a persistent volume at `/var/lib/clamav`. Use the settings in `infra/scanning/docker-compose.yaml`, which also works as is with Docker Compose.
+2. clamd has no authentication, so never expose port 3310 to the internet. Reach it over a private network or a tunnel.
+3. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`, and `XOS_ENVIRONMENT=production`.
+4. Call `upload-scan` once with the service role key. A response with `"scanner": "clamav"` means it is connected.
+
+Without `XOS_CLAMAV_HOST`, `upload-scan` answers 503 and scans nothing, so uploads stay quarantined. On a local development stack only, it marks files clean without scanning and logs a warning for each one. The image updates its own signatures, so allow outbound HTTPS to `database.clamav.net`. `infra/runbooks/production.md` has sizing, alerts and upgrades.
+
+### Know the IP allow-list's limit
+
+An organization's IP allow-list is enforced where Atlas and the API check a session or an API key. It is not enforced on direct calls to your Supabase endpoint (REST, Storage and Realtime) made with a valid session token, because only Atlas and the API see the caller's address. If you rely on the allow-list, restrict who can reach the Supabase endpoint at your network edge as well. Routing all data access through the API is the planned fix.
 
 ## 4. Atlas, Gateway and docs
 

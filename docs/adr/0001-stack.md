@@ -170,3 +170,10 @@ Renovate opens pinned upgrade pull requests weekly. Every runtime library above 
 | Testing | veraPDF, run only as the official Docker image `verapdf/cli` for the gate 19 PDF/UA-1 check (ADR 0031) | v1.30.2 |
 
 pdfkit 0.20.2 (A43 amendment) is also the generated document renderer, listed in `serverExternalPackages` in Atlas and Gateway.
+
+## Amendment (2026-10-19): upload scanning and the buffers removal (A57, ADR 0033)
+
+| Area     | Package or image                                                                                                         | Version |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ | ------- |
+| Security | ClamAV daemon, run only as the official Docker image `clamav/clamav` (linux/amd64) for upload scanning                   | 1.5.4   |
+| Data     | `unzipper`, pinned through a pnpm override under `exceljs` (replaces 0.10.14, which pulled in `buffers` with no license) | 0.12.3  |

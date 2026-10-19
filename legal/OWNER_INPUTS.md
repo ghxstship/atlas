@@ -53,12 +53,12 @@ These are not facts the drafts depend on, but choices A21 made so the drafts are
 
 The specification names features whose vendor is not yet chosen. If any is a third party that receives Customer Personal Data, it must be added to the Subprocessor List with 30 days' notice before use. These belong to the named agents, and A21 updates the list when they decide.
 
-| Feature                                                                                                                                        | Specification reference | Deciding agent                       |
-| ---------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ------------------------------------ |
-| Server-side virus scanning of uploads: self-hosted ClamAV (no subprocessor) or a hosted scanner (`infra/runbooks/hosted-security-settings.md`) | Sections 5 and 9        | Owner (A34 built the ClamAV adapter) |
-| Voice note transcription for incident reports                                                                                                  | Section 11.13           | A17, A25                             |
-| Chat message translation                                                                                                                       | Section 4.9             | A29                                  |
-| Inbound email for project inboxes and reply by email                                                                                           | Section 4.6.5           | A18                                  |
-| Public status page                                                                                                                             | Section 5.1             | A26                                  |
-| Community forum and in-app support chat                                                                                                        | Section 11.16           | A31                                  |
-| Evidence store for SOC 2 automation                                                                                                            | Section 14.2            | A26                                  |
+| Feature                                                                                                      | Specification reference | Deciding agent                       |
+| ------------------------------------------------------------------------------------------------------------ | ----------------------- | ------------------------------------ |
+| Server-side virus scanning of uploads: decided 2026-10-19, self-hosted ClamAV, so no subprocessor (ADR 0033) | Sections 5 and 9        | Owner (A34 built the ClamAV adapter) |
+| Voice note transcription for incident reports                                                                | Section 11.13           | A17, A25                             |
+| Chat message translation                                                                                     | Section 4.9             | A29                                  |
+| Inbound email for project inboxes and reply by email                                                         | Section 4.6.5           | A18                                  |
+| Public status page                                                                                           | Section 5.1             | A26                                  |
+| Community forum and in-app support chat                                                                      | Section 11.16           | A31                                  |
+| Evidence store for SOC 2 automation                                                                          | Section 14.2            | A26                                  |
