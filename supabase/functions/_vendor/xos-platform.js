@@ -34847,7 +34847,7 @@ function supabaseStorage(client) {
  *   (default 3310). This is the production scanner: self-hosted `clamav/clamav`, pinned in ADR 0001.
  * - No host, local development: a pass-through that marks every file clean and logs a warning on
  *   every file it lets through, so a developer can use uploads without running clamd. Local means
- *   `SUPABASE_URL` names a loopback or Docker-internal host and `XOS_ENV` is not `production`.
+ *   `SUPABASE_URL` names a loopback or Docker-internal host and `XOS_ENVIRONMENT` is not `production`.
  * - No host anywhere else: no scanner. The worker must not claim scans, so files stay quarantined
  *   (Scanning) and attempts are not used up while the scanner is missing (ADR 0026: fail closed).
  */
@@ -34867,7 +34867,7 @@ function present(env, name) {
 }
 /** True only for a local development stack: a loopback or Docker-internal SUPABASE_URL. */
 function isLocalDevelopment(env) {
-  if (present(env, "XOS_ENV")?.toLowerCase() === "production") return false;
+  if (present(env, "XOS_ENVIRONMENT")?.toLowerCase() === "production") return false;
   const url = present(env, "SUPABASE_URL");
   if (url === void 0) return false;
   let host;
