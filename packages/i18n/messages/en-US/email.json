@@ -160,6 +160,12 @@
         "subject": "Weather alert: {level}",
         "body": "A {hazard} reading of {reading} met the {level} threshold. Follow the emergency plan."
       }
+    },
+    "access": {
+      "break_glass_started": {
+        "subject": "Emergency access taken in {orgName}",
+        "body": "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}"
+      }
     }
   },
   "notification": {
