@@ -54,3 +54,33 @@ Additive changes stay allowed without an ADR: new API operations within `/v1`, n
 The plan rows that `0201` seeds by hand stay in place. Migrations are immutable once applied, and staging has applied `0201`. Instead, every generated plan seed (`0207`, `0900`, `0902`) upserts the whole registry, and the `@xos/schemas` tests fail when the latest one differs from `plans.yaml`. After a reset, the database holds exactly the registry: 5 plans, 25 limits and 55 features, with no rows that only `0201` added.
 
 The frozen-contract test (gate 20, `packages/api/test/corrections.test.ts`) guards against breaking changes in v1 on every push. oasdiff joins it at the v4.0.0 tag, when a released baseline exists. `canon:check` still waits on decision 1.
+
+## Amendment (2026-10-19): decision 1 resolved by owner decision 25
+
+The owner approved decision 25 (RRR-101), which resolves open decision 1 and, with it, decisions 2, 3 and 8. A56
+applied it in the canon import; the data lives in `canon/rulings/decision-25.yaml`, beside `owner-rulings.yaml`.
+
+- **The Bible wins on structure** (codes, states, labels and hierarchy). Where the Bible, Item Catalog or GL chart
+  states a value, canon keeps it: 115 category labels (25 differ only in casing, 90 in the "· Department" suffix),
+  16 GL descriptions and 106 item prices both files state. The Playbook value stays in `xpms.intake` as Canceled,
+  only so the Playbook round trip still reproduces the source.
+- **Values the Bible lacks are imported, marked as from the Playbook**: 2,570 item prices (about 857 per grade) and
+  five cost center values. Each is stored in canon and listed in the new table `xpms.playbook_sourced_value`.
+- **Labels map to the closest existing value; nothing is added.** Landlord is not a counterparty type and resolves
+  to Facilities Services; the 32 Standard Library labels that are not canon states, units or kinds follow the Bible
+  when only casing differs (12) or map to the closest state or unit (18). The 18 Playbook field targets of finding
+  A47-001 map their labels the same way. Every mapping is listed in the new table `xpms.label_mapping`.
+- **Decision 2** (em dash substitution) is accepted. **Decision 3**: stand-in items stay as they are, flagged in
+  `canon/reports/doctrine-findings.md`; the non-alcoholic drink names need nothing. **Decision 8**: the CSMIA26
+  Production Template rows stay unpublished and readable only by `service_role`.
+- **Not covered:** decisions 4 to 7 (Bible inconsistencies and unstated relationships, RRR-66) stay with the owner,
+  listed in finding `legal/qa/findings/A56-001.md`. Five differences wait on them: the three Roles Library codes
+  tab 27 lacks (decision 5) and the units Hour and Week, which canon cannot express without unit dimensions
+  (decision 7).
+
+`canon:check` now fails on any Playbook to Bible difference the decision does not explain and on any decision entry
+that no longer matches a difference, and it passes. The two new tables are additive (new governance tables in the
+canon schema), generated from `canon/import/src/schema/governance-tables.ts`. Staging applied `0101` and `0150`
+before the regeneration, so migration `1230_canon_decision_25` brings an existing database to the same state. The
+Wave 2 carry-over "CI gains `canon:check` once the owner resolves decision 1" is unblocked; the orchestrator owns the
+workflow change.
