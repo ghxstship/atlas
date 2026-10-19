@@ -64,6 +64,7 @@ if TYPE_CHECKING:
         Agreement,
         AgreementCreate,
         AgreementPage,
+        AgreementSignRequest,
         AgreementUpdate,
         AiRequest,
         AiRequestPage,
@@ -7947,18 +7948,19 @@ class AgreementsResource(Resource):
     def sign(
         self,
         id: str,
+        body: AgreementSignRequest,
         *,
         idempotency_key: Optional[str] = None,
         options: Optional[RequestOptions] = None,
     ) -> ApiResponse[Agreement]:
         """Sign an agreement
 
-        Signs the agreement. A signed agreement cannot be revoked or unsigned; a second signature attempt is refused. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        The person the agreement names signs it with their typed name and the SHA-256 of the text they read. A signed agreement cannot be revoked or unsigned; a second signature, a changed text or an agreement that is not Sent is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /agreements/{id}/sign`` (operation ``agreements.sign``).
         Requires the capability ``me.account.write``.
         """
-        return self._client.request(OPERATIONS["agreements.sign"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+        return self._client.request(OPERATIONS["agreements.sign"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class ShiftsResource(Resource):

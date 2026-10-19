@@ -8431,6 +8431,22 @@ export interface AgreementUpdate {
 }
 
 /**
+ * The signature on an agreement.
+ */
+export interface AgreementSignRequest {
+  /**
+   * Name the signer types as their signature.
+   * Length: 1 to 200.
+   */
+  readonly signed_name: string;
+  /**
+   * SHA-256 of the agreement text the signer read, lowercase hex.
+   * Pattern: `^[0-9a-f]{64}$`.
+   */
+  readonly body_sha256: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface ShiftPage {

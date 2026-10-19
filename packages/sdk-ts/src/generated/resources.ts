@@ -51,6 +51,7 @@ import type {
   AgencySlateCreate,
   Agreement,
   AgreementCreate,
+  AgreementSignRequest,
   AgreementUpdate,
   AiRequest,
   AiSettings,
@@ -7946,15 +7947,19 @@ export class AgreementsResource extends $Resource {
   /**
    * Sign an agreement
    *
-   * Signs the agreement. A signed agreement cannot be revoked or unsigned; a second signature attempt is refused. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * The person the agreement names signs it with their typed name and the SHA-256 of the text they read. A signed agreement cannot be revoked or unsigned; a second signature, a changed text or an agreement that is not Sent is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /agreements/{id}/sign` (operation `agreements.sign`).
    * Requires the capability `me.account.write`.
    */
-  sign(id: string, options?: $MutationOptions): Promise<$ApiResponse<Agreement>> {
+  sign(
+    id: string,
+    body: AgreementSignRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Agreement>> {
     return this.client.request<Agreement>(
       $OPERATIONS["agreements.sign"],
-      { path: { id } },
+      { path: { id }, body },
       options,
     );
   }

@@ -11395,6 +11395,26 @@
         },
         "description": "Fields accepted when updating a Agreement. Omitted fields are unchanged."
       },
+      "AgreementSignRequest": {
+        "type": "object",
+        "properties": {
+          "signed_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name the signer types as their signature.",
+            "example": "Alex Rivera"
+          },
+          "body_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "SHA-256 of the agreement text the signer read, lowercase hex.",
+            "example": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
+          }
+        },
+        "required": ["signed_name", "body_sha256"],
+        "description": "The signature on an agreement."
+      },
       "ShiftPage": {
         "type": "object",
         "properties": {
@@ -73472,8 +73492,9 @@
         "x-xos-table": "app.agreements",
         "x-xos-capability": "me.account.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "sign_agreement",
         "summary": "Sign an agreement",
-        "description": "Signs the agreement. A signed agreement cannot be revoked or unsigned; a second signature attempt is refused. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "The person the agreement names signs it with their typed name and the SHA-256 of the text they read. A signed agreement cannot be revoked or unsigned; a second signature, a changed text or an agreement that is not Sent is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -73489,6 +73510,18 @@
           },
           { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "signed_name": "Alex Rivera",
+                "body_sha256": "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
+              },
+              "schema": { "$ref": "#/components/schemas/AgreementSignRequest" }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "The result.",

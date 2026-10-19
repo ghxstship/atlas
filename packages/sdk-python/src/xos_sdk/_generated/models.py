@@ -284,6 +284,7 @@ __all__ = [
     "Agreement",
     "AgreementCreate",
     "AgreementUpdate",
+    "AgreementSignRequest",
     "ShiftPage",
     "Shift",
     "ShiftCreate",
@@ -5678,6 +5679,15 @@ class AgreementUpdate(TypedDict, total=False):
     person_id: Optional[str]
     #: Identifier of the external organization party to the agreement.
     counterparty_id: Optional[str]
+
+
+class AgreementSignRequest(TypedDict):
+    """The signature on an agreement."""
+
+    #: Name the signer types as their signature.
+    signed_name: str
+    #: SHA-256 of the agreement text the signer read, lowercase hex.
+    body_sha256: str
 
 
 class ShiftPage(TypedDict):

@@ -294,6 +294,7 @@ export interface Components {
     counterparty_id?: string | null;
   };
   AgreementPage: { data: Array<Components["Agreement"]>; next_cursor: string | null };
+  AgreementSignRequest: { signed_name: string; body_sha256: string };
   AgreementUpdate: {
     title?: string;
     agreement_kind?:
@@ -11544,7 +11545,7 @@ export interface Operations {
     path: "/agreements/{id}/sign";
     params: { id: string };
     query: Record<string, never>;
-    body: undefined;
+    body: Components["AgreementSignRequest"];
     responses: { 200: Components["Agreement"] };
   };
   "shifts.list": {
