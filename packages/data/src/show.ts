@@ -360,6 +360,7 @@ export async function listDaySheets(
     readonly projectId?: string;
     readonly from?: string;
     readonly to?: string;
+    readonly id?: string;
   },
 ): Promise<Result<DaySheet[]>> {
   let q = untyped(db)
@@ -372,6 +373,7 @@ export async function listDaySheets(
   if (query.projectId) q = q.eq("project_id", query.projectId);
   if (query.from) q = q.gte("day", query.from);
   if (query.to) q = q.lte("day", query.to);
+  if (query.id) q = q.eq("id", query.id);
   const { data, error } = await q.order("day").limit(500);
   if (error) return fail(toDataError(error));
   return ok(
@@ -468,6 +470,7 @@ export async function listCallSheets(
     readonly projectId?: string;
     readonly from?: string;
     readonly to?: string;
+    readonly id?: string;
   },
 ): Promise<Result<CallSheet[]>> {
   let q = db
@@ -478,6 +481,7 @@ export async function listCallSheets(
   if (query.projectId) q = q.eq("project_id", query.projectId);
   if (query.from) q = q.gte("day", query.from);
   if (query.to) q = q.lte("day", query.to);
+  if (query.id) q = q.eq("id", query.id);
   const { data, error } = await q.order("day").limit(500);
   if (error) return fail(toDataError(error));
   return ok(

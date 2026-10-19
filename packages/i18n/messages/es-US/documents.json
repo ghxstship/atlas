@@ -1,0 +1,252 @@
+{
+  "actions": {
+    "download": "Descargar PDF",
+    "downloadA4": "PDF (A4)"
+  },
+  "kinds": {
+    "purchase-order": "Orden de compra",
+    "invoice": "Factura",
+    "change-order": "Orden de cambio",
+    "day-sheet": "Hoja del día",
+    "call-sheet": "Hoja de llamados",
+    "run-of-show": "Orden del espectáculo",
+    "beo": "Orden de evento de banquete",
+    "credential-badge": "Credencial",
+    "inspection-report": "Informe de inspección",
+    "incident-report": "Informe de incidente",
+    "final-cost-report": "Informe de costo final",
+    "agreement-certificate": "Certificado de firma"
+  },
+  "facts": {
+    "recordKey": "Clave del registro",
+    "version": "Versión de plantilla",
+    "generatedAt": "Generado",
+    "qrAlt": "Código QR que abre el registro {key} para quien tenga acceso",
+    "logoAlt": "Logotipo de {name}",
+    "page": "Página {page} de {total}"
+  },
+  "common": {
+    "amount": "Importe",
+    "created": "Creado",
+    "currency": "Moneda",
+    "day": "Día",
+    "description": "Descripción",
+    "details": "Detalles",
+    "draft": "Borrador, sin publicar",
+    "lineNumber": "N.º",
+    "lines": "Líneas",
+    "mixedCurrencies": "Monedas mixtas",
+    "noLines": "Este registro no tiene líneas.",
+    "no": "No",
+    "none": "Ninguno",
+    "project": "Proyecto",
+    "published": "Publicado",
+    "quantity": "Cantidad",
+    "state": "Estado",
+    "timeZone": "Zona horaria",
+    "total": "Total",
+    "unitPrice": "Precio unitario",
+    "unpriced": "Sin precio",
+    "unpricedNote": "Líneas sin precio: {count}. Los totales suman solo las líneas con precio; una línea sin precio nunca cuenta como cero.",
+    "yes": "Sí"
+  },
+  "purchaseOrder": {
+    "title": "Orden de compra {key}",
+    "vendor": "Proveedor",
+    "received": "Recibido",
+    "approvedChanges": "Cambios aprobados",
+    "states": {
+      "Proposed": "Propuesta",
+      "Approved": "Aprobada",
+      "Sent": "Enviada",
+      "Closed": "Cerrada",
+      "Canceled": "Cancelada"
+    }
+  },
+  "invoice": {
+    "title": "Factura {key}",
+    "direction": "Dirección",
+    "number": "Número de factura",
+    "issuedOn": "Emitida el",
+    "dueOn": "Vence el",
+    "subtotal": "Subtotal",
+    "tax": "Impuesto",
+    "applied": "Pagos aplicados",
+    "balance": "Saldo pendiente",
+    "party": {
+      "Payable": "Facturado por",
+      "Receivable": "Facturado a"
+    },
+    "directions": {
+      "Payable": "Por pagar",
+      "Receivable": "Por cobrar"
+    },
+    "states": {
+      "Proposed": "Propuesta",
+      "Issued": "Emitida",
+      "Approved": "Aprobada",
+      "Disputed": "En disputa",
+      "Canceled": "Cancelada"
+    }
+  },
+  "changeOrder": {
+    "title": "Orden de cambio {key}",
+    "budget": "Presupuesto",
+    "reason": "Motivo",
+    "urid": "URID",
+    "noCost": "Sin costo",
+    "states": {
+      "Proposed": "Propuesta",
+      "Priced": "Con precio",
+      "Approved": "Aprobada",
+      "Rejected": "Rechazada",
+      "Canceled": "Cancelada"
+    }
+  },
+  "daySheet": {
+    "title": "Hoja del día {project}, {day}",
+    "body": "Notas del día",
+    "emptyBody": "Esta hoja del día aún no tiene notas."
+  },
+  "callSheet": {
+    "title": "Hoja de llamados {project}, {day}",
+    "calls": "Llamados",
+    "callTime": "Hora de llamado",
+    "ends": "Termina",
+    "role": "Rol",
+    "person": "Persona",
+    "unfilled": "Sin cubrir",
+    "noCalls": "Ningún turno empieza este día."
+  },
+  "runOfShow": {
+    "title": "Orden del espectáculo: {name}",
+    "showDate": "Fecha del espectáculo",
+    "progress": "Avance",
+    "called": "{called} de {count} cues llamados",
+    "cues": "Cues",
+    "cue": "Cue",
+    "plannedAt": "Previsto",
+    "duration": "Duración",
+    "calledAt": "Llamado",
+    "calledBy": "Llamado por",
+    "notCalled": "Sin llamar",
+    "noCues": "Este orden del espectáculo no tiene cues."
+  },
+  "beo": {
+    "title": "Orden de evento de banquete {key}",
+    "eventAt": "Evento",
+    "guests": "Invitados",
+    "fulfillment": "Servicio",
+    "approval": "Aprobación",
+    "approvedBy": "Aprobada por {name} el {at}",
+    "notApproved": "Sin aprobar"
+  },
+  "credentialBadge": {
+    "title": "Credencial: {category}",
+    "category": "Categoría",
+    "number": "Número de credencial",
+    "validFrom": "Válida desde",
+    "validTo": "Válida hasta",
+    "noEnd": "Sin fecha de fin",
+    "issuedBy": "Emitida por",
+    "scanNote": "Escanee el código QR para verificar esta credencial. El escaneo decide el acceso en ese momento, así que una credencial impresa nunca sobrevive a una revocación.",
+    "statuses": {
+      "scheduled": "Programada",
+      "active": "Activa",
+      "expired": "Vencida",
+      "revoked": "Revocada"
+    }
+  },
+  "inspectionReport": {
+    "title": "Informe de inspección: {template}",
+    "template": "Plantilla",
+    "inspectedAt": "Inspeccionado",
+    "inspector": "Inspector",
+    "signOff": "Aprobación",
+    "signedOffBy": "Aprobado por {name} el {at}",
+    "notSignedOff": "Sin aprobar",
+    "items": "Elementos",
+    "prompt": "Elemento",
+    "critical": "Crítico",
+    "result": "Resultado",
+    "note": "Nota",
+    "open": "Sin resultado aún",
+    "noItems": "La plantilla no tiene elementos.",
+    "results": {
+      "INSPPASSED": "Aprobado",
+      "INSPCONDITIONAL": "Aprobado con condiciones",
+      "INSPFAILED": "Reprobado",
+      "INSPREINSPECT": "Requiere reinspección",
+      "INSPPENDING": "Inspección pendiente"
+    }
+  },
+  "incidentReport": {
+    "title": "Informe de incidente {key}",
+    "severity": "Gravedad",
+    "occurredAt": "Ocurrió",
+    "zone": "Zona",
+    "reportedBy": "Reportado por",
+    "responders": "Equipos de respuesta enviados",
+    "location": "Ubicación",
+    "closedBy": "Cerrado y aprobado por",
+    "history": "Historial de estados",
+    "when": "Cuándo",
+    "change": "Cambio",
+    "by": "Por",
+    "reason": "Motivo",
+    "moved": "{from} a {to}",
+    "noHistory": "No hay cambios de estado registrados.",
+    "states": {
+      "Reported": "Reportado",
+      "Dispatched": "Despachado",
+      "Contained": "Contenido",
+      "Closed": "Cerrado"
+    }
+  },
+  "finalCostReport": {
+    "title": "Informe de costo final {project}",
+    "basis": "Base",
+    "basisValue": "Presupuesto base de la puerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
+    "byAccount": "Costo por cuenta de gasto",
+    "account": "Cuenta",
+    "baseline": "Base",
+    "changes": "Cambios aprobados",
+    "revised": "Presupuesto revisado",
+    "actual": "Real",
+    "variance": "Variación",
+    "totalIn": "Total {currency}",
+    "noRows": "Aún no hay líneas base, cambios ni reales.",
+    "noBaseline": "Este proyecto no tiene presupuesto base de la puerta 3, así que el informe de costo final aún no tiene respuesta."
+  },
+  "agreementCertificate": {
+    "title": "Certificado de firma",
+    "signature": "Firma",
+    "kind": "Tipo de acuerdo",
+    "signer": "Firmante",
+    "signedName": "Nombre como se firmó",
+    "signedAt": "Firmado",
+    "hash": "SHA-256 del texto firmado",
+    "statement": "El firmante escribió su nombre para firmar el texto exacto de abajo. XOS guardó el hash SHA-256 de ese texto al firmar; cualquier cambio en el texto cambia el hash.",
+    "ledger": "Historial del acuerdo",
+    "when": "Cuándo",
+    "change": "Cambio",
+    "reason": "Motivo",
+    "moved": "{from} a {to}",
+    "noLedger": "No hay historial registrado.",
+    "text": "Texto firmado",
+    "kinds": {
+      "OfferLetter": "Carta de oferta",
+      "ContractorAgreement": "Contrato de contratista",
+      "MasterServicesAgreement": "Contrato marco de servicios",
+      "NonDisclosureAgreement": "Acuerdo de confidencialidad"
+    },
+    "states": {
+      "Proposed": "Propuesto",
+      "Sent": "Enviado",
+      "Signed": "Firmado",
+      "Superseded": "Reemplazado",
+      "Expired": "Vencido",
+      "Canceled": "Cancelado"
+    }
+  }
+}

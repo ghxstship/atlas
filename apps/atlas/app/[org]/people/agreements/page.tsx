@@ -32,6 +32,7 @@ import {
 import { peopleStateIcon } from "@/lib/people/states";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * People > Agreements (Section 4.5.5): offer letters, contractor agreements, MSAs and NDAs. Drafted
@@ -174,6 +175,9 @@ export default async function Page({
               <InlineAlert tone="info" title={t("people.agreements.permanentTitle")}>
                 {t("people.agreements.permanentBody", { hash: a.signedBodySha256 ?? "" })}
               </InlineAlert>
+            ) : null}
+            {a.signedAt ? (
+              <DocumentActions org={crew.slug} kind="agreement-certificate" id={a.id} />
             ) : null}
             {a.state === "Sent" && a.personId !== null && a.personId === me ? (
               <SignAgreementForm org={crew.slug} id={a.id} />

@@ -34,5 +34,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0028](0028-compass-launch-contracts.md)                 | Compass Launch Contracts                                          | Accepted |
 | [0029](0029-payees-reporting-and-party-notifications.md) | Individual Payees, Reporting Delivery and Party Notifications     | Accepted |
 | [0030](0030-continue-on-another-device.md)               | Continue on Another Device and Actionable Push                    | Accepted |
+| [0031](0031-generated-document-pipeline.md)              | Generated Document Pipeline                                       | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

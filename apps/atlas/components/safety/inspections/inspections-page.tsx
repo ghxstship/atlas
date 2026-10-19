@@ -45,6 +45,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { ResultForm, StartInspectionForm } from "./inspection-forms";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 const NODE = "safety.inspections";
 
@@ -442,6 +443,7 @@ function InspectionProperties({
           },
         ]}
       />
+      <DocumentActions org={ctx.org.slug} kind="inspection-report" id={inspection.id} />
       {canWrite && !inspection.signedOffAt ? (
         <ActionButton
           action={setSafetyArchivedAction}

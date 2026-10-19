@@ -43,6 +43,7 @@ import {
 } from "./kit";
 import { RecordView } from "./record";
 import { InlineAlert, PageHeader, RefusalNotice, TemplateCollection } from "./ui";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Hospitality > BEOs (Section 4.5.5; journey 21): banquet event orders generated from catering
@@ -257,6 +258,7 @@ export async function BeosSection({
                     />
                   </>
                 ) : null}
+                <DocumentActions org={org} kind="beo" id={b.id} />
               </>
             }
           >

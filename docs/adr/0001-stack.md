@@ -160,3 +160,13 @@ Renovate opens pinned upgrade pull requests weekly. Every runtime library above 
 | ------- | ------------------------------------------------------------------------------------------ | ------- |
 | Compass | `expo-notifications` (actionable approval pushes; Expo SDK 57's bundled `~57.0.22`)        | 57.0.22 |
 | Testing | `jsqr` (devDependency of `apps/atlas`; decodes the handoff QR code in a45-handoff.spec.ts) | 1.4.0   |
+
+## Amendment (2026-10-19): generated documents (A49)
+
+| Area    | Package or image                                                                                       | Version |
+| ------- | ------------------------------------------------------------------------------------------------------ | ------- |
+| Data    | `qrcode-generator` (QR code on generated documents; the version `@xos/ui` already pins)                | 1.4.4   |
+| Data    | `@fontsource/inter` (dev; source of the Inter fonts embedded in generated documents, ADR 0031)         | 5.3.0   |
+| Testing | veraPDF, run only as the official Docker image `verapdf/cli` for the gate 19 PDF/UA-1 check (ADR 0031) | v1.30.2 |
+
+pdfkit 0.20.2 (A43 amendment) is also the generated document renderer, listed in `serverExternalPackages` in Atlas and Gateway.

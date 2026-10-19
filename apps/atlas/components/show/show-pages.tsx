@@ -27,6 +27,7 @@ import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { CreateRunDialog, RunBody, RunCollection, RunPeek } from "./runs";
 import { CallSheetPeek, DaySheetPeek, SheetCollection } from "./sheets";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 type Subject = { table: "app.run_of_show" | "app.day_sheets" | "app.call_sheets"; id: string };
 
@@ -113,9 +114,12 @@ export async function RunsPage({
             canEdit={caps.has("show.run_of_show.write")}
             canCall={caps.has("show.cue.call")}
           >
-            {param(search, "live") === "1"
-              ? null
-              : await collab(ctx, meta, { table: "app.run_of_show", id: run.data.id })}
+            {param(search, "live") === "1" ? null : (
+              <>
+                <DocumentActions org={ctx.org.slug} kind="run-of-show" id={run.data.id} />
+                {await collab(ctx, meta, { table: "app.run_of_show", id: run.data.id })}
+              </>
+            )}
           </RunBody>
         </RunPeek>
       );
@@ -190,6 +194,7 @@ export async function DaySheetsPage({
             canWrite={caps.has("show.day_sheet.write")}
             canPublish={caps.has("show.call_sheet.publish")}
           >
+            <DocumentActions org={ctx.org.slug} kind="day-sheet" id={open.id} />
             {await collab(ctx, meta, { table: "app.day_sheets", id: open.id })}
           </DaySheetPeek>
         ) : null
@@ -234,6 +239,7 @@ export async function CallSheetsPage({
         timeZone={timeZone}
         canPublish={caps.has("show.call_sheet.publish")}
       >
+        <DocumentActions org={ctx.org.slug} kind="call-sheet" id={open.id} />
         {await collab(ctx, meta, { table: "app.call_sheets", id: open.id })}
       </CallSheetPeek>
     );
