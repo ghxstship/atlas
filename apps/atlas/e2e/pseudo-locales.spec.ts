@@ -14,7 +14,8 @@ import { untilDrawn } from "./visual/stable";
  */
 
 test.use({ reducedMotion: "reduce" });
-test.setTimeout(300_000);
+// Every core screen per test on next dev, which compiles each route on its first visit.
+test.setTimeout(600_000);
 
 const VIEWPORTS = [
   { name: "desktop", width: 1280, height: 800 },
