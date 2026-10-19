@@ -39,6 +39,14 @@ The owner was given every open decision blocking the release, each with its opti
 ### Money and plans
 
 18. **Plan prices:** all four plans (Core, Pro, Team, Enterprise) and the annual discount are set before the Stripe products are created. The owner supplies the figures.
+    - _Amended 2026-10-19:_ the owner supplied the figures, carried out in ADR 0034 (pricing v4, RRR-103). In summary:
+      - Core, Pro and Team cost USD 149, 399 and 899 a month with 5, 15 and 40 seats, and extra seats cost 19, 19 and 15 a month.
+      - Annual billing gives two months free.
+      - Enterprise is quoted from USD 2,500 a month on an annual contract.
+      - Local prices in EUR, GBP, CAD and AUD.
+      - A 1,000-request Aurora pack for USD 49.
+      - 30 percent off the first year for the first 50 paying organizations.
+      - 30 percent partner wholesale.
 19. **Stripe test-mode keys** (RRR-61): the sandbox secret is added now.
 20. **Payouts:** manual recording at launch (XOS records payments and moves no money), then Stripe Connect Express.
 21. **Partner wholesale billing:** Stripe Billing invoices to each partner.

@@ -156,6 +156,23 @@ None. The site is built from the repository and the OpenAPI document.
 | `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |
 | `XOS_STAGING_*` URLs and the staging anon key   | Variable | `synthetics.yml`                                                    |
 
+## Stripe catalogue (OWNER, test mode)
+
+The products, prices, founding-customer coupon and `FOUNDING30` promotion code come from `packages/schemas/plans.yaml` (pricing v4, ADR 0034). The owner creates them in the Stripe sandbox with the setup script. It runs on the owner's machine with the owner's key, which never goes in a file:
+
+1. In the Stripe Dashboard, switch to test mode and copy the secret key (`sk_test_...`). A restricted key (`rk_test_...`) works too if it can write products, prices, coupons and promotion codes.
+2. From the repository root, see what would be created:
+   `STRIPE_SECRET_KEY=sk_test_... pnpm --filter @xos/platform stripe:setup --dry-run`
+3. Create the catalogue:
+   `STRIPE_SECRET_KEY=sk_test_... pnpm --filter @xos/platform stripe:setup`
+4. Run it again whenever you like. It creates only what is missing and prints `unchanged` for the rest.
+
+How it behaves:
+
+- It refuses live mode keys. Creating the live catalogue is a separate owner decision, made when billing opens.
+- It exits 2 and writes nothing when Stripe already holds a price, coupon or promotion code that differs from `plans.yaml`. Stripe prices cannot be edited. To change a price, give it a new versioned lookup key in `plans.yaml` (for example `_v5`), regenerate the plan seed, and run the script again.
+- The webhook endpoint (`STRIPE_WEBHOOK_SECRET`) must send `customer.subscription.*`, `checkout.session.completed` and `checkout.session.async_payment_succeeded` to the `stripe-webhook` function. Those events carry extra seats and Aurora pack payments.
+
 ## Monitoring and alerting
 
 | Signal        | Where                                                                                                                          | Alert                                                                                               |
