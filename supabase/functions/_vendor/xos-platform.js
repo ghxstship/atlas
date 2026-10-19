@@ -16536,7 +16536,7 @@ var activity_default = {
     evidence_attested: "certificó evidencia para",
     evidence_withdrawn: "retiró evidencia de",
     fulfilled: "cumplió",
-    gate_passed: "pasó una puerta en",
+    gate_passed: "pasó una compuerta en",
     issued: "emitió",
     locked: "bloqueó",
     member_added: "agregó un miembro a",
@@ -16597,7 +16597,7 @@ var activity_default = {
     engagement_message: "un mensaje del encargo",
     expense: "un gasto",
     fulfillment: "un cumplimiento",
-    gate: "un criterio de puerta",
+    gate: "un criterio de compuerta",
     gate_queue: "la fila de acceso",
     incident: "un incidente",
     invoice: "una factura",
@@ -17595,7 +17595,7 @@ var aurora_default = {
       summaries: {
         label: "Resúmenes",
         description:
-          "Resume la actividad de un registro, la semana de un proyecto y la preparación de una puerta de fase.",
+          "Resume la actividad de un registro, la semana de un proyecto y la preparación de una compuerta de fase.",
       },
       mapping: {
         label: "Ayuda de asignación",
@@ -19777,7 +19777,7 @@ var documents_default = {
     title: "Informe de costo final {project}",
     basis: "Base",
     basisValue:
-      "Presupuesto base de la puerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
+      "Presupuesto base de la compuerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
     byAccount: "Costo por cuenta de gasto",
     account: "Cuenta",
     baseline: "Base",
@@ -19788,7 +19788,7 @@ var documents_default = {
     totalIn: "Total {currency}",
     noRows: "Aún no hay líneas base, cambios ni reales.",
     noBaseline:
-      "Este proyecto no tiene presupuesto base de la puerta 3, así que el informe de costo final aún no tiene respuesta.",
+      "Este proyecto no tiene presupuesto base de la compuerta 3, así que el informe de costo final aún no tiene respuesta.",
   },
   agreementCertificate: {
     title: "Certificado de firma",
@@ -22232,8 +22232,8 @@ var help_default = {
     learnMore: "Más información",
     dismiss: "Descartar consejo",
     gates: {
-      title: "Las puertas protegen cada fase",
-      body: "Una puerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de puerta para ver su definición.",
+      title: "Las compuertas protegen cada fase",
+      body: "Una compuerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de compuerta para ver su definición.",
     },
     "access-grid": {
       title: "Cambie el acceso celda por celda",
@@ -22248,8 +22248,8 @@ var help_default = {
       body: "Defina sus filtros y abra Vistas guardadas para conservarlos, compartirlos o abrirlos de forma predeterminada.",
     },
     reconciliation: {
-      title: "Las brechas alimentan la próxima puerta",
-      body: "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha.",
+      title: "Las brechas alimentan la próxima compuerta",
+      body: "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha de compuerta.",
     },
   },
   contact: {
@@ -22306,14 +22306,14 @@ var home_default = {
     dueToday: "Vence hoy para ti",
     dueCaption: "Registros que te pertenecen o de los que eres responsable",
     openBlockers: "Criterios bloqueantes abiertos",
-    openCaption: "En la puerta actual de cada proyecto",
-    readinessTitle: "Preparación de puertas",
+    openCaption: "En la compuerta actual de cada proyecto",
+    readinessTitle: "Preparación de compuertas",
     alertsTitle: "Alertas",
     recentTitle: "Actividad reciente",
     seeAll: "Ver todo",
     noAlerts: "No hay alertas en este momento.",
     noActivity: "Aún no hay actividad. Crea un proyecto para empezar.",
-    noReadiness: "Aún no hay proyectos avanzando por las puertas.",
+    noReadiness: "Aún no hay proyectos avanzando por las compuertas.",
   },
   today: {
     title: "Hoy",
@@ -22329,23 +22329,23 @@ var home_default = {
     open: "Abrir proyecto",
   },
   readiness: {
-    title: "Preparación de puertas",
-    caption: "Preparación de puertas en todos los proyectos",
+    title: "Preparación de compuertas",
+    caption: "Preparación de compuertas en todos los proyectos",
     project: "Proyecto",
     phase: "Fase actual",
     blocking: "Criterios bloqueantes con evidencia",
     unmet: "Evidencia faltante",
     met: "{met} de {total}",
-    closed: "Todas las puertas pasadas",
+    closed: "Todas las compuertas pasadas",
     none: "Ninguna",
     empty:
-      "Aún no hay proyectos avanzando por las puertas. Inicia un proyecto para seguir su preparación.",
+      "Aún no hay proyectos avanzando por las compuertas. Inicia un proyecto para seguir su preparación.",
     emptyAction: "Abrir proyectos",
-    chartTitle: "Criterios bloqueantes en la puerta actual",
+    chartTitle: "Criterios bloqueantes en la compuerta actual",
     chartSubtitle: "Criterios con evidencia y criterios aún abiertos, por proyecto",
     seriesMet: "Con evidencia",
     seriesOpen: "Abiertos",
-    matrixCaption: "Puertas por proyecto",
+    matrixCaption: "Compuertas por proyecto",
     passed: "Pasada",
     current: "{met} de {total}",
     upcoming: "Próxima",
@@ -22354,13 +22354,13 @@ var home_default = {
     title: "Alertas",
     label: "Alertas",
     empty:
-      "No hay alertas en este momento. El trabajo bloqueado, los registros vencidos y las brechas de puerta cerca del primer día de producción aparecen aquí.",
+      "No hay alertas en este momento. El trabajo bloqueado, los registros vencidos y las brechas de compuerta cerca del primer día de producción aparecen aquí.",
     emptyAction: "Abrir proyectos",
     blockedProject: "{key} {name} está bloqueado.",
     blockedRecord: "{key} {title} está bloqueado: {blocker}",
     overdue: "{key} {title} vencía el {date}.",
     gateGap:
-      "{key} empieza el {date} con {count, plural, one {# criterio bloqueante abierto} other {# criterios bloqueantes abiertos}} en la puerta {gate}.",
+      "{key} empieza el {date} con {count, plural, one {# criterio bloqueante abierto} other {# criterios bloqueantes abiertos}} en la compuerta {gate}.",
     noJurisdiction:
       "{key} aún no tiene jurisdicción. Las preguntas de permisos y códigos no se pueden responder hasta resolverla.",
     open: "Abrir",
@@ -26949,7 +26949,7 @@ var projects_default = {
   peek: {
     title: "{key} {name}",
     openProject: "Abrir proyecto",
-    gates: "Abrir puertas",
+    gates: "Abrir compuertas",
     close: "Cerrar",
   },
   create: {
@@ -26997,12 +26997,12 @@ var projects_default = {
       "Se alcanzó el límite de proyectos activos de tu plan. Completa o cancela un proyecto, o cambia de plan, para agregar otro.",
     time_zone_unknown: "Esa zona horaria no se reconoce. Elige una de la lista.",
     gate_criteria_unmet:
-      "La puerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
+      "La compuerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
     gate_phase_conflict:
-      "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su puerta actual.",
-    gate_already_passed: "Esta puerta ya se pasó.",
+      "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su compuerta actual.",
+    gate_already_passed: "Esta compuerta ya se pasó.",
     project_canceled:
-      "Un proyecto cancelado no pasa puertas. Reábrelo primero si el trabajo continúa.",
+      "Un proyecto cancelado no pasa compuertas. Reábrelo primero si el trabajo continúa.",
     transition_reason_required: "Indica el motivo. Cada cambio se registra con su motivo.",
     project_transition_not_allowed:
       "El proyecto no puede pasar a ese estado desde donde está ahora.",
@@ -27043,17 +27043,17 @@ var projects_default = {
   overview: {
     title: "Resumen",
     phase: "Fase",
-    phaseOf: "Puerta {gate} de {total}",
-    nextGate: "Siguiente puerta",
-    readiness: "Preparación de la puerta",
+    phaseOf: "Compuerta {gate} de {total}",
+    nextGate: "Siguiente compuerta",
+    readiness: "Preparación de la compuerta",
     readinessValue: "{met} de {total} criterios bloqueantes tienen evidencia",
-    allPassed: "Todas las puertas se pasaron. El proyecto queda en Cierre.",
+    allPassed: "Todas las compuertas se pasaron. El proyecto queda en Cierre.",
     keyDates: "Fechas clave",
     lifecycle: "Ciclo de vida",
     blockers: "Bloqueos abiertos",
     noBlockers:
-      "Nada bloquea la siguiente puerta. Pásala desde la pestaña Puertas cuando el equipo esté listo.",
-    openGates: "Abrir puertas",
+      "Nada bloquea la siguiente compuerta. Pásala desde la pestaña Compuertas cuando el equipo esté listo.",
+    openGates: "Abrir compuertas",
     recent: "Actividad reciente",
     noActivity:
       "Aún no hay actividad en este proyecto. Los cambios aparecen aquí mientras el equipo trabaja.",
@@ -27111,9 +27111,9 @@ var projects_default = {
       "Los recintos permanentes contienen funciones; una función puede estar bajo la raíz o bajo un recinto permanente.",
   },
   gates: {
-    title: "Puertas",
-    listLabel: "Puertas de {key}",
-    gate: "Puerta {gate}",
+    title: "Compuertas",
+    listLabel: "Compuertas de {key}",
+    gate: "Compuerta {gate}",
     passed: "Pasada",
     current: "Actual",
     upcoming: "Próxima",
@@ -27139,25 +27139,25 @@ var projects_default = {
     withdrawConfirm:
       "¿Retirar esta evidencia? Deja de contar para el criterio y queda en el historial.",
     withdrawAction: "Retirar evidencia",
-    pass: "Pasar la puerta {gate}",
-    passTitle: "Pasar la puerta {gate} y entrar en {next}",
-    passTitleLast: "Pasar la puerta {gate} y cerrar el proyecto",
+    pass: "Pasar la compuerta {gate}",
+    passTitle: "Pasar la compuerta {gate} y entrar en {next}",
+    passTitleLast: "Pasar la compuerta {gate} y cerrar el proyecto",
     passDescription:
-      "La base de datos verifica cada criterio bloqueante antes de que el proyecto avance. Pasar una puerta no se puede deshacer.",
+      "La base de datos verifica cada criterio bloqueante antes de que el proyecto avance. Pasar una compuerta no se puede deshacer.",
     passReason: "Decisión",
     passReasonHelp: "Por ejemplo, la decisión de seguir o no seguir y quién la ratificó.",
-    passSubmit: "Pasar puerta",
+    passSubmit: "Pasar compuerta",
     cancel: "Cancelar",
     blockedBy:
       "{count, plural, one {# criterio bloqueante necesita evidencia} other {# criterios bloqueantes necesitan evidencia}}",
     ready: "Cada criterio bloqueante tiene evidencia.",
-    boardLabel: "Criterios por puerta",
+    boardLabel: "Criterios por compuerta",
     history: "Historial de transiciones",
-    noHistory: "Aún no se ha pasado ninguna puerta. La puerta 1 cierra Alcance.",
-    historyEntry: "Puerta {gate}: {from} a {to}",
-    historyEntryLast: "Puerta {gate}: {from} cerrada",
+    noHistory: "Aún no se ha pasado ninguna compuerta. La compuerta 1 cierra Alcance.",
+    historyEntry: "Compuerta {gate}: {from} a {to}",
+    historyEntryLast: "Compuerta {gate}: {from} cerrada",
     readOnly:
-      "Puedes leer las puertas. Pide a un gerente del proyecto que certifique evidencia o pase una puerta.",
+      "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta.",
   },
   settings: {
     title: "Configuración del proyecto",
@@ -29084,7 +29084,7 @@ var ui_default = {
     metCount: "{met} de {total} cumplidos",
     openMany: "{n} criterios bloqueantes abiertos.",
     openOne: "{n} criterio bloqueante abierto.",
-    readiness: "Preparación del Gate",
+    readiness: "Preparación de la compuerta",
   },
   grid: {
     derived: "Derivado del canon. Edite el registro de origen para cambiarlo.",
@@ -29195,8 +29195,8 @@ var ui_default = {
   },
   peek: { openFull: "Abrir página completa" },
   phase: {
-    gate: "Gate {n}",
-    gateName: "Gate {n} · {name}",
+    gate: "Compuerta {n}",
+    gateName: "Compuerta {n} · {name}",
   },
   photo: {
     annotate: "Anotar",

@@ -28,8 +28,8 @@ Elija **Nuevo proyecto**, indique un nombre, una clave y una zona horaria, y eli
 
 ## Dentro de un proyecto
 
-- **Resumen** muestra la fase, la próxima puerta y lo que está en riesgo.
-- **Puertas** muestra los criterios de cada puerta. Vea [Puertas](help:gates).
+- **Resumen** muestra la fase, la próxima compuerta y lo que está en riesgo.
+- **Compuertas** muestra los criterios de cada compuerta. Vea [Compuertas](help:gates).
 - **Alcance** es el árbol de espectáculos, sitios y líneas de trabajo.
 - Las pestañas de módulo muestran ese módulo filtrado al proyecto.
 

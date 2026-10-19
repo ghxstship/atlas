@@ -1831,7 +1831,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "La actividad muestra lo que ocurrió en los proyectos que puede ver, de lo más reciente a lo más antiguo: registros creados, estados cambiados, puertas pasadas y comentarios. Fíltrela por proyectos o registros, o abra la pestaña Actividad de un proyecto.",
+            v: "La actividad muestra lo que ocurrió en los proyectos que puede ver, de lo más reciente a lo más antiguo: registros creados, estados cambiados, compuertas pasadas y comentarios. Fíltrela por proyectos o registros, o abra la pestaña Actividad de un proyecto.",
           },
         ],
       },
@@ -1873,7 +1873,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima puerta.",
+            v: "Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.",
           },
         ],
       },
@@ -2170,39 +2170,39 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Una puerta es el control entre dos fases de un proyecto. Cada puerta tiene criterios. Los criterios bloqueantes deben cumplirse antes de pasar; los demás se registran pero no la detienen.",
+            v: "Una compuerta es el control entre dos fases de un proyecto. Cada compuerta tiene criterios. Los criterios bloqueantes deben cumplirse antes de pasar; los demás se registran pero no la detienen.",
           },
         ],
       },
-      { t: "h2", v: "Pase una puerta" },
+      { t: "h2", v: "Pase una compuerta" },
       {
         t: "ol",
         items: [
           [
             { t: "text", v: "Abra el proyecto y elija " },
-            { t: "strong", v: "Puertas" },
+            { t: "strong", v: "Compuertas" },
             { t: "text", v: "." },
           ],
           [
             {
               t: "text",
-              v: "Revise cada criterio de la próxima puerta y adjunte evidencia donde se pida.",
+              v: "Revise cada criterio de la próxima compuerta y adjunte evidencia donde se pida.",
             },
           ],
           [
             { t: "text", v: "Cuando se cumplan todos los criterios bloqueantes, elija " },
-            { t: "strong", v: "Pasar puerta" },
+            { t: "strong", v: "Pasar compuerta" },
             { t: "text", v: " e indique un motivo." },
           ],
         ],
       },
-      { t: "h2", v: "Cuando se rechaza una puerta" },
+      { t: "h2", v: "Cuando se rechaza una compuerta" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Si un criterio bloqueante sigue abierto, Atlas rechaza la puerta y nombra el criterio. Adjunte la evidencia que falta o resuelva el criterio e inténtelo de nuevo. Cada paso queda registrado con quién, cuándo y por qué.",
+            v: "Si un criterio bloqueante sigue abierto, Atlas rechaza la compuerta y nombra el criterio. Adjunte la evidencia que falta o resuelva el criterio e inténtelo de nuevo. Cada paso queda registrado con quién, cuándo y por qué.",
           },
         ],
       },
@@ -2212,7 +2212,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Pase el puntero o enfoque cualquier chip de puerta o fase para ver su definición del canon de XOS.",
+            v: "Pase el puntero o enfoque cualquier chip de compuerta o fase para ver su definición del canon de XOS.",
           },
         ],
       },
@@ -2332,7 +2332,7 @@ export const HELP_BODIES: HelpBodies = {
             { t: "strong", v: "Canon:" },
             {
               t: "text",
-              v: " la referencia compartida de XOS de fases, puertas, tipos de registro, roles y otros valores estándar.",
+              v: " la referencia compartida de XOS de fases, compuertas, tipos de registro, roles y otros valores estándar.",
             },
           ],
           [
@@ -2343,7 +2343,7 @@ export const HELP_BODIES: HelpBodies = {
             },
           ],
           [
-            { t: "strong", v: "Puerta:" },
+            { t: "strong", v: "Compuerta:" },
             {
               t: "text",
               v: " el control entre dos fases de un proyecto; los criterios bloqueantes deben cumplirse para pasar.",
@@ -2420,13 +2420,13 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: " para abrir un registro." },
         ],
       },
-      { t: "h2", v: "Preparación de puertas" },
+      { t: "h2", v: "Preparación de compuertas" },
       {
         t: "p",
         c: [
           {
             t: "text",
-            v: "Muestra la próxima puerta de cada proyecto activo y los criterios bloqueantes que siguen abiertos.",
+            v: "Muestra la próxima compuerta de cada proyecto activo y los criterios bloqueantes que siguen abiertos.",
           },
         ],
       },
@@ -2454,7 +2454,7 @@ export const HELP_BODIES: HelpBodies = {
         t: "p",
         c: [
           { t: "text", v: "Relacionado: " },
-          { t: "link", v: "Puertas", href: "help:gates" },
+          { t: "link", v: "Compuertas", href: "help:gates" },
           { t: "text", v: ", " },
           { t: "link", v: "Proyectos", href: "help:projects" },
           { t: "text", v: "." },
@@ -3107,12 +3107,12 @@ export const HELP_BODIES: HelpBodies = {
         items: [
           [
             { t: "strong", v: "Resumen" },
-            { t: "text", v: " muestra la fase, la próxima puerta y lo que está en riesgo." },
+            { t: "text", v: " muestra la fase, la próxima compuerta y lo que está en riesgo." },
           ],
           [
-            { t: "strong", v: "Puertas" },
-            { t: "text", v: " muestra los criterios de cada puerta. Vea " },
-            { t: "link", v: "Puertas", href: "help:gates" },
+            { t: "strong", v: "Compuertas" },
+            { t: "text", v: " muestra los criterios de cada compuerta. Vea " },
+            { t: "link", v: "Compuertas", href: "help:gates" },
             { t: "text", v: "." },
           ],
           [
@@ -3307,7 +3307,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Los hitos son las fechas con las que se mide el proyecto. Aparecen en la línea de tiempo y en la preparación de puertas.",
+            v: "Los hitos son las fechas con las que se mide el proyecto. Aparecen en la línea de tiempo y en la preparación de compuertas.",
           },
         ],
       },

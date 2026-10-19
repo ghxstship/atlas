@@ -126,6 +126,24 @@ describe("help content", () => {
     expect(missing).toEqual([]);
   });
 
+  it("calls a project gate a compuerta in Spanish (decision 27)", () => {
+    // site-operations keeps "puerta": occupancy counted at the doors and the guest door list.
+    for (const slug of [
+      "gates",
+      "home",
+      "projects",
+      "glossary",
+      "schedule",
+      "advancing",
+      "activity-and-audit",
+    ]) {
+      const file = fileURLToPath(new URL(`../help/articles/es-US/${slug}.md`, import.meta.url));
+      const text = readFileSync(file, "utf8");
+      expect(text, slug).toMatch(/compuerta/i);
+      expect(text, slug).not.toMatch(/\bpuertas?\b/i);
+    }
+  });
+
   it("has copy for every tour step, tip and What's New entry in both locales", () => {
     for (const catalog of [enHelp, esHelp]) {
       for (const tour of content.tours) {

@@ -8,7 +8,7 @@ order: 14
 
 ## Actividad
 
-La actividad muestra lo que ocurrió en los proyectos que puede ver, de lo más reciente a lo más antiguo: registros creados, estados cambiados, puertas pasadas y comentarios. Fíltrela por proyectos o registros, o abra la pestaña Actividad de un proyecto.
+La actividad muestra lo que ocurrió en los proyectos que puede ver, de lo más reciente a lo más antiguo: registros creados, estados cambiados, compuertas pasadas y comentarios. Fíltrela por proyectos o registros, o abra la pestaña Actividad de un proyecto.
 
 ## Registro de auditoría
 

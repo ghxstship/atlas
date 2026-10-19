@@ -24,4 +24,4 @@ Los paquetes completados llegan como respuestas. Los riders indican los requisit
 
 ## Conciliación
 
-Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima puerta.
+Compara cada requisito del rider con los documentos de capacidad de la sede. Un requisito que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como una brecha para la próxima compuerta.

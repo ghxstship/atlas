@@ -545,9 +545,9 @@ export const HELP_CONTENT: HelpIndex = {
       },
       {
         slug: "gates",
-        title: "Puertas",
+        title: "Compuertas",
         summary:
-          "Cómo un proyecto pasa de una fase a la siguiente y por qué una puerta puede negarse a pasar.",
+          "Cómo un proyecto pasa de una fase a la siguiente y por qué una compuerta puede negarse a pasar.",
         kind: "workflow",
         nodes: ["project.gates", "home.gate-readiness"],
         order: 12,
@@ -574,7 +574,7 @@ export const HELP_CONTENT: HelpIndex = {
         slug: "home",
         title: "Inicio",
         summary:
-          "Lo que necesita su atención hoy, qué puertas están en riesgo y los registros que abrió por última vez.",
+          "Lo que necesita su atención hoy, qué compuertas están en riesgo y los registros que abrió por última vez.",
         kind: "page",
         nodes: ["home.today", "home.gate-readiness", "home.alerts", "home.recent"],
         order: 10,

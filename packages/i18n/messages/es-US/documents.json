@@ -206,7 +206,7 @@
   "finalCostReport": {
     "title": "Informe de costo final {project}",
     "basis": "Base",
-    "basisValue": "Presupuesto base de la puerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
+    "basisValue": "Presupuesto base de la compuerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
     "byAccount": "Costo por cuenta de gasto",
     "account": "Cuenta",
     "baseline": "Base",
@@ -216,7 +216,7 @@
     "variance": "Variación",
     "totalIn": "Total {currency}",
     "noRows": "Aún no hay líneas base, cambios ni reales.",
-    "noBaseline": "Este proyecto no tiene presupuesto base de la puerta 3, así que el informe de costo final aún no tiene respuesta."
+    "noBaseline": "Este proyecto no tiene presupuesto base de la compuerta 3, así que el informe de costo final aún no tiene respuesta."
   },
   "agreementCertificate": {
     "title": "Certificado de firma",
