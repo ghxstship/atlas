@@ -101,7 +101,8 @@ describe("scanner choice", () => {
 
   it("never passes files through in production or on a hosted project", () => {
     expect(
-      scannerChoice(envOf({ SUPABASE_URL: "http://kong:8000", XOS_ENVIRONMENT: "production" })).kind,
+      scannerChoice(envOf({ SUPABASE_URL: "http://kong:8000", XOS_ENVIRONMENT: "production" }))
+        .kind,
     ).toBe("none");
     expect(scannerChoice(envOf({ SUPABASE_URL: "https://abcd.supabase.co" })).kind).toBe("none");
     expect(scannerChoice(envOf({ SUPABASE_URL: "https://api.example.com" })).kind).toBe("none");
