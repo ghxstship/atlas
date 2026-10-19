@@ -294,7 +294,7 @@ __all__ = [
     "ShiftSwapCreate",
     "TimeEntryPage",
     "TimeEntry",
-    "TimeEntryCreate",
+    "TimeEntryClockInRequest",
     "TimeEntryCorrectionPage",
     "TimeEntryCorrection",
     "TimeEntryCorrectionCreate",
@@ -5840,28 +5840,32 @@ class TimeEntry(TypedDict):
     needs_review: bool
 
 
-class _TimeEntryCreateRequired(TypedDict):
-    #: Identifier of the person.
-    person_id: str
-    #: Clock in.
-    clock_in_at: str
-    #: Break minutes.
-    break_minutes: int
+class _TimeEntryClockInRequestRequired(TypedDict):
+    #: Identifier of the project the caller clocks in on.
+    project_id: str
 
 
-class TimeEntryCreate(_TimeEntryCreateRequired, total=False):
-    """Fields accepted when creating a TimeEntry."""
+class TimeEntryClockInRequest(_TimeEntryClockInRequestRequired, total=False):
+    """The punch that opens the caller's time entry."""
 
-    #: Identifier of the shift.
+    #: Identifier of the Accepted shift of the caller.
     shift_id: Optional[str]
-    #: Clock out.
-    clock_out_at: Optional[str]
+    #: Identifier of the caller's open engagement, when they work as external crew.
+    engagement_id: Optional[str]
+    #: Client punch id; a replay with the same id returns the same entry.
+    punch_id: str
+    #: When the punch was made on the device; defaults to now.
+    device_time: str
+    #: Milliseconds since the punch on the device's monotonic clock, for a punch queued offline.
+    monotonic_offset_ms: int
     #: WGS 84 latitude.
     latitude: Optional[float]
     #: WGS 84 longitude.
     longitude: Optional[float]
-    #: Identifier of the kiosk device.
-    kiosk_device_id: Optional[str]
+    #: Location accuracy in metres.
+    accuracy_m: Optional[float]
+    #: Identifier of the geofence the location is checked against.
+    geofence_id: Optional[str]
 
 
 class TimeEntryCorrectionPage(TypedDict):
@@ -6074,6 +6078,8 @@ class KioskDevice(TypedDict):
     name: str
     #: Identifier of the project the kiosk serves.
     project_id: Optional[str]
+    #: Device key the kiosk signs in with. Returned once, in the create response; null on every read, because only its hash is kept (invariant 8).
+    device_key: Optional[str]
     #: Last time the kiosk checked in.
     last_seen_at: Optional[str]
     #: When the kiosk was revoked; it accepts no punches.

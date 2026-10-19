@@ -1184,10 +1184,10 @@ if TYPE_CHECKING:
         TimeEntry,
         TimeEntryAudit,
         TimeEntryAuditPage,
+        TimeEntryClockInRequest,
         TimeEntryCorrection,
         TimeEntryCorrectionCreate,
         TimeEntryCorrectionPage,
-        TimeEntryCreate,
         TimeEntryPage,
         TimeOffPolicy,
         TimeOffPolicyCreate,
@@ -8240,7 +8240,7 @@ class TimeEntriesResource(Resource):
 
     def clock_in(
         self,
-        body: TimeEntryCreate,
+        body: TimeEntryClockInRequest,
         *,
         idempotency_key: Optional[str] = None,
         options: Optional[RequestOptions] = None,

@@ -11979,38 +11979,45 @@
         ],
         "description": "A time entry. Entries cannot overlap for one person; forgotten clock-outs close at 16 hours and are flagged."
       },
-      "TimeEntryCreate": {
+      "TimeEntryClockInRequest": {
         "type": "object",
         "properties": {
-          "person_id": {
+          "project_id": {
             "type": "string",
             "format": "uuid",
-            "description": "Identifier of the person.",
+            "description": "Identifier of the project the caller clocks in on.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
           "shift_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the shift.",
+            "description": "Identifier of the Accepted shift of the caller.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "clock_in_at": {
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the caller's open engagement, when they work as external crew.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "punch_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Client punch id; a replay with the same id returns the same entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "device_time": {
             "type": "string",
             "format": "date-time",
-            "description": "Clock in.",
+            "description": "When the punch was made on the device; defaults to now.",
             "example": "2026-10-08T14:30:00Z"
           },
-          "clock_out_at": {
-            "type": ["string", "null"],
-            "format": "date-time",
-            "description": "Clock out.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "break_minutes": {
+          "monotonic_offset_ms": {
             "type": "integer",
             "minimum": 0,
-            "description": "Break minutes.",
-            "example": 30
+            "description": "Milliseconds since the punch on the device's monotonic clock, for a punch queued offline.",
+            "example": 0,
+            "format": "int64"
           },
           "latitude": {
             "type": ["number", "null"],
@@ -12026,15 +12033,21 @@
             "description": "WGS 84 longitude.",
             "example": -80.1918
           },
-          "kiosk_device_id": {
+          "accuracy_m": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "description": "Location accuracy in metres.",
+            "example": 12
+          },
+          "geofence_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the kiosk device.",
+            "description": "Identifier of the geofence the location is checked against.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["person_id", "clock_in_at", "break_minutes"],
-        "description": "Fields accepted when creating a TimeEntry."
+        "required": ["project_id"],
+        "description": "The punch that opens the caller's time entry."
       },
       "TimeEntryCorrectionPage": {
         "type": "object",
@@ -12596,6 +12609,12 @@
             "description": "Identifier of the project the kiosk serves.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
+          "device_key": {
+            "type": ["string", "null"],
+            "pattern": "^xkio_[0-9a-f]{64}$",
+            "description": "Device key the kiosk signs in with. Returned once, in the create response; null on every read, because only its hash is kept (invariant 8).",
+            "example": "xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b"
+          },
           "last_seen_at": {
             "type": ["string", "null"],
             "format": "date-time",
@@ -12618,6 +12637,7 @@
           "updated_by",
           "name",
           "project_id",
+          "device_key",
           "last_seen_at",
           "revoked_at"
         ],
@@ -73960,16 +73980,18 @@
           "content": {
             "application/json": {
               "example": {
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "shift_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "clock_in_at": "2026-10-08T14:30:00Z",
-                "clock_out_at": "2026-10-08T14:30:00Z",
-                "break_minutes": 30,
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "punch_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "device_time": "2026-10-08T14:30:00Z",
+                "monotonic_offset_ms": 0,
                 "latitude": 25.7617,
                 "longitude": -80.1918,
-                "kiosk_device_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "accuracy_m": 12,
+                "geofence_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
-              "schema": { "$ref": "#/components/schemas/TimeEntryCreate" }
+              "schema": { "$ref": "#/components/schemas/TimeEntryClockInRequest" }
             }
           }
         },
@@ -74889,6 +74911,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Gate A Kiosk",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "device_key": "xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
                       "last_seen_at": "2026-10-08T14:30:00Z",
                       "revoked_at": "2026-10-08T14:30:00Z"
                     }
@@ -74945,6 +74968,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Gate A Kiosk",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "device_key": "xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
                   "last_seen_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z"
                 },
@@ -75004,6 +75028,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Gate A Kiosk",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "device_key": "xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
                   "last_seen_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z"
                 },
@@ -75072,6 +75097,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Gate A Kiosk",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "device_key": "xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
                   "last_seen_at": "2026-10-08T14:30:00Z",
                   "revoked_at": "2026-10-08T14:30:00Z"
                 },

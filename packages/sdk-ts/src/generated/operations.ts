@@ -8859,7 +8859,7 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     fields: false,
     idempotent: true,
     ifMatch: false,
-    body: "TimeEntryCreate",
+    body: "TimeEntryClockInRequest",
     bodyRequired: true,
     successStatus: 201,
     response: "TimeEntry",

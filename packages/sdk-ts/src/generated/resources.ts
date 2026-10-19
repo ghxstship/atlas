@@ -860,9 +860,9 @@ import type {
   TierCode,
   TimeEntry,
   TimeEntryAudit,
+  TimeEntryClockInRequest,
   TimeEntryCorrection,
   TimeEntryCorrectionCreate,
-  TimeEntryCreate,
   TimeOffPolicy,
   TimeOffPolicyCreate,
   TimeOffPolicyUpdate,
@@ -8247,7 +8247,10 @@ export class TimeEntriesResource extends $Resource {
    * `POST /time-entries/clock-in` (operation `timeEntries.clockIn`).
    * Requires the capability `crew.time_entry.write`.
    */
-  clockIn(body: TimeEntryCreate, options?: $MutationOptions): Promise<$ApiResponse<TimeEntry>> {
+  clockIn(
+    body: TimeEntryClockInRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<TimeEntry>> {
     return this.client.request<TimeEntry>($OPERATIONS["timeEntries.clockIn"], { body }, options);
   }
 

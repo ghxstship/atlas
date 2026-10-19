@@ -3806,6 +3806,7 @@ export interface Components {
     updated_by: string | null;
     name: string;
     project_id: string | null;
+    device_key: string | null;
     last_seen_at: string | null;
     revoked_at: string | null;
   };
@@ -7401,6 +7402,18 @@ export interface Components {
     new_values: Record<string, unknown>;
   };
   TimeEntryAuditPage: { data: Array<Components["TimeEntryAudit"]>; next_cursor: string | null };
+  TimeEntryClockInRequest: {
+    project_id: string;
+    shift_id?: string | null;
+    engagement_id?: string | null;
+    punch_id?: string;
+    device_time?: string;
+    monotonic_offset_ms?: number;
+    latitude?: number | null;
+    longitude?: number | null;
+    accuracy_m?: number | null;
+    geofence_id?: string | null;
+  };
   TimeEntryCorrection: {
     id: string;
     org_id: string;
@@ -7426,16 +7439,6 @@ export interface Components {
   TimeEntryCorrectionPage: {
     data: Array<Components["TimeEntryCorrection"]>;
     next_cursor: string | null;
-  };
-  TimeEntryCreate: {
-    person_id: string;
-    shift_id?: string | null;
-    clock_in_at: string;
-    clock_out_at?: string | null;
-    break_minutes: number;
-    latitude?: number | null;
-    longitude?: number | null;
-    kiosk_device_id?: string | null;
   };
   TimeEntryPage: { data: Array<Components["TimeEntry"]>; next_cursor: string | null };
   TimeOffPolicy: {
@@ -11652,7 +11655,7 @@ export interface Operations {
     path: "/time-entries/clock-in";
     params: Record<string, never>;
     query: Record<string, never>;
-    body: Components["TimeEntryCreate"];
+    body: Components["TimeEntryClockInRequest"];
     responses: { 201: Components["TimeEntry"] };
   };
   "timeEntries.clockOut": {

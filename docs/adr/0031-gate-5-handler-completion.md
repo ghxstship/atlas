@@ -40,6 +40,10 @@ Corrections that only change a shape so a handler can serve it are entries in th
 | ----------------- | --------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `app.price_books` | 1170      | `priceBooks.list`, `.get`, `.create`, `.update`, `.delete` | Section 7.3 lists `price_books` under money and formats, and the v1 contract documents an org price book for selling items, read with `procurement.catalog.read` and written with `procurement.catalog.write`. No table backed it. The table holds the name and the currency (`currency_code`, correction `price-book-currency-code`); a name appears once per org among live books, and delete is soft. Prices within a book are left to a later additive resource, since the frozen contract has none. |
 
+### Policies added
+
+Migration 1171 lets `org.time_attendance.write` rename a kiosk, move it to another project of the org and retire it (column grants on `name`, `project_id` and `deleted_at` only). Kiosks could be registered but never retired, so a lost tablet kept a working device key; `private.verify_kiosk_pin` already refuses a deleted kiosk. `kioskDevices.update` and `.delete` use it, and `kioskDevices.create` returns the device key once (correction `kiosk-device-project`).
+
 ## Consequences
 
 - Still to build, as features rather than handlers: legal entities, the IP allow-list, access reviews, break-glass, project shares, several project roles per assignment (Section 4.8.1) and blocks. Each needs its schema, enforcement and UI, and its operations return to v1 additively once it exists.

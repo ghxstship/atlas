@@ -3,8 +3,7 @@
  * pay periods with their compare-and-set transitions (a posted period never reopens, invariant 14),
  * rate cards, earning codes and time off policies. Reads and writes run as the caller, so row level
  * security decides every row. Rate cards and earning codes use their column names, as corrected in
- * catalog/modules/crew.ts (ADR 0023). The other Crew operations stay document-only until their
- * corrected shapes have handlers.
+ * catalog/modules/crew.ts (ADR 0023). Every other Crew operation is A50's, in parts/crew-a50.ts.
  */
 import type { XosClient } from "@xos/data";
 import { transitionPayPeriod, type PayPeriodState } from "@xos/data/crew";
@@ -16,6 +15,8 @@ import { created, defineHandlers, noContent, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { problemFor } from "./projects.ts";
+import { crewA50Handlers } from "./parts/crew-a50.ts";
+import type { HandlerSet } from "../runtime/handler.ts";
 
 type Row = Record<string, unknown>;
 type Table = "pay_periods" | "rate_cards" | "earning_codes" | "time_off_policies";
@@ -85,6 +86,9 @@ function defined(body: Row): Row {
 }
 
 export const handlers = defineHandlers("Crew", {
+  // Shifts, swaps, time, timesheets, kiosks, rates, payroll, per diems and time off (A50).
+  ...(crewA50Handlers as unknown as HandlerSet<"Crew">),
+
   // Pay periods ------------------------------------------------------------------------------------
   "payPeriods.list": async ({ query }, { db }) =>
     ok(

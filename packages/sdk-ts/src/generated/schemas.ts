@@ -8867,34 +8867,39 @@ export interface TimeEntry {
 }
 
 /**
- * Fields accepted when creating a TimeEntry.
+ * The punch that opens the caller's time entry.
  */
-export interface TimeEntryCreate {
+export interface TimeEntryClockInRequest {
   /**
-   * Identifier of the person.
+   * Identifier of the project the caller clocks in on.
    * Format: `uuid`.
    */
-  readonly person_id: string;
+  readonly project_id: string;
   /**
-   * Identifier of the shift.
+   * Identifier of the Accepted shift of the caller.
    * Format: `uuid`.
    */
   readonly shift_id?: string | null;
   /**
-   * Clock in.
+   * Identifier of the caller's open engagement, when they work as external crew.
+   * Format: `uuid`.
+   */
+  readonly engagement_id?: string | null;
+  /**
+   * Client punch id; a replay with the same id returns the same entry.
+   * Format: `uuid`.
+   */
+  readonly punch_id?: string;
+  /**
+   * When the punch was made on the device; defaults to now.
    * Format: `date-time`.
    */
-  readonly clock_in_at: string;
+  readonly device_time?: string;
   /**
-   * Clock out.
-   * Format: `date-time`.
+   * Milliseconds since the punch on the device's monotonic clock, for a punch queued offline.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly clock_out_at?: string | null;
-  /**
-   * Break minutes.
-   * Range: 0 to unbounded.
-   */
-  readonly break_minutes: number;
+  readonly monotonic_offset_ms?: number;
   /**
    * WGS 84 latitude.
    * Range: -90 to 90.
@@ -8906,10 +8911,15 @@ export interface TimeEntryCreate {
    */
   readonly longitude?: number | null;
   /**
-   * Identifier of the kiosk device.
+   * Location accuracy in metres.
+   * Range: 0 to unbounded.
+   */
+  readonly accuracy_m?: number | null;
+  /**
+   * Identifier of the geofence the location is checked against.
    * Format: `uuid`.
    */
-  readonly kiosk_device_id?: string | null;
+  readonly geofence_id?: string | null;
 }
 
 /**
@@ -9333,6 +9343,11 @@ export interface KioskDevice {
    * Format: `uuid`.
    */
   readonly project_id: string | null;
+  /**
+   * Device key the kiosk signs in with. Returned once, in the create response; null on every read, because only its hash is kept (invariant 8).
+   * Pattern: `^xkio_[0-9a-f]{64}$`.
+   */
+  readonly device_key: string | null;
   /**
    * Last time the kiosk checked in.
    * Format: `date-time`.
