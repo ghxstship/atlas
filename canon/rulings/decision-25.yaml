@@ -1,0 +1,575 @@
+# Owner decision 25 (2026-10-19, approved; Linear RRR-101): how the Playbook and the Bible reconcile.
+# Section 2.1 says neither file silently wins. This decision says how each difference resolves, and this
+# file holds every entry the decision needs that the importer cannot compute. The importer applies it
+# (canon/import/src/decision25.ts), seeds what it decides into xpms.label_mapping and
+# xpms.playbook_sourced_value, and canon:check fails on any Playbook to Bible difference the decision
+# does not explain and on any entry below that no longer matches a difference.
+#
+# The rules the importer computes from the data:
+#   1. The Bible wins on structure: codes, states, labels and hierarchy. Where the Bible (or the Item
+#      Catalog and GL chart, which are canon too) states a value, canon keeps it. The Playbook value stays
+#      in xpms.intake, Canceled, only so the Playbook round trip reproduces the source.
+#   2. Values the Bible lacks are imported, marked as from the Playbook: the value is stored in canon and
+#      xpms.playbook_sourced_value names its Playbook cell, so it can be reviewed later.
+#   3. Labels that differ only in casing or punctuation follow the Bible.
+#   4. Playbook status labels that are not states of their lifecycle map to the closest existing state.
+#      No state is added. Each mapping is listed below and seeded into xpms.label_mapping.
+#   5. Em dash substitutions in canon content are accepted (RRR-65). Stand-in items stay as they are,
+#      flagged in canon/reports/doctrine-findings.md.
+#   6. The CSMIA26 Production Template rows stay private: unpublished, readable only by service_role (RRR-67).
+#   7. Bible inconsistencies and unstated relationships (RRR-66) are not covered. They are listed in
+#      legal/qa/findings/A56-001.md for the owner and are not decided here.
+
+decision: D25
+decided_on: "2026-10-19"
+linear: RRR-101
+
+# Findings in canon/reports/doctrine-findings.md that this decision settles, by kind.
+accepted_findings:
+  em-dash-substituted: "Accepted by owner decision 25 (RRR-65): the spaced hyphen stays."
+  guard-reserved-word: "Owner decision 25 (RRR-65): stand-in items stay as they are, flagged here for later replacement."
+  ruling: Settled by ruling D11 (grades).
+
+# Rows only the Playbook holds in a Bible list. The Bible wins on structure, so the row is not added;
+# the label resolves to the closest existing canon value wherever the Playbook uses it.
+playbook_only_rows:
+  - sheet: Counterparty Types
+    key: Landlord
+    domain: counterparty_type
+    canon_value: Facilities Services
+    note: "The Bible names no landlord counterparty type (it has the role 0000.50.04 Landlord representative). Facilities Services (building services on a recurring scope, GL 5600 like the Playbook's Landlord row) is the closest existing type."
+
+# Standard Library enumeration labels (Playbook Enumerations sheet) that are not canon values. A label that
+# differs from a canon value only in casing or punctuation follows the Bible without an entry here.
+# basis: closest-state (rule 4) or closest-value (the Bible's list wins; the closest existing value is named).
+library_labels:
+  - domain: Workflow Status
+    label: Inactive
+    canon_domain: state
+    canon_value: Deferred
+    basis: closest-state
+    note: Temporarily deactivated or dormant is moved out of the current plan.
+  - domain: Workflow Status
+    label: Pending
+    canon_domain: state
+    canon_value: Proposed
+    basis: closest-state
+    note: Awaiting review or authorization is authored but not yet accepted.
+  - domain: Workflow Status
+    label: Approved
+    canon_domain: state
+    canon_value: Ready
+    basis: closest-state
+    note: "Signed off is accepted, with work not yet started."
+  - domain: Workflow Status
+    label: In Progress
+    canon_domain: state
+    canon_value: Active
+    basis: closest-state
+    note: Actively executing is in progress.
+  - domain: Workflow Status
+    label: Deployed
+    canon_domain: state
+    canon_value: Active
+    basis: closest-state
+    note: Assigned and dispatched to the field is in force.
+  - domain: Workflow Status
+    label: In Transit
+    canon_domain: state
+    canon_value: Active
+    basis: closest-state
+    note: En route is in progress.
+  - domain: Workflow Status
+    label: Delivered
+    canon_domain: state
+    canon_value: Complete
+    basis: closest-state
+    note: Arrived and intake completed is done.
+  - domain: Workflow Status
+    label: Resolved
+    canon_domain: state
+    canon_value: Complete
+    basis: closest-state
+    note: Corrected and verified is done.
+  - domain: Workflow Status
+    label: Staged
+    canon_domain: state
+    canon_value: Ready
+    basis: closest-state
+    note: Positioned in a holding bay with prerequisites met is ready to proceed.
+  - domain: Workflow Status
+    label: Completed
+    canon_domain: state
+    canon_value: Complete
+    basis: closest-state
+    note: Finished completely is Complete.
+  - domain: Workflow Status
+    label: Open
+    canon_domain: state
+    canon_value: Active
+    basis: closest-state
+    note: Active and awaiting expenditure or award is in force.
+  - domain: Workflow Status
+    label: Estimated
+    canon_domain: state
+    canon_value: Quoted
+    basis: closest-state
+    note: A preliminary cost basis is priced but not committed.
+  - domain: Payment Status
+    label: Pending
+    canon_domain: state
+    canon_value: Committed
+    basis: closest-state
+    note: An expense incurred and awaiting its invoice is committed.
+  - domain: Payment Status
+    label: Approved
+    canon_domain: state
+    canon_value: Invoiced
+    basis: closest-state
+    note: "An invoice verified and approved for payment is invoiced, not yet paid."
+  - domain: Payment Status
+    label: Reconciled
+    canon_domain: state
+    canon_value: Paid
+    basis: closest-state
+    note: "Reconciled follows settlement; Paid is the last money state."
+  - domain: Payment Status
+    label: Disputed
+    canon_domain: state
+    canon_value: Blocked
+    basis: closest-state
+    note: Payment held over a discrepancy cannot proceed.
+  - domain: Unit of Measure
+    label: Flat Fee
+    canon_domain: unit
+    canon_value: lump sum
+    basis: closest-value
+    note: A lump sum fee is the canon basis lump sum.
+  - domain: Unit of Measure
+    label: Run / Trip
+    canon_domain: unit
+    canon_value: each
+    basis: closest-value
+    note: One run or trip is counted as each.
+
+# Differences the decision does not cover. They stay as they are and canon:check accepts them only because
+# they are listed here with the owner question that holds them (finding legal/qa/findings/A56-001.md).
+deferred:
+  - sheet: Roles Library
+    key: "2000.50.02"
+    question: RRR-66
+    note: "Bible tab 27 lacks the code. Ruling D12 gives role codes to the Roles Library; whether tab 27 is retired or renumbered is RRR-66."
+  - sheet: Roles Library
+    key: "5000.50.03"
+    question: RRR-66
+    note: "Bible tab 27 lacks the code. Ruling D12 gives role codes to the Roles Library; whether tab 27 is retired or renumbered is RRR-66."
+  - sheet: Roles Library
+    key: "6000.50.03"
+    question: RRR-66
+    note: "Bible tab 27 lacks the code. Ruling D12 gives role codes to the Roles Library; whether tab 27 is retired or renumbered is RRR-66."
+  - sheet: Enumerations
+    key: ENM-071
+    question: RRR-66
+    note: "Unit of Measure Hour: canon states no time unit shorter than a day and no unit dimensions, so no canon unit is close without a quantity conversion. Unit dimensions are an RRR-66 question."
+  - sheet: Enumerations
+    key: ENM-073
+    question: RRR-66
+    note: "Unit of Measure Week: canon states day and year but no week and no unit dimensions, so no canon unit is close without a quantity conversion. Unit dimensions are an RRR-66 question."
+
+# Playbook labels in Production Template columns that land in the domain schema (finding A47-001, the 18
+# targets that waited on this decision). Each names the canon or domain value it maps to. domain is the
+# lifecycle or code list mapped into: an app enum (production_state, work_order_state, asset_state,
+# shift_state), the canon state list (state), or a canon list (record_kind, record_subtype, phase,
+# department, category, counterparty_type, order_type, freight_type).
+template_labels:
+  - domain: production_state
+    label: Active
+    canon_value: Active
+    basis: same-label
+    applies_to: Projects OPERATIONAL STATE
+  - domain: production_state
+    label: Complete
+    canon_value: Complete
+    basis: same-label
+    applies_to: Projects OPERATIONAL STATE
+  - domain: production_state
+    label: Scheduled
+    canon_value: Active
+    basis: closest-state
+    applies_to: Projects OPERATIONAL STATE
+    note: "A scheduled production is dated and accepted, so it is in force; production_state has no Scheduled."
+  - domain: work_order_state
+    label: Completed
+    canon_value: Complete
+    basis: closest-state
+    applies_to: Work Orders STATUS
+  - domain: work_order_state
+    label: In Progress
+    canon_value: In Progress
+    basis: same-label
+    applies_to: Work Orders STATUS
+  - domain: work_order_state
+    label: Scheduled
+    canon_value: Awarded
+    basis: closest-state
+    applies_to: Work Orders STATUS
+    note: "Dated and resourced is awarded to one bid; like In Progress and Complete it needs the awarded bid."
+  - domain: asset_state
+    label: Active
+    canon_value: Available
+    basis: closest-state
+    applies_to: Asset Inventory STATUS
+    note: "An operational unit in the inventory is in service and available; asset_state has no Active."
+  - domain: shift_state
+    label: Confirmed
+    canon_value: Accepted
+    basis: closest-state
+    applies_to: Crew Shifts STATUS
+    note: A confirmed shift is one the worker accepted.
+  - domain: state
+    label: Scheduled
+    canon_value: Scheduled
+    basis: same-label
+    applies_to: Shipping Manifest STATUS
+    note: "Shipments have no lifecycle column and none is added; Scheduled holds while ships_at is set and the freight has not arrived."
+  - domain: state
+    label: Staged
+    canon_value: Ready
+    basis: closest-state
+    applies_to: Marshalling Yard Log STATUS
+    note: "Log entries have no lifecycle column and none is added; a staged vehicle has checked in (gate_queue.arrived_at) and is not released."
+  - domain: state
+    label: Open
+    canon_value: Active
+    basis: closest-state
+    applies_to: Budget Expenses STATUS
+    note: Budget lines have no lifecycle column and none is added.
+  - domain: state
+    label: Estimated
+    canon_value: Quoted
+    basis: closest-state
+    applies_to: Budget Expenses STATUS
+    note: Budget lines have no lifecycle column and none is added.
+  - domain: counterparty_type
+    label: Landlord
+    canon_value: Facilities Services
+    basis: closest-value
+    applies_to: "Budget Expenses VENDOR; Vendor Directory COUNTERPARTY TYPE"
+    note: Landlord is not a canon counterparty type (see playbook_only_rows).
+  - domain: order_type
+    label: Scope Addition
+    canon_value: Scope Expansion
+    basis: closest-value
+    applies_to: Change Orders CHANGE ORDER TYPE
+    note: "Same meaning; the Standard Library's code is ORD_SCOPE_ADD."
+  - domain: order_type
+    label: Material Upgrade
+    canon_value: Equipment Substitution
+    basis: closest-value
+    applies_to: Change Orders CHANGE ORDER TYPE
+    note: An upgraded material or model replaces the specified one.
+  - domain: freight_type
+    label: Ground Freight
+    canon_value: Full Truckload
+    basis: closest-value
+    applies_to: Shipping Manifest FREIGHT TYPE
+    note: Every Ground Freight row is a dedicated truck (53ft semi or 26ft box truck).
+  - domain: record_kind
+    label: Summary Activity
+    canon_value: Timeline
+    basis: closest-value
+    applies_to: Production Schedule ACTIVITY TYPE
+    note: A window that child rows roll up into.
+  - domain: record_kind
+    label: Milestone Gate
+    canon_value: Milestone
+    basis: closest-value
+    applies_to: Production Schedule ACTIVITY TYPE
+    note: A zero-duration marker that a gate's condition is true.
+  - domain: record_subtype
+    label: AVL Installation
+    canon_value: Build · Systems
+    basis: closest-value
+    applies_to: Work Orders WORK ORDER TYPE
+  - domain: record_subtype
+    label: Facility Setup
+    canon_value: Build · Structural
+    basis: closest-value
+    applies_to: Work Orders WORK ORDER TYPE
+  - domain: record_subtype
+    label: Network Deployment
+    canon_value: Build · Systems
+    basis: closest-value
+    applies_to: Work Orders WORK ORDER TYPE
+  - domain: record_subtype
+    label: Security Commissioning
+    canon_value: Build · Commissioning
+    basis: closest-value
+    applies_to: Work Orders WORK ORDER TYPE
+  - domain: record_subtype
+    label: Rigging & Focus
+    canon_value: Build · Systems
+    basis: closest-value
+    applies_to: Work Orders WORK ORDER TYPE
+  - domain: phase
+    label: Pre-Production
+    canon_value: ADV
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+    note: Reconciling what the production needs before procurement is Advance.
+  - domain: phase
+    label: Creative Conception
+    canon_value: SCP
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+    note: Concept development is part of Scope.
+  - domain: phase
+    label: Site Build & Load-In
+    canon_value: INS
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+    note: "On-site load-in and install is Install; Build is off-site fabrication."
+  - domain: phase
+    label: Site Power Install
+    canon_value: INS
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+  - domain: phase
+    label: Venue Operations
+    canon_value: OPR
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+  - domain: phase
+    label: Security Grid Deployment
+    canon_value: INS
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+  - domain: phase
+    label: Stage Deck Execution
+    canon_value: INS
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+  - domain: phase
+    label: FOH Sound Tuning & Show
+    canon_value: OPR
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+    note: "Ends in the show, which runs in Operate."
+  - domain: phase
+    label: Lighting Rig & Show Cues
+    canon_value: OPR
+    basis: closest-value
+    applies_to: Staffing Requisition EVENT PHASE
+    note: Show cues run in Operate.
+  - domain: department
+    label: Site Operations
+    canon_value: "6000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Guest Experience
+    canon_value: "7000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Technical Production
+    canon_value: "5000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Stage Operations
+    canon_value: "5000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Logistics / Site Ops
+    canon_value: "6000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Catering & Hospitality
+    canon_value: "8000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Security
+    canon_value: "6000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Medical
+    canon_value: "6000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Food & Beverage
+    canon_value: "8000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: department
+    label: Transportation
+    canon_value: "6000"
+    basis: closest-value
+    applies_to: Locations DEPARTMENT
+  - domain: category
+    label: Stage
+    canon_value: "5000.04.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Stage Infrastructure.
+  - domain: category
+    label: Gates
+    canon_value: "7000.01.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Guest Experience & Journey.
+  - domain: category
+    label: Production Office
+    canon_value: "6000.08.02"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Office & Production.
+  - domain: category
+    label: Back of House
+    canon_value: "5000.04.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Stage Infrastructure (stage left and right wings).
+  - domain: category
+    label: Loading Dock
+    canon_value: "6000.02.07"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Trucks & Transport.
+  - domain: category
+    label: Hospitality
+    canon_value: "8000.04.03"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Artist Hospitality (artist village).
+  - domain: category
+    label: Power Compound
+    canon_value: "5000.06.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Power & Electrical.
+  - domain: category
+    label: Perimeter
+    canon_value: "6000.04.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Security & Access Control.
+  - domain: category
+    label: Health & Safety
+    canon_value: "6000.05.02"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Medical (first aid tents).
+  - domain: category
+    label: Sanitation
+    canon_value: "6000.06.02"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Portable Facilities.
+  - domain: category
+    label: Concessions
+    canon_value: "8000.03.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Concessions & Carts.
+  - domain: category
+    label: Front of House
+    canon_value: "5000.09.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Show Control & Playback (the FOH control position).
+  - domain: category
+    label: Storage
+    canon_value: "6000.06.02"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Portable Facilities (container compound).
+  - domain: category
+    label: VIP
+    canon_value: "8000.04.02"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: VIP & Lounge.
+  - domain: category
+    label: Command
+    canon_value: "6000.04.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Security & Access Control (joint operations center).
+  - domain: category
+    label: Parking
+    canon_value: "6000.02.04"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Ground Transport.
+  - domain: category
+    label: Shuttle
+    canon_value: "6000.02.04"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Ground Transport.
+  - domain: category
+    label: Catering
+    canon_value: "8000.01.02"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Artist & Crew Catering (crew commissary).
+  - domain: category
+    label: Broadcast
+    canon_value: "5000.08.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Cameras & Capture.
+  - domain: category
+    label: Lost & Found
+    canon_value: "7000.50.03"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Guest services.
+  - domain: category
+    label: Fueling
+    canon_value: "5000.06.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Power & Electrical (generator fuel).
+  - domain: category
+    label: K-9
+    canon_value: "6000.04.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Security & Access Control.
+  - domain: category
+    label: ADA
+    canon_value: "7000.01.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Guest Experience & Journey (accessible viewing).
+  - domain: category
+    label: Water
+    canon_value: "6000.06.04"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Water & Plumbing (hydration stations).
+  - domain: category
+    label: Heavy Equipment
+    canon_value: "6000.02.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Forklifts & Loaders.
+  - domain: category
+    label: Dressing Rooms
+    canon_value: "8000.04.03"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: Artist Hospitality.
+  - domain: category
+    label: Venue
+    canon_value: "6000.50.01"
+    basis: closest-value
+    applies_to: Locations CATEGORY
+    note: House management (the venue property).

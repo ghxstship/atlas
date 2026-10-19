@@ -70,7 +70,7 @@ describe("help and globals", () => {
   it("prints help and version", async () => {
     expect((await xos(["--help"])).out).toBe(HELP);
     expect((await xos([])).out).toBe(HELP);
-    expect((await xos(["--version"])).out).toMatch(/^xos 0\.0\.0 \(API /);
+    expect((await xos(["--version"])).out).toMatch(/^xos 4\.0\.0 \(API /);
   });
 
   it("parses global flags anywhere", () => {

@@ -65,7 +65,7 @@ select is((select count(*)::int from app.domain_events where event_type = 'work_
 select pg_temp.as_user('dave');
 select lives_ok($$select app.transition_work_order((select id from world where key = 'wo1'), 'Draft', 'Open', 'Bids invited.')$$, 'Draft to Open');
 select throws_ok($$select app.transition_work_order((select id from world where key = 'wo1'), 'Open', 'Awarded', 'Picked.')$$, 'XR001', null, 'Awarded is reached only through the award RPC');
-select throws_ok($$select app.transition_work_order((select id from world where key = 'wo1'), 'Open', 'Complete', 'Done.')$$, 'XR001', null, 'Open cannot jump to Complete');
+select throws_ok($$select app.transition_work_order((select id from world where key = 'wo1'), 'Open', 'Complete', 'Done.')$$, 'XR001', 'work_order_transition_not_allowed: A work order cannot move from Open to Complete.', 'Open cannot jump to Complete');
 select throws_ok($$select app.transition_work_order((select id from world where key = 'wo1'), 'Draft', 'Open', 'Again.')$$, 'XR001', null, 'the expected state must match');
 select throws_ok($$update app.work_orders set awarded_bid_id = (select id from world where key = 'bid_priced') where id = (select id from world where key = 'wo1')$$, 'XR001', null, 'the award is set only through the award RPC');
 

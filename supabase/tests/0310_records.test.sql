@@ -131,7 +131,7 @@ select lives_ok($$select app.transition_record((select id from world where key =
 select lives_ok($$select app.transition_record((select id from world where key = 'task1'), 'In Review', 'Active', 'Rework needed.')$$, 'In Review back to Active');
 select lives_ok($$select app.transition_record((select id from world where key = 'task1'), 'Active', 'Deferred', 'Moved.', null, 'Moved to the second weekend.')$$, 'Active to Deferred with a reason');
 select lives_ok($$select app.transition_record((select id from world where key = 'task1'), 'Deferred', 'Canceled', 'Dropped from scope.')$$, 'Deferred to Canceled');
-select throws_ok($$select app.transition_record((select id from world where key = 'task1'), 'Canceled', 'Active', 'Revive.')$$, 'XR001', null, 'Canceled is terminal');
+select throws_ok($$select app.transition_record((select id from world where key = 'task1'), 'Canceled', 'Active', 'Revive.')$$, 'XR001', 'record_transition_not_allowed: A record cannot move from Canceled to Active.', 'Canceled is terminal');
 select throws_ok($$select app.transition_record((select id from world where key = 'task2'), 'Active', 'Complete', 'Stale.')$$, 'XR001', null, 'a stale expected state is refused (compare-and-set)');
 select is((select count(*)::int from app.record_state_transitions where record_id = pg_temp.id('task1')), 8, 'the ledger holds the creation entry and seven moves');
 select is((select count(*)::int from app.record_replans where record_id = pg_temp.id('task1')), 7, 'every state change from Scheduled onward is also a logged replan');
@@ -169,7 +169,7 @@ select pg_temp.as_user('dave');
 insert into world values ('appr1', pg_temp.new_record('prj_a', 'Approval', 'Lighting Plot'));
 insert into app.record_approval (record_id, subject_record_id, requester_person_id) values (pg_temp.id('appr1'), pg_temp.id('task3'), pg_temp.id('dave'));
 select throws_ok($$update app.record_approval set decision = 'Approved' where record_id = (select id from world where key = 'appr1')$$,
-  'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'the requester cannot approve (invariant 18)');
+  'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'inv_18_eligible_approver: the requester cannot approve (invariant 18)');
 select pg_temp.as_user('alice');
 select lives_ok($$update app.record_approval set decision = 'Approved' where record_id = (select id from world where key = 'appr1')$$, 'another eligible person approves');
 select is((select approver_person_id from app.record_approval where record_id = pg_temp.id('appr1')), pg_temp.id('alice'), 'the approver is the session person');

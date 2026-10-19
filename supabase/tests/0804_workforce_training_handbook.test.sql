@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(37);
+select plan(38);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -41,6 +41,8 @@ select throws_ok($$insert into app.training_quiz_keys (training_quiz_question_id
   'a key names one of the options');
 insert into app.training_quiz_keys (training_quiz_question_id, correct_option) values ((select id from k where key = 'q2'), 2);
 select lives_ok($$select app.publish_training_course((select id from k where key = 'course'))$$, 'a complete course is published');
+select throws_ok($$select app.publish_training_course((select id from k where key = 'course'))$$,
+  'XR001', 'training_course_state_conflict: The training course is not in the expected state Draft.', 'a published course is not published again');
 select throws_ok($$update app.training_lessons set title = 'Changed' where id = (select id from k where key = 'reading')$$, 'XR001', null,
   'lessons change only while the course is a draft');
 

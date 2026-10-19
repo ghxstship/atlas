@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(41);
+select plan(42);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -113,6 +113,8 @@ select throws_ok($$select app.claim_lost_item((select id from k where key = 'ite
 select throws_ok($$select app.settle_lost_item_claim((select id from k where key = 'claim'), true)$$, '42501', null, 'field staff cannot settle claims');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.settle_lost_item_claim((select id from k where key = 'claim'), true, 'ID matched.')$$, 'a manager returns the item');
+select throws_ok($$select app.dispose_lost_item((select id from k where key = 'item'), 'Unclaimed.')$$,
+  'XR001', 'lost_item_state_conflict: The lost item is not in the expected state Logged.', 'a returned item cannot be disposed of');
 select is((select item_state::text from app.lost_found_items where id = (select id from k where key = 'item')), 'Returned', 'the item is returned');
 
 select pg_temp.as_platform();

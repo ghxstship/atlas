@@ -24,6 +24,11 @@ import {
   auroraResources,
 } from "./parts/aurora.ts";
 import {
+  a52SettingsActions,
+  a52SettingsCapabilities,
+  a52SettingsCorrections,
+} from "./parts/a52-settings.ts";
+import {
   integrationActions,
   integrationCapabilities,
   integrationCorrections,
@@ -94,8 +99,8 @@ const WebhookEndpointSecret = z
 export const additions = defineAdditions("Settings", {
   // Aurora AI (A25): see ./parts/aurora.ts.
   resources: [...auroraResources],
-  actions: { aiSettings: aiSettingsActions, ...integrationActions },
-  capabilities: { ...auroraCapabilities, ...integrationCapabilities },
+  actions: { aiSettings: aiSettingsActions, ...integrationActions, ...a52SettingsActions },
+  capabilities: { ...auroraCapabilities, ...integrationCapabilities, ...a52SettingsCapabilities },
   corrections: [
     ...auroraCorrections,
     {
@@ -967,26 +972,7 @@ export const additions = defineAdditions("Settings", {
         setCapabilities({ read: "org.organization.delete", create: "org.organization.delete" }),
       ),
     },
-    {
-      id: "settings-features-not-built",
-      since: "1.0.0-draft.2",
-      resources: [
-        "orgLegalEntities",
-        "orgIpAllowlistEntries",
-        "accessReviewCampaigns",
-        "accessReviewItems",
-        "breakGlassSessions",
-        "projectShares",
-      ],
-      change:
-        "Removes every operation of orgLegalEntities, orgIpAllowlistEntries, accessReviewCampaigns, accessReviewItems, breakGlassSessions and projectShares.",
-      reason:
-        "None of these has a table or a behavior behind it: app.org_legal_entities, app.org_ip_allowlist, app.access_review_campaigns, app.access_review_items, app.break_glass_sessions and app.project_shares were never built, and only setting definitions exist (org.fiscal_year_start_month, org.base_currency, security.ip_allowlist, access_reviews.*, 0851). Sections 4.5 and 8.4 give them enforcement (the allow-list refusing other addresses, break-glass needing MFA, a one-hour limit and an Admin notice, reviews removing unreviewed access, shares opening a project to a partner). A table without that enforcement would report protection that does not exist, so the operations leave v1 until each feature is built and return additively then. Decided in ADR 0032.",
-      apply: (spec) =>
-        removeVerbs(...spec.verbs)({
-          ...spec,
-          actions: [],
-        }),
-    },
+    // A52 (RRR-97, ADR 0032 amendment): the retired settings features are built; see ./parts/a52-settings.ts.
+    ...a52SettingsCorrections,
   ],
 });

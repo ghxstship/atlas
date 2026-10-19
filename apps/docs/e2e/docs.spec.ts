@@ -29,6 +29,7 @@ const PAGES = [
   { path: "/en-US/guides/self-hosting", heading: "Self-hosting" },
   { path: "/en-US/reference", heading: "API reference" },
   { path: "/en-US/reference/projects", heading: "projects" },
+  { path: "/en-US/reference/projects/list", heading: "List project rows" },
   { path: "/en-US/help", heading: "Help center" },
   { path: "/en-US/help/gates", heading: "Gates" },
   { path: "/en-US/help?q=gate", heading: "Help center" },
@@ -36,6 +37,7 @@ const PAGES = [
   { path: "/es-US", heading: "Desarrolla sobre XOS" },
   { path: "/es-US/guides/errors", heading: "Errores y rechazos" },
   { path: "/es-US/reference/purchase-orders", heading: "purchaseOrders" },
+  { path: "/es-US/reference/purchase-orders/create", heading: "Create a purchase order" },
   { path: "/en-US/does-not-exist", heading: "This page does not exist" },
 ];
 

@@ -18,7 +18,7 @@ import type { Io } from "./io.ts";
 import { EXIT, UsageError } from "./io.ts";
 import { outputFormat } from "./output.ts";
 
-export const CLI_VERSION = "0.0.0";
+export const CLI_VERSION = "4.0.0";
 
 export const HELP = `xos: command line for the XOS public API (v${API_VERSION})
 

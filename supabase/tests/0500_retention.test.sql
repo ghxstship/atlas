@@ -22,7 +22,7 @@ select is(
   '', 'every retention policy names an existing table');
 select is(
   (select retention from private.retention_policies where table_name = 'app.audit_events'), interval '7 years',
-  'the audit ledger is kept 7 years');
+  'inv_23_audit_retention: the audit ledger is kept 7 years');
 select is(
   (select redact_personal_data_after from private.retention_policies where table_name = 'app.audit_events'), interval '90 days',
   'audit personal data is redacted at 90 days');
@@ -151,7 +151,7 @@ select ok(to_regclass(private.partition_name('app.audit_events', date_trunc('mon
 select is(
   private.redact_personal_data('{"email": "a@b.test", "count": 3, "nested": {"list": [{"full_name": "Ana Ruiz"}, "call +1 305 555 0100"]}, "note_ok": "Load-in at 08:00"}'::jsonb),
   '{"email": "[redacted]", "count": 3, "nested": {"list": [{"full_name": "[redacted]"}, "call [redacted]"]}, "note_ok": "Load-in at 08:00"}'::jsonb,
-  'personal data is redacted at every depth and other values are kept');
+  'inv_23_audit_retention: personal data is redacted at every depth and other values are kept');
 select is(
   private.redact_personal_data('{"a": {"b": {"c": {"d": "write to ana@harbor.test today"}}}, "when": "2026-10-14"}'::jsonb),
   '{"a": {"b": {"c": {"d": "write to [redacted] today"}}}, "when": "2026-10-14"}'::jsonb,
@@ -168,15 +168,15 @@ alter table app.audit_events enable trigger t90_stamp_audit_columns;
 select ok(private.redact_audit_events() >= 1, 'the redaction job redacts aged audit events');
 select is((select diff from app.audit_events where action = 'test.aged'),
   '{"new": {"name": "Riggers", "lead": {"email": "[redacted]", "phones": ["[redacted]"]}}}'::jsonb,
-  'aged audit diffs lose personal data at every depth');
+  'inv_23_audit_retention: aged audit diffs lose personal data at every depth');
 select ok((select actor_ip is null and user_agent is null and redacted_at is not null from app.audit_events where action = 'test.aged'),
   'aged audit events lose IP and user agent and record the redaction');
 select is((select diff ->> 'new' from app.audit_events where action = 'test.fresh'), '{"email": "fresh@northwind.test"}',
-  'audit events younger than 90 days keep their diff');
+  'inv_23_audit_retention: audit events younger than 90 days keep their diff');
 select throws_ok($$update app.audit_events set diff = '{}' where action = 'test.fresh'$$, 'XR001', null,
-  'the audit ledger refuses updates outside redaction');
+  'inv_23_audit_retention: the audit ledger refuses updates outside redaction');
 select throws_ok($$delete from app.audit_events where action = 'test.fresh'$$, 'XR001', null,
-  'the audit ledger refuses deletes');
+  'inv_23_audit_retention: the audit ledger refuses deletes');
 
 select * from finish();
 rollback;

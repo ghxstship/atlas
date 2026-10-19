@@ -30,6 +30,8 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
 
 /** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
 const NOT_FOUND_PATH = "/auth/not-found";
+/** Where a member whose network an org's IP allow-list refuses is sent. */
+const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = env();
@@ -75,6 +77,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const user = data.user;
 
   let personId: string | null | undefined;
+  const network: { restrictedOrg: string | null } = { restrictedOrg: null };
   const decision = await decideRoute(sitemap, {
     path: request.nextUrl.pathname,
     search: request.nextUrl.search,
@@ -86,7 +89,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         personId = person.ok ? person.data.id : null;
       }
       if (personId === null) return null;
-      const membership = await resolveMembership(db, personId, slug, request.headers);
+      const membership = await resolveMembership(db, personId, slug, request.headers, () => {
+        network.restrictedOrg = slug;
+      });
       if (!membership) return null;
       // View as role (A36): a preview guards routes as the previewed role, as pages do.
       const previewed = await applyViewAs(
@@ -102,6 +107,18 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     const redirect = NextResponse.redirect(new URL(decision.to, request.url));
     for (const cookie of response().cookies.getAll()) redirect.cookies.set(cookie);
     return secure(redirect);
+  }
+  if (decision.kind === "not-found" && network.restrictedOrg !== null) {
+    // The org's IP allow-list refused this network (migration 1201): say so, and let an Owner take
+    // emergency access, instead of a 404.
+    const restricted = NextResponse.redirect(
+      new URL(
+        `${NETWORK_RESTRICTED_PATH}?org=${encodeURIComponent(network.restrictedOrg)}`,
+        request.url,
+      ),
+    );
+    for (const cookie of response().cookies.getAll()) restricted.cookies.set(cookie);
+    return secure(restricted);
   }
   if (decision.kind === "not-found") {
     const rewrite = NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url), {

@@ -407,3 +407,25 @@ export function loadReference(file: string = DOCUMENT_FILE): Reference {
 export function findResource(slug: string): ResourceDoc | undefined {
   return loadReference().resources.find((r) => r.slug === slug);
 }
+
+/** The URL segment of an operation within its resource: the verb in kebab case (`listAll` is `list-all`). */
+export function operationSlug(op: Pick<OperationDoc, "verb">): string {
+  return kebab(op.verb);
+}
+
+/** Every operation page: one per operation in the document, under its resource. */
+export function operationPages(): { resource: string; operation: string }[] {
+  return loadReference().resources.flatMap((r) =>
+    r.operations.map((op) => ({ resource: r.slug, operation: operationSlug(op) })),
+  );
+}
+
+/** The resource and operation a page path names, if both exist. */
+export function findOperation(
+  resourceSlug: string,
+  slug: string,
+): { resource: ResourceDoc; operation: OperationDoc } | undefined {
+  const resource = findResource(resourceSlug);
+  const operation = resource?.operations.find((op) => operationSlug(op) === slug);
+  return resource && operation ? { resource, operation } : undefined;
+}

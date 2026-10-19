@@ -9,12 +9,12 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(78);
+select plan(82);
 
 -- Shifts (invariant 20) ------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
 select throws_ok($$insert into app.shifts (project_id, membership_id, starts_at, ends_at, time_zone) values ((select id from world where key = 'prj_a'), (select id from world where key = 'frank@org_a'), '2027-06-01 16:00+00', '2027-06-01 08:00+00', 'America/New_York')$$,
-  '23514', null, 'a shift cannot end before it starts (invariant 20)');
+  '23514', null, 'inv_20_time_overlap: a shift cannot end before it starts (invariant 20)');
 with x as (insert into app.shifts (project_id, membership_id, role_code, starts_at, ends_at, time_zone)
   values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '0000.50.01', '2027-06-01 08:00+00', '2027-06-01 16:00+00', 'America/New_York') returning id)
   insert into world select 'shift_f', id from x;
@@ -46,14 +46,16 @@ select is((select count(*)::int from app.shift_swaps), 1, 'the proposed person s
 select is((select count(*)::int from app.projects), 0, 'but not the project before taking the shift');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_shift_swap((select id from world where key = 'swap1'), 'Approved', 'Covered.')$$, 'a Manager approves the swap');
+select throws_ok($$select app.decide_shift_swap((select id from world where key = 'swap1'), 'Rejected', 'Late.')$$,
+  'XR001', 'swap_state_conflict: The swap is not in the expected state Proposed.', 'a decided swap takes no second decision');
 select is((select membership_id from app.shifts where id = pg_temp.id('shift_f')), pg_temp.id('mia@org_a'), 'the shift is reassigned');
 select pg_temp.as_user('mia');
-select is((select array_agg(id) from app.projects), array[pg_temp.id('prj_a')], 'crew assigned to a shift read its project header (invariant 2)');
+select is((select array_agg(id) from app.projects), array[pg_temp.id('prj_a')], 'inv_02_project_read_scope: crew assigned to a shift read its project header (invariant 2)');
 select pg_temp.as_user('carol');
 with x as (insert into app.shift_swaps (shift_id, requested_by_membership_id, proposed_membership_id)
   values (pg_temp.id('shift_c'), pg_temp.id('carol@org_a'), pg_temp.id('dave@org_a')) returning id) insert into world select 'swap2', id from x;
 select throws_ok($$select app.decide_shift_swap((select id from world where key = 'swap2'), 'Approved', 'Self.')$$,
-  'XR001', 'sod_swap_requester: A crew member cannot approve their own swap.', 'a crew member cannot approve their own swap');
+  'XR001', 'sod_swap_requester: A crew member cannot approve their own swap.', 'inv_18_eligible_approver: a crew member cannot approve their own swap');
 select throws_ok($$insert into app.shift_swaps (shift_id, requested_by_membership_id, proposed_membership_id) values ((select id from world where key = 'shift_f'), (select id from world where key = 'carol@org_a'), (select id from world where key = 'dave@org_a'))$$,
   'XR001', null, 'only the person on the shift asks to swap it');
 select lives_ok($$select app.cancel_shift_swap((select id from world where key = 'swap2'), 'Withdrawn.')$$, 'the requester cancels');
@@ -67,7 +69,7 @@ with x as (insert into app.time_entries (project_id, membership_id, clock_in, cl
 with x as (insert into app.time_entries (project_id, membership_id, clock_in, clock_out, break_minutes) values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '2027-06-01 12:30+00', '2027-06-01 16:30+00', 30) returning id)
   insert into world select 'te2', id from x;
 select throws_ok($$insert into app.time_entries (project_id, membership_id, clock_in, clock_out) values ((select id from world where key = 'prj_a'), (select id from world where key = 'frank@org_a'), '2027-06-01 11:00+00', '2027-06-01 13:00+00')$$,
-  'XR001', 'time_entry_overlap: Time entries of one person cannot overlap.', 'time entries of one person cannot overlap (invariant 20)');
+  'XR001', 'time_entry_overlap: Time entries of one person cannot overlap.', 'inv_20_time_overlap: time entries of one person cannot overlap (invariant 20)');
 select throws_ok($$insert into app.time_entries (project_id, membership_id, clock_in) values ((select id from world where key = 'prj_a'), (select id from world where key = 'frank@org_a'), '2027-06-01 15:00+00')$$,
   'XR001', null, 'an open entry overlapping a closed one is refused');
 select throws_ok($$insert into app.time_entries (project_id, membership_id, clock_in, clock_out) values ((select id from world where key = 'prj_a'), (select id from world where key = 'frank@org_a'), '2027-06-02 12:00+00', '2027-06-02 08:00+00')$$,
@@ -96,7 +98,7 @@ select is((select approved_minutes from app.timesheet_approvals where timesheet_
 select pg_temp.as_user('frank');
 update app.time_entries set clock_out = '2027-06-01 17:00+00' where id = pg_temp.id('te2');
 select pg_temp.as_platform();
-select is((select timesheet_state::text from app.timesheets where id = pg_temp.id('ts1')), 'Proposed', 'changing the hours voids the approval (invariant 19)');
+select is((select timesheet_state::text from app.timesheets where id = pg_temp.id('ts1')), 'Proposed', 'inv_19_timesheet_void: changing the hours voids the approval (invariant 19)');
 select isnt((select voided_at from app.timesheet_approvals where timesheet_id = pg_temp.id('ts1')), null, 'the approval is marked voided');
 select is((select count(*)::int from app.domain_events where event_type = 'timesheet.approval_voided' and subject_id = pg_temp.id('ts1')), 1, 'timesheet.approval_voided was emitted');
 select is((select count(*)::int from app.time_entry_audit where time_entry_id = pg_temp.id('te2')), 2, 'the change is audited');
@@ -107,11 +109,13 @@ with x as (insert into app.timesheets (project_id, membership_id, period_start, 
   insert into world select 'ts_c', id from x;
 select app.submit_timesheet(pg_temp.id('ts_c'));
 select throws_ok($$select app.decide_timesheet((select id from world where key = 'ts_c'), 'Approved', 'Self.')$$,
-  'XR001', 'sod_timesheet_submitter: The submitter of a timesheet cannot approve it.', 'the submitter cannot approve their timesheet (invariant 18)');
+  'XR001', 'sod_timesheet_submitter: The submitter of a timesheet cannot approve it.', 'inv_18_eligible_approver: the submitter cannot approve their timesheet (invariant 18)');
 select pg_temp.as_user('frank');
 select app.submit_timesheet(pg_temp.id('ts1'), 'Resubmitted after correction.');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_timesheet((select id from world where key = 'ts1'), 'Rejected', 'Overtime not authorized.')$$, 'Submitted to Rejected');
+select throws_ok($$select app.decide_timesheet((select id from world where key = 'ts1'), 'Approved', 'Changed my mind.')$$,
+  'XR001', 'timesheet_state_conflict: The timesheet is not in the expected state Submitted.', 'a Rejected timesheet is not decided again until resubmitted');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'timesheet'), 6, 'the timesheet lifecycle declares six moves');
 select pg_temp.as_platform();
 
@@ -122,6 +126,8 @@ with x as (insert into app.time_entry_corrections (time_entry_id, proposed_clock
 select throws_ok($$select app.decide_time_entry_correction((select id from world where key = 'corr'), 'Approved', 'Mine.')$$, '42501', null, 'a Field member cannot approve corrections');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_time_entry_correction((select id from world where key = 'corr'), 'Approved', 'Truck log agrees.')$$, 'a Manager approves the correction');
+select throws_ok($$select app.decide_time_entry_correction((select id from world where key = 'corr'), 'Rejected', 'Second look.')$$,
+  'XR001', 'correction_state_conflict: The correction is not in the expected state Proposed.', 'a decided correction takes no second decision');
 select is((select clock_in from app.time_entries where id = pg_temp.id('te1')), '2027-06-01 07:30+00'::timestamptz, 'the entry is rewritten');
 select is((select count(*)::int from app.time_entry_audit where time_entry_id = pg_temp.id('te1')), 2, 'and the rewrite is audited');
 select throws_ok($$update app.time_entry_corrections set reason = 'Edited.' where id = (select id from world where key = 'corr')$$, 'XR001', null, 'a decided correction is not edited');
@@ -134,13 +140,13 @@ grant select on kiosk_key to public;
 select lives_ok($$select app.set_kiosk_pin((select id from world where key = 'frank@org_a'), '4821')$$, 'an Admin sets a member''s kiosk PIN');
 select throws_ok($$select app.set_kiosk_pin((select id from world where key = 'frank@org_a'), '12')$$, 'XR001', null, 'a PIN is 4 to 8 digits');
 select throws_ok($$select device_key_hash from app.kiosk_devices$$, '42501', null, 'the device key hash is never selectable');
-select throws_ok($$select pin_hash from app.kiosk_pins$$, '42501', null, 'the PIN hash is never selectable');
+select throws_ok($$select pin_hash from app.kiosk_pins$$, '42501', null, 'inv_08_token_rpcs_hashed_secrets: the PIN hash is never selectable');
 select pg_temp.as_platform();
-select ok((select pin_hash <> '4821' and pin_hash like '$2%' from app.kiosk_pins where membership_id = pg_temp.id('frank@org_a') and deleted_at is null), 'the PIN is stored as a bcrypt hash');
+select ok((select pin_hash <> '4821' and pin_hash like '$2%' from app.kiosk_pins where membership_id = pg_temp.id('frank@org_a') and deleted_at is null), 'inv_08_token_rpcs_hashed_secrets: the PIN is stored as a bcrypt hash');
 select is(private.verify_kiosk_pin((select device_key from kiosk_key), pg_temp.id('frank@org_a'), '4821'), true, 'the right PIN on a live kiosk verifies');
 select is(private.verify_kiosk_pin('xkio_wrong', pg_temp.id('frank@org_a'), '4821'), false, 'an unknown device key does not');
 select is((select count(*)::int from (select private.verify_kiosk_pin((select device_key from kiosk_key), pg_temp.id('frank@org_a'), '0000') from generate_series(1, 5)) s), 5, 'five wrong PINs');
-select is(private.verify_kiosk_pin((select device_key from kiosk_key), pg_temp.id('frank@org_a'), '4821'), false, 'lock the PIN even for the right PIN afterwards');
+select is(private.verify_kiosk_pin((select device_key from kiosk_key), pg_temp.id('frank@org_a'), '4821'), false, 'inv_08_token_rpcs_hashed_secrets: lock the PIN even for the right PIN afterwards');
 
 -- Rates (Restricted, Section 8.3) --------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -172,7 +178,7 @@ select pg_temp.as_user('bob');
 with x as (insert into app.earning_codes (org_id, code, name) values (pg_temp.id('org_a'), 'REG', 'Regular') returning id) insert into world select 'ec', id from x;
 select pg_temp.as_user('carol');
 select throws_ok($$select app.transition_payroll_run((select id from world where key = 'run'), 'Draft', 'Accepted', 'Skip.')$$,
-  'XR001', 'payroll_run_transition_not_allowed: A payroll run cannot move from Draft to Accepted.', 'a Draft run cannot jump to Accepted (invariant 15)');
+  'XR001', 'payroll_run_transition_not_allowed: A payroll run cannot move from Draft to Accepted.', 'inv_15_payroll_no_jump: a Draft run cannot jump to Accepted (invariant 15)');
 select lives_ok($$select app.transition_payroll_run((select id from world where key = 'run'), 'Draft', 'Calculated', 'Calculated.')$$, 'Draft to Calculated');
 select throws_ok($$select app.approve_payroll_run((select id from world where key = 'run'), 'Self.')$$,
   'XR001', 'sod_approval_requester: An approval is decided by an eligible approver, never the requester.', 'the run''s creator cannot approve it');
@@ -189,7 +195,7 @@ select lives_ok($$select app.transition_payroll_run((select id from world where 
 select lives_ok($$select app.transition_payroll_run((select id from world where key = 'run'), 'Exported', 'Accepted', 'Provider accepted.')$$, 'Exported to Accepted');
 select lives_ok($$select app.transition_pay_period((select id from world where key = 'pp'), 'Closed', 'Posted', 'Posted.')$$, 'Closed to Posted');
 select throws_ok($$select app.transition_pay_period((select id from world where key = 'pp'), 'Posted', 'Open', 'Reopen.')$$,
-  'XR001', 'pay_period_transition_not_allowed: A pay period cannot move from Posted to Open.', 'a posted pay period cannot reopen (invariant 14)');
+  'XR001', 'pay_period_transition_not_allowed: A pay period cannot move from Posted to Open.', 'inv_14_pay_period_no_reopen: a posted pay period cannot reopen (invariant 14)');
 select throws_ok($$insert into app.payroll_runs (pay_period_id, currency_code) values ((select id from world where key = 'pp'), 'USD')$$, 'XR001', null, 'a posted period takes no new runs');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'payroll_run'), 9, 'the payroll run lifecycle declares nine moves');
 select pg_temp.as_platform();
@@ -203,6 +209,8 @@ with x as (insert into app.time_off_requests (time_off_policy_id, membership_id,
 select throws_ok($$select app.decide_time_off((select id from world where key = 'to1'), 'Approved', 'Mine.')$$, '42501', null, 'a Field member cannot approve time off');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.decide_time_off((select id from world where key = 'to1'), 'Approved', 'Covered.')$$, 'a Manager approves time off');
+select throws_ok($$select app.cancel_time_off((select id from world where key = 'to1'), 'Rejected', 'Wrong state.')$$,
+  'XR001', 'time_off_transition_not_allowed: A time off cannot move from Rejected to Canceled.', 'Rejected time off has no move to Canceled');
 with x as (insert into app.time_off_requests (time_off_policy_id, membership_id, starts_on, ends_on, hours) values (pg_temp.id('pto'), pg_temp.id('carol@org_a'), '2027-07-05', '2027-07-05', 8) returning id)
   insert into world select 'to2', id from x;
 select throws_ok($$select app.decide_time_off((select id from world where key = 'to2'), 'Approved', 'Self.')$$,

@@ -9,6 +9,7 @@ import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, setTable } from "../correct.ts";
+import { placesFieldHomes } from "./parts/playbook-field-homes.ts";
 
 const SINCE = "1.0.0-draft.2";
 
@@ -222,5 +223,6 @@ export const additions = defineAdditions("Places", {
         },
       }),
     },
+    ...placesFieldHomes,
   ],
 });

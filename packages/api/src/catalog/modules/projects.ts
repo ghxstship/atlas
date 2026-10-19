@@ -7,6 +7,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions, removeVerbs } from "../correct.ts";
 import { itemAction } from "../define.ts";
+import { projectsFieldHomes } from "./parts/playbook-field-homes.ts";
 
 const EVIDENCE_URI = fields.text(
   "Where the evidence lives: a document or record URI.",
@@ -131,5 +132,6 @@ export const additions = defineAdditions("Projects", {
         removeVerbs("update"),
       ),
     },
+    ...projectsFieldHomes,
   ],
 });

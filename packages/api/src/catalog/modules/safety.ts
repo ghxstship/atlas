@@ -6,10 +6,11 @@
  */
 import { defineAdditions } from "../additions.ts";
 import { incidentCorrections } from "./parts/safety-incidents.ts";
+import { safetyFieldHomes } from "./parts/playbook-field-homes.ts";
 import { permitActions, permitCapabilities, permitCorrections } from "./parts/safety-permits.ts";
 
 export const additions = defineAdditions("Safety", {
-  corrections: [...permitCorrections, ...incidentCorrections],
+  corrections: [...permitCorrections, ...incidentCorrections, ...safetyFieldHomes],
   actions: { ...permitActions },
   capabilities: { ...permitCapabilities },
 });

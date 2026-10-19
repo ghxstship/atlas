@@ -28,6 +28,15 @@ Daily backups alone give a 24 hour RPO. The 1 hour RPO holds only once PITR is o
 
 ## Restore drill (local, every week and before each release)
 
+One command runs the whole drill against this checkout's own stack (`supabase_db_<project_id>` from `supabase/config.toml`) and writes a report for the release checklist:
+
+```sh
+infra/drills/release-drill.sh --out /tmp/xos-drills
+# report=/tmp/xos-drills/release-drill-<stamp>.txt
+```
+
+It runs the two steps below, then adds the security catalog suite (`9900_security_catalog`) to the pgTAP smoke set. The steps can also run separately:
+
 ```sh
 # 1. Back up a local stack (read-only on the source).
 infra/drills/backup-drill.sh --source supabase_db_xos4-shared --out /tmp/xos-drills
@@ -48,11 +57,29 @@ The restore drill proves:
 2. pg_restore reports no errors (it creates the service roles the fresh image lacks, without login or password);
 3. the latest migration matches;
 4. every table in `xpms`, `app`, `private`, `api_public`, `api_external` and `supabase_migrations` has exactly the source row count;
-5. the foundation, canon and Playbook round-trip pgTAP suites pass on the copy. The round trip hashes every canon sheet, so one changed cell fails it.
+5. the 25 key tables in `infra/drills/key-tables.sql` (identity and tenancy, projects and records, engagements, time, purchase orders and invoices, audit and domain events, plans and capabilities, the canon, storage and the migration history) have the source row count and content checksum. The checksum is the MD5 of every row's MD5 in sorted order, so one changed value in one row fails it;
+6. the foundation, canon and Playbook round-trip pgTAP suites pass on the copy. The round trip hashes every canon sheet, so one changed cell fails it.
 
-It prints the measured restore time against the 4 hour RTO. On the 2026-10-16 drill of the shared stack (94 MB, 519 tables, migration 1001), the restore took 26 seconds and full verification 31 seconds.
+It prints the measured restore time against the 4 hour RTO.
+
+| Date       | Stack                       | Size, tables, migration | Restore | Verified | Result                                                                          |
+| ---------- | --------------------------- | ----------------------- | ------- | -------- | ------------------------------------------------------------------------------- |
+| 2026-10-16 | `xos4-shared`               | 94 MB, 519, 1001        | 26 s    | 31 s     | Passed                                                                          |
+| 2026-10-19 | `xos4-a55` (fresh, release) | 14 MB, 657, 1191        | 21 s    | 26 s     | Passed: 657 row counts, 25 key-table checksums, 4 pgTAP suites (156 assertions) |
+
+A tampered manifest (one key-table checksum changed) fails the drill with the differing table named, so the comparison is live, not a formality.
 
 Pass `--keep` to leave the copy running (its name is printed) for investigation or for `infra/db/verify-proposals.sh`. Remove it afterwards with `docker rm -f <name>`.
+
+## Verifying a point-in-time recovery
+
+Once PITR is on, drill it each quarter and before the first production release. A PITR restore always lands in a new hosted project, so the local scripts cannot run it; the same checks run by hand:
+
+1. Note the recovery target time `T`, then restore to a new project: Dashboard, Database, Backups, Point in time.
+2. In the SQL editor of the restored project, run `infra/drills/key-tables.sql`. It is read-only.
+3. Check the recovery point. The latest migration equals production's, and the newest `app.audit_events.created_at` in the restored project is at or just before `T`. For the append-only `app.audit_events`, the restored count plus production's `select count(*) from app.audit_events where created_at > 'T'` equals production's count now. Keep both outputs as the evidence.
+4. Run the pgTAP suites against the restored project: `supabase test db --db-url "<restored project's direct connection string>"`. The suites roll back their own writes.
+5. Record the target time, the restore duration and the newest audit event in the release checklist, then pause the restored project. Deleting it needs the owner (Section 19.8).
 
 ## Restoring production (incident)
 

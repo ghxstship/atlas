@@ -36,5 +36,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0030](0030-continue-on-another-device.md)               | Continue on Another Device and Actionable Push                    | Accepted |
 | [0031](0031-generated-document-pipeline.md)              | Generated Document Pipeline                                       | Accepted |
 | [0032](0032-gate-5-handler-completion.md)                | Gate 5 Handler Completion: Retired Operations and New Tables      | Proposed |
+| [0033](0033-owner-decisions-2026-10-19.md)               | Owner Decisions of 2026-10-19                                     | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

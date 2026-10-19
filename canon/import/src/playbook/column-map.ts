@@ -39,6 +39,12 @@ export interface ColumnEntry {
   reason?: string;
   /** Classification of real-world data the column can hold (person, company, contact, venue, price, identifier). */
   real_world?: string;
+  /**
+   * How a `field` target reaches the public API when not as a field of the same name on a resource of its table
+   * (Section 18 gate 14): "Exposed as schema.table.field" names the resource field that returns it, and
+   * "Not exposed: <reason>" says why it is deliberately kept out (Restricted, internal or template store).
+   */
+  api?: string;
 }
 
 export interface SheetEntry {

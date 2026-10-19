@@ -117,9 +117,8 @@ settings:
     help: settings.fields.idleTimeout.help
     pages: { org: settings.security }
   - key: security.ip_allowlist
-    type: text
-    input: multiline
-    max_length: 2000
+    type: boolean
+    default: false
     scopes: [organization]
     capability: org.security.write
     label: settings.fields.ipAllowlist.label

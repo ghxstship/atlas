@@ -74,6 +74,11 @@ order by 1;
 SQL
 }
 
+# Row count and content checksum of each key table (key-tables.sql), one "table rows md5" per line.
+key_table_checksums() {
+  psql_in "$1" -tA <"$(dirname "${BASH_SOURCE[0]}")/key-tables.sql"
+}
+
 latest_migration() {
   psql_in "$1" -tA -c "select coalesce(max(version), 'none') from supabase_migrations.schema_migrations"
 }

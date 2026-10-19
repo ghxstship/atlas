@@ -15,6 +15,11 @@
  * written by the custom access token hook from the context switcher's choice; for cookie sessions,
  * the org Atlas last opened on this device; the person's only active membership. A candidate is
  * always checked against the caller's active memberships, read through RLS.
+ *
+ * Once the organization is bound, its IP allow-list applies to every credential, session or API key
+ * (Section 9, migration 1201): `app.network_access` answers whether the caller's address, as the
+ * proxy reports it, may reach the org. An org that never turned its allow-list on admits every
+ * address; a refused address is answered 401 before any handler runs.
  */
 import { createHash } from "node:crypto";
 import { getCurrentPerson, listMyOrganizations } from "@xos/data";
@@ -34,6 +39,45 @@ export function sessionCookieName(siteOrigin: string): string {
   return new URL(siteOrigin).protocol === "https:" ? SECURE_SESSION_COOKIE : SESSION_COOKIE;
 }
 export const LAST_ORG_COOKIE = "xos-last-org";
+
+/** The caller's address as the proxy reports it: the first `X-Forwarded-For` hop, else `X-Real-IP`. */
+export function clientIp(headers: Headers): string | null {
+  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  if (forwarded !== undefined && forwarded !== "") return forwarded;
+  const real = headers.get("x-real-ip")?.trim();
+  return real === undefined || real === "" ? null : real;
+}
+
+/**
+ * Whether an org's IP allow-list admits the caller (migration 1201), reusing an answer for `ttlMs`
+ * per person, org and address. The database answers only for the caller's own orgs; no row means
+ * there is nothing to enforce.
+ */
+export function createNetworkCheck(ttlMs: number, now: () => number = Date.now) {
+  const entries = new Map<string, { allowed: boolean; until: number }>();
+  return async (db: XosClient, userId: string, orgId: string, ip: string | null) => {
+    const key = `${userId} ${orgId} ${ip ?? ""}`;
+    const hit = entries.get(key);
+    if (hit !== undefined && hit.until > now()) return hit.allowed;
+    entries.delete(key);
+    const { data, error } = await db.rpc("network_access", { p_org_id: orgId, p_ip: ip ?? "" });
+    if (error !== null) throw new Error(`Cannot check the org's IP allow-list: ${error.message}`);
+    const rows = (data ?? []) as { allowed: boolean }[];
+    const allowed = rows.length === 0 || rows[0]?.allowed === true;
+    if (ttlMs > 0) {
+      if (entries.size >= 10_000) entries.clear();
+      entries.set(key, { allowed, until: now() + ttlMs });
+    }
+    return allowed;
+  };
+}
+
+/** The 401 for an address outside the org's allow-list. */
+export function networkRefused() {
+  return unauthorized(
+    "This organization accepts requests only from its allowed networks. Connect from an allowed network, or ask an Admin to add yours.",
+  );
+}
 export const API_KEY_PREFIX = "xos_live_";
 export const SUPPORTED_LOCALES = ["en-US", "es-US"] as const;
 
@@ -311,6 +355,15 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
     ...(options.now === undefined ? {} : { now: options.now }),
   });
   const identityOf = createIdentityCache(options.identityTtlMs ?? 30_000, options.now);
+  const networkAllows = createNetworkCheck(options.identityTtlMs ?? 30_000, options.now);
+  const admit = async (context: RequestContext, request: Request): Promise<RequestContext> => {
+    if (context.org === null) return context;
+    const ip = clientIp(request.headers);
+    if (!(await networkAllows(context.db, context.user.id, context.org.id, ip))) {
+      throw networkRefused();
+    }
+    return context;
+  };
   return async (request, requestId): Promise<RequestContext | null> => {
     const credential = readCredential(request, options);
     if (credential === null) return null;
@@ -328,16 +381,19 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
       if (identity === null) {
         throw new Error("Cannot read the service account's person: not found.");
       }
-      return {
-        user: { id: userId, email: null },
-        personId: identity.personId,
-        org: resolveOrg(identity.orgs, [{ id: token.orgId }]),
-        locale: negotiateLocale(request.headers.get("accept-language"), locales),
-        db,
-        credential: "api_key",
-        scopes: token.scopes,
-        requestId,
-      };
+      return admit(
+        {
+          user: { id: userId, email: null },
+          personId: identity.personId,
+          org: resolveOrg(identity.orgs, [{ id: token.orgId }]),
+          locale: negotiateLocale(request.headers.get("accept-language"), locales),
+          db,
+          credential: "api_key",
+          scopes: token.scopes,
+          requestId,
+        },
+        request,
+      );
     }
     const db = createCallerClient({
       url: options.url,
@@ -373,16 +429,19 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
     // A token the api-token function minted for an API key keeps that key's scope limit even when the
     // client presents the JWT itself instead of the xos_live_ key.
     const keyScopes = apiKeyTokenScopes(jwtClaims(credential.token));
-    return {
-      user,
-      personId,
-      org,
-      locale: negotiateLocale(request.headers.get("accept-language"), locales),
-      db,
-      ...(keyScopes === null
-        ? { credential: "session" as const }
-        : { credential: "api_key" as const, scopes: keyScopes }),
-      requestId,
-    };
+    return admit(
+      {
+        user,
+        personId,
+        org,
+        locale: negotiateLocale(request.headers.get("accept-language"), locales),
+        db,
+        ...(keyScopes === null
+          ? { credential: "session" as const }
+          : { credential: "api_key" as const, scopes: keyScopes }),
+        requestId,
+      },
+      request,
+    );
   };
 }

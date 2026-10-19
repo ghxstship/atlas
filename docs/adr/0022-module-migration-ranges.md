@@ -76,3 +76,11 @@ A45 (Continue on another device and push approval) takes 1140 to 1144. A47 (gate
 ## Amendment (2026-10-19): A49, A50 and A51
 
 A49 (generated document templates, gate 19) takes 1160 to 1164. A50 (API contract handlers, gate 5) takes 1170 to 1179. A51 (Playbook field targets and cognitive load) takes 1180 to 1184. A48 (route JavaScript) has no range.
+
+## Amendment (2026-10-19): A52 to A55
+
+A52 (unbuilt spec features: legal entities, IP allow-list, access reviews, break-glass, project shares, blocks, multiple project roles) takes 1200 to 1219. A54 (invariant traceability and security fixes) takes 1220 to 1229. A53 (core-screen visual baselines) and A55 (release tooling) have no range.
+
+## Amendment (2026-10-19): A56 to A58
+
+A56 (canon rulings, decision 25) takes 1230 to 1239. A57 (platform decisions: ClamAV, licenses, Spanish, .xls) takes 1240 to 1249. A58 (plan pricing, decision 18) takes 1250 to 1259.

@@ -11,17 +11,27 @@ function cell(v: string | null): string {
   return (v ?? "(blank)").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
-export function doctrineReport(findings: readonly Finding[]): string {
+export function doctrineReport(
+  findings: readonly Finding[],
+  accepted: Readonly<Record<string, string>> = {},
+): string {
   const kinds = [...new Set(findings.map((f) => f.kind))];
   const lines = [
     "# Doctrine findings",
     "",
-    "Canon values the importer adjusted, could not resolve, or found in conflict. Each needs an owner decision; none was changed silently.",
+    "Canon values the importer adjusted, could not resolve, or found in conflict. None was changed silently. A kind an owner decision settles says so; every other kind waits on the owner (RRR-66, finding legal/qa/findings/A56-001.md).",
     "",
   ];
   for (const k of kinds) {
     const items = findings.filter((f) => f.kind === k);
-    lines.push(`## ${k} (${items.length})`, "", "| Location | Detail |", "| --- | --- |");
+    lines.push(
+      `## ${k} (${items.length})`,
+      "",
+      `Status: ${accepted[k] ?? "Open: waits on an owner decision (RRR-66, finding A56-001)."}`,
+      "",
+      "| Location | Detail |",
+      "| --- | --- |",
+    );
     for (const f of items) lines.push(`| ${cell(f.location)} | ${cell(f.detail)} |`);
     lines.push("");
   }
@@ -32,9 +42,17 @@ export function diffReport(diff: readonly DiffEntry[]): string {
   const lines = [
     "# Playbook to Bible diff",
     "",
-    "Every value where a Bible-mirrored Playbook sheet differs from canon, every row only one side holds, and every Standard Library conflict. Neither file silently wins: Playbook values wait in xpms.intake for the owner.",
+    "Every value where a Bible-mirrored Playbook sheet differs from canon, every row only one side holds, and every Standard Library conflict, with how owner decision 25 (2026-10-19, canon/rulings/decision-25.yaml) resolves it. The Bible wins on structure; values the Bible lacks are imported and marked in xpms.playbook_sourced_value; labels map to the closest existing value (xpms.label_mapping). Differences the decision does not cover are deferred to the owner question named. canon:check fails on any difference marked unexplained.",
     "",
   ];
+  const outcomes = new Map<string, number>();
+  for (const d of diff) {
+    const k = `${d.resolution?.outcome ?? "unexplained"} · ${d.resolution?.basis ?? "none"}`;
+    outcomes.set(k, (outcomes.get(k) ?? 0) + 1);
+  }
+  lines.push("## Resolution", "", "| Outcome · basis | Count |", "| --- | --- |");
+  for (const [k, n] of [...outcomes].sort()) lines.push(`| ${cell(k)} | ${n} |`);
+  lines.push(`| Total | ${diff.length} |`, "");
   const groups = new Map<string, DiffEntry[]>();
   for (const d of diff) {
     const k = `${d.sheet} · ${d.kind} · ${d.column}`;
@@ -47,12 +65,12 @@ export function diffReport(diff: readonly DiffEntry[]): string {
     lines.push(
       `## ${k}`,
       "",
-      "| Row | Key | Bible | Playbook | Note |",
-      "| --- | --- | --- | --- | --- |",
+      "| Row | Key | Bible | Playbook | Note | Outcome | Canon now |",
+      "| --- | --- | --- | --- | --- | --- | --- |",
     );
     for (const d of v)
       lines.push(
-        `| ${d.row ?? ""} | ${cell(d.key)} | ${cell(d.bible)} | ${cell(d.playbook)} | ${cell(d.note)} |`,
+        `| ${d.row ?? ""} | ${cell(d.key)} | ${cell(d.bible)} | ${cell(d.playbook)} | ${cell(d.note)} | ${d.resolution ? `${d.resolution.outcome} (${d.resolution.basis})` : "unexplained"} | ${cell(d.resolution?.canon ?? null)} |`,
       );
     lines.push("");
   }

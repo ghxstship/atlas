@@ -1,3 +1,4 @@
+import { listSharedWithMe } from "@xos/data/access-controls";
 import { getNode } from "@xos/ia";
 import {
   listCurrencies,
@@ -15,6 +16,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import type { OrgContext } from "@/lib/shell/context";
 import { LoadError } from "./load-error";
 import { ProjectCollection, type BoardMode, type ProjectView } from "./project-collection";
+import { SharedWithUs } from "./shared-with-us";
 import type { ProjectFormOptions } from "./create-project";
 
 type Search = Readonly<Record<string, string | string[] | undefined>>;
@@ -98,30 +100,35 @@ export async function ProjectsPage({
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;
 
   const db = ctx.viewer.db;
-  const [projects, phases] = await Promise.all([
+  const [projects, phases, shared] = await Promise.all([
     listProjects(db, ctx.org.id, { includeArchived }),
     listPhases(db),
+    // Projects partner orgs share with this org (A52, Section 8.5), on the main list only.
+    node === "projects" ? listSharedWithMe(db) : Promise.resolve({ ok: true as const, data: [] }),
   ]);
   if (!projects.ok || !phases.ok) return <LoadError title={translate(entry.label)} />;
   const canCreate = ctx.capabilities.has("projects.project.create");
 
   return (
-    <ProjectCollection
-      org={ctx.org.slug}
-      title={translate(entry.label)}
-      projects={projects.data}
-      phases={phases.data.map((p) => ({ code: p.code, gate: p.gate }))}
-      views={views}
-      view={view}
-      board={board}
-      includeArchived={includeArchived}
-      month={month}
-      today={today}
-      create={
-        canCreate
-          ? { options: await projectFormOptions(ctx), open: one(searchParams, "create") === "1" }
-          : null
-      }
-    />
+    <>
+      <ProjectCollection
+        org={ctx.org.slug}
+        title={translate(entry.label)}
+        projects={projects.data}
+        phases={phases.data.map((p) => ({ code: p.code, gate: p.gate }))}
+        views={views}
+        view={view}
+        board={board}
+        includeArchived={includeArchived}
+        month={month}
+        today={today}
+        create={
+          canCreate
+            ? { options: await projectFormOptions(ctx), open: one(searchParams, "create") === "1" }
+            : null
+        }
+      />
+      <SharedWithUs shared={shared.ok ? shared.data : []} />
+    </>
   );
 }

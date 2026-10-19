@@ -69,7 +69,7 @@ select is((select approved_minutes from app.timesheet_approvals where timesheet_
 select pg_temp.as_user('carol');
 update app.time_entries set clock_out = '2027-06-03 13:00+00' where id = pg_temp.id('te_ivy');
 select pg_temp.as_platform();
-select is((select timesheet_state::text from app.timesheets where id = pg_temp.id('ts_ivy')), 'Proposed', 'a change to external hours voids the approval (invariant 19)');
+select is((select timesheet_state::text from app.timesheets where id = pg_temp.id('ts_ivy')), 'Proposed', 'inv_19_timesheet_void: a change to external hours voids the approval (invariant 19)');
 
 -- Reads ------------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('ivy');

@@ -354,9 +354,33 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     module: "Settings",
     entity: "Security",
     operations: [
-      // The IP allow-list and break-glass are not built yet (ADR 0032).
       ...crud("verifiedDomains"),
+      ...crud("orgIpAllowlistEntries"),
+      "orgIpAllowlistEntries.delete",
+      ...read("breakGlassSessions"),
+      "breakGlassSessions.create",
+      "breakGlassSessions.end",
     ],
+  },
+  {
+    module: "Settings",
+    entity: "Legal entities and fiscal",
+    operations: [...crud("orgLegalEntities"), "orgLegalEntities.delete"],
+  },
+  {
+    module: "Settings",
+    entity: "Access reviews",
+    operations: [
+      ...crud("accessReviewCampaigns"),
+      "accessReviewCampaigns.delete",
+      ...read("accessReviewItems"),
+      "accessReviewItems.update",
+    ],
+  },
+  {
+    module: "Settings",
+    entity: "Cross-org project sharing",
+    operations: [...crud("projectShares"), "projectShares.delete"],
   },
   { module: "Settings", entity: "White label", operations: crud("orgBrandings") },
   {
@@ -472,8 +496,13 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Identity",
     entity: "Project Assignment",
-    // One project role per assignment row, app.project_members.project_role (ADR 0032).
-    operations: crud("projectAssignments"),
+    // Several project roles per assignment: app.project_member_roles (1204, ADR 0032 amendment).
+    operations: [
+      ...crud("projectAssignments"),
+      ...read("projectAssignmentRoles"),
+      "projectAssignmentRoles.create",
+      "projectAssignmentRoles.delete",
+    ],
   },
   {
     module: "Identity",
@@ -521,6 +550,11 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     ],
   },
   { module: "Identity", entity: "Verification badges", operations: read("verifications") },
+  {
+    module: "Identity",
+    entity: "Blocks",
+    operations: [...read("blocks"), "blocks.create", "blocks.delete"],
+  },
 
   // Section 7.2 canon read endpoints named in Section 10.1
   { module: "Canon", entity: "/canon/departments", operations: read("canonDepartments") },

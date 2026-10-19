@@ -77,7 +77,7 @@ select pg_temp.as_user('alice');
 select is(app.submit_settlement(pg_temp.id('stl'), 'Resend.'), true, 'and resubmits it');
 select pg_temp.as_user('art');
 select lives_ok(format($$select app.respond_to_settlement('%s', true, 'Agreed.')$$, pg_temp.id('stl')), 'the artist accepts');
-select throws_ok(format($$select app.respond_to_settlement('%s', true, 'Again.')$$, pg_temp.id('stl')), 'XR001', null, 'an accepted settlement cannot be answered again');
+select throws_ok(format($$select app.respond_to_settlement('%s', true, 'Again.')$$, pg_temp.id('stl')), 'XR001', 'settlement_state_conflict: The settlement is not in the expected state Submitted.', 'an accepted settlement cannot be answered again');
 select pg_temp.as_user('dave');
 select throws_ok(format($$select app.transition_settlement('%s', 'Accepted', 'Paid', 'Paid.')$$, pg_temp.id('stl')), '42501', null, 'a Member cannot mark a settlement paid');
 select pg_temp.as_user('carol');

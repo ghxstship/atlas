@@ -3,6 +3,7 @@ import { listProjectMembers, PROJECT_ROLE_ORDER } from "@xos/data/projects";
 import { isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { ProjectAccess } from "@/components/projects/project-access";
 import { ProjectSettings } from "@/components/projects/project-settings";
 import { projectFormOptions } from "@/components/projects/projects-page";
 import { PageHeader } from "@/components/projects/ui";
@@ -11,7 +12,10 @@ import { getProjectContextFor } from "@/lib/projects/context";
 import { loadTransitions, must } from "@/lib/projects/loaders";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 
-/** Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive. */
+/**
+ * Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive, and
+ * (A52) extra project roles per member and the partner orgs the project is shared with.
+ */
 export default async function SettingsPage({
   params,
 }: PageProps<"/[org]/p/[projectKey]/settings">) {
@@ -55,6 +59,7 @@ export default async function SettingsPage({
             : null
         }
       />
+      <ProjectAccess ctx={ctx} members={current} roles={PROJECT_ROLE_ORDER} />
     </>
   );
 }

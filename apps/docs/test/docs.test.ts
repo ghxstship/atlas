@@ -1,5 +1,7 @@
 /** Content, links, copy and the API reference model of the docs site. */
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { resolveHref } from "../lib/links.ts";
 import { guides, helpArticles, searchPages, whatsNew } from "../lib/content.ts";
@@ -12,7 +14,39 @@ import {
   slugify,
   textOf,
 } from "../lib/markdown.ts";
-import { DOCUMENT_FILE, kebab, loadReference, pythonLiteral } from "../lib/openapi.ts";
+import {
+  DOCUMENT_FILE,
+  findOperation,
+  kebab,
+  loadReference,
+  operationPages,
+  operationSlug,
+  pythonLiteral,
+} from "../lib/openapi.ts";
+
+const APP = fileURLToPath(new URL("..", import.meta.url));
+const OPERATION_ROUTE = join(
+  APP,
+  "app",
+  "[locale]",
+  "reference",
+  "[resource]",
+  "[operation]",
+  "page.tsx",
+);
+const BUILT_PAGES = join(APP, ".next", "server", "app", "en-US", "reference");
+const OPERATION_PAGE = join(
+  APP,
+  "app",
+  "[locale]",
+  "reference",
+  "[resource]",
+  "[operation]",
+  "page.tsx",
+);
+// Checks a build made from the current operation route only; a build left from before it is skipped.
+const FRESH_BUILD =
+  existsSync(BUILT_PAGES) && statSync(BUILT_PAGES).mtimeMs >= statSync(OPERATION_PAGE).mtimeMs;
 
 describe("markdown", () => {
   it("parses headings, paragraphs, lists, notes, code and tables", () => {
@@ -223,6 +257,40 @@ describe("API reference", () => {
     expect(update?.samples.python).toContain("if_match=etag");
     expect(update?.samples.cli).toContain("--if-match auto");
     expect(update?.errorStatuses).toContain(412);
+  });
+
+  it("gives every operation in the OpenAPI document its own page", () => {
+    const documented = Object.values(doc.paths).flatMap((item) =>
+      Object.values(item).map((op) => op as { operationId: string }),
+    );
+    const pages = operationPages();
+    expect(pages).toHaveLength(documented.length);
+    expect(new Set(pages.map((p) => `${p.resource}/${p.operation}`)).size).toBe(pages.length);
+    for (const { operationId } of documented) {
+      const [resource, verb] = operationId.split(".") as [string, string];
+      const found = findOperation(kebab(resource), operationSlug({ verb }));
+      expect(found?.operation.id, operationId).toBe(operationId);
+    }
+    expect(findOperation("projects", "list")?.operation.path).toBe("/projects");
+    expect(findOperation("projects", "no-such-verb")).toBeUndefined();
+    expect(findOperation("no-such-resource", "list")).toBeUndefined();
+    expect(operationSlug({ verb: "listAll" })).toBe("list-all");
+    // The route prerenders exactly these pages and refuses any other path.
+    const route = readFileSync(OPERATION_ROUTE, "utf8");
+    expect(route).toContain("export const dynamicParams = false;");
+    expect(route).toMatch(
+      /export function generateStaticParams\(\)[^\n]*\n\s*return operationPages\(\);\n\}/,
+    );
+  });
+
+  // After `next build`, every operation page exists as prerendered HTML in both locales.
+  it.runIf(FRESH_BUILD)("prerenders every operation page in every locale", () => {
+    const missing = LOCALES.flatMap((locale) =>
+      operationPages()
+        .map((p) => `${locale}/reference/${p.resource}/${p.operation}.html`)
+        .filter((file) => !existsSync(join(BUILT_PAGES, "..", "..", file))),
+    );
+    expect(missing).toEqual([]);
   });
 
   it("formats names and literals for samples", () => {

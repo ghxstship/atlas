@@ -20,13 +20,13 @@ select is((select asset_state::text from app.asset_units where id = pg_temp.id('
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'asset'), 17, 'the asset lifecycle declares seventeen moves');
 select is((select count(*)::int from unnest(enum_range(null::app.asset_state))), 9, 'the asset lifecycle has nine values');
 select throws_ok($$update app.asset_units set asset_state = 'Available' where id = (select id from world where key = 'unit')$$, 'XR001', null, 'the asset state changes only through its RPC');
-select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Deployed', 'Skip.')$$, 'XR001', null, 'a Proposed asset cannot jump to Deployed');
+select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Deployed', 'Skip.')$$, 'XR001', 'asset_transition_not_allowed: A asset cannot move from Proposed to Deployed.', 'a Proposed asset cannot jump to Deployed');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Proposed', 'Received', 'Delivered.')$$, 'Proposed to Received');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Received', 'Available', 'Checked in.')$$, 'Received to Available');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Available', 'Deployed', 'Out to the Pier.')$$, 'Available to Deployed');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Deployed', 'Damaged', 'Cracked panel.')$$, 'Deployed to Damaged');
 select lives_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Damaged', 'Retired', 'Written off.')$$, 'Damaged to Retired');
-select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Retired', 'Available', 'Back.')$$, 'XR001', null, 'Retired is terminal');
+select throws_ok($$select app.transition_asset((select id from world where key = 'unit'), 'Retired', 'Available', 'Back.')$$, 'XR001', 'asset_transition_not_allowed: A asset cannot move from Retired to Available.', 'Retired is terminal');
 select lives_ok($$insert into app.asset_custody (asset_unit_id, custodian_membership_id, project_id) values ((select id from world where key = 'unit'), (select id from world where key = 'frank@org_a'), (select id from world where key = 'prj_a'))$$, 'custody is handed to a member');
 select throws_ok($$update app.asset_custody set note = 'Edited.'$$, '42501', null, 'the custody ledger is append-only for signed-in callers');
 select throws_ok($$insert into app.asset_identifiers (asset_unit_id, identifier_class, scheme, value) values ((select id from world where key = 'unit'), 'code', 'serial', 'X1')$$,
@@ -53,7 +53,7 @@ values (pg_temp.id('cat'), pg_temp.id('zone'), 'ENM-036', now() - interval '1 da
 select throws_ok($$insert into app.access_grid (credential_category_id, zone_id, access_level_enum_id, window_starts_at, window_ends_at) values ((select id from world where key = 'cat'), (select id from world where key = 'zone'), 'ENM-015', now(), now() + interval '1 hour')$$,
   'XR001', null, 'an access level comes from the Access Level enumeration');
 select throws_ok($$insert into app.credentials (credential_category_id, holder_person_id) values ((select id from world where key = 'cat'), (select id from world where key = 'carol'))$$,
-  'XR001', 'credential_self_issue: A person never issues their own credential or certification.', 'a person cannot issue their own credential (invariant 21)');
+  'XR001', 'credential_self_issue: A person never issues their own credential or certification.', 'inv_21_no_self_issue: a person cannot issue their own credential (invariant 21)');
 with x as (insert into app.credentials (credential_category_id, holder_person_id) values (pg_temp.id('cat'), pg_temp.id('frank')) returning id) insert into world select 'cred', id from x;
 select is((select issued_by from app.credentials where id = pg_temp.id('cred')), pg_temp.id('carol'), 'the issuer is the session person');
 select ok((select credential_number like 'CR-%' from app.credentials where id = pg_temp.id('cred')), 'the credential number is issued by the database');
@@ -74,7 +74,7 @@ select pg_temp.as_platform();
 select pg_temp.as_user('carol');
 with x as (insert into app.certifications (org_id, name, issuing_body) values (pg_temp.id('org_a'), 'Rigging Level 2', 'ETCP') returning id) insert into world select 'cert', id from x;
 select throws_ok($$insert into app.certification_holders (certification_id, person_id, issued_on) values ((select id from world where key = 'cert'), (select id from world where key = 'carol'), '2027-01-01')$$,
-  'XR001', null, 'a person cannot record their own certification (invariant 21)');
+  'XR001', null, 'inv_21_no_self_issue: a person cannot record their own certification (invariant 21)');
 with x as (insert into app.certification_holders (certification_id, person_id, issued_on, public_verification_consented) values (pg_temp.id('cert'), pg_temp.id('frank'), '2027-01-01', true) returning id) insert into world select 'holder', id from x;
 select is((select public_verification_consented from app.certification_holders where id = pg_temp.id('holder')), false, 'consent starts withheld whatever the recorder sends');
 select throws_ok($$update app.certification_holders set public_verification_consented = true where id = (select id from world where key = 'holder')$$,
@@ -83,11 +83,11 @@ select pg_temp.as_platform();
 create temporary table code as select verification_code from app.certification_holders where id = pg_temp.id('holder');
 grant select on code to public;
 select pg_temp.as_anon();
-select is((select count(*)::int from api_public.verify_certification((select verification_code from code))), 0, 'without consent the certificate does not verify publicly');
+select is((select count(*)::int from api_public.verify_certification((select verification_code from code))), 0, 'inv_21_no_self_issue: without consent the certificate does not verify publicly');
 select pg_temp.as_user('frank');
 select lives_ok($$update app.certification_holders set public_verification_consented = true where id = (select id from world where key = 'holder')$$, 'the holder consents');
 select pg_temp.as_anon();
-select is((select holder_name from api_public.verify_certification((select verification_code from code))), 'Frank Adeyemi', 'with consent it verifies publicly, showing only the rendered fields');
+select is((select holder_name from api_public.verify_certification((select verification_code from code))), 'Frank Adeyemi', 'inv_21_no_self_issue: with consent it verifies publicly, showing only the rendered fields');
 select pg_temp.as_platform();
 
 select * from finish();

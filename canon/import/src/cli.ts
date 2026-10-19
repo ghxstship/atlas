@@ -56,15 +56,25 @@ async function check(paths: RepoPaths): Promise<number> {
   for (const c of counts)
     console.log(`${c.ok ? "ok  " : "FAIL"} ${c.entity}: ${c.parsed} (expected ${c.expected})`);
   if (failures.length === 0) {
-    // Generated files must match a fresh run; a Playbook to Bible difference fails the build (Section 2.1).
+    // Generated files must match a fresh run. A Playbook to Bible difference that owner decision 25 does
+    // not explain fails the build (Section 2.1), and so does a decision entry nothing uses any more.
     const result = generateCanon(inputs, generateOptions(paths));
     for (const f of staleFiles(paths, result.files))
       failures.push(`${f} is stale: run canon:generate`);
-    if (result.diff.length > 0) {
+    for (const d of result.unresolved) {
       failures.push(
-        `${result.diff.length} Playbook to Bible differences await an owner decision; see canon/reports/playbook-bible-diff.md`,
+        `Unexplained Playbook to Bible difference: ${d.sheet} row ${d.row ?? "-"} ${d.column} ${d.key} (Bible "${d.bible ?? ""}", Playbook "${d.playbook ?? ""}"); see canon/reports/playbook-bible-diff.md`,
       );
     }
+    failures.push(...result.decisionProblems);
+    const outcomes = new Map<string, number>();
+    for (const d of result.diff) {
+      const k = d.resolution?.outcome ?? "unexplained";
+      outcomes.set(k, (outcomes.get(k) ?? 0) + 1);
+    }
+    console.log(
+      `Playbook to Bible differences: ${result.diff.length} (${[...outcomes].map(([k, n]) => `${k} ${n}`).join(", ")}).`,
+    );
     for (const r of result.reference) {
       if (r.missing.length + r.extra.length > 0)
         failures.push(`Reference model table ${r.table} differs from the reference seed`);
