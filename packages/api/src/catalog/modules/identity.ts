@@ -413,15 +413,17 @@ export const additions = defineAdditions("Identity", {
       apply: removeVerbs("update"),
     },
     {
-      id: "project-role-on-assignment",
+      id: "project-assignment-roles-table",
       since: A50,
       resources: ["projectAssignmentRoles"],
-      components: ["schemas/ProjectRole"],
       change:
-        "Removes every projectAssignmentRoles operation, and with them the `ProjectRole` component they alone used: the project role is `project_role` on the project assignment itself.",
+        "The resource reads `app.project_member_roles`: `project_assignment_id` becomes `project_member_id` and `role` becomes `project_role`. An assignment's lead role (`project_role` on the assignment) is always one of its rows and is removed only by changing the lead role.",
       reason:
-        "Project assignments are app.project_members (0301, correction project-assignment-members), one row per membership and project (project_members_project_membership_key) carrying its `project_role`; there is no app.project_assignment_roles table. Decided in ADR 0032.",
-      apply: removeVerbs("list", "get", "create", "delete"),
+        "Project assignments are app.project_members (0301, correction project-assignment-members); app.project_member_roles (1204, A52) holds every project role an assignment carries (Section 4.8.1: project roles, many), and project-role capabilities are the union over those rows. A person never adds a role to their own assignment (sod_self_grant). Amends ADR 0032, which had retired these operations.",
+      apply: all(
+        setTable("app.project_member_roles"),
+        editShape({ rename: { project_assignment_id: "project_member_id", role: "project_role" } }),
+      ),
     },
     {
       id: "account-membership-through-rpc",
@@ -512,13 +514,27 @@ export const additions = defineAdditions("Identity", {
       apply: removeVerbs("create"),
     },
     {
-      id: "blocks-not-offered",
+      id: "blocks-enforced-on-profiles",
       since: A50,
       resources: ["blocks"],
-      change: "Removes every blocks operation.",
+      change:
+        "Describes what a block does: it hides the blocker's profile from the blocked person and from every member of a blocked organization, and the blocked profile from the blocker. `blocked_urn` names a person or an organization.",
       reason:
-        "There is no app.blocks table, and no section of the spec defines what a block hides or where it is enforced. An endpoint that stores a block nothing enforces would tell a person they are protected when they are not, so the operations leave v1 until blocking is specified and enforced. Decided in ADR 0032.",
-      apply: removeVerbs("list", "get", "create", "delete"),
+        "app.blocks (1206, A52) stores a person's blocks, readable and writable only by them, and private.profile_visible_to_me and private.org_profile_visible_to_me, which every profile RPC calls, refuse a profile across a block. A block never ends a membership or an engagement. Amends ADR 0032, which had retired these operations until blocking was enforced.",
+      apply: editShape({
+        description:
+          "A person's block of another person or an organization (Section 4.5.6 Profile Privacy). It hides the blocker's profile from the blocked person and from every member of a blocked organization, and the blocked profile from the blocker. Memberships and engagements are not affected.",
+        add: {
+          blocked_urn: {
+            schema: fields.text(
+              "URN of the blocked person (urn:xpms:person:{id}) or organization (urn:xpms:organization:{id}).",
+              "urn:xpms:person:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+            ),
+            create: "required",
+            update: false,
+          },
+        },
+      }),
     },
   ],
 });

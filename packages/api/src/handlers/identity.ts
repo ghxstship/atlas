@@ -11,6 +11,7 @@ import { assertIfMatch } from "../runtime/etag.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 import { identityParity } from "./identity/parity.ts";
+import { a52IdentityHandlers } from "./parts/a52.ts";
 
 type JoinRequest = Components["JoinRequest"];
 type InvitationLink = Components["InvitationLink"];
@@ -304,6 +305,8 @@ async function readOffboarding(db: XosClient, id: string): Promise<OffboardingRo
 export const handlers = defineHandlers("Identity", {
   // API parity (A04P): see ./identity/parity.ts.
   ...identityParity,
+  // Project assignment roles and blocks (A52): see ./parts/a52.ts.
+  ...a52IdentityHandlers,
   "joinRequests.list": async ({ query }, context) => {
     const org = requireOrg(context);
     const size = pageSize(query.limit);
