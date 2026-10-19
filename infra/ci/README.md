@@ -2,13 +2,13 @@
 
 `.github/workflows` belongs to the orchestrator. The jobs below call the reusable scripts in this directory, and each snippet is ready to paste. Actions are pinned by the SHAs ADR 0001 already lists; no new action is needed.
 
-| Script               | Runs                                                                                   | Blocking                                                         |
-| -------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `restore-drill.sh`   | Backup and restore drill on the stack `supabase db start` built, in the `database` job | Yes                                                              |
-| `powersync-check.sh` | Sync rules against the migrated catalog; writes the publication SQL                    | `continue-on-error` until the A17 rule fixes land, then blocking |
-| `synthetics.sh`      | Synthetic checks against staging, the status history and the status page               | Its own scheduled workflow; a failed run notifies on-call        |
-| `backup-weekly.sh`   | Encrypted weekly logical backup of staging                                             | Its own scheduled workflow; needs the owner's public key first   |
-| `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag            | Yes; passes with a notice until the first tag                    |
+| Script               | Runs                                                                                                                                                                   | Blocking                                                         |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `restore-drill.sh`   | Backup and restore drill (`infra/drills/release-drill.sh`: row counts, key-table checksums, pgTAP smoke) on the stack `supabase db start` built, in the `database` job | Yes                                                              |
+| `powersync-check.sh` | Sync rules against the migrated catalog; writes the publication SQL                                                                                                    | `continue-on-error` until the A17 rule fixes land, then blocking |
+| `synthetics.sh`      | Synthetic checks against staging, the status history and the status page                                                                                               | Its own scheduled workflow; a failed run notifies on-call        |
+| `backup-weekly.sh`   | Encrypted weekly logical backup of staging                                                                                                                             | Its own scheduled workflow; needs the owner's public key first   |
+| `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag                                                                                            | Yes; passes with a notice until the first tag                    |
 
 `@xos/infra`'s lint, typecheck and tests already run in the `checks` job through `pnpm verify`, since `infra` is in the workspace.
 
