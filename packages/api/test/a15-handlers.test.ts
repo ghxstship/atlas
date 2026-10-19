@@ -1228,9 +1228,23 @@ describe("reports", () => {
       path: "/report-definitions",
       op: "reportDefinitions",
       key: REPORT,
+      create: { name: "Labor by Department", source_code: "crew", chart: "Table", shared: false },
+      update: { name: "Labor by Discipline" },
+      remove: true,
     });
     await expectContract(reportDefinitionsR.list, "reportDefinitions.list");
     await expectContract(reportDefinitionsR.get, "reportDefinitions.get");
+    const createdDefinition = (await expectContract(
+      step(reportDefinitionsR.create),
+      "reportDefinitions.create",
+    )) as Row;
+    expect(createdDefinition["membership_id"]).toBe(MEMBERSHIP);
+    await expectContract(step(reportDefinitionsR.update), "reportDefinitions.update");
+    await expectContract(step(reportDefinitionsR.remove), "reportDefinitions.delete");
+    // The source is fixed: its fields and filters name that source's columns.
+    expect(
+      (await http.patch(`/report-definitions/${REPORT}`, { source_code: "finance" })).status,
+    ).toBe(422);
     const reportRunsR = await crud(http, { path: "/report-runs", op: "reportRuns", key: RUN });
     await expectContract(reportRunsR.list, "reportRuns.list");
     await expectContract(reportRunsR.get, "reportRuns.get");

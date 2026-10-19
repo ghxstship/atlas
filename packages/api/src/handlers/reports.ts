@@ -21,7 +21,12 @@ import { moneyTotal } from "./finance.ts";
 import { reportMetricHandlers } from "./parts/report-metrics.ts";
 import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
 
-const reportDefinitions = tableResource("reportDefinitions", { verbs: ["list", "get"] });
+// A saved definition belongs to the caller's membership. Its source is fixed once created, since its
+// fields and filters name that source's columns (the report builder never changes it either).
+const reportDefinitions = tableResource("reportDefinitions", {
+  beforeCreate: async (_body, context) => ({ membership_id: await myMembership(context) }),
+  fixed: ["source_code", "custom_object_type_id"],
+});
 const reportRuns = tableResource("reportRuns", { verbs: ["list", "get"] });
 
 /** The caller's membership in the active org, which owns what they create here. */
