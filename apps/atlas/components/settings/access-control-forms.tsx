@@ -6,6 +6,10 @@ import { useActionState } from "react";
 import {
   addLegalEntityAction,
   addNetworkAction,
+  addProjectRoleAction,
+  removeProjectRoleAction,
+  revokeShareAction,
+  shareProjectAction,
   blockProfileAction,
   cancelAccessReviewAction,
   decideAccessReviewAction,
@@ -492,6 +496,155 @@ export function UnblockButton({ org, id, name }: { org: string; id: string; name
       action={unblockAction}
       fields={{ blockId: id }}
       buttons={[{ label: t("blocks.unblock"), ariaLabel: t("blocks.unblockNamed", { name }) }]}
+    />
+  );
+}
+
+// Project roles and shares (project settings) -------------------------------------------------------------
+
+export function AddProjectRoleForm({
+  org,
+  projectKey,
+  members,
+  roles,
+}: {
+  org: string;
+  projectKey: string;
+  members: readonly Option[];
+  roles: readonly Option[];
+}) {
+  const { state, dispatch, pending, keep, fieldError, t } = useForm(addProjectRoleAction);
+  return (
+    <form
+      action={dispatch}
+      {...keep}
+      aria-label={t("projectRoles.addLabel")}
+      className="flex flex-col gap-12"
+      noValidate
+    >
+      <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="projectKey" value={projectKey} />
+      <Status state={state} />
+      <div className="flex flex-wrap items-end gap-12">
+        <Select
+          id="project-role-member"
+          name="projectMemberId"
+          label={t("projectRoles.member")}
+          value={members[0]?.value ?? ""}
+          options={[...members]}
+          error={fieldError("projectMemberId")}
+        />
+        <Select
+          id="project-role-role"
+          name="role"
+          label={t("projectRoles.role")}
+          value={roles[3]?.value ?? roles[0]?.value ?? ""}
+          options={[...roles]}
+          error={fieldError("role")}
+        />
+      </div>
+      <div>
+        <Button type="submit" loading={pending}>
+          {t("projectRoles.add")}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export function RemoveProjectRoleButton({
+  org,
+  projectKey,
+  id,
+  label,
+}: {
+  org: string;
+  projectKey: string;
+  id: string;
+  label: string;
+}) {
+  const t = useCopy();
+  return (
+    <RowAction
+      org={org}
+      action={removeProjectRoleAction}
+      fields={{ projectKey, projectMemberRoleId: id }}
+      buttons={[
+        { label: t("projectRoles.remove"), ariaLabel: t("projectRoles.removeNamed", { label }) },
+      ]}
+    />
+  );
+}
+
+export function ShareProjectForm({
+  org,
+  projectKey,
+  partners,
+  roles,
+}: {
+  org: string;
+  projectKey: string;
+  partners: readonly Option[];
+  roles: readonly Option[];
+}) {
+  const { state, dispatch, pending, keep, fieldError, t } = useForm(shareProjectAction);
+  return (
+    <form
+      action={dispatch}
+      {...keep}
+      aria-label={t("shares.addLabel")}
+      className="flex flex-col gap-12"
+      noValidate
+    >
+      <input type="hidden" name="org" value={org} />
+      <input type="hidden" name="projectKey" value={projectKey} />
+      <Status state={state} />
+      <div className="flex flex-wrap items-end gap-12">
+        <Select
+          id="share-partner"
+          name="partnerOrganizationId"
+          label={t("shares.partner")}
+          value={partners[0]?.value ?? ""}
+          options={[...partners]}
+          error={fieldError("partnerOrganizationId")}
+        />
+        <Select
+          id="share-role"
+          name="role"
+          label={t("shares.role")}
+          help={t("shares.roleHelp")}
+          value={roles[2]?.value ?? roles[0]?.value ?? ""}
+          options={[...roles]}
+          error={fieldError("role")}
+        />
+      </div>
+      <div>
+        <Button type="submit" loading={pending}>
+          {t("shares.share")}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+export function RevokeShareButton({
+  org,
+  projectKey,
+  id,
+  name,
+}: {
+  org: string;
+  projectKey: string;
+  id: string;
+  name: string;
+}) {
+  const t = useCopy();
+  return (
+    <RowAction
+      org={org}
+      action={revokeShareAction}
+      fields={{ projectKey, shareId: id }}
+      buttons={[{ label: t("shares.revoke"), ariaLabel: t("shares.revokeNamed", { name }) }]}
     />
   );
 }

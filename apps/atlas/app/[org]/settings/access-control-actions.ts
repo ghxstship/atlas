@@ -3,6 +3,10 @@
 import {
   addAllowedNetwork,
   addLegalEntity,
+  addProjectMemberRole,
+  removeProjectMemberRole,
+  revokeProjectShare,
+  shareProject,
   blockProfile,
   cancelAccessReview,
   decideAccessReviewItem,
@@ -18,6 +22,7 @@ import type { DataError, Result } from "@xos/data/result";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
+import { getProjectContextFor } from "@/lib/projects/context";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
@@ -54,6 +59,11 @@ const KNOWN_RULES = new Set([
   "block_handle_unknown",
   "block_self",
   "block_own_org",
+  "project_role_lead",
+  "project_member_ended",
+  "sod_self_grant",
+  "project_share_own_org",
+  "project_share_deleted_project",
 ]);
 
 function errorKey(error: DataError): string {
@@ -291,4 +301,89 @@ export async function unblockAction(
   const id = uuid.safeParse(form.get("blockId"));
   if (!id.success) return { error: "unexpected" };
   return finish(ctx.org.slug, "me/profile-privacy", await unblock(ctx.viewer.db, id.data));
+}
+
+// Project roles and shares (project settings) ------------------------------------------------------------
+
+const PROJECT_ROLES = [
+  "Producer",
+  "Department Head",
+  "Coordinator",
+  "Field Supervisor",
+  "Field",
+] as const;
+
+async function projectFor(form: FormData) {
+  const org = form.get("org");
+  const projectKey = form.get("projectKey");
+  const ctx =
+    typeof org === "string" && typeof projectKey === "string"
+      ? await getProjectContextFor({ org, projectKey })
+      : null;
+  if (!ctx) notFound();
+  return ctx;
+}
+
+export async function addProjectRoleAction(
+  _: AccessControlFormState,
+  form: FormData,
+): Promise<AccessControlFormState> {
+  const ctx = await projectFor(form);
+  const member = uuid.safeParse(form.get("projectMemberId"));
+  const role = z.enum(PROJECT_ROLES).safeParse(form.get("role"));
+  if (!member.success) return { fieldErrors: { projectMemberId: "invalid" } };
+  if (!role.success) return { fieldErrors: { role: "invalid" } };
+  return finish(
+    ctx.org.org.slug,
+    `p/${ctx.project.key}/settings`,
+    await addProjectMemberRole(ctx.org.viewer.db, member.data, role.data),
+  );
+}
+
+export async function removeProjectRoleAction(
+  _: AccessControlFormState,
+  form: FormData,
+): Promise<AccessControlFormState> {
+  const ctx = await projectFor(form);
+  const id = uuid.safeParse(form.get("projectMemberRoleId"));
+  if (!id.success) return { error: "unexpected" };
+  return finish(
+    ctx.org.org.slug,
+    `p/${ctx.project.key}/settings`,
+    await removeProjectMemberRole(ctx.org.viewer.db, id.data),
+  );
+}
+
+export async function shareProjectAction(
+  _: AccessControlFormState,
+  form: FormData,
+): Promise<AccessControlFormState> {
+  const ctx = await projectFor(form);
+  const partner = uuid.safeParse(form.get("partnerOrganizationId"));
+  const role = z.enum(PROJECT_ROLES).safeParse(form.get("role"));
+  if (!partner.success) return { fieldErrors: { partnerOrganizationId: "invalid" } };
+  if (!role.success) return { fieldErrors: { role: "invalid" } };
+  return finish(
+    ctx.org.org.slug,
+    `p/${ctx.project.key}/settings`,
+    await shareProject(ctx.org.viewer.db, {
+      projectId: ctx.project.id,
+      partnerOrganizationId: partner.data,
+      projectRole: role.data,
+    }),
+  );
+}
+
+export async function revokeShareAction(
+  _: AccessControlFormState,
+  form: FormData,
+): Promise<AccessControlFormState> {
+  const ctx = await projectFor(form);
+  const id = uuid.safeParse(form.get("shareId"));
+  if (!id.success) return { error: "unexpected" };
+  return finish(
+    ctx.org.org.slug,
+    `p/${ctx.project.key}/settings`,
+    await revokeProjectShare(ctx.org.viewer.db, id.data),
+  );
 }

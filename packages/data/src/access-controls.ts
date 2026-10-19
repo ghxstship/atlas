@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import type { Database } from "./database.types.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -439,4 +440,186 @@ export async function unblock(db: XosClient, blockId: string): Promise<Result<st
   if (error) return fail(toDataError(error));
   if (data.length === 0) return fail({ kind: "not-found" });
   return ok(blockId);
+}
+
+// Project roles on an assignment (Section 4.8.1, migration 1204) ------------------------------------------
+
+export type ProjectRole =
+  "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
+
+export interface ProjectMemberRole {
+  readonly id: string;
+  readonly projectMemberId: string;
+  readonly role: ProjectRole;
+}
+
+/** Every live project role held on a project's assignments, lead roles included. */
+export async function listProjectMemberRoles(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ProjectMemberRole[]>> {
+  const { data, error } = await db
+    .from("project_member_roles")
+    .select("id, project_member_id, project_role, project_members!inner(project_id)")
+    .eq("project_members.project_id", projectId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((r) => ({
+      id: r.id,
+      projectMemberId: r.project_member_id,
+      role: r.project_role as ProjectRole,
+    })),
+  );
+}
+
+export async function addProjectMemberRole(
+  db: XosClient,
+  projectMemberId: string,
+  role: ProjectRole,
+): Promise<Result<string>> {
+  const { data, error } = await db
+    .from("project_member_roles")
+    // org_id comes from the assignment (derive_org_id); the insert grant leaves it out.
+    .insert({
+      project_member_id: projectMemberId,
+      project_role: role,
+    } as Database["app"]["Tables"]["project_member_roles"]["Insert"])
+    .select("id")
+    .single();
+  if (error) return fail(toDataError(error));
+  return ok(data.id);
+}
+
+export async function removeProjectMemberRole(db: XosClient, id: string): Promise<Result<string>> {
+  const { data, error } = await db
+    .from("project_member_roles")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  if (data.length === 0) return fail({ kind: "not-found" });
+  return ok(id);
+}
+
+// Project shares (Section 8.5, migration 1205) --------------------------------------------------------------
+
+export interface SharePartner {
+  readonly organizationId: string;
+  readonly name: string | null;
+}
+
+/** Organizations the org works with (its counterparties with an organization), as share partners. */
+export async function listSharePartners(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<SharePartner[]>> {
+  const { data, error } = await db
+    .from("counterparties")
+    .select("organization_id, counterparty_name")
+    .eq("org_id", orgId)
+    .not("organization_id", "is", null)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  const seen = new Set<string>();
+  const partners: SharePartner[] = [];
+  for (const r of data) {
+    if (r.organization_id === null || seen.has(r.organization_id)) continue;
+    seen.add(r.organization_id);
+    partners.push({ organizationId: r.organization_id, name: r.counterparty_name });
+  }
+  partners.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+  return ok(partners);
+}
+
+export interface ProjectShare {
+  readonly id: string;
+  readonly partnerOrganizationId: string;
+  readonly projectRole: ProjectRole;
+  readonly validTo: string | null;
+}
+
+export async function listProjectShares(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<ProjectShare[]>> {
+  const { data, error } = await db
+    .from("project_shares")
+    .select("id, partner_organization_id, project_role, valid_to")
+    .eq("project_id", projectId)
+    .is("deleted_at", null)
+    .order("created_at");
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((r) => ({
+      id: r.id,
+      partnerOrganizationId: r.partner_organization_id,
+      projectRole: r.project_role as ProjectRole,
+      validTo: r.valid_to,
+    })),
+  );
+}
+
+export async function shareProject(
+  db: XosClient,
+  input: {
+    readonly projectId: string;
+    readonly partnerOrganizationId: string;
+    readonly projectRole: ProjectRole;
+  },
+): Promise<Result<string>> {
+  const { data, error } = await db
+    .from("project_shares")
+    // org_id comes from the project (derive_org_id); the insert grant leaves it out.
+    .insert({
+      project_id: input.projectId,
+      partner_organization_id: input.partnerOrganizationId,
+      project_role: input.projectRole,
+    } as Database["app"]["Tables"]["project_shares"]["Insert"])
+    .select("id")
+    .single();
+  if (error) return fail(toDataError(error));
+  return ok(data.id);
+}
+
+export async function revokeProjectShare(db: XosClient, id: string): Promise<Result<string>> {
+  const { data, error } = await db
+    .from("project_shares")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id)
+    .is("deleted_at", null)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  if (data.length === 0) return fail({ kind: "not-found" });
+  return ok(id);
+}
+
+export interface SharedProject {
+  readonly shareId: string;
+  readonly projectId: string;
+  readonly ownerOrgName: string;
+  readonly projectKey: string;
+  readonly name: string;
+  readonly projectRole: ProjectRole;
+  readonly startsOn: string | null;
+  readonly endsOn: string | null;
+}
+
+/** Projects other orgs share with the viewer's orgs, as the projection without internal columns. */
+export async function listSharedWithMe(db: XosClient): Promise<Result<SharedProject[]>> {
+  const { data, error } = await db.rpc("shared_projects");
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((r) => ({
+      shareId: r.project_share_id,
+      projectId: r.project_id,
+      ownerOrgName: r.owner_org_name,
+      projectKey: r.project_key,
+      name: r.name,
+      projectRole: r.project_role as ProjectRole,
+      startsOn: r.starts_on,
+      endsOn: r.ends_on,
+    })),
+  );
 }

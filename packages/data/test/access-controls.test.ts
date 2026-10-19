@@ -21,6 +21,14 @@ import {
   setLegalEntityTaxIdentifier,
   startBreakGlass,
   unblock,
+  addProjectMemberRole,
+  listProjectMemberRoles,
+  listProjectShares,
+  listSharePartners,
+  removeProjectMemberRole,
+  revokeProjectShare,
+  shareProject,
+  listSharedWithMe,
 } from "../src/access-controls.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -247,5 +255,98 @@ describe("blocks", () => {
     expect((await blockProfile(db, "person", "nobody")).ok).toBe(false);
     expect(await unblock(db, "k1")).toEqual({ ok: true, data: "k1" });
     expect((await unblock(db, "k9")).ok).toBe(false);
+  });
+});
+
+describe("project roles and shares", () => {
+  it("lists, adds and removes project roles on assignments", async () => {
+    const { db, calls } = fakeClient({
+      "from:project_member_roles": [
+        okResponse([{ id: "r1", project_member_id: "pm1", project_role: "Field" }]),
+        okResponse({ id: "r2" }),
+        REFUSED("sod_self_grant"),
+        okResponse([{ id: "r2" }]),
+        okResponse([]),
+      ],
+    });
+    const listed = await listProjectMemberRoles(db, "prj");
+    expect(listed.ok && listed.data).toEqual([{ id: "r1", projectMemberId: "pm1", role: "Field" }]);
+    expect(calls[0]?.steps).toContainEqual(["eq", ["project_members.project_id", "prj"]]);
+    expect(await addProjectMemberRole(db, "pm1", "Field Supervisor")).toEqual({
+      ok: true,
+      data: "r2",
+    });
+    expect((await addProjectMemberRole(db, "pm2", "Producer")).ok).toBe(false);
+    expect(await removeProjectMemberRole(db, "r2")).toEqual({ ok: true, data: "r2" });
+    expect((await removeProjectMemberRole(db, "r9")).ok).toBe(false);
+  });
+
+  it("lists partners once each, shares a project and revokes the share", async () => {
+    const { db } = fakeClient({
+      "from:counterparties": [
+        okResponse([
+          { organization_id: "o2", counterparty_name: "Tidewater Events" },
+          { organization_id: "o1", counterparty_name: "Bluewater Partners" },
+          { organization_id: "o1", counterparty_name: "Bluewater Partners" },
+          { organization_id: null, counterparty_name: "Walk-in" },
+        ]),
+      ],
+      "from:project_shares": [
+        okResponse([
+          { id: "s1", partner_organization_id: "o1", project_role: "Coordinator", valid_to: null },
+        ]),
+        okResponse({ id: "s2" }),
+        REFUSED("project_share_own_org"),
+        okResponse([{ id: "s1" }]),
+        okResponse([]),
+      ],
+    });
+    const partners = await listSharePartners(db, "org");
+    expect(partners.ok && partners.data.map((p) => p.name)).toEqual([
+      "Bluewater Partners",
+      "Tidewater Events",
+    ]);
+    const shares = await listProjectShares(db, "prj");
+    expect(shares.ok && shares.data[0]?.projectRole).toBe("Coordinator");
+    const input = { projectId: "prj", partnerOrganizationId: "o2", projectRole: "Field" as const };
+    expect(await shareProject(db, input)).toEqual({ ok: true, data: "s2" });
+    expect((await shareProject(db, input)).ok).toBe(false);
+    expect(await revokeProjectShare(db, "s1")).toEqual({ ok: true, data: "s1" });
+    expect((await revokeProjectShare(db, "s9")).ok).toBe(false);
+  });
+});
+
+describe("projects shared with me", () => {
+  it("maps the projection", async () => {
+    const { db } = fakeClient({
+      "rpc:shared_projects": [
+        okResponse([
+          {
+            project_share_id: "s1",
+            project_id: "p1",
+            owner_org_id: "o1",
+            owner_org_name: "Northwind Live",
+            partner_organization_id: "o2",
+            project_key: "NWL",
+            name: "Northwind Summer Series",
+            project_state: "Active",
+            production_state: "Planning",
+            current_phase_code: "3",
+            starts_on: "2027-06-01",
+            ends_on: null,
+            time_zone: "America/New_York",
+            project_role: "Coordinator",
+            valid_to: null,
+          },
+        ]),
+        REFUSED("anything"),
+      ],
+    });
+    const listed = await listSharedWithMe(db);
+    expect(listed.ok && listed.data[0]).toMatchObject({
+      ownerOrgName: "Northwind Live",
+      projectKey: "NWL",
+    });
+    expect((await listSharedWithMe(db)).ok).toBe(false);
   });
 });

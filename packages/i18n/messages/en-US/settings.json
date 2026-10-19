@@ -471,7 +471,12 @@
       "denied": "You do not have permission for this, or it no longer exists. Reload the page.",
       "conflict": "That is already on the list.",
       "invalid": "Check the values and try again.",
-      "unexpected": "Something went wrong on our side. Try again in a moment."
+      "unexpected": "Something went wrong on our side. Try again in a moment.",
+      "project_role_lead": "Change the member's lead role first; it cannot be removed here.",
+      "project_member_ended": "This person is no longer on the project.",
+      "sod_self_grant": "You cannot give yourself a role.",
+      "project_share_own_org": "A project is shared with another organization, never your own.",
+      "project_share_deleted_project": "A deleted project cannot be shared."
     },
     "legalEntities": {
       "title": "Legal entities",
@@ -580,6 +585,38 @@
       "block": "Block",
       "unblock": "Unblock",
       "unblockNamed": "Unblock {name}"
+    },
+    "projectRoles": {
+      "title": "Additional project roles",
+      "lead": "A member can hold several roles on this project. Their capabilities are the union of every role.",
+      "none": "No member holds more than one role on this project.",
+      "entry": "{role} role of {name}",
+      "alsoHolds": "{lead}, also {role}",
+      "addLabel": "Give a member another project role",
+      "member": "Member",
+      "role": "Additional role",
+      "add": "Add role",
+      "remove": "Remove",
+      "removeNamed": "Remove the {label}"
+    },
+    "shares": {
+      "title": "Shared with partner organizations",
+      "lead": "Partner members see this project's name, dates and shared scope, never budgets or internal notes, and act with the role you choose. Both organizations' audit logs record the share.",
+      "none": "This project is not shared.",
+      "noPartners": "Add an organization you work with as a vendor or client to share with it.",
+      "unnamedPartner": "Partner organization",
+      "asRole": "Partner members act as {role}",
+      "addLabel": "Share this project",
+      "partner": "Partner organization",
+      "role": "Project role for partner members",
+      "roleHelp": "Every member of the partner organization holds this role on the project.",
+      "share": "Share project",
+      "revoke": "Stop sharing",
+      "revokeNamed": "Stop sharing with {name}"
+    },
+    "sharedWithUs": {
+      "title": "Shared with your organization",
+      "entry": "Shared by {owner} · Your members act as {role}"
     }
   }
 }

@@ -471,7 +471,12 @@
       "denied": "No tiene permiso para esto, o ya no existe. Vuelva a cargar la página.",
       "conflict": "Eso ya está en la lista.",
       "invalid": "Revise los valores e inténtelo de nuevo.",
-      "unexpected": "Algo salió mal de nuestro lado. Inténtelo de nuevo en un momento."
+      "unexpected": "Algo salió mal de nuestro lado. Inténtelo de nuevo en un momento.",
+      "project_role_lead": "Cambie primero el rol principal del miembro; aquí no se puede quitar.",
+      "project_member_ended": "Esta persona ya no está en el proyecto.",
+      "sod_self_grant": "No puede asignarse un rol a sí mismo.",
+      "project_share_own_org": "Un proyecto se comparte con otra organización, nunca con la suya.",
+      "project_share_deleted_project": "Un proyecto eliminado no se puede compartir."
     },
     "legalEntities": {
       "title": "Entidades legales",
@@ -580,6 +585,38 @@
       "block": "Bloquear",
       "unblock": "Desbloquear",
       "unblockNamed": "Desbloquear a {name}"
+    },
+    "projectRoles": {
+      "title": "Roles de proyecto adicionales",
+      "lead": "Un miembro puede tener varios roles en este proyecto. Sus capacidades son la unión de todos sus roles.",
+      "none": "Ningún miembro tiene más de un rol en este proyecto.",
+      "entry": "rol {role} de {name}",
+      "alsoHolds": "{lead}, también {role}",
+      "addLabel": "Dar a un miembro otro rol de proyecto",
+      "member": "Miembro",
+      "role": "Rol adicional",
+      "add": "Agregar rol",
+      "remove": "Quitar",
+      "removeNamed": "Quitar el {label}"
+    },
+    "shares": {
+      "title": "Compartido con organizaciones socias",
+      "lead": "Los miembros de la organización socia ven el nombre, las fechas y el alcance compartido de este proyecto, nunca presupuestos ni notas internas, y actúan con el rol que usted elija. Los registros de auditoría de ambas organizaciones guardan el acceso compartido.",
+      "none": "Este proyecto no está compartido.",
+      "noPartners": "Agregue una organización con la que trabaje como proveedor o cliente para compartir con ella.",
+      "unnamedPartner": "Organización socia",
+      "asRole": "Los miembros de la socia actúan como {role}",
+      "addLabel": "Compartir este proyecto",
+      "partner": "Organización socia",
+      "role": "Rol de proyecto para los miembros de la socia",
+      "roleHelp": "Todos los miembros de la organización socia tienen este rol en el proyecto.",
+      "share": "Compartir proyecto",
+      "revoke": "Dejar de compartir",
+      "revokeNamed": "Dejar de compartir con {name}"
+    },
+    "sharedWithUs": {
+      "title": "Compartido con su organización",
+      "entry": "Compartido por {owner} · Sus miembros actúan como {role}"
     }
   }
 }
