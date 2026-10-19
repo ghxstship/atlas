@@ -54,3 +54,16 @@ Additive changes stay allowed without an ADR: new API operations within `/v1`, n
 The plan rows that `0201` seeds by hand stay in place. Migrations are immutable once applied, and staging has applied `0201`. Instead, every generated plan seed (`0207`, `0900`, `0902`) upserts the whole registry, and the `@xos/schemas` tests fail when the latest one differs from `plans.yaml`. After a reset, the database holds exactly the registry: 5 plans, 25 limits and 55 features, with no rows that only `0201` added.
 
 The frozen-contract test (gate 20, `packages/api/test/corrections.test.ts`) guards against breaking changes in v1 on every push. oasdiff joins it at the v4.0.0 tag, when a released baseline exists. `canon:check` still waits on decision 1.
+
+## Amendment (2026-10-19): the oasdiff gate replaces the waiting carry-over
+
+The Wave 2 carry-over "CI gains ... the oasdiff gate once v1 has a released baseline" is closed. Gate 20 no longer waits for the tag:
+
+- `infra/ci/oasdiff.sh` compares `packages/api/openapi/v1.json` at the current commit with the same file at the latest `vX.Y.Z` tag, using oasdiff v1.33.0 (Docker image `tufin/oasdiff`, pinned by digest), and fails on any breaking change at level ERR. External `$ref`s are refused and the container has no network.
+- Before the first tag there is no released baseline. The script says so and passes, and the frozen-contract test (`packages/api/test/corrections.test.ts`) keeps guarding v1 on every push.
+- From the v4.0.0 tag on, both run: the frozen-contract test digests the frozen operations, and oasdiff checks the whole document against the release.
+- The CI job (`api-breaking-changes`) is in `infra/ci/README.md`. It runs on every push and pull request with full tag history.
+
+A breaking change found by the gate follows ADR 0003: a new major version path, or a superseding ADR. A one-off exception is recorded in an oasdiff `--err-ignore` file next to that ADR, never by turning the job off.
+
+The document changed incompatibly between Wave 1 and this amendment: gate 5 (ADR 0023, ADR 0032) retired operations that no handler can serve, and later operations added required request members. None of this was released. The v4.0.0 tag is the first baseline, so these changes never fail the gate.

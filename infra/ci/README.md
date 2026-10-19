@@ -8,6 +8,7 @@
 | `powersync-check.sh` | Sync rules against the migrated catalog; writes the publication SQL                    | `continue-on-error` until the A17 rule fixes land, then blocking |
 | `synthetics.sh`      | Synthetic checks against staging, the status history and the status page               | Its own scheduled workflow; a failed run notifies on-call        |
 | `backup-weekly.sh`   | Encrypted weekly logical backup of staging                                             | Its own scheduled workflow; needs the owner's public key first   |
+| `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag            | Yes; passes with a notice until the first tag                    |
 
 `@xos/infra`'s lint, typecheck and tests already run in the `checks` job through `pnpm verify`, since `infra` is in the workspace.
 
@@ -139,7 +140,27 @@ jobs:
 
 This job fails on purpose until the owner commits `infra/backup/backup-public-key.asc` and the orchestrator adds the `STAGING_DB_URL` secret. Artifacts count against the free 500 MB artifact storage of the account; a staging dump is well under it at 35 days' retention.
 
-## 4. Repository settings (orchestrator)
+## 4. `ci.yml`, new job `api-breaking-changes` (gate 20)
+
+The job needs the tags, so it checks out the full history. Docker is preinstalled on `ubuntu-24.04`; the image is pinned by digest inside the script.
+
+```yaml
+api-breaking-changes:
+  name: API breaking changes (gate 20, oasdiff)
+  runs-on: ubuntu-24.04
+  timeout-minutes: 10
+  steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        fetch-depth: 0
+        fetch-tags: true
+    - name: oasdiff against the latest v* tag
+      run: infra/ci/oasdiff.sh --format githubactions
+```
+
+`--format githubactions` turns each breaking change into an error annotation on the pull request. Before the first `v*` tag the step prints that there is no released baseline and passes.
+
+## 5. Repository settings (orchestrator)
 
 | Setting                                   | Value                                                                                                                                                                          |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
