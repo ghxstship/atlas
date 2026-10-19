@@ -7629,7 +7629,9 @@ export type Database = {
           line_number: number;
           line_type: Database["app"]["Enums"]["budget_line_type"];
           org_id: string;
+          phase_code: string | null;
           quantity: number;
+          tier_code: string | null;
           unit_basis: string | null;
           unit_price_minor: number | null;
           updated_at: string;
@@ -7652,7 +7654,9 @@ export type Database = {
           line_number: number;
           line_type?: Database["app"]["Enums"]["budget_line_type"];
           org_id: string;
+          phase_code?: string | null;
           quantity?: number;
+          tier_code?: string | null;
           unit_basis?: string | null;
           unit_price_minor?: number | null;
           updated_at?: string;
@@ -7674,7 +7678,9 @@ export type Database = {
           line_number?: number;
           line_type?: Database["app"]["Enums"]["budget_line_type"];
           org_id?: string;
+          phase_code?: string | null;
           quantity?: number;
+          tier_code?: string | null;
           unit_basis?: string | null;
           unit_price_minor?: number | null;
           updated_at?: string;
@@ -9145,6 +9151,7 @@ export type Database = {
           budget_id: string;
           change_order_number: number;
           change_order_state: Database["app"]["Enums"]["change_order_state"];
+          client_impact: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -9155,6 +9162,7 @@ export type Database = {
           project_id: string;
           reason: string | null;
           requested_by: string | null;
+          schedule_impact_days: number | null;
           title: string;
           updated_at: string;
           updated_by: string | null;
@@ -9164,6 +9172,7 @@ export type Database = {
           budget_id: string;
           change_order_number?: number;
           change_order_state?: Database["app"]["Enums"]["change_order_state"];
+          client_impact?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -9174,6 +9183,7 @@ export type Database = {
           project_id: string;
           reason?: string | null;
           requested_by?: string | null;
+          schedule_impact_days?: number | null;
           title: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -9182,6 +9192,7 @@ export type Database = {
           budget_id?: string;
           change_order_number?: number;
           change_order_state?: Database["app"]["Enums"]["change_order_state"];
+          client_impact?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -9192,6 +9203,7 @@ export type Database = {
           project_id?: string;
           reason?: string | null;
           requested_by?: string | null;
+          schedule_impact_days?: number | null;
           title?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -11119,6 +11131,75 @@ export type Database = {
           },
         ];
       };
+      cue_calls: {
+        Row: {
+          call_kind: Database["app"]["Enums"]["cue_call_kind"];
+          created_at: string;
+          created_by: string | null;
+          cue_id: string;
+          deleted_at: string | null;
+          id: string;
+          instruction: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          call_kind: Database["app"]["Enums"]["cue_call_kind"];
+          created_at?: string;
+          created_by?: string | null;
+          cue_id: string;
+          deleted_at?: string | null;
+          id?: string;
+          instruction: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          call_kind?: Database["app"]["Enums"]["cue_call_kind"];
+          created_at?: string;
+          created_by?: string | null;
+          cue_id?: string;
+          deleted_at?: string | null;
+          id?: string;
+          instruction?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cue_calls_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cue_calls_cue_id_fkey";
+            columns: ["cue_id"];
+            isOneToOne: false;
+            referencedRelation: "cues";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cue_calls_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cue_calls_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       cues: {
         Row: {
           called_at: string | null;
@@ -11126,6 +11207,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          description: string | null;
           duration: string | null;
           id: string;
           label: string;
@@ -11134,6 +11216,8 @@ export type Database = {
           position: number;
           project_id: string;
           run_of_show_id: string;
+          segment: string | null;
+          space_id: string | null;
           updated_at: string;
           updated_by: string | null;
         };
@@ -11144,6 +11228,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           duration?: string | null;
           id?: string;
           label: string;
@@ -11152,6 +11237,8 @@ export type Database = {
           position: number;
           project_id: string;
           run_of_show_id: string;
+          segment?: string | null;
+          space_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -11161,6 +11248,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           duration?: string | null;
           id?: string;
           label?: string;
@@ -11169,6 +11257,8 @@ export type Database = {
           position?: number;
           project_id?: string;
           run_of_show_id?: string;
+          segment?: string | null;
+          space_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -11227,6 +11317,13 @@ export type Database = {
             columns: ["run_of_show_id"];
             isOneToOne: false;
             referencedRelation: "run_of_show";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cues_space_id_fkey";
+            columns: ["space_id"];
+            isOneToOne: false;
+            referencedRelation: "spaces";
             referencedColumns: ["id"];
           },
           {
@@ -16421,6 +16518,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          driver_name: string | null;
           id: string;
           org_id: string;
           project_id: string;
@@ -16430,6 +16528,7 @@ export type Database = {
           updated_at: string;
           updated_by: string | null;
           vehicle_identifier: string;
+          vehicle_type: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -16437,6 +16536,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          driver_name?: string | null;
           id?: string;
           org_id: string;
           project_id: string;
@@ -16446,12 +16546,14 @@ export type Database = {
           updated_at?: string;
           updated_by?: string | null;
           vehicle_identifier: string;
+          vehicle_type?: string | null;
         };
         Update: {
           arrived_at?: string;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          driver_name?: string | null;
           id?: string;
           org_id?: string;
           project_id?: string;
@@ -16461,6 +16563,7 @@ export type Database = {
           updated_at?: string;
           updated_by?: string | null;
           vehicle_identifier?: string;
+          vehicle_type?: string | null;
         };
         Relationships: [
           {
@@ -19380,6 +19483,7 @@ export type Database = {
           signed_off_by: string | null;
           updated_at: string;
           updated_by: string | null;
+          urid: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -19397,6 +19501,7 @@ export type Database = {
           signed_off_by?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          urid?: string | null;
         };
         Update: {
           created_at?: string;
@@ -19413,6 +19518,7 @@ export type Database = {
           signed_off_by?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          urid?: string | null;
         };
         Relationships: [
           {
@@ -22743,6 +22849,7 @@ export type Database = {
           shipment_id: string | null;
           updated_at: string;
           updated_by: string | null;
+          urid: string | null;
           zone_id: string | null;
         };
         ComputedFields: never;
@@ -22758,6 +22865,7 @@ export type Database = {
           shipment_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          urid?: string | null;
           zone_id?: string | null;
         };
         Update: {
@@ -22772,6 +22880,7 @@ export type Database = {
           shipment_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          urid?: string | null;
           zone_id?: string | null;
         };
         Relationships: [
@@ -29973,7 +30082,9 @@ export type Database = {
       };
       projects: {
         Row: {
+          anchor_on: string | null;
           archived_at: string | null;
+          budget_envelope_minor: number | null;
           client_counterparty_id: string | null;
           created_at: string;
           created_by: string | null;
@@ -30000,7 +30111,9 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          anchor_on?: string | null;
           archived_at?: string | null;
+          budget_envelope_minor?: number | null;
           client_counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -30026,7 +30139,9 @@ export type Database = {
           workspace_id?: string | null;
         };
         Update: {
+          anchor_on?: string | null;
           archived_at?: string | null;
+          budget_envelope_minor?: number | null;
           client_counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
@@ -30308,12 +30423,16 @@ export type Database = {
           created_by: string | null;
           currency_code: string;
           deleted_at: string | null;
+          delivery_due_on: string | null;
           id: string;
           org_id: string;
+          payment_terms_days: number | null;
           po_number: number;
           po_state: Database["app"]["Enums"]["po_state"];
           project_id: string;
           rfq_response_id: string | null;
+          shipping_minor: number | null;
+          tax_minor: number | null;
           updated_at: string;
           updated_by: string | null;
           vendor_id: string;
@@ -30324,12 +30443,16 @@ export type Database = {
           created_by?: string | null;
           currency_code: string;
           deleted_at?: string | null;
+          delivery_due_on?: string | null;
           id?: string;
           org_id: string;
+          payment_terms_days?: number | null;
           po_number?: number;
           po_state?: Database["app"]["Enums"]["po_state"];
           project_id: string;
           rfq_response_id?: string | null;
+          shipping_minor?: number | null;
+          tax_minor?: number | null;
           updated_at?: string;
           updated_by?: string | null;
           vendor_id: string;
@@ -30339,12 +30462,16 @@ export type Database = {
           created_by?: string | null;
           currency_code?: string;
           deleted_at?: string | null;
+          delivery_due_on?: string | null;
           id?: string;
           org_id?: string;
+          payment_terms_days?: number | null;
           po_number?: number;
           po_state?: Database["app"]["Enums"]["po_state"];
           project_id?: string;
           rfq_response_id?: string | null;
+          shipping_minor?: number | null;
+          tax_minor?: number | null;
           updated_at?: string;
           updated_by?: string | null;
           vendor_id?: string;
@@ -34338,11 +34465,13 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          description: string | null;
           due_at: string | null;
           ends_at: string | null;
           id: string;
           org_id: string;
           owner_party_id: string | null;
+          parent_record_id: string | null;
           phase_code: string | null;
           project_id: string;
           record_kind: string;
@@ -34351,12 +34480,15 @@ export type Database = {
           record_subtype: string | null;
           replan_reason: string | null;
           scope_node_id: string | null;
+          sop_id: string | null;
           starts_at: string | null;
+          team_code: string | null;
           time_zone: string | null;
           title: string;
           updated_at: string;
           updated_by: string | null;
           urid: string | null;
+          wbs_code: string | null;
           xyz: string;
           xyz_basis: Database["app"]["Enums"]["xyz_basis"];
           record_class: string | null;
@@ -34369,11 +34501,13 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           due_at?: string | null;
           ends_at?: string | null;
           id?: string;
           org_id: string;
           owner_party_id?: string | null;
+          parent_record_id?: string | null;
           phase_code?: string | null;
           project_id: string;
           record_kind: string;
@@ -34382,12 +34516,15 @@ export type Database = {
           record_subtype?: string | null;
           replan_reason?: string | null;
           scope_node_id?: string | null;
+          sop_id?: string | null;
           starts_at?: string | null;
+          team_code?: string | null;
           time_zone?: string | null;
           title: string;
           updated_at?: string;
           updated_by?: string | null;
           urid?: string | null;
+          wbs_code?: string | null;
           xyz: string;
           xyz_basis: Database["app"]["Enums"]["xyz_basis"];
         };
@@ -34397,11 +34534,13 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           due_at?: string | null;
           ends_at?: string | null;
           id?: string;
           org_id?: string;
           owner_party_id?: string | null;
+          parent_record_id?: string | null;
           phase_code?: string | null;
           project_id?: string;
           record_kind?: string;
@@ -34410,12 +34549,15 @@ export type Database = {
           record_subtype?: string | null;
           replan_reason?: string | null;
           scope_node_id?: string | null;
+          sop_id?: string | null;
           starts_at?: string | null;
+          team_code?: string | null;
           time_zone?: string | null;
           title?: string;
           updated_at?: string;
           updated_by?: string | null;
           urid?: string | null;
+          wbs_code?: string | null;
           xyz?: string;
           xyz_basis?: Database["app"]["Enums"]["xyz_basis"];
         };
@@ -34446,6 +34588,20 @@ export type Database = {
             columns: ["owner_party_id"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_parent_record_id_fkey";
+            columns: ["parent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "offboarding_open_records";
+            referencedColumns: ["record_id"];
+          },
+          {
+            foreignKeyName: "records_parent_record_id_fkey";
+            columns: ["parent_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
             referencedColumns: ["id"];
           },
           {
@@ -34488,6 +34644,13 @@ export type Database = {
             columns: ["scope_node_id"];
             isOneToOne: false;
             referencedRelation: "scope_nodes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "records_sop_id_fkey";
+            columns: ["sop_id"];
+            isOneToOne: false;
+            referencedRelation: "sops";
             referencedColumns: ["id"];
           },
           {
@@ -36533,6 +36696,7 @@ export type Database = {
           name: string;
           org_id: string;
           project_id: string;
+          record_id: string | null;
           scope_node_id: string | null;
           show_date: string;
           updated_at: string;
@@ -36547,6 +36711,7 @@ export type Database = {
           name: string;
           org_id: string;
           project_id: string;
+          record_id?: string | null;
           scope_node_id?: string | null;
           show_date: string;
           updated_at?: string;
@@ -36560,6 +36725,7 @@ export type Database = {
           name?: string;
           org_id?: string;
           project_id?: string;
+          record_id?: string | null;
           scope_node_id?: string | null;
           show_date?: string;
           updated_at?: string;
@@ -36606,6 +36772,20 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "run_of_show_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "offboarding_open_records";
+            referencedColumns: ["record_id"];
+          },
+          {
+            foreignKeyName: "run_of_show_record_id_fkey";
+            columns: ["record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
             referencedColumns: ["id"];
           },
           {
@@ -38931,6 +39111,7 @@ export type Database = {
           project_id: string;
           record_id: string | null;
           role_code: string | null;
+          scheduled_break_minutes: number | null;
           scope_node_id: string | null;
           shift_state: Database["app"]["Enums"]["shift_state"];
           starts_at: string;
@@ -38951,6 +39132,7 @@ export type Database = {
           project_id: string;
           record_id?: string | null;
           role_code?: string | null;
+          scheduled_break_minutes?: number | null;
           scope_node_id?: string | null;
           shift_state?: Database["app"]["Enums"]["shift_state"];
           starts_at: string;
@@ -38970,6 +39152,7 @@ export type Database = {
           project_id?: string;
           record_id?: string | null;
           role_code?: string | null;
+          scheduled_break_minutes?: number | null;
           scope_node_id?: string | null;
           shift_state?: Database["app"]["Enums"]["shift_state"];
           starts_at?: string;
@@ -39343,56 +39526,95 @@ export type Database = {
       shipments: {
         Row: {
           arrives_at: string | null;
+          bill_of_lading_identifier: string | null;
           carrier_counterparty_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          description: string | null;
           direction: Database["app"]["Enums"]["shipment_direction"];
           freight_type_enum_id: string | null;
+          height_ft: number | null;
           id: string;
+          length_ft: number | null;
           org_id: string;
+          origin: string | null;
+          pallet_count: number | null;
+          piece_count: number | null;
           project_id: string;
+          seal_identifier: string | null;
+          sender_counterparty_id: string | null;
           shipment_number: number;
           ships_at: string | null;
           tracking_identifier: string | null;
+          trailer_license: string | null;
           updated_at: string;
           updated_by: string | null;
+          urid: string | null;
+          weight_lb: number | null;
+          width_ft: number | null;
           shipment_display_key: string | null;
         };
         ComputedFields: "shipment_display_key";
         Insert: {
           arrives_at?: string | null;
+          bill_of_lading_identifier?: string | null;
           carrier_counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           direction: Database["app"]["Enums"]["shipment_direction"];
           freight_type_enum_id?: string | null;
+          height_ft?: number | null;
           id?: string;
+          length_ft?: number | null;
           org_id: string;
+          origin?: string | null;
+          pallet_count?: number | null;
+          piece_count?: number | null;
           project_id: string;
+          seal_identifier?: string | null;
+          sender_counterparty_id?: string | null;
           shipment_number?: number;
           ships_at?: string | null;
           tracking_identifier?: string | null;
+          trailer_license?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          urid?: string | null;
+          weight_lb?: number | null;
+          width_ft?: number | null;
         };
         Update: {
           arrives_at?: string | null;
+          bill_of_lading_identifier?: string | null;
           carrier_counterparty_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           direction?: Database["app"]["Enums"]["shipment_direction"];
           freight_type_enum_id?: string | null;
+          height_ft?: number | null;
           id?: string;
+          length_ft?: number | null;
           org_id?: string;
+          origin?: string | null;
+          pallet_count?: number | null;
+          piece_count?: number | null;
           project_id?: string;
+          seal_identifier?: string | null;
+          sender_counterparty_id?: string | null;
           shipment_number?: number;
           ships_at?: string | null;
           tracking_identifier?: string | null;
+          trailer_license?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          urid?: string | null;
+          weight_lb?: number | null;
+          width_ft?: number | null;
         };
         Relationships: [
           {
@@ -39442,6 +39664,13 @@ export type Database = {
             columns: ["project_id"];
             isOneToOne: false;
             referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shipments_sender_counterparty_id_fkey";
+            columns: ["sender_counterparty_id"];
+            isOneToOne: false;
+            referencedRelation: "counterparties";
             referencedColumns: ["id"];
           },
           {
@@ -39977,6 +40206,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          description: string | null;
           id: string;
           name: string;
           org_id: string;
@@ -39992,6 +40222,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           id?: string;
           name: string;
           org_id: string;
@@ -40006,6 +40237,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          description?: string | null;
           id?: string;
           name?: string;
           org_id?: string;
@@ -46027,6 +46259,8 @@ export type Database = {
           counterparty_id: string;
           created_at: string;
           created_by: string | null;
+          default_account_code: string | null;
+          default_cost_center_id: string | null;
           default_currency_code: string | null;
           deleted_at: string | null;
           id: string;
@@ -46041,6 +46275,8 @@ export type Database = {
           counterparty_id: string;
           created_at?: string;
           created_by?: string | null;
+          default_account_code?: string | null;
+          default_cost_center_id?: string | null;
           default_currency_code?: string | null;
           deleted_at?: string | null;
           id?: string;
@@ -46054,6 +46290,8 @@ export type Database = {
           counterparty_id?: string;
           created_at?: string;
           created_by?: string | null;
+          default_account_code?: string | null;
+          default_cost_center_id?: string | null;
           default_currency_code?: string | null;
           deleted_at?: string | null;
           id?: string;
@@ -46076,6 +46314,13 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "vendors_default_cost_center_id_fkey";
+            columns: ["default_cost_center_id"];
+            isOneToOne: false;
+            referencedRelation: "cost_centers";
             referencedColumns: ["id"];
           },
           {
@@ -53802,6 +54047,7 @@ export type Database = {
       conversation_kind: "Direct" | "Group";
       correction_state: "Proposed" | "Approved" | "Rejected";
       cost_center_kind: "Standing" | "Overhead" | "Event";
+      cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
       custom_data_type:
         | "Text"
         | "Number"
@@ -60082,6 +60328,7 @@ export const Constants = {
       conversation_kind: ["Direct", "Group"],
       correction_state: ["Proposed", "Approved", "Rejected"],
       cost_center_kind: ["Standing", "Overhead", "Event"],
+      cue_call_kind: ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
       custom_data_type: [
         "Text",
         "Number",

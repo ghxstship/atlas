@@ -9,40 +9,30 @@ import { readColumnMap } from "../src/playbook/column-map.ts";
  * diffed in CI), so this runs without a database.
  *
  * Standard Library and Production Template targets (`xpms.*`) are generated from the map and must all resolve.
- * Most targets in `app.*` were written as `<entity>.<column key>` skeletons before the domain schema existed and
- * name columns the domain tables never got (finding legal/qa/findings/A47-001.md). Until the map is reconciled,
- * UNRESOLVED_APP_TARGETS holds the measured count per table, like the bundle ceilings: the test fails when a
- * table gains an unresolved target, and also when one resolves, so the count is lowered as the map is fixed.
+ * The `app.*` targets were written as `<entity>.<column key>` skeletons before the domain schema existed (finding
+ * legal/qa/findings/A47-001.md). A51 reconciled them: each now names its real column (in the row's table or one
+ * reached through a foreign key, the path stated in its transform), a column migration 1180 added, or the
+ * template's own value store with a "Template only:" reason. What remains unresolved waits on an owner ruling:
+ * OWNER_BLOCKED holds those per table, each entry says "Blocked on owner (RRR-64):", and the count only goes down.
  */
 const repo = (path: string) => fileURLToPath(new URL(`../../../${path}`, import.meta.url));
 
-const UNRESOLVED_APP_TARGETS: Readonly<Record<string, number>> = {
-  "app.access_grid": 12,
-  "app.activity_events": 18,
-  "app.advance_submissions": 23,
-  "app.asset_custody": 11,
-  "app.asset_units": 13,
-  "app.budget_lines": 25,
-  "app.change_orders": 22,
-  "app.credentials": 15,
-  "app.cues": 20,
-  "app.fulfillments": 18,
-  "app.incidents": 21,
-  "app.inspections": 20,
-  "app.marshalling_log": 21,
-  "app.po_lines": 9,
-  "app.posting_lines": 2,
-  "app.projects": 15,
-  "app.purchase_orders": 11,
-  "app.records": 66,
-  "app.requisitions": 6,
-  "app.role_assignments": 25,
-  "app.shifts": 12,
-  "app.shipments": 29,
-  "app.spaces": 9,
-  "app.timesheets": 9,
-  "app.vendors": 23,
+const OWNER_BLOCKED: Readonly<Record<string, number>> = {
+  "app.asset_units": 1,
+  "app.budget_lines": 2,
+  "app.change_orders": 1,
+  "app.marshalling_log": 1,
+  "app.projects": 1,
+  "app.records": 5,
+  "app.requisitions": 1,
+  "app.shifts": 1,
+  "app.shipments": 2,
+  "app.spaces": 3,
 };
+
+const TEMPLATE_VALUES = "xpms.production_template_values.value_text";
+const OWNER_PREFIX = "Blocked on owner (RRR-64): ";
+const TEMPLATE_PREFIX = "Template only: ";
 
 /** Every `schema.relation.column` of a table or view Row in the generated database types. */
 export function schemaColumns(types: string): Set<string> {
@@ -83,11 +73,13 @@ export function schemaColumns(types: string): Set<string> {
 }
 
 const columns = schemaColumns(readFileSync(repo("packages/data/src/database.types.ts"), "utf8"));
-const fieldTargets = readColumnMap(readFileSync(repo("canon/map/playbook-columns.yaml"), "utf8"))
-  .sheets.flatMap((s) => s.columns)
-  .filter((c) => c.disposition === "field")
-  .map((c) => c.target ?? "");
-const unresolved = fieldTargets.filter((t) => !columns.has(t));
+const sheets = readColumnMap(readFileSync(repo("canon/map/playbook-columns.yaml"), "utf8")).sheets;
+const fields = sheets.flatMap((s) =>
+  s.columns.filter((c) => c.disposition === "field").map((c) => ({ sheet: s, column: c })),
+);
+const fieldTargets = fields.map((f) => f.column.target ?? "");
+const unresolved = fields.filter((f) => !columns.has(f.column.target ?? ""));
+const where = (f: (typeof fields)[number]) => `${f.sheet.sheet} ${f.column.letter}`;
 
 describe("Playbook field targets (gate 14)", () => {
   it("reads the generated schema and the column map", () => {
@@ -96,15 +88,41 @@ describe("Playbook field targets (gate 14)", () => {
   });
 
   it("resolves every Standard Library and Production Template target", () => {
-    expect(unresolved.filter((t) => !t.startsWith("app."))).toEqual([]);
+    expect(unresolved.map((f) => f.column.target).filter((t) => !t?.startsWith("app."))).toEqual(
+      [],
+    );
   });
 
-  it("holds the unresolved domain targets at the counts in finding A47-001", () => {
+  it("leaves unresolved only the domain targets blocked on an owner ruling (finding A47-001)", () => {
     const counts: Record<string, number> = {};
-    for (const target of unresolved.filter((t) => t.startsWith("app."))) {
-      const table = target.split(".").slice(0, 2).join(".");
+    for (const f of unresolved) {
+      const table = (f.column.target ?? "").split(".").slice(0, 2).join(".");
       counts[table] = (counts[table] ?? 0) + 1;
     }
-    expect(counts).toEqual(UNRESOLVED_APP_TARGETS);
+    expect(counts).toEqual(OWNER_BLOCKED);
+    expect(
+      unresolved.filter((f) => !f.column.transform?.startsWith(OWNER_PREFIX)).map(where),
+    ).toEqual([]);
+  });
+
+  it("marks owner-blocked only what is still unresolved", () => {
+    const marked = fields.filter((f) => f.column.transform?.startsWith(OWNER_PREFIX));
+    expect(marked.filter((f) => columns.has(f.column.target ?? "")).map(where)).toEqual([]);
+  });
+
+  it("gives every template-only Production Template column its reason", () => {
+    const templateOnly = fields.filter(
+      (f) => f.sheet.destination === "production-template" && f.column.target === TEMPLATE_VALUES,
+    );
+    expect(templateOnly.length).toBeGreaterThan(0);
+    expect(
+      templateOnly
+        .filter(
+          (f) =>
+            (f.column.transform ?? "").length <= TEMPLATE_PREFIX.length + 10 ||
+            !f.column.transform?.startsWith(TEMPLATE_PREFIX),
+        )
+        .map(where),
+    ).toEqual([]);
   });
 });

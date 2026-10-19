@@ -81,73 +81,84 @@ sheets:
         header: PROJECT ID
         key: project_id
         disposition: field
-        target: app.projects.project_id
+        target: app.projects.project_key
         type: text
+        transform: Project key, the code XOS issues for the project.
       - letter: B
         header: PROJECT NAME
         key: project_name
         disposition: field
-        target: app.projects.project_name
+        target: app.projects.name
         type: text
+        transform: Project name.
         real_world: company
       - letter: C
         header: CLIENT NAME
         key: client_name
         disposition: field
-        target: app.projects.client_name
+        target: app.organizations.name
         type: text
+        transform: Name of the client, through the project's client counterparty (projects.client_counterparty_id to counterparties.organization_id).
         real_world: company
       - letter: D
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.projects.organization
+        target: app.projects.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
         real_world: company
       - letter: E
         header: VENUE
         key: venue
         disposition: field
-        target: app.projects.venue
+        target: app.venues.name
         type: text
+        transform: Venue of the project (projects.venue_id).
         real_world: venue
       - letter: F
         header: LOCATION
         key: location
         disposition: field
-        target: app.projects.location
+        target: app.venues.locality
         type: text
+        transform: Locality of the project's venue.
         real_world: venue
       - letter: G
         header: START DATE
         key: start_date
         disposition: field
-        target: app.projects.start_date
+        target: app.projects.starts_on
         type: text
+        transform: First day of the project.
       - letter: H
         header: END DATE
         key: end_date
         disposition: field
-        target: app.projects.end_date
+        target: app.projects.ends_on
         type: text
+        transform: Last day of the project.
       - letter: I
         header: ANCHOR DATE
         key: anchor_date
         disposition: field
-        target: app.projects.anchor_date
+        target: app.projects.anchor_on
         type: text
+        transform: Anchor date the template's day offsets count from.
       - letter: J
         header: TIER
         key: tier
         disposition: field
-        target: app.projects.tier
+        target: app.projects.tier_code
         type: text
+        transform: Tier of experience (Section 3.5); Tier 06 Theatrical gives code 06.
       - letter: K
         header: BUDGET ENVELOPE
         key: budget_envelope
         disposition: field
-        target: app.projects.budget_envelope
+        target: app.projects.budget_envelope_minor
         type: numeric
+        transform: Budget envelope in minor units of the project currency.
         real_world: price
       - letter: L
         header: COMMITTED AMOUNT
@@ -187,25 +198,29 @@ sheets:
         disposition: field
         target: app.projects.operational_state
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Active, Complete and Scheduled, against project_state Proposed to Canceled) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: Q
         header: GOVERNING GATE
         key: governing_gate
         disposition: field
-        target: app.projects.governing_gate
+        target: app.projects.current_phase_code
         type: text
+        transform: Governing gate resolved to its phase (Gate 05 Build gives BLD).
       - letter: R
         header: EXECUTIVE PRODUCER
         key: executive_producer
         disposition: field
-        target: app.projects.executive_producer
+        target: app.project_members.membership_id
         type: text
+        transform: Executive producer as the project member with project_role Producer.
         real_world: person
       - letter: S
         header: NOTES
         key: notes
         disposition: field
-        target: app.projects.notes
+        target: app.projects.description
         type: text
+        transform: Project description.
   - sheet: Activity Log
     key: activity_log
     destination: production-template
@@ -216,110 +231,128 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.activity_events.record_id
+        target: app.activity_events.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.activity_events.organization
+        target: app.activity_events.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT
         key: project
         disposition: field
-        target: app.activity_events.project
+        target: app.domain_events.project_id
         type: text
+        transform: Project of the domain event the activity row projects (activity_events.domain_event_id).
       - letter: D
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.activity_events.department
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.activity_events carries no URID; an activity row inherits its classification from the subject of its domain event."
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.activity_events.category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.activity_events carries no URID; an activity row inherits its classification from the subject of its domain event."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.activity_events.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: TIMESTAMP
         key: timestamp
         disposition: field
-        target: app.activity_events.timestamp
+        target: app.domain_events.occurred_at
         type: text
+        transform: When the domain event occurred.
       - letter: H
         header: LOCATION / ZONE
         key: location_zone
         disposition: field
-        target: app.activity_events.location_zone
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: location is a property of the event's subject, not of the activity row."
       - letter: I
         header: SUBJECT / ITEM
         key: subject_item
         disposition: field
-        target: app.activity_events.subject_item
+        target: app.domain_events.subject_id
         type: text
+        transform: Subject row of the domain event (with subject_table).
       - letter: J
         header: DESCRIPTION
         key: description
         disposition: field
-        target: app.activity_events.description
+        target: app.domain_events.event_type
         type: text
+        transform: Description resolves to the domain event type; its display label comes from the i18n catalog.
       - letter: K
         header: PARTY INVOLVED
         key: party_involved
         disposition: field
-        target: app.activity_events.party_involved
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: parties are those of the event's subject; the activity row names only its actor."
       - letter: L
         header: QTY / VALUE
         key: qty_value
         disposition: field
-        target: app.activity_events.qty_value
+        target: app.domain_events.data
         type: text
+        transform: Quantity or value carried in the domain event payload.
       - letter: M
         header: PRIORITY
         key: priority
         disposition: field
-        target: app.activity_events.priority
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: activity rows are immutable facts and carry no priority."
       - letter: N
         header: LOGGED BY
         key: logged_by
         disposition: field
-        target: app.activity_events.logged_by
+        target: app.activity_events.actor_person_id
         type: text
+        transform: Person who performed the action.
       - letter: O
         header: REFERENCE ID
         key: reference_id
         disposition: field
-        target: app.activity_events.reference_id
+        target: app.activity_events.domain_event_id
         type: text
+        transform: Domain event the activity row projects.
       - letter: P
         header: STATUS
         key: status
         disposition: field
-        target: app.activity_events.status
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: activity rows are immutable facts and have no lifecycle state."
       - letter: Q
         header: FLAG
         key: flag
         disposition: field
-        target: app.activity_events.flag
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: R
         header: NOTES
         key: notes
         disposition: field
-        target: app.activity_events.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.activity_events').
       - letter: S
         header: CREATED BY
         key: created_by
@@ -348,8 +381,9 @@ sheets:
         header: ACTIVITY ID
         key: activity_id
         disposition: field
-        target: app.records.activity_id
+        target: app.records.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -360,14 +394,16 @@ sheets:
         header: PARENT ACTIVITY ID
         key: parent_activity_id
         disposition: field
-        target: app.records.parent_activity_id
+        target: app.records.parent_record_id
         type: text
+        transform: Summary activity or gate milestone the activity rolls up to.
       - letter: D
         header: WBS CODE
         key: wbs_code
         disposition: field
         target: app.records.wbs_code
         type: numeric
+        transform: Work breakdown structure code of the activity.
       - letter: E
         header: PHASE CODE
         key: phase_code
@@ -378,80 +414,93 @@ sheets:
         header: PHASE
         key: phase
         disposition: field
-        target: app.records.phase
+        target: app.records.phase_code
         type: text
+        transform: Gated phase matched by name (Section 3.4).
       - letter: G
         header: ACT
         key: act
         disposition: field
-        target: app.records.act
+        target: xpms.dim_phase.act_code
         type: text
+        transform: Act is derived from the phase (acts are presentation groupings, Section 3.4).
       - letter: H
         header: GATE
         key: gate
         disposition: field
-        target: app.records.gate
+        target: xpms.dim_phase.gate
         type: numeric
+        transform: Gate number is derived from the phase.
       - letter: I
         header: ACTIVITY NAME
         key: activity_name
         disposition: field
-        target: app.records.activity_name
+        target: app.records.title
         type: text
+        transform: Activity name is the record title.
       - letter: J
         header: ACTIVITY TYPE
         key: activity_type
         disposition: field
         target: app.records.activity_type
         type: text
+        transform: "Blocked on owner (RRR-64): activity types (Summary Activity, Milestone Gate) are not among the 26 record kinds (Bible tab 24); which kind each becomes needs the owner's ruling alongside RRR-64."
       - letter: K
         header: DELIVERABLE
         key: deliverable
         disposition: field
-        target: app.records.deliverable
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the deliverable is named in free text; XOS models deliverables as Document records (Section 3.10), which the template does not mint by name."
       - letter: L
         header: SOP ID
         key: sop_id
         disposition: field
         target: app.records.sop_id
         type: text
+        transform: Standard operating procedure that governs the activity, matched by SOP code.
       - letter: M
         header: OWNER ROLE
         key: owner_role
         disposition: field
-        target: app.records.owner_role
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the owner role column holds people's initials (TIGRE/JC), not role codes; the owner is the personnel id."
       - letter: N
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.records.personnel_id
+        target: app.records.owner_party_id
         type: text
+        transform: Person who owns the activity.
       - letter: O
         header: START DATE
         key: start_date
         disposition: field
-        target: app.records.start_date
+        target: app.records.starts_at
         type: date
+        transform: Start of the activity.
       - letter: P
         header: END DATE
         key: end_date
         disposition: field
-        target: app.records.end_date
+        target: app.records.ends_at
         type: date
+        transform: End of the activity.
       - letter: Q
         header: DURATION (DAYS)
         key: duration_days
         disposition: field
-        target: app.records.duration_days
+        target: xpms.production_template_values.value_text
         type: numeric
+        transform: "Template only: duration is derived from starts_at and ends_at (Section 3.15)."
       - letter: R
         header: CRITICAL PATH
         key: critical_path
         disposition: field
-        target: app.records.critical_path
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the critical path is computed from record dependencies at read time (Section 11, Schedule)."
       - letter: S
         header: TOTAL TASKS
         key: total_tasks
@@ -480,20 +529,23 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.records.status
+        target: app.records.record_state
         type: text
+        transform: Record state (Section 3.10).
       - letter: W
         header: FLAG
         key: flag
         disposition: field
-        target: app.records.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: X
         header: NOTES
         key: notes
         disposition: field
-        target: app.records.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.records').
   - sheet: Production Tasks
     key: production_tasks
     destination: production-template
@@ -504,8 +556,9 @@ sheets:
         header: TASK ID
         key: task_id
         disposition: field
-        target: app.records.task_id
+        target: app.records.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -516,26 +569,30 @@ sheets:
         header: ACTIVITY ID
         key: activity_id
         disposition: field
-        target: app.records.activity_id
+        target: app.records.parent_record_id
         type: text
+        transform: Schedule activity the task rolls up to.
       - letter: D
         header: WBS CODE
         key: wbs_code
         disposition: field
         target: app.records.wbs_code
         type: text
+        transform: Work breakdown structure code of the task.
       - letter: E
         header: TASK NAME
         key: task_name
         disposition: field
-        target: app.records.task_name
+        target: app.records.title
         type: text
+        transform: Task name is the record title.
       - letter: F
         header: DESCRIPTION
         key: description
         disposition: field
         target: app.records.description
         type: text
+        transform: What the task involves.
       - letter: G
         header: RECORD KIND
         key: record_kind
@@ -554,97 +611,113 @@ sheets:
         disposition: field
         target: app.records.team_code
         type: text
+        transform: Canon team (Bible teams) that does the task.
       - letter: J
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.records.location_id
+        target: app.records.scope_node_id
         type: text
+        transform: Scope node of the task's location.
       - letter: K
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.records.personnel_id
+        target: app.record_assignments.membership_id
         type: text
+        transform: Person assigned to the task.
       - letter: L
         header: ASSIGNEE NAME
         key: assignee_name
         disposition: field
-        target: app.records.assignee_name
+        target: app.people.full_name
         type: text
+        transform: Name of the assigned person; the task does not restate it.
         real_world: person
       - letter: M
         header: START DATE
         key: start_date
         disposition: field
-        target: app.records.start_date
+        target: app.records.starts_at
         type: date
+        transform: Start of the task.
       - letter: N
         header: END DATE
         key: end_date
         disposition: field
-        target: app.records.end_date
+        target: app.records.ends_at
         type: date
+        transform: End of the task.
       - letter: O
         header: DURATION (DAYS)
         key: duration_days
         disposition: field
-        target: app.records.duration_days
+        target: xpms.production_template_values.value_text
         type: numeric
+        transform: "Template only: duration is derived from starts_at and ends_at (Section 3.15)."
       - letter: P
         header: PREDECESSORS
         key: predecessors
         disposition: field
-        target: app.records.predecessors
+        target: app.record_dependencies.predecessor_record_id
         type: text
+        transform: Each predecessor task becomes a Finish to Start dependency.
       - letter: Q
         header: PRIORITY
         key: priority
         disposition: field
         target: app.records.priority
         type: text
+        transform: "Blocked on owner (RRR-64): records have no priority, and the Enumerations library defines only Incident Priority, labeled Critical (P1) to Low (P4); a record priority list needs the owner's ruling alongside RRR-64's enumeration labels."
       - letter: R
         header: DELIVERABLE
         key: deliverable
         disposition: field
-        target: app.records.deliverable
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the deliverable is named in free text; XOS models deliverables as Document records (Section 3.10), which the template does not mint by name."
       - letter: S
         header: LINKED WORK ORDER ID
         key: linked_work_order_id
         disposition: field
-        target: app.records.linked_work_order_id
+        target: app.work_orders.record_id
         type: text
+        transform: Work order linked to the task.
       - letter: T
         header: SOP ID
         key: sop_id
         disposition: field
         target: app.records.sop_id
         type: text
+        transform: Standard operating procedure that governs the task, matched by SOP code.
       - letter: U
         header: PROGRESS (%)
         key: progress_pct
         disposition: field
-        target: app.records.progress_pct
+        target: app.record_task.progress_pct
         type: numeric
+        transform: Progress of the task record (0 to 1 in the Playbook, a percentage in XOS).
       - letter: V
         header: STATUS
         key: status
         disposition: field
-        target: app.records.status
+        target: app.records.record_state
         type: text
+        transform: Record state (Section 3.10).
       - letter: W
         header: FLAG
         key: flag
         disposition: field
-        target: app.records.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: X
         header: NOTES
         key: notes
         disposition: field
-        target: app.records.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.records').
   - sheet: Work Orders
     key: work_orders
     destination: production-template
@@ -655,8 +728,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.records.record_id
+        target: app.work_orders.work_order_number
         type: text
+        transform: WO-nnn gives the work order number within the project.
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -669,38 +743,44 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.records.department
+        target: app.work_orders.urid
         type: text
+        transform: Department segment of the work order's URID.
       - letter: D
         header: CATEGORY
         key: category
         disposition: field
-        target: app.records.category
+        target: app.work_orders.urid
         type: text
+        transform: Discipline of the work order's URID; the category label names it.
       - letter: E
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.records.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: F
         header: WORK ORDER TYPE
         key: work_order_type
         disposition: field
         target: app.records.work_order_type
         type: text
+        transform: "Blocked on owner (RRR-64): work order types (AVL Installation, Facility Setup and others) are not record subtypes (Bible tab 25); mapping them needs the owner's ruling alongside RRR-64."
       - letter: G
         header: PRIORITY
         key: priority
         disposition: field
         target: app.records.priority
         type: text
+        transform: "Blocked on owner (RRR-64): records have no priority, and the Enumerations library defines only Incident Priority, labeled Critical (P1) to Low (P4); a record priority list needs the owner's ruling alongside RRR-64's enumeration labels."
       - letter: H
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.records.location_id
+        target: app.work_orders.location_text
         type: text
+        transform: Name of the location the work happens at.
       - letter: I
         header: LOCATION NAME
         key: location_name
@@ -713,20 +793,23 @@ sheets:
         header: ITEM ID
         key: item_id
         disposition: field
-        target: app.records.item_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the item a work order installs is reached through its record's supply lines; work orders hold no element."
       - letter: K
         header: TEAM CODE
         key: team_code
         disposition: field
         target: app.records.team_code
         type: text
+        transform: Canon team of the work order's record (work_orders.record_id).
       - letter: L
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.records.personnel_id
+        target: app.record_assignments.membership_id
         type: text
+        transform: Person assigned to the work order's record.
       - letter: M
         header: LEAD ASSIGNEE NAME
         key: lead_assignee_name
@@ -739,62 +822,72 @@ sheets:
         header: TASK TITLE
         key: task_title
         disposition: field
-        target: app.records.task_title
+        target: app.work_orders.title
         type: text
+        transform: Work order title.
       - letter: O
         header: DESCRIPTION
         key: description
         disposition: field
         target: app.records.description
         type: text
+        transform: Description of the work order's record.
       - letter: P
         header: SCOPE OF WORK
         key: scope_of_work
         disposition: field
-        target: app.records.scope_of_work
+        target: app.work_orders.scope_of_work
         type: text
+        transform: Scope of work.
       - letter: Q
         header: SCHEDULED START DATE
         key: scheduled_start_date
         disposition: field
-        target: app.records.scheduled_start_date
+        target: app.work_orders.scheduled_starts_at
         type: date
+        transform: Scheduled start.
       - letter: R
         header: SCHEDULED END DATE
         key: scheduled_end_date
         disposition: field
-        target: app.records.scheduled_end_date
+        target: app.work_orders.scheduled_ends_at
         type: date
+        transform: Scheduled end.
       - letter: S
         header: ACTUAL START DATE
         key: actual_start_date
         disposition: field
-        target: app.records.actual_start_date
+        target: app.schedule_actuals.actual_starts_at
         type: date
+        transform: Actual start of the work order's record.
       - letter: T
         header: ACTUAL END DATE
         key: actual_end_date
         disposition: field
-        target: app.records.actual_end_date
+        target: app.schedule_actuals.actual_ends_at
         type: date
+        transform: Actual end of the work order's record.
       - letter: U
         header: ESTIMATED HOURS
         key: estimated_hours
         disposition: field
-        target: app.records.estimated_hours
+        target: app.work_orders.estimated_hours
         type: numeric
+        transform: Estimated hours.
       - letter: V
         header: ACTUAL HOURS
         key: actual_hours
         disposition: field
-        target: app.records.actual_hours
+        target: xpms.production_template_values.value_text
         type: numeric
+        transform: "Template only: actual hours are derived from time entries (Section 3.15)."
       - letter: W
         header: LABOR RATE
         key: labor_rate
         disposition: field
-        target: app.records.labor_rate
+        target: xpms.production_template_values.value_text
         type: numeric
+        transform: "Template only: the labor rate resolves from the rate card of the assigned role; the work order does not restate it."
         real_world: price
       - letter: X
         header: TOTAL LABOR COST
@@ -808,38 +901,44 @@ sheets:
         header: SAFETY HAZARD LEVEL
         key: safety_hazard_level
         disposition: field
-        target: app.records.safety_hazard_level
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a hazard rating has no list in the Enumerations library; the work order's safety notes go on its comment thread."
       - letter: Z
         header: COMPLETION PERCENTAGE
         key: completion_percentage
         disposition: field
-        target: app.records.completion_percentage
+        target: app.record_task.progress_pct
         type: numeric
+        transform: Progress of the work order's record.
       - letter: AA
         header: STATUS
         key: status
         disposition: field
         target: app.records.status
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Completed, In Progress and Scheduled, against work_order_state Draft to Canceled) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: AB
         header: FLAG
         key: flag
         disposition: field
-        target: app.records.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: AC
         header: RESOLUTION NOTES
         key: resolution_notes
         disposition: field
-        target: app.records.resolution_notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.work_orders').
       - letter: AD
         header: NOTES
         key: notes
         disposition: field
-        target: app.records.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.work_orders').
       - letter: AE
         header: CREATED BY
         key: created_by
@@ -868,14 +967,16 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.cues.record_id
+        target: app.cues.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.cues.organization
+        target: app.cues.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -886,111 +987,129 @@ sheets:
         header: SCHEDULE RECORD ID
         key: schedule_record_id
         disposition: field
-        target: app.cues.schedule_record_id
+        target: app.run_of_show.record_id
         type: text
+        transform: Production Schedule activity the running order belongs to (cues.run_of_show_id).
       - letter: E
         header: CUE ID
         key: cue_id
         disposition: field
-        target: app.cues.cue_id
+        target: app.cues.position
         type: text
+        transform: CUE-nn gives the cue's position in the running order.
       - letter: F
         header: ACT
         key: act
         disposition: field
-        target: app.cues.act
+        target: app.cues.segment
         type: text
+        transform: Show segment the cue belongs to.
       - letter: G
         header: SCENE
         key: scene
         disposition: field
-        target: app.cues.scene
+        target: app.cues.label
         type: text
+        transform: Cue label.
       - letter: H
         header: DESCRIPTION
         key: description
         disposition: field
         target: app.cues.description
         type: text
+        transform: What happens on the cue.
         real_world: person
       - letter: I
         header: START TIME
         key: start_time
         disposition: field
-        target: app.cues.start_time
+        target: app.cues.planned_at
         type: time
+        transform: Planned time on the show date of the running order.
       - letter: J
         header: END TIME
         key: end_time
         disposition: field
-        target: app.cues.end_time
+        target: xpms.production_template_values.value_text
         type: time
+        transform: "Template only: the end time is derived as planned_at plus duration (Section 3.15)."
       - letter: K
         header: DURATION (MIN)
         key: duration_min
         disposition: field
-        target: app.cues.duration_min
+        target: app.cues.duration
         type: numeric
+        transform: Planned length in minutes.
       - letter: L
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.cues.location_id
+        target: app.cues.space_id
         type: text
+        transform: Space the cue happens in.
       - letter: M
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.cues.personnel_id
+        target: app.cues.called_by
         type: text
+        transform: Person who calls the cue.
       - letter: N
         header: AUDIO CUE
         key: audio_cue
         disposition: field
-        target: app.cues.audio_cue
+        target: app.cue_calls.instruction
         type: text
+        transform: Audio call of the cue (call_kind Audio).
       - letter: O
         header: LIGHTING CUE
         key: lighting_cue
         disposition: field
-        target: app.cues.lighting_cue
+        target: app.cue_calls.instruction
         type: text
+        transform: Lighting call of the cue (call_kind Lighting).
       - letter: P
         header: VIDEO CUE
         key: video_cue
         disposition: field
-        target: app.cues.video_cue
+        target: app.cue_calls.instruction
         type: text
+        transform: Video call of the cue (call_kind Video).
       - letter: Q
         header: SFX CUE
         key: sfx_cue
         disposition: field
-        target: app.cues.sfx_cue
+        target: app.cue_calls.instruction
         type: text
+        transform: Special effects call of the cue (call_kind Special Effects).
       - letter: R
         header: STAGE CUE
         key: stage_cue
         disposition: field
-        target: app.cues.stage_cue
+        target: app.cue_calls.instruction
         type: text
+        transform: Stage call of the cue (call_kind Stage).
       - letter: S
         header: STATUS
         key: status
         disposition: field
-        target: app.cues.status
+        target: app.cues.called_at
         type: text
+        transform: Scheduled while called_at is null; calling the cue stamps it.
       - letter: T
         header: FLAG
         key: flag
         disposition: field
-        target: app.cues.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: U
         header: NOTES
         key: notes
         disposition: field
-        target: app.cues.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.cues').
       - letter: V
         header: CREATED BY
         key: created_by
@@ -1178,8 +1297,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.spaces.record_id
+        target: app.spaces.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -1194,24 +1314,28 @@ sheets:
         disposition: field
         target: app.spaces.department
         type: text
+        transform: "Blocked on owner (RRR-64): the Locations sheet classifies spaces with labels that are not canon departments or categories (Site Operations, Stage, Main Stage); the space's URID (spaces.urid) cannot be assigned without the owner's ruling, and Section 2.1 lets neither file silently win."
       - letter: D
         header: CATEGORY
         key: category
         disposition: field
         target: app.spaces.category
         type: text
+        transform: "Blocked on owner (RRR-64): the Locations sheet classifies spaces with labels that are not canon departments or categories (Site Operations, Stage, Main Stage); the space's URID (spaces.urid) cannot be assigned without the owner's ruling, and Section 2.1 lets neither file silently win."
       - letter: E
         header: SUB CATEGORY
         key: sub_category
         disposition: field
         target: app.spaces.sub_category
         type: text
+        transform: "Blocked on owner (RRR-64): the Locations sheet classifies spaces with labels that are not canon departments or categories (Site Operations, Stage, Main Stage); the space's URID (spaces.urid) cannot be assigned without the owner's ruling, and Section 2.1 lets neither file silently win."
       - letter: F
         header: LOCATION
         key: location
         disposition: field
-        target: app.spaces.location
+        target: app.spaces.name
         type: text
+        transform: Space name.
         real_world: venue
       - letter: G
         header: DESCRIPTION
@@ -1219,24 +1343,28 @@ sheets:
         disposition: field
         target: app.spaces.description
         type: text
+        transform: What the space is used for.
       - letter: H
         header: STATUS
         key: status
         disposition: field
-        target: app.spaces.status
+        target: app.spaces.deleted_at
         type: text
+        transform: Active while deleted_at is null; spaces have no other state.
       - letter: I
         header: FLAG
         key: flag
         disposition: field
-        target: app.spaces.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: J
         header: NOTES
         key: notes
         disposition: field
-        target: app.spaces.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.spaces').
       - letter: K
         header: CREATED BY
         key: created_by
@@ -1265,8 +1393,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.shipments.record_id
+        target: app.shipments.shipment_number
         type: text
+        transform: SHP-nnn gives the shipment number within the project.
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -1279,74 +1408,86 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.shipments.department
+        target: app.shipments.urid
         type: text
+        transform: Department segment of the shipment's URID.
       - letter: D
         header: CATEGORY
         key: category
         disposition: field
-        target: app.shipments.category
+        target: app.shipments.urid
         type: text
+        transform: URID category of the shipment.
       - letter: E
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.shipments.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: F
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.shipments.vendor_id
+        target: app.shipments.sender_counterparty_id
         type: text
+        transform: Vendor sending the freight.
       - letter: G
         header: ITEM
         key: item
         disposition: field
-        target: app.shipments.item
+        target: app.shipment_lines.description
         type: text
+        transform: What is shipped, as the shipment's line.
       - letter: H
         header: DESCRIPTION
         key: description
         disposition: field
         target: app.shipments.description
         type: text
+        transform: Description of the shipment.
       - letter: I
         header: CONTAINER
         key: container
         disposition: field
-        target: app.shipments.container
+        target: app.gate_queue.vehicle_type
         type: text
+        transform: Container or vehicle the freight travels in, on the shipment's gate queue entry.
       - letter: J
         header: PALLET COUNT
         key: pallet_count
         disposition: field
         target: app.shipments.pallet_count
         type: numeric
+        transform: Number of pallets.
       - letter: K
         header: PIECE COUNT
         key: piece_count
         disposition: field
         target: app.shipments.piece_count
         type: numeric
+        transform: Number of pieces.
       - letter: L
         header: LENGTH (FT)
         key: length_ft
         disposition: field
         target: app.shipments.length_ft
         type: numeric
+        transform: Length in feet.
       - letter: M
         header: WIDTH (FT)
         key: width_ft
         disposition: field
         target: app.shipments.width_ft
         type: numeric
+        transform: Width in feet.
       - letter: N
         header: HEIGHT (FT)
         key: height_ft
         disposition: field
         target: app.shipments.height_ft
         type: numeric
+        transform: Height in feet.
       - letter: O
         header: VOLUME (CU FT)
         key: volume_cu_ft
@@ -1367,20 +1508,23 @@ sheets:
         header: WEIGHT
         key: weight
         disposition: field
-        target: app.shipments.weight
+        target: app.shipments.weight_lb
         type: text
+        transform: Weight in pounds (45,000 lbs gives 45000).
       - letter: R
         header: SHIPMENT DATE
         key: shipment_date
         disposition: field
-        target: app.shipments.shipment_date
+        target: app.shipments.ships_at
         type: date
+        transform: Shipment date is the date of ships_at.
       - letter: S
         header: SENDER
         key: sender
         disposition: field
-        target: app.shipments.sender
+        target: app.organizations.name
         type: text
+        transform: Name of the sender (shipments.sender_counterparty_id to counterparties.organization_id).
         real_world: company
       - letter: T
         header: ORIGIN
@@ -1388,31 +1532,36 @@ sheets:
         disposition: field
         target: app.shipments.origin
         type: text
+        transform: Where the freight ships from.
       - letter: U
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.shipments.personnel_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the shipment's point person is the owner of its logistics record; shipments hold no person column."
       - letter: V
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.shipments.location_id
+        target: app.dock_slots.zone_id
         type: text
+        transform: Dock of the shipment's dock slot.
       - letter: W
         header: CARRIER
         key: carrier
         disposition: field
-        target: app.shipments.carrier
+        target: app.organizations.name
         type: text
+        transform: Name of the carrier (shipments.carrier_counterparty_id to counterparties.organization_id).
         real_world: company
       - letter: X
         header: CARRIER PHONE
         key: carrier_phone
         disposition: field
-        target: app.shipments.carrier_phone
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a carrier's phone is contact data the identity model (Section 4.8) holds for people, not for carriers."
         real_world: contact
       - letter: Y
         header: TRAILER LICENSE
@@ -1420,13 +1569,15 @@ sheets:
         disposition: field
         target: app.shipments.trailer_license
         type: text
+        transform: License plate of the trailer.
         real_world: identifier
       - letter: Z
         header: SEAL NUMBER
         key: seal_number
         disposition: field
-        target: app.shipments.seal_number
+        target: app.shipments.seal_identifier
         type: text
+        transform: Seal number applied to the trailer.
         real_world: identifier
       - letter: AA
         header: FREIGHT TYPE
@@ -1434,19 +1585,22 @@ sheets:
         disposition: field
         target: app.shipments.freight_type
         type: text
+        transform: "Blocked on owner (RRR-64): the freight type Ground Freight is not a Freight Type enumeration label (LTL Freight, Full Truckload and others); the mapping is an enumeration ruling of the RRR-64 kind."
       - letter: AB
         header: TRACKING NUMBER
         key: tracking_number
         disposition: field
-        target: app.shipments.tracking_number
+        target: app.shipments.tracking_identifier
         type: text
+        transform: Carrier tracking number.
         real_world: identifier
       - letter: AC
         header: BILL OF LADING (BOL)
         key: bill_of_lading_bol
         disposition: field
-        target: app.shipments.bill_of_lading_bol
+        target: app.shipments.bill_of_lading_identifier
         type: text
+        transform: Bill of lading number.
         real_world: identifier
       - letter: AD
         header: STATUS
@@ -1454,18 +1608,21 @@ sheets:
         disposition: field
         target: app.shipments.status
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Scheduled; shipments have no lifecycle column, and tracking status is the carrier's) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: AE
         header: FLAG
         key: flag
         disposition: field
-        target: app.shipments.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: AF
         header: NOTES
         key: notes
         disposition: field
-        target: app.shipments.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.shipments').
       - letter: AG
         header: CREATED BY
         key: created_by
@@ -1494,8 +1651,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.marshalling_log.record_id
+        target: app.marshalling_log.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -1508,32 +1666,37 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.marshalling_log.department
+        target: app.marshalling_log.urid
         type: text
+        transform: Department segment of the log entry's URID.
       - letter: D
         header: CATEGORY
         key: category
         disposition: field
-        target: app.marshalling_log.category
+        target: app.marshalling_log.urid
         type: text
+        transform: URID category of the log entry.
       - letter: E
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.marshalling_log.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: F
         header: VEHICLE CALLSIGN
         key: vehicle_callsign
         disposition: field
-        target: app.marshalling_log.vehicle_callsign
+        target: app.gate_queue.vehicle_identifier
         type: text
+        transform: Vehicle callsign in the gate queue entry of the shipment.
       - letter: G
         header: CARRIER / VENDOR ID
         key: carrier_vendor_id
         disposition: field
-        target: app.marshalling_log.carrier_vendor_id
+        target: app.shipments.carrier_counterparty_id
         type: text
+        transform: Carrier of the logged shipment (marshalling_log.shipment_id).
       - letter: H
         header: SHIPMENT ID
         key: shipment_id
@@ -1544,96 +1707,111 @@ sheets:
         header: VEHICLE TYPE
         key: vehicle_type
         disposition: field
-        target: app.marshalling_log.vehicle_type
+        target: app.gate_queue.vehicle_type
         type: text
+        transform: Vehicle type in the gate queue entry of the shipment.
       - letter: J
         header: DRIVER NAME
         key: driver_name
         disposition: field
-        target: app.marshalling_log.driver_name
+        target: app.gate_queue.driver_name
         type: text
+        transform: Driver named in the gate queue entry of the shipment.
         real_world: person
       - letter: K
         header: CARRIER PHONE
         key: carrier_phone
         disposition: field
-        target: app.marshalling_log.carrier_phone
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a carrier's phone is contact data the identity model (Section 4.8) holds for people, not for carriers."
         real_world: contact
       - letter: L
         header: TRAILER LICENSE
         key: trailer_license
         disposition: field
-        target: app.marshalling_log.trailer_license
+        target: app.shipments.trailer_license
         type: text
+        transform: Trailer license of the logged shipment; the log does not restate it.
         real_world: identifier
       - letter: M
         header: SEAL NUMBER
         key: seal_number
         disposition: field
-        target: app.marshalling_log.seal_number
+        target: app.shipments.seal_identifier
         type: text
+        transform: Seal of the logged shipment; the log does not restate it.
         real_world: identifier
       - letter: N
         header: DIMENSIONS
         key: dimensions
         disposition: field
-        target: app.marshalling_log.dimensions
+        target: app.shipments.length_ft
         type: text
+        transform: Length, width and height of the logged shipment (length_ft, width_ft, height_ft).
       - letter: O
         header: WEIGHT
         key: weight
         disposition: field
-        target: app.marshalling_log.weight
+        target: app.shipments.weight_lb
         type: text
+        transform: Weight of the logged shipment in pounds.
       - letter: P
         header: STAGING BAY
         key: staging_bay
         disposition: field
-        target: app.marshalling_log.staging_bay
+        target: app.marshalling_log.zone_id
         type: text
+        transform: Staging bay resolved to its zone in the yard.
       - letter: Q
         header: TARGET DOCK ID
         key: target_dock_id
         disposition: field
-        target: app.marshalling_log.target_dock_id
+        target: app.dock_slots.zone_id
         type: text
+        transform: Dock of the shipment's dock slot.
       - letter: R
         header: CHECK-IN TIME
         key: check_in_time
         disposition: field
-        target: app.marshalling_log.check_in_time
+        target: app.gate_queue.arrived_at
         type: timestamp
+        transform: When the vehicle checked in at the gate.
       - letter: S
         header: DOCK CALL TIME
         key: dock_call_time
         disposition: field
-        target: app.marshalling_log.dock_call_time
+        target: app.dock_slots.starts_at
         type: timestamp
+        transform: When the shipment's dock slot starts.
       - letter: T
         header: DOCK RELEASE TIME
         key: dock_release_time
         disposition: field
-        target: app.marshalling_log.dock_release_time
+        target: app.gate_queue.released_at
         type: timestamp
+        transform: When the vehicle was released from the yard.
       - letter: U
         header: STATUS
         key: status
         disposition: field
         target: app.marshalling_log.status
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Staged; log entries have no lifecycle and gate queue state is derived from arrived_at and released_at) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: V
         header: FLAG
         key: flag
         disposition: field
-        target: app.marshalling_log.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: W
         header: NOTES
         key: notes
         disposition: field
-        target: app.marshalling_log.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.marshalling_log').
       - letter: X
         header: CREATED BY
         key: created_by
@@ -1662,140 +1840,163 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.advance_submissions.record_id
+        target: app.advance_submissions.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.advance_submissions.organization
+        target: app.advance_submissions.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
         disposition: field
-        target: app.advance_submissions.project_id
+        target: app.advance_packets.project_id
         type: text
+        transform: Project of the advance packet the submission answers (through advance_sections).
       - letter: D
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.advance_submissions.department
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.advance_submissions carries no URID; an advance submission is an answer to a section of an advance packet."
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.advance_submissions.category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.advance_submissions carries no URID; an advance submission is an answer to a section of an advance packet."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.advance_submissions.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.advance_submissions.vendor_id
+        target: app.advance_recipients.counterparty_id
         type: text
+        transform: Vendor the advance went to, resolved to the recipient's counterparty.
       - letter: H
         header: ITEM
         key: item
         disposition: field
-        target: app.advance_submissions.item
+        target: app.advance_sections.title
         type: text
+        transform: Section of the advance packet the request answers.
       - letter: I
         header: DESCRIPTION
         key: description
         disposition: field
-        target: app.advance_submissions.description
+        target: app.advance_submissions.body
         type: text
+        transform: The recipient's answer.
       - letter: J
         header: URID
         key: urid
         disposition: field
-        target: app.advance_submissions.urid
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an advance answer is narrative; a costed request becomes a requisition or budget line, which carry the URID."
       - letter: K
         header: QUANTITY
         key: quantity
         disposition: field
-        target: app.advance_submissions.quantity
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an advance answer is narrative; quantities belong on the requisition or budget line it leads to."
       - letter: L
         header: UNIT BASIS
         key: unit_basis
         disposition: field
-        target: app.advance_submissions.unit_basis
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an advance answer is narrative; units belong on the requisition or budget line it leads to."
       - letter: M
         header: ESTIMATE RATE
         key: estimate_rate
         disposition: field
-        target: app.advance_submissions.estimate_rate
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an advance answer is narrative; rates belong on the requisition or budget line it leads to."
       - letter: N
         header: TOTAL ESTIMATE
         key: total_estimate
         disposition: field
-        target: app.advance_submissions.total_estimate
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a total is derived (Section 3.15) and an advance answer stores no amounts."
       - letter: O
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.advance_submissions.location_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an advance answer names no space; logistics needs become records with a location."
       - letter: P
         header: NEEDED BY DATE
         key: needed_by_date
         disposition: field
-        target: app.advance_submissions.needed_by_date
+        target: app.advance_packets.due_at
         type: text
+        transform: Due date of the advance packet.
       - letter: Q
         header: REQUESTED BY
         key: requested_by
         disposition: field
-        target: app.advance_submissions.requested_by
+        target: app.advance_recipients.person_id
         type: text
+        transform: Person the advance was sent to and who submits the answer.
       - letter: R
         header: APPROVER ROLE
         key: approver_role
         disposition: field
-        target: app.advance_submissions.approver_role
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: approval is recorded by the reviewer (reviewed_by); the approving role is not stored."
       - letter: S
         header: APPROVAL DATE
         key: approval_date
         disposition: field
-        target: app.advance_submissions.approval_date
+        target: app.advance_submissions.reviewed_at
         type: text
+        transform: When the submission was reviewed.
       - letter: T
         header: PO NUMBER
         key: po_number
         disposition: field
-        target: app.advance_submissions.po_number
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an advance answer is not linked to a purchase order; the order references its requisition."
       - letter: U
         header: STATUS
         key: status
         disposition: field
-        target: app.advance_submissions.status
+        target: app.advance_submissions.review_outcome
         type: text
+        transform: Review outcome (Accepted or Returned); a submission not yet reviewed has none.
       - letter: V
         header: FLAG
         key: flag
         disposition: field
-        target: app.advance_submissions.flag
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: W
         header: NOTES
         key: notes
         disposition: field
-        target: app.advance_submissions.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.advance_submissions').
       - letter: X
         header: CREATED BY
         key: created_by
@@ -1824,14 +2025,16 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.fulfillments.record_id
+        target: app.fulfillments.fulfillment_number
         type: text
+        transform: Record id gives the fulfillment number within the project.
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.fulfillments.organization
+        target: app.fulfillments.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -1842,98 +2045,114 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.fulfillments.department
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.fulfillments carries no URID; a fulfillment is classified by its fulfillment_kind."
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.fulfillments.category
+        target: app.fulfillments.fulfillment_kind
         type: text
+        transform: Category resolves to the fulfillment kind.
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.fulfillments.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: ARTIST NAME
         key: artist_name
         disposition: field
-        target: app.fulfillments.artist_name
+        target: app.organizations.name
         type: text
+        transform: Name of the artist the fulfillment serves, through the fulfillment's counterparty (fulfillments.counterparty_id to counterparties.organization_id).
       - letter: H
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.fulfillments.location_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the place of service is the BEO's or the rider's; the fulfillment names no space."
       - letter: I
         header: LIAISON ID
         key: liaison_id
         disposition: field
-        target: app.fulfillments.liaison_id
+        target: app.fulfillment_lines.person_id
         type: text
+        transform: Liaison responsible for the fulfillment's lines.
       - letter: J
         header: RIDER CONTRACT REF
         key: rider_contract_ref
         disposition: field
-        target: app.fulfillments.rider_contract_ref
+        target: app.riders.title
         type: text
+        transform: Rider the fulfillment answers, matched by its reference.
       - letter: K
         header: CATERING PACKAGE
         key: catering_package
         disposition: field
-        target: app.fulfillments.catering_package
+        target: app.beo_lines.description
         type: text
+        transform: Catering package as a line of the fulfillment's banquet event order.
       - letter: L
         header: DIETARY REQUIREMENTS
         key: dietary_requirements
         disposition: field
-        target: app.fulfillments.dietary_requirements
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: dietary needs are sensitive Work Details (Section 4, profile) shared per engagement with consent; they have no home yet."
       - letter: M
         header: HEADCOUNT
         key: headcount
         disposition: field
-        target: app.fulfillments.headcount
+        target: app.beos.guest_count
         type: text
+        transform: Headcount of the fulfillment's banquet event order.
       - letter: N
         header: DELIVERY DEADLINE
         key: delivery_deadline
         disposition: field
-        target: app.fulfillments.delivery_deadline
+        target: app.fulfillments.ends_at
         type: text
+        transform: Delivery deadline is the end of the fulfillment window.
       - letter: O
         header: DELIVERY POINT
         key: delivery_point
         disposition: field
-        target: app.fulfillments.delivery_point
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the delivery point is free text on the BEO; the column is empty in the Playbook."
       - letter: P
         header: SERVICE STYLE
         key: service_style
         disposition: field
-        target: app.fulfillments.service_style
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the service style is free text on the BEO; the column is empty in the Playbook."
       - letter: Q
         header: STATUS
         key: status
         disposition: field
-        target: app.fulfillments.status
+        target: app.fulfillments.fulfillment_state
         type: text
+        transform: Fulfillment state; the column is empty in the Playbook.
       - letter: R
         header: FLAG
         key: flag
         disposition: field
-        target: app.fulfillments.flag
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: S
         header: NOTES
         key: notes
         disposition: field
-        target: app.fulfillments.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.fulfillments').
       - letter: T
         header: CREATED BY
         key: created_by
@@ -1962,8 +2181,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.asset_units.record_id
+        target: app.asset_units.asset_tag
         type: text
+        transform: The AST-nnnn record id is the asset tag, a code XOS issues (Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -1976,8 +2196,9 @@ sheets:
         header: ITEM ID
         key: item_id
         disposition: field
-        target: app.asset_units.item_id
+        target: app.asset_classes.element_id
         type: text
+        transform: Item id resolved to the element of the unit's asset class (asset_units.asset_class_id).
       - letter: D
         header: ITEM
         key: item
@@ -2006,51 +2227,59 @@ sheets:
         header: COLOR
         key: color
         disposition: field
-        target: app.asset_units.color
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a free attribute of the physical unit; the unit records identifiers and condition, not appearance."
       - letter: H
         header: MAKE & MODEL
         key: make_and_model
         disposition: field
-        target: app.asset_units.make_and_model
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: make and model belong to the asset class and its element, not to each unit; the column is empty in the Playbook."
       - letter: I
         header: SERIAL NUMBER
         key: serial_number
         disposition: field
-        target: app.asset_units.serial_number
+        target: app.asset_identifiers.value
         type: text
+        transform: Recorded as an identifier of the unit with identifier class serial (issued by the manufacturer, Section 3.9).
         real_world: identifier
       - letter: J
         header: LABEL
         key: label
         disposition: field
-        target: app.asset_units.label
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a working nickname (Radio 01); the unit is identified by its asset tag."
       - letter: K
         header: QUANTITY
         key: quantity
         disposition: field
-        target: app.asset_units.quantity
+        target: xpms.production_template_values.value_text
         type: numeric
+        transform: "Template only: a unit is one physical thing (grain unit, Section 3.9); quantities apply to lots (app.asset_lots)."
       - letter: L
         header: CONDITION
         key: condition
         disposition: field
-        target: app.asset_units.condition
+        target: app.asset_units.condition_enum_id
         type: text
+        transform: Asset Condition enumeration row (Standard Library) matched by label.
       - letter: M
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.asset_units.location_id
+        target: app.asset_units.home_venue_id
         type: text
+        transform: Venue of the location the unit is kept at.
       - letter: N
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.asset_units.vendor_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the renting or owning vendor of a unit has no column; ownership is recorded through the procurement record that brought it in."
       - letter: O
         header: UNIT COST
         key: unit_cost
@@ -2065,18 +2294,21 @@ sheets:
         disposition: field
         target: app.asset_units.status
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Active, against asset_state Proposed to Retired) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: Q
         header: FLAG
         key: flag
         disposition: field
-        target: app.asset_units.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: R
         header: NOTES
         key: notes
         disposition: field
-        target: app.asset_units.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.asset_units').
       - letter: S
         header: CREATED BY
         key: created_by
@@ -2105,14 +2337,16 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.asset_custody.record_id
+        target: app.asset_custody.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.asset_custody.organization
+        target: app.asset_custody.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -2123,56 +2357,65 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.asset_custody.department
+        target: xpms.elements.urid
         type: text
+        transform: Department segment of the URID of the asset's class element (asset_units.asset_class_id to asset_classes.element_id); custody restates no classification.
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.asset_custody.category
+        target: xpms.elements.urid
         type: text
+        transform: Category of the URID of the asset's class element (asset_units.asset_class_id to asset_classes.element_id).
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.asset_custody.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: ASSET ID
         key: asset_id
         disposition: field
-        target: app.asset_custody.asset_id
+        target: app.asset_custody.asset_unit_id
         type: text
+        transform: Asset unit in custody, matched by asset tag.
       - letter: H
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.asset_custody.personnel_id
+        target: app.asset_custody.custodian_membership_id
         type: text
+        transform: Custodian resolved to the person's membership.
       - letter: I
         header: ALL CALL
         key: all_call
         disposition: field
-        target: app.asset_custody.all_call
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: radio all-call group of the custodian; the radio plan (app.radio_channels) holds channels, not per-person groups."
       - letter: J
         header: STATUS
         key: status
         disposition: field
-        target: app.asset_custody.status
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: custody rows are a history; the current custodian is the latest row and no state is stored."
       - letter: K
         header: FLAG
         key: flag
         disposition: field
-        target: app.asset_custody.flag
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: L
         header: NOTES
         key: notes
         disposition: field
-        target: app.asset_custody.notes
+        target: app.asset_custody.note
         type: text
+        transform: Custody note.
       - letter: M
         header: CREATED BY
         key: created_by
@@ -2201,14 +2444,16 @@ sheets:
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.role_assignments.personnel_id
+        target: app.role_assignments.person_id
         type: text
+        transform: Person resolved from the personnel id.
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.role_assignments.organization
+        target: app.role_assignments.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -2219,43 +2464,49 @@ sheets:
         header: FIRST NAME
         key: first_name
         disposition: field
-        target: app.role_assignments.first_name
+        target: app.people.full_name
         type: text
+        transform: First and last name join into the person's full name (identity model, Section 4.8).
         real_world: person
       - letter: E
         header: LAST NAME
         key: last_name
         disposition: field
-        target: app.role_assignments.last_name
+        target: app.people.full_name
         type: text
+        transform: First and last name join into the person's full name (identity model, Section 4.8).
         real_world: person
       - letter: F
         header: PREFERRED NAME
         key: preferred_name
         disposition: field
-        target: app.role_assignments.preferred_name
+        target: app.person_profiles.preferred_name
         type: text
+        transform: Name the person goes by.
         real_world: person
       - letter: G
         header: EMAIL
         key: email
         disposition: field
-        target: app.role_assignments.email
+        target: app.invites.email
         type: text
+        transform: Address the person is invited at; a signed-in person's email lives in auth.users.
         real_world: contact
       - letter: H
         header: PHONE
         key: phone
         disposition: field
-        target: app.role_assignments.phone
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the identity model (Section 4.8) holds no phone number; SMS numbers are stored only with consent."
         real_world: contact
       - letter: I
         header: COMPANY
         key: company
         disposition: field
-        target: app.role_assignments.company
+        target: app.organizations.name
         type: text
+        transform: Name of the company of the person's engagement (engagements.counterparty_id to counterparties.organization_id).
         real_world: company
       - letter: J
         header: ROLE CODE
@@ -2275,106 +2526,123 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.role_assignments.department
+        target: xpms.role.class_code
         type: text
+        transform: Department class of the assigned role (role_assignments.role_code).
       - letter: M
         header: CATEGORY
         key: category
         disposition: field
-        target: app.role_assignments.category
+        target: xpms.role.discipline
         type: numeric
+        transform: Discipline of the assigned role; the Playbook cells hold a numeric artifact (1000.5) of the class code.
       - letter: N
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.role_assignments.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: O
         header: CLEARANCE TIER
         key: clearance_tier
         disposition: field
-        target: app.role_assignments.clearance_tier
+        target: xpms.role.default_clearance_tier
         type: text
+        transform: Clearance tier is derived from the assigned role (Roles Library).
       - letter: P
         header: ZONE ACCESS
         key: zone_access
         disposition: field
-        target: app.role_assignments.zone_access
+        target: app.access_grid.zone_id
         type: text
+        transform: Zones the person's credential category opens, from the Access Grid.
       - letter: Q
         header: CREDENTIAL
         key: credential
         disposition: field
-        target: app.role_assignments.credential
+        target: app.credential_categories.name
         type: text
+        transform: Category of the person's credential.
       - letter: R
         header: CREDENTIAL RECORD ID
         key: credential_record_id
         disposition: field
-        target: app.role_assignments.credential_record_id
+        target: app.credentials.id
         type: text
+        transform: Credential issued to the person, matched by its CRD-nnn token.
       - letter: S
         header: ON SITE START
         key: on_site_start
         disposition: field
-        target: app.role_assignments.on_site_start
+        target: app.role_assignments.starts_on
         type: date
+        transform: First day on site.
       - letter: T
         header: ON SITE END
         key: on_site_end
         disposition: field
-        target: app.role_assignments.on_site_end
+        target: app.role_assignments.ends_on
         type: date
+        transform: Last day on site.
       - letter: U
         header: DIETARY RESTRICTIONS
         key: dietary_restrictions
         disposition: field
-        target: app.role_assignments.dietary_restrictions
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
       - letter: V
         header: SHIRT SIZE
         key: shirt_size
         disposition: field
-        target: app.role_assignments.shirt_size
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
       - letter: W
         header: SPECIAL ACCOMMODATIONS
         key: special_accommodations
         disposition: field
-        target: app.role_assignments.special_accommodations
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
       - letter: X
         header: EMERGENCY CONTACT NAME
         key: emergency_contact_name
         disposition: field
-        target: app.role_assignments.emergency_contact_name
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
         real_world: person
       - letter: Y
         header: EMERGENCY CONTACT PHONE
         key: emergency_contact_phone
         disposition: field
-        target: app.role_assignments.emergency_contact_phone
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
         real_world: contact
       - letter: Z
         header: STATUS
         key: status
         disposition: field
-        target: app.role_assignments.status
+        target: app.role_assignments.assignment_state
         type: text
+        transform: Active is a role assignment state.
       - letter: AA
         header: FLAG
         key: flag
         disposition: field
-        target: app.role_assignments.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: AB
         header: NOTES
         key: notes
         disposition: field
-        target: app.role_assignments.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.role_assignments').
       - letter: AC
         header: CREATED BY
         key: created_by
@@ -2403,14 +2671,16 @@ sheets:
         header: REQ ID
         key: req_id
         disposition: field
-        target: app.requisitions.req_id
+        target: app.requisitions.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: EVENT PHASE
         key: event_phase
         disposition: field
         target: app.requisitions.event_phase
         type: text
+        transform: "Blocked on owner (RRR-64): event phases (Pre-Production, Site Build & Load-In and others) are not the nine canon phases (Section 3.4); mapping them needs the owner's ruling alongside RRR-64."
       - letter: C
         header: ROLE CODE
         key: role_code
@@ -2443,8 +2713,9 @@ sheets:
         header: DURATION (DAYS)
         key: duration_days
         disposition: field
-        target: app.requisitions.duration_days
+        target: xpms.production_template_values.value_text
         type: numeric
+        transform: "Template only: duration is derived from starts_on and ends_on (Section 3.15)."
       - letter: H
         header: STANDARD RATE
         key: standard_rate
@@ -2465,20 +2736,23 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.requisitions.status
+        target: app.requisitions.requisition_state
         type: text
+        transform: Approved is a requisition state.
       - letter: K
         header: FLAG
         key: flag
         disposition: field
-        target: app.requisitions.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: L
         header: NOTES
         key: notes
         disposition: field
-        target: app.requisitions.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.requisitions').
       - letter: M
         header: CREATED BY
         key: created_by
@@ -2507,8 +2781,9 @@ sheets:
         header: SHIFT ID
         key: shift_id
         disposition: field
-        target: app.shifts.shift_id
+        target: app.shifts.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -2519,27 +2794,31 @@ sheets:
         header: SHIFT DATE
         key: shift_date
         disposition: field
-        target: app.shifts.shift_date
+        target: app.shifts.starts_at
         type: date
+        transform: Shift date is the date of starts_at in the shift's time zone.
       - letter: D
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.shifts.department
+        target: xpms.role.class_code
         type: text
+        transform: Department class of the shift's role (shifts.role_code).
       - letter: E
         header: LOCATION NAME
         key: location_name
         disposition: field
-        target: app.shifts.location_name
+        target: app.scope_nodes.name
         type: text
+        transform: Scope node the shift works in (shifts.scope_node_id).
         real_world: venue
       - letter: F
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.shifts.personnel_id
+        target: app.shifts.membership_id
         type: text
+        transform: Person working the shift.
       - letter: G
         header: CREW NAME
         key: crew_name
@@ -2558,8 +2837,9 @@ sheets:
         header: RATE CARD ID
         key: rate_card_id
         disposition: field
-        target: app.shifts.rate_card_id
+        target: xpms.rate_card.rate_card_id
         type: text
+        transform: Rate card resolved from the shift's role (Labor Rate Cards); the shift does not restate it.
       - letter: J
         header: JOB TITLE
         key: job_title
@@ -2572,20 +2852,23 @@ sheets:
         header: SCHEDULED CALL TIME
         key: scheduled_call_time
         disposition: field
-        target: app.shifts.scheduled_call_time
+        target: app.shifts.starts_at
         type: time
+        transform: Scheduled call time is the time of starts_at.
       - letter: L
         header: SCHEDULED WRAP TIME
         key: scheduled_wrap_time
         disposition: field
-        target: app.shifts.scheduled_wrap_time
+        target: app.shifts.ends_at
         type: time
+        transform: Scheduled wrap time is the time of ends_at.
       - letter: M
         header: SCHEDULED MEAL BREAK (HRS)
         key: scheduled_meal_break_hrs
         disposition: field
-        target: app.shifts.scheduled_meal_break_hrs
+        target: app.shifts.scheduled_break_minutes
         type: numeric
+        transform: Scheduled meal break, hours converted to minutes.
       - letter: N
         header: NET SCHEDULED HOURS
         key: net_scheduled_hours
@@ -2632,18 +2915,21 @@ sheets:
         disposition: field
         target: app.shifts.status
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Confirmed, against shift_state Draft to Canceled) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: T
         header: FLAG
         key: flag
         disposition: field
-        target: app.shifts.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: U
         header: NOTES
         key: notes
         disposition: field
-        target: app.shifts.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.shifts').
       - letter: V
         header: CREATED BY
         key: created_by
@@ -2672,8 +2958,9 @@ sheets:
         header: TIMESHEET ID
         key: timesheet_id
         disposition: field
-        target: app.timesheets.timesheet_id
+        target: app.timesheets.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -2684,8 +2971,9 @@ sheets:
         header: SHIFT ID
         key: shift_id
         disposition: field
-        target: app.timesheets.shift_id
+        target: app.time_entries.shift_id
         type: text
+        transform: Shift the time entry of the timesheet was worked against.
       - letter: D
         header: WORK DATE
         key: work_date
@@ -2738,26 +3026,30 @@ sheets:
         header: ACTUAL IN TIME
         key: actual_in_time
         disposition: field
-        target: app.timesheets.actual_in_time
+        target: app.time_entries.clock_in
         type: time
+        transform: Actual in time.
       - letter: K
         header: MEAL OUT TIME
         key: meal_out_time
         disposition: field
-        target: app.timesheets.meal_out_time
+        target: app.clock_punches.effective_at
         type: time
+        transform: Meal out as a Break Start punch.
       - letter: L
         header: MEAL IN TIME
         key: meal_in_time
         disposition: field
-        target: app.timesheets.meal_in_time
+        target: app.clock_punches.effective_at
         type: time
+        transform: Meal in as a Break End punch.
       - letter: M
         header: ACTUAL OUT TIME
         key: actual_out_time
         disposition: field
-        target: app.timesheets.actual_out_time
+        target: app.time_entries.clock_out
         type: time
+        transform: Actual out time.
       - letter: N
         header: MEAL DURATION (HRS)
         key: meal_duration_hrs
@@ -2882,20 +3174,23 @@ sheets:
         header: STATUS
         key: status
         disposition: field
-        target: app.timesheets.status
+        target: app.timesheets.timesheet_state
         type: text
+        transform: Approved is a timesheet state.
       - letter: AD
         header: FLAG
         key: flag
         disposition: field
-        target: app.timesheets.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: AE
         header: NOTES
         key: notes
         disposition: field
-        target: app.timesheets.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.timesheets').
       - letter: AF
         header: CREATED BY
         key: created_by
@@ -3171,8 +3466,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.credentials.record_id
+        target: app.credentials.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
@@ -3193,87 +3489,101 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.credentials.department
+        target: xpms.role.class_code
         type: text
+        transform: Department class of the holder's role (credentials.engagement_id to engagements.role_code).
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.credentials.category
+        target: xpms.role.discipline
         type: numeric
+        transform: Discipline of the holder's role; the Playbook cells hold a numeric artifact (1000.5) of the class code.
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.credentials.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: CREDENTIAL SERIAL
         key: credential_serial
         disposition: field
-        target: app.credentials.credential_serial
+        target: app.credentials.credential_number
         type: text
+        transform: Credential serial printed on the badge.
         real_world: identifier
       - letter: H
         header: PERSONNEL ID
         key: personnel_id
         disposition: field
-        target: app.credentials.personnel_id
+        target: app.credentials.holder_person_id
         type: text
+        transform: Holder resolved from the personnel id.
       - letter: I
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.credentials.vendor_id
+        target: app.engagements.counterparty_id
         type: text
+        transform: Vendor of the holder's engagement (credentials.engagement_id).
       - letter: J
         header: CLEARANCE TIER
         key: clearance_tier
         disposition: field
-        target: app.credentials.clearance_tier
+        target: xpms.role.default_clearance_tier
         type: text
+        transform: Clearance tier is derived from the holder's role (Roles Library).
       - letter: K
         header: CREDENTIAL TYPE
         key: credential_type
         disposition: field
-        target: app.credentials.credential_type
+        target: app.credentials.credential_category_id
         type: text
+        transform: Credential category matched by name within the project.
       - letter: L
         header: ZONE ACCESS
         key: zone_access
         disposition: field
-        target: app.credentials.zone_access
+        target: app.access_grid.zone_id
         type: text
+        transform: Zones the credential's category opens, from the Access Grid; the credential does not restate them.
       - letter: M
         header: ISSUED DATE
         key: issued_date
         disposition: field
-        target: app.credentials.issued_date
+        target: app.credentials.valid_from
         type: date
+        transform: Issue date is the start of validity.
       - letter: N
         header: RETURN STATUS
         key: return_status
         disposition: field
-        target: app.credentials.return_status
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: badge return is not tracked; revocation (revoked_at) ends a credential."
       - letter: O
         header: STATUS
         key: status
         disposition: field
-        target: app.credentials.status
+        target: app.credentials.revoked_at
         type: text
+        transform: Active while revoked_at is null and valid_to has not passed.
       - letter: P
         header: FLAG
         key: flag
         disposition: field
-        target: app.credentials.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: Q
         header: NOTES
         key: notes
         disposition: field
-        target: app.credentials.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.credentials').
       - letter: R
         header: CREATED BY
         key: created_by
@@ -3302,14 +3612,16 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.access_grid.record_id
+        target: app.access_grid.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.access_grid.organization
+        target: app.access_grid.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -3320,62 +3632,72 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.access_grid.department
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.access_grid carries no URID; an access grid row is classified by its zone and credential category."
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.access_grid.category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.access_grid carries no URID; an access grid row is classified by its zone and credential category."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.access_grid.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: CREDENTIAL
         key: credential
         disposition: field
-        target: app.access_grid.credential
+        target: app.access_grid.credential_category_id
         type: text
+        transform: Credential category the grid row grants, matched by name within the project.
       - letter: H
         header: ACCESS POINT
         key: access_point
         disposition: field
-        target: app.access_grid.access_point
+        target: app.access_grid.zone_id
         type: text
+        transform: Access point resolved to the zone it opens.
       - letter: I
         header: ACCESS LEVEL
         key: access_level
         disposition: field
-        target: app.access_grid.access_level
+        target: app.access_grid.access_level_enum_id
         type: text
+        transform: Access Level enumeration row (Standard Library) matched by label.
       - letter: J
         header: CAPACITY
         key: capacity
         disposition: field
-        target: app.access_grid.capacity
+        target: app.spaces.capacity
         type: text
+        transform: Capacity of the space the zone belongs to (zones.space_id); the grid row does not restate it.
       - letter: K
         header: STATUS
         key: status
         disposition: field
-        target: app.access_grid.status
+        target: app.access_grid.deleted_at
         type: text
+        transform: Active while deleted_at is null; the grid row has no other state.
       - letter: L
         header: FLAG
         key: flag
         disposition: field
-        target: app.access_grid.flag
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: M
         header: NOTES
         key: notes
         disposition: field
-        target: app.access_grid.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.access_grid').
       - letter: N
         header: CREATED BY
         key: created_by
@@ -3404,75 +3726,87 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.budget_lines.record_id
+        target: app.budget_lines.line_number
         type: text
+        transform: BUD-nnnn gives the line number within the budget.
       - letter: B
         header: PROJECT ID
         key: project_id
         disposition: field
-        target: app.budget_lines.project_id
+        target: app.budgets.project_id
         type: text
+        transform: Project of the line's budget (budget_lines.budget_id).
       - letter: C
         header: EVENT
         key: event
         disposition: field
-        target: app.budget_lines.event
+        target: app.scope_nodes.name
         type: text
+        transform: Event scope node of the line's cost center (cost_centers.scope_node_id).
       - letter: D
         header: LOCATION
         key: location
         disposition: field
-        target: app.budget_lines.location
+        target: app.venues.name
         type: text
+        transform: Venue of the line's event scope node (scope_nodes.venue_id).
         real_world: venue
       - letter: E
         header: ZONE
         key: zone
         disposition: field
-        target: app.budget_lines.zone
+        target: app.scope_nodes.name
         type: text
+        transform: Zone scope node under the line's event scope node; Whole Venue is the event node itself.
       - letter: F
         header: SPACE
         key: space
         disposition: field
-        target: app.budget_lines.space
+        target: app.scope_nodes.name
         type: text
+        transform: Space scope node under the line's event scope node; the column is empty in the Playbook.
       - letter: G
         header: ACTIVATION
         key: activation
         disposition: field
-        target: app.budget_lines.activation
+        target: app.scope_nodes.name
         type: text
+        transform: Activation scope node under the line's event scope node.
       - letter: H
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.budget_lines.department
+        target: app.budget_lines.urid
         type: text
+        transform: Department segment of the line's URID.
       - letter: I
         header: DISCIPLINE
         key: discipline
         disposition: field
-        target: app.budget_lines.discipline
+        target: app.budget_lines.urid
         type: text
+        transform: Discipline segment of the line's URID.
       - letter: J
         header: CATEGORY
         key: category
         disposition: field
-        target: app.budget_lines.category
+        target: app.budget_lines.urid
         type: text
+        transform: Category of the line's URID; the label is the canon category name.
       - letter: K
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.budget_lines.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: L
         header: ITEM
         key: item
         disposition: field
-        target: app.budget_lines.item
+        target: app.budget_lines.element_id
         type: text
+        transform: Element the line prices; fee and contingency lines name their line type instead.
       - letter: M
         header: DESCRIPTION
         key: description
@@ -3489,14 +3823,16 @@ sheets:
         header: PHASE
         key: phase
         disposition: field
-        target: app.budget_lines.phase
+        target: app.budget_lines.phase_code
         type: text
+        transform: Gated phase the line is spent in, matched by phase name (Section 3.4).
       - letter: P
         header: TIER
         key: tier
         disposition: field
-        target: app.budget_lines.tier
+        target: app.budget_lines.tier_code
         type: text
+        transform: Tier of experience the line serves (Section 3.5).
       - letter: Q
         header: XYZ
         key: xyz
@@ -3566,8 +3902,9 @@ sheets:
         header: ACTUAL
         key: actual
         disposition: field
-        target: app.budget_lines.actual
+        target: app.budget_line_amounts.actual_minor
         type: text
+        transform: Actual spend is derived from postings (Section 3.15); the column is empty in the Playbook.
         real_world: price
       - letter: AA
         header: VARIANCE
@@ -3583,6 +3920,7 @@ sheets:
         disposition: field
         target: app.budget_lines.vendor
         type: text
+        transform: "Blocked on owner (RRR-64): the vendor column names the Landlord, a counterparty type only the Playbook has (RRR-64, Landlord counterparty type), and a proposal note; the line's counterparty cannot be resolved until the owner rules."
         real_world: company
       - letter: AC
         header: STATUS
@@ -3590,30 +3928,35 @@ sheets:
         disposition: field
         target: app.budget_lines.status
         type: text
+        transform: "Blocked on owner (RRR-64): the Playbook status labels (Open and Estimated; budget lines have no lifecycle, and pricing state is derived as is_unpriced) are Workflow Status enumeration labels, not states of the target lifecycle. Mapping them is the open RRR-64 question on the 32 enumeration labels that are not Bible states."
       - letter: AD
         header: FLAG
         key: flag
         disposition: field
-        target: app.budget_lines.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: AE
         header: EXTERNAL NOTES
         key: external_notes
         disposition: field
-        target: app.budget_lines.external_notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.budget_lines').
       - letter: AF
         header: INTERNAL NOTES
         key: internal_notes
         disposition: field
-        target: app.budget_lines.internal_notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.budget_lines').
       - letter: AG
         header: ACCOUNT CODE
         key: account_code
         disposition: field
-        target: app.budget_lines.account_code
+        target: app.budget_line_facts.account_code
         type: text
+        transform: GL account is derived from the line's category (Bible tab 31); the column restates it.
       - letter: AH
         header: ACCOUNT NAME
         key: account_name
@@ -3626,26 +3969,30 @@ sheets:
         header: COST CENTER
         key: cost_center
         disposition: field
-        target: app.budget_lines.cost_center
+        target: app.budget_lines.cost_center_id
         type: text
+        transform: Cost center matched by code (dimension 1).
       - letter: AJ
         header: URID DIMENSION
         key: urid_dimension
         disposition: field
-        target: app.budget_lines.urid_dimension
+        target: app.budget_lines.urid
         type: text
+        transform: URID dimension (dimension 2) of the line.
       - letter: AK
         header: TAX TYPE
         key: tax_type
         disposition: field
-        target: app.budget_lines.tax_type
+        target: xpms.dim_gl_account.tax_type
         type: text
+        transform: Tax type of the line's GL account.
       - letter: AL
         header: CURRENCY
         key: currency
         disposition: field
-        target: app.budget_lines.currency
+        target: app.budgets.currency_code
         type: text
+        transform: Currency of the line's budget.
       - letter: AM
         header: CREATED BY
         key: created_by
@@ -3674,8 +4021,9 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.change_orders.record_id
+        target: app.change_orders.change_order_number
         type: text
+        transform: CO-nnn gives the change order number within the project.
       - letter: B
         header: PROJECT ID
         key: project_id
@@ -3686,62 +4034,72 @@ sheets:
         header: PARENT PO NUMBER
         key: parent_po_number
         disposition: field
-        target: app.change_orders.parent_po_number
+        target: app.po_change_orders.purchase_order_id
         type: text
+        transform: Purchase order the change revises, matched by PO number.
       - letter: D
         header: PO LINE ID
         key: po_line_id
         disposition: field
-        target: app.change_orders.po_line_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the PO line a change touches is reached through the budget line both share (change_order_lines.budget_line_id)."
       - letter: E
         header: EXPENSE REF ID
         key: expense_ref_id
         disposition: field
-        target: app.change_orders.expense_ref_id
+        target: app.change_order_lines.budget_line_id
         type: text
+        transform: Budget line the change revises, matched by its BUD-nnnn line number.
       - letter: F
         header: ITEM ID
         key: item_id
         disposition: field
-        target: app.change_orders.item_id
+        target: app.change_order_lines.urid
         type: text
+        transform: URID prefix of the item id ({URID}-{ORG}-{SEQ}, Section 3.6).
       - letter: G
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.change_orders.vendor_id
+        target: app.purchase_orders.vendor_id
         type: text
+        transform: Vendor of the purchase order the change revises.
       - letter: H
         header: CHANGE ORDER TYPE
         key: change_order_type
         disposition: field
         target: app.change_orders.change_order_type
         type: text
+        transform: "Blocked on owner (RRR-64): the change order types (Scope Addition, Material Upgrade) are not Order Type enumeration labels (Scope Expansion, Equipment Substitution and others); which label each maps to is an enumeration ruling of the RRR-64 kind."
       - letter: I
         header: REASON CODE
         key: reason_code
         disposition: field
-        target: app.change_orders.reason_code
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the reason code restates the change order type one to one (RC-SCOPE with Scope Addition, RC-UPGRADE with Material Upgrade)."
       - letter: J
         header: DESCRIPTION
         key: description
         disposition: field
-        target: app.change_orders.description
+        target: app.change_orders.title
         type: text
+        transform: Change order title.
       - letter: K
         header: QUANTITY
         key: quantity
         disposition: field
-        target: app.change_orders.quantity
+        target: app.change_order_lines.quantity
         type: numeric
+        transform: Quantity of the change order line.
       - letter: L
         header: UNIT RATE
         key: unit_rate
         disposition: field
-        target: app.change_orders.unit_rate
+        target: app.change_order_lines.unit_price_minor
         type: numeric
+        transform: Unit price in minor units of the budget currency.
         real_world: price
       - letter: M
         header: TOTAL AMOUNT
@@ -3755,38 +4113,44 @@ sheets:
         header: GL ACCOUNT
         key: gl_account
         disposition: field
-        target: app.change_orders.gl_account
+        target: app.change_order_line_facts.account_code
         type: numeric
+        transform: GL account is derived from the line's category (Bible tab 31).
       - letter: O
         header: COST CENTER
         key: cost_center
         disposition: field
-        target: app.change_orders.cost_center
+        target: app.change_order_line_facts.cost_center_id
         type: text
+        transform: Cost center of the budget line the change revises.
       - letter: P
         header: CURRENCY
         key: currency
         disposition: field
-        target: app.change_orders.currency
+        target: app.budgets.currency_code
         type: text
+        transform: Currency of the change order's budget.
       - letter: Q
         header: SCHEDULE IMPACT (DAYS)
         key: schedule_impact_days
         disposition: field
         target: app.change_orders.schedule_impact_days
         type: numeric
+        transform: Days the change moves the schedule; zero for none.
       - letter: R
         header: CLIENT IMPACT
         key: client_impact
         disposition: field
         target: app.change_orders.client_impact
         type: text
+        transform: Effect on the client as stated (None, Positive).
       - letter: S
         header: JUSTIFICATION
         key: justification
         disposition: field
-        target: app.change_orders.justification
+        target: app.change_orders.reason
         type: text
+        transform: Why the change is needed.
       - letter: T
         header: REQUESTED BY
         key: requested_by
@@ -3798,33 +4162,38 @@ sheets:
         header: APPROVED BY
         key: approved_by
         disposition: field
-        target: app.change_orders.approved_by
+        target: app.change_order_state_transitions.created_by
         type: text
+        transform: Who moved the change order to Approved, from its transition ledger.
         real_world: person
       - letter: V
         header: APPROVAL DATE
         key: approval_date
         disposition: field
-        target: app.change_orders.approval_date
+        target: app.change_order_state_transitions.created_at
         type: date
+        transform: When the change order moved to Approved, from its transition ledger.
       - letter: W
         header: STATUS
         key: status
         disposition: field
-        target: app.change_orders.status
+        target: app.change_orders.change_order_state
         type: text
+        transform: Approved is a change order state.
       - letter: X
         header: FLAG
         key: flag
         disposition: field
-        target: app.change_orders.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: Y
         header: NOTES
         key: notes
         disposition: field
-        target: app.change_orders.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.change_orders').
       - letter: Z
         header: CREATED BY
         key: created_by
@@ -3879,20 +4248,23 @@ sheets:
         header: ISSUE DATE
         key: issue_date
         disposition: field
-        target: app.purchase_orders.issue_date
+        target: app.purchase_order_state_transitions.created_at
         type: date
+        transform: Issue date is when the order moved to Sent, from its transition ledger.
       - letter: F
         header: DELIVERY DATE
         key: delivery_date
         disposition: field
-        target: app.purchase_orders.delivery_date
+        target: app.purchase_orders.delivery_due_on
         type: date
+        transform: Date the order is due to be delivered.
       - letter: G
         header: PAYMENT TERMS
         key: payment_terms
         disposition: field
-        target: app.purchase_orders.payment_terms
+        target: app.purchase_orders.payment_terms_days
         type: text
+        transform: Net N gives N days.
       - letter: H
         header: SUBTOTAL AMOUNT
         key: subtotal_amount
@@ -3905,15 +4277,17 @@ sheets:
         header: TAX AMOUNT
         key: tax_amount
         disposition: field
-        target: app.purchase_orders.tax_amount
+        target: app.purchase_orders.tax_minor
         type: numeric
+        transform: Tax on the order in minor units of its currency.
         real_world: price
       - letter: J
         header: SHIPPING AMOUNT
         key: shipping_amount
         disposition: field
-        target: app.purchase_orders.shipping_amount
+        target: app.purchase_orders.shipping_minor
         type: numeric
+        transform: Shipping on the order in minor units of its currency.
         real_world: price
       - letter: K
         header: TOTAL AMOUNT
@@ -3935,40 +4309,46 @@ sheets:
         header: INVOICED AMOUNT
         key: invoiced_amount
         disposition: field
-        target: app.purchase_orders.invoiced_amount
+        target: app.invoice_totals.subtotal_minor
         type: numeric
+        transform: Invoiced amount is derived from the invoices matched to the order (invoice_matches).
         real_world: price
       - letter: N
         header: PAID AMOUNT
         key: paid_amount
         disposition: field
-        target: app.purchase_orders.paid_amount
+        target: app.invoice_totals.applied_minor
         type: numeric
+        transform: Paid amount is derived from payments applied to the matched invoices.
         real_world: price
       - letter: O
         header: CURRENCY
         key: currency
         disposition: field
-        target: app.purchase_orders.currency
+        target: app.purchase_orders.currency_code
         type: text
+        transform: ISO 4217 currency of the order.
       - letter: P
         header: STATUS
         key: status
         disposition: field
-        target: app.purchase_orders.status
+        target: app.purchase_orders.po_state
         type: text
+        transform: Approved is a purchase order state.
       - letter: Q
         header: FLAG
         key: flag
         disposition: field
-        target: app.purchase_orders.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: R
         header: NOTES
         key: notes
         disposition: field
-        target: app.purchase_orders.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.purchase_orders').
       - letter: S
         header: CREATED BY
         key: created_by
@@ -3997,32 +4377,37 @@ sheets:
         header: PO LINE ID
         key: po_line_id
         disposition: field
-        target: app.po_lines.po_line_id
+        target: app.po_lines.line_number
         type: text
+        transform: POL-nnn-nn gives the line number within the purchase order.
       - letter: B
         header: PO NUMBER
         key: po_number
         disposition: field
-        target: app.po_lines.po_number
+        target: app.po_lines.purchase_order_id
         type: text
+        transform: Purchase order matched by PO number.
       - letter: C
         header: EXPENSE REF ID
         key: expense_ref_id
         disposition: field
-        target: app.po_lines.expense_ref_id
+        target: app.po_lines.budget_line_id
         type: text
+        transform: Budget line the order line commits, matched by its BUD-nnnn line number.
       - letter: D
         header: ITEM ID
         key: item_id
         disposition: field
-        target: app.po_lines.item_id
+        target: app.po_lines.element_id
         type: text
+        transform: Element of the item id ({URID}-{ORG}-{SEQ}).
       - letter: E
         header: USER LINE DESCRIPTION
         key: user_line_description
         disposition: field
-        target: app.po_lines.user_line_description
+        target: app.po_lines.description
         type: text
+        transform: Line description.
       - letter: F
         header: QUANTITY
         key: quantity
@@ -4033,8 +4418,9 @@ sheets:
         header: UNIT RATE
         key: unit_rate
         disposition: field
-        target: app.po_lines.unit_rate
+        target: app.po_lines.unit_price_minor
         type: numeric
+        transform: Unit price in minor units of the order currency.
         real_world: price
       - letter: H
         header: TOTAL AMOUNT
@@ -4048,20 +4434,23 @@ sheets:
         header: GL ACCOUNT
         key: gl_account
         disposition: field
-        target: app.po_lines.gl_account
+        target: app.budget_line_facts.account_code
         type: numeric
+        transform: GL account of the committed budget line, derived from its category (Bible tab 31).
       - letter: J
         header: COST CENTER
         key: cost_center
         disposition: field
-        target: app.po_lines.cost_center
+        target: app.budget_lines.cost_center_id
         type: text
+        transform: Cost center of the committed budget line.
       - letter: K
         header: LINE STATE
         key: line_state
         disposition: field
-        target: app.po_lines.line_state
+        target: app.posting_lines.line_state
         type: text
+        transform: Committed is the Universal Posting Line state the order line projects (Section 3.11).
   - sheet: Universal Posting Line
     key: universal_posting_line
     destination: production-template
@@ -4084,8 +4473,9 @@ sheets:
         header: COST CENTER CODE
         key: cost_center_code
         disposition: field
-        target: app.posting_lines.cost_center_code
+        target: app.posting_lines.cost_center_id
         type: text
+        transform: Cost center (dimension 1); the export prints its code.
       - letter: D
         header: URID
         key: urid
@@ -4128,8 +4518,9 @@ sheets:
         header: AMOUNT
         key: amount
         disposition: field
-        target: app.posting_lines.amount
+        target: app.posting_lines.amount_minor
         type: numeric
+        transform: Amount in minor units of the line currency.
         real_world: price
       - letter: K
         header: TAX TYPE
@@ -4297,8 +4688,9 @@ sheets:
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.vendors.vendor_id
+        target: app.vendors.id
         type: text
+        transform: Playbook row token. Applying the template mints the row's id; the token only resolves references between template sheets and is never stored (identifier grammar, Section 3.6).
       - letter: B
         header: ORGANIZATION
         key: organization
@@ -4319,140 +4711,162 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.vendors.department
+        target: xpms.std_vendor_class.department
         type: text
+        transform: Department of the vendor's class (Vendor Classes, Standard Library); the vendor does not restate it.
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.vendors.category
+        target: app.vendor_class_assignments.vendor_class_id
         type: text
+        transform: Vendor class assigned to the vendor, matched by its VCL code.
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.vendors.sub_category
+        target: xpms.std_vendor_class.sub_category
         type: text
+        transform: Sub category of the vendor's class (Vendor Classes, Standard Library).
       - letter: G
         header: COMPANY
         key: company
         disposition: field
-        target: app.vendors.company
+        target: app.organizations.name
         type: text
+        transform: Name of the organization behind the vendor's counterparty (identity model, Section 4.8).
         real_world: company
       - letter: H
         header: COUNTERPARTY TYPE
         key: counterparty_type
         disposition: field
-        target: app.vendors.counterparty_type
+        target: app.counterparties.counterparty_type
         type: text
+        transform: Counterparty type (Bible counterparty types).
       - letter: I
         header: WEBSITE
         key: website
         disposition: field
-        target: app.vendors.website
+        target: app.organization_profiles.website_url
         type: text
+        transform: Website of the vendor's organization profile.
         real_world: contact
       - letter: J
         header: PRIMARY CONTACT
         key: primary_contact
         disposition: field
-        target: app.vendors.primary_contact
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the Playbook names a desk or initials (Fuel Dispatch, R. Kowalski), not a person the identity model can hold."
         real_world: person
       - letter: K
         header: PRIMARY EMAIL
         key: primary_email
         disposition: field
-        target: app.vendors.primary_email
+        target: app.organization_profiles.contact_email
         type: text
+        transform: Contact email of the vendor's organization profile.
         real_world: contact
       - letter: L
         header: PRIMARY PHONE
         key: primary_phone
         disposition: field
-        target: app.vendors.primary_phone
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the identity model (Section 4.8) holds no phone number for organizations."
         real_world: contact
       - letter: M
         header: TAX ID
         key: tax_id
         disposition: field
-        target: app.vendors.tax_id
+        target: app.tax_forms.tin_encrypted
         type: text
+        transform: Taxpayer identification number of the vendor's W-9, stored encrypted.
         real_world: identifier
       - letter: N
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
         disposition: field
-        target: app.vendors.default_gl_account
+        target: app.vendors.default_account_code
         type: numeric
+        transform: GL account the vendor's costs post to by default.
       - letter: O
         header: DEFAULT COST CENTER
         key: default_cost_center
         disposition: field
-        target: app.vendors.default_cost_center
+        target: app.vendors.default_cost_center_id
         type: text
+        transform: Cost center the vendor's costs post to by default.
       - letter: P
         header: PAYMENT TERMS
         key: payment_terms
         disposition: field
-        target: app.vendors.payment_terms
+        target: app.vendors.payment_terms_days
         type: text
+        transform: Net N gives N days; Monthly states no day count and is left NULL.
       - letter: Q
         header: CONTRACT
         key: contract
         disposition: field
-        target: app.vendors.contract
+        target: app.agreements.signed_at
         type: text
+        transform: Contract on file is derived from the vendor's signed agreement.
       - letter: R
         header: W9
         key: w9
         disposition: field
-        target: app.vendors.w9
+        target: app.tax_forms.form_kind
         type: text
+        transform: W-9 on file is derived from the vendor's tax form.
       - letter: S
         header: ACH FORM
         key: ach_form
         disposition: field
-        target: app.vendors.ach_form
+        target: app.vendor_bank_accounts.account_last4
         type: text
+        transform: ACH form on file is derived from the vendor's bank account.
       - letter: T
         header: COI
         key: coi
         disposition: field
-        target: app.vendors.coi
+        target: app.insurance_certificates.valid_to
         type: text
+        transform: Certificate of insurance on file is derived from a current certificate.
       - letter: U
         header: INSURANCE EXPIRATION
         key: insurance_expiration
         disposition: field
-        target: app.vendors.insurance_expiration
+        target: app.insurance_certificates.valid_to
         type: date
+        transform: Expiry of the vendor's current certificate of insurance.
       - letter: V
         header: ADDITIONAL INSURED
         key: additional_insured
         disposition: field
-        target: app.vendors.additional_insured
+        target: app.insurance_certificate_insureds.insured_name
         type: text
+        transform: Additional insured confirmed is derived from the parties the current certificate names.
       - letter: W
         header: STATUS
         key: status
         disposition: field
-        target: app.vendors.status
+        target: app.vendors.vendor_state
         type: text
+        transform: Active is a vendor state.
       - letter: X
         header: FLAG
         key: flag
         disposition: field
-        target: app.vendors.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: Y
         header: NOTES
         key: notes
         disposition: field
-        target: app.vendors.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.vendors').
       - letter: Z
         header: CREATED BY
         key: created_by
@@ -4683,125 +5097,145 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.inspections.department
+        target: app.inspections.urid
         type: text
+        transform: Department segment of the inspection's URID.
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.inspections.category
+        target: app.inspections.urid
         type: text
+        transform: URID category the inspection covers.
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.inspections.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: INSPECTION TYPE
         key: inspection_type
         disposition: field
-        target: app.inspections.inspection_type
+        target: app.inspection_templates.name
         type: text
+        transform: Inspection template matched by name.
       - letter: H
         header: AGENCY
         key: agency
         disposition: field
-        target: app.inspections.agency
+        target: app.project_authority.agency
         type: text
+        transform: Authority having jurisdiction for the project, from its jurisdiction's agencies.
         real_world: company
       - letter: I
         header: AHJ JURISDICTION CODE
         key: ahj_jurisdiction_code
         disposition: field
-        target: app.inspections.ahj_jurisdiction_code
+        target: app.projects.jurisdiction_id
         type: text
+        transform: Jurisdiction of the inspection's project.
       - letter: J
         header: PERMIT NUMBER
         key: permit_number
         disposition: field
-        target: app.inspections.permit_number
+        target: app.record_permit.permit_identifier
         type: text
+        transform: Permit identifier issued by the authority, on the permit record of the inspection.
         real_world: identifier
       - letter: K
         header: PERMIT DOC ID
         key: permit_doc_id
         disposition: field
-        target: app.inspections.permit_doc_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a permit document is an attachment of the permit record; the PMT id is a Playbook token."
       - letter: L
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.inspections.location_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: an inspection covers its template's scope; the space is named on the inspection record."
       - letter: M
         header: VENDOR ID
         key: vendor_id
         disposition: field
-        target: app.inspections.vendor_id
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the inspected vendor is the counterparty of the inspection record's engagement; inspections hold no vendor column."
       - letter: N
         header: INSPECTOR NAME
         key: inspector_name
         disposition: field
-        target: app.inspections.inspector_name
+        target: app.inspections.inspector_person_id
         type: text
+        transform: Inspector resolved to a person (app.people.full_name).
         real_world: person
       - letter: O
         header: SCHEDULED DATE
         key: scheduled_date
         disposition: field
-        target: app.inspections.scheduled_date
+        target: app.records.starts_at
         type: date
+        transform: Scheduled start of the inspection record (inspections.record_id).
       - letter: P
         header: COMPLETED DATE
         key: completed_date
         disposition: field
-        target: app.inspections.completed_date
+        target: app.inspections.inspected_at
         type: date
+        transform: When the inspection was carried out.
       - letter: Q
         header: RESULT
         key: result
         disposition: field
-        target: app.inspections.result
+        target: app.record_inspection.result_enum_id
         type: text
+        transform: Inspection Result enumeration row (Standard Library) on the inspection record.
       - letter: R
         header: DEFICIENCY SUMMARY
         key: deficiency_summary
         disposition: field
-        target: app.inspections.deficiency_summary
+        target: app.inspection_results.note
         type: text
+        transform: Deficiency notes on the inspection's results.
       - letter: S
         header: SIGN-OFF DATE
         key: sign_off_date
         disposition: field
-        target: app.inspections.sign_off_date
+        target: app.inspections.signed_off_at
         type: date
+        transform: When the inspection was signed off.
       - letter: T
         header: SIGN-OFF URL
         key: sign_off_url
         disposition: field
-        target: app.inspections.sign_off_url
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a sign-off link is an attachment of the inspection; the column is empty in the Playbook."
       - letter: U
         header: STATUS
         key: status
         disposition: field
-        target: app.inspections.status
+        target: app.records.record_state
         type: text
+        transform: Scheduled is a record state of the inspection record (inspections.record_id).
       - letter: V
         header: FLAG
         key: flag
         disposition: field
-        target: app.inspections.flag
+        target: xpms.production_template_values.value_text
         type: bool
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: W
         header: NOTES
         key: notes
         disposition: field
-        target: app.inspections.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.inspections').
       - letter: X
         header: CREATED BY
         key: created_by
@@ -4830,14 +5264,16 @@ sheets:
         header: RECORD ID
         key: record_id
         disposition: field
-        target: app.incidents.record_id
+        target: app.incidents.incident_number
         type: text
+        transform: Record id gives the incident number within the project.
       - letter: B
         header: ORGANIZATION
         key: organization
         disposition: field
-        target: app.incidents.organization
+        target: app.incidents.org_id
         type: text
+        transform: The template is applied inside one org; the organization label resolves to org_id (app.organizations.name).
       - letter: C
         header: PROJECT ID
         key: project_id
@@ -4848,44 +5284,51 @@ sheets:
         header: DEPARTMENT
         key: department
         disposition: field
-        target: app.incidents.department
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.incidents carries no URID; an incident is classified by severity and zone."
       - letter: E
         header: CATEGORY
         key: category
         disposition: field
-        target: app.incidents.category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: app.incidents carries no URID; an incident is classified by severity and zone."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
         disposition: field
-        target: app.incidents.sub_category
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
       - letter: G
         header: INCIDENT TIMESTAMP
         key: incident_timestamp
         disposition: field
-        target: app.incidents.incident_timestamp
+        target: app.incidents.occurred_at
         type: text
+        transform: When the incident occurred.
       - letter: H
         header: EMERGENCY CODE ID
         key: emergency_code_id
         disposition: field
-        target: app.incidents.emergency_code_id
+        target: app.crisis_alerts.emergency_code
         type: text
+        transform: Emergency code of the crisis alert raised for the incident.
       - letter: I
         header: SEVERITY LEVEL
         key: severity_level
         disposition: field
-        target: app.incidents.severity_level
+        target: app.incidents.severity_enum_id
         type: text
+        transform: Incident Severity enumeration row (Standard Library) matched by label.
       - letter: J
         header: LOCATION ID
         key: location_id
         disposition: field
-        target: app.incidents.location_id
+        target: app.incidents.zone_id
         type: text
+        transform: Zone of the location the incident happened in.
       - letter: K
         header: REPORTED BY
         key: reported_by
@@ -4896,74 +5339,86 @@ sheets:
         header: LEAD RESPONDER ID
         key: lead_responder_id
         disposition: field
-        target: app.incidents.lead_responder_id
+        target: app.dispatch_assignments.membership_id
         type: text
+        transform: First responder dispatched to the incident.
       - letter: M
         header: DISPATCH AGENCY / UNIT
         key: dispatch_agency_unit
         disposition: field
-        target: app.incidents.dispatch_agency_unit
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the outside agency or unit is free text; dispatch assignments name members of the org."
       - letter: N
         header: DISPATCH TIME
         key: dispatch_time
         disposition: field
-        target: app.incidents.dispatch_time
+        target: app.dispatch_assignments.dispatched_at
         type: text
+        transform: When the first responder was dispatched.
       - letter: O
         header: ON SCENE TIME
         key: on_scene_time
         disposition: field
-        target: app.incidents.on_scene_time
+        target: app.dispatch_assignments.arrived_at
         type: text
+        transform: When the first responder arrived on scene.
       - letter: P
         header: CLEARED TIME
         key: cleared_time
         disposition: field
-        target: app.incidents.cleared_time
+        target: app.incident_state_transitions.created_at
         type: text
+        transform: When the incident moved to Closed, from its transition ledger.
       - letter: Q
         header: POLICE REPORT NUMBER
         key: police_report_number
         disposition: field
-        target: app.incidents.police_report_number
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: a police report number is recorded on the incident's comment thread; the column is empty in the Playbook."
       - letter: R
         header: INCIDENT SUMMARY
         key: incident_summary
         disposition: field
-        target: app.incidents.incident_summary
+        target: app.incidents.title
         type: text
+        transform: Incident summary is the incident title.
       - letter: S
         header: RESOLUTION PROTOCOL
         key: resolution_protocol
         disposition: field
-        target: app.incidents.resolution_protocol
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the resolution protocol is the emergency protocol of the alert's code (xpms.emergency_protocol), not a fact of the incident."
       - letter: T
         header: FOLLOW UP REQUIRED
         key: follow_up_required
         disposition: field
-        target: app.incidents.follow_up_required
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: follow-up work becomes a record linked to the incident; the column is empty in the Playbook."
       - letter: U
         header: STATUS
         key: status
         disposition: field
-        target: app.incidents.status
+        target: app.incidents.incident_state
         type: text
+        transform: Incident state; the column is empty in the Playbook.
       - letter: V
         header: FLAG
         key: flag
         disposition: field
-        target: app.incidents.flag
+        target: xpms.production_template_values.value_text
         type: text
+        transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
       - letter: W
         header: NOTES
         key: notes
         disposition: field
-        target: app.incidents.notes
+        target: app.comments.body
         type: text
+        transform: Imported as the first comment on the row's comment thread (comment_threads.subject_table = 'app.incidents').
       - letter: X
         header: CREATED BY
         key: created_by
