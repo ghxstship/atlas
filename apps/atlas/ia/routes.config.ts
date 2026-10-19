@@ -27,6 +27,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-out": "Route handler: ends the session (POST only).",
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
   "/auth/organization": "Auth template: create an organization.",
+  "/auth/network-restricted":
+    "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",

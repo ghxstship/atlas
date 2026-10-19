@@ -7,8 +7,10 @@ import {
   type SystemRoleCode,
   type XosClient,
 } from "@xos/data";
+import { networkAccess } from "@xos/data/access-controls";
 import { getPersona, listDisabledModules } from "@xos/data/settings";
 import type { Condition, NavContext } from "@xos/ia";
+import { clientIp } from "@/lib/auth/legal";
 
 /**
  * A person's standing in one org, shared by the proxy route guard and the page context so both
@@ -31,19 +33,26 @@ export function isDesktopRequest(headers: Headers): boolean {
   return !/Mobi|Android|iPhone|iPad/i.test(headers.get("user-agent") ?? "");
 }
 
-/** Null when the org does not exist or the person holds no active membership in it. */
+/**
+ * Null when the org does not exist, the person holds no active membership in it, or the org's IP
+ * allow-list refuses the address the request came from (Section 9, migration 1201); then
+ * `onRestricted` is called, so the proxy can explain the refusal instead of answering 404. An org
+ * that never turned its allow-list on admits every address.
+ */
 export async function resolveMembership(
   db: XosClient,
   personId: string,
   slug: string,
   headers: Headers,
+  onRestricted?: () => void,
 ): Promise<Membership | null> {
   const org = await getMyOrganization(db, personId, slug);
   if (!org.ok) {
     if (org.error.kind === "not-found") return null;
     throw new Error(`Cannot read organization ${slug}: ${JSON.stringify(org.error)}`);
   }
-  const [capabilities, partner, disabled, persona] = await Promise.all([
+  const [network, capabilities, partner, disabled, persona] = await Promise.all([
+    networkAccess(db, org.data.id, clientIp(headers)),
     listRoleCapabilities(
       db,
       org.data.roles.map((r) => r.id),
@@ -52,6 +61,12 @@ export async function resolveMembership(
     listDisabledModules(db, org.data.id),
     getPersona(db, org.data.id),
   ]);
+  if (!network.ok)
+    throw new Error(`Cannot check the IP allow-list: ${JSON.stringify(network.error)}`);
+  if (!network.data.allowed) {
+    onRestricted?.();
+    return null;
+  }
   if (!capabilities.ok) {
     throw new Error(`Cannot read capabilities: ${JSON.stringify(capabilities.error)}`);
   }
