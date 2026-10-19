@@ -57,7 +57,7 @@ begin
     insert into app.membership_roles (membership_id, role_id)
     select c_membership, r.id from app.roles r where r.org_id is null and r.code = 'owner';
     insert into app.partner_agreements (org_id, wholesale_discount_bps, currency_code, signed_on)
-    values (c_partner, 2000, 'USD', '2026-03-16');
+    values (c_partner, 3000, 'USD', '2026-03-16');
     insert into app.partner_default_brands (org_id, accent_hex, radius_scale, allow_client_override)
     values (c_partner, '#1F6FEB', 'Rounded', true);
   end if;

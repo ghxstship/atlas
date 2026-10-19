@@ -15081,6 +15081,10 @@ class Subscription(TypedDict):
     plan_code: str
     #: Subscription status as Stripe reports it; read_only after the grace period.
     subscription_state: Literal["trialing", "active", "past_due", "read_only", "canceled"]
+    #: Seats bought above the plan's seat allowance.
+    extra_seats: int
+    #: True when the subscription keeps unlimited seats from before plans had seat limits, until its plan changes.
+    seats_grandfathered: bool
 
 
 class PlanPage(TypedDict):
@@ -20006,7 +20010,7 @@ class WholesaleStatement(TypedDict):
     period_start: str
     #: Currency of the partner agreement.
     currency_code: str
-    #: Discount in basis points when the statement ran.
+    #: Discount in basis points when the statement ran; agreements default to 3000, the 30 percent of ADR 0034.
     wholesale_discount_bps: int
     #: Client orgs on the statement.
     client_count: int

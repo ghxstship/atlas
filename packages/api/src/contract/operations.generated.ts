@@ -6976,6 +6976,8 @@ export interface Components {
     updated_by: string | null;
     plan_code: string;
     subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+    extra_seats: number;
+    seats_grandfathered: boolean;
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
   SupportSession: {

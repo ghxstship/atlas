@@ -119,6 +119,29 @@ export const additions = defineAdditions("Settings", {
       }),
     },
     {
+      id: "subscription-extra-seats",
+      since: "1.0.0-draft.2",
+      resources: ["subscriptions"],
+      change: "Adds the read-only `extra_seats` and `seats_grandfathered`.",
+      reason:
+        "Pricing v4 (1250, ADR 0034) gives plans a seat allowance. app.subscriptions.extra_seats holds the seats bought above it, synced from the Stripe quantity of the plan's extra-seat price, and seats_grandfathered marks a subscription that keeps unlimited seats from before seat limits. Both are set only by billing.",
+      apply: editShape({
+        add: {
+          extra_seats: {
+            schema: fields.int("Seats bought above the plan's seat allowance.", 3, 0),
+          },
+          seats_grandfathered: {
+            schema: z.boolean().meta({
+              description:
+                "True when the subscription keeps unlimited seats from before plans had seat limits, until its plan changes.",
+              example: false,
+            }),
+          },
+        },
+        serverSet: ["extra_seats", "seats_grandfathered"],
+      }),
+    },
+    {
       id: "plan-codes",
       since: "1.0.0-draft.2",
       resources: ["plans"],
