@@ -36,7 +36,7 @@ jobs:
   database:
     name: Migrations and pgTAP
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
@@ -55,6 +55,12 @@ jobs:
       # database.types.ts must match what the migrations generate (Section 3.15).
       - name: Database types match the migrations
         run: pnpm --filter @xos/data types:check
+      # Section 9: a backup restores and verifies (row counts, key-table checksums, pgTAP smoke).
+      - name: Backup and restore drill
+        run: infra/ci/restore-drill.sh
+      - name: PowerSync readiness (sync rules against the schema)
+        continue-on-error: true
+        run: infra/ci/powersync-check.sh
 
   secrets:
     name: Secret scan
@@ -271,3 +277,17 @@ jobs:
         run: docker pull --platform linux/amd64 verapdf/cli:v1.30.2
       - name: Render every Section 11.9 template and validate PDF/UA-1
         run: pnpm --filter @xos/data documents:verapdf
+
+  # Gate 20: no breaking change to the OpenAPI document since the latest v* tag (passes with a notice
+  # until the first tag).
+  api-breaking-changes:
+    name: API breaking changes (gate 20, oasdiff)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: oasdiff against the latest v* tag
+        run: infra/ci/oasdiff.sh --format githubactions

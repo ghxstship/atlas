@@ -8,7 +8,8 @@
 #   1. the archive checksum matches its manifest;
 #   2. the latest applied migration matches;
 #   3. every table in the XOS schemas has exactly the source row count;
-#   4. the chosen pgTAP suites pass on the restored copy (default: the foundation and canon suites,
+#   4. the key tables in key-tables.sql have the source row count and content checksum;
+#   5. the chosen pgTAP suites pass on the restored copy (default: the foundation and canon suites,
 #      including the Playbook round trip, which hashes every canon sheet).
 # Prints a report with the measured restore time against the 4 hour RTO, and removes the container
 # unless --keep is given. Exits non-zero when any check fails.
@@ -108,6 +109,20 @@ if [[ -z "$DIFF" ]]; then
 else
   fail "row counts differ (source <, restored >):"
   echo "$DIFF" | head -40
+fi
+
+if [[ -f "$MANIFEST.checksums" ]]; then
+  SUMS="$(mktemp)"
+  key_table_checksums "$TARGET" >"$SUMS"
+  SUM_DIFF="$(diff "$MANIFEST.checksums" "$SUMS" || true)"
+  if [[ -z "$SUM_DIFF" ]]; then
+    echo "ok: row counts and content checksums match in $(wc -l <"$SUMS" | tr -d ' ') key tables"
+  else
+    fail "key-table checksums differ (source <, restored >):"
+    echo "$SUM_DIFF" | head -40
+  fi
+else
+  echo "skip: key-table checksums (the manifest predates them)"
 fi
 
 copy_tests "$TARGET" "$REPO"

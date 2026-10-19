@@ -3,7 +3,12 @@
 Drafted by A47 (RRR-91) on main e40eddf, 2026-10-18, for the orchestrator to complete at release
 (Section 21). The release has not happened: there is no production deploy, no v4.0.0 tag and no
 published package. Figures are measured from the repository unless a source is named. The gate
-detail is in [legal/qa/gate-status.md](legal/qa/gate-status.md).
+detail is in [legal/qa/gate-status.md](../legal/qa/gate-status.md).
+
+**Release checklist:** [docs/release-checklist.md](release-checklist.md) tracks every Section 20.3
+criterion and Wave 7 exit item with its status and evidence, and lists every owner-blocked item in
+one place. The production deploy order, rollback and environment variables are in
+[infra/runbooks/production.md](../infra/runbooks/production.md).
 
 ## What was built
 
@@ -120,7 +125,7 @@ per-package figures from the `checks` job.
 
 ## Journey coverage
 
-From [legal/qa/journey-coverage.md](legal/qa/journey-coverage.md): 66 of 70 journeys covered, 2
+From [legal/qa/journey-coverage.md](../legal/qa/journey-coverage.md): 66 of 70 journeys covered, 2
 partial (53, 57) and 2 missing (25, 58). Journey 25 needs VoiceOver and TalkBack on devices;
 journey 58 is A45's.
 
@@ -151,7 +156,7 @@ Section 20.3 asks for zero open High or Critical findings: A24-009 and A47-001 a
 
 ## Performance against budgets
 
-From [legal/qa/performance-results.md](legal/qa/performance-results.md) (A37, local, loaded
+From [legal/qa/performance-results.md](../legal/qa/performance-results.md) (A37, local, loaded
 machine): LCP 511 to 948 ms, CLS at most 0.088, TBT 0 ms and accessibility 100 on all 16 measured
 pages. Route JavaScript passes on Gateway, docs and Atlas sign-in; Atlas signed-in pages are 241 to
 312 KB against 200 KB. k6 smoke: reads p95 17 to 18 ms, writes p95 44 ms, 0 % errors. The Section
@@ -160,8 +165,10 @@ pages. Route JavaScript passes on Gateway, docs and Atlas sign-in; Atlas signed-
 ## Deployed URLs and package versions
 
 None yet. The Vercel project `atlas` points at the staging Supabase project `xos-atlas-staging`,
-which has not received the current migrations. Every workspace package is version 0.0.0 and private;
-nothing is published. Compass is not in TestFlight or Play internal testing.
+which has not received the current migrations. Nothing is published. `@xos/sdk`, `@xos/cli` and
+`xos-sdk` (PyPI) are publish-ready at 4.0.0 (A55); every other workspace package stays private at
+0.0.0. Compass is not in TestFlight or Play internal testing. Status and owner actions:
+[release checklist](release-checklist.md), items 3a, 4 and 5.
 
 ## Canon
 

@@ -5,7 +5,8 @@
 #   infra/drills/backup-drill.sh [--source supabase_db_xos4-shared] [--out <dir>]
 #
 # Writes <out>/xos-<timestamp>.dump (pg_dump custom format), <out>/xos-<timestamp>.manifest
-# (image, latest migration, newest write, row counts) and its SHA-256. Read-only on the source.
+# (image, latest migration, newest write, row counts, key-table checksums) and its SHA-256.
+# Read-only on the source.
 
 source "$(dirname "$0")/lib.sh"
 
@@ -32,6 +33,7 @@ STARTED="$(now_epoch)"
 # Counts first, then the dump, inside one exported snapshot would be ideal; on a quiet local stack
 # taking counts immediately before the dump is exact.
 table_counts "$SOURCE" >"$MANIFEST.counts"
+key_table_checksums "$SOURCE" >"$MANIFEST.checksums"
 # Roles the archive references; the restore creates any the fresh image lacks (no passwords are read).
 psql_in "$SOURCE" -tA -c "select rolname from pg_roles where rolname !~ '^pg_' order by 1" >"$MANIFEST.roles"
 docker exec "$SOURCE" pg_dump -U supabase_admin -h localhost -d postgres --format=custom --compress=6 >"$DUMP"
@@ -50,6 +52,7 @@ NEWEST_WRITE="$(psql_in "$SOURCE" -tA -c "select coalesce(max(created_at)::text,
   echo "bytes=$(wc -c <"$DUMP" | tr -d ' ')"
   echo "sha256=$(shasum -a 256 "$DUMP" | cut -d' ' -f1)"
   echo "tables=$(wc -l <"$MANIFEST.counts" | tr -d ' ')"
+  echo "key_tables=$(wc -l <"$MANIFEST.checksums" | tr -d ' ')"
   echo "seconds=$(($(now_epoch) - STARTED))"
 } >"$MANIFEST"
 
