@@ -915,14 +915,11 @@ export const additions = defineAdditions("Settings", {
               update: false,
             },
             row_count: {
-              schema: z
-                .int()
-                .min(0)
-                .meta({
-                  description: "Rows across every table.",
-                  example: 182340,
-                  format: "int64",
-                }),
+              schema: z.int().min(0).meta({
+                description: "Rows across every table.",
+                example: 182340,
+                format: "int64",
+              }),
               create: "required",
               update: false,
             },
