@@ -2,7 +2,7 @@
 title: Vistas y vistas guardadas
 summary: Cambie entre lista, tabla, tablero, calendario y otras vistas, guarde la que necesita, compártala y ábrala de forma predeterminada.
 kind: workflow
-nodes: ["*"]
+nodes: ["*", saved-views, saved-view]
 order: 2
 ---
 

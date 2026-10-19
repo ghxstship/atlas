@@ -2,7 +2,7 @@
 title: Organization settings
 summary: Where organization-wide choices live, who can change them, and how locked values work.
 kind: page
-nodes: ["settings.*"]
+nodes: ["settings.*", settings]
 order: 60
 ---
 

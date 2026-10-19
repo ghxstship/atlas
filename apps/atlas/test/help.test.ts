@@ -21,6 +21,7 @@ import {
   searchArticles,
   type Article,
 } from "../help/model";
+import { flattenRoutes } from "@xos/ia";
 import { sitemap } from "../ia/sitemap.generated";
 
 /**
@@ -108,6 +109,21 @@ describe("help content", () => {
     for (const entry of content.whatsNew) {
       if (entry.article) expect(slugs.has(entry.article)).toBe(true);
     }
+  });
+
+  // Gate 31: every signed-in page has help of its own, not only the general articles. Public and
+  // token pages carry no help panel.
+  it("gives every signed-in page an article of its own", () => {
+    const missing = flattenRoutes(sitemap)
+      .filter((r) => r.auth === "session")
+      .filter(
+        (r) =>
+          !content.articles["en-US"].some((a) =>
+            a.nodes.some((p) => p !== "*" && coversNode(p, r.id)),
+          ),
+      )
+      .map((r) => r.id);
+    expect(missing).toEqual([]);
   });
 
   it("has copy for every tour step, tip and What's New entry in both locales", () => {

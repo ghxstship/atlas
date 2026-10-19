@@ -2,7 +2,7 @@
 title: Su cuenta y preferencias
 summary: Su perfil, privacidad, seguridad, notificaciones, accesibilidad y los recorridos y consejos que ya vio.
 kind: page
-nodes: ["me.*"]
+nodes: ["me.*", me]
 order: 61
 ---
 

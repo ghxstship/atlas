@@ -49,6 +49,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 43,
       },
       {
+        slug: "canon",
+        title: "Canon",
+        summary:
+          "The XOS canon your organization works from, and the extensions your org adds to it.",
+        kind: "page",
+        nodes: ["canon", "canon.*"],
+        order: 34,
+      },
+      {
         slug: "contact-support",
         title: "Contact support",
         summary:
@@ -93,6 +102,15 @@ export const HELP_CONTENT: HelpIndex = {
           "project.crew",
         ],
         order: 51,
+      },
+      {
+        slug: "finance",
+        title: "Finance",
+        summary:
+          "Budgets, expenses, change orders, invoices and payments, and the books behind them.",
+        kind: "page",
+        nodes: ["finance", "finance.*", "project.budget"],
+        order: 30,
       },
       {
         slug: "gates",
@@ -145,6 +163,23 @@ export const HELP_CONTENT: HelpIndex = {
         order: 41,
       },
       {
+        slug: "import-and-trash",
+        title: "Import, Trash and custom objects",
+        summary:
+          "Bring records in from a spreadsheet, restore deleted items, and work with your org's own record types.",
+        kind: "page",
+        nodes: ["import", "trash", "custom-object"],
+        order: 38,
+      },
+      {
+        slug: "inbox-and-approvals",
+        title: "Inbox, My Work and approvals",
+        summary: "What needs you, what you hold, and the approvals waiting on your decision.",
+        kind: "page",
+        nodes: ["inbox", "my-work", "approvals"],
+        order: 9,
+      },
+      {
         slug: "incidents-dispatch",
         title: "Incidents and dispatch",
         summary:
@@ -166,6 +201,15 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "guide",
         nodes: ["*", "me.keyboard-shortcuts"],
         order: 3,
+      },
+      {
+        slug: "knowledge",
+        title: "Knowledge",
+        summary:
+          "Procedures, documents, standard wording, the feed, the handbook, forms and training.",
+        kind: "page",
+        nodes: ["knowledge", "knowledge.*", "project.documents"],
+        order: 32,
       },
       {
         slug: "logistics",
@@ -208,8 +252,17 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Where organization-wide choices live, who can change them, and how locked values work.",
         kind: "page",
-        nodes: ["settings.*"],
+        nodes: ["settings.*", "settings"],
         order: 60,
+      },
+      {
+        slug: "partner-console",
+        title: "Partner console",
+        summary:
+          "Create and brand client organizations, see their usage, and follow wholesale billing.",
+        kind: "page",
+        nodes: ["partner-console", "partner-console.*"],
+        order: 37,
       },
       {
         slug: "people",
@@ -244,6 +297,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 30,
       },
       {
+        slug: "procurement-vendors",
+        title: "Procurement and vendors",
+        summary:
+          "Request quotes, commit spend with purchase orders, receive and match, and keep vendors qualified.",
+        kind: "page",
+        nodes: ["procurement", "procurement.*", "vendors", "vendors.*", "project.procurement"],
+        order: 31,
+      },
+      {
         slug: "projects",
         title: "Projects",
         summary:
@@ -257,8 +319,18 @@ export const HELP_CONTENT: HelpIndex = {
           "project",
           "project.overview",
           "project.settings",
+          "projects.templates",
         ],
         order: 11,
+      },
+      {
+        slug: "reports",
+        title: "Reports and dashboards",
+        summary:
+          "Standard reports, the report builder, saved reports, dashboards and scheduled delivery.",
+        kind: "page",
+        nodes: ["reports", "reports.*", "project.reports"],
+        order: 33,
       },
       {
         slug: "safety-permits-inspections",
@@ -281,7 +353,7 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Switch between list, table, board, calendar and other views, save the one you need, share it and open it by default.",
         kind: "workflow",
-        nodes: ["*"],
+        nodes: ["*", "saved-views", "saved-view"],
         order: 2,
       },
       {
@@ -296,6 +368,8 @@ export const HELP_CONTENT: HelpIndex = {
           "schedule.milestones",
           "schedule.baselines",
           "project.schedule",
+          "schedule",
+          "schedule.events",
         ],
         order: 20,
       },
@@ -313,8 +387,17 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Build the running order of a show, run it live with cues, and publish day and call sheets.",
         kind: "page",
-        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show"],
+        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show", "show"],
         order: 22,
+      },
+      {
+        slug: "site-operations",
+        title: "Site operations",
+        summary:
+          "Count occupancy, watch the weather, check guests in at the door and log lost property.",
+        kind: "page",
+        nodes: ["site-ops", "site-ops.*"],
+        order: 35,
       },
       {
         slug: "work",
@@ -329,8 +412,18 @@ export const HELP_CONTENT: HelpIndex = {
           "work.recurring",
           "project.work",
           "record",
+          "work",
         ],
         order: 21,
+      },
+      {
+        slug: "workforce-communication",
+        title: "Groups, chat, recognition and help desk",
+        summary:
+          "Spaces for crews and departments, direct messages, shout-outs and internal help requests.",
+        kind: "page",
+        nodes: ["people.groups", "people.chat", "people.recognition", "people.help-desk"],
+        order: 36,
       },
       {
         slug: "your-account",
@@ -338,7 +431,7 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Your profile, privacy, security, notifications, accessibility and the tours and tips you have seen.",
         kind: "page",
-        nodes: ["me.*"],
+        nodes: ["me.*", "me"],
         order: 61,
       },
     ],
@@ -387,6 +480,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 43,
       },
       {
+        slug: "canon",
+        title: "Canon",
+        summary:
+          "El canon XOS con el que trabaja su organización y las extensiones que su organización le agrega.",
+        kind: "page",
+        nodes: ["canon", "canon.*"],
+        order: 34,
+      },
+      {
         slug: "contact-support",
         title: "Contactar a soporte",
         summary:
@@ -431,6 +533,15 @@ export const HELP_CONTENT: HelpIndex = {
           "project.crew",
         ],
         order: 51,
+      },
+      {
+        slug: "finance",
+        title: "Finanzas",
+        summary:
+          "Presupuestos, gastos, órdenes de cambio, facturas y pagos, y la contabilidad que los respalda.",
+        kind: "page",
+        nodes: ["finance", "finance.*", "project.budget"],
+        order: 30,
       },
       {
         slug: "gates",
@@ -484,6 +595,24 @@ export const HELP_CONTENT: HelpIndex = {
         order: 41,
       },
       {
+        slug: "import-and-trash",
+        title: "Importación, Papelera y objetos personalizados",
+        summary:
+          "Traiga registros desde una hoja de cálculo, restaure elementos eliminados y trabaje con los tipos de registro propios de su organización.",
+        kind: "page",
+        nodes: ["import", "trash", "custom-object"],
+        order: 38,
+      },
+      {
+        slug: "inbox-and-approvals",
+        title: "Bandeja de entrada, Mi trabajo y aprobaciones",
+        summary:
+          "Lo que necesita su atención, lo que tiene a su cargo y las aprobaciones que esperan su decisión.",
+        kind: "page",
+        nodes: ["inbox", "my-work", "approvals"],
+        order: 9,
+      },
+      {
         slug: "incidents-dispatch",
         title: "Incidentes y despacho",
         summary:
@@ -505,6 +634,15 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "guide",
         nodes: ["*", "me.keyboard-shortcuts"],
         order: 3,
+      },
+      {
+        slug: "knowledge",
+        title: "Conocimiento",
+        summary:
+          "Procedimientos, documentos, terminología estándar, novedades, el manual, formularios y capacitación.",
+        kind: "page",
+        nodes: ["knowledge", "knowledge.*", "project.documents"],
+        order: 32,
       },
       {
         slug: "logistics",
@@ -547,8 +685,17 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Dónde están las decisiones de toda la organización, quién puede cambiarlas y cómo funcionan los valores bloqueados.",
         kind: "page",
-        nodes: ["settings.*"],
+        nodes: ["settings.*", "settings"],
         order: 60,
+      },
+      {
+        slug: "partner-console",
+        title: "Consola de socios",
+        summary:
+          "Cree y personalice organizaciones cliente, vea su uso y siga la facturación mayorista.",
+        kind: "page",
+        nodes: ["partner-console", "partner-console.*"],
+        order: 37,
       },
       {
         slug: "people",
@@ -583,6 +730,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 30,
       },
       {
+        slug: "procurement-vendors",
+        title: "Compras y proveedores",
+        summary:
+          "Pida cotizaciones, comprometa gasto con órdenes de compra, reciba y concilie, y mantenga a los proveedores calificados.",
+        kind: "page",
+        nodes: ["procurement", "procurement.*", "vendors", "vendors.*", "project.procurement"],
+        order: 31,
+      },
+      {
         slug: "projects",
         title: "Proyectos",
         summary:
@@ -596,8 +752,18 @@ export const HELP_CONTENT: HelpIndex = {
           "project",
           "project.overview",
           "project.settings",
+          "projects.templates",
         ],
         order: 11,
+      },
+      {
+        slug: "reports",
+        title: "Informes y tableros",
+        summary:
+          "Informes estándar, el generador de informes, informes guardados, tableros y envío programado.",
+        kind: "page",
+        nodes: ["reports", "reports.*", "project.reports"],
+        order: 33,
       },
       {
         slug: "safety-permits-inspections",
@@ -620,7 +786,7 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Cambie entre lista, tabla, tablero, calendario y otras vistas, guarde la que necesita, compártala y ábrala de forma predeterminada.",
         kind: "workflow",
-        nodes: ["*"],
+        nodes: ["*", "saved-views", "saved-view"],
         order: 2,
       },
       {
@@ -635,6 +801,8 @@ export const HELP_CONTENT: HelpIndex = {
           "schedule.milestones",
           "schedule.baselines",
           "project.schedule",
+          "schedule",
+          "schedule.events",
         ],
         order: 20,
       },
@@ -653,8 +821,17 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Arme el orden de un espectáculo, ejecútelo en vivo con señales y publique hojas del día y de llamado.",
         kind: "page",
-        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show"],
+        nodes: ["show.run-of-show", "show.day-sheets", "show.call-sheets", "project.show", "show"],
         order: 22,
+      },
+      {
+        slug: "site-operations",
+        title: "Operaciones del sitio",
+        summary:
+          "Cuente el aforo, vigile el clima, registre la entrada de invitados y lleve el registro de objetos perdidos.",
+        kind: "page",
+        nodes: ["site-ops", "site-ops.*"],
+        order: 35,
       },
       {
         slug: "work",
@@ -670,8 +847,18 @@ export const HELP_CONTENT: HelpIndex = {
           "work.recurring",
           "project.work",
           "record",
+          "work",
         ],
         order: 21,
+      },
+      {
+        slug: "workforce-communication",
+        title: "Grupos, chat, reconocimientos y mesa de ayuda",
+        summary:
+          "Espacios para equipos y departamentos, mensajes directos, reconocimientos y solicitudes de ayuda internas.",
+        kind: "page",
+        nodes: ["people.groups", "people.chat", "people.recognition", "people.help-desk"],
+        order: 36,
       },
       {
         slug: "your-account",
@@ -679,7 +866,7 @@ export const HELP_CONTENT: HelpIndex = {
         summary:
           "Su perfil, privacidad, seguridad, notificaciones, accesibilidad y los recorridos y consejos que ya vio.",
         kind: "page",
-        nodes: ["me.*"],
+        nodes: ["me.*", "me"],
         order: 61,
       },
     ],

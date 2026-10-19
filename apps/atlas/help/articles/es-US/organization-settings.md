@@ -2,7 +2,7 @@
 title: Configuración de la organización
 summary: Dónde están las decisiones de toda la organización, quién puede cambiarlas y cómo funcionan los valores bloqueados.
 kind: page
-nodes: ["settings.*"]
+nodes: ["settings.*", settings]
 order: 60
 ---
 

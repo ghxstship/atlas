@@ -2,7 +2,7 @@
 title: Guion del espectáculo, hojas del día y hojas de llamado
 summary: Arme el orden de un espectáculo, ejecútelo en vivo con señales y publique hojas del día y de llamado.
 kind: page
-nodes: [show.run-of-show, show.day-sheets, show.call-sheets, project.show]
+nodes: [show.run-of-show, show.day-sheets, show.call-sheets, project.show, show]
 order: 22
 ---
 

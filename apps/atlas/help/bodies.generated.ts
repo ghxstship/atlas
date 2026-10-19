@@ -107,6 +107,38 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    canon: [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The canon is the shared vocabulary of every project: departments, disciplines, categories and elements; the nine phases and their gates; the 26 record kinds; roles; jurisdictions with their permit rules; and metrics. It loads with XOS and is read-only.",
+          },
+        ],
+      },
+      { t: "h2", v: "Browse" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Each canon page lists its entries with their definitions, grouped by their parent (disciplines by department, elements by category). Hover over or focus a phase or gate chip anywhere in Atlas to see its definition.",
+          },
+        ],
+      },
+      { t: "h2", v: "Extend" },
+      {
+        t: "p",
+        c: [
+          { t: "strong", v: "Org Extensions" },
+          {
+            t: "text",
+            v: " add values your organization needs beyond the canon. Someone other than the requester approves each extension.",
+          },
+        ],
+      },
+    ],
     "contact-support": [
       { t: "h2", v: "Ask your admins" },
       {
@@ -240,6 +272,86 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Rate cards set pay by role and rule. Run the payroll export for a pay period, post it, and the period closes. A closed period cannot be reopened. Pay rates are masked for people without payroll access.",
           },
+        ],
+      },
+    ],
+    finance: [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Finance tracks what a project is expected to cost, what it commits and what it pays.",
+          },
+        ],
+      },
+      { t: "h2", v: "Budgets" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Build a budget from the catalog at the Base, Elevated or Premium tier. A line with no price shows ",
+          },
+          { t: "strong", v: "Unpriced" },
+          {
+            t: "text",
+            v: " and is never counted as zero; the totals say how many lines are still unpriced. A project in another currency shows converted totals with the rate date.",
+          },
+        ],
+      },
+      { t: "h2", v: "Expenses and change orders" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Submit an expense with its receipt. Raise a change order when scope or cost changes. A change order can be saved without a price, and the budget updates when it is priced and approved. Nobody approves their own request.",
+          },
+        ],
+      },
+      { t: "h2", v: "Invoices and payments" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Invoices from vendors and to clients collect in " },
+          { t: "strong", v: "Invoices" },
+          {
+            t: "text",
+            v: ". Approved invoices become payments. Atlas records each payment; it does not move money.",
+          },
+        ],
+      },
+      { t: "h2", v: "Books" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Journal" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Periods" },
+            {
+              t: "text",
+              v: ": post entries into an open period. Once a period is closed, posting into it is refused.",
+            },
+          ],
+          [
+            { t: "strong", v: "Chart of Accounts" },
+            { t: "text", v: " comes from canon; map your general ledger to it. " },
+            { t: "strong", v: "Cost Centers" },
+            { t: "text", v: " are what you report against." },
+          ],
+          [
+            { t: "strong", v: "Universal Posting Line Export" },
+            { t: "text", v: " writes posting lines for your accounting system." },
+          ],
+          [
+            { t: "strong", v: "Year-End" },
+            {
+              t: "text",
+              v: " lists contractors paid the 1099-NEC threshold and downloads the filing file. Full tax identifiers need a Restricted export with step-up.",
+            },
+          ],
         ],
       },
     ],
@@ -557,6 +669,94 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "import-and-trash": [
+      { t: "h2", v: "Import" },
+      {
+        t: "ol",
+        items: [
+          [{ t: "text", v: "Upload a spreadsheet and choose what it imports into." }],
+          [{ t: "text", v: "Confirm how its columns map." }],
+          [{ t: "text", v: "Review problems and possible duplicates, then commit." }],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "You can undo the whole batch for 7 days." }] },
+      { t: "h2", v: "Trash" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Deleted items stay in Trash until their retention period ends, when they are purged for good. Restore an item to bring it back, with anything deleted together with it.",
+          },
+        ],
+      },
+      { t: "h2", v: "Custom objects" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "An Admin defines custom objects in settings. Each one gets its own list of records, with the same views, filters and API access as any other collection.",
+          },
+        ],
+      },
+    ],
+    "inbox-and-approvals": [
+      { t: "h2", v: "Inbox" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Items sort into " },
+          { t: "strong", v: "Needs you" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "For your information" },
+          {
+            t: "text",
+            v: ". Approve, reject or reply right from an item, without opening the record. With the keyboard, ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " marks an item done, " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " snoozes it and " },
+          { t: "strong", v: "A" },
+          { t: "text", v: " approves." },
+        ],
+      },
+      { t: "h2", v: "My Work" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Records you own or are accountable for, grouped by " },
+          { t: "strong", v: "Overdue" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Today" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Upcoming" },
+          { t: "text", v: " and " },
+          { t: "strong", v: "No due date" },
+          { t: "text", v: ", in the view you choose." },
+        ],
+      },
+      { t: "h2", v: "Approvals" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Waiting on me" },
+            { t: "text", v: ": the steps you decide." },
+          ],
+          [
+            { t: "strong", v: "My requests" },
+            { t: "text", v: ": what you submitted." },
+          ],
+          [
+            { t: "strong", v: "All" },
+            { t: "text", v: ": everything you may see." },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "You cannot approve your own request." }] },
+    ],
     "incidents-dispatch": [
       { t: "h2", v: "Incidents" },
       {
@@ -671,6 +871,60 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "You can change shortcuts that are not reserved by the browser in " },
           { t: "strong", v: "Me, Keyboard shortcuts" },
           { t: "text", v: "." },
+        ],
+      },
+    ],
+    knowledge: [
+      { t: "h2", v: "Reference" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "SOPs" },
+            {
+              t: "text",
+              v: ": write and publish the procedures your team follows. People acknowledge a published SOP. If someone saved a newer version while you were editing, your save is refused so nothing is overwritten.",
+            },
+          ],
+          [
+            { t: "strong", v: "Documents" },
+            {
+              t: "text",
+              v: ": upload the files your team needs. A project's documents are also on its Documents tab.",
+            },
+          ],
+          [
+            { t: "strong", v: "Verbiage Library" },
+            { t: "text", v: ": save clauses and wording you reuse." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Workforce" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Feed" },
+            {
+              t: "text",
+              v: ": post updates by section. A post can require reading; people acknowledge it, and you see who has not.",
+            },
+          ],
+          [
+            { t: "strong", v: "Handbook" },
+            { t: "text", v: ": publish handbook articles." },
+          ],
+          [
+            { t: "strong", v: "Forms" },
+            {
+              t: "text",
+              v: ": build forms with conditional logic, required photos and signatures. Crew can complete them in Compass, offline, and each submission becomes a record of the right kind.",
+            },
+          ],
+          [
+            { t: "strong", v: "Training" },
+            { t: "text", v: ": build short courses for your crew." },
+          ],
         ],
       },
     ],
@@ -805,6 +1059,44 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "partner-console": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The partner console is for organizations that resell XOS to their clients.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Client Orgs" },
+            {
+              t: "text",
+              v: ": create a client org, set its plan and invite its Owner. You cannot see a client's data until its Owner grants you a support session.",
+            },
+          ],
+          [
+            { t: "strong", v: "Default Brand" },
+            { t: "text", v: ": set the brand your client orgs inherit." },
+          ],
+          [
+            { t: "strong", v: "Usage" },
+            { t: "text", v: ": client usage rolls up here." },
+          ],
+          [
+            { t: "strong", v: "Wholesale Billing" },
+            {
+              t: "text",
+              v: ": your clients are billed to you at wholesale once the platform records your partner agreement.",
+            },
+          ],
+        ],
+      },
+    ],
     people: [
       { t: "h2", v: "Directory and roles" },
       {
@@ -901,6 +1193,84 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "procurement-vendors": [
+      { t: "h2", v: "Buy" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "strong", v: "RFQs" },
+            {
+              t: "text",
+              v: ": invite vendors to bid. Bids arrive sealed in Gateway and unseal at the deadline; award the one you choose.",
+            },
+          ],
+          [
+            { t: "strong", v: "Purchase Orders" },
+            {
+              t: "text",
+              v: ": raise a PO to commit spend. A PO above your approval limit routes to the next approver, and you cannot approve your own PO. The vendor acknowledges it in Gateway.",
+            },
+          ],
+          [
+            { t: "strong", v: "Receipts" },
+            {
+              t: "text",
+              v: ": receive goods against a PO, including by scan in Compass. A duplicate receipt is refused.",
+            },
+          ],
+          [
+            { t: "strong", v: "Invoice Matching" },
+            {
+              t: "text",
+              v: ": vendor invoices match against the PO and its receipts before approval.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "The " },
+          { t: "strong", v: "Catalog" },
+          { t: "text", v: " binds canon items to your vendors and their prices." },
+        ],
+      },
+      { t: "h2", v: "Vendors" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Directory" },
+            { t: "text", v: " and " },
+            { t: "strong", v: "Classes" },
+            { t: "text", v: ": the vendors you work with and what they supply." },
+          ],
+          [
+            { t: "strong", v: "Prequalification" },
+            {
+              t: "text",
+              v: ": vet a vendor before you engage them. Someone other than the requester decides.",
+            },
+          ],
+          [
+            { t: "strong", v: "Insurance Certificates" },
+            {
+              t: "text",
+              v: ": collect a certificate from each vendor, with the additional insureds you require. Aurora can read a certificate and show its confidence in each field before you confirm.",
+            },
+          ],
+          [
+            { t: "strong", v: "Scorecards" },
+            { t: "text", v: ": score vendors after each engagement." },
+          ],
+          [
+            { t: "strong", v: "Sponsor Entitlements" },
+            { t: "text", v: ": list what each sponsor is owed and track its fulfillment." },
+          ],
+        ],
+      },
+    ],
     projects: [
       {
         t: "p",
@@ -970,6 +1340,54 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Project settings hold the name, dates, currency and time zone. Some settings are locked by your organization; the page shows where a locked value comes from.",
+          },
+        ],
+      },
+    ],
+    reports: [
+      { t: "h2", v: "Standard reports" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Gate Readiness, Coordinate Matrix, Budget versus Actual, Labor, Purchase Order Exposure, Incidents and the Final Cost Report each read live data you can see. The final cost report is produced when a project closes and compares it with its gate 3 baseline.",
+          },
+        ],
+      },
+      { t: "h2", v: "Build a report" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Open " },
+            { t: "strong", v: "Report Builder" },
+            { t: "text", v: " and choose a collection." },
+          ],
+          [{ t: "text", v: "Pick the fields, filters and grouping, then preview." }],
+          [
+            { t: "text", v: "Save it. It appears in " },
+            { t: "strong", v: "Saved Reports" },
+            { t: "text", v: "." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Totals are aware of missing values: an unknown amount stays unknown instead of counting as zero.",
+          },
+        ],
+      },
+      { t: "h2", v: "Dashboards and delivery" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Create a dashboard, then add saved reports to it as tiles. A saved report can be emailed on a schedule as PDF, CSV or Excel; each recipient receives only what they may see.",
           },
         ],
       },
@@ -1220,6 +1638,48 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "site-operations": [
+      { t: "h2", v: "Occupancy" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Set up a counter for each space you count at the doors. Its permitted load comes from a permit, the space capacity, or the occupant load factor. Atlas alerts at 90 percent of the permitted load.",
+          },
+        ],
+      },
+      { t: "h2", v: "Weather" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Record readings for wind gusts, lightning distance and heat index, and set thresholds from your emergency plan. When a threshold is crossed, the alert reaches the roles you named.",
+          },
+        ],
+      },
+      { t: "h2", v: "Guest check-in" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "The door list shows the guests approved on the Advancing guest list. Checking guests in needs scanning access on the project.",
+          },
+        ],
+      },
+      { t: "h2", v: "Lost and found" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Log each item someone hands in, with its category. Describe it well enough to check a claim, record each claim, and record the return when the item goes back to its owner.",
+          },
+        ],
+      },
+    ],
     work: [
       { t: "h2", v: "Records" },
       {
@@ -1273,6 +1733,35 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Related: " },
           { t: "link", v: "Schedule", href: "help:schedule" },
           { t: "text", v: "." },
+        ],
+      },
+    ],
+    "workforce-communication": [
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Groups" },
+            { t: "text", v: ": create a space for a crew, a department or a project." },
+          ],
+          [
+            { t: "strong", v: "Chat" },
+            { t: "text", v: ": find someone in the directory and message them." },
+          ],
+          [
+            { t: "strong", v: "Recognition" },
+            {
+              t: "text",
+              v: ": thank someone for great work. Shout-outs appear in the recognition feed.",
+            },
+          ],
+          [
+            { t: "strong", v: "Help Desk" },
+            {
+              t: "text",
+              v: ": ask an internal team for help. Choose the team, a category and a severity; each team shows how quickly it answers. Admins set up the teams in Settings, Help and Support.",
+            },
+          ],
         ],
       },
     ],
@@ -1421,6 +1910,39 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    canon: [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "El canon es el vocabulario común de todos los proyectos: departamentos, disciplinas, categorías y elementos; las nueve fases y sus compuertas; los 26 tipos de registro; los roles; las jurisdicciones con sus reglas de permisos; y las métricas. Se carga con XOS y es de solo lectura.",
+          },
+        ],
+      },
+      { t: "h2", v: "Explore" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cada página del canon lista sus entradas con sus definiciones, agrupadas por su elemento superior (las disciplinas por departamento, los elementos por categoría). Pase el puntero o enfoque una etiqueta de fase o compuerta en cualquier parte de Atlas para ver su definición.",
+          },
+        ],
+      },
+      { t: "h2", v: "Amplíe" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las " },
+          { t: "strong", v: "Extensiones de la organización" },
+          {
+            t: "text",
+            v: " agregan valores que su organización necesita más allá del canon. Alguien distinto de quien lo solicita aprueba cada extensión.",
+          },
+        ],
+      },
+    ],
     "contact-support": [
       { t: "h2", v: "Pregunte a sus administradores" },
       {
@@ -1557,6 +2079,88 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "Las tarjetas de tarifas fijan el pago por rol y regla. Ejecute la exportación de nómina de un período, publíquela y el período se cierra. Un período cerrado no se puede reabrir. Las tarifas se ocultan a quienes no tienen acceso a nómina.",
           },
+        ],
+      },
+    ],
+    finance: [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Finanzas registra lo que se espera que cueste un proyecto, lo que compromete y lo que paga.",
+          },
+        ],
+      },
+      { t: "h2", v: "Presupuestos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cree un presupuesto desde el catálogo en el nivel Base, Elevado o Premium. Una línea sin precio muestra ",
+          },
+          { t: "strong", v: "Sin precio" },
+          {
+            t: "text",
+            v: " y nunca cuenta como cero; los totales indican cuántas líneas siguen sin precio. Un proyecto en otra moneda muestra los totales convertidos con la fecha del tipo de cambio.",
+          },
+        ],
+      },
+      { t: "h2", v: "Gastos y órdenes de cambio" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Envíe un gasto con su recibo. Cree una orden de cambio cuando cambien el alcance o el costo. Una orden de cambio se puede guardar sin precio, y el presupuesto se actualiza cuando se le pone precio y se aprueba. Nadie aprueba su propia solicitud.",
+          },
+        ],
+      },
+      { t: "h2", v: "Facturas y pagos" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las facturas de proveedores y a clientes se reúnen en " },
+          { t: "strong", v: "Facturas" },
+          {
+            t: "text",
+            v: ". Las facturas aprobadas se convierten en pagos. Atlas registra cada pago; no mueve dinero.",
+          },
+        ],
+      },
+      { t: "h2", v: "Contabilidad" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Libro diario" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Periodos" },
+            {
+              t: "text",
+              v: ": registre asientos en un periodo abierto. Cuando un periodo está cerrado, se rechaza registrar en él.",
+            },
+          ],
+          [
+            { t: "text", v: "El " },
+            { t: "strong", v: "Catálogo de cuentas" },
+            { t: "text", v: " viene del canon; asocie su libro mayor con él. Los " },
+            { t: "strong", v: "Centros de costos" },
+            { t: "text", v: " son aquello sobre lo que informa." },
+          ],
+          [
+            { t: "text", v: "La " },
+            { t: "strong", v: "Exportación de la línea de registro universal" },
+            { t: "text", v: " genera las líneas contables para su sistema de contabilidad." },
+          ],
+          [
+            { t: "strong", v: "Cierre del año" },
+            {
+              t: "text",
+              v: " lista a los contratistas que alcanzaron el umbral del 1099-NEC y descarga el archivo para presentarlo. Los identificadores fiscales completos requieren una exportación Restringida con verificación adicional.",
+            },
+          ],
         ],
       },
     ],
@@ -1889,6 +2493,94 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "import-and-trash": [
+      { t: "h2", v: "Importación" },
+      {
+        t: "ol",
+        items: [
+          [{ t: "text", v: "Suba una hoja de cálculo y elija en qué se importa." }],
+          [{ t: "text", v: "Confirme cómo se asocian sus columnas." }],
+          [{ t: "text", v: "Revise los problemas y los posibles duplicados, y confirme." }],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "Puede deshacer el lote completo durante 7 días." }] },
+      { t: "h2", v: "Papelera" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los elementos eliminados permanecen en la Papelera hasta que termina su período de retención, cuando se eliminan definitivamente. Restaure un elemento para recuperarlo, junto con todo lo que se eliminó con él.",
+          },
+        ],
+      },
+      { t: "h2", v: "Objetos personalizados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Un administrador define los objetos personalizados en la configuración. Cada uno tiene su propia lista de registros, con las mismas vistas, filtros y acceso por API que cualquier otra colección.",
+          },
+        ],
+      },
+    ],
+    "inbox-and-approvals": [
+      { t: "h2", v: "Bandeja de entrada" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los elementos se ordenan en " },
+          { t: "strong", v: "Requiere su atención" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Para su información" },
+          {
+            t: "text",
+            v: ". Apruebe, rechace o responda directamente desde un elemento, sin abrir el registro. Con el teclado, ",
+          },
+          { t: "strong", v: "E" },
+          { t: "text", v: " marca un elemento como hecho, " },
+          { t: "strong", v: "H" },
+          { t: "text", v: " lo pospone y " },
+          { t: "strong", v: "A" },
+          { t: "text", v: " lo aprueba." },
+        ],
+      },
+      { t: "h2", v: "Mi trabajo" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Los registros de los que es dueño o responsable, agrupados en " },
+          { t: "strong", v: "Vencido" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Hoy" },
+          { t: "text", v: ", " },
+          { t: "strong", v: "Próximo" },
+          { t: "text", v: " y " },
+          { t: "strong", v: "Sin fecha de vencimiento" },
+          { t: "text", v: ", en la vista que elija." },
+        ],
+      },
+      { t: "h2", v: "Aprobaciones" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Esperan por mí" },
+            { t: "text", v: ": los pasos que usted decide." },
+          ],
+          [
+            { t: "strong", v: "Mis solicitudes" },
+            { t: "text", v: ": lo que usted envió." },
+          ],
+          [
+            { t: "strong", v: "Todas" },
+            { t: "text", v: ": todo lo que puede ver." },
+          ],
+        ],
+      },
+      { t: "p", c: [{ t: "text", v: "No puede aprobar su propia solicitud." }] },
+    ],
     "incidents-dispatch": [
       { t: "h2", v: "Incidentes" },
       {
@@ -2003,6 +2695,60 @@ export const HELP_BODIES: HelpBodies = {
           { t: "text", v: "Puede cambiar los atajos en " },
           { t: "strong", v: "Yo, Atajos de teclado" },
           { t: "text", v: "." },
+        ],
+      },
+    ],
+    knowledge: [
+      { t: "h2", v: "Referencia" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Procedimientos operativos" },
+            {
+              t: "text",
+              v: ": redacte y publique los procedimientos que sigue su equipo. Las personas confirman haber leído un procedimiento publicado. Si alguien guardó una versión más reciente mientras usted editaba, su cambio se rechaza para no sobrescribir nada.",
+            },
+          ],
+          [
+            { t: "strong", v: "Documentos" },
+            {
+              t: "text",
+              v: ": suba los archivos que necesita su equipo. Los documentos de un proyecto también están en su pestaña Documentos.",
+            },
+          ],
+          [
+            { t: "strong", v: "Biblioteca de terminología" },
+            { t: "text", v: ": guarde las cláusulas y redacciones que reutiliza." },
+          ],
+        ],
+      },
+      { t: "h2", v: "Equipo" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Novedades" },
+            {
+              t: "text",
+              v: ": publique novedades por sección. Una publicación puede exigir lectura; las personas la confirman y usted ve quién no lo ha hecho.",
+            },
+          ],
+          [
+            { t: "strong", v: "Manual" },
+            { t: "text", v: ": publique artículos del manual." },
+          ],
+          [
+            { t: "strong", v: "Formularios" },
+            {
+              t: "text",
+              v: ": cree formularios con lógica condicional, fotos obligatorias y firmas. El personal puede completarlos en Compass, sin conexión, y cada envío se convierte en un registro del tipo correcto.",
+            },
+          ],
+          [
+            { t: "strong", v: "Capacitación" },
+            { t: "text", v: ": cree cursos breves para su personal." },
+          ],
         ],
       },
     ],
@@ -2121,6 +2867,44 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "partner-console": [
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La consola de socios es para las organizaciones que revenden XOS a sus clientes.",
+          },
+        ],
+      },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Organizaciones cliente" },
+            {
+              t: "text",
+              v: ": cree una organización cliente, fije su plan e invite a su Propietario. No puede ver los datos de un cliente hasta que su Propietario le conceda una sesión de soporte.",
+            },
+          ],
+          [
+            { t: "strong", v: "Marca predeterminada" },
+            { t: "text", v: ": fije la marca que heredan sus organizaciones cliente." },
+          ],
+          [
+            { t: "strong", v: "Uso" },
+            { t: "text", v: ": aquí se reúne el uso de sus clientes." },
+          ],
+          [
+            { t: "strong", v: "Facturación mayorista" },
+            {
+              t: "text",
+              v: ": sus clientes se le facturan a precio mayorista cuando la plataforma registra su acuerdo de socio.",
+            },
+          ],
+        ],
+      },
+    ],
     people: [
       { t: "h2", v: "Directorio y roles" },
       {
@@ -2205,6 +2989,84 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "procurement-vendors": [
+      { t: "h2", v: "Comprar" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "strong", v: "Solicitudes de cotización" },
+            {
+              t: "text",
+              v: ": invite a proveedores a ofertar. Las ofertas llegan selladas en Gateway y se abren al vencer el plazo; adjudique la que elija.",
+            },
+          ],
+          [
+            { t: "strong", v: "Órdenes de compra" },
+            {
+              t: "text",
+              v: ": cree una orden de compra para comprometer gasto. Una orden por encima de su límite de aprobación pasa al siguiente aprobador, y no puede aprobar su propia orden. El proveedor la confirma en Gateway.",
+            },
+          ],
+          [
+            { t: "strong", v: "Recepciones" },
+            {
+              t: "text",
+              v: ": reciba mercancía contra una orden de compra, también escaneando en Compass. Una recepción duplicada se rechaza.",
+            },
+          ],
+          [
+            { t: "strong", v: "Conciliación de facturas" },
+            {
+              t: "text",
+              v: ": las facturas de proveedores se concilian con la orden de compra y sus recepciones antes de aprobarse.",
+            },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "El " },
+          { t: "strong", v: "Catálogo" },
+          { t: "text", v: " vincula artículos del canon con sus proveedores y sus precios." },
+        ],
+      },
+      { t: "h2", v: "Proveedores" },
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Directorio" },
+            { t: "text", v: " y " },
+            { t: "strong", v: "Clases" },
+            { t: "text", v: ": los proveedores con los que trabaja y lo que suministran." },
+          ],
+          [
+            { t: "strong", v: "Precalificación" },
+            {
+              t: "text",
+              v: ": evalúe a un proveedor antes de contratarlo. Decide alguien distinto de quien lo solicita.",
+            },
+          ],
+          [
+            { t: "strong", v: "Certificados de seguro" },
+            {
+              t: "text",
+              v: ": reúna un certificado de cada proveedor, con los asegurados adicionales que exige. Aurora puede leer un certificado y mostrar su confianza en cada campo antes de que lo confirme.",
+            },
+          ],
+          [
+            { t: "strong", v: "Evaluaciones" },
+            { t: "text", v: ": califique a los proveedores después de cada contratación." },
+          ],
+          [
+            { t: "strong", v: "Beneficios de patrocinio" },
+            { t: "text", v: ": liste lo que se debe a cada patrocinador y siga su cumplimiento." },
+          ],
+        ],
+      },
+    ],
     projects: [
       {
         t: "p",
@@ -2266,6 +3128,54 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Algunas configuraciones del proyecto están bloqueadas por su organización; la página indica de dónde proviene el valor.",
+          },
+        ],
+      },
+    ],
+    reports: [
+      { t: "h2", v: "Informes estándar" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Preparación de compuertas, Matriz de coordenadas, Presupuesto frente a real, Mano de obra, Exposición de órdenes de compra, Incidentes y el Informe de costo final leen los datos actuales que usted puede ver. El informe de costo final se genera cuando un proyecto se cierra y lo compara con su línea base de la compuerta 3.",
+          },
+        ],
+      },
+      { t: "h2", v: "Cree un informe" },
+      {
+        t: "ol",
+        items: [
+          [
+            { t: "text", v: "Abra el " },
+            { t: "strong", v: "Generador de informes" },
+            { t: "text", v: " y elija una colección." },
+          ],
+          [{ t: "text", v: "Elija los campos, filtros y agrupaciones, y vea la vista previa." }],
+          [
+            { t: "text", v: "Guárdelo. Aparece en " },
+            { t: "strong", v: "Informes guardados" },
+            { t: "text", v: "." },
+          ],
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Los totales tienen en cuenta los valores que faltan: un importe desconocido sigue siendo desconocido en lugar de contar como cero.",
+          },
+        ],
+      },
+      { t: "h2", v: "Tableros y envío" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Cree un tablero y agregue informes guardados como mosaicos. Un informe guardado se puede enviar por correo según un calendario en PDF, CSV o Excel; cada destinatario recibe solo lo que puede ver.",
           },
         ],
       },
@@ -2501,6 +3411,48 @@ export const HELP_BODIES: HelpBodies = {
         ],
       },
     ],
+    "site-operations": [
+      { t: "h2", v: "Aforo" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Configure un contador para cada espacio que cuenta en las puertas. Su aforo permitido viene de un permiso, de la capacidad del espacio o del factor de carga de ocupantes. Atlas avisa al llegar al 90 por ciento del aforo permitido.",
+          },
+        ],
+      },
+      { t: "h2", v: "Clima" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Registre lecturas de ráfagas de viento, distancia de rayos e índice de calor, y fije umbrales a partir de su plan de emergencia. Cuando se supera un umbral, el aviso llega a los roles que indicó.",
+          },
+        ],
+      },
+      { t: "h2", v: "Entrada de invitados" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "La lista de la puerta muestra los invitados aprobados en la lista de invitados de Avance. Registrar la entrada de invitados requiere acceso de escaneo en el proyecto.",
+          },
+        ],
+      },
+      { t: "h2", v: "Objetos perdidos" },
+      {
+        t: "p",
+        c: [
+          {
+            t: "text",
+            v: "Registre cada objeto que alguien entrega, con su categoría. Descríbalo lo suficiente para verificar un reclamo, registre cada reclamo y registre la devolución cuando el objeto vuelve a su dueño.",
+          },
+        ],
+      },
+    ],
     work: [
       { t: "h2", v: "Registros" },
       {
@@ -2542,6 +3494,35 @@ export const HELP_BODIES: HelpBodies = {
             t: "text",
             v: "El trabajo recurrente crea registros según un calendario, como revisiones diarias o informes semanales.",
           },
+        ],
+      },
+    ],
+    "workforce-communication": [
+      {
+        t: "ul",
+        items: [
+          [
+            { t: "strong", v: "Grupos" },
+            { t: "text", v: ": cree un espacio para un equipo, un departamento o un proyecto." },
+          ],
+          [
+            { t: "strong", v: "Chat" },
+            { t: "text", v: ": busque a alguien en el directorio y envíele un mensaje." },
+          ],
+          [
+            { t: "strong", v: "Reconocimientos" },
+            {
+              t: "text",
+              v: ": agradezca a alguien un gran trabajo. Los reconocimientos aparecen en sus novedades.",
+            },
+          ],
+          [
+            { t: "strong", v: "Mesa de ayuda" },
+            {
+              t: "text",
+              v: ": pida ayuda a un equipo interno. Elija el equipo, una categoría y una gravedad; cada equipo indica en cuánto tiempo responde. Los administradores configuran los equipos en Configuración, Ayuda y soporte.",
+            },
+          ],
         ],
       },
     ],

@@ -2,7 +2,7 @@
 title: Your account and preferences
 summary: Your profile, privacy, security, notifications, accessibility and the tours and tips you have seen.
 kind: page
-nodes: ["me.*"]
+nodes: ["me.*", me]
 order: 61
 ---
 

@@ -11,6 +11,7 @@ nodes:
     project,
     project.overview,
     project.settings,
+    projects.templates,
   ]
 order: 11
 ---

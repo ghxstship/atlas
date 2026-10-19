@@ -2,7 +2,7 @@
 title: Views and saved views
 summary: Switch between list, table, board, calendar and other views, save the one you need, share it and open it by default.
 kind: workflow
-nodes: ["*"]
+nodes: ["*", saved-views, saved-view]
 order: 2
 ---
 

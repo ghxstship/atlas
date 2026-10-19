@@ -11,6 +11,7 @@ nodes:
     work.recurring,
     project.work,
     record,
+    work,
   ]
 order: 21
 ---

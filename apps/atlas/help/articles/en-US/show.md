@@ -2,7 +2,7 @@
 title: Run of show, day sheets and call sheets
 summary: Build the running order of a show, run it live with cues, and publish day and call sheets.
 kind: page
-nodes: [show.run-of-show, show.day-sheets, show.call-sheets, project.show]
+nodes: [show.run-of-show, show.day-sheets, show.call-sheets, project.show, show]
 order: 22
 ---
 

@@ -3,7 +3,15 @@ title: Schedule
 summary: Plan records on the timeline with dependencies, track milestones, and baseline the plan to see every slip.
 kind: page
 nodes:
-  [schedule.timeline, schedule.calendar, schedule.milestones, schedule.baselines, project.schedule]
+  [
+    schedule.timeline,
+    schedule.calendar,
+    schedule.milestones,
+    schedule.baselines,
+    project.schedule,
+    schedule,
+    schedule.events,
+  ]
 order: 20
 ---
 

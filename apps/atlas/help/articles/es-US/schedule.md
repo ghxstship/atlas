@@ -3,7 +3,15 @@ title: Cronograma
 summary: Planifique registros en la línea de tiempo con dependencias, siga los hitos y fije líneas base para ver cada retraso.
 kind: page
 nodes:
-  [schedule.timeline, schedule.calendar, schedule.milestones, schedule.baselines, project.schedule]
+  [
+    schedule.timeline,
+    schedule.calendar,
+    schedule.milestones,
+    schedule.baselines,
+    project.schedule,
+    schedule,
+    schedule.events,
+  ]
 order: 20
 ---
 
