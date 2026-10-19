@@ -114,6 +114,7 @@ export function SaveProjectForm({ org, projects }: { org: string; projects: read
       hidden={{ org, projectId: project }}
       label={t("templates.fromProject.label")}
       submitLabel={t("templates.fromProject.submit")}
+      submitVariant="secondary"
       success={t("templates.fromProject.done")}
     >
       <Select

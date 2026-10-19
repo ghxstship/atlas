@@ -164,7 +164,7 @@ async function PostsSection({
             action={acknowledgePostAction}
             hidden={{ org: ctx.org.slug, id: p.id }}
             label={t("feed.acknowledge")}
-            variant="primary"
+            variant="secondary"
             refusals={REFUSALS}
           />
         ) : null}
@@ -267,6 +267,7 @@ async function PostsSection({
         hidden={{ org: ctx.org.slug, id: p.poll.id }}
         refusals={REFUSALS}
         submitLabel={t("feed.vote")}
+        submitVariant="secondary"
         fields={[
           p.poll.allowsMultiple
             ? { kind: "checkboxes", name: "option", label: p.poll.question, options }

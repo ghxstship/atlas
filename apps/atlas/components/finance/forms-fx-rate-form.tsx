@@ -80,7 +80,7 @@ export function FxRateForm({
         />
       </div>
       <ActionFeedback state={state} success={t("fx.added")} />
-      <Submit label={t("fx.add")} pending={pending} />
+      <Submit label={t("fx.add")} pending={pending} variant="secondary" />
     </form>
   );
 }

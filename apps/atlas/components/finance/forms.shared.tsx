@@ -12,10 +12,18 @@ import { type ActionState } from "@/app/[org]/finance/actions";
 
 export const INITIAL: ActionState = {};
 
-export function Submit({ label, pending }: { label: string; pending: boolean }) {
+export function Submit({
+  label,
+  pending,
+  variant = "primary",
+}: {
+  label: string;
+  pending: boolean;
+  variant?: "primary" | "secondary";
+}) {
   return (
     <div className="flex items-center gap-12">
-      <Button type="submit" variant="primary" loading={pending}>
+      <Button type="submit" variant={variant} loading={pending}>
         {label}
       </Button>
     </div>

@@ -160,6 +160,7 @@ export function AddFieldForm({
       hidden={{ org, type: typeId, dataType, order: String(next) }}
       label={t("objects.field.title", { object: label })}
       submitLabel={t("objects.field.submit")}
+      submitVariant="secondary"
       success={t("objects.field.done")}
     >
       <Input

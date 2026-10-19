@@ -28,11 +28,19 @@ function fieldError(t: Translate, state: FormState, field: string): string {
 
 const INITIAL: FormState = {};
 
-function Submit({ pending, children }: { pending: boolean; children: ReactNode }) {
+function Submit({
+  pending,
+  children,
+  variant = "primary",
+}: {
+  pending: boolean;
+  children: ReactNode;
+  variant?: "primary" | "secondary";
+}) {
   return (
     <Button
       type="submit"
-      variant="primary"
+      variant={variant}
       disabled={pending}
       aria-busy={pending}
       className="w-full"
@@ -75,7 +83,9 @@ export function PasswordSignInForm({ next }: { next: string }) {
         label={t("fields.password")}
         error={fieldError(t, state, "password")}
       />
-      <Submit pending={pending}>{t("signIn.password")}</Submit>
+      <Submit pending={pending} variant="secondary">
+        {t("signIn.password")}
+      </Submit>
     </form>
   );
 }
@@ -154,7 +164,9 @@ export function SignUpForm({ next }: { next: string }) {
         help={t("fields.passwordHelp")}
         error={fieldError(t, state, "password")}
       />
-      <Submit pending={pending}>{t("signUp.submit")}</Submit>
+      <Submit pending={pending} variant="secondary">
+        {t("signUp.submit")}
+      </Submit>
     </form>
   );
 }

@@ -35,6 +35,7 @@ export function StatementForm({
       org={org}
       hidden={{ projectId, direction }}
       submitLabel={require ? t("reconciliation.addRequirement") : t("reconciliation.addCapability")}
+      submitVariant="secondary"
       successMessage={t("kit.saved")}
     >
       {(error) => (

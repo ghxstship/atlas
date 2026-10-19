@@ -285,6 +285,7 @@ export default async function ProfilePage() {
           label={t("gateway.profile.availability.add")}
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("gateway.profile.availability.add")}
+          variant="secondary"
           doneLabel={t("gateway.profile.availability.added")}
           resetOnDone
           hidden={{ calendarId, timeZone: "UTC" }}

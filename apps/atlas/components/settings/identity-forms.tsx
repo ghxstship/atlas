@@ -152,11 +152,13 @@ export function BrandForm(props: BrandFormProps) {
         className="flex gap-12 rounded-card border border-border-subtle p-16"
         aria-label={t("preview")}
         role="group"
+        // A visual sample of the brand color, not a control.
+        inert
         style={
           current?.passes ? ({ "--color-accent-default": accent } as CSSProperties) : undefined
         }
       >
-        <Button variant="primary" tabIndex={-1} type="button">
+        <Button variant="primary" type="button">
           {t("previewAction")}
         </Button>
       </div>

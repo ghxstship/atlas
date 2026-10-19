@@ -314,6 +314,7 @@ export function EntityForm({
   fields,
   hidden = {},
   submitLabel,
+  submitVariant = "primary",
   refusals,
   successHref,
   onCancelHref,
@@ -323,6 +324,8 @@ export function EntityForm({
   fields: FieldSpec[];
   hidden?: Readonly<Record<string, string>>;
   submitLabel: string;
+  /** Secondary for a form beside the page's own primary action (gate 27). */
+  submitVariant?: ButtonProps["variant"];
   refusals: string;
   successHref?: string;
   onCancelHref?: string;
@@ -437,7 +440,7 @@ export function EntityForm({
         }
       })}
       <div className="flex flex-wrap items-center gap-8">
-        <Button type="submit" variant="primary" loading={pending}>
+        <Button type="submit" variant={submitVariant} loading={pending}>
           {submitLabel}
         </Button>
         {onCancelHref ? <KitLink href={onCancelHref}>{t("cancel")}</KitLink> : null}

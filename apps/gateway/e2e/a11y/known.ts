@@ -19,10 +19,9 @@ export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
   // Gate 27 cognitive load (finding A47-002): screens with more than one primary action.
   ...(
     [
-      [["anonymous"], ["/auth/sign-in", "/auth/sign-up"]],
       [
         ["crew", "vendor"],
-        ["home", "profile", "settings", "settings.profile"],
+        ["home", "settings", "settings.profile"],
       ],
       [["vendor"], ["explore", "messages"]],
     ] as const

@@ -244,6 +244,7 @@ async function ProfileSection(props: SectionProps) {
           label={t("gateway.settings.profile.addSkill")}
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("gateway.settings.profile.addSkill")}
+          variant="secondary"
           doneLabel={t("settings.saved")}
           resetOnDone
           hidden={{ sortOrder: String(skills.ok ? skills.data.length : 0) }}
@@ -291,6 +292,7 @@ async function ProfileSection(props: SectionProps) {
           label={t("gateway.settings.profile.addCertification")}
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("gateway.settings.profile.addCertification")}
+          variant="secondary"
           doneLabel={t("settings.saved")}
           resetOnDone
           fields={[
@@ -330,6 +332,7 @@ async function ProfileSection(props: SectionProps) {
           label={t("gateway.settings.profile.addLanguage")}
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("gateway.settings.profile.addLanguage")}
+          variant="secondary"
           doneLabel={t("settings.saved")}
           resetOnDone
           fields={[
@@ -375,6 +378,7 @@ async function ProfileSection(props: SectionProps) {
           label={t("gateway.settings.profile.addLink")}
           errorsNamespace="gateway.profile.errors"
           submitLabel={t("gateway.settings.profile.addLink")}
+          variant="secondary"
           doneLabel={t("settings.saved")}
           resetOnDone
           fields={[

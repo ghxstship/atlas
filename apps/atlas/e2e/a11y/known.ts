@@ -19,35 +19,21 @@ export const KNOWN_PROBLEMS: readonly KnownProblem[] = [
   // Gate 27 cognitive load (finding A47-002): screens with more than one primary action.
   ...(
     [
-      [
-        ["owner"],
-        [
-          "crew.rate-cards",
-          "settings.custom-objects",
-          "settings.help-and-support",
-          "settings.white-label",
-        ],
-      ],
+      [["owner"], ["crew.rate-cards"]],
       [
         ["manager", "owner"],
         [
-          "finance.cost-centers",
+          "crew.time-entries",
           "import",
           "procurement.invoice-matching",
-          "project.settings",
-          "projects.templates",
           "site-ops.lost-and-found",
           "site-ops.occupancy",
-          "site-ops.weather",
         ],
       ],
-      [
-        ["manager", "owner", "viewer"],
-        ["knowledge.feed", "reports.dashboards"],
-      ],
+      [["manager", "owner", "viewer"], ["reports.dashboards"]],
       [
         ["field", "manager", "owner"],
-        ["logistics.dock-schedule", "project", "project.overview", "project.scope"],
+        ["logistics.dock-schedule", "project.scope"],
       ],
       [["manager"], ["people.help-desk"]],
     ] as const

@@ -182,6 +182,7 @@ export async function WeatherSection({
             hidden={{ org: ctx.org.slug, projectId: project.id }}
             refusals={REFUSALS}
             submitLabel={t("weather.setThreshold")}
+            submitVariant="secondary"
             fields={[
               {
                 kind: "select",
@@ -252,6 +253,7 @@ export async function WeatherSection({
             hidden={{ org: ctx.org.slug, projectId: project.id }}
             refusals={REFUSALS}
             submitLabel={t("weather.addRole")}
+            submitVariant="secondary"
             fields={[
               {
                 kind: "select",

@@ -105,7 +105,7 @@ export function CommentsPanel({
             error={fieldError(t, state, "body")}
           />
           <div>
-            <Button type="submit" variant="primary" size="sm" loading={pending}>
+            <Button type="submit" variant="secondary" size="sm" loading={pending}>
               {t("collab.post")}
             </Button>
           </div>

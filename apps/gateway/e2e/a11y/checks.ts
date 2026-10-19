@@ -133,6 +133,8 @@ export async function cognitiveLoadProblems(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const out: string[] = [];
     const visible = (el: Element) => {
+      // An inert subtree (a brand color preview) shows controls nobody can use.
+      if (el.closest("[inert]")) return false;
       const r = el.getBoundingClientRect();
       const s = getComputedStyle(el);
       return r.width > 0 && r.height > 0 && s.visibility !== "hidden";

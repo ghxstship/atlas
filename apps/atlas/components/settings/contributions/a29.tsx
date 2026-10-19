@@ -165,6 +165,7 @@ async function HelpDeskTeamsPanel({ ctx }: SettingsPanelProps) {
           hidden={{ org: ctx.org.slug }}
           refusals={REFUSALS}
           submitLabel={t("settingsPanels.createTeam")}
+          submitVariant="secondary"
           fields={[
             { kind: "text", name: "name", label: t("settingsPanels.teamName"), required: true },
             {

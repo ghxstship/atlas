@@ -265,7 +265,7 @@ function AddMemberDialog({
         open={open}
         onOpenChange={setOpen}
         trigger={
-          <Button size="sm" variant="primary" icon="UserPlus">
+          <Button size="sm" variant="secondary" icon="UserPlus">
             {t("settings.add")}
           </Button>
         }
