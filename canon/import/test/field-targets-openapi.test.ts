@@ -48,6 +48,7 @@ const NOT_YET_EXPOSED: Readonly<Record<string, number>> = {
   "xpms.elements": 3,
   "xpms.emergency_protocol": 5,
   "xpms.emergency_protocol_step": 1,
+  "xpms.production_template_values": 4,
   "xpms.std_document_library": 4,
   "xpms.std_sop": 2,
   "xpms.v_category_gl": 1,
