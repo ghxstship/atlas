@@ -52529,6 +52529,7 @@ export type Database = {
         };
         Returns: string;
       };
+      block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
       calculate_payroll_run: {
         Args: { p_payroll_run_id: string; p_reason?: string };
         Returns: number;
@@ -53389,6 +53390,16 @@ export type Database = {
           section_title: string;
           submission_id: string;
           submitted_at: string;
+        }[];
+      };
+      my_blocks: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          blocked_handle: string;
+          blocked_kind: string;
+          blocked_name: string;
+          created_at: string;
+          id: string;
         }[];
       };
       my_capabilities_on_project: {
