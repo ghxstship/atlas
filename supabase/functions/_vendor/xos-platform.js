@@ -10102,10 +10102,15 @@ var platform_default$1 = {
       reading: "Reading the spreadsheet. This page updates on its own.",
       validating: "Checking every row. This page updates on its own.",
       committing: "Writing the rows. This page updates on its own.",
+      scanning: "Checking the file for viruses before reading it. This page updates on its own.",
     },
     failed: {
       title: "This import could not be processed",
       body: "The file could not be read or written. Check that it is a .csv or .xlsx spreadsheet and start a new import.",
+      infected:
+        "Our virus scan found something harmful in this file, so it was deleted and nothing was imported. Check the file on your computer with your antivirus, then upload a clean copy.",
+      scanFailed:
+        "This file could not be checked for viruses, so it was not read. Save it again as .csv or .xlsx and start a new import.",
     },
     map: {
       title: "Map the columns",
@@ -10391,6 +10396,12 @@ var platform_default$1 = {
       history: "Exports taken",
       past: "{when}: {tables} tables, {rows} rows, {files} files",
     },
+  },
+  uploadScan: {
+    infected:
+      "Our virus scan found something harmful in this file, so it was deleted. Nobody can open it. Check the file on your device and upload a clean copy.",
+    scanFailed:
+      "This file could not be checked for viruses, so it stays closed. Upload it again, or save it in another format first.",
   },
 };
 var procurement_default$1 = {
@@ -25825,10 +25836,16 @@ var platform_default = {
       reading: "Leyendo la hoja de cálculo. Esta página se actualiza sola.",
       validating: "Revisando cada fila. Esta página se actualiza sola.",
       committing: "Escribiendo las filas. Esta página se actualiza sola.",
+      scanning:
+        "Revisando el archivo en busca de virus antes de leerlo. Esta página se actualiza sola.",
     },
     failed: {
       title: "No se pudo procesar esta importación",
       body: "No se pudo leer o escribir el archivo. Verifique que sea una hoja de cálculo .csv o .xlsx e inicie una nueva importación.",
+      infected:
+        "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó y no se importó nada. Revise el archivo en su computadora con su antivirus y suba una copia limpia.",
+      scanFailed:
+        "No se pudo revisar este archivo en busca de virus, así que no se leyó. Guárdelo de nuevo como .csv o .xlsx e inicie una nueva importación.",
     },
     map: {
       title: "Asignar las columnas",
@@ -26122,6 +26139,12 @@ var platform_default = {
       history: "Exportaciones realizadas",
       past: "{when}: {tables} tablas, {rows} filas, {files} archivos",
     },
+  },
+  uploadScan: {
+    infected:
+      "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
+    scanFailed:
+      "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato.",
   },
 };
 var procurement_default = {

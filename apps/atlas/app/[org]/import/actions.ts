@@ -2,11 +2,11 @@
 
 import {
   cancelImport,
+  checkImportUpload,
   confirmMapping,
   createImport,
   decideMergeReview,
   importObjectPath,
-  importSourceOf,
   requestImportCommit,
   undoImportBatch,
 } from "@xos/data/imports";
@@ -27,13 +27,6 @@ import { contextFor } from "@/lib/platform/action-context";
  * actions run as the person, so row level security and the import RPCs decide.
  */
 
-const MAX_BYTES = 10 * 1024 * 1024;
-const CONTENT_TYPES: Record<string, string> = {
-  csv: "text/csv",
-  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  xls: "application/vnd.ms-excel",
-};
-
 export async function createImportAction(
   _: PlatformActionState,
   form: FormData,
@@ -43,18 +36,17 @@ export async function createImportAction(
   const target = field(form, "target");
   const person = ctx.viewer.person;
   if (!person || !(file instanceof File) || file.size === 0 || !target) return inputError();
-  const source = importSourceOf(file.name);
-  if (!source) return { rule: "import_file_type", at: Date.now() };
-  if (source.source === "XLS") return { rule: "import_xls_unsupported", at: Date.now() };
-  if (file.size > MAX_BYTES) return { rule: "import_file_size", at: Date.now() };
+  // .csv and .xlsx only; a legacy .xls gets its own message (owner decision 28).
+  const upload = checkImportUpload(file.name, file.size);
+  if (!upload.ok) return { rule: upload.rule, at: Date.now() };
   const result = await createImport(ctx.viewer.db, {
     orgId: ctx.org.id,
     targetCode: target,
     filename: file.name.slice(0, 255),
-    objectPath: importObjectPath(person.id, crypto.randomUUID(), source.ext),
-    source: source.source,
+    objectPath: importObjectPath(person.id, crypto.randomUUID(), upload.ext),
+    source: upload.source,
     body: new Uint8Array(await file.arrayBuffer()),
-    contentType: CONTENT_TYPES[source.ext] ?? "text/csv",
+    contentType: upload.contentType,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);

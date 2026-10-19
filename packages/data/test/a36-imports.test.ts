@@ -7,6 +7,8 @@ import {
   decideMergeReview,
   getImport,
   importObjectPath,
+  checkImportUpload,
+  IMPORT_MAX_BYTES,
   importSourceOf,
   listImports,
   listImportTargets,
@@ -126,6 +128,30 @@ describe("import repository", () => {
     expect(importObjectPath("p", "u", "csv")).toBe("p/u.csv");
     expect(similarityPercent(0.874)).toBe(87);
     expect(similarityPercent(null)).toBeNull();
+  });
+
+  it("accepts .csv and .xlsx and refuses a legacy .xls with its own message", () => {
+    expect(checkImportUpload("crew.csv", 1024)).toEqual({
+      ok: true,
+      source: "CSV",
+      ext: "csv",
+      contentType: "text/csv",
+    });
+    expect(checkImportUpload("Vendors 2026.XLSX", 1024)).toEqual({
+      ok: true,
+      source: "XLSX",
+      ext: "xlsx",
+      contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+    expect(checkImportUpload("old-vendors.xls", 1024)).toEqual({
+      ok: false,
+      rule: "import_xls_unsupported",
+    });
+    expect(checkImportUpload("rider.pdf", 1024)).toEqual({ ok: false, rule: "import_file_type" });
+    expect(checkImportUpload("big.csv", IMPORT_MAX_BYTES + 1)).toEqual({
+      ok: false,
+      rule: "import_file_size",
+    });
   });
 
   it("uploads, then creates the import; an upload failure stops it", async () => {

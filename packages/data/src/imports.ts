@@ -91,6 +91,40 @@ export function importSourceOf(filename: string): { source: ImportSource; ext: s
   return null;
 }
 
+/** The largest spreadsheet the wizard uploads (the imports bucket's limit). */
+export const IMPORT_MAX_BYTES = 10 * 1024 * 1024;
+
+const IMPORT_CONTENT_TYPES: Readonly<Record<string, string>> = {
+  csv: "text/csv",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+};
+
+export type ImportUploadCheck =
+  | {
+      readonly ok: true;
+      readonly source: ImportSource;
+      readonly ext: string;
+      readonly contentType: string;
+    }
+  | {
+      readonly ok: false;
+      readonly rule: "import_file_type" | "import_xls_unsupported" | "import_file_size";
+    };
+
+/**
+ * Checks a spreadsheet before upload. Only .csv and .xlsx are read; a legacy binary .xls is refused
+ * with its own plain-language rule (owner decision 28), as the database also does (1241).
+ */
+export function checkImportUpload(filename: string, size: number): ImportUploadCheck {
+  const source = importSourceOf(filename);
+  if (!source) return { ok: false, rule: "import_file_type" };
+  if (source.source === "XLS") return { ok: false, rule: "import_xls_unsupported" };
+  if (size > IMPORT_MAX_BYTES) return { ok: false, rule: "import_file_size" };
+  const contentType = IMPORT_CONTENT_TYPES[source.ext];
+  if (contentType === undefined) return { ok: false, rule: "import_file_type" };
+  return { ok: true, source: source.source, ext: source.ext, contentType };
+}
+
 /** The object path of an upload: the person's own folder, a fresh id and the extension. */
 export function importObjectPath(personId: string, uploadId: string, ext: string): string {
   return `${personId}/${uploadId}.${ext}`;
@@ -208,8 +242,16 @@ export interface ImportBatch {
   readonly kept: readonly { rowNumber: number; reason: string }[];
 }
 
+/** The uploader's view of their spreadsheet's virus scan (1240). */
+export type UploadScanStatus = "Scanning" | "Clean" | "Infected" | "Scan Failed";
+
 export interface ImportDetail extends ImportSummary {
   readonly mappingConfirmedAt: string | null;
+  /**
+   * The spreadsheet's virus scan, while the import waits for it or after it failed; null once the file
+   * was read, or for anyone but the uploader (app.my_upload_scan_status).
+   */
+  readonly scanStatus: UploadScanStatus | null;
   readonly columns: readonly ImportColumn[];
   readonly issues: readonly RowIssue[];
   readonly reviews: readonly MergeReview[];
@@ -217,12 +259,26 @@ export interface ImportDetail extends ImportSummary {
   readonly batches: readonly ImportBatch[];
 }
 
+const SCAN_STATUSES: readonly string[] = ["Scanning", "Clean", "Infected", "Scan Failed"];
+
+/** The scan of the job's spreadsheet, asked only while the import waits on it or after it failed. */
+async function uploadScanStatus(db: XosClient, job: Raw): Promise<Result<UploadScanStatus | null>> {
+  const status = str(job["import_status"]);
+  const path = strOrNull(job["storage_object_path"]);
+  if ((status !== "Uploaded" && status !== "Failed") || path === null) return ok(null);
+  return rpc(db, "my_upload_scan_status", { p_bucket_id: "imports", p_object_name: path }, (d) =>
+    typeof d === "string" && SCAN_STATUSES.includes(d) ? (d as UploadScanStatus) : null,
+  );
+}
+
 /** One import with everything the wizard shows; not-found when the caller may not see it. */
 export async function getImport(db: XosClient, id: string): Promise<Result<ImportDetail>> {
   const job = await rows(
     untyped(db)
       .from("import_jobs")
-      .select("id, target_code, original_filename, import_status, created_at, mapping_confirmed_at")
+      .select(
+        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path",
+      )
       .eq("id", id)
       .is("deleted_at", null)
       .limit(1),
@@ -283,10 +339,13 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
 
   const names = await candidateNames(db, reviews.data);
   if (!names.ok) return names;
+  const scan = await uploadScanStatus(db, head);
+  if (!scan.ok) return scan;
 
   return ok({
     ...toSummary(head),
     mappingConfirmedAt: strOrNull(head["mapping_confirmed_at"]),
+    scanStatus: scan.data,
     columns: columns.data.map((c) => ({
       id: str(c["id"]),
       sheet: str(c["sheet_name"]),

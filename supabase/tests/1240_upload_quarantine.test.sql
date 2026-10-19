@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(22);
+select plan(29);
 
 -- Catalog -------------------------------------------------------------------------------------------------------------
 select ok(private.scanned_upload_bucket('imports') and private.scanned_upload_bucket('support-screenshots')
@@ -85,6 +85,34 @@ delete from storage.objects where bucket_id = 'imports' and name = pg_temp.impor
 select is((select count(*)::integer from private.object_scans where object_name = pg_temp.import_path('dave', 'upload_1')), 0,
   'a deleted Clean object leaves no scan row');
 
+-- Imports wait for their spreadsheet to scan Clean -------------------------------------------------------------------
+select pg_temp.as_platform();
+insert into world select 'upload_2', gen_random_uuid();
+insert into world select 'upload_3', gen_random_uuid();
+select pg_temp.as_user('alice');
+insert into storage.objects (bucket_id, name, owner_id, metadata) values
+  ('imports', pg_temp.import_path('alice', 'upload_2'), pg_temp.id('alice_user')::text, jsonb_build_object('mimetype', 'text/csv', 'size', 10)),
+  ('imports', pg_temp.import_path('alice', 'upload_3'), pg_temp.id('alice_user')::text, jsonb_build_object('mimetype', 'text/csv', 'size', 10));
+with x as (insert into app.import_jobs (org_id, target_code, source, original_filename, storage_object_path)
+  values (pg_temp.id('org_a'), 'counterparties', 'CSV', 'clean.csv', pg_temp.import_path('alice', 'upload_2')) returning id)
+  insert into world select 'job_2', id from x;
+with x as (insert into app.import_jobs (org_id, target_code, source, original_filename, storage_object_path)
+  values (pg_temp.id('org_a'), 'counterparties', 'CSV', 'eicar.csv', pg_temp.import_path('alice', 'upload_3')) returning id)
+  insert into world select 'job_3', id from x;
+
+select pg_temp.as_platform();
+select is((select count(*)::integer from app.job_queue where subject_id = pg_temp.id('job_2') and job_kind = 'import.detect'), 0,
+  'an import waits while its spreadsheet is scanned');
+select is(app.record_object_scan((select id from private.object_scans where object_name = pg_temp.import_path('alice', 'upload_2')), true),
+  'Clean'::app.scan_status, 'its spreadsheet scans Clean');
+select is((select count(*)::integer from app.job_queue where subject_id = pg_temp.id('job_2') and job_kind = 'import.detect'), 1,
+  'a Clean verdict queues detection once');
+select is(app.record_object_scan((select id from private.object_scans where object_name = pg_temp.import_path('alice', 'upload_3')), false, 'Eicar-Test-Signature'),
+  'Infected'::app.scan_status, 'the other spreadsheet is infected');
+select ok((select import_status::text = 'Failed' from app.import_jobs where id = pg_temp.id('job_3'))
+  and (select count(*) = 0 from app.job_queue where subject_id = pg_temp.id('job_3')),
+  'an infected spreadsheet fails its import and is never parsed');
+
 -- Support screenshots are quarantined too ----------------------------------------------------------------------------
 select pg_temp.as_user('dave');
 insert into storage.objects (bucket_id, name, owner_id, metadata)
@@ -95,7 +123,11 @@ select is(app.my_upload_scan_status('support-screenshots', pg_temp.id('dave') ||
 select is((select count(*)::integer from storage.objects where bucket_id = 'support-screenshots'), 1,
   'its uploader reads it while it is scanned');
 select pg_temp.as_platform();
-select is((select count(*)::integer from app.claim_object_scans('scanner-a57', 100) where bucket_id = 'support-screenshots'), 1,
+select ok(not has_function_privilege('authenticated', 'app.claim_bucket_scans(text, text, integer)', 'execute'),
+  'only the service role claims one bucket''s scans');
+select is((select count(*)::integer from app.claim_bucket_scans('imports', 'scanner-a57', 100)), 0,
+  'claiming one bucket takes nothing from another');
+select is((select count(*)::integer from app.claim_bucket_scans('support-screenshots', 'scanner-a57', 100)), 1,
   'the scan worker claims support screenshots');
 
 select * from finish();

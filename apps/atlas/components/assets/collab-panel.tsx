@@ -1,5 +1,6 @@
 "use client";
 
+import { ScanNotice } from "@/components/platform/scan-notice";
 import type { Attachment } from "@xos/data/attachments";
 import type { Thread } from "@xos/data/comments";
 import { Button, Tag, Textarea } from "@xos/ui";
@@ -145,7 +146,10 @@ export function AssetCollabPanel(props: {
           <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
             {props.attachments.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-8 py-6">
-                <span className="text-text-13">{a.title}</span>
+                <span className="flex flex-col gap-2">
+                  <span className="text-text-13">{a.title}</span>
+                  <ScanNotice status={scan(a)} />
+                </span>
                 <span className="flex items-center gap-8">
                   <Tag
                     tone={

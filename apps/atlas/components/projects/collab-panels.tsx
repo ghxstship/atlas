@@ -1,5 +1,6 @@
 "use client";
 
+import { ScanNotice } from "@/components/platform/scan-notice";
 import type { Attachment } from "@xos/data/attachments";
 import type { Thread } from "@xos/data/comments";
 import { Button, Input, Tag, Textarea } from "@xos/ui";
@@ -161,6 +162,7 @@ export function AttachmentsPanel({
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-8 py-8">
                 <span className="flex min-w-0 flex-col">
                   <span className="truncate text-text-14 text-text-primary">{a.title}</span>
+                  <ScanNotice status={status} />
                   <span className="text-text-12 text-text-secondary">
                     {latest
                       ? `${format.number(latest.sizeBytes / 1024, { maximumFractionDigits: 0 })} KB`

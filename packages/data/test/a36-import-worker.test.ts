@@ -96,6 +96,7 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
   const issues: { rowId: string; issue: string }[] = [];
   const finished: { jobId: string; ok: boolean }[] = [];
   let batchDone = false;
+  const scan = { status: "Clean" as string | null, downloads: 0 };
   const store: ImportStore = {
     lookups: lookups(writes),
     async claim(kind) {
@@ -109,7 +110,11 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
     },
     job: async (id) => (id === job.id ? { ...job } : null),
     batchJob: async (id) => (id === "b1" ? "j1" : null),
-    download: async () => new TextEncoder().encode(csv),
+    scanStatus: async () => scan.status,
+    async download() {
+      scan.downloads += 1;
+      return new TextEncoder().encode(csv);
+    },
     targetFields: async (t) => FIELDS[t] ?? [],
     profileMapping: async () => new Map(),
     async setStatus(_id, status) {
@@ -165,6 +170,7 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
   };
   return {
     store,
+    scan,
     job,
     columns,
     rows,
@@ -255,6 +261,27 @@ describe("import worker", () => {
     expect(results[0]).toMatchObject({ status: "Failed" });
     expect(results[0]?.error).toContain("not read by the import worker");
     expect(s.job.status).toBe("Failed");
+  });
+
+  it("reads a spreadsheet only once its virus scan is Clean", async () => {
+    const s = memoryStore("Company\nBayfront Catering\n");
+    s.scan.status = "Scanning";
+    const waiting = await runImportJobs(s.store, "w");
+    expect(waiting[0]?.error).toContain("not scanned yet");
+    expect(s.scan.downloads).toBe(0);
+    expect(s.job.status).not.toBe("Mapped");
+  });
+
+  it("fails an import whose spreadsheet is infected, without reading it or retrying", async () => {
+    for (const status of ["Infected", "Scan Failed"]) {
+      const s = memoryStore("Company\nBayfront Catering\n");
+      s.scan.status = status;
+      const results = await runImportJobs(s.store, "w");
+      expect(results[0]?.status).toBe("Succeeded");
+      expect(s.job.status).toBe("Failed");
+      expect(s.scan.downloads).toBe(0);
+      expect(s.columns).toHaveLength(0);
+    }
   });
 
   it("validates venues, vendor products and asset units against their references", async () => {

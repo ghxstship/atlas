@@ -51819,6 +51819,17 @@ export type Database = {
           refusal: string;
         }[];
       };
+      claim_bucket_scans: {
+        Args: { p_bucket_id: string; p_limit?: number; p_worker: string };
+        Returns: {
+          attempts: number;
+          bucket_id: string;
+          content_type: string;
+          object_name: string;
+          object_scan_id: string;
+          size_bytes: number;
+        }[];
+      };
       claim_integration_sync: {
         Args: { p_job_id?: string; p_run_id: string };
         Returns: {
