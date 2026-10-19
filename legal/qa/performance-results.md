@@ -19,24 +19,24 @@ Two measurements of the same budget (200 KB gzip):
   signed-in pages it adds 60 to 85 KB that Next.js prefetches for the sidebar links in the viewport,
   which belong to the routes those links open.
 
-| App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Lighthouse JS (A37) | Verdict                |
-| ------- | --------------------------------- | ------ | --------------------- | --------------------- | ------------------- | ---------------------- |
-| Atlas   | /auth/sign-in                     | 481 KB | 164 KB                | 157 KB                | 189 KB              | Pass                   |
-| Atlas   | /demo-productions/home            | 717 KB | 243 KB                | 180 KB                | 347 KB              | Pass                   |
-| Atlas   | /demo-productions/projects        | 696 KB | 280 KB                | 219 KB                | 309 KB              | Over (cause 3)         |
-| Atlas   | /demo-productions/p/NWS/overview  | 711 KB | 277 KB                | 200 KB                | 321 KB              | Pass (174 bytes under) |
-| Atlas   | /demo-productions/inbox           | 632 KB | 241 KB                | 195 KB                | 264 KB              | Pass                   |
-| Atlas   | /demo-productions/crew/shifts     | 693 KB | 276 KB                | 197 KB                | 305 KB              | Pass                   |
-| Atlas   | /demo-productions/finance/budgets | 712 KB | 312 KB                | 195 KB                | 342 KB              | Pass                   |
-| Gateway | /auth/sign-in                     | 519 KB | 184 KB                | 171 KB                | 208 KB              | Pass                   |
-| Gateway | /home                             | 528 KB | 193 KB                | 193 KB                | 217 KB              | Pass                   |
-| Gateway | /explore                          | 530 KB | 195 KB                | 194 KB                | 219 KB              | Pass                   |
-| Gateway | /work                             | 519 KB | 192 KB                | 191 KB                | 208 KB              | Pass                   |
-| Gateway | /money                            | 519 KB | 192 KB                | 191 KB                | 208 KB              | Pass                   |
-| Docs    | /en-US                            | 466 KB | 150 KB                | 150 KB                | 174 KB              | Pass                   |
-| Docs    | /en-US/reference                  | 466 KB | 150 KB                | 150 KB                | 174 KB              | Pass                   |
-| Docs    | /en-US/guides/getting-started     | 466 KB | 150 KB                | 150 KB                | 174 KB              | Pass                   |
-| Docs    | /en-US/help                       | 466 KB | 150 KB                | 150 KB                | 174 KB              | Pass                   |
+| App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Route JS (build, A48) | Lighthouse JS (A37) | Verdict |
+| ------- | --------------------------------- | ------ | --------------------- | --------------------- | --------------------- | ------------------- | ------- |
+| Atlas   | /auth/sign-in                     | 481 KB | 164 KB                | 157 KB                | 156 KB                | 189 KB              | Pass    |
+| Atlas   | /demo-productions/home            | 717 KB | 243 KB                | 180 KB                | 173 KB                | 347 KB              | Pass    |
+| Atlas   | /demo-productions/projects        | 696 KB | 280 KB                | 219 KB                | 196 KB                | 309 KB              | Pass    |
+| Atlas   | /demo-productions/p/NWS/overview  | 711 KB | 277 KB                | 200 KB                | 192 KB                | 321 KB              | Pass    |
+| Atlas   | /demo-productions/inbox           | 632 KB | 241 KB                | 195 KB                | 184 KB                | 264 KB              | Pass    |
+| Atlas   | /demo-productions/crew/shifts     | 693 KB | 276 KB                | 197 KB                | 188 KB                | 305 KB              | Pass    |
+| Atlas   | /demo-productions/finance/budgets | 712 KB | 312 KB                | 195 KB                | 186 KB                | 342 KB              | Pass    |
+| Gateway | /auth/sign-in                     | 519 KB | 184 KB                | 171 KB                | 171 KB                | 208 KB              | Pass    |
+| Gateway | /home                             | 528 KB | 193 KB                | 193 KB                | 193 KB                | 217 KB              | Pass    |
+| Gateway | /explore                          | 530 KB | 195 KB                | 194 KB                | 194 KB                | 219 KB              | Pass    |
+| Gateway | /work                             | 519 KB | 192 KB                | 191 KB                | 191 KB                | 208 KB              | Pass    |
+| Gateway | /money                            | 519 KB | 192 KB                | 191 KB                | 191 KB                | 208 KB              | Pass    |
+| Docs    | /en-US                            | 466 KB | 150 KB                | 150 KB                | 150 KB                | 174 KB              | Pass    |
+| Docs    | /en-US/reference                  | 466 KB | 150 KB                | 150 KB                | 150 KB                | 174 KB              | Pass    |
+| Docs    | /en-US/guides/getting-started     | 466 KB | 150 KB                | 150 KB                | 150 KB                | 174 KB              | Pass    |
+| Docs    | /en-US/help                       | 466 KB | 150 KB                | 150 KB                | 150 KB                | 174 KB              | Pass    |
 
 What came out (A24-009): the two-locale message catalog (305 KB on every page), Zod and the YAML
 parser through `@xos/ia` (61 KB), the help article bodies (20 KB), the visx chart library on pages
@@ -52,32 +52,70 @@ What A46 took out (RRR-90, ADR 0027 amendment of 2026-10-18):
 
 Six of the seven Atlas signed-in key pages are now under 200 KB.
 
+### A48 (RRR-92, 2026-10-19): Projects under budget
+
+All 16 key pages are now under 200 KB, and `packages/testing/bundle-ceilings.json` holds no
+ceiling. Measured with `pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway
+--filter=@xos/docs && pnpm --filter @xos/testing budget:js`, in gzip bytes against the
+204,800-byte budget:
+
+| Page                              | Before (A46 build) | After (A48 build) | Change  | Headroom |
+| --------------------------------- | ------------------ | ----------------- | ------- | -------- |
+| /auth/sign-in                     | 160,786            | 159,404           | -1,382  | 45,396   |
+| /demo-productions/home            | 184,731            | 177,301           | -7,430  | 27,499   |
+| /demo-productions/projects        | 224,466            | 201,135           | -23,331 | 3,665    |
+| /demo-productions/p/NWS/overview  | 204,656            | 196,361           | -8,295  | 8,439    |
+| /demo-productions/inbox           | 199,679            | 188,127           | -11,552 | 16,673   |
+| /demo-productions/crew/shifts     | 201,651            | 192,134           | -9,517  | 12,666   |
+| /demo-productions/finance/budgets | 199,506            | 190,314           | -9,192  | 14,486   |
+
+Gateway and docs did not change. The steps, as measured on Projects and project overview:
+
+| Step                                                                | Projects | Overview |
+| ------------------------------------------------------------------- | -------- | -------- |
+| DataTable lays out its own columns; TanStack Table loads for a drag | -11.4 KB | none     |
+| Page skeleton as its own client module (loading boundaries)         | -2.9 KB  | none     |
+| Org error boundary without next/link                                | -3.1 KB  | -3.1 KB  |
+| Turbopack `minChunkSize` 200,000 (19 chunks to 13 per page)         | -3.3 KB  | -2.9 KB  |
+| `@xos/ui` Skeleton in its own module                                | -0.4 KB  | -0.1 KB  |
+| Client sitemap nodes shipped packed                                 | -2.2 KB  | -2.2 KB  |
+
+What the source maps showed (`XOS_SOURCEMAPS=1`): the 22 KB table chunk was TanStack Virtual
+(6.6 KB), TanStack Table core with its store and React bindings (about 11 KB) and DataTable itself
+(2.8 KB). Tree shaking already worked: of the features DataTable did not register, only about
+1.5 KB remained (the auto-reset hooks the core row model calls, which pull `sortFns` and small
+parts of the pagination, expanding and cell selection utilities). Registering fewer features could
+not close the gap, so DataTable no longer runs TanStack Table to lay out a table: it computes widths
+and pinned offsets itself, as the sizing and pinning features do, and loads TanStack Table when a
+pointer first enters a resize handle or a handle takes focus. TanStack Virtual stays in the default
+view. The rest came from duplicated or shell code every signed-in page loads.
+
 What remains, with its cause:
 
 1. **Framework, on every page.** Next.js 16 with React 19 is 128 KB of every page, which leaves 72 KB for the app.
-2. **Project overview is at the limit.** It is 204,626 bytes against a 204,800-byte budget. Any addition to that page needs an equal cut.
-3. **Projects (219 KB, ceiling 225,464 bytes).** Its default table view needs TanStack Table and Virtual (22 KB). `@xos/ui` DataTable registers every TanStack feature (resizing, pinning, ordering, cell selection, expanding, pagination). Registering only the features each table uses is the next reduction. It is a design-system change for every table, so it is tracked under A24-009 and not done in A46.
+2. **Projects has 3.7 KB of headroom.** The largest remaining parts of the page are TanStack Virtual (6.6 KB, needed when a list passes 100 rows) and the collection view switcher (Radix toggle group, 6 KB).
+3. **Root boundaries duplicate the design-system basics.** The root error and not-found boundaries sit above the org layout, so each carries its own copy of Button, Icon and Kbd (about 5 KB on every page). Turbopack does not share modules between sibling boundaries.
 
 ## Lighthouse against the gate 10 budgets
 
-| App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Lighthouse JS (A37) | Verdict                |
-| ------- | --------------------------------- | ------ | --------------------- | --------------------- | ------------------- | ---------------------- |
-| Atlas   | /auth/sign-in                     | 90     | 100                   | 157 KB                | 685 ms              | Pass                   |
-| Atlas   | /demo-productions/home            | 99     | 100                   | 180 KB                | 835 ms              | Pass                   |
-| Atlas   | /demo-productions/projects        | 97     | 100                   | 219 KB                | 866 ms              | Over (cause 3)         |
-| Atlas   | /demo-productions/p/NWS/overview  | 99     | 100                   | 200 KB                | 837 ms              | Pass (174 bytes under) |
-| Atlas   | /demo-productions/inbox           | 99     | 100                   | 195 KB                | 846 ms              | Pass                   |
-| Atlas   | /demo-productions/crew/shifts     | 98     | 100                   | 197 KB                | 948 ms              | Pass                   |
-| Atlas   | /demo-productions/finance/budgets | 98     | 100                   | 195 KB                | 889 ms              | Pass                   |
-| Gateway | /auth/sign-in                     | 100    | 100                   | 171 KB                | 591 ms              | Pass                   |
-| Gateway | /home                             | 100    | 100                   | 193 KB                | 671 ms              | Pass                   |
-| Gateway | /explore                          | 100    | 100                   | 194 KB                | 632 ms              | Pass                   |
-| Gateway | /work                             | 100    | 100                   | 191 KB                | 677 ms              | Pass                   |
-| Gateway | /money                            | 100    | 100                   | 191 KB                | 671 ms              | Pass                   |
-| Docs    | /en-US                            | 100    | 100                   | 150 KB                | 511 ms              | Pass                   |
-| Docs    | /en-US/reference                  | 100    | 100                   | 150 KB                | 551 ms              | Pass                   |
-| Docs    | /en-US/guides/getting-started     | 100    | 100                   | 150 KB                | 510 ms              | Pass                   |
-| Docs    | /en-US/help                       | 100    | 100                   | 150 KB                | 511 ms              | Pass                   |
+| App     | Page                              | Before | Route JS (build, A41) | Route JS (build, A46) | Lighthouse JS (A37) | Verdict                                                |
+| ------- | --------------------------------- | ------ | --------------------- | --------------------- | ------------------- | ------------------------------------------------------ |
+| Atlas   | /auth/sign-in                     | 90     | 100                   | 157 KB                | 685 ms              | Pass                                                   |
+| Atlas   | /demo-productions/home            | 99     | 100                   | 180 KB                | 835 ms              | Pass                                                   |
+| Atlas   | /demo-productions/projects        | 97     | 100                   | 219 KB                | 866 ms              | Pass (route JS 196 KB after A48; Lighthouse not rerun) |
+| Atlas   | /demo-productions/p/NWS/overview  | 99     | 100                   | 200 KB                | 837 ms              | Pass (route JS 192 KB after A48)                       |
+| Atlas   | /demo-productions/inbox           | 99     | 100                   | 195 KB                | 846 ms              | Pass                                                   |
+| Atlas   | /demo-productions/crew/shifts     | 98     | 100                   | 197 KB                | 948 ms              | Pass                                                   |
+| Atlas   | /demo-productions/finance/budgets | 98     | 100                   | 195 KB                | 889 ms              | Pass                                                   |
+| Gateway | /auth/sign-in                     | 100    | 100                   | 171 KB                | 591 ms              | Pass                                                   |
+| Gateway | /home                             | 100    | 100                   | 193 KB                | 671 ms              | Pass                                                   |
+| Gateway | /explore                          | 100    | 100                   | 194 KB                | 632 ms              | Pass                                                   |
+| Gateway | /work                             | 100    | 100                   | 191 KB                | 677 ms              | Pass                                                   |
+| Gateway | /money                            | 100    | 100                   | 191 KB                | 671 ms              | Pass                                                   |
+| Docs    | /en-US                            | 100    | 100                   | 150 KB                | 511 ms              | Pass                                                   |
+| Docs    | /en-US/reference                  | 100    | 100                   | 150 KB                | 551 ms              | Pass                                                   |
+| Docs    | /en-US/guides/getting-started     | 100    | 100                   | 150 KB                | 510 ms              | Pass                                                   |
+| Docs    | /en-US/help                       | 100    | 100                   | 150 KB                | 511 ms              | Pass                                                   |
 
 LCP, CLS and TBT are inside budget on every page and accessibility scores 100 everywhere. LCP fell
 on every page (Atlas signed-in 889 to 1409 ms before, 835 to 948 ms now). Atlas sign-in scored 90 on
