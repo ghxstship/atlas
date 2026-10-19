@@ -47,7 +47,13 @@ export default defineConfig({
   snapshotPathTemplate: "{testDir}/__screenshots__/{projectName}/{arg}{ext}",
   expect: {
     timeout: 20_000,
-    toHaveScreenshot: { maxDiffPixelRatio: 0.005, animations: "disabled", scale: "css" },
+    // Secondary text is low contrast; the default per-pixel threshold (0.2) would miss a changed label.
+    toHaveScreenshot: {
+      maxDiffPixelRatio: 0.001,
+      threshold: 0.05,
+      animations: "disabled",
+      scale: "css",
+    },
   },
   projects: [
     { name: "setup", testMatch: /auth\.setup\.visual\.ts$/, use: shared },
