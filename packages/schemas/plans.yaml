@@ -18,10 +18,20 @@
 #     A price lookup key is the Stripe price's lookup_key; a product key is the product's
 #     metadata.lookup_key, because Stripe products have no native lookup key.
 #
-# Prices come from the existing ATLVS catalogue v3 in Stripe (read 2026-10-14): USD only,
-# annual at ten times monthly. Other currencies stay unpriced until Stripe carries prices for
-# them. Per-project pricing is dropped by owner decision (ADR 0018): the first project is free
-# on the Access plan, and paid plans have unlimited projects.
+#   - a plan with a quote is sold by contract only (Enterprise): its list prices are null, it has no
+#     Stripe prices and no extra seats, and quote.from_monthly_minor is a display price only.
+#   - annual prices are annual_multiplier times monthly, for plans, extra seats and nothing else.
+#   - a plan with a seat limit above the free plan sells extra seats (extra_seat), priced per seat in
+#     every currency with its own Stripe price lookup keys on the shared extra-seat product.
+#   - an add-on is a one-time purchase that raises one limit for the calendar month it is bought in,
+#     on the plans it lists, which must have a finite limit for it.
+#   - every Stripe lookup key, coupon id and promotion code is unique.
+#
+# Pricing v4 (owner, 2026-10-19; ADR 0034): seat-based plans with a seat allowance, extra seats per
+# month, unlimited projects and field crew on paid plans, local-currency price books, Aurora request
+# packs, a founding-customer coupon and a 30 percent partner wholesale discount. Stripe lookup keys
+# are the v4 catalogue that `pnpm --filter @xos/platform stripe:setup` creates in test mode. The v3
+# catalogue (atlvs_*) stays in Stripe as history. Per-project pricing stays dropped (ADR 0018).
 #
 # Packaging (ADR 0020): every plan includes Atlas and Compass, and Gateway for the parties an org
 # engages. Access is Atlas Lite (1 seat, 1 project). Tiers differ by Gateway reach (public
@@ -64,6 +74,16 @@ features:
 
 currencies: [USD, EUR, GBP, CAD, AUD]
 
+# Annual billing gives two months free.
+annual_multiplier: 10
+
+# The Stripe product every extra-seat price belongs to.
+extra_seat_product_lookup_key: xos_extra_seat_v4
+
+# Partner wholesale (Section 4.6.1): client orgs billed to a partner cost the partner list price less
+# this discount. It is the default of app.partner_agreements.wholesale_discount_bps.
+partner_wholesale_discount_bps: 3000
+
 plans:
   - code: access
     free: true
@@ -84,28 +104,38 @@ plans:
   - code: core
     extends: access
     limits:
-      seats: null
+      seats: 5
       active_projects: null
       field_members: null
       active_external_engagements_per_month: 250
       aurora_requests_per_month: 500
     features: [approvals, advancing, procurement, upl_export, aurora_ai]
     prices:
-      USD: { monthly_minor: 4900, annual_minor: 49000 }
-      EUR: { monthly_minor: null, annual_minor: null }
-      GBP: { monthly_minor: null, annual_minor: null }
-      CAD: { monthly_minor: null, annual_minor: null }
-      AUD: { monthly_minor: null, annual_minor: null }
-    stripe:
-      product_lookup_key: atlvs_plan_core_v3
+      USD: { monthly_minor: 14900, annual_minor: 149000 }
+      EUR: { monthly_minor: 13900, annual_minor: 139000 }
+      GBP: { monthly_minor: 11900, annual_minor: 119000 }
+      CAD: { monthly_minor: 19900, annual_minor: 199000 }
+      AUD: { monthly_minor: 22900, annual_minor: 229000 }
+    extra_seat:
       prices:
-        monthly: atlvs_plan_core_unlimited_monthly_v3
-        annual: atlvs_plan_core_unlimited_annual_v3
+        USD: { monthly_minor: 1900, annual_minor: 19000 }
+        EUR: { monthly_minor: 1800, annual_minor: 18000 }
+        GBP: { monthly_minor: 1500, annual_minor: 15000 }
+        CAD: { monthly_minor: 2600, annual_minor: 26000 }
+        AUD: { monthly_minor: 2900, annual_minor: 29000 }
+      stripe:
+        monthly: xos_seat_core_monthly_v4
+        annual: xos_seat_core_annual_v4
+    stripe:
+      product_lookup_key: xos_plan_core_v4
+      prices:
+        monthly: xos_plan_core_monthly_v4
+        annual: xos_plan_core_annual_v4
 
   - code: pro
     extends: core
     limits:
-      seats: null
+      seats: 15
       active_projects: null
       field_members: null
       active_external_engagements_per_month: 2500
@@ -113,37 +143,57 @@ plans:
     features:
       [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]
     prices:
-      USD: { monthly_minor: 7900, annual_minor: 79000 }
-      EUR: { monthly_minor: null, annual_minor: null }
-      GBP: { monthly_minor: null, annual_minor: null }
-      CAD: { monthly_minor: null, annual_minor: null }
-      AUD: { monthly_minor: null, annual_minor: null }
-    stripe:
-      product_lookup_key: atlvs_plan_pro_v3
+      USD: { monthly_minor: 39900, annual_minor: 399000 }
+      EUR: { monthly_minor: 36900, annual_minor: 369000 }
+      GBP: { monthly_minor: 31900, annual_minor: 319000 }
+      CAD: { monthly_minor: 54900, annual_minor: 549000 }
+      AUD: { monthly_minor: 60900, annual_minor: 609000 }
+    extra_seat:
       prices:
-        monthly: atlvs_plan_pro_unlimited_monthly_v3
-        annual: atlvs_plan_pro_unlimited_annual_v3
+        USD: { monthly_minor: 1900, annual_minor: 19000 }
+        EUR: { monthly_minor: 1800, annual_minor: 18000 }
+        GBP: { monthly_minor: 1500, annual_minor: 15000 }
+        CAD: { monthly_minor: 2600, annual_minor: 26000 }
+        AUD: { monthly_minor: 2900, annual_minor: 29000 }
+      stripe:
+        monthly: xos_seat_pro_monthly_v4
+        annual: xos_seat_pro_annual_v4
+    stripe:
+      product_lookup_key: xos_plan_pro_v4
+      prices:
+        monthly: xos_plan_pro_monthly_v4
+        annual: xos_plan_pro_annual_v4
 
   - code: team
     extends: pro
     limits:
-      seats: null
+      seats: 40
       active_projects: null
       field_members: null
       active_external_engagements_per_month: null
       aurora_requests_per_month: 10000
     features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]
     prices:
-      USD: { monthly_minor: 34900, annual_minor: 349000 }
-      EUR: { monthly_minor: null, annual_minor: null }
-      GBP: { monthly_minor: null, annual_minor: null }
-      CAD: { monthly_minor: null, annual_minor: null }
-      AUD: { monthly_minor: null, annual_minor: null }
-    stripe:
-      product_lookup_key: atlvs_plan_team_v3
+      USD: { monthly_minor: 89900, annual_minor: 899000 }
+      EUR: { monthly_minor: 82900, annual_minor: 829000 }
+      GBP: { monthly_minor: 71900, annual_minor: 719000 }
+      CAD: { monthly_minor: 122900, annual_minor: 1229000 }
+      AUD: { monthly_minor: 136900, annual_minor: 1369000 }
+    extra_seat:
       prices:
-        monthly: atlvs_plan_team_unlimited_monthly_v3
-        annual: atlvs_plan_team_unlimited_annual_v3
+        USD: { monthly_minor: 1500, annual_minor: 15000 }
+        EUR: { monthly_minor: 1400, annual_minor: 14000 }
+        GBP: { monthly_minor: 1200, annual_minor: 12000 }
+        CAD: { monthly_minor: 2100, annual_minor: 21000 }
+        AUD: { monthly_minor: 2300, annual_minor: 23000 }
+      stripe:
+        monthly: xos_seat_team_monthly_v4
+        annual: xos_seat_team_annual_v4
+    stripe:
+      product_lookup_key: xos_plan_team_v4
+      prices:
+        monthly: xos_plan_team_monthly_v4
+        annual: xos_plan_team_annual_v4
 
   - code: enterprise
     extends: team
@@ -164,13 +214,30 @@ plans:
         legend_early_access,
       ]
     prices:
-      USD: { monthly_minor: 89900, annual_minor: 899000 }
+      USD: { monthly_minor: null, annual_minor: null }
       EUR: { monthly_minor: null, annual_minor: null }
       GBP: { monthly_minor: null, annual_minor: null }
       CAD: { monthly_minor: null, annual_minor: null }
       AUD: { monthly_minor: null, annual_minor: null }
+    quote:
+      contract: annual
+      from_monthly_minor: { USD: 250000, EUR: null, GBP: null, CAD: null, AUD: null }
+
+addons:
+  - code: aurora_requests_1000
+    adds: { limit: aurora_requests_per_month, amount: 1000 }
+    plans: [core, pro, team]
+    prices: { USD: 4900, EUR: 4500, GBP: 3900, CAD: 6700, AUD: 7500 }
     stripe:
-      product_lookup_key: atlvs_plan_enterprise_v3
-      prices:
-        monthly: atlvs_plan_enterprise_unlimited_monthly_v3
-        annual: atlvs_plan_enterprise_unlimited_annual_v3
+      product_lookup_key: xos_addon_aurora_requests_1000_v4
+      price: xos_addon_aurora_requests_1000_once_v4
+
+offers:
+  - code: founding_customer
+    percent_off: 30
+    duration_months: 12
+    max_redemptions: 50
+    plans: [core, pro, team]
+    stripe:
+      coupon_id: xos_founding_customer_v4
+      promotion_code: FOUNDING30

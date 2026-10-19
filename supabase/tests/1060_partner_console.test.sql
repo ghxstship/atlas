@@ -23,10 +23,10 @@ with x as (insert into app.venues (org_id, name, jurisdiction_id, time_zone)
 select pg_temp.as_platform();
 
 -- Plan prices mirror plans.yaml ---------------------------------------------------------------------------
-select is((select monthly_minor from private.plan_list_prices where plan_code = 'core' and currency_code = 'USD'), 4900::bigint,
-  'Core lists at 4,900 cents a month in USD');
-select is((select monthly_minor from private.plan_list_prices where plan_code = 'core' and currency_code = 'EUR'), null::bigint,
-  'and stays unpriced in EUR, never zero');
+select is((select monthly_minor from private.plan_list_prices where plan_code = 'core' and currency_code = 'USD'), 14900::bigint,
+  'Core lists at 14,900 cents a month in USD (pricing v4, 1251)');
+select is((select monthly_minor from private.plan_list_prices where plan_code = 'enterprise' and currency_code = 'EUR'), null::bigint,
+  'and quoted Enterprise stays unpriced, never zero');
 
 -- Wholesale terms are the platform's -----------------------------------------------------------------------
 select pg_temp.as_user('paul');
@@ -109,8 +109,8 @@ select throws_ok($$select app.run_wholesale_billing((select id from world where 
 select lives_ok($$insert into world select 'stmt', app.run_wholesale_billing((select id from world where key = 'org_p'), date_trunc('month', now())::date)$$,
   'the partner Owner runs wholesale billing for the month');
 select is((select client_count || ' ' || list_total_minor || ' ' || wholesale_total_minor || ' ' || unpriced_count
-           from app.wholesale_statements where id = pg_temp.id('stmt')), '1 4900 3920 0',
-  'the Core client bills 4,900 at list and 3,920 at the 20 percent wholesale discount');
+           from app.wholesale_statements where id = pg_temp.id('stmt')), '1 14900 11920 0',
+  'the Core client bills 14,900 at list and 11,920 at the 20 percent wholesale discount');
 select is((select client_price_minor from app.wholesale_statement_lines where wholesale_statement_id = pg_temp.id('stmt')), 6500::bigint,
   'the line shows what the partner charges the client');
 select throws_ok($$select app.run_wholesale_billing((select id from world where key = 'org_p'), date_trunc('month', now())::date)$$,

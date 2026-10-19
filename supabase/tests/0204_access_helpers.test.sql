@@ -257,7 +257,7 @@ select pg_temp.as_platform();
 
 -- Plan limits (Section 16) ------------------------------------------------------------------------
 select is(private.plan_limit(pg_temp.id('org_b'), 'seats'), 1::bigint, 'an Access org has one seat');
-select is(private.plan_limit(pg_temp.id('org_a'), 'seats'), null::bigint, 'a Team org has unlimited seats');
+select is(private.plan_limit(pg_temp.id('org_a'), 'seats'), 40::bigint, 'a Team org has 40 seats (ADR 0034)');
 select is((select seats from private.membership_band_counts(pg_temp.id('org_b'))), 1::bigint,
   'viewers do not take seats');
 select is((select field_members from private.membership_band_counts(pg_temp.id('org_a'))), 1::bigint,
@@ -267,7 +267,7 @@ create temporary table nina_invite as
 grant select on nina_invite to public;
 select pg_temp.as_user('nina');
 select throws_like($$select * from app.accept_invite((select token from nina_invite))$$,
-  'plan_limit_exceeded:%', 'joining as a second seat on the Access plan is refused');
+  'seat_limit_upgrade:%', 'joining as a second seat on the Access plan is refused, and told to upgrade');
 select pg_temp.as_platform();
 
 -- Subscription lifecycle -----------------------------------------------------------------------

@@ -145,7 +145,7 @@ describe("generated plan seed migration", () => {
     expect(read(PLAN_SEED_MIGRATION)).toBe(sql);
   });
 
-  it("keeps 0201's plans and differs from its limits and features only where ADR 0018 and ADR 0020 say", () => {
+  it("keeps 0201's plans and differs from its limits and features only where ADR 0018, ADR 0020 and ADR 0034 say", () => {
     expect(registry.plans.map((p) => [p.code, p.sortOrder])).toEqual(seededPlans());
     const generatedLimits = registry.plans.flatMap((p) =>
       registry.limits.map((l) => [p.code, l, p.limits[l]] as [string, string, number | null]),
@@ -157,8 +157,11 @@ describe("generated plan seed migration", () => {
     expect(changed).toEqual([
       ["access", "active_projects", 1],
       ["access", "aurora_requests_per_month", 0],
+      ["core", "seats", 5],
       ["core", "aurora_requests_per_month", 500],
+      ["pro", "seats", 15],
       ["pro", "aurora_requests_per_month", 2000],
+      ["team", "seats", 40],
       ["team", "aurora_requests_per_month", 10000],
       ["enterprise", "aurora_requests_per_month", null],
     ]);
@@ -215,8 +218,8 @@ describe("plan registry validation", () => {
     ["a non-zero free price", "USD: { monthly_minor: 0,", "USD: { monthly_minor: 5,", /is free/],
     [
       "a zero paid price",
-      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 4900,",
-      "  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 0,",
+      "      USD: { monthly_minor: 14900, annual_minor: 149000 }",
+      "      USD: { monthly_minor: 0, annual_minor: 0 }",
       /cannot be 0/,
     ],
     ["a wrong parent", "extends: core", "extends: access", /must extend the plan before it/],
@@ -264,7 +267,7 @@ describe("plan registry validation", () => {
   });
 
   const coreStripe =
-    "    stripe:\n      product_lookup_key: atlvs_plan_core_v3\n      prices:\n        monthly: atlvs_plan_core_unlimited_monthly_v3\n        annual: atlvs_plan_core_unlimited_annual_v3\n";
+    "    stripe:\n      product_lookup_key: xos_plan_core_v4\n      prices:\n        monthly: xos_plan_core_monthly_v4\n        annual: xos_plan_core_annual_v4\n";
 
   it("rejects a paid plan without Stripe lookup keys", () => {
     expect(broken(coreStripe, "")).toThrow(/must name its Stripe product/);
@@ -274,46 +277,280 @@ describe("plan registry validation", () => {
     expect(
       broken(
         "    features: []\n",
-        "    features: []\n    stripe:\n      product_lookup_key: atlvs_plan_access_v3\n      prices:\n        monthly: access_monthly\n        annual: access_annual\n",
+        "    features: []\n    stripe:\n      product_lookup_key: xos_plan_access_v4\n      prices:\n        monthly: access_monthly\n        annual: access_annual\n",
       ),
     ).toThrow(/is free, so it has no Stripe price/);
   });
 
   it("rejects a Stripe lookup key used twice", () => {
-    expect(
-      broken("atlvs_plan_core_unlimited_annual_v3", "atlvs_plan_core_unlimited_monthly_v3"),
-    ).toThrow(/used twice/);
+    expect(broken("annual: xos_plan_core_annual_v4", "annual: xos_plan_core_monthly_v4")).toThrow(
+      /used twice/,
+    );
   });
 });
 
-describe("Stripe mapping to the ATLVS catalogue v3", () => {
-  it("names the ATLVS product and unlimited-mode prices for every paid plan", () => {
+describe("pricing v4 (ADR 0034)", () => {
+  const byCode = Object.fromEntries(registry.plans.map((p) => [p.code, p]));
+
+  it("names the v4 Stripe product and prices of every self-serve plan", () => {
     for (const plan of registry.plans) {
-      if (plan.free) {
+      if (!plan.selfServe) {
         expect(plan.stripe).toBeNull();
         continue;
       }
       expect(plan.stripe).toEqual({
-        productLookupKey: `atlvs_plan_${plan.code}_v3`,
-        monthlyPriceLookupKey: `atlvs_plan_${plan.code}_unlimited_monthly_v3`,
-        annualPriceLookupKey: `atlvs_plan_${plan.code}_unlimited_annual_v3`,
+        productLookupKey: `xos_plan_${plan.code}_v4`,
+        monthlyPriceLookupKey: `xos_plan_${plan.code}_monthly_v4`,
+        annualPriceLookupKey: `xos_plan_${plan.code}_annual_v4`,
       });
+      expect(plan.extraSeat?.monthlyPriceLookupKey).toBe(`xos_seat_${plan.code}_monthly_v4`);
+      expect(plan.extraSeat?.annualPriceLookupKey).toBe(`xos_seat_${plan.code}_annual_v4`);
+    }
+    expect(registry.plans.filter((p) => p.selfServe).map((p) => p.code)).toEqual([
+      "core",
+      "pro",
+      "team",
+    ]);
+    expect(registry.extraSeatProductLookupKey).toBe("xos_extra_seat_v4");
+  });
+
+  it("carries the approved prices, annual at ten times monthly", () => {
+    const monthly = (currency: "USD" | "EUR" | "GBP" | "CAD" | "AUD") =>
+      registry.plans.map((p) => p.prices[currency].monthlyMinor);
+    expect(monthly("USD")).toEqual([0, 14900, 39900, 89900, null]);
+    expect(monthly("EUR")).toEqual([0, 13900, 36900, 82900, null]);
+    expect(monthly("GBP")).toEqual([0, 11900, 31900, 71900, null]);
+    expect(monthly("CAD")).toEqual([0, 19900, 54900, 122900, null]);
+    expect(monthly("AUD")).toEqual([0, 22900, 60900, 136900, null]);
+    expect(registry.annualMultiplier).toBe(10);
+    for (const plan of registry.plans) {
+      for (const price of Object.values(plan.prices)) {
+        if (price.monthlyMinor !== null) expect(price.annualMinor).toBe(price.monthlyMinor * 10);
+      }
     }
   });
 
-  it("carries the Stripe USD amounts, annual at ten times monthly, other currencies unpriced", () => {
-    const usd = Object.fromEntries(registry.plans.map((p) => [p.code, p.prices.USD]));
-    expect(usd).toEqual({
-      access: { monthlyMinor: 0, annualMinor: 0 },
-      core: { monthlyMinor: 4900, annualMinor: 49000 },
-      pro: { monthlyMinor: 7900, annualMinor: 79000 },
-      team: { monthlyMinor: 34900, annualMinor: 349000 },
-      enterprise: { monthlyMinor: 89900, annualMinor: 899000 },
-    });
+  it("sells seats: an allowance per plan, extra seats above it, unlimited field crew on paid plans", () => {
+    expect(registry.plans.map((p) => p.limits["seats"])).toEqual([1, 5, 15, 40, null]);
     for (const plan of registry.plans.filter((p) => !p.free)) {
-      for (const currency of ["EUR", "GBP", "CAD", "AUD"] as const) {
-        expect(plan.prices[currency]).toEqual({ monthlyMinor: null, annualMinor: null });
-      }
+      expect(plan.limits["field_members"]).toBeNull();
+      expect(plan.limits["active_projects"]).toBeNull();
     }
+    const seat = (code: string) =>
+      Object.values(byCode[code]?.extraSeat?.prices ?? {}).map((p) => p.monthlyMinor);
+    expect(seat("core")).toEqual([1900, 1800, 1500, 2600, 2900]);
+    expect(seat("pro")).toEqual([1900, 1800, 1500, 2600, 2900]);
+    expect(seat("team")).toEqual([1500, 1400, 1200, 2100, 2300]);
+    expect(byCode["access"]?.extraSeat).toBeNull();
+    expect(byCode["enterprise"]?.extraSeat).toBeNull();
+  });
+
+  it("quotes Enterprise from 2,500 dollars a month on an annual contract, never self-serve", () => {
+    expect(byCode["enterprise"]?.selfServe).toBe(false);
+    expect(byCode["enterprise"]?.quote).toEqual({
+      contract: "annual",
+      fromMonthlyMinor: { USD: 250000, EUR: null, GBP: null, CAD: null, AUD: null },
+    });
+  });
+
+  it("sells 1,000 Aurora requests as a one-time pack in every currency", () => {
+    expect(registry.addons).toEqual([
+      {
+        code: "aurora_requests_1000",
+        limit: "aurora_requests_per_month",
+        amount: 1000,
+        plans: ["core", "pro", "team"],
+        prices: { USD: 4900, EUR: 4500, GBP: 3900, CAD: 6700, AUD: 7500 },
+        productLookupKey: "xos_addon_aurora_requests_1000_v4",
+        priceLookupKey: "xos_addon_aurora_requests_1000_once_v4",
+      },
+    ]);
+  });
+
+  it("offers founding customers 30 percent off the first year, 50 redemptions, and partners 30 percent", () => {
+    expect(registry.offers).toEqual([
+      {
+        code: "founding_customer",
+        percentOff: 30,
+        durationMonths: 12,
+        maxRedemptions: 50,
+        plans: ["core", "pro", "team"],
+        couponId: "xos_founding_customer_v4",
+        promotionCode: "FOUNDING30",
+      },
+    ]);
+    expect(registry.partnerWholesaleDiscountBps).toBe(3000);
+  });
+});
+
+describe("pricing v4 validation", () => {
+  const broken = (from: string, to: string) => {
+    expect(yamlText).toContain(from);
+    return () => parsePlanRegistry(yamlText.replace(from, to));
+  };
+  const enterprisePrices = [
+    "    prices:",
+    "      USD: { monthly_minor: null, annual_minor: null }",
+    "      EUR: { monthly_minor: null, annual_minor: null }",
+    "      GBP: { monthly_minor: null, annual_minor: null }",
+    "      CAD: { monthly_minor: null, annual_minor: null }",
+    "      AUD: { monthly_minor: null, annual_minor: null }",
+    "    quote:",
+  ].join("\n");
+
+  it.each([
+    [
+      "an annual price off the multiplier",
+      "USD: { monthly_minor: 39900, annual_minor: 399000 }",
+      "USD: { monthly_minor: 39900, annual_minor: 400000 }",
+      /annually at 10 times monthly/,
+    ],
+    [
+      "a monthly price without its annual price",
+      "USD: { monthly_minor: 39900, annual_minor: 399000 }",
+      "USD: { monthly_minor: 39900, annual_minor: null }",
+      /monthly and annual together/,
+    ],
+    [
+      "a zero extra-seat price",
+      "USD: { monthly_minor: 1500, annual_minor: 15000 }",
+      "USD: { monthly_minor: 0, annual_minor: 0 }",
+      /extra seat is not free/,
+    ],
+    [
+      "a quoted plan with a list price",
+      enterprisePrices,
+      enterprisePrices.replace(
+        "USD: { monthly_minor: null, annual_minor: null }",
+        "USD: { monthly_minor: 9, annual_minor: 90 }",
+      ),
+      /sold by quote, so its list prices stay null/,
+    ],
+    [
+      "a quote that misses a currency",
+      "from_monthly_minor: { USD: 250000, EUR: null, GBP: null, CAD: null, AUD: null }",
+      "from_monthly_minor: { USD: 250000 }",
+      /quote from-price for every currency/,
+    ],
+    [
+      "a quote from zero",
+      "from_monthly_minor: { USD: 250000,",
+      "from_monthly_minor: { USD: 0,",
+      /cannot quote from 0/,
+    ],
+    [
+      "an add-on for a plan sold by quote",
+      "plans: [core, pro, team]\n    prices: { USD: 4900,",
+      "plans: [core, pro, team, enterprise]\n    prices: { USD: 4900,",
+      /only to self-serve paid plans, not enterprise/,
+    ],
+    [
+      "an add-on for an unknown plan",
+      "plans: [core, pro, team]\n    prices: { USD: 4900,",
+      "plans: [core, gold]\n    prices: { USD: 4900,",
+      /names unknown plan gold/,
+    ],
+    [
+      "an add-on for an unknown limit",
+      "adds: { limit: aurora_requests_per_month,",
+      "adds: { limit: sms_per_month,",
+      /unknown limit sms_per_month/,
+    ],
+    [
+      "an add-on without every currency",
+      "prices: { USD: 4900, EUR: 4500, GBP: 3900, CAD: 6700, AUD: 7500 }",
+      "prices: { USD: 4900 }",
+      /add-on aurora_requests_1000 must price every currency/,
+    ],
+    [
+      "an offer on the free plan",
+      "    plans: [core, pro, team]\n    stripe:\n      coupon_id",
+      "    plans: [access]\n    stripe:\n      coupon_id",
+      /applies only to self-serve paid plans, not access/,
+    ],
+    [
+      "an offer on an unknown plan",
+      "    plans: [core, pro, team]\n    stripe:\n      coupon_id",
+      "    plans: [gold]\n    stripe:\n      coupon_id",
+      /offer founding_customer names unknown plan gold/,
+    ],
+    [
+      "a seat price lookup key reused for a plan price",
+      "annual: xos_seat_team_annual_v4",
+      "annual: xos_plan_team_annual_v4",
+      /used twice/,
+    ],
+  ])("rejects %s", (_label, from, to, message) => {
+    expect(broken(from, to)).toThrow(message);
+  });
+
+  it("rejects an add-on that raises a limit the plan leaves unlimited", () => {
+    expect(
+      broken("adds: { limit: aurora_requests_per_month,", "adds: { limit: active_projects,"),
+    ).toThrow(/cannot raise active_projects on core, which is unlimited/);
+  });
+
+  it("rejects extra seats on a plan with unlimited seats", () => {
+    const seat = [
+      "    extra_seat:",
+      "      prices:",
+      ...["USD", "EUR", "GBP", "CAD", "AUD"].map(
+        (c) => `        ${c}: { monthly_minor: 1, annual_minor: 10 }`,
+      ),
+      "      stripe:",
+      "        monthly: e_m",
+      "        annual: e_a",
+      "    quote:",
+    ].join("\n");
+    expect(broken("    quote:", seat)).toThrow(/unlimited seats, so it sells no extra seats/);
+  });
+
+  it("rejects a seat-limited paid plan that sells no extra seats", () => {
+    const start = yamlText.indexOf("    extra_seat:\n", yamlText.indexOf("- code: pro"));
+    const end = yamlText.indexOf("\n    stripe:\n", start) + 1;
+    expect(() => parsePlanRegistry(yamlText.slice(0, start) + yamlText.slice(end))).toThrow(
+      /plan pro limits seats, so it must sell extra seats/,
+    );
+  });
+
+  it("rejects Stripe prices on a quoted plan", () => {
+    expect(
+      broken(
+        "    quote:",
+        "    stripe:\n      product_lookup_key: xos_plan_enterprise_v4\n      prices:\n        monthly: e_m\n        annual: e_a\n    quote:",
+      ),
+    ).toThrow(/sold by quote, so it has no Stripe price/);
+  });
+
+  it("rejects a coupon or promotion code used twice", () => {
+    const offer = yamlText.slice(yamlText.indexOf("  - code: founding_customer"));
+    expect(() =>
+      parsePlanRegistry(yamlText + offer.replace("founding_customer\n", "again\n")),
+    ).toThrow(/coupon xos_founding_customer_v4 is used twice[\s\S]*promotion code FOUNDING30/);
+  });
+});
+
+describe("generated plan seed mirrors", () => {
+  const sql = renderPlanSeedSql(registry);
+
+  it("writes list prices, extra-seat prices, add-ons and the partner discount from plans.yaml", () => {
+    expect(sql).toContain("insert into private.plan_list_prices");
+    expect(sql).toContain("('team', 'USD', 1500, 15000)");
+    expect(sql).toContain(
+      "('aurora_requests_1000', 'core', 'aurora_requests_per_month'::app.plan_limit_code, 1000)",
+    );
+    expect(sql).toContain("alter column wholesale_discount_bps set default 3000;");
+  });
+
+  it("empties a mirror whose set is empty instead of writing an empty insert", () => {
+    const bare = renderPlanSeedSql({
+      ...registry,
+      addons: [],
+      plans: registry.plans.map((p) => ({ ...p, extraSeat: null })),
+    });
+    expect(bare).not.toContain("insert into private.plan_addons");
+    expect(bare).not.toContain("insert into private.plan_extra_seat_prices");
+    expect(bare).toContain("delete from private.plan_addons;");
+    expect(bare).toContain("delete from private.plan_extra_seat_prices;");
   });
 });

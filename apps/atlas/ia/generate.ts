@@ -131,7 +131,7 @@ export function parseLegalRegistry(text: string): LegalDocument[] {
   }));
 }
 
-/** A plan as the Billing and Plan page shows it, from packages/schemas/plans.yaml (Section 16). */
+/** A plan as the Billing and Plan page shows it, from packages/schemas/plans.yaml (Section 16, ADR 0034). */
 export interface PlanSummary {
   readonly code: string;
   readonly free: boolean;
@@ -141,21 +141,49 @@ export interface PlanSummary {
   readonly adds: readonly string[];
   /** Limit code to value; null is unlimited. */
   readonly limits: Readonly<Record<string, number | null>>;
-  /** USD monthly price in minor units; null is unpriced (Section 3.7). */
+  /** USD monthly price in minor units; null is unpriced (Section 3.7) or sold by quote. */
   readonly usdMonthlyMinor: number | null;
+  /** USD annual price in minor units; null is unpriced or sold by quote. */
+  readonly usdAnnualMinor: number | null;
+  /** USD price of one extra seat per month; null when the plan sells no extra seats. */
+  readonly usdExtraSeatMonthlyMinor: number | null;
+  /** USD monthly from-price of a plan sold by quote only; null for every other plan. */
+  readonly usdQuoteFromMonthlyMinor: number | null;
+  /** True when an org can subscribe on its own through Stripe Checkout. */
+  readonly selfServe: boolean;
+}
+
+/** A one-time add-on as the Billing and Plan page shows it (ADR 0034). */
+export interface AddonSummary {
+  readonly code: string;
+  readonly limit: string;
+  readonly amount: number;
+  readonly plans: readonly string[];
+  readonly usdMinor: number;
+}
+
+interface RawPlanRegistry {
+  plans: {
+    code: string;
+    free?: boolean;
+    extends?: string;
+    features: string[];
+    limits: Record<string, number | null>;
+    prices: Record<string, { monthly_minor: number | null; annual_minor: number | null }>;
+    extra_seat?: { prices: Record<string, { monthly_minor: number | null }> };
+    quote?: { from_monthly_minor: Record<string, number | null> };
+    stripe?: unknown;
+  }[];
+  addons?: {
+    code: string;
+    adds: { limit: string; amount: number };
+    plans: string[];
+    prices: Record<string, number>;
+  }[];
 }
 
 export function parsePlanRegistry(text: string): PlanSummary[] {
-  const data = parse(text) as {
-    plans: {
-      code: string;
-      free?: boolean;
-      extends?: string;
-      features: string[];
-      limits: Record<string, number | null>;
-      prices: Record<string, { monthly_minor: number | null }>;
-    }[];
-  };
+  const data = parse(text) as RawPlanRegistry;
   return data.plans.map((p) => ({
     code: p.code,
     free: p.free === true,
@@ -163,6 +191,22 @@ export function parsePlanRegistry(text: string): PlanSummary[] {
     adds: p.features,
     limits: p.limits,
     usdMonthlyMinor: p.prices["USD"]?.monthly_minor ?? null,
+    usdAnnualMinor: p.prices["USD"]?.annual_minor ?? null,
+    usdExtraSeatMonthlyMinor: p.extra_seat?.prices["USD"]?.monthly_minor ?? null,
+    usdQuoteFromMonthlyMinor: p.quote?.from_monthly_minor["USD"] ?? null,
+    selfServe: p.stripe !== undefined,
+  }));
+}
+
+/** The one-time add-ons of plans.yaml, priced in USD. */
+export function parseAddons(text: string): AddonSummary[] {
+  const data = parse(text) as RawPlanRegistry;
+  return (data.addons ?? []).map((a) => ({
+    code: a.code,
+    limit: a.adds.limit,
+    amount: a.adds.amount,
+    plans: a.plans,
+    usdMinor: a.prices["USD"] ?? 0,
   }));
 }
 
@@ -175,6 +219,7 @@ export function generateFiles(
   sitemap: Sitemap,
   legal: readonly LegalDocument[],
   plans: readonly PlanSummary[] = [],
+  addons: readonly AddonSummary[] = [],
 ): Map<string, string> {
   const issues = validateSitemap(sitemap, { messages: getMessages("en-US") });
   if (issues.length > 0) throw new Error(`ia/sitemap.yaml is invalid:\n${formatIssues(issues)}`);
@@ -214,10 +259,13 @@ export const listNodes: ReadonlySet<string> = new Set(${JSON.stringify(listNodeI
   files.set(
     "lib/plans.generated.ts",
     `${GENERATED_STAMP.replace("ia/sitemap.yaml", "packages/schemas/plans.yaml")}
-import type { PlanSummary } from "@/ia/generate";
+import type { AddonSummary, PlanSummary } from "@/ia/generate";
 
 /** Plans from the free plan upward (Section 16), from packages/schemas/plans.yaml. */
 export const PLANS: readonly PlanSummary[] = ${JSON.stringify(plans)};
+
+/** One-time add-ons, such as Aurora request packs (ADR 0034), from packages/schemas/plans.yaml. */
+export const ADDONS: readonly AddonSummary[] = ${JSON.stringify(addons)};
 `,
   );
   for (const node of generatedNodes(sitemap)) {
