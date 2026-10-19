@@ -15,6 +15,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
   "/explore/how-ranking-works": "Public page: the marketplace ranking factors (Section 4.4.3).",
+  "/documents/{kind}/{id}":
+    "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
