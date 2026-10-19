@@ -63,10 +63,15 @@ export default async function Page({ params }: PageProps<"/[org]/inbox">) {
       };
     }
     const key = `kinds.${item.kind}`;
-    if (SIMPLE_KINDS.has(item.kind) && email.has(`${key}.subject`)) {
+    const known = email.has(`${key}.subject`);
+    if (SIMPLE_KINDS.has(item.kind) && known) {
       return { summary: email(`${key}.subject`, args), detail: email(`${key}.body`, args) };
     }
-    return { summary: t("inbox.generic"), detail: item.kind };
+    // The kind's label, never its key (gate 16): every notification kind has one in inbox.kinds.
+    return {
+      summary: t("inbox.generic"),
+      detail: known ? t(`inbox.${key}`) : t("inbox.otherKind"),
+    };
   };
   const rows: InboxRow[] = result.data.map((item) => {
     const text = describe(item);

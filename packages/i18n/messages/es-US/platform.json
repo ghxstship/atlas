@@ -452,6 +452,78 @@
     "aRecord": "un registro",
     "someone": "Alguien",
     "generic": "Actualización",
+    "otherKind": "Notificación",
+    "kinds": {
+      "mention": {
+        "created": "Te mencionaron"
+      },
+      "assignment": {
+        "created": "Nueva asignación"
+      },
+      "approval": {
+        "requested": "Aprobación solicitada",
+        "decided": "Aprobación resuelta"
+      },
+      "comment": {
+        "created": "Nuevo comentario"
+      },
+      "shift": {
+        "assigned": "Turno asignado",
+        "changed": "Turno modificado"
+      },
+      "invoice": {
+        "approved": "Factura aprobada",
+        "submitted": "Factura enviada",
+        "scheduled": "Pago de factura programado",
+        "paid": "Factura pagada"
+      },
+      "incident": {
+        "reported": "Incidente reportado"
+      },
+      "account": {
+        "security_changed": "Cambió la seguridad de la cuenta"
+      },
+      "report": {
+        "delivered": "Informe entregado"
+      },
+      "import": {
+        "finished": "Importación terminada"
+      },
+      "export": {
+        "ready": "Exportación lista"
+      },
+      "billing": {
+        "payment_failed": "Pago fallido",
+        "read_only": "La organización está en modo de solo lectura"
+      },
+      "message": {
+        "received": "Nuevo mensaje"
+      },
+      "announcement": {
+        "posted": "Anuncio publicado"
+      },
+      "survey": {
+        "opened": "Encuesta abierta"
+      },
+      "recognition": {
+        "received": "Reconocimiento recibido"
+      },
+      "event": {
+        "invited": "Invitación a un evento"
+      },
+      "training": {
+        "assigned": "Capacitación asignada"
+      },
+      "help_request": {
+        "assigned": "Solicitud de ayuda asignada"
+      },
+      "occupancy": {
+        "threshold": "Se alcanzó el umbral de ocupación"
+      },
+      "weather": {
+        "alert": "Alerta meteorológica"
+      }
+    },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
     "approvalDetail": "Solicitado por {actor}, paso {step}",
     "documents": {

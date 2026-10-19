@@ -72,3 +72,20 @@ describe("pseudo-locales", () => {
     expect(a.filter(([k, v]) => b.get(k) === v)).toEqual([]);
   });
 });
+
+describe("Inbox notification kinds", () => {
+  // The Inbox shows a kind's label when it has no fuller copy; it must never fall back to the key.
+  it("labels every notification kind the email catalog knows, in every shipped locale", () => {
+    const kindsOf = (tree: Record<string, Record<string, unknown>>) =>
+      Object.entries(tree)
+        .flatMap(([group, kinds]) => Object.keys(kinds).map((k) => `${group}.${k}`))
+        .sort();
+    for (const locale of ["en-US", "es-US"] as const) {
+      const messages = getMessages(locale) as unknown as {
+        email: { kinds: Record<string, Record<string, unknown>> };
+        platform: { inbox: { kinds: Record<string, Record<string, string>> } };
+      };
+      expect(kindsOf(messages.platform.inbox.kinds)).toEqual(kindsOf(messages.email.kinds));
+    }
+  });
+});

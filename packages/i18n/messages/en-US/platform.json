@@ -452,6 +452,78 @@
     "aRecord": "a record",
     "someone": "Someone",
     "generic": "Update",
+    "otherKind": "Notification",
+    "kinds": {
+      "mention": {
+        "created": "You were mentioned"
+      },
+      "assignment": {
+        "created": "New assignment"
+      },
+      "approval": {
+        "requested": "Approval requested",
+        "decided": "Approval decided"
+      },
+      "comment": {
+        "created": "New comment"
+      },
+      "shift": {
+        "assigned": "Shift assigned",
+        "changed": "Shift changed"
+      },
+      "invoice": {
+        "approved": "Invoice approved",
+        "submitted": "Invoice submitted",
+        "scheduled": "Invoice payment scheduled",
+        "paid": "Invoice paid"
+      },
+      "incident": {
+        "reported": "Incident reported"
+      },
+      "account": {
+        "security_changed": "Account security changed"
+      },
+      "report": {
+        "delivered": "Report delivered"
+      },
+      "import": {
+        "finished": "Import finished"
+      },
+      "export": {
+        "ready": "Export ready"
+      },
+      "billing": {
+        "payment_failed": "Payment failed",
+        "read_only": "Organization is read-only"
+      },
+      "message": {
+        "received": "New message"
+      },
+      "announcement": {
+        "posted": "Announcement posted"
+      },
+      "survey": {
+        "opened": "Survey opened"
+      },
+      "recognition": {
+        "received": "Recognition received"
+      },
+      "event": {
+        "invited": "Event invitation"
+      },
+      "training": {
+        "assigned": "Training assigned"
+      },
+      "help_request": {
+        "assigned": "Help request assigned"
+      },
+      "occupancy": {
+        "threshold": "Occupancy threshold reached"
+      },
+      "weather": {
+        "alert": "Weather alert"
+      }
+    },
     "approvalSummary": "Approve {document} {reference} for {amount}",
     "approvalDetail": "Requested by {actor}, step {step}",
     "documents": {
