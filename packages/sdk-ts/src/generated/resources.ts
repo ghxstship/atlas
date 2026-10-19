@@ -190,7 +190,6 @@ import type {
   CanonMetric,
   CanonPermitRule,
   CanonPhase,
-  CanonProductionTemplate,
   CanonProvenance,
   CanonRatification,
   CanonRecordKind,
@@ -22607,7 +22606,7 @@ export class CanonStdDocumentLibraryResource extends $Resource {
   /**
    * List std document rows
    *
-   * A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/document-library` (operation `canonStdDocumentLibrary.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -22623,7 +22622,7 @@ export class CanonStdDocumentLibraryResource extends $Resource {
   /**
    * List std document rows
    *
-   * A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -22646,17 +22645,17 @@ export class CanonStdDocumentLibraryResource extends $Resource {
    *
    * A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns one std document with its `ETag`. A std document the caller may not see returns 404.
    *
-   * `GET /canon/std/document-library/{code}` (operation `canonStdDocumentLibrary.get`).
+   * `GET /canon/std/document-library/{record_id}` (operation `canonStdDocumentLibrary.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    recordId: NonNullable<StdCode>,
     params?: $FieldsParams<StdDocument>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdDocument>> {
     return this.client.request<StdDocument>(
       $OPERATIONS["canonStdDocumentLibrary.get"],
-      { path: { code }, query: params },
+      { path: { record_id: recordId }, query: params },
       options,
     );
   }
@@ -22738,7 +22737,7 @@ export class CanonStdEnumerationsResource extends $Resource {
   /**
    * List std enumeration rows
    *
-   * A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/enumerations` (operation `canonStdEnumerations.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -22757,7 +22756,7 @@ export class CanonStdEnumerationsResource extends $Resource {
   /**
    * List std enumeration rows
    *
-   * A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -22780,17 +22779,17 @@ export class CanonStdEnumerationsResource extends $Resource {
    *
    * A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns one std enumeration with its `ETag`. A std enumeration the caller may not see returns 404.
    *
-   * `GET /canon/std/enumerations/{code}` (operation `canonStdEnumerations.get`).
+   * `GET /canon/std/enumerations/{record_id}` (operation `canonStdEnumerations.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    recordId: NonNullable<StdCode>,
     params?: $FieldsParams<StdEnumeration>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdEnumeration>> {
     return this.client.request<StdEnumeration>(
       $OPERATIONS["canonStdEnumerations.get"],
-      { path: { code }, query: params },
+      { path: { record_id: recordId }, query: params },
       options,
     );
   }
@@ -22805,7 +22804,7 @@ export class CanonStdLaborRateCardsResource extends $Resource {
   /**
    * List std labor rate card rows
    *
-   * A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `rate_card_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/labor-rate-cards` (operation `canonStdLaborRateCards.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -22824,7 +22823,7 @@ export class CanonStdLaborRateCardsResource extends $Resource {
   /**
    * List std labor rate card rows
    *
-   * A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `rate_card_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -22847,17 +22846,17 @@ export class CanonStdLaborRateCardsResource extends $Resource {
    *
    * A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns one std labor rate card with its `ETag`. A std labor rate card the caller may not see returns 404.
    *
-   * `GET /canon/std/labor-rate-cards/{code}` (operation `canonStdLaborRateCards.get`).
+   * `GET /canon/std/labor-rate-cards/{rate_card_id}` (operation `canonStdLaborRateCards.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    rateCardId: string,
     params?: $FieldsParams<StdLaborRateCard>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdLaborRateCard>> {
     return this.client.request<StdLaborRateCard>(
       $OPERATIONS["canonStdLaborRateCards.get"],
-      { path: { code }, query: params },
+      { path: { rate_card_id: rateCardId }, query: params },
       options,
     );
   }
@@ -22914,17 +22913,17 @@ export class CanonStdRadioChannelsResource extends $Resource {
    *
    * A radio channel plan entry. Standard Library row, copied into each new org as editable org data. Returns one std radio channel with its `ETag`. A std radio channel the caller may not see returns 404.
    *
-   * `GET /canon/std/radio-channels/{code}` (operation `canonStdRadioChannels.get`).
+   * `GET /canon/std/radio-channels/{record_id}` (operation `canonStdRadioChannels.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    recordId: NonNullable<StdCode>,
     params?: $FieldsParams<StdRadioChannel>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdRadioChannel>> {
     return this.client.request<StdRadioChannel>(
       $OPERATIONS["canonStdRadioChannels.get"],
-      { path: { code }, query: params },
+      { path: { record_id: recordId }, query: params },
       options,
     );
   }
@@ -22939,7 +22938,7 @@ export class CanonStdRolesResource extends $Resource {
   /**
    * List std role rows
    *
-   * A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `role_code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/roles` (operation `canonStdRoles.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -22955,7 +22954,7 @@ export class CanonStdRolesResource extends $Resource {
   /**
    * List std role rows
    *
-   * A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `role_code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -22978,17 +22977,17 @@ export class CanonStdRolesResource extends $Resource {
    *
    * A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns one std role with its `ETag`. A std role the caller may not see returns 404.
    *
-   * `GET /canon/std/roles/{code}` (operation `canonStdRoles.get`).
+   * `GET /canon/std/roles/{role_code}` (operation `canonStdRoles.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    roleCode: NonNullable<RoleCode>,
     params?: $FieldsParams<StdRole>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdRole>> {
     return this.client.request<StdRole>(
       $OPERATIONS["canonStdRoles.get"],
-      { path: { code }, query: params },
+      { path: { role_code: roleCode }, query: params },
       options,
     );
   }
@@ -23003,7 +23002,7 @@ export class CanonStdSopsResource extends $Resource {
   /**
    * List std sop rows
    *
-   * A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `sop_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/sops` (operation `canonStdSops.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23019,7 +23018,7 @@ export class CanonStdSopsResource extends $Resource {
   /**
    * List std sop rows
    *
-   * A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `sop_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -23042,17 +23041,17 @@ export class CanonStdSopsResource extends $Resource {
    *
    * A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns one std sop with its `ETag`. A std sop the caller may not see returns 404.
    *
-   * `GET /canon/std/sops/{code}` (operation `canonStdSops.get`).
+   * `GET /canon/std/sops/{sop_id}` (operation `canonStdSops.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    sopId: NonNullable<StdCode>,
     params?: $FieldsParams<StdSop>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdSop>> {
     return this.client.request<StdSop>(
       $OPERATIONS["canonStdSops.get"],
-      { path: { code }, query: params },
+      { path: { sop_id: sopId }, query: params },
       options,
     );
   }
@@ -23067,7 +23066,7 @@ export class CanonStdVendorClassesResource extends $Resource {
   /**
    * List std vendor class rows
    *
-   * A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/vendor-classes` (operation `canonStdVendorClasses.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23086,7 +23085,7 @@ export class CanonStdVendorClassesResource extends $Resource {
   /**
    * List std vendor class rows
    *
-   * A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -23109,17 +23108,17 @@ export class CanonStdVendorClassesResource extends $Resource {
    *
    * A vendor class. Standard Library row, copied into each new org as editable org data. Returns one std vendor class with its `ETag`. A std vendor class the caller may not see returns 404.
    *
-   * `GET /canon/std/vendor-classes/{code}` (operation `canonStdVendorClasses.get`).
+   * `GET /canon/std/vendor-classes/{record_id}` (operation `canonStdVendorClasses.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    recordId: NonNullable<StdCode>,
     params?: $FieldsParams<StdVendorClass>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdVendorClass>> {
     return this.client.request<StdVendorClass>(
       $OPERATIONS["canonStdVendorClasses.get"],
-      { path: { code }, query: params },
+      { path: { record_id: recordId }, query: params },
       options,
     );
   }
@@ -23134,7 +23133,7 @@ export class CanonStdVendorEntitlementsResource extends $Resource {
   /**
    * List std vendor entitlement rows
    *
-   * A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/vendor-entitlements` (operation `canonStdVendorEntitlements.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23153,7 +23152,7 @@ export class CanonStdVendorEntitlementsResource extends $Resource {
   /**
    * List std vendor entitlement rows
    *
-   * A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -23176,17 +23175,17 @@ export class CanonStdVendorEntitlementsResource extends $Resource {
    *
    * A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns one std vendor entitlement with its `ETag`. A std vendor entitlement the caller may not see returns 404.
    *
-   * `GET /canon/std/vendor-entitlements/{code}` (operation `canonStdVendorEntitlements.get`).
+   * `GET /canon/std/vendor-entitlements/{record_id}` (operation `canonStdVendorEntitlements.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    recordId: NonNullable<StdCode>,
     params?: $FieldsParams<StdVendorEntitlement>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdVendorEntitlement>> {
     return this.client.request<StdVendorEntitlement>(
       $OPERATIONS["canonStdVendorEntitlements.get"],
-      { path: { code }, query: params },
+      { path: { record_id: recordId }, query: params },
       options,
     );
   }
@@ -23201,7 +23200,7 @@ export class CanonStdVerbiageResource extends $Resource {
   /**
    * List std verbiage rows
    *
-   * A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/std/verbiage` (operation `canonStdVerbiage.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23217,7 +23216,7 @@ export class CanonStdVerbiageResource extends $Resource {
   /**
    * List std verbiage rows
    *
-   * A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -23240,84 +23239,17 @@ export class CanonStdVerbiageResource extends $Resource {
    *
    * A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns one std verbiage with its `ETag`. A std verbiage the caller may not see returns 404.
    *
-   * `GET /canon/std/verbiage/{code}` (operation `canonStdVerbiage.get`).
+   * `GET /canon/std/verbiage/{record_id}` (operation `canonStdVerbiage.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    code: NonNullable<StdCode>,
+    recordId: NonNullable<StdCode>,
     params?: $FieldsParams<StdVerbiage>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<StdVerbiage>> {
     return this.client.request<StdVerbiage>(
       $OPERATIONS["canonStdVerbiage.get"],
-      { path: { code }, query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `canonProductionTemplates`, in the Canon module.
- *
- * Read-only canon from `xpms`, cached by canon generation, and tenant extension proposals (Sections 4.2 and 7.2).
- */
-export class CanonProductionTemplatesResource extends $Resource {
-  /**
-   * List canon production template rows
-   *
-   * The XOS 4.0 Production Template, with the Cover Page as metadata. Returns a cursor page of canon production template rows the caller may see. The default order is `template_id` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /canon/production-templates` (operation `canonProductionTemplates.list`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  list(
-    params?: $ListParams<CanonProductionTemplate>,
-    options?: $RequestOptions,
-  ): Promise<$Page<CanonProductionTemplate>> {
-    return this.client.requestPage<CanonProductionTemplate>(
-      $OPERATIONS["canonProductionTemplates.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List canon production template rows
-   *
-   * The XOS 4.0 Production Template, with the Cover Page as metadata. Returns a cursor page of canon production template rows the caller may see. The default order is `template_id` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /canon/production-templates` (operation `canonProductionTemplates.list`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  listAll(
-    params?: $ListAllParams<CanonProductionTemplate>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<CanonProductionTemplate, void, undefined> {
-    return this.client.paginate<CanonProductionTemplate>(
-      $OPERATIONS["canonProductionTemplates.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Get a canon production template
-   *
-   * The XOS 4.0 Production Template, with the Cover Page as metadata. Returns one canon production template with its `ETag`. A canon production template the caller may not see returns 404.
-   *
-   * `GET /canon/production-templates/{template_id}` (operation `canonProductionTemplates.get`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  get(
-    templateId: string,
-    params?: $FieldsParams<CanonProductionTemplate>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<CanonProductionTemplate>> {
-    return this.client.request<CanonProductionTemplate>(
-      $OPERATIONS["canonProductionTemplates.get"],
-      { path: { template_id: templateId }, query: params },
+      { path: { record_id: recordId }, query: params },
       options,
     );
   }
@@ -23332,7 +23264,7 @@ export class CanonSupersessionsResource extends $Resource {
   /**
    * List canon supersession rows
    *
-   * A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `superseded_code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `domain`, then `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/supersessions` (operation `canonSupersessions.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23351,7 +23283,7 @@ export class CanonSupersessionsResource extends $Resource {
   /**
    * List canon supersession rows
    *
-   * A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `superseded_code` ascending. Supports sparse fieldsets and the filter grammar.
+   * A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `domain`, then `code` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -23368,26 +23300,6 @@ export class CanonSupersessionsResource extends $Resource {
       options,
     );
   }
-
-  /**
-   * Get a canon supersession
-   *
-   * A supersession edge. The graph stays acyclic. Returns one canon supersession with its `ETag`. A canon supersession the caller may not see returns 404.
-   *
-   * `GET /canon/supersessions/{superseded_code}` (operation `canonSupersessions.get`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  get(
-    supersededCode: string,
-    params?: $FieldsParams<CanonSupersession>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<CanonSupersession>> {
-    return this.client.request<CanonSupersession>(
-      $OPERATIONS["canonSupersessions.get"],
-      { path: { superseded_code: supersededCode }, query: params },
-      options,
-    );
-  }
 }
 
 /**
@@ -23399,7 +23311,7 @@ export class CanonRatificationsResource extends $Resource {
   /**
    * List canon ratification rows
    *
-   * A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `ratification_id` ascending. Supports sparse fieldsets and the filter grammar.
+   * A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `subject` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * `GET /canon/ratifications` (operation `canonRatifications.list`).
    * Requires the capability `canon.taxonomy.read`.
@@ -23418,7 +23330,7 @@ export class CanonRatificationsResource extends $Resource {
   /**
    * List canon ratification rows
    *
-   * A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `ratification_id` ascending. Supports sparse fieldsets and the filter grammar.
+   * A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `subject` ascending. Supports sparse fieldsets and the filter grammar.
    *
    * Iterates every item across all pages, following `next_cursor`.
    *
@@ -23441,17 +23353,17 @@ export class CanonRatificationsResource extends $Resource {
    *
    * A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns one canon ratification with its `ETag`. A canon ratification the caller may not see returns 404.
    *
-   * `GET /canon/ratifications/{ratification_id}` (operation `canonRatifications.get`).
+   * `GET /canon/ratifications/{subject}` (operation `canonRatifications.get`).
    * Requires the capability `canon.taxonomy.read`.
    */
   get(
-    ratificationId: string,
+    subject: string,
     params?: $FieldsParams<CanonRatification>,
     options?: $RequestOptions,
   ): Promise<$ApiResponse<CanonRatification>> {
     return this.client.request<CanonRatification>(
       $OPERATIONS["canonRatifications.get"],
-      { path: { ratification_id: ratificationId }, query: params },
+      { path: { subject }, query: params },
       options,
     );
   }
@@ -23519,82 +23431,6 @@ export class CanonVersionsResource extends $Resource {
     return this.client.request<CanonVersion>(
       $OPERATIONS["canonVersions.get"],
       { path: { generation }, query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `canonIntake`, in the Canon module.
- *
- * Read-only canon from `xpms`, cached by canon generation, and tenant extension proposals (Sections 4.2 and 7.2).
- */
-export class CanonIntakeResource extends $Resource {
-  /**
-   * List canon intake proposal rows
-   *
-   * A proposed canon addition, staged for ratification. Returns a cursor page of canon intake proposal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /canon/intake` (operation `canonIntake.list`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  list(params?: $ListParams<CanonIntake>, options?: $RequestOptions): Promise<$Page<CanonIntake>> {
-    return this.client.requestPage<CanonIntake>(
-      $OPERATIONS["canonIntake.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List canon intake proposal rows
-   *
-   * A proposed canon addition, staged for ratification. Returns a cursor page of canon intake proposal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /canon/intake` (operation `canonIntake.list`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  listAll(
-    params?: $ListAllParams<CanonIntake>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<CanonIntake, void, undefined> {
-    return this.client.paginate<CanonIntake>(
-      $OPERATIONS["canonIntake.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a canon intake proposal
-   *
-   * A proposed canon addition, staged for ratification. Creates a canon intake proposal. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /canon/intake` (operation `canonIntake.create`).
-   * Requires the capability `canon.extension.write`.
-   */
-  create(body: CanonIntakeCreate, options?: $MutationOptions): Promise<$ApiResponse<CanonIntake>> {
-    return this.client.request<CanonIntake>($OPERATIONS["canonIntake.create"], { body }, options);
-  }
-
-  /**
-   * Get a canon intake proposal
-   *
-   * A proposed canon addition, staged for ratification. Returns one canon intake proposal with its `ETag`. A canon intake proposal the caller may not see returns 404.
-   *
-   * `GET /canon/intake/{id}` (operation `canonIntake.get`).
-   * Requires the capability `canon.taxonomy.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<CanonIntake>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<CanonIntake>> {
-    return this.client.request<CanonIntake>(
-      $OPERATIONS["canonIntake.get"],
-      { path: { id }, query: params },
       options,
     );
   }

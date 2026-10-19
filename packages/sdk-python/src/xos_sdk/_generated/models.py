@@ -837,17 +837,12 @@ __all__ = [
     "StdVendorEntitlement",
     "StdVerbiagePage",
     "StdVerbiage",
-    "CanonProductionTemplatePage",
-    "CanonProductionTemplate",
     "CanonSupersessionPage",
     "CanonSupersession",
     "CanonRatificationPage",
     "CanonRatification",
     "CanonVersionPage",
     "CanonVersion",
-    "CanonIntakePage",
-    "CanonIntake",
-    "CanonIntakeCreate",
     "CoordinateMatrixCellPage",
     "CoordinateMatrixCell",
     "PhaseCoveragePage",
@@ -858,6 +853,8 @@ __all__ = [
     "CrosswalkCoverage",
     "UrnResolution",
     "Urn",
+    "CanonIntake",
+    "CanonIntakeCreate",
     "Me",
     "PersonPage",
     "Person",
@@ -13593,10 +13590,31 @@ class StdDocumentPage(TypedDict):
 class StdDocument(TypedDict):
     """A document and asset library entry. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Document title.
-    title: str
-    urid: UridAtAnyGrain
+    record_id: StdCode
+    #: Document name.
+    document_name: Optional[str]
+    #: Document type.
+    document_type: Optional[str]
+    #: Reference identifier.
+    reference_id: Optional[str]
+    #: File format.
+    file_format: Optional[str]
+    #: Version.
+    version: Optional[str]
+    #: Issue date.
+    issue_date: Optional[str]
+    #: Expiration date.
+    expiration_date: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdEmergencyCodePage(TypedDict):
@@ -13634,11 +13652,33 @@ class StdEnumerationPage(TypedDict):
 class StdEnumeration(TypedDict):
     """A controlled enumeration value. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Enumeration name.
-    enumeration: str
-    #: Value.
-    value: str
+    record_id: StdCode
+    #: Enumeration the value belongs to.
+    enum_domain: Optional[str]
+    #: Code of the value.
+    enum_code: Optional[str]
+    #: Label of the value.
+    enum_label: Optional[str]
+    #: What the value means.
+    description: Optional[str]
+    #: Order within the enumeration.
+    sort_order: Optional[float]
+    #: Display color as the sheet stores it.
+    color_code: Optional[str]
+    #: Record the enumeration applies to.
+    target_entity: Optional[str]
+    #: Whether the value is the default.
+    is_default: Optional[bool]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdLaborRateCardPage(TypedDict):
@@ -13653,13 +13693,40 @@ class StdLaborRateCardPage(TypedDict):
 class StdLaborRateCard(TypedDict):
     """A labor rate card line. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
+    #: Canon rate card identifier.
+    rate_card_id: str
     role_code: RoleCode
-    #: Rate per unit. Integer minor units of the resource currency; null means unpriced, never zero.
-    rate_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
-    unit: UnitCode
+    #: Job title of the role.
+    job_title: Optional[str]
+    class_code: DeptCode
+    #: Department of the role.
+    department: str
+    #: Worker classification label.
+    worker_classification: str
+    #: Pay basis.
+    pay_basis: str
+    #: Arrangement.
+    arrangement: str
+    #: Standard rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    standard_rate_minor: Optional[int]
+    #: Lowest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    min_grade_rate_minor: Optional[int]
+    #: Highest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    max_grade_rate_minor: Optional[int]
+    #: Per diem rate. Integer minor units of the resource currency; null means unpriced, never zero.
+    per_diem_rate_minor: Optional[int]
+    #: ISO 4217 currency of the rates.
+    currency_code: str
+    #: Canon overtime rule.
+    overtime_rule_id: str
+    #: Overtime multiplier.
+    ot_multiplier: float
+    #: Double time multiplier.
+    dt_multiplier: float
+    #: Expense GL account of the role's department.
+    gl_account: Optional[str]
+    #: Name of that GL account.
+    gl_account_name: Optional[str]
 
 
 class StdRadioChannelPage(TypedDict):
@@ -13674,11 +13741,23 @@ class StdRadioChannelPage(TypedDict):
 class StdRadioChannel(TypedDict):
     """A radio channel plan entry. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Channel number.
-    channel: int
-    #: Channel name.
-    name: str
+    record_id: StdCode
+    #: Radio channel number.
+    channel: Optional[float]
+    #: Radio zone.
+    zone: Optional[float]
+    #: Who the channel is assigned to.
+    assignment: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdRolePage(TypedDict):
@@ -13693,10 +13772,30 @@ class StdRolePage(TypedDict):
 class StdRole(TypedDict):
     """A Roles Library entry. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
     role_code: RoleCode
-    #: Role description.
-    description: str
+    class_code: DeptCode
+    #: Job title; the one home of the title.
+    job_title: str
+    #: Discipline.
+    discipline: str
+    #: Rank.
+    rank: str
+    #: Job summary.
+    job_summary: Optional[str]
+    #: Key responsibilities.
+    key_responsibilities: Optional[str]
+    #: Qualifications.
+    qualifications: Optional[str]
+    #: Physical requirements.
+    physical_requirements: Optional[str]
+    #: Required certifications.
+    required_certifications: Optional[str]
+    #: Default clearance tier.
+    default_clearance_tier: Optional[str]
+    #: Default radio channel.
+    default_radio_channel: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdSopPage(TypedDict):
@@ -13711,11 +13810,39 @@ class StdSopPage(TypedDict):
 class StdSop(TypedDict):
     """A standard operating procedure. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
+    sop_id: StdCode
     #: SOP title.
-    title: str
-    #: SOP body.
-    body: str
+    title: Optional[str]
+    #: Operational domain.
+    operational_domain: Optional[str]
+    #: Revision.
+    revision: Optional[str]
+    #: Accountable role code.
+    accountable_role_code: Optional[str]
+    #: Required PPE and compliance tags.
+    required_ppe_compliance_tag: Optional[str]
+    #: Prerequisites and hazards.
+    prerequisites_and_hazards: Optional[str]
+    #: Procedure step 1.
+    procedure_step_1: Optional[str]
+    #: Procedure step 2.
+    procedure_step_2: Optional[str]
+    #: Procedure step 3.
+    procedure_step_3: Optional[str]
+    #: Procedure step 4.
+    procedure_step_4: Optional[str]
+    #: Reference document.
+    reference_doc_id: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdVendorClassPage(TypedDict):
@@ -13727,13 +13854,22 @@ class StdVendorClassPage(TypedDict):
     next_cursor: Optional[str]
 
 
-class StdVendorClass(TypedDict):
-    """A vendor class. Standard Library row, copied into each new org as editable org data."""
-
-    code: StdCode
-    #: Vendor class name.
-    name: str
-    counterparty_type: CounterpartyType
+# A vendor class. Standard Library row, copied into each new org as editable org data.
+StdVendorClass = TypedDict(
+    "StdVendorClass",
+    {
+    "record_id": StdCode,
+    "class": Optional[str],
+    "description": Optional[str],
+    "clearance_tier": Optional[str],
+    "department": Optional[str],
+    "category": Optional[str],
+    "sub_category": Optional[str],
+    "status": Optional[str],
+    "notes": Optional[str],
+    },
+    total=True,
+)
 
 
 class StdVendorEntitlementPage(TypedDict):
@@ -13748,11 +13884,17 @@ class StdVendorEntitlementPage(TypedDict):
 class StdVendorEntitlement(TypedDict):
     """A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
-    #: Entitlement name.
-    name: str
-    #: Entitlement description.
-    description: str
+    record_id: StdCode
+    #: Vendor class the entitlement is for.
+    vendor_class: Optional[str]
+    #: Module the class may use.
+    module: Optional[str]
+    #: Whether the class may use the module.
+    permitted: Optional[bool]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class StdVerbiagePage(TypedDict):
@@ -13767,31 +13909,25 @@ class StdVerbiagePage(TypedDict):
 class StdVerbiage(TypedDict):
     """A controlled vocabulary term. Standard Library row, copied into each new org as editable org data."""
 
-    code: StdCode
+    record_id: StdCode
     #: Term.
-    term: str
-    #: Usage rule.
-    usage: str
-
-
-class CanonProductionTemplatePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[CanonProductionTemplate]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class CanonProductionTemplate(TypedDict):
-    """The XOS 4.0 Production Template, with the Cover Page as metadata."""
-
-    #: Template identifier.
-    template_id: str
-    #: Template title.
-    title: str
-    #: Number of record-template sheets.
-    sheet_count: int
+    verbiage: Optional[str]
+    #: Title.
+    title: Optional[str]
+    #: Text.
+    body: Optional[str]
+    #: When the text is used.
+    description: Optional[str]
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category code or name as the sheet gives it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: Row status in the sheet.
+    status: Optional[str]
+    #: Notes in the sheet.
+    notes: Optional[str]
 
 
 class CanonSupersessionPage(TypedDict):
@@ -13807,11 +13943,15 @@ class CanonSupersession(TypedDict):
     """A supersession edge. The graph stays acyclic."""
 
     #: Code that was superseded.
-    superseded_code: str
+    code: str
     #: Code that supersedes it.
-    superseded_by: str
-    #: Ratification that recorded the supersession.
-    ratification_id: str
+    successor_code: str
+    #: Code domain, such as phase.
+    domain: str
+    #: Label the superseded code carried.
+    label: str
+    #: Why the code was superseded.
+    reason: str
 
 
 class CanonRatificationPage(TypedDict):
@@ -13826,14 +13966,14 @@ class CanonRatificationPage(TypedDict):
 class CanonRatification(TypedDict):
     """A ratification record. 4.0 grammar is proposed until a named ratifier is recorded."""
 
-    #: Identifier of the ratification.
-    ratification_id: str
     #: What was ratified.
     subject: str
     #: Named ratifier.
     ratifier: str
     #: When it was ratified.
     ratified_at: str
+    #: Ratification note.
+    note: Optional[str]
 
 
 class CanonVersionPage(TypedDict):
@@ -13854,49 +13994,6 @@ class CanonVersion(TypedDict):
     generation: int
     #: Generation time stated in the Bible _generated tab: a wall-clock time without a zone.
     bible_generated_at: str
-
-
-class CanonIntakePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[CanonIntake]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class CanonIntake(TypedDict):
-    """A proposed canon addition, staged for ratification."""
-
-    #: Identifier of the canon intake.
-    id: str
-    #: When the row was created.
-    created_at: str
-    #: When the row was last updated.
-    updated_at: str
-    #: What kind of canon value is proposed.
-    proposed_kind: str
-    #: Proposed code.
-    proposed_code: str
-    #: Proposed label.
-    proposed_label: str
-    #: Why the addition is needed.
-    rationale: str
-    #: Intake state. A Title Case value from the lifecycle's database enum.
-    intake_state: str
-
-
-class CanonIntakeCreate(TypedDict):
-    """Fields accepted when creating a CanonIntake."""
-
-    #: What kind of canon value is proposed.
-    proposed_kind: str
-    #: Proposed code.
-    proposed_code: str
-    #: Proposed label.
-    proposed_label: str
-    #: Why the addition is needed.
-    rationale: str
 
 
 class CoordinateMatrixCellPage(TypedDict):
@@ -14015,6 +14112,44 @@ class UrnResolution(TypedDict):
     key: str
     #: Display label of the row.
     label: str
+    #: Key of the live row after following supersessions.
+    resolved_key: str
+    #: Whether the asked key was superseded.
+    is_superseded: bool
+
+
+class CanonIntake(TypedDict):
+    """A proposed canon addition, staged for ratification."""
+
+    #: Identifier of the canon intake.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: What kind of canon value is proposed.
+    proposed_kind: str
+    #: Proposed code.
+    proposed_code: str
+    #: Proposed label.
+    proposed_label: str
+    #: Why the addition is needed.
+    rationale: str
+    #: Intake state. A Title Case value from the lifecycle's database enum.
+    intake_state: str
+
+
+class CanonIntakeCreate(TypedDict):
+    """Fields accepted when creating a CanonIntake."""
+
+    #: What kind of canon value is proposed.
+    proposed_kind: str
+    #: Proposed code.
+    proposed_code: str
+    #: Proposed label.
+    proposed_label: str
+    #: Why the addition is needed.
+    rationale: str
 
 
 class Me(TypedDict):

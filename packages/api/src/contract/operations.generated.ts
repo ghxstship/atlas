@@ -1381,7 +1381,6 @@ export interface Components {
     proposed_label: string;
     rationale: string;
   };
-  CanonIntakePage: { data: Array<Components["CanonIntake"]>; next_cursor: string | null };
   CanonJurisdiction: {
     jurisdiction_id: Components["JurisdictionId"];
     level: string;
@@ -1438,11 +1437,6 @@ export interface Components {
     is_redefined: boolean;
   };
   CanonPhasePage: { data: Array<Components["CanonPhase"]>; next_cursor: string | null };
-  CanonProductionTemplate: { template_id: string; title: string; sheet_count: number };
-  CanonProductionTemplatePage: {
-    data: Array<Components["CanonProductionTemplate"]>;
-    next_cursor: string | null;
-  };
   CanonProvenance: {
     provenance: Components["Provenance"];
     rank: number;
@@ -1452,10 +1446,10 @@ export interface Components {
   };
   CanonProvenancePage: { data: Array<Components["CanonProvenance"]>; next_cursor: string | null };
   CanonRatification: {
-    ratification_id: string;
     subject: string;
     ratifier: string;
     ratified_at: string;
+    note: string | null;
   };
   CanonRatificationPage: {
     data: Array<Components["CanonRatification"]>;
@@ -1512,7 +1506,13 @@ export interface Components {
     data: Array<Components["CanonStalenessPolicy"]>;
     next_cursor: string | null;
   };
-  CanonSupersession: { superseded_code: string; superseded_by: string; ratification_id: string };
+  CanonSupersession: {
+    code: string;
+    successor_code: string;
+    domain: string;
+    label: string;
+    reason: string;
+  };
   CanonSupersessionPage: {
     data: Array<Components["CanonSupersession"]>;
     next_cursor: string | null;
@@ -6923,7 +6923,21 @@ export interface Components {
     due_on?: string | null;
   };
   StdCode: string;
-  StdDocument: { code: Components["StdCode"]; title: string; urid: Components["UridAtAnyGrain"] };
+  StdDocument: {
+    record_id: Components["StdCode"];
+    document_name: string | null;
+    document_type: string | null;
+    reference_id: string | null;
+    file_format: string | null;
+    version: string | null;
+    issue_date: string | null;
+    expiration_date: string | null;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    status: string | null;
+    notes: string | null;
+  };
   StdDocumentPage: { data: Array<Components["StdDocument"]>; next_cursor: string | null };
   StdEmergencyCode: {
     code: Components["StdCode"];
@@ -6933,34 +6947,128 @@ export interface Components {
     sort_order: number;
   };
   StdEmergencyCodePage: { data: Array<Components["StdEmergencyCode"]>; next_cursor: string | null };
-  StdEnumeration: { code: Components["StdCode"]; enumeration: string; value: string };
+  StdEnumeration: {
+    record_id: Components["StdCode"];
+    enum_domain: string | null;
+    enum_code: string | null;
+    enum_label: string | null;
+    description: string | null;
+    sort_order: number | null;
+    color_code: string | null;
+    target_entity: string | null;
+    is_default: boolean | null;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    status: string | null;
+    notes: string | null;
+  };
   StdEnumerationPage: { data: Array<Components["StdEnumeration"]>; next_cursor: string | null };
   StdLaborRateCard: {
-    code: Components["StdCode"];
+    rate_card_id: string;
     role_code: Components["RoleCode"];
-    rate_minor: number | null;
-    currency: string;
-    unit: Components["UnitCode"];
+    job_title: string | null;
+    class_code: Components["DeptCode"];
+    department: string;
+    worker_classification: string;
+    pay_basis: string;
+    arrangement: string;
+    standard_rate_minor: number | null;
+    min_grade_rate_minor: number | null;
+    max_grade_rate_minor: number | null;
+    per_diem_rate_minor: number | null;
+    currency_code: string;
+    overtime_rule_id: string;
+    ot_multiplier: number;
+    dt_multiplier: number;
+    gl_account: string | null;
+    gl_account_name: string | null;
   };
   StdLaborRateCardPage: { data: Array<Components["StdLaborRateCard"]>; next_cursor: string | null };
-  StdRadioChannel: { code: Components["StdCode"]; channel: number; name: string };
+  StdRadioChannel: {
+    record_id: Components["StdCode"];
+    channel: number | null;
+    zone: number | null;
+    assignment: string | null;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    status: string | null;
+    notes: string | null;
+  };
   StdRadioChannelPage: { data: Array<Components["StdRadioChannel"]>; next_cursor: string | null };
-  StdRole: { code: Components["StdCode"]; role_code: Components["RoleCode"]; description: string };
+  StdRole: {
+    role_code: Components["RoleCode"];
+    class_code: Components["DeptCode"];
+    job_title: string;
+    discipline: string;
+    rank: string;
+    job_summary: string | null;
+    key_responsibilities: string | null;
+    qualifications: string | null;
+    physical_requirements: string | null;
+    required_certifications: string | null;
+    default_clearance_tier: string | null;
+    default_radio_channel: string | null;
+    notes: string | null;
+  };
   StdRolePage: { data: Array<Components["StdRole"]>; next_cursor: string | null };
-  StdSop: { code: Components["StdCode"]; title: string; body: string };
+  StdSop: {
+    sop_id: Components["StdCode"];
+    title: string | null;
+    operational_domain: string | null;
+    revision: string | null;
+    accountable_role_code: string | null;
+    required_ppe_compliance_tag: string | null;
+    prerequisites_and_hazards: string | null;
+    procedure_step_1: string | null;
+    procedure_step_2: string | null;
+    procedure_step_3: string | null;
+    procedure_step_4: string | null;
+    reference_doc_id: string | null;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    status: string | null;
+    notes: string | null;
+  };
   StdSopPage: { data: Array<Components["StdSop"]>; next_cursor: string | null };
   StdVendorClass: {
-    code: Components["StdCode"];
-    name: string;
-    counterparty_type: Components["CounterpartyType"];
+    record_id: Components["StdCode"];
+    class: string | null;
+    description: string | null;
+    clearance_tier: string | null;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    status: string | null;
+    notes: string | null;
   };
   StdVendorClassPage: { data: Array<Components["StdVendorClass"]>; next_cursor: string | null };
-  StdVendorEntitlement: { code: Components["StdCode"]; name: string; description: string };
+  StdVendorEntitlement: {
+    record_id: Components["StdCode"];
+    vendor_class: string | null;
+    module: string | null;
+    permitted: boolean | null;
+    status: string | null;
+    notes: string | null;
+  };
   StdVendorEntitlementPage: {
     data: Array<Components["StdVendorEntitlement"]>;
     next_cursor: string | null;
   };
-  StdVerbiage: { code: Components["StdCode"]; term: string; usage: string };
+  StdVerbiage: {
+    record_id: Components["StdCode"];
+    verbiage: string | null;
+    title: string | null;
+    body: string | null;
+    description: string | null;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    status: string | null;
+    notes: string | null;
+  };
   StdVerbiagePage: { data: Array<Components["StdVerbiage"]>; next_cursor: string | null };
   Subscription: {
     id: string;
@@ -7740,7 +7848,14 @@ export interface Components {
   Urid: string;
   UridAtAnyGrain: string | null;
   Urn: string;
-  UrnResolution: { urn: Components["Urn"]; kind: string; key: string; label: string };
+  UrnResolution: {
+    urn: Components["Urn"];
+    kind: string;
+    key: string;
+    label: string;
+    resolved_key: string;
+    is_superseded: boolean;
+  };
   UserCapabilityGrant: {
     id: string;
     org_id: string;
@@ -17633,8 +17748,8 @@ export interface Operations {
   "canonStdDocumentLibrary.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/document-library/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/document-library/{record_id}";
+    params: { record_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdDocument"] };
@@ -17681,8 +17796,8 @@ export interface Operations {
   "canonStdEnumerations.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/enumerations/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/enumerations/{record_id}";
+    params: { record_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdEnumeration"] };
@@ -17705,8 +17820,8 @@ export interface Operations {
   "canonStdLaborRateCards.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/labor-rate-cards/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/labor-rate-cards/{rate_card_id}";
+    params: { rate_card_id: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdLaborRateCard"] };
@@ -17729,8 +17844,8 @@ export interface Operations {
   "canonStdRadioChannels.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/radio-channels/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/radio-channels/{record_id}";
+    params: { record_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdRadioChannel"] };
@@ -17753,8 +17868,8 @@ export interface Operations {
   "canonStdRoles.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/roles/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/roles/{role_code}";
+    params: { role_code: Components["RoleCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdRole"] };
@@ -17777,8 +17892,8 @@ export interface Operations {
   "canonStdSops.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/sops/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/sops/{sop_id}";
+    params: { sop_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdSop"] };
@@ -17801,8 +17916,8 @@ export interface Operations {
   "canonStdVendorClasses.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/vendor-classes/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/vendor-classes/{record_id}";
+    params: { record_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdVendorClass"] };
@@ -17825,8 +17940,8 @@ export interface Operations {
   "canonStdVendorEntitlements.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/vendor-entitlements/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/vendor-entitlements/{record_id}";
+    params: { record_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdVendorEntitlement"] };
@@ -17849,35 +17964,11 @@ export interface Operations {
   "canonStdVerbiage.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/std/verbiage/{code}";
-    params: { code: Components["StdCode"] };
+    path: "/canon/std/verbiage/{record_id}";
+    params: { record_id: Components["StdCode"] };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["StdVerbiage"] };
-  };
-  "canonProductionTemplates.list": {
-    module: "Canon";
-    method: "get";
-    path: "/canon/production-templates";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["CanonProductionTemplatePage"] };
-  };
-  "canonProductionTemplates.get": {
-    module: "Canon";
-    method: "get";
-    path: "/canon/production-templates/{template_id}";
-    params: { template_id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["CanonProductionTemplate"] };
   };
   "canonSupersessions.list": {
     module: "Canon";
@@ -17893,15 +17984,6 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["CanonSupersessionPage"] };
-  };
-  "canonSupersessions.get": {
-    module: "Canon";
-    method: "get";
-    path: "/canon/supersessions/{superseded_code}";
-    params: { superseded_code: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["CanonSupersession"] };
   };
   "canonRatifications.list": {
     module: "Canon";
@@ -17921,8 +18003,8 @@ export interface Operations {
   "canonRatifications.get": {
     module: "Canon";
     method: "get";
-    path: "/canon/ratifications/{ratification_id}";
-    params: { ratification_id: string };
+    path: "/canon/ratifications/{subject}";
+    params: { subject: string };
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonRatification"] };
@@ -17950,39 +18032,6 @@ export interface Operations {
     query: { fields?: Components["Fields"] };
     body: undefined;
     responses: { 200: Components["CanonVersion"] };
-  };
-  "canonIntake.list": {
-    module: "Canon";
-    method: "get";
-    path: "/canon/intake";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["CanonIntakePage"] };
-  };
-  "canonIntake.create": {
-    module: "Canon";
-    method: "post";
-    path: "/canon/intake";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["CanonIntakeCreate"];
-    responses: { 201: Components["CanonIntake"] };
-  };
-  "canonIntake.get": {
-    module: "Canon";
-    method: "get";
-    path: "/canon/intake/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["CanonIntake"] };
   };
   "canonCoordinateMatrix.list": {
     module: "Canon";
@@ -25272,17 +25321,11 @@ export interface ModuleOperations {
     | "canonStdVendorEntitlements.get"
     | "canonStdVerbiage.list"
     | "canonStdVerbiage.get"
-    | "canonProductionTemplates.list"
-    | "canonProductionTemplates.get"
     | "canonSupersessions.list"
-    | "canonSupersessions.get"
     | "canonRatifications.list"
     | "canonRatifications.get"
     | "canonVersions.list"
     | "canonVersions.get"
-    | "canonIntake.list"
-    | "canonIntake.create"
-    | "canonIntake.get"
     | "canonCoordinateMatrix.list"
     | "canonPhaseCoverage.list"
     | "canonElementEconomics.list"

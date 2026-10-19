@@ -6,6 +6,7 @@
  * that refuse the way the database does, so refusals (422) and hidden rows (404) are covered too.
  */
 import { describe, expect, it } from "vitest";
+import { handlers as canon } from "../src/handlers/canon.ts";
 import { handlers as finance } from "../src/handlers/finance.ts";
 import { handlers as hospitality } from "../src/handlers/hospitality.ts";
 import { handlers as identity } from "../src/handlers/identity.ts";
@@ -14,6 +15,7 @@ import { handlers as people } from "../src/handlers/people.ts";
 import { contractApp, expectContract, testContext } from "./support/contract.ts";
 import { memoryDb, refusal, requests, success, tenantRow } from "./support/memory-db.ts";
 import type { Row } from "./support/memory-db.ts";
+import { sample } from "./support/samples.ts";
 
 const ORG = testContext().org?.id as string;
 const id = (n: number) => `0192f1e2-7c3a-7b4d-9e8f-${String(50000 + n).padStart(12, "0")}`;
@@ -664,5 +666,167 @@ describe("Identity: organization relationships and account memberships", () => {
       account_role: "Account Owner",
     });
     expect(owner.status).toBe(422);
+  });
+});
+
+describe("Canon: library mirrors, rate cards, supersessions, ratifications and URNs", () => {
+  const RESOURCES: [string, string, string, string, string][] = [
+    [
+      "/canon/std/document-library",
+      "canonStdDocumentLibrary",
+      "xpms.std_document_library",
+      "StdDocument",
+      "record_id",
+    ],
+    [
+      "/canon/std/enumerations",
+      "canonStdEnumerations",
+      "xpms.std_enumeration",
+      "StdEnumeration",
+      "record_id",
+    ],
+    [
+      "/canon/std/labor-rate-cards",
+      "canonStdLaborRateCards",
+      "xpms.rate_card_resolved",
+      "StdLaborRateCard",
+      "rate_card_id",
+    ],
+    [
+      "/canon/std/radio-channels",
+      "canonStdRadioChannels",
+      "xpms.std_radio_channel",
+      "StdRadioChannel",
+      "record_id",
+    ],
+    ["/canon/std/roles", "canonStdRoles", "xpms.role", "StdRole", "role_code"],
+    ["/canon/std/sops", "canonStdSops", "xpms.std_sop", "StdSop", "sop_id"],
+    [
+      "/canon/std/vendor-classes",
+      "canonStdVendorClasses",
+      "xpms.std_vendor_class",
+      "StdVendorClass",
+      "record_id",
+    ],
+    [
+      "/canon/std/vendor-entitlements",
+      "canonStdVendorEntitlements",
+      "xpms.std_vendor_entitlement",
+      "StdVendorEntitlement",
+      "record_id",
+    ],
+    ["/canon/std/verbiage", "canonStdVerbiage", "xpms.std_verbiage", "StdVerbiage", "record_id"],
+    [
+      "/canon/ratifications",
+      "canonRatifications",
+      "xpms.ratification",
+      "CanonRatification",
+      "subject",
+    ],
+  ];
+
+  function world() {
+    const tables: Record<string, Row[]> = Object.fromEntries(
+      RESOURCES.map(([, , table, component]) => [table, [sample(component)]]),
+    );
+    tables["xpms.supersession"] = [
+      sample("CanonSupersession", { domain: "phase", code: "DIS", successor_code: "SCP" }),
+      sample("CanonSupersession", { domain: "tier", code: "DIS", successor_code: "T02" }),
+    ];
+    const db = memoryDb(tables, {
+      "xpms.urn_resolve": (args) =>
+        args["urn"] === "urn:xpms:phase:DIS"
+          ? [
+              {
+                kind: "phase",
+                key: "DIS",
+                resolved_key: "SCP",
+                label: "Scoping",
+                is_superseded: true,
+              },
+            ]
+          : [],
+    });
+    return { db, http: requests(contractApp({ handlers: [canon], db })) };
+  }
+
+  it.each(RESOURCES)("serves %s", async (path, op, _table, component, key) => {
+    const { http } = world();
+    const listed = await success(http.get(path));
+    const page = (await expectContract(listed, `${op}.list`)) as { data: Row[] };
+    expect(page.data).toHaveLength(1);
+    const read = await success(
+      http.get(`${path}/${encodeURIComponent(String(page.data[0]?.[key]))}`),
+    );
+    await expectContract(read, `${op}.get`);
+    const missing = await http.get(
+      `${path}/${encodeURIComponent(String(sample(component)[key]))}-none`,
+    );
+    expect([404, 422]).toContain(missing.status);
+  });
+
+  it("lists and reads every library and governance resource", async () => {
+    const { http } = world();
+    const serve = async (path: string, key: string): Promise<[Response, Response]> => {
+      const list = await success(http.get(path));
+      const row = ((await list.clone().json()) as { data: Row[] }).data[0];
+      const one = await success(http.get(`${path}/${encodeURIComponent(String(row?.[key]))}`));
+      return [list, one];
+    };
+    const [l0, g0] = await serve("/canon/std/document-library", "record_id");
+    await expectContract(l0, "canonStdDocumentLibrary.list");
+    await expectContract(g0, "canonStdDocumentLibrary.get");
+    const [l1, g1] = await serve("/canon/std/enumerations", "record_id");
+    await expectContract(l1, "canonStdEnumerations.list");
+    await expectContract(g1, "canonStdEnumerations.get");
+    const [l2, g2] = await serve("/canon/std/labor-rate-cards", "rate_card_id");
+    await expectContract(l2, "canonStdLaborRateCards.list");
+    await expectContract(g2, "canonStdLaborRateCards.get");
+    const [l3, g3] = await serve("/canon/std/radio-channels", "record_id");
+    await expectContract(l3, "canonStdRadioChannels.list");
+    await expectContract(g3, "canonStdRadioChannels.get");
+    const [l4, g4] = await serve("/canon/std/roles", "role_code");
+    await expectContract(l4, "canonStdRoles.list");
+    await expectContract(g4, "canonStdRoles.get");
+    const [l5, g5] = await serve("/canon/std/sops", "sop_id");
+    await expectContract(l5, "canonStdSops.list");
+    await expectContract(g5, "canonStdSops.get");
+    const [l6, g6] = await serve("/canon/std/vendor-classes", "record_id");
+    await expectContract(l6, "canonStdVendorClasses.list");
+    await expectContract(g6, "canonStdVendorClasses.get");
+    const [l7, g7] = await serve("/canon/std/vendor-entitlements", "record_id");
+    await expectContract(l7, "canonStdVendorEntitlements.list");
+    await expectContract(g7, "canonStdVendorEntitlements.get");
+    const [l8, g8] = await serve("/canon/std/verbiage", "record_id");
+    await expectContract(l8, "canonStdVerbiage.list");
+    await expectContract(g8, "canonStdVerbiage.get");
+    const [l9, g9] = await serve("/canon/ratifications", "subject");
+    await expectContract(l9, "canonRatifications.list");
+    await expectContract(g9, "canonRatifications.get");
+  });
+
+  it("lists supersessions by domain and code", async () => {
+    const { http } = world();
+    const page = (await expectContract(
+      await success(http.get("/canon/supersessions")),
+      "canonSupersessions.list",
+    )) as { data: Row[] };
+    expect(page.data.map((r) => [r["domain"], r["code"]])).toEqual([
+      ["phase", "DIS"],
+      ["tier", "DIS"],
+    ]);
+    const phase = await success(http.get("/canon/supersessions?filter[domain][eq]=phase"));
+    const filtered = (await expectContract(phase, "canonSupersessions.list")) as { data: Row[] };
+    expect(filtered.data).toHaveLength(1);
+  });
+
+  it("resolves a URN through supersessions, and answers NO_ANSWER for an unknown one", async () => {
+    const { http } = world();
+    const resolved = await success(http.get("/canon/urns/resolve?urn=urn:xpms:phase:DIS"));
+    const body = (await expectContract(resolved, "canonUrns.resolve")) as Row;
+    expect(body).toMatchObject({ resolved_key: "SCP", is_superseded: true });
+    const unknown = await http.get("/canon/urns/resolve?urn=urn:xpms:phase:NONE");
+    expect(unknown.status).toBe(422);
+    await expectContract(unknown, "canonUrns.resolve");
   });
 });

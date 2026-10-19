@@ -253,7 +253,6 @@ if TYPE_CHECKING:
         CanonIdentifierClassPage,
         CanonIntake,
         CanonIntakeCreate,
-        CanonIntakePage,
         CanonJurisdiction,
         CanonJurisdictionPage,
         CanonLocale,
@@ -264,8 +263,6 @@ if TYPE_CHECKING:
         CanonPermitRulePage,
         CanonPhase,
         CanonPhasePage,
-        CanonProductionTemplate,
-        CanonProductionTemplatePage,
         CanonProvenance,
         CanonProvenancePage,
         CanonRatification,
@@ -21426,7 +21423,7 @@ class CanonStdDocumentLibraryResource(Resource):
     ) -> Page[StdDocument]:
         """List std document rows
 
-        A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/document-library`` (operation ``canonStdDocumentLibrary.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21444,7 +21441,7 @@ class CanonStdDocumentLibraryResource(Resource):
     ) -> Iterator[StdDocument]:
         """List std document rows
 
-        A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21455,7 +21452,7 @@ class CanonStdDocumentLibraryResource(Resource):
 
     def get(
         self,
-        code: str,
+        record_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21464,10 +21461,10 @@ class CanonStdDocumentLibraryResource(Resource):
 
         A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns one std document with its `ETag`. A std document the caller may not see returns 404.
 
-        ``GET /canon/std/document-library/{code}`` (operation ``canonStdDocumentLibrary.get``).
+        ``GET /canon/std/document-library/{record_id}`` (operation ``canonStdDocumentLibrary.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdDocumentLibrary.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdDocumentLibrary.get"], path={"record_id": record_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdEmergencyCodesResource(Resource):
@@ -21544,7 +21541,7 @@ class CanonStdEnumerationsResource(Resource):
     ) -> Page[StdEnumeration]:
         """List std enumeration rows
 
-        A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/enumerations`` (operation ``canonStdEnumerations.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21562,7 +21559,7 @@ class CanonStdEnumerationsResource(Resource):
     ) -> Iterator[StdEnumeration]:
         """List std enumeration rows
 
-        A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21573,7 +21570,7 @@ class CanonStdEnumerationsResource(Resource):
 
     def get(
         self,
-        code: str,
+        record_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21582,10 +21579,10 @@ class CanonStdEnumerationsResource(Resource):
 
         A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns one std enumeration with its `ETag`. A std enumeration the caller may not see returns 404.
 
-        ``GET /canon/std/enumerations/{code}`` (operation ``canonStdEnumerations.get``).
+        ``GET /canon/std/enumerations/{record_id}`` (operation ``canonStdEnumerations.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdEnumerations.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdEnumerations.get"], path={"record_id": record_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdLaborRateCardsResource(Resource):
@@ -21603,7 +21600,7 @@ class CanonStdLaborRateCardsResource(Resource):
     ) -> Page[StdLaborRateCard]:
         """List std labor rate card rows
 
-        A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `rate_card_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/labor-rate-cards`` (operation ``canonStdLaborRateCards.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21621,7 +21618,7 @@ class CanonStdLaborRateCardsResource(Resource):
     ) -> Iterator[StdLaborRateCard]:
         """List std labor rate card rows
 
-        A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `rate_card_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21632,7 +21629,7 @@ class CanonStdLaborRateCardsResource(Resource):
 
     def get(
         self,
-        code: str,
+        rate_card_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21641,10 +21638,10 @@ class CanonStdLaborRateCardsResource(Resource):
 
         A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns one std labor rate card with its `ETag`. A std labor rate card the caller may not see returns 404.
 
-        ``GET /canon/std/labor-rate-cards/{code}`` (operation ``canonStdLaborRateCards.get``).
+        ``GET /canon/std/labor-rate-cards/{rate_card_id}`` (operation ``canonStdLaborRateCards.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdLaborRateCards.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdLaborRateCards.get"], path={"rate_card_id": rate_card_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdRadioChannelsResource(Resource):
@@ -21691,7 +21688,7 @@ class CanonStdRadioChannelsResource(Resource):
 
     def get(
         self,
-        code: str,
+        record_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21700,10 +21697,10 @@ class CanonStdRadioChannelsResource(Resource):
 
         A radio channel plan entry. Standard Library row, copied into each new org as editable org data. Returns one std radio channel with its `ETag`. A std radio channel the caller may not see returns 404.
 
-        ``GET /canon/std/radio-channels/{code}`` (operation ``canonStdRadioChannels.get``).
+        ``GET /canon/std/radio-channels/{record_id}`` (operation ``canonStdRadioChannels.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdRadioChannels.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdRadioChannels.get"], path={"record_id": record_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdRolesResource(Resource):
@@ -21721,7 +21718,7 @@ class CanonStdRolesResource(Resource):
     ) -> Page[StdRole]:
         """List std role rows
 
-        A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `role_code` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/roles`` (operation ``canonStdRoles.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21739,7 +21736,7 @@ class CanonStdRolesResource(Resource):
     ) -> Iterator[StdRole]:
         """List std role rows
 
-        A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `role_code` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21750,7 +21747,7 @@ class CanonStdRolesResource(Resource):
 
     def get(
         self,
-        code: str,
+        role_code: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21759,10 +21756,10 @@ class CanonStdRolesResource(Resource):
 
         A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns one std role with its `ETag`. A std role the caller may not see returns 404.
 
-        ``GET /canon/std/roles/{code}`` (operation ``canonStdRoles.get``).
+        ``GET /canon/std/roles/{role_code}`` (operation ``canonStdRoles.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdRoles.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdRoles.get"], path={"role_code": role_code}, query={"fields": fields}, options=options)
 
 
 class CanonStdSopsResource(Resource):
@@ -21780,7 +21777,7 @@ class CanonStdSopsResource(Resource):
     ) -> Page[StdSop]:
         """List std sop rows
 
-        A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `sop_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/sops`` (operation ``canonStdSops.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21798,7 +21795,7 @@ class CanonStdSopsResource(Resource):
     ) -> Iterator[StdSop]:
         """List std sop rows
 
-        A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `sop_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21809,7 +21806,7 @@ class CanonStdSopsResource(Resource):
 
     def get(
         self,
-        code: str,
+        sop_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21818,10 +21815,10 @@ class CanonStdSopsResource(Resource):
 
         A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns one std sop with its `ETag`. A std sop the caller may not see returns 404.
 
-        ``GET /canon/std/sops/{code}`` (operation ``canonStdSops.get``).
+        ``GET /canon/std/sops/{sop_id}`` (operation ``canonStdSops.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdSops.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdSops.get"], path={"sop_id": sop_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdVendorClassesResource(Resource):
@@ -21839,7 +21836,7 @@ class CanonStdVendorClassesResource(Resource):
     ) -> Page[StdVendorClass]:
         """List std vendor class rows
 
-        A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/vendor-classes`` (operation ``canonStdVendorClasses.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21857,7 +21854,7 @@ class CanonStdVendorClassesResource(Resource):
     ) -> Iterator[StdVendorClass]:
         """List std vendor class rows
 
-        A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21868,7 +21865,7 @@ class CanonStdVendorClassesResource(Resource):
 
     def get(
         self,
-        code: str,
+        record_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21877,10 +21874,10 @@ class CanonStdVendorClassesResource(Resource):
 
         A vendor class. Standard Library row, copied into each new org as editable org data. Returns one std vendor class with its `ETag`. A std vendor class the caller may not see returns 404.
 
-        ``GET /canon/std/vendor-classes/{code}`` (operation ``canonStdVendorClasses.get``).
+        ``GET /canon/std/vendor-classes/{record_id}`` (operation ``canonStdVendorClasses.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdVendorClasses.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdVendorClasses.get"], path={"record_id": record_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdVendorEntitlementsResource(Resource):
@@ -21898,7 +21895,7 @@ class CanonStdVendorEntitlementsResource(Resource):
     ) -> Page[StdVendorEntitlement]:
         """List std vendor entitlement rows
 
-        A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/vendor-entitlements`` (operation ``canonStdVendorEntitlements.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21916,7 +21913,7 @@ class CanonStdVendorEntitlementsResource(Resource):
     ) -> Iterator[StdVendorEntitlement]:
         """List std vendor entitlement rows
 
-        A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21927,7 +21924,7 @@ class CanonStdVendorEntitlementsResource(Resource):
 
     def get(
         self,
-        code: str,
+        record_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21936,10 +21933,10 @@ class CanonStdVendorEntitlementsResource(Resource):
 
         A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns one std vendor entitlement with its `ETag`. A std vendor entitlement the caller may not see returns 404.
 
-        ``GET /canon/std/vendor-entitlements/{code}`` (operation ``canonStdVendorEntitlements.get``).
+        ``GET /canon/std/vendor-entitlements/{record_id}`` (operation ``canonStdVendorEntitlements.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdVendorEntitlements.get"], path={"code": code}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdVendorEntitlements.get"], path={"record_id": record_id}, query={"fields": fields}, options=options)
 
 
 class CanonStdVerbiageResource(Resource):
@@ -21957,7 +21954,7 @@ class CanonStdVerbiageResource(Resource):
     ) -> Page[StdVerbiage]:
         """List std verbiage rows
 
-        A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/std/verbiage`` (operation ``canonStdVerbiage.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -21975,7 +21972,7 @@ class CanonStdVerbiageResource(Resource):
     ) -> Iterator[StdVerbiage]:
         """List std verbiage rows
 
-        A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.
+        A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -21986,7 +21983,7 @@ class CanonStdVerbiageResource(Resource):
 
     def get(
         self,
-        code: str,
+        record_id: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -21995,69 +21992,10 @@ class CanonStdVerbiageResource(Resource):
 
         A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns one std verbiage with its `ETag`. A std verbiage the caller may not see returns 404.
 
-        ``GET /canon/std/verbiage/{code}`` (operation ``canonStdVerbiage.get``).
+        ``GET /canon/std/verbiage/{record_id}`` (operation ``canonStdVerbiage.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonStdVerbiage.get"], path={"code": code}, query={"fields": fields}, options=options)
-
-
-class CanonProductionTemplatesResource(Resource):
-    """Operations on ``canonProductionTemplates``, in the Canon module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[CanonProductionTemplate]:
-        """List canon production template rows
-
-        The XOS 4.0 Production Template, with the Cover Page as metadata. Returns a cursor page of canon production template rows the caller may see. The default order is `template_id` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /canon/production-templates`` (operation ``canonProductionTemplates.list``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.request_page(OPERATIONS["canonProductionTemplates.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[CanonProductionTemplate]:
-        """List canon production template rows
-
-        The XOS 4.0 Production Template, with the Cover Page as metadata. Returns a cursor page of canon production template rows the caller may see. The default order is `template_id` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /canon/production-templates`` (operation ``canonProductionTemplates.list``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.paginate(OPERATIONS["canonProductionTemplates.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def get(
-        self,
-        template_id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[CanonProductionTemplate]:
-        """Get a canon production template
-
-        The XOS 4.0 Production Template, with the Cover Page as metadata. Returns one canon production template with its `ETag`. A canon production template the caller may not see returns 404.
-
-        ``GET /canon/production-templates/{template_id}`` (operation ``canonProductionTemplates.get``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.request(OPERATIONS["canonProductionTemplates.get"], path={"template_id": template_id}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonStdVerbiage.get"], path={"record_id": record_id}, query={"fields": fields}, options=options)
 
 
 class CanonSupersessionsResource(Resource):
@@ -22075,7 +22013,7 @@ class CanonSupersessionsResource(Resource):
     ) -> Page[CanonSupersession]:
         """List canon supersession rows
 
-        A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `superseded_code` ascending. Supports sparse fieldsets and the filter grammar.
+        A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `domain`, then `code` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/supersessions`` (operation ``canonSupersessions.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -22093,7 +22031,7 @@ class CanonSupersessionsResource(Resource):
     ) -> Iterator[CanonSupersession]:
         """List canon supersession rows
 
-        A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `superseded_code` ascending. Supports sparse fieldsets and the filter grammar.
+        A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `domain`, then `code` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -22101,22 +22039,6 @@ class CanonSupersessionsResource(Resource):
         Requires the capability ``canon.taxonomy.read``.
         """
         return self._client.paginate(OPERATIONS["canonSupersessions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def get(
-        self,
-        superseded_code: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[CanonSupersession]:
-        """Get a canon supersession
-
-        A supersession edge. The graph stays acyclic. Returns one canon supersession with its `ETag`. A canon supersession the caller may not see returns 404.
-
-        ``GET /canon/supersessions/{superseded_code}`` (operation ``canonSupersessions.get``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.request(OPERATIONS["canonSupersessions.get"], path={"superseded_code": superseded_code}, query={"fields": fields}, options=options)
 
 
 class CanonRatificationsResource(Resource):
@@ -22134,7 +22056,7 @@ class CanonRatificationsResource(Resource):
     ) -> Page[CanonRatification]:
         """List canon ratification rows
 
-        A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `ratification_id` ascending. Supports sparse fieldsets and the filter grammar.
+        A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `subject` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /canon/ratifications`` (operation ``canonRatifications.list``).
         Requires the capability ``canon.taxonomy.read``.
@@ -22152,7 +22074,7 @@ class CanonRatificationsResource(Resource):
     ) -> Iterator[CanonRatification]:
         """List canon ratification rows
 
-        A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `ratification_id` ascending. Supports sparse fieldsets and the filter grammar.
+        A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `subject` ascending. Supports sparse fieldsets and the filter grammar.
 
         Iterates every item across all pages, following ``next_cursor``.
 
@@ -22163,7 +22085,7 @@ class CanonRatificationsResource(Resource):
 
     def get(
         self,
-        ratification_id: str,
+        subject: str,
         *,
         fields: FieldsArg = None,
         options: Optional[RequestOptions] = None,
@@ -22172,10 +22094,10 @@ class CanonRatificationsResource(Resource):
 
         A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns one canon ratification with its `ETag`. A canon ratification the caller may not see returns 404.
 
-        ``GET /canon/ratifications/{ratification_id}`` (operation ``canonRatifications.get``).
+        ``GET /canon/ratifications/{subject}`` (operation ``canonRatifications.get``).
         Requires the capability ``canon.taxonomy.read``.
         """
-        return self._client.request(OPERATIONS["canonRatifications.get"], path={"ratification_id": ratification_id}, query={"fields": fields}, options=options)
+        return self._client.request(OPERATIONS["canonRatifications.get"], path={"subject": subject}, query={"fields": fields}, options=options)
 
 
 class CanonVersionsResource(Resource):
@@ -22235,81 +22157,6 @@ class CanonVersionsResource(Resource):
         Requires the capability ``canon.taxonomy.read``.
         """
         return self._client.request(OPERATIONS["canonVersions.get"], path={"generation": generation}, query={"fields": fields}, options=options)
-
-
-class CanonIntakeResource(Resource):
-    """Operations on ``canonIntake``, in the Canon module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[CanonIntake]:
-        """List canon intake proposal rows
-
-        A proposed canon addition, staged for ratification. Returns a cursor page of canon intake proposal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /canon/intake`` (operation ``canonIntake.list``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.request_page(OPERATIONS["canonIntake.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[CanonIntake]:
-        """List canon intake proposal rows
-
-        A proposed canon addition, staged for ratification. Returns a cursor page of canon intake proposal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /canon/intake`` (operation ``canonIntake.list``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.paginate(OPERATIONS["canonIntake.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: CanonIntakeCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[CanonIntake]:
-        """Create a canon intake proposal
-
-        A proposed canon addition, staged for ratification. Creates a canon intake proposal. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /canon/intake`` (operation ``canonIntake.create``).
-        Requires the capability ``canon.extension.write``.
-        """
-        return self._client.request(OPERATIONS["canonIntake.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[CanonIntake]:
-        """Get a canon intake proposal
-
-        A proposed canon addition, staged for ratification. Returns one canon intake proposal with its `ETag`. A canon intake proposal the caller may not see returns 404.
-
-        ``GET /canon/intake/{id}`` (operation ``canonIntake.get``).
-        Requires the capability ``canon.taxonomy.read``.
-        """
-        return self._client.request(OPERATIONS["canonIntake.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
 class CanonCoordinateMatrixResource(Resource):

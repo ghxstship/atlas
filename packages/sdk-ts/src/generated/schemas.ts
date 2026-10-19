@@ -23698,13 +23698,67 @@ export interface StdDocumentPage {
  * A document and asset library entry. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdDocument {
-  readonly code: StdCode;
+  readonly record_id: StdCode;
   /**
-   * Document title.
+   * Document name.
+   * Length: 1 to 500.
+   */
+  readonly document_name: string | null;
+  /**
+   * Document type.
    * Length: 1 to 200.
    */
-  readonly title: string;
-  readonly urid: UridAtAnyGrain;
+  readonly document_type: string | null;
+  /**
+   * Reference identifier.
+   * Length: 1 to 200.
+   */
+  readonly reference_id: string | null;
+  /**
+   * File format.
+   * Length: 1 to 100.
+   */
+  readonly file_format: string | null;
+  /**
+   * Version.
+   * Length: 1 to 100.
+   */
+  readonly version: string | null;
+  /**
+   * Issue date.
+   * Format: `date`.
+   */
+  readonly issue_date: string | null;
+  /**
+   * Expiration date.
+   * Format: `date`.
+   */
+  readonly expiration_date: string | null;
+  /**
+   * Department as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly department: string | null;
+  /**
+   * Category code or name as the sheet gives it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -23771,17 +23825,70 @@ export interface StdEnumerationPage {
  * A controlled enumeration value. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdEnumeration {
-  readonly code: StdCode;
+  readonly record_id: StdCode;
   /**
-   * Enumeration name.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly enumeration: string;
-  /**
-   * Value.
+   * Enumeration the value belongs to.
    * Length: 1 to 200.
    */
-  readonly value: string;
+  readonly enum_domain: string | null;
+  /**
+   * Code of the value.
+   * Length: 1 to 200.
+   */
+  readonly enum_code: string | null;
+  /**
+   * Label of the value.
+   * Length: 1 to 500.
+   */
+  readonly enum_label: string | null;
+  /**
+   * What the value means.
+   * Length: 1 to 20000.
+   */
+  readonly description: string | null;
+  /**
+   * Order within the enumeration.
+   */
+  readonly sort_order: number | null;
+  /**
+   * Display color as the sheet stores it.
+   * Length: 1 to 50.
+   */
+  readonly color_code: string | null;
+  /**
+   * Record the enumeration applies to.
+   * Length: 1 to 200.
+   */
+  readonly target_entity: string | null;
+  /**
+   * Whether the value is the default.
+   */
+  readonly is_default: boolean | null;
+  /**
+   * Department as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly department: string | null;
+  /**
+   * Category code or name as the sheet gives it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -23802,19 +23909,86 @@ export interface StdLaborRateCardPage {
  * A labor rate card line. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdLaborRateCard {
-  readonly code: StdCode;
+  /**
+   * Canon rate card identifier.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly rate_card_id: string;
   readonly role_code: RoleCode;
   /**
-   * Rate per unit. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Job title of the role.
+   * Length: 1 to 300.
+   */
+  readonly job_title: string | null;
+  readonly class_code: DeptCode;
+  /**
+   * Department of the role.
+   * Length: 1 to 200.
+   */
+  readonly department: string;
+  /**
+   * Worker classification label.
+   * Length: 1 to 200.
+   */
+  readonly worker_classification: string;
+  /**
+   * Pay basis.
+   * Length: 1 to 200.
+   */
+  readonly pay_basis: string;
+  /**
+   * Arrangement.
+   * Length: 1 to 200.
+   */
+  readonly arrangement: string;
+  /**
+   * Standard rate. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
-  readonly rate_minor: number | null;
+  readonly standard_rate_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * Lowest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly min_grade_rate_minor: number | null;
+  /**
+   * Highest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly max_grade_rate_minor: number | null;
+  /**
+   * Per diem rate. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly per_diem_rate_minor: number | null;
+  /**
+   * ISO 4217 currency of the rates.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
-  readonly unit: UnitCode;
+  readonly currency_code: string;
+  /**
+   * Canon overtime rule.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly overtime_rule_id: string;
+  /**
+   * Overtime multiplier.
+   */
+  readonly ot_multiplier: number;
+  /**
+   * Double time multiplier.
+   */
+  readonly dt_multiplier: number;
+  /**
+   * Expense GL account of the role's department.
+   * Length: 1 to 50.
+   */
+  readonly gl_account: string | null;
+  /**
+   * Name of that GL account.
+   * Length: 1 to 300.
+   */
+  readonly gl_account_name: string | null;
 }
 
 /**
@@ -23835,17 +24009,45 @@ export interface StdRadioChannelPage {
  * A radio channel plan entry. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdRadioChannel {
-  readonly code: StdCode;
+  readonly record_id: StdCode;
   /**
-   * Channel number.
-   * Range: 1 to unbounded.
+   * Radio channel number.
    */
-  readonly channel: number;
+  readonly channel: number | null;
   /**
-   * Channel name.
+   * Radio zone.
+   */
+  readonly zone: number | null;
+  /**
+   * Who the channel is assigned to.
+   * Length: 1 to 300.
+   */
+  readonly assignment: string | null;
+  /**
+   * Department as the sheet names it.
    * Length: 1 to 200.
    */
-  readonly name: string;
+  readonly department: string | null;
+  /**
+   * Category code or name as the sheet gives it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -23866,13 +24068,63 @@ export interface StdRolePage {
  * A Roles Library entry. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdRole {
-  readonly code: StdCode;
   readonly role_code: RoleCode;
+  readonly class_code: DeptCode;
   /**
-   * Role description.
+   * Job title; the one home of the title.
+   * Length: 1 to 300.
+   */
+  readonly job_title: string;
+  /**
+   * Discipline.
+   * Length: 1 to 200.
+   */
+  readonly discipline: string;
+  /**
+   * Rank.
+   * Length: 1 to 200.
+   */
+  readonly rank: string;
+  /**
+   * Job summary.
    * Length: 1 to 20000.
    */
-  readonly description: string;
+  readonly job_summary: string | null;
+  /**
+   * Key responsibilities.
+   * Length: 1 to 20000.
+   */
+  readonly key_responsibilities: string | null;
+  /**
+   * Qualifications.
+   * Length: 1 to 20000.
+   */
+  readonly qualifications: string | null;
+  /**
+   * Physical requirements.
+   * Length: 1 to 20000.
+   */
+  readonly physical_requirements: string | null;
+  /**
+   * Required certifications.
+   * Length: 1 to 20000.
+   */
+  readonly required_certifications: string | null;
+  /**
+   * Default clearance tier.
+   * Length: 1 to 200.
+   */
+  readonly default_clearance_tier: string | null;
+  /**
+   * Default radio channel.
+   * Length: 1 to 200.
+   */
+  readonly default_radio_channel: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -23893,17 +24145,87 @@ export interface StdSopPage {
  * A standard operating procedure. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdSop {
-  readonly code: StdCode;
+  readonly sop_id: StdCode;
   /**
    * SOP title.
    * Length: 1 to 200.
    */
-  readonly title: string;
+  readonly title: string | null;
   /**
-   * SOP body.
+   * Operational domain.
+   * Length: 1 to 300.
+   */
+  readonly operational_domain: string | null;
+  /**
+   * Revision.
+   * Length: 1 to 100.
+   */
+  readonly revision: string | null;
+  /**
+   * Accountable role code.
+   * Length: 1 to 100.
+   */
+  readonly accountable_role_code: string | null;
+  /**
+   * Required PPE and compliance tags.
    * Length: 1 to 20000.
    */
-  readonly body: string;
+  readonly required_ppe_compliance_tag: string | null;
+  /**
+   * Prerequisites and hazards.
+   * Length: 1 to 20000.
+   */
+  readonly prerequisites_and_hazards: string | null;
+  /**
+   * Procedure step 1.
+   * Length: 1 to 20000.
+   */
+  readonly procedure_step_1: string | null;
+  /**
+   * Procedure step 2.
+   * Length: 1 to 20000.
+   */
+  readonly procedure_step_2: string | null;
+  /**
+   * Procedure step 3.
+   * Length: 1 to 20000.
+   */
+  readonly procedure_step_3: string | null;
+  /**
+   * Procedure step 4.
+   * Length: 1 to 20000.
+   */
+  readonly procedure_step_4: string | null;
+  /**
+   * Reference document.
+   * Length: 1 to 200.
+   */
+  readonly reference_doc_id: string | null;
+  /**
+   * Department as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly department: string | null;
+  /**
+   * Category code or name as the sheet gives it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -23924,13 +24246,47 @@ export interface StdVendorClassPage {
  * A vendor class. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdVendorClass {
-  readonly code: StdCode;
+  readonly record_id: StdCode;
   /**
-   * Vendor class name.
+   * Vendor class.
+   * Length: 1 to 300.
+   */
+  readonly class: string | null;
+  /**
+   * What the class covers.
+   * Length: 1 to 20000.
+   */
+  readonly description: string | null;
+  /**
+   * Clearance tier.
    * Length: 1 to 200.
    */
-  readonly name: string;
-  readonly counterparty_type: CounterpartyType;
+  readonly clearance_tier: string | null;
+  /**
+   * Department as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly department: string | null;
+  /**
+   * Category code or name as the sheet gives it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -23951,17 +24307,31 @@ export interface StdVendorEntitlementPage {
  * A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdVendorEntitlement {
-  readonly code: StdCode;
+  readonly record_id: StdCode;
   /**
-   * Entitlement name.
+   * Vendor class the entitlement is for.
+   * Length: 1 to 100.
+   */
+  readonly vendor_class: string | null;
+  /**
+   * Module the class may use.
    * Length: 1 to 200.
    */
-  readonly name: string;
+  readonly module: string | null;
   /**
-   * Entitlement description.
+   * Whether the class may use the module.
+   */
+  readonly permitted: boolean | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
    * Length: 1 to 20000.
    */
-  readonly description: string;
+  readonly notes: string | null;
 }
 
 /**
@@ -23982,52 +24352,52 @@ export interface StdVerbiagePage {
  * A controlled vocabulary term. Standard Library row, copied into each new org as editable org data.
  */
 export interface StdVerbiage {
-  readonly code: StdCode;
+  readonly record_id: StdCode;
   /**
    * Term.
    * Length: 1 to 200.
    */
-  readonly term: string;
+  readonly verbiage: string | null;
   /**
-   * Usage rule.
+   * Title.
+   * Length: 1 to 500.
+   */
+  readonly title: string | null;
+  /**
+   * Text.
    * Length: 1 to 20000.
    */
-  readonly usage: string;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface CanonProductionTemplatePage {
+  readonly body: string | null;
   /**
-   * Items on this page, in the documented default order.
+   * When the text is used.
+   * Length: 1 to 20000.
    */
-  readonly data: ReadonlyArray<CanonProductionTemplate>;
+  readonly description: string | null;
   /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * The XOS 4.0 Production Template, with the Cover Page as metadata.
- */
-export interface CanonProductionTemplate {
-  /**
-   * Template identifier.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly template_id: string;
-  /**
-   * Template title.
+   * Department as the sheet names it.
    * Length: 1 to 200.
    */
-  readonly title: string;
+  readonly department: string | null;
   /**
-   * Number of record-template sheets.
-   * Range: 0 to unbounded.
+   * Category code or name as the sheet gives it.
+   * Length: 1 to 200.
    */
-  readonly sheet_count: number;
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * Row status in the sheet.
+   * Length: 1 to 200.
+   */
+  readonly status: string | null;
+  /**
+   * Notes in the sheet.
+   * Length: 1 to 20000.
+   */
+  readonly notes: string | null;
 }
 
 /**
@@ -24052,17 +24422,27 @@ export interface CanonSupersession {
    * Code that was superseded.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly superseded_code: string;
+  readonly code: string;
   /**
    * Code that supersedes it.
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly superseded_by: string;
+  readonly successor_code: string;
   /**
-   * Ratification that recorded the supersession.
-   * Format: `uuid`.
+   * Code domain, such as phase.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly ratification_id: string;
+  readonly domain: string;
+  /**
+   * Label the superseded code carried.
+   * Length: 1 to 300.
+   */
+  readonly label: string;
+  /**
+   * Why the code was superseded.
+   * Length: 1 to 2000.
+   */
+  readonly reason: string;
 }
 
 /**
@@ -24084,11 +24464,6 @@ export interface CanonRatificationPage {
  */
 export interface CanonRatification {
   /**
-   * Identifier of the ratification.
-   * Format: `uuid`.
-   */
-  readonly ratification_id: string;
-  /**
    * What was ratified.
    * Length: 1 to 300.
    */
@@ -24103,6 +24478,11 @@ export interface CanonRatification {
    * Format: `date-time`.
    */
   readonly ratified_at: string;
+  /**
+   * Ratification note.
+   * Length: 1 to 4000.
+   */
+  readonly note: string | null;
 }
 
 /**
@@ -24138,92 +24518,6 @@ export interface CanonVersion {
    * Length: 1 to 300.
    */
   readonly bible_generated_at: string;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface CanonIntakePage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<CanonIntake>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A proposed canon addition, staged for ratification.
- */
-export interface CanonIntake {
-  /**
-   * Identifier of the canon intake.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * What kind of canon value is proposed.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly proposed_kind: string;
-  /**
-   * Proposed code.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly proposed_code: string;
-  /**
-   * Proposed label.
-   * Length: 1 to 200.
-   */
-  readonly proposed_label: string;
-  /**
-   * Why the addition is needed.
-   * Length: 1 to 20000.
-   */
-  readonly rationale: string;
-  /**
-   * Intake state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly intake_state: string;
-}
-
-/**
- * Fields accepted when creating a CanonIntake.
- */
-export interface CanonIntakeCreate {
-  /**
-   * What kind of canon value is proposed.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly proposed_kind: string;
-  /**
-   * Proposed code.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly proposed_code: string;
-  /**
-   * Proposed label.
-   * Length: 1 to 200.
-   */
-  readonly proposed_label: string;
-  /**
-   * Why the addition is needed.
-   * Length: 1 to 20000.
-   */
-  readonly rationale: string;
 }
 
 /**
@@ -24440,12 +24734,93 @@ export interface UrnResolution {
    * Length: 1 to 200.
    */
   readonly label: string;
+  /**
+   * Key of the live row after following supersessions.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly resolved_key: string;
+  /**
+   * Whether the asked key was superseded.
+   */
+  readonly is_superseded: boolean;
 }
 
 /**
  * URN in the `urn:xpms` namespace.
  */
 export type Urn = string;
+
+/**
+ * A proposed canon addition, staged for ratification.
+ */
+export interface CanonIntake {
+  /**
+   * Identifier of the canon intake.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * What kind of canon value is proposed.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly proposed_kind: string;
+  /**
+   * Proposed code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly proposed_code: string;
+  /**
+   * Proposed label.
+   * Length: 1 to 200.
+   */
+  readonly proposed_label: string;
+  /**
+   * Why the addition is needed.
+   * Length: 1 to 20000.
+   */
+  readonly rationale: string;
+  /**
+   * Intake state. A Title Case value from the lifecycle's database enum.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly intake_state: string;
+}
+
+/**
+ * Fields accepted when creating a CanonIntake.
+ */
+export interface CanonIntakeCreate {
+  /**
+   * What kind of canon value is proposed.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly proposed_kind: string;
+  /**
+   * Proposed code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly proposed_code: string;
+  /**
+   * Proposed label.
+   * Length: 1 to 200.
+   */
+  readonly proposed_label: string;
+  /**
+   * Why the addition is needed.
+   * Length: 1 to 20000.
+   */
+  readonly rationale: string;
+}
 
 /**
  * The caller: person, memberships, engagements and the active context.

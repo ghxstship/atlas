@@ -600,11 +600,12 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     module: "Canon",
     entity: "Governance and views",
     operations: [
-      ...read("canonProductionTemplates"),
-      ...read("canonSupersessions"),
+      // The Production Template stays private and intake is the owner's staging; supersessions
+      // are keyed by domain and code, so they are listed, not read by one key (ADR 0031).
+      "canonSupersessions.list",
       ...read("canonRatifications"),
       ...read("canonVersions"),
-      "canonIntake.create",
+      "canonExtensions.propose",
       "canonPhaseCoverage.list",
       "canonElementEconomics.list",
       "canonCrosswalkCoverage.list",

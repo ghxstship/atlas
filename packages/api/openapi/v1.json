@@ -31644,17 +31644,105 @@
       "StdDocument": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
-          "title": {
-            "type": "string",
+          "record_id": { "$ref": "#/components/schemas/StdCode" },
+          "document_name": {
+            "type": ["string", "null"],
             "minLength": 1,
-            "maxLength": 200,
-            "description": "Document title.",
+            "maxLength": 500,
+            "description": "Document name.",
             "example": "Venue Load-In Guide"
           },
-          "urid": { "$ref": "#/components/schemas/UridAtAnyGrain" }
+          "document_type": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Document type.",
+            "example": "Guide"
+          },
+          "reference_id": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Reference identifier.",
+            "example": "DOC-004"
+          },
+          "file_format": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "File format.",
+            "example": "PDF"
+          },
+          "version": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Version.",
+            "example": "v2.0"
+          },
+          "issue_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Issue date.",
+            "example": "2026-10-08"
+          },
+          "expiration_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Expiration date.",
+            "example": "2026-10-08"
+          },
+          "department": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Department as the sheet names it.",
+            "example": "5000 Production"
+          },
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category code or name as the sheet gives it.",
+            "example": "5000.05.02"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Overhead Rigging"
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
+          }
         },
-        "required": ["code", "title", "urid"],
+        "required": [
+          "record_id",
+          "document_name",
+          "document_type",
+          "reference_id",
+          "file_format",
+          "version",
+          "issue_date",
+          "expiration_date",
+          "department",
+          "category",
+          "sub_category",
+          "status",
+          "notes"
+        ],
         "description": "A document and asset library entry. Standard Library row, copied into each new org as editable org data."
       },
       "StdCode": {
@@ -31734,22 +31822,111 @@
       "StdEnumeration": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
-          "enumeration": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Enumeration name.",
-            "example": "line_state"
-          },
-          "value": {
-            "type": "string",
+          "record_id": { "$ref": "#/components/schemas/StdCode" },
+          "enum_domain": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
-            "description": "Value.",
-            "example": "Committed"
+            "description": "Enumeration the value belongs to.",
+            "example": "Incident Severity"
+          },
+          "enum_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Code of the value.",
+            "example": "SEV_L3_MODERATE"
+          },
+          "enum_label": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Label of the value.",
+            "example": "Level 3 - Moderate"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the value means.",
+            "example": "Non-life-threatening medical case."
+          },
+          "sort_order": {
+            "type": ["number", "null"],
+            "description": "Order within the enumeration.",
+            "example": 3
+          },
+          "color_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Display color as the sheet stores it.",
+            "example": "Amber"
+          },
+          "target_entity": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Record the enumeration applies to.",
+            "example": "Incident CAD Log"
+          },
+          "is_default": {
+            "type": ["boolean", "null"],
+            "description": "Whether the value is the default.",
+            "example": false
+          },
+          "department": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Department as the sheet names it.",
+            "example": "5000 Production"
+          },
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category code or name as the sheet gives it.",
+            "example": "5000.05.02"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Overhead Rigging"
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
           }
         },
-        "required": ["code", "enumeration", "value"],
+        "required": [
+          "record_id",
+          "enum_domain",
+          "enum_code",
+          "enum_label",
+          "description",
+          "sort_order",
+          "color_code",
+          "target_entity",
+          "is_default",
+          "department",
+          "category",
+          "sub_category",
+          "status",
+          "notes"
+        ],
         "description": "A controlled enumeration value. Standard Library row, copied into each new org as editable org data."
       },
       "StdLaborRateCardPage": {
@@ -31772,23 +31949,130 @@
       "StdLaborRateCard": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
+          "rate_card_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon rate card identifier.",
+            "example": "LRC-001"
+          },
           "role_code": { "$ref": "#/components/schemas/RoleCode" },
-          "rate_minor": {
+          "job_title": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Job title of the role.",
+            "example": "Head Rigger"
+          },
+          "class_code": { "$ref": "#/components/schemas/DeptCode" },
+          "department": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Department of the role.",
+            "example": "Production"
+          },
+          "worker_classification": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Worker classification label.",
+            "example": "Employee"
+          },
+          "pay_basis": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Pay basis.",
+            "example": "Hourly"
+          },
+          "arrangement": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Arrangement.",
+            "example": "Per Engagement"
+          },
+          "standard_rate_minor": {
             "type": ["integer", "null"],
-            "description": "Rate per unit. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "description": "Standard rate. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 4500,
             "format": "int64"
           },
-          "currency": {
+          "min_grade_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Lowest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 3800,
+            "format": "int64"
+          },
+          "max_grade_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Highest grade rate. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 5200,
+            "format": "int64"
+          },
+          "per_diem_rate_minor": {
+            "type": ["integer", "null"],
+            "description": "Per diem rate. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 6500,
+            "format": "int64"
+          },
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the rates.",
             "example": "USD"
           },
-          "unit": { "$ref": "#/components/schemas/UnitCode" }
+          "overtime_rule_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon overtime rule.",
+            "example": "OTR-001"
+          },
+          "ot_multiplier": {
+            "type": "number",
+            "description": "Overtime multiplier.",
+            "example": 1.5
+          },
+          "dt_multiplier": {
+            "type": "number",
+            "description": "Double time multiplier.",
+            "example": 2
+          },
+          "gl_account": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "description": "Expense GL account of the role's department.",
+            "example": "5400"
+          },
+          "gl_account_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name of that GL account.",
+            "example": "Production Labor"
+          }
         },
-        "required": ["code", "role_code", "rate_minor", "currency", "unit"],
+        "required": [
+          "rate_card_id",
+          "role_code",
+          "job_title",
+          "class_code",
+          "department",
+          "worker_classification",
+          "pay_basis",
+          "arrangement",
+          "standard_rate_minor",
+          "min_grade_rate_minor",
+          "max_grade_rate_minor",
+          "per_diem_rate_minor",
+          "currency_code",
+          "overtime_rule_id",
+          "ot_multiplier",
+          "dt_multiplier",
+          "gl_account",
+          "gl_account_name"
+        ],
         "description": "A labor rate card line. Standard Library row, copied into each new org as editable org data."
       },
       "StdRadioChannelPage": {
@@ -31811,22 +32095,67 @@
       "StdRadioChannel": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
+          "record_id": { "$ref": "#/components/schemas/StdCode" },
           "channel": {
-            "type": "integer",
-            "minimum": 1,
-            "description": "Channel number.",
+            "type": ["number", "null"],
+            "description": "Radio channel number.",
             "example": 1
           },
-          "name": {
-            "type": "string",
+          "zone": { "type": ["number", "null"], "description": "Radio zone.", "example": 1 },
+          "assignment": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Who the channel is assigned to.",
+            "example": "Emergency"
+          },
+          "department": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
-            "description": "Channel name.",
-            "example": "Production"
+            "description": "Department as the sheet names it.",
+            "example": "5000 Production"
+          },
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category code or name as the sheet gives it.",
+            "example": "5000.05.02"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Overhead Rigging"
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
           }
         },
-        "required": ["code", "channel", "name"],
+        "required": [
+          "record_id",
+          "channel",
+          "zone",
+          "assignment",
+          "department",
+          "category",
+          "sub_category",
+          "status",
+          "notes"
+        ],
         "description": "A radio channel plan entry. Standard Library row, copied into each new org as editable org data."
       },
       "StdRolePage": {
@@ -31849,17 +32178,101 @@
       "StdRole": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
           "role_code": { "$ref": "#/components/schemas/RoleCode" },
-          "description": {
+          "class_code": { "$ref": "#/components/schemas/DeptCode" },
+          "job_title": {
             "type": "string",
             "minLength": 1,
+            "maxLength": 300,
+            "description": "Job title; the one home of the title.",
+            "example": "Head Rigger"
+          },
+          "discipline": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Discipline.",
+            "example": "Rigging"
+          },
+          "rank": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Rank.",
+            "example": "Lead"
+          },
+          "job_summary": {
+            "type": ["string", "null"],
+            "minLength": 1,
             "maxLength": 20000,
-            "description": "Role description.",
-            "example": "Leads rigging for the show."
+            "description": "Job summary.",
+            "example": "Leads the rigging crew."
+          },
+          "key_responsibilities": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Key responsibilities.",
+            "example": "Plans and signs off every point."
+          },
+          "qualifications": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Qualifications.",
+            "example": "ETCP Certified Rigger."
+          },
+          "physical_requirements": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Physical requirements.",
+            "example": "Works at height."
+          },
+          "required_certifications": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Required certifications.",
+            "example": "ETCP"
+          },
+          "default_clearance_tier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Default clearance tier.",
+            "example": "Tier 2"
+          },
+          "default_radio_channel": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Default radio channel.",
+            "example": "RCH-004"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Union call."
           }
         },
-        "required": ["code", "role_code", "description"],
+        "required": [
+          "role_code",
+          "class_code",
+          "job_title",
+          "discipline",
+          "rank",
+          "job_summary",
+          "key_responsibilities",
+          "qualifications",
+          "physical_requirements",
+          "required_certifications",
+          "default_clearance_tier",
+          "default_radio_channel",
+          "notes"
+        ],
         "description": "A Roles Library entry. Standard Library row, copied into each new org as editable org data."
       },
       "StdSopPage": {
@@ -31882,23 +32295,139 @@
       "StdSop": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
+          "sop_id": { "$ref": "#/components/schemas/StdCode" },
           "title": {
-            "type": "string",
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
             "description": "SOP title.",
             "example": "Working at Height"
           },
-          "body": {
-            "type": "string",
+          "operational_domain": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Operational domain.",
+            "example": "Structural & Rigging Safety"
+          },
+          "revision": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Revision.",
+            "example": "v2.0"
+          },
+          "accountable_role_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Accountable role code.",
+            "example": "5000.51.02"
+          },
+          "required_ppe_compliance_tag": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
-            "description": "SOP body.",
-            "example": "Inspect the harness before every use."
+            "description": "Required PPE and compliance tags.",
+            "example": "TAG-002 OSHA"
+          },
+          "prerequisites_and_hazards": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Prerequisites and hazards.",
+            "example": "Verify the drop zone."
+          },
+          "procedure_step_1": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure step 1.",
+            "example": "Inspect every hoist."
+          },
+          "procedure_step_2": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure step 2.",
+            "example": "Lift to trim."
+          },
+          "procedure_step_3": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure step 3.",
+            "example": "Load test."
+          },
+          "procedure_step_4": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Procedure step 4.",
+            "example": "Sign off."
+          },
+          "reference_doc_id": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Reference document.",
+            "example": "DOC-004"
+          },
+          "department": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Department as the sheet names it.",
+            "example": "5000 Production"
+          },
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category code or name as the sheet gives it.",
+            "example": "5000.05.02"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Overhead Rigging"
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
           }
         },
-        "required": ["code", "title", "body"],
+        "required": [
+          "sop_id",
+          "title",
+          "operational_domain",
+          "revision",
+          "accountable_role_code",
+          "required_ppe_compliance_tag",
+          "prerequisites_and_hazards",
+          "procedure_step_1",
+          "procedure_step_2",
+          "procedure_step_3",
+          "procedure_step_4",
+          "reference_doc_id",
+          "department",
+          "category",
+          "sub_category",
+          "status",
+          "notes"
+        ],
         "description": "A standard operating procedure. Standard Library row, copied into each new org as editable org data."
       },
       "StdVendorClassPage": {
@@ -31921,17 +32450,75 @@
       "StdVendorClass": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
-          "name": {
-            "type": "string",
+          "record_id": { "$ref": "#/components/schemas/StdCode" },
+          "class": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Vendor class.",
+            "example": "Staging Vendor"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "What the class covers.",
+            "example": "Stages, decks and risers."
+          },
+          "clearance_tier": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
-            "description": "Vendor class name.",
-            "example": "Staging"
+            "description": "Clearance tier.",
+            "example": "Tier 2"
           },
-          "counterparty_type": { "$ref": "#/components/schemas/CounterpartyType" }
+          "department": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Department as the sheet names it.",
+            "example": "5000 Production"
+          },
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category code or name as the sheet gives it.",
+            "example": "5000.05.02"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Overhead Rigging"
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
+          }
         },
-        "required": ["code", "name", "counterparty_type"],
+        "required": [
+          "record_id",
+          "class",
+          "description",
+          "clearance_tier",
+          "department",
+          "category",
+          "sub_category",
+          "status",
+          "notes"
+        ],
         "description": "A vendor class. Standard Library row, copied into each new org as editable org data."
       },
       "StdVendorEntitlementPage": {
@@ -31954,23 +32541,42 @@
       "StdVendorEntitlement": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
-          "name": {
-            "type": "string",
+          "record_id": { "$ref": "#/components/schemas/StdCode" },
+          "vendor_class": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Vendor class the entitlement is for.",
+            "example": "VCL-001"
+          },
+          "module": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
-            "description": "Entitlement name.",
-            "example": "Logo on Main Stage Screen"
+            "description": "Module the class may use.",
+            "example": "Advance"
           },
-          "description": {
-            "type": "string",
+          "permitted": {
+            "type": ["boolean", "null"],
+            "description": "Whether the class may use the module.",
+            "example": true
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Entitlement description.",
-            "example": "Logo shown between sets."
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
           }
         },
-        "required": ["code", "name", "description"],
+        "required": ["record_id", "vendor_class", "module", "permitted", "status", "notes"],
         "description": "A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data."
       },
       "StdVerbiagePage": {
@@ -31993,67 +32599,84 @@
       "StdVerbiage": {
         "type": "object",
         "properties": {
-          "code": { "$ref": "#/components/schemas/StdCode" },
-          "term": {
-            "type": "string",
+          "record_id": { "$ref": "#/components/schemas/StdCode" },
+          "verbiage": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
             "description": "Term.",
             "example": "Load-In"
           },
-          "usage": {
-            "type": "string",
+          "title": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Title.",
+            "example": "Load-In Announcement"
+          },
+          "body": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 20000,
-            "description": "Usage rule.",
-            "example": "Hyphenate as a noun."
-          }
-        },
-        "required": ["code", "term", "usage"],
-        "description": "A controlled vocabulary term. Standard Library row, copied into each new org as editable org data."
-      },
-      "CanonProductionTemplatePage": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/CanonProductionTemplate" },
-            "description": "Items on this page, in the documented default order."
+            "description": "Text.",
+            "example": "All crew to the loading dock."
           },
-          "next_cursor": {
+          "description": {
             "type": ["string", "null"],
-            "description": "Opaque cursor for the next page; null on the last page.",
-            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
-          }
-        },
-        "required": ["data", "next_cursor"],
-        "description": "One page of results with a cursor to the next page."
-      },
-      "CanonProductionTemplate": {
-        "type": "object",
-        "properties": {
-          "template_id": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Template identifier.",
-            "example": "xos-4.0-production"
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "When the text is used.",
+            "example": "Read at the start of load-in."
           },
-          "title": {
-            "type": "string",
+          "department": {
+            "type": ["string", "null"],
             "minLength": 1,
             "maxLength": 200,
-            "description": "Template title.",
-            "example": "XOS 4.0 Production Template"
+            "description": "Department as the sheet names it.",
+            "example": "5000 Production"
           },
-          "sheet_count": {
-            "type": "integer",
-            "minimum": 0,
-            "description": "Number of record-template sheets.",
-            "example": 27
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category code or name as the sheet gives it.",
+            "example": "5000.05.02"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Overhead Rigging"
+          },
+          "status": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Row status in the sheet.",
+            "example": "Active"
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Notes in the sheet.",
+            "example": "Primary life safety and incident response"
           }
         },
-        "required": ["template_id", "title", "sheet_count"],
-        "description": "The XOS 4.0 Production Template, with the Cover Page as metadata."
+        "required": [
+          "record_id",
+          "verbiage",
+          "title",
+          "body",
+          "description",
+          "department",
+          "category",
+          "sub_category",
+          "status",
+          "notes"
+        ],
+        "description": "A controlled vocabulary term. Standard Library row, copied into each new org as editable org data."
       },
       "CanonSupersessionPage": {
         "type": "object",
@@ -32075,26 +32698,40 @@
       "CanonSupersession": {
         "type": "object",
         "properties": {
-          "superseded_code": {
+          "code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Code that was superseded.",
             "example": "DIS"
           },
-          "superseded_by": {
+          "successor_code": {
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Code that supersedes it.",
             "example": "SCP"
           },
-          "ratification_id": {
+          "domain": {
             "type": "string",
-            "format": "uuid",
-            "description": "Ratification that recorded the supersession.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Code domain, such as phase.",
+            "example": "phase"
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Label the superseded code carried.",
+            "example": "Discovery"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the code was superseded.",
+            "example": "Renamed in 4.0."
           }
         },
-        "required": ["superseded_code", "superseded_by", "ratification_id"],
+        "required": ["code", "successor_code", "domain", "label", "reason"],
         "description": "A supersession edge. The graph stays acyclic."
       },
       "CanonRatificationPage": {
@@ -32117,12 +32754,6 @@
       "CanonRatification": {
         "type": "object",
         "properties": {
-          "ratification_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the ratification.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
           "subject": {
             "type": "string",
             "minLength": 1,
@@ -32142,9 +32773,16 @@
             "format": "date-time",
             "description": "When it was ratified.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "Ratification note.",
+            "example": "Ratified at the canon review."
           }
         },
-        "required": ["ratification_id", "subject", "ratifier", "ratified_at"],
+        "required": ["subject", "ratifier", "ratified_at", "note"],
         "description": "A ratification record. 4.0 grammar is proposed until a named ratifier is recorded."
       },
       "CanonVersionPage": {
@@ -32189,122 +32827,6 @@
         },
         "required": ["version_code", "generation", "bible_generated_at"],
         "description": "The current canon version and generation. Canon responses are cached by generation."
-      },
-      "CanonIntakePage": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "type": "array",
-            "items": { "$ref": "#/components/schemas/CanonIntake" },
-            "description": "Items on this page, in the documented default order."
-          },
-          "next_cursor": {
-            "type": ["string", "null"],
-            "description": "Opaque cursor for the next page; null on the last page.",
-            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
-          }
-        },
-        "required": ["data", "next_cursor"],
-        "description": "One page of results with a cursor to the next page."
-      },
-      "CanonIntake": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the canon intake.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was created.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "When the row was last updated.",
-            "example": "2026-10-08T14:30:00Z"
-          },
-          "proposed_kind": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "What kind of canon value is proposed.",
-            "example": "category"
-          },
-          "proposed_code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Proposed code.",
-            "example": "4000.01.50"
-          },
-          "proposed_label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200,
-            "description": "Proposed label.",
-            "example": "Modular Stage Systems"
-          },
-          "rationale": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Why the addition is needed.",
-            "example": "Several orgs track modular stage systems."
-          },
-          "intake_state": {
-            "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Intake state. A Title Case value from the lifecycle's database enum.",
-            "example": "Proposed"
-          }
-        },
-        "required": [
-          "id",
-          "created_at",
-          "updated_at",
-          "proposed_kind",
-          "proposed_code",
-          "proposed_label",
-          "rationale",
-          "intake_state"
-        ],
-        "description": "A proposed canon addition, staged for ratification."
-      },
-      "CanonIntakeCreate": {
-        "type": "object",
-        "properties": {
-          "proposed_kind": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "What kind of canon value is proposed.",
-            "example": "category"
-          },
-          "proposed_code": {
-            "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-            "description": "Proposed code.",
-            "example": "4000.01.50"
-          },
-          "proposed_label": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 200,
-            "description": "Proposed label.",
-            "example": "Modular Stage Systems"
-          },
-          "rationale": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Why the addition is needed.",
-            "example": "Several orgs track modular stage systems."
-          }
-        },
-        "required": ["proposed_kind", "proposed_code", "proposed_label", "rationale"],
-        "description": "Fields accepted when creating a CanonIntake."
       },
       "CoordinateMatrixCellPage": {
         "type": "object",
@@ -32592,9 +33114,20 @@
             "maxLength": 200,
             "description": "Display label of the row.",
             "example": "Production Leadership"
+          },
+          "resolved_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Key of the live row after following supersessions.",
+            "example": "SCP"
+          },
+          "is_superseded": {
+            "type": "boolean",
+            "description": "Whether the asked key was superseded.",
+            "example": false
           }
         },
-        "required": ["urn", "kind", "key", "label"],
+        "required": ["urn", "kind", "key", "label", "resolved_key", "is_superseded"],
         "description": "A URN resolved to its canon row."
       },
       "Urn": {
@@ -32602,6 +33135,105 @@
         "pattern": "^urn:xpms:[a-z_]+:.+$",
         "description": "URN in the `urn:xpms` namespace.",
         "example": "urn:xpms:category:4000.01.01"
+      },
+      "CanonIntake": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the canon intake.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "proposed_kind": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "What kind of canon value is proposed.",
+            "example": "category"
+          },
+          "proposed_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Proposed code.",
+            "example": "4000.01.50"
+          },
+          "proposed_label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Proposed label.",
+            "example": "Modular Stage Systems"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the addition is needed.",
+            "example": "Several orgs track modular stage systems."
+          },
+          "intake_state": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
+            "description": "Intake state. A Title Case value from the lifecycle's database enum.",
+            "example": "Proposed"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "proposed_kind",
+          "proposed_code",
+          "proposed_label",
+          "rationale",
+          "intake_state"
+        ],
+        "description": "A proposed canon addition, staged for ratification."
+      },
+      "CanonIntakeCreate": {
+        "type": "object",
+        "properties": {
+          "proposed_kind": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "What kind of canon value is proposed.",
+            "example": "category"
+          },
+          "proposed_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Proposed code.",
+            "example": "4000.01.50"
+          },
+          "proposed_label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Proposed label.",
+            "example": "Modular Stage Systems"
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the addition is needed.",
+            "example": "Several orgs track modular stage systems."
+          }
+        },
+        "required": ["proposed_kind", "proposed_code", "proposed_label", "rationale"],
+        "description": "Fields accepted when creating a CanonIntake."
       },
       "Me": {
         "type": "object",
@@ -106081,9 +106713,9 @@
         "x-xos-table": "xpms.std_document_library",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["record_id"], "numeric": false },
         "summary": "List std document rows",
-        "description": "A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A document and asset library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std document rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106103,7 +106735,21 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "code": "SOP-001", "title": "Venue Load-In Guide", "urid": "4000.01" }
+                    {
+                      "record_id": "SOP-001",
+                      "document_name": "Venue Load-In Guide",
+                      "document_type": "Guide",
+                      "reference_id": "DOC-004",
+                      "file_format": "PDF",
+                      "version": "v2.0",
+                      "issue_date": "2026-10-08",
+                      "expiration_date": "2026-10-08",
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -106117,7 +106763,7 @@
         }
       }
     },
-    "/canon/std/document-library/{code}": {
+    "/canon/std/document-library/{record_id}": {
       "get": {
         "operationId": "canonStdDocumentLibrary.get",
         "tags": ["Canon"],
@@ -106131,7 +106777,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "record_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106147,7 +106793,21 @@
             },
             "content": {
               "application/json": {
-                "example": { "code": "SOP-001", "title": "Venue Load-In Guide", "urid": "4000.01" },
+                "example": {
+                  "record_id": "SOP-001",
+                  "document_name": "Venue Load-In Guide",
+                  "document_type": "Guide",
+                  "reference_id": "DOC-004",
+                  "file_format": "PDF",
+                  "version": "v2.0",
+                  "issue_date": "2026-10-08",
+                  "expiration_date": "2026-10-08",
+                  "department": "5000 Production",
+                  "category": "5000.05.02",
+                  "sub_category": "Overhead Rigging",
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
+                },
                 "schema": { "$ref": "#/components/schemas/StdDocument" }
               }
             }
@@ -106270,9 +106930,9 @@
         "x-xos-table": "xpms.std_enumeration",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["record_id"], "numeric": false },
         "summary": "List std enumeration rows",
-        "description": "A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A controlled enumeration value. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std enumeration rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106292,7 +106952,22 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "code": "SOP-001", "enumeration": "line_state", "value": "Committed" }
+                    {
+                      "record_id": "SOP-001",
+                      "enum_domain": "Incident Severity",
+                      "enum_code": "SEV_L3_MODERATE",
+                      "enum_label": "Level 3 - Moderate",
+                      "description": "Non-life-threatening medical case.",
+                      "sort_order": 3,
+                      "color_code": "Amber",
+                      "target_entity": "Incident CAD Log",
+                      "is_default": false,
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -106306,7 +106981,7 @@
         }
       }
     },
-    "/canon/std/enumerations/{code}": {
+    "/canon/std/enumerations/{record_id}": {
       "get": {
         "operationId": "canonStdEnumerations.get",
         "tags": ["Canon"],
@@ -106320,7 +106995,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "record_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106336,7 +107011,22 @@
             },
             "content": {
               "application/json": {
-                "example": { "code": "SOP-001", "enumeration": "line_state", "value": "Committed" },
+                "example": {
+                  "record_id": "SOP-001",
+                  "enum_domain": "Incident Severity",
+                  "enum_code": "SEV_L3_MODERATE",
+                  "enum_label": "Level 3 - Moderate",
+                  "description": "Non-life-threatening medical case.",
+                  "sort_order": 3,
+                  "color_code": "Amber",
+                  "target_entity": "Incident CAD Log",
+                  "is_default": false,
+                  "department": "5000 Production",
+                  "category": "5000.05.02",
+                  "sub_category": "Overhead Rigging",
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
+                },
                 "schema": { "$ref": "#/components/schemas/StdEnumeration" }
               }
             }
@@ -106352,12 +107042,12 @@
       "get": {
         "operationId": "canonStdLaborRateCards.list",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.std_labor_rate_card",
+        "x-xos-table": "xpms.rate_card_resolved",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["rate_card_id"], "numeric": false },
         "summary": "List std labor rate card rows",
-        "description": "A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std labor rate card rows the caller may see. The default order is `rate_card_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106378,11 +107068,24 @@
                 "example": {
                   "data": [
                     {
-                      "code": "SOP-001",
+                      "rate_card_id": "LRC-001",
                       "role_code": "5000.50.01",
-                      "rate_minor": 4500,
-                      "currency": "USD",
-                      "unit": "each"
+                      "job_title": "Head Rigger",
+                      "class_code": "4000",
+                      "department": "Production",
+                      "worker_classification": "Employee",
+                      "pay_basis": "Hourly",
+                      "arrangement": "Per Engagement",
+                      "standard_rate_minor": 4500,
+                      "min_grade_rate_minor": 3800,
+                      "max_grade_rate_minor": 5200,
+                      "per_diem_rate_minor": 6500,
+                      "currency_code": "USD",
+                      "overtime_rule_id": "OTR-001",
+                      "ot_multiplier": 1.5,
+                      "dt_multiplier": 2,
+                      "gl_account": "5400",
+                      "gl_account_name": "Production Labor"
                     }
                   ],
                   "next_cursor": null
@@ -106397,21 +107100,26 @@
         }
       }
     },
-    "/canon/std/labor-rate-cards/{code}": {
+    "/canon/std/labor-rate-cards/{rate_card_id}": {
       "get": {
         "operationId": "canonStdLaborRateCards.get",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.std_labor_rate_card",
+        "x-xos-table": "xpms.rate_card_resolved",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
         "summary": "Get a std labor rate card",
         "description": "A labor rate card line. Standard Library row, copied into each new org as editable org data. Returns one std labor rate card with its `ETag`. A std labor rate card the caller may not see returns 404.",
         "parameters": [
           {
-            "schema": { "$ref": "#/components/schemas/StdCode" },
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+              "description": "Canon rate card identifier.",
+              "example": "LRC-001"
+            },
             "required": true,
-            "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "description": "Canon rate card identifier.",
+            "name": "rate_card_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106428,11 +107136,24 @@
             "content": {
               "application/json": {
                 "example": {
-                  "code": "SOP-001",
+                  "rate_card_id": "LRC-001",
                   "role_code": "5000.50.01",
-                  "rate_minor": 4500,
-                  "currency": "USD",
-                  "unit": "each"
+                  "job_title": "Head Rigger",
+                  "class_code": "4000",
+                  "department": "Production",
+                  "worker_classification": "Employee",
+                  "pay_basis": "Hourly",
+                  "arrangement": "Per Engagement",
+                  "standard_rate_minor": 4500,
+                  "min_grade_rate_minor": 3800,
+                  "max_grade_rate_minor": 5200,
+                  "per_diem_rate_minor": 6500,
+                  "currency_code": "USD",
+                  "overtime_rule_id": "OTR-001",
+                  "ot_multiplier": 1.5,
+                  "dt_multiplier": 2,
+                  "gl_account": "5400",
+                  "gl_account_name": "Production Labor"
                 },
                 "schema": { "$ref": "#/components/schemas/StdLaborRateCard" }
               }
@@ -106474,8 +107195,28 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "code": "SOP-001", "channel": 1, "name": "Production" },
-                    { "code": "SOP-001", "channel": 2, "name": "Production" }
+                    {
+                      "record_id": "SOP-001",
+                      "channel": 1,
+                      "zone": 1,
+                      "assignment": "Emergency",
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
+                    },
+                    {
+                      "record_id": "SOP-001",
+                      "channel": 2,
+                      "zone": 1,
+                      "assignment": "Emergency",
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -106489,7 +107230,7 @@
         }
       }
     },
-    "/canon/std/radio-channels/{code}": {
+    "/canon/std/radio-channels/{record_id}": {
       "get": {
         "operationId": "canonStdRadioChannels.get",
         "tags": ["Canon"],
@@ -106503,7 +107244,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "record_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106519,7 +107260,17 @@
             },
             "content": {
               "application/json": {
-                "example": { "code": "SOP-001", "channel": 1, "name": "Production" },
+                "example": {
+                  "record_id": "SOP-001",
+                  "channel": 1,
+                  "zone": 1,
+                  "assignment": "Emergency",
+                  "department": "5000 Production",
+                  "category": "5000.05.02",
+                  "sub_category": "Overhead Rigging",
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
+                },
                 "schema": { "$ref": "#/components/schemas/StdRadioChannel" }
               }
             }
@@ -106535,12 +107286,12 @@
       "get": {
         "operationId": "canonStdRoles.list",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.std_role",
+        "x-xos-table": "xpms.role",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["role_code"], "numeric": false },
         "summary": "List std role rows",
-        "description": "A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std role rows the caller may see. The default order is `role_code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106561,9 +107312,19 @@
                 "example": {
                   "data": [
                     {
-                      "code": "SOP-001",
                       "role_code": "5000.50.01",
-                      "description": "Leads rigging for the show."
+                      "class_code": "4000",
+                      "job_title": "Head Rigger",
+                      "discipline": "Rigging",
+                      "rank": "Lead",
+                      "job_summary": "Leads the rigging crew.",
+                      "key_responsibilities": "Plans and signs off every point.",
+                      "qualifications": "ETCP Certified Rigger.",
+                      "physical_requirements": "Works at height.",
+                      "required_certifications": "ETCP",
+                      "default_clearance_tier": "Tier 2",
+                      "default_radio_channel": "RCH-004",
+                      "notes": "Union call."
                     }
                   ],
                   "next_cursor": null
@@ -106578,21 +107339,21 @@
         }
       }
     },
-    "/canon/std/roles/{code}": {
+    "/canon/std/roles/{role_code}": {
       "get": {
         "operationId": "canonStdRoles.get",
         "tags": ["Canon"],
-        "x-xos-table": "xpms.std_role",
+        "x-xos-table": "xpms.role",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
         "summary": "Get a std role",
         "description": "A Roles Library entry. Standard Library row, copied into each new org as editable org data. Returns one std role with its `ETag`. A std role the caller may not see returns 404.",
         "parameters": [
           {
-            "schema": { "$ref": "#/components/schemas/StdCode" },
+            "schema": { "$ref": "#/components/schemas/RoleCode" },
             "required": true,
-            "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "description": "Workforce role code from `xpms.dim_role`, on URID grammar.",
+            "name": "role_code",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106609,9 +107370,19 @@
             "content": {
               "application/json": {
                 "example": {
-                  "code": "SOP-001",
                   "role_code": "5000.50.01",
-                  "description": "Leads rigging for the show."
+                  "class_code": "4000",
+                  "job_title": "Head Rigger",
+                  "discipline": "Rigging",
+                  "rank": "Lead",
+                  "job_summary": "Leads the rigging crew.",
+                  "key_responsibilities": "Plans and signs off every point.",
+                  "qualifications": "ETCP Certified Rigger.",
+                  "physical_requirements": "Works at height.",
+                  "required_certifications": "ETCP",
+                  "default_clearance_tier": "Tier 2",
+                  "default_radio_channel": "RCH-004",
+                  "notes": "Union call."
                 },
                 "schema": { "$ref": "#/components/schemas/StdRole" }
               }
@@ -106631,9 +107402,9 @@
         "x-xos-table": "xpms.std_sop",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["sop_id"], "numeric": false },
         "summary": "List std sop rows",
-        "description": "A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A standard operating procedure. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std sop rows the caller may see. The default order is `sop_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106654,9 +107425,23 @@
                 "example": {
                   "data": [
                     {
-                      "code": "SOP-001",
+                      "sop_id": "SOP-001",
                       "title": "Working at Height",
-                      "body": "Inspect the harness before every use."
+                      "operational_domain": "Structural & Rigging Safety",
+                      "revision": "v2.0",
+                      "accountable_role_code": "5000.51.02",
+                      "required_ppe_compliance_tag": "TAG-002 OSHA",
+                      "prerequisites_and_hazards": "Verify the drop zone.",
+                      "procedure_step_1": "Inspect every hoist.",
+                      "procedure_step_2": "Lift to trim.",
+                      "procedure_step_3": "Load test.",
+                      "procedure_step_4": "Sign off.",
+                      "reference_doc_id": "DOC-004",
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
                     }
                   ],
                   "next_cursor": null
@@ -106671,7 +107456,7 @@
         }
       }
     },
-    "/canon/std/sops/{code}": {
+    "/canon/std/sops/{sop_id}": {
       "get": {
         "operationId": "canonStdSops.get",
         "tags": ["Canon"],
@@ -106685,7 +107470,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "sop_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106702,9 +107487,23 @@
             "content": {
               "application/json": {
                 "example": {
-                  "code": "SOP-001",
+                  "sop_id": "SOP-001",
                   "title": "Working at Height",
-                  "body": "Inspect the harness before every use."
+                  "operational_domain": "Structural & Rigging Safety",
+                  "revision": "v2.0",
+                  "accountable_role_code": "5000.51.02",
+                  "required_ppe_compliance_tag": "TAG-002 OSHA",
+                  "prerequisites_and_hazards": "Verify the drop zone.",
+                  "procedure_step_1": "Inspect every hoist.",
+                  "procedure_step_2": "Lift to trim.",
+                  "procedure_step_3": "Load test.",
+                  "procedure_step_4": "Sign off.",
+                  "reference_doc_id": "DOC-004",
+                  "department": "5000 Production",
+                  "category": "5000.05.02",
+                  "sub_category": "Overhead Rigging",
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
                 },
                 "schema": { "$ref": "#/components/schemas/StdSop" }
               }
@@ -106724,9 +107523,9 @@
         "x-xos-table": "xpms.std_vendor_class",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["record_id"], "numeric": false },
         "summary": "List std vendor class rows",
-        "description": "A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A vendor class. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor class rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106746,7 +107545,17 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "code": "SOP-001", "name": "Staging", "counterparty_type": "AV Integrator" }
+                    {
+                      "record_id": "SOP-001",
+                      "class": "Staging Vendor",
+                      "description": "Stages, decks and risers.",
+                      "clearance_tier": "Tier 2",
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -106760,7 +107569,7 @@
         }
       }
     },
-    "/canon/std/vendor-classes/{code}": {
+    "/canon/std/vendor-classes/{record_id}": {
       "get": {
         "operationId": "canonStdVendorClasses.get",
         "tags": ["Canon"],
@@ -106774,7 +107583,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "record_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106791,9 +107600,15 @@
             "content": {
               "application/json": {
                 "example": {
-                  "code": "SOP-001",
-                  "name": "Staging",
-                  "counterparty_type": "AV Integrator"
+                  "record_id": "SOP-001",
+                  "class": "Staging Vendor",
+                  "description": "Stages, decks and risers.",
+                  "clearance_tier": "Tier 2",
+                  "department": "5000 Production",
+                  "category": "5000.05.02",
+                  "sub_category": "Overhead Rigging",
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
                 },
                 "schema": { "$ref": "#/components/schemas/StdVendorClass" }
               }
@@ -106813,9 +107628,9 @@
         "x-xos-table": "xpms.std_vendor_entitlement",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["record_id"], "numeric": false },
         "summary": "List std vendor entitlement rows",
-        "description": "A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A vendor or sponsor entitlement. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std vendor entitlement rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106836,9 +107651,12 @@
                 "example": {
                   "data": [
                     {
-                      "code": "SOP-001",
-                      "name": "Logo on Main Stage Screen",
-                      "description": "Logo shown between sets."
+                      "record_id": "SOP-001",
+                      "vendor_class": "VCL-001",
+                      "module": "Advance",
+                      "permitted": true,
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
                     }
                   ],
                   "next_cursor": null
@@ -106853,7 +107671,7 @@
         }
       }
     },
-    "/canon/std/vendor-entitlements/{code}": {
+    "/canon/std/vendor-entitlements/{record_id}": {
       "get": {
         "operationId": "canonStdVendorEntitlements.get",
         "tags": ["Canon"],
@@ -106867,7 +107685,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "record_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106884,9 +107702,12 @@
             "content": {
               "application/json": {
                 "example": {
-                  "code": "SOP-001",
-                  "name": "Logo on Main Stage Screen",
-                  "description": "Logo shown between sets."
+                  "record_id": "SOP-001",
+                  "vendor_class": "VCL-001",
+                  "module": "Advance",
+                  "permitted": true,
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
                 },
                 "schema": { "$ref": "#/components/schemas/StdVendorEntitlement" }
               }
@@ -106906,9 +107727,9 @@
         "x-xos-table": "xpms.std_verbiage",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["code"], "numeric": false },
+        "x-xos-order": { "by": ["record_id"], "numeric": false },
         "summary": "List std verbiage rows",
-        "description": "A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A controlled vocabulary term. Standard Library row, copied into each new org as editable org data. Returns a cursor page of std verbiage rows the caller may see. The default order is `record_id` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -106928,7 +107749,18 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "code": "SOP-001", "term": "Load-In", "usage": "Hyphenate as a noun." }
+                    {
+                      "record_id": "SOP-001",
+                      "verbiage": "Load-In",
+                      "title": "Load-In Announcement",
+                      "body": "All crew to the loading dock.",
+                      "description": "Read at the start of load-in.",
+                      "department": "5000 Production",
+                      "category": "5000.05.02",
+                      "sub_category": "Overhead Rigging",
+                      "status": "Active",
+                      "notes": "Primary life safety and incident response"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -106942,7 +107774,7 @@
         }
       }
     },
-    "/canon/std/verbiage/{code}": {
+    "/canon/std/verbiage/{record_id}": {
       "get": {
         "operationId": "canonStdVerbiage.get",
         "tags": ["Canon"],
@@ -106956,7 +107788,7 @@
             "schema": { "$ref": "#/components/schemas/StdCode" },
             "required": true,
             "description": "Natural code of a Standard Library row (Section 2.1).",
-            "name": "code",
+            "name": "record_id",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -106973,109 +107805,18 @@
             "content": {
               "application/json": {
                 "example": {
-                  "code": "SOP-001",
-                  "term": "Load-In",
-                  "usage": "Hyphenate as a noun."
+                  "record_id": "SOP-001",
+                  "verbiage": "Load-In",
+                  "title": "Load-In Announcement",
+                  "body": "All crew to the loading dock.",
+                  "description": "Read at the start of load-in.",
+                  "department": "5000 Production",
+                  "category": "5000.05.02",
+                  "sub_category": "Overhead Rigging",
+                  "status": "Active",
+                  "notes": "Primary life safety and incident response"
                 },
                 "schema": { "$ref": "#/components/schemas/StdVerbiage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/canon/production-templates": {
-      "get": {
-        "operationId": "canonProductionTemplates.list",
-        "tags": ["Canon"],
-        "x-xos-table": "xpms.production_template",
-        "x-xos-capability": "canon.taxonomy.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["template_id"], "numeric": false },
-        "summary": "List canon production template rows",
-        "description": "The XOS 4.0 Production Template, with the Cover Page as metadata. Returns a cursor page of canon production template rows the caller may see. The default order is `template_id` ascending. Supports sparse fieldsets and the filter grammar.",
-        "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Fields" },
-          { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of canon production template rows.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "template_id": "xos-4.0-production",
-                      "title": "XOS 4.0 Production Template",
-                      "sheet_count": 27
-                    }
-                  ],
-                  "next_cursor": null
-                },
-                "schema": { "$ref": "#/components/schemas/CanonProductionTemplatePage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/canon/production-templates/{template_id}": {
-      "get": {
-        "operationId": "canonProductionTemplates.get",
-        "tags": ["Canon"],
-        "x-xos-table": "xpms.production_template",
-        "x-xos-capability": "canon.taxonomy.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "summary": "Get a canon production template",
-        "description": "The XOS 4.0 Production Template, with the Cover Page as metadata. Returns one canon production template with its `ETag`. A canon production template the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-              "description": "Template identifier.",
-              "example": "xos-4.0-production"
-            },
-            "required": true,
-            "description": "Template identifier.",
-            "name": "template_id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The canon production template.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "template_id": "xos-4.0-production",
-                  "title": "XOS 4.0 Production Template",
-                  "sheet_count": 27
-                },
-                "schema": { "$ref": "#/components/schemas/CanonProductionTemplate" }
               }
             }
           },
@@ -107093,9 +107834,9 @@
         "x-xos-table": "xpms.supersession",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["superseded_code"], "numeric": false },
+        "x-xos-order": { "by": ["domain", "code"], "numeric": false },
         "summary": "List canon supersession rows",
-        "description": "A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `superseded_code` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A supersession edge. The graph stays acyclic. Returns a cursor page of canon supersession rows the caller may see. The default order is `domain`, then `code` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -107116,9 +107857,11 @@
                 "example": {
                   "data": [
                     {
-                      "superseded_code": "DIS",
-                      "superseded_by": "SCP",
-                      "ratification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "code": "DIS",
+                      "successor_code": "SCP",
+                      "domain": "phase",
+                      "label": "Discovery",
+                      "reason": "Renamed in 4.0."
                     }
                   ],
                   "next_cursor": null
@@ -107133,57 +107876,6 @@
         }
       }
     },
-    "/canon/supersessions/{superseded_code}": {
-      "get": {
-        "operationId": "canonSupersessions.get",
-        "tags": ["Canon"],
-        "x-xos-table": "xpms.supersession",
-        "x-xos-capability": "canon.taxonomy.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "summary": "Get a canon supersession",
-        "description": "A supersession edge. The graph stays acyclic. Returns one canon supersession with its `ETag`. A canon supersession the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
-              "description": "Code that was superseded.",
-              "example": "DIS"
-            },
-            "required": true,
-            "description": "Code that was superseded.",
-            "name": "superseded_code",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The canon supersession.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "superseded_code": "DIS",
-                  "superseded_by": "SCP",
-                  "ratification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-                },
-                "schema": { "$ref": "#/components/schemas/CanonSupersession" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
     "/canon/ratifications": {
       "get": {
         "operationId": "canonRatifications.list",
@@ -107191,9 +107883,9 @@
         "x-xos-table": "xpms.ratification",
         "x-xos-capability": "canon.taxonomy.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["ratification_id"], "numeric": false },
+        "x-xos-order": { "by": ["subject"], "numeric": false },
         "summary": "List canon ratification rows",
-        "description": "A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `ratification_id` ascending. Supports sparse fieldsets and the filter grammar.",
+        "description": "A ratification record. 4.0 grammar is proposed until a named ratifier is recorded. Returns a cursor page of canon ratification rows the caller may see. The default order is `subject` ascending. Supports sparse fieldsets and the filter grammar.",
         "parameters": [
           { "$ref": "#/components/parameters/Limit" },
           { "$ref": "#/components/parameters/Cursor" },
@@ -107214,10 +107906,10 @@
                 "example": {
                   "data": [
                     {
-                      "ratification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "subject": "4.0 phase grammar",
                       "ratifier": "Canon Ratifier",
-                      "ratified_at": "2026-10-08T14:30:00Z"
+                      "ratified_at": "2026-10-08T14:30:00Z",
+                      "note": "Ratified at the canon review."
                     }
                   ],
                   "next_cursor": null
@@ -107232,7 +107924,7 @@
         }
       }
     },
-    "/canon/ratifications/{ratification_id}": {
+    "/canon/ratifications/{subject}": {
       "get": {
         "operationId": "canonRatifications.get",
         "tags": ["Canon"],
@@ -107245,13 +107937,14 @@
           {
             "schema": {
               "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the ratification.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              "minLength": 1,
+              "maxLength": 300,
+              "description": "What was ratified.",
+              "example": "4.0 phase grammar"
             },
             "required": true,
-            "description": "Identifier of the ratification.",
-            "name": "ratification_id",
+            "description": "What was ratified.",
+            "name": "subject",
             "in": "path"
           },
           { "$ref": "#/components/parameters/Fields" }
@@ -107268,10 +107961,10 @@
             "content": {
               "application/json": {
                 "example": {
-                  "ratification_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "subject": "4.0 phase grammar",
                   "ratifier": "Canon Ratifier",
-                  "ratified_at": "2026-10-08T14:30:00Z"
+                  "ratified_at": "2026-10-08T14:30:00Z",
+                  "note": "Ratified at the canon review."
                 },
                 "schema": { "$ref": "#/components/schemas/CanonRatification" }
               }
@@ -107372,169 +108065,6 @@
                   "bible_generated_at": "2026-10-01 09:00:00"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonVersion" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "404": { "$ref": "#/components/responses/NotFound" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/canon/intake": {
-      "get": {
-        "operationId": "canonIntake.list",
-        "tags": ["Canon"],
-        "x-xos-table": "xpms.intake",
-        "x-xos-capability": "canon.taxonomy.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "x-xos-order": { "by": ["created_at"], "numeric": false },
-        "summary": "List canon intake proposal rows",
-        "description": "A proposed canon addition, staged for ratification. Returns a cursor page of canon intake proposal rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
-        "parameters": [
-          { "$ref": "#/components/parameters/Limit" },
-          { "$ref": "#/components/parameters/Cursor" },
-          { "$ref": "#/components/parameters/Fields" },
-          { "$ref": "#/components/parameters/Sort" },
-          { "$ref": "#/components/parameters/Filter" }
-        ],
-        "responses": {
-          "200": {
-            "description": "A page of canon intake proposal rows.",
-            "headers": {
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "data": [
-                    {
-                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "created_at": "2026-10-08T14:30:00Z",
-                      "updated_at": "2026-10-08T14:30:00Z",
-                      "proposed_kind": "category",
-                      "proposed_code": "4000.01.50",
-                      "proposed_label": "Modular Stage Systems",
-                      "rationale": "Several orgs track modular stage systems.",
-                      "intake_state": "Proposed"
-                    }
-                  ],
-                  "next_cursor": null
-                },
-                "schema": { "$ref": "#/components/schemas/CanonIntakePage" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "canonIntake.create",
-        "tags": ["Canon"],
-        "x-xos-table": "xpms.intake",
-        "x-xos-capability": "canon.extension.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "summary": "Create a canon intake proposal",
-        "description": "A proposed canon addition, staged for ratification. Creates a canon intake proposal. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "proposed_kind": "category",
-                "proposed_code": "4000.01.50",
-                "proposed_label": "Modular Stage Systems",
-                "rationale": "Several orgs track modular stage systems."
-              },
-              "schema": { "$ref": "#/components/schemas/CanonIntakeCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created canon intake proposal.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "proposed_kind": "category",
-                  "proposed_code": "4000.01.50",
-                  "proposed_label": "Modular Stage Systems",
-                  "rationale": "Several orgs track modular stage systems.",
-                  "intake_state": "Proposed"
-                },
-                "schema": { "$ref": "#/components/schemas/CanonIntake" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      }
-    },
-    "/canon/intake/{id}": {
-      "get": {
-        "operationId": "canonIntake.get",
-        "tags": ["Canon"],
-        "x-xos-table": "xpms.intake",
-        "x-xos-capability": "canon.taxonomy.read",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
-        "summary": "Get a canon intake proposal",
-        "description": "A proposed canon addition, staged for ratification. Returns one canon intake proposal with its `ETag`. A canon intake proposal the caller may not see returns 404.",
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "description": "Identifier of the canon intake.",
-              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-            },
-            "required": true,
-            "description": "Identifier of the canon intake.",
-            "name": "id",
-            "in": "path"
-          },
-          { "$ref": "#/components/parameters/Fields" }
-        ],
-        "responses": {
-          "200": {
-            "description": "The canon intake proposal.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "proposed_kind": "category",
-                  "proposed_code": "4000.01.50",
-                  "proposed_label": "Modular Stage Systems",
-                  "rationale": "Several orgs track modular stage systems.",
-                  "intake_state": "Proposed"
-                },
-                "schema": { "$ref": "#/components/schemas/CanonIntake" }
               }
             }
           },
@@ -107791,7 +108321,9 @@
                   "urn": "urn:xpms:category:4000.01.01",
                   "kind": "category",
                   "key": "4000.01.01",
-                  "label": "Production Leadership"
+                  "label": "Production Leadership",
+                  "resolved_key": "SCP",
+                  "is_superseded": false
                 },
                 "schema": { "$ref": "#/components/schemas/UrnResolution" }
               }

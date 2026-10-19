@@ -237,11 +237,9 @@ from .resources import (
     CanonStdVendorClassesResource,
     CanonStdVendorEntitlementsResource,
     CanonStdVerbiageResource,
-    CanonProductionTemplatesResource,
     CanonSupersessionsResource,
     CanonRatificationsResource,
     CanonVersionsResource,
-    CanonIntakeResource,
     CanonCoordinateMatrixResource,
     CanonPhaseCoverageResource,
     CanonElementEconomicsResource,
@@ -640,11 +638,9 @@ class XosClient(XosClientCore):
     canon_std_vendor_classes: CanonStdVendorClassesResource
     canon_std_vendor_entitlements: CanonStdVendorEntitlementsResource
     canon_std_verbiage: CanonStdVerbiageResource
-    canon_production_templates: CanonProductionTemplatesResource
     canon_supersessions: CanonSupersessionsResource
     canon_ratifications: CanonRatificationsResource
     canon_versions: CanonVersionsResource
-    canon_intake: CanonIntakeResource
     canon_coordinate_matrix: CanonCoordinateMatrixResource
     canon_phase_coverage: CanonPhaseCoverageResource
     canon_element_economics: CanonElementEconomicsResource
@@ -1031,11 +1027,9 @@ class XosClient(XosClientCore):
         self.canon_std_vendor_classes = CanonStdVendorClassesResource(self)
         self.canon_std_vendor_entitlements = CanonStdVendorEntitlementsResource(self)
         self.canon_std_verbiage = CanonStdVerbiageResource(self)
-        self.canon_production_templates = CanonProductionTemplatesResource(self)
         self.canon_supersessions = CanonSupersessionsResource(self)
         self.canon_ratifications = CanonRatificationsResource(self)
         self.canon_versions = CanonVersionsResource(self)
-        self.canon_intake = CanonIntakeResource(self)
         self.canon_coordinate_matrix = CanonCoordinateMatrixResource(self)
         self.canon_phase_coverage = CanonPhaseCoverageResource(self)
         self.canon_element_economics = CanonElementEconomicsResource(self)

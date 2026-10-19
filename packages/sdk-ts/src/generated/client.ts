@@ -231,11 +231,9 @@ import {
   CanonStdVendorClassesResource,
   CanonStdVendorEntitlementsResource,
   CanonStdVerbiageResource,
-  CanonProductionTemplatesResource,
   CanonSupersessionsResource,
   CanonRatificationsResource,
   CanonVersionsResource,
-  CanonIntakeResource,
   CanonCoordinateMatrixResource,
   CanonPhaseCoverageResource,
   CanonElementEconomicsResource,
@@ -911,17 +909,12 @@ export class XosClient extends XosClientCore {
     new CanonStdVendorEntitlementsResource(this);
   /** Canon: operations on `canonStdVerbiage`. */
   readonly canonStdVerbiage: CanonStdVerbiageResource = new CanonStdVerbiageResource(this);
-  /** Canon: operations on `canonProductionTemplates`. */
-  readonly canonProductionTemplates: CanonProductionTemplatesResource =
-    new CanonProductionTemplatesResource(this);
   /** Canon: operations on `canonSupersessions`. */
   readonly canonSupersessions: CanonSupersessionsResource = new CanonSupersessionsResource(this);
   /** Canon: operations on `canonRatifications`. */
   readonly canonRatifications: CanonRatificationsResource = new CanonRatificationsResource(this);
   /** Canon: operations on `canonVersions`. */
   readonly canonVersions: CanonVersionsResource = new CanonVersionsResource(this);
-  /** Canon: operations on `canonIntake`. */
-  readonly canonIntake: CanonIntakeResource = new CanonIntakeResource(this);
   /** Canon: operations on `canonCoordinateMatrix`. */
   readonly canonCoordinateMatrix: CanonCoordinateMatrixResource = new CanonCoordinateMatrixResource(
     this,
