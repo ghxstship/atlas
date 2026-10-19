@@ -5167,11 +5167,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     name: string;
-    currency: string;
+    currency_code: string;
   };
-  PriceBookCreate: { name: string; currency: string };
+  PriceBookCreate: { name: string; currency_code: string };
   PriceBookPage: { data: Array<Components["PriceBook"]>; next_cursor: string | null };
-  PriceBookUpdate: { name?: string; currency?: string };
+  PriceBookUpdate: { name?: string; currency_code?: string };
   Problem: { type: string; title: string; status: number; detail?: string; instance?: string };
   ProfileHandle: {
     id: string;

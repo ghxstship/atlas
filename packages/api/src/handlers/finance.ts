@@ -287,6 +287,7 @@ export const handlers = defineHandlers("Finance", {
   ...handlersFor("Finance", taxJurisdictions),
   ...handlersFor("Finance", taxRates),
   ...handlersFor("Finance", fxRates),
+  ...handlersFor("Finance", tableResource("priceBooks")),
 
   "budgets.summary": async ({ params }, context) =>
     ok((await budgetSummary(context, params.id)) as never),

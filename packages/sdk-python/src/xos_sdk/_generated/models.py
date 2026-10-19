@@ -8592,7 +8592,7 @@ class PriceBook(TypedDict):
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class PriceBookCreate(TypedDict):
@@ -8601,7 +8601,7 @@ class PriceBookCreate(TypedDict):
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class PriceBookUpdate(TypedDict, total=False):
@@ -8610,7 +8610,7 @@ class PriceBookUpdate(TypedDict, total=False):
     #: Price book name.
     name: str
     #: ISO 4217 currency code of every money field.
-    currency: str
+    currency_code: str
 
 
 class RfqPage(TypedDict):

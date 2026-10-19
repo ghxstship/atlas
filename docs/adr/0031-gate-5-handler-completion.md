@@ -20,7 +20,9 @@ Corrections that only change a shape so a handler can serve it are entries in th
 
 ### Tables built
 
-None yet.
+| Table             | Migration | Operations                                                 | Why                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------- | --------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `app.price_books` | 1170      | `priceBooks.list`, `.get`, `.create`, `.update`, `.delete` | Section 7.3 lists `price_books` under money and formats, and the v1 contract documents an org price book for selling items, read with `procurement.catalog.read` and written with `procurement.catalog.write`. No table backed it. The table holds the name and the currency (`currency_code`, correction `price-book-currency-code`); a name appears once per org among live books, and delete is soft. Prices within a book are left to a later additive resource, since the frozen contract has none. |
 
 ## Consequences
 

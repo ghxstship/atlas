@@ -14098,7 +14098,7 @@ export interface PriceBook {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
 }
 
 /**
@@ -14114,7 +14114,7 @@ export interface PriceBookCreate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string;
 }
 
 /**
@@ -14130,7 +14130,7 @@ export interface PriceBookUpdate {
    * ISO 4217 currency code of every money field.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string;
 }
 
 /**

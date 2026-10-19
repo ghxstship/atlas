@@ -18921,7 +18921,7 @@
             "description": "Price book name.",
             "example": "Standard Client Rates"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
@@ -18936,7 +18936,7 @@
           "updated_at",
           "updated_by",
           "name",
-          "currency"
+          "currency_code"
         ],
         "description": "An org price book for selling items."
       },
@@ -18950,14 +18950,14 @@
             "description": "Price book name.",
             "example": "Standard Client Rates"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
           }
         },
-        "required": ["name", "currency"],
+        "required": ["name", "currency_code"],
         "description": "Fields accepted when creating a PriceBook."
       },
       "PriceBookUpdate": {
@@ -18970,7 +18970,7 @@
             "description": "Price book name.",
             "example": "Standard Client Rates"
           },
-          "currency": {
+          "currency_code": {
             "type": "string",
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
@@ -85781,7 +85781,7 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Standard Client Rates",
-                      "currency": "USD"
+                      "currency_code": "USD"
                     }
                   ],
                   "next_cursor": null
@@ -85808,7 +85808,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Standard Client Rates", "currency": "USD" },
+              "example": { "name": "Standard Client Rates", "currency_code": "USD" },
               "schema": { "$ref": "#/components/schemas/PriceBookCreate" }
             }
           }
@@ -85832,7 +85832,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Standard Client Rates",
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/PriceBook" }
               }
@@ -85889,7 +85889,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Standard Client Rates",
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/PriceBook" }
               }
@@ -85928,7 +85928,7 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Standard Client Rates", "currency": "USD" },
+              "example": { "name": "Standard Client Rates", "currency_code": "USD" },
               "schema": { "$ref": "#/components/schemas/PriceBookUpdate" }
             }
           }
@@ -85952,7 +85952,7 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Standard Client Rates",
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/PriceBook" }
               }
