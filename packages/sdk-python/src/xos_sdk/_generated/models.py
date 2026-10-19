@@ -927,7 +927,6 @@ __all__ = [
     "Verification",
     "SubscriptionPage",
     "Subscription",
-    "SubscriptionUpdate",
     "PlanPage",
     "Plan",
     "WorkspacePage",
@@ -948,14 +947,6 @@ __all__ = [
     "OrgBranding",
     "OrgBrandingCreate",
     "OrgBrandingUpdate",
-    "OrgLegalEntityPage",
-    "OrgLegalEntity",
-    "OrgLegalEntityCreate",
-    "OrgLegalEntityUpdate",
-    "OrgIpAllowlistEntryPage",
-    "OrgIpAllowlistEntry",
-    "OrgIpAllowlistEntryCreate",
-    "OrgIpAllowlistEntryUpdate",
     "RolePage",
     "Role",
     "RoleCreate",
@@ -986,20 +977,6 @@ __all__ = [
     "ColumnClassificationPage",
     "ColumnClassification",
     "Classification",
-    "AccessReviewCampaignPage",
-    "AccessReviewCampaign",
-    "AccessReviewCampaignCreate",
-    "AccessReviewCampaignUpdate",
-    "AccessReviewItemPage",
-    "AccessReviewItem",
-    "AccessReviewItemUpdate",
-    "BreakGlassSessionPage",
-    "BreakGlassSession",
-    "BreakGlassSessionCreate",
-    "ProjectSharePage",
-    "ProjectShare",
-    "ProjectShareCreate",
-    "ProjectShareUpdate",
     "ScimGroupMappingPage",
     "ScimGroupMapping",
     "ScimGroupMappingCreate",
@@ -1058,7 +1035,6 @@ __all__ = [
     "RetentionPolicy",
     "OrgExportPage",
     "OrgExport",
-    "ExportFormat",
     "OrgExportCreate",
     "AiSettingsPage",
     "AiSettings",
@@ -1070,6 +1046,7 @@ __all__ = [
     "ReportDefinitionUpdate",
     "ReportRunPage",
     "ReportRun",
+    "ExportFormat",
     "ReportRunCreate",
     "ReportSchedulePage",
     "ReportSchedule",
@@ -15100,13 +15077,6 @@ class Subscription(TypedDict):
     subscription_state: Literal["trialing", "active", "past_due", "read_only", "canceled"]
 
 
-class SubscriptionUpdate(TypedDict, total=False):
-    """Fields accepted when updating a Subscription. Omitted fields are unchanged."""
-
-    #: Plan code from `plans.yaml`.
-    plan_code: str
-
-
 class PlanPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15405,122 +15375,6 @@ class OrgBrandingUpdate(TypedDict, total=False):
     legal_entity_name: Optional[str]
     #: True hides Powered by XOS; it takes effect only while the plan includes white label.
     suppress_powered_by: bool
-
-
-class OrgLegalEntityPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[OrgLegalEntity]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class OrgLegalEntity(TypedDict):
-    """A legal entity of the organization with its fiscal settings."""
-
-    #: Identifier of the org legal entity.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Legal name.
-    legal_name: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
-    tax_identifier: Optional[Union[str, Masked]]
-    #: Fiscal year start month.
-    fiscal_year_start_month: int
-    #: Base currency.
-    base_currency: str
-
-
-class _OrgLegalEntityCreateRequired(TypedDict):
-    #: Legal name.
-    legal_name: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
-    #: Fiscal year start month.
-    fiscal_year_start_month: int
-    #: Base currency.
-    base_currency: str
-
-
-class OrgLegalEntityCreate(_OrgLegalEntityCreateRequired, total=False):
-    """Fields accepted when creating a OrgLegalEntity."""
-
-    #: Tax identifier.
-    tax_identifier: Optional[str]
-
-
-class OrgLegalEntityUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OrgLegalEntity. Omitted fields are unchanged."""
-
-    #: Legal name.
-    legal_name: str
-    #: ISO 3166-1 alpha-2 country code.
-    country: str
-    #: Tax identifier.
-    tax_identifier: Optional[str]
-    #: Fiscal year start month.
-    fiscal_year_start_month: int
-    #: Base currency.
-    base_currency: str
-
-
-class OrgIpAllowlistEntryPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[OrgIpAllowlistEntry]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class OrgIpAllowlistEntry(TypedDict):
-    """An allowed network for Atlas and the API."""
-
-    #: Identifier of the org ip allowlist entry.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: CIDR block.
-    cidr: str
-    #: Label.
-    label: str
-
-
-class OrgIpAllowlistEntryCreate(TypedDict):
-    """Fields accepted when creating a OrgIpAllowlistEntry."""
-
-    #: CIDR block.
-    cidr: str
-    #: Label.
-    label: str
-
-
-class OrgIpAllowlistEntryUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OrgIpAllowlistEntry. Omitted fields are unchanged."""
-
-    #: CIDR block.
-    cidr: str
-    #: Label.
-    label: str
 
 
 class RolePage(TypedDict):
@@ -16024,195 +15878,6 @@ class ColumnClassification(TypedDict):
     classification: Classification
     #: Capability that unmasks it.
     read_capability: Optional[str]
-
-
-class AccessReviewCampaignPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[AccessReviewCampaign]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class AccessReviewCampaign(TypedDict):
-    """A quarterly access review campaign."""
-
-    #: Identifier of the access review campaign.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Campaign name.
-    name: str
-    #: Due date.
-    due_on: str
-    #: Remove access left unreviewed after 14 days.
-    auto_remove_unreviewed: bool
-    #: Campaign state. A Title Case value from the lifecycle's database enum.
-    campaign_state: str
-
-
-class AccessReviewCampaignCreate(TypedDict):
-    """Fields accepted when creating a AccessReviewCampaign."""
-
-    #: Campaign name.
-    name: str
-    #: Due date.
-    due_on: str
-    #: Remove access left unreviewed after 14 days.
-    auto_remove_unreviewed: bool
-
-
-class AccessReviewCampaignUpdate(TypedDict, total=False):
-    """Fields accepted when updating a AccessReviewCampaign. Omitted fields are unchanged."""
-
-    #: Campaign name.
-    name: str
-    #: Due date.
-    due_on: str
-    #: Remove access left unreviewed after 14 days.
-    auto_remove_unreviewed: bool
-
-
-class AccessReviewItemPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[AccessReviewItem]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class AccessReviewItem(TypedDict):
-    """One membership role to confirm or remove."""
-
-    #: Identifier of the access review item.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the campaign.
-    access_review_campaign_id: str
-    #: Identifier of the membership role.
-    membership_role_id: str
-    #: Decision. A Title Case value from the lifecycle's database enum.
-    decision: Optional[str]
-
-
-class AccessReviewItemUpdate(TypedDict, total=False):
-    """Fields accepted when updating a AccessReviewItem. Omitted fields are unchanged."""
-
-    #: Decision. A Title Case value from the lifecycle's database enum.
-    decision: Optional[str]
-
-
-class BreakGlassSessionPage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[BreakGlassSession]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class BreakGlassSession(TypedDict):
-    """One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified."""
-
-    #: Identifier of the break glass session.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the Owner.
-    person_id: str
-    #: Written reason.
-    reason: str
-    #: Start.
-    started_at: str
-    #: End, one hour after start.
-    expires_at: str
-
-
-class BreakGlassSessionCreate(TypedDict):
-    """Fields accepted when creating a BreakGlassSession."""
-
-    #: Written reason.
-    reason: str
-
-
-class ProjectSharePage(TypedDict):
-    """One page of results with a cursor to the next page."""
-
-    #: Items on this page, in the documented default order.
-    data: List[ProjectShare]
-    #: Opaque cursor for the next page; null on the last page.
-    next_cursor: Optional[str]
-
-
-class ProjectShare(TypedDict):
-    """A project shared with a partner org, mapping its roles onto project roles."""
-
-    #: Identifier of the project share.
-    id: str
-    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-    org_id: str
-    #: When the row was created.
-    created_at: str
-    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
-    created_by: Optional[str]
-    #: When the row was last updated.
-    updated_at: str
-    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-    updated_by: Optional[str]
-    #: Identifier of the project.
-    project_id: str
-    #: Identifier of the partner organization.
-    partner_organization_id: str
-    #: End of the share.
-    valid_to: Optional[str]
-
-
-class _ProjectShareCreateRequired(TypedDict):
-    #: Identifier of the project.
-    project_id: str
-    #: Identifier of the partner organization.
-    partner_organization_id: str
-
-
-class ProjectShareCreate(_ProjectShareCreateRequired, total=False):
-    """Fields accepted when creating a ProjectShare."""
-
-    #: End of the share.
-    valid_to: Optional[str]
-
-
-class ProjectShareUpdate(TypedDict, total=False):
-    """Fields accepted when updating a ProjectShare. Omitted fields are unchanged."""
-
-    #: End of the share.
-    valid_to: Optional[str]
 
 
 class ScimGroupMappingPage(TypedDict):
@@ -17064,17 +16729,27 @@ class OrgExport(TypedDict):
     updated_at: str
     #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
     updated_by: Optional[str]
-    format: ExportFormat
-    #: Export state. A Title Case value from the lifecycle's database enum.
-    export_state: str
-    #: Identifier of the export file.
-    document_id: Optional[str]
+    #: Tables in the archive.
+    table_count: int
+    #: Rows across every table.
+    row_count: int
+    #: Stored files included.
+    file_count: int
+    #: SHA-256 of the archive's manifest.json, lowercase hex.
+    manifest_sha256: str
 
 
 class OrgExportCreate(TypedDict):
     """Fields accepted when creating a OrgExport."""
 
-    format: ExportFormat
+    #: Tables in the archive.
+    table_count: int
+    #: Rows across every table.
+    row_count: int
+    #: Stored files included.
+    file_count: int
+    #: SHA-256 of the archive's manifest.json, lowercase hex.
+    manifest_sha256: str
 
 
 class AiSettingsPage(TypedDict):

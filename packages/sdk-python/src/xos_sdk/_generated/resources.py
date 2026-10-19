@@ -16,13 +16,6 @@ if TYPE_CHECKING:
         AccessGridEntryCreate,
         AccessGridEntryPage,
         AccessGridEntryUpdate,
-        AccessReviewCampaign,
-        AccessReviewCampaignCreate,
-        AccessReviewCampaignPage,
-        AccessReviewCampaignUpdate,
-        AccessReviewItem,
-        AccessReviewItemPage,
-        AccessReviewItemUpdate,
         AccessScan,
         AccessScanCreate,
         AccessScanPage,
@@ -182,9 +175,6 @@ if TYPE_CHECKING:
         BillingDrawCreate,
         BillingDrawPage,
         BillingDrawUpdate,
-        BreakGlassSession,
-        BreakGlassSessionCreate,
-        BreakGlassSessionPage,
         Budget,
         BudgetCreate,
         BudgetLine,
@@ -751,14 +741,6 @@ if TYPE_CHECKING:
         OrgExport,
         OrgExportCreate,
         OrgExportPage,
-        OrgIpAllowlistEntry,
-        OrgIpAllowlistEntryCreate,
-        OrgIpAllowlistEntryPage,
-        OrgIpAllowlistEntryUpdate,
-        OrgLegalEntity,
-        OrgLegalEntityCreate,
-        OrgLegalEntityPage,
-        OrgLegalEntityUpdate,
         OrgStateLabel,
         OrgStateLabelCreate,
         OrgStateLabelPage,
@@ -871,10 +853,6 @@ if TYPE_CHECKING:
         ProjectPage,
         ProjectPhaseTransition,
         ProjectPhaseTransitionPage,
-        ProjectShare,
-        ProjectShareCreate,
-        ProjectSharePage,
-        ProjectShareUpdate,
         ProjectTransitionRequest,
         ProjectUpdate,
         Provenance,
@@ -1141,7 +1119,6 @@ if TYPE_CHECKING:
         StdVerbiagePage,
         Subscription,
         SubscriptionPage,
-        SubscriptionUpdate,
         SupportSession,
         SupportSessionGrantRequest,
         SupportSessionPage,
@@ -24179,23 +24156,6 @@ class SubscriptionsResource(Resource):
         """
         return self._client.request(OPERATIONS["subscriptions.get"], path={"id": id}, query={"fields": fields}, options=options)
 
-    def update(
-        self,
-        id: str,
-        body: SubscriptionUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Subscription]:
-        """Update a subscription
-
-        Present only when an organization uses Atlas: plan, billing and tenant settings. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /subscriptions/{id}`` (operation ``subscriptions.update``).
-        Requires the capability ``org.billing.manage``.
-        """
-        return self._client.request(OPERATIONS["subscriptions.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
 
 class PlansResource(Resource):
     """Operations on ``plans``, in the Settings module."""
@@ -24739,220 +24699,6 @@ class OrgBrandingsResource(Resource):
         Requires the capability ``org.white_label.write``.
         """
         return self._client.request(OPERATIONS["orgBrandings.delete"], path={"id": id}, options=options)
-
-
-class OrgLegalEntitiesResource(Resource):
-    """Operations on ``orgLegalEntities``, in the Settings module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[OrgLegalEntity]:
-        """List org legal entity rows
-
-        A legal entity of the organization with its fiscal settings. Returns a cursor page of org legal entity rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /org-legal-entities`` (operation ``orgLegalEntities.list``).
-        Requires the capability ``org.settings.read``.
-        """
-        return self._client.request_page(OPERATIONS["orgLegalEntities.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[OrgLegalEntity]:
-        """List org legal entity rows
-
-        A legal entity of the organization with its fiscal settings. Returns a cursor page of org legal entity rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /org-legal-entities`` (operation ``orgLegalEntities.list``).
-        Requires the capability ``org.settings.read``.
-        """
-        return self._client.paginate(OPERATIONS["orgLegalEntities.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: OrgLegalEntityCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[OrgLegalEntity]:
-        """Create an org legal entity
-
-        A legal entity of the organization with its fiscal settings. Creates an org legal entity. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /org-legal-entities`` (operation ``orgLegalEntities.create``).
-        Requires the capability ``org.legal_entities.write``.
-        """
-        return self._client.request(OPERATIONS["orgLegalEntities.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[OrgLegalEntity]:
-        """Get an org legal entity
-
-        A legal entity of the organization with its fiscal settings. Returns one org legal entity with its `ETag`. A org legal entity the caller may not see returns 404.
-
-        ``GET /org-legal-entities/{id}`` (operation ``orgLegalEntities.get``).
-        Requires the capability ``org.settings.read``.
-        """
-        return self._client.request(OPERATIONS["orgLegalEntities.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: OrgLegalEntityUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[OrgLegalEntity]:
-        """Update an org legal entity
-
-        A legal entity of the organization with its fiscal settings. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /org-legal-entities/{id}`` (operation ``orgLegalEntities.update``).
-        Requires the capability ``org.legal_entities.write``.
-        """
-        return self._client.request(OPERATIONS["orgLegalEntities.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete an org legal entity
-
-        A legal entity of the organization with its fiscal settings. Soft-deletes the org legal entity: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /org-legal-entities/{id}`` (operation ``orgLegalEntities.delete``).
-        Requires the capability ``org.legal_entities.write``.
-        """
-        return self._client.request(OPERATIONS["orgLegalEntities.delete"], path={"id": id}, options=options)
-
-
-class OrgIpAllowlistEntriesResource(Resource):
-    """Operations on ``orgIpAllowlistEntries``, in the Settings module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[OrgIpAllowlistEntry]:
-        """List IP allow-list entry rows
-
-        An allowed network for Atlas and the API. Returns a cursor page of IP allow-list entry rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /org-ip-allowlist`` (operation ``orgIpAllowlistEntries.list``).
-        Requires the capability ``org.settings.read``.
-        """
-        return self._client.request_page(OPERATIONS["orgIpAllowlistEntries.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[OrgIpAllowlistEntry]:
-        """List IP allow-list entry rows
-
-        An allowed network for Atlas and the API. Returns a cursor page of IP allow-list entry rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /org-ip-allowlist`` (operation ``orgIpAllowlistEntries.list``).
-        Requires the capability ``org.settings.read``.
-        """
-        return self._client.paginate(OPERATIONS["orgIpAllowlistEntries.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: OrgIpAllowlistEntryCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[OrgIpAllowlistEntry]:
-        """Create an IP allow-list entry
-
-        An allowed network for Atlas and the API. Creates an IP allow-list entry. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /org-ip-allowlist`` (operation ``orgIpAllowlistEntries.create``).
-        Requires the capability ``org.security.write``.
-        """
-        return self._client.request(OPERATIONS["orgIpAllowlistEntries.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[OrgIpAllowlistEntry]:
-        """Get an IP allow-list entry
-
-        An allowed network for Atlas and the API. Returns one IP allow-list entry with its `ETag`. A IP allow-list entry the caller may not see returns 404.
-
-        ``GET /org-ip-allowlist/{id}`` (operation ``orgIpAllowlistEntries.get``).
-        Requires the capability ``org.settings.read``.
-        """
-        return self._client.request(OPERATIONS["orgIpAllowlistEntries.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: OrgIpAllowlistEntryUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[OrgIpAllowlistEntry]:
-        """Update an IP allow-list entry
-
-        An allowed network for Atlas and the API. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /org-ip-allowlist/{id}`` (operation ``orgIpAllowlistEntries.update``).
-        Requires the capability ``org.security.write``.
-        """
-        return self._client.request(OPERATIONS["orgIpAllowlistEntries.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete an IP allow-list entry
-
-        An allowed network for Atlas and the API. Soft-deletes the IP allow-list entry: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /org-ip-allowlist/{id}`` (operation ``orgIpAllowlistEntries.delete``).
-        Requires the capability ``org.security.write``.
-        """
-        return self._client.request(OPERATIONS["orgIpAllowlistEntries.delete"], path={"id": id}, options=options)
 
 
 class RolesResource(Resource):
@@ -25707,371 +25453,6 @@ class ColumnClassificationsResource(Resource):
         Requires the capability ``org.settings.read``.
         """
         return self._client.paginate(OPERATIONS["columnClassifications.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-
-class AccessReviewCampaignsResource(Resource):
-    """Operations on ``accessReviewCampaigns``, in the Settings module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[AccessReviewCampaign]:
-        """List access review campaign rows
-
-        A quarterly access review campaign. Returns a cursor page of access review campaign rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /access-review-campaigns`` (operation ``accessReviewCampaigns.list``).
-        Requires the capability ``org.members.read``.
-        """
-        return self._client.request_page(OPERATIONS["accessReviewCampaigns.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[AccessReviewCampaign]:
-        """List access review campaign rows
-
-        A quarterly access review campaign. Returns a cursor page of access review campaign rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /access-review-campaigns`` (operation ``accessReviewCampaigns.list``).
-        Requires the capability ``org.members.read``.
-        """
-        return self._client.paginate(OPERATIONS["accessReviewCampaigns.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: AccessReviewCampaignCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[AccessReviewCampaign]:
-        """Create an access review campaign
-
-        A quarterly access review campaign. Creates an access review campaign. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /access-review-campaigns`` (operation ``accessReviewCampaigns.create``).
-        Requires the capability ``org.access_reviews.manage``.
-        """
-        return self._client.request(OPERATIONS["accessReviewCampaigns.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[AccessReviewCampaign]:
-        """Get an access review campaign
-
-        A quarterly access review campaign. Returns one access review campaign with its `ETag`. A access review campaign the caller may not see returns 404.
-
-        ``GET /access-review-campaigns/{id}`` (operation ``accessReviewCampaigns.get``).
-        Requires the capability ``org.members.read``.
-        """
-        return self._client.request(OPERATIONS["accessReviewCampaigns.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: AccessReviewCampaignUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[AccessReviewCampaign]:
-        """Update an access review campaign
-
-        A quarterly access review campaign. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /access-review-campaigns/{id}`` (operation ``accessReviewCampaigns.update``).
-        Requires the capability ``org.access_reviews.manage``.
-        """
-        return self._client.request(OPERATIONS["accessReviewCampaigns.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete an access review campaign
-
-        A quarterly access review campaign. Soft-deletes the access review campaign: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /access-review-campaigns/{id}`` (operation ``accessReviewCampaigns.delete``).
-        Requires the capability ``org.access_reviews.manage``.
-        """
-        return self._client.request(OPERATIONS["accessReviewCampaigns.delete"], path={"id": id}, options=options)
-
-
-class AccessReviewItemsResource(Resource):
-    """Operations on ``accessReviewItems``, in the Settings module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[AccessReviewItem]:
-        """List access review item rows
-
-        One membership role to confirm or remove. Returns a cursor page of access review item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /access-review-items`` (operation ``accessReviewItems.list``).
-        Requires the capability ``org.members.read``.
-        """
-        return self._client.request_page(OPERATIONS["accessReviewItems.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[AccessReviewItem]:
-        """List access review item rows
-
-        One membership role to confirm or remove. Returns a cursor page of access review item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /access-review-items`` (operation ``accessReviewItems.list``).
-        Requires the capability ``org.members.read``.
-        """
-        return self._client.paginate(OPERATIONS["accessReviewItems.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[AccessReviewItem]:
-        """Get an access review item
-
-        One membership role to confirm or remove. Returns one access review item with its `ETag`. A access review item the caller may not see returns 404.
-
-        ``GET /access-review-items/{id}`` (operation ``accessReviewItems.get``).
-        Requires the capability ``org.members.read``.
-        """
-        return self._client.request(OPERATIONS["accessReviewItems.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: AccessReviewItemUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[AccessReviewItem]:
-        """Update an access review item
-
-        One membership role to confirm or remove. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /access-review-items/{id}`` (operation ``accessReviewItems.update``).
-        Requires the capability ``org.access_reviews.manage``.
-        """
-        return self._client.request(OPERATIONS["accessReviewItems.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-
-class BreakGlassSessionsResource(Resource):
-    """Operations on ``breakGlassSessions``, in the Settings module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[BreakGlassSession]:
-        """List break glass session rows
-
-        One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified. Returns a cursor page of break glass session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /break-glass-sessions`` (operation ``breakGlassSessions.list``).
-        Requires the capability ``audit.log.read``.
-        """
-        return self._client.request_page(OPERATIONS["breakGlassSessions.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[BreakGlassSession]:
-        """List break glass session rows
-
-        One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified. Returns a cursor page of break glass session rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /break-glass-sessions`` (operation ``breakGlassSessions.list``).
-        Requires the capability ``audit.log.read``.
-        """
-        return self._client.paginate(OPERATIONS["breakGlassSessions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: BreakGlassSessionCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[BreakGlassSession]:
-        """Create a break glass session
-
-        One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified. Creates a break glass session. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /break-glass-sessions`` (operation ``breakGlassSessions.create``).
-        Requires the capability ``org.break_glass.use``.
-        """
-        return self._client.request(OPERATIONS["breakGlassSessions.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[BreakGlassSession]:
-        """Get a break glass session
-
-        One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified. Returns one break glass session with its `ETag`. A break glass session the caller may not see returns 404.
-
-        ``GET /break-glass-sessions/{id}`` (operation ``breakGlassSessions.get``).
-        Requires the capability ``audit.log.read``.
-        """
-        return self._client.request(OPERATIONS["breakGlassSessions.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-
-class ProjectSharesResource(Resource):
-    """Operations on ``projectShares``, in the Settings module."""
-
-    def list(
-        self,
-        *,
-        limit: Optional[int] = None,
-        cursor: Optional[str] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Page[ProjectShare]:
-        """List project share rows
-
-        A project shared with a partner org, mapping its roles onto project roles. Returns a cursor page of project share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        ``GET /project-shares`` (operation ``projectShares.list``).
-        Requires the capability ``projects.project.read``.
-        """
-        return self._client.request_page(OPERATIONS["projectShares.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def list_all(
-        self,
-        *,
-        limit: Optional[int] = None,
-        fields: FieldsArg = None,
-        sort: SortArg = None,
-        filter: Optional[Filter] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> Iterator[ProjectShare]:
-        """List project share rows
-
-        A project shared with a partner org, mapping its roles onto project roles. Returns a cursor page of project share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-
-        Iterates every item across all pages, following ``next_cursor``.
-
-        ``GET /project-shares`` (operation ``projectShares.list``).
-        Requires the capability ``projects.project.read``.
-        """
-        return self._client.paginate(OPERATIONS["projectShares.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: ProjectShareCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProjectShare]:
-        """Create a project share
-
-        A project shared with a partner org, mapping its roles onto project roles. Creates a project share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /project-shares`` (operation ``projectShares.create``).
-        Requires the capability ``org.access_grants.manage``.
-        """
-        return self._client.request(OPERATIONS["projectShares.create"], body=body, idempotency_key=idempotency_key, options=options)
-
-    def get(
-        self,
-        id: str,
-        *,
-        fields: FieldsArg = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProjectShare]:
-        """Get a project share
-
-        A project shared with a partner org, mapping its roles onto project roles. Returns one project share with its `ETag`. A project share the caller may not see returns 404.
-
-        ``GET /project-shares/{id}`` (operation ``projectShares.get``).
-        Requires the capability ``projects.project.read``.
-        """
-        return self._client.request(OPERATIONS["projectShares.get"], path={"id": id}, query={"fields": fields}, options=options)
-
-    def update(
-        self,
-        id: str,
-        body: ProjectShareUpdate,
-        *,
-        if_match: str,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ProjectShare]:
-        """Update a project share
-
-        A project shared with a partner org, mapping its roles onto project roles. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-
-        ``PATCH /project-shares/{id}`` (operation ``projectShares.update``).
-        Requires the capability ``org.access_grants.manage``.
-        """
-        return self._client.request(OPERATIONS["projectShares.update"], path={"id": id}, body=body, if_match=if_match, options=options)
-
-    def delete(
-        self,
-        id: str,
-        *,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[None]:
-        """Delete a project share
-
-        A project shared with a partner org, mapping its roles onto project roles. Soft-deletes the project share: it moves to Trash and can be restored for its table's retention period.
-
-        ``DELETE /project-shares/{id}`` (operation ``projectShares.delete``).
-        Requires the capability ``org.access_grants.manage``.
-        """
-        return self._client.request(OPERATIONS["projectShares.delete"], path={"id": id}, options=options)
 
 
 class ScimGroupMappingsResource(Resource):
@@ -27486,7 +26867,7 @@ class OrgExportsResource(Resource):
         A full organization export. Returns a cursor page of org export rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
 
         ``GET /org-exports`` (operation ``orgExports.list``).
-        Requires the capability ``data.export.run``.
+        Requires the capability ``org.organization.delete``.
         """
         return self._client.request_page(OPERATIONS["orgExports.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
@@ -27506,7 +26887,7 @@ class OrgExportsResource(Resource):
         Iterates every item across all pages, following ``next_cursor``.
 
         ``GET /org-exports`` (operation ``orgExports.list``).
-        Requires the capability ``data.export.run``.
+        Requires the capability ``org.organization.delete``.
         """
         return self._client.paginate(OPERATIONS["orgExports.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
@@ -27522,7 +26903,7 @@ class OrgExportsResource(Resource):
         A full organization export. Creates an org export. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /org-exports`` (operation ``orgExports.create``).
-        Requires the capability ``data.export.run``.
+        Requires the capability ``org.organization.delete``.
         """
         return self._client.request(OPERATIONS["orgExports.create"], body=body, idempotency_key=idempotency_key, options=options)
 
@@ -27538,7 +26919,7 @@ class OrgExportsResource(Resource):
         A full organization export. Returns one org export with its `ETag`. A org export the caller may not see returns 404.
 
         ``GET /org-exports/{id}`` (operation ``orgExports.get``).
-        Requires the capability ``data.export.run``.
+        Requires the capability ``org.organization.delete``.
         """
         return self._client.request(OPERATIONS["orgExports.get"], path={"id": id}, query={"fields": fields}, options=options)
 

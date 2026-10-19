@@ -354,9 +354,8 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
     module: "Settings",
     entity: "Security",
     operations: [
-      ...crud("orgIpAllowlistEntries"),
+      // The IP allow-list and break-glass are not built yet (ADR 0031).
       ...crud("verifiedDomains"),
-      "breakGlassSessions.create",
     ],
   },
   { module: "Settings", entity: "White label", operations: crud("orgBrandings") },

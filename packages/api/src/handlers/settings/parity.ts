@@ -19,6 +19,8 @@ import type { Row } from "../support/table.ts";
 
 // API keys ------------------------------------------------------------------------------------------
 
+const orgExports = tableResource("orgExports", { softDelete: false, verbs: ["list", "get"] });
+
 const apiKeys = tableResource("apiKeys", {
   verbs: ["list", "get", "update"],
   fixed: ["service_account_id"],
@@ -215,4 +217,20 @@ export const settingsParity = {
   ...handlersFor("Settings", tableResource("consentRecords", { orgColumn: true })),
   ...handlersFor("Settings", tableResource("dsarRequests")),
   ...handlersFor("Settings", tableResource("retentionPolicies", { softDelete: false })),
+
+  // Full org exports (Section 14.7): the Owner builds the archive with their own row level security
+  // and logs it with its counts and manifest hash (app.record_org_export, 1063). Append-only.
+  ...handlersFor("Settings", orgExports),
+  "orgExports.create": async ({ body }, context) => {
+    const exportId = await run<string>(
+      rpc(context.db, "record_org_export", {
+        p_org_id: requireOrg(context).id,
+        p_table_count: body.table_count,
+        p_row_count: body.row_count,
+        p_file_count: body.file_count,
+        p_manifest_sha256: body.manifest_sha256,
+      }),
+    );
+    return created((await orgExports.read(context, exportId)) as Components["OrgExport"]);
+  },
 } satisfies HandlerSet<"Settings">;

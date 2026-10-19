@@ -26647,17 +26647,6 @@ export interface Subscription {
 }
 
 /**
- * Fields accepted when updating a Subscription. Omitted fields are unchanged.
- */
-export interface SubscriptionUpdate {
-  /**
-   * Plan code from `plans.yaml`.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly plan_code?: string;
-}
-
-/**
  * One page of results with a cursor to the next page.
  */
 export interface PlanPage {
@@ -27257,231 +27246,6 @@ export interface OrgBrandingUpdate {
    * True hides Powered by XOS; it takes effect only while the plan includes white label.
    */
   readonly suppress_powered_by?: boolean;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface OrgLegalEntityPage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<OrgLegalEntity>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A legal entity of the organization with its fiscal settings.
- */
-export interface OrgLegalEntity {
-  /**
-   * Identifier of the org legal entity.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * Legal name.
-   * Length: 1 to 300.
-   */
-  readonly legal_name: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country: string;
-  readonly tax_identifier: string | Masked | null;
-  /**
-   * Fiscal year start month.
-   * Range: 1 to unbounded.
-   */
-  readonly fiscal_year_start_month: number;
-  /**
-   * Base currency.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly base_currency: string;
-}
-
-/**
- * Fields accepted when creating a OrgLegalEntity.
- */
-export interface OrgLegalEntityCreate {
-  /**
-   * Legal name.
-   * Length: 1 to 300.
-   */
-  readonly legal_name: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country: string;
-  /**
-   * Tax identifier.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly tax_identifier?: string | null;
-  /**
-   * Fiscal year start month.
-   * Range: 1 to unbounded.
-   */
-  readonly fiscal_year_start_month: number;
-  /**
-   * Base currency.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly base_currency: string;
-}
-
-/**
- * Fields accepted when updating a OrgLegalEntity. Omitted fields are unchanged.
- */
-export interface OrgLegalEntityUpdate {
-  /**
-   * Legal name.
-   * Length: 1 to 300.
-   */
-  readonly legal_name?: string;
-  /**
-   * ISO 3166-1 alpha-2 country code.
-   * Pattern: `^[A-Z]{2}$`.
-   */
-  readonly country?: string;
-  /**
-   * Tax identifier.
-   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
-   */
-  readonly tax_identifier?: string | null;
-  /**
-   * Fiscal year start month.
-   * Range: 1 to unbounded.
-   */
-  readonly fiscal_year_start_month?: number;
-  /**
-   * Base currency.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly base_currency?: string;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface OrgIpAllowlistEntryPage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<OrgIpAllowlistEntry>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * An allowed network for Atlas and the API.
- */
-export interface OrgIpAllowlistEntry {
-  /**
-   * Identifier of the org ip allowlist entry.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * CIDR block.
-   * Length: 1 to 300.
-   */
-  readonly cidr: string;
-  /**
-   * Label.
-   * Length: 1 to 300.
-   */
-  readonly label: string;
-}
-
-/**
- * Fields accepted when creating a OrgIpAllowlistEntry.
- */
-export interface OrgIpAllowlistEntryCreate {
-  /**
-   * CIDR block.
-   * Length: 1 to 300.
-   */
-  readonly cidr: string;
-  /**
-   * Label.
-   * Length: 1 to 300.
-   */
-  readonly label: string;
-}
-
-/**
- * Fields accepted when updating a OrgIpAllowlistEntry. Omitted fields are unchanged.
- */
-export interface OrgIpAllowlistEntryUpdate {
-  /**
-   * CIDR block.
-   * Length: 1 to 300.
-   */
-  readonly cidr?: string;
-  /**
-   * Label.
-   * Length: 1 to 300.
-   */
-  readonly label?: string;
 }
 
 /**
@@ -28510,369 +28274,6 @@ export interface ColumnClassification {
  * Column classification (Section 8.3).
  */
 export type Classification = "Public" | "Internal" | "Confidential" | "Restricted";
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface AccessReviewCampaignPage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<AccessReviewCampaign>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A quarterly access review campaign.
- */
-export interface AccessReviewCampaign {
-  /**
-   * Identifier of the access review campaign.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * Campaign name.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
-  /**
-   * Due date.
-   * Format: `date`.
-   */
-  readonly due_on: string;
-  /**
-   * Remove access left unreviewed after 14 days.
-   */
-  readonly auto_remove_unreviewed: boolean;
-  /**
-   * Campaign state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly campaign_state: string;
-}
-
-/**
- * Fields accepted when creating a AccessReviewCampaign.
- */
-export interface AccessReviewCampaignCreate {
-  /**
-   * Campaign name.
-   * Length: 1 to 300.
-   */
-  readonly name: string;
-  /**
-   * Due date.
-   * Format: `date`.
-   */
-  readonly due_on: string;
-  /**
-   * Remove access left unreviewed after 14 days.
-   */
-  readonly auto_remove_unreviewed: boolean;
-}
-
-/**
- * Fields accepted when updating a AccessReviewCampaign. Omitted fields are unchanged.
- */
-export interface AccessReviewCampaignUpdate {
-  /**
-   * Campaign name.
-   * Length: 1 to 300.
-   */
-  readonly name?: string;
-  /**
-   * Due date.
-   * Format: `date`.
-   */
-  readonly due_on?: string;
-  /**
-   * Remove access left unreviewed after 14 days.
-   */
-  readonly auto_remove_unreviewed?: boolean;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface AccessReviewItemPage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<AccessReviewItem>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * One membership role to confirm or remove.
- */
-export interface AccessReviewItem {
-  /**
-   * Identifier of the access review item.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * Identifier of the campaign.
-   * Format: `uuid`.
-   */
-  readonly access_review_campaign_id: string;
-  /**
-   * Identifier of the membership role.
-   * Format: `uuid`.
-   */
-  readonly membership_role_id: string;
-  /**
-   * Decision. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly decision: string | null;
-}
-
-/**
- * Fields accepted when updating a AccessReviewItem. Omitted fields are unchanged.
- */
-export interface AccessReviewItemUpdate {
-  /**
-   * Decision. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
-   */
-  readonly decision?: string | null;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface BreakGlassSessionPage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<BreakGlassSession>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified.
- */
-export interface BreakGlassSession {
-  /**
-   * Identifier of the break glass session.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * Identifier of the Owner.
-   * Format: `uuid`.
-   */
-  readonly person_id: string;
-  /**
-   * Written reason.
-   * Length: 1 to 20000.
-   */
-  readonly reason: string;
-  /**
-   * Start.
-   * Format: `date-time`.
-   */
-  readonly started_at: string;
-  /**
-   * End, one hour after start.
-   * Format: `date-time`.
-   */
-  readonly expires_at: string;
-}
-
-/**
- * Fields accepted when creating a BreakGlassSession.
- */
-export interface BreakGlassSessionCreate {
-  /**
-   * Written reason.
-   * Length: 1 to 20000.
-   */
-  readonly reason: string;
-}
-
-/**
- * One page of results with a cursor to the next page.
- */
-export interface ProjectSharePage {
-  /**
-   * Items on this page, in the documented default order.
-   */
-  readonly data: ReadonlyArray<ProjectShare>;
-  /**
-   * Opaque cursor for the next page; null on the last page.
-   */
-  readonly next_cursor: string | null;
-}
-
-/**
- * A project shared with a partner org, mapping its roles onto project roles.
- */
-export interface ProjectShare {
-  /**
-   * Identifier of the project share.
-   * Format: `uuid`.
-   */
-  readonly id: string;
-  /**
-   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
-   * Format: `uuid`.
-   */
-  readonly org_id: string;
-  /**
-   * When the row was created.
-   * Format: `date-time`.
-   */
-  readonly created_at: string;
-  /**
-   * Identifier of the person who created the row; null when a seed, platform or system process created it.
-   * Format: `uuid`.
-   */
-  readonly created_by: string | null;
-  /**
-   * When the row was last updated.
-   * Format: `date-time`.
-   */
-  readonly updated_at: string;
-  /**
-   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
-   * Format: `uuid`.
-   */
-  readonly updated_by: string | null;
-  /**
-   * Identifier of the project.
-   * Format: `uuid`.
-   */
-  readonly project_id: string;
-  /**
-   * Identifier of the partner organization.
-   * Format: `uuid`.
-   */
-  readonly partner_organization_id: string;
-  /**
-   * End of the share.
-   * Format: `date-time`.
-   */
-  readonly valid_to: string | null;
-}
-
-/**
- * Fields accepted when creating a ProjectShare.
- */
-export interface ProjectShareCreate {
-  /**
-   * Identifier of the project.
-   * Format: `uuid`.
-   */
-  readonly project_id: string;
-  /**
-   * Identifier of the partner organization.
-   * Format: `uuid`.
-   */
-  readonly partner_organization_id: string;
-  /**
-   * End of the share.
-   * Format: `date-time`.
-   */
-  readonly valid_to?: string | null;
-}
-
-/**
- * Fields accepted when updating a ProjectShare. Omitted fields are unchanged.
- */
-export interface ProjectShareUpdate {
-  /**
-   * End of the share.
-   * Format: `date-time`.
-   */
-  readonly valid_to?: string | null;
-}
 
 /**
  * One page of results with a cursor to the next page.
@@ -30525,29 +29926,52 @@ export interface OrgExport {
    * Format: `uuid`.
    */
   readonly updated_by: string | null;
-  readonly format: ExportFormat;
   /**
-   * Export state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Tables in the archive.
+   * Range: 0 to unbounded.
    */
-  readonly export_state: string;
+  readonly table_count: number;
   /**
-   * Identifier of the export file.
-   * Format: `uuid`.
+   * Rows across every table.
+   * Format: `int64`. Range: 0 to unbounded.
    */
-  readonly document_id: string | null;
+  readonly row_count: number;
+  /**
+   * Stored files included.
+   * Range: 0 to unbounded.
+   */
+  readonly file_count: number;
+  /**
+   * SHA-256 of the archive's manifest.json, lowercase hex.
+   * Pattern: `^[0-9a-f]{64}$`.
+   */
+  readonly manifest_sha256: string;
 }
-
-/**
- * Export file format.
- */
-export type ExportFormat = "CSV" | "XLSX" | "PDF";
 
 /**
  * Fields accepted when creating a OrgExport.
  */
 export interface OrgExportCreate {
-  readonly format: ExportFormat;
+  /**
+   * Tables in the archive.
+   * Range: 0 to unbounded.
+   */
+  readonly table_count: number;
+  /**
+   * Rows across every table.
+   * Format: `int64`. Range: 0 to unbounded.
+   */
+  readonly row_count: number;
+  /**
+   * Stored files included.
+   * Range: 0 to unbounded.
+   */
+  readonly file_count: number;
+  /**
+   * SHA-256 of the archive's manifest.json, lowercase hex.
+   * Pattern: `^[0-9a-f]{64}$`.
+   */
+  readonly manifest_sha256: string;
 }
 
 /**
@@ -30924,6 +30348,11 @@ export interface ReportRun {
    */
   readonly last_error: string | null;
 }
+
+/**
+ * Export file format.
+ */
+export type ExportFormat = "CSV" | "XLSX" | "PDF";
 
 /**
  * Fields accepted when creating a ReportRun.

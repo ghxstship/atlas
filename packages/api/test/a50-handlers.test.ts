@@ -12,6 +12,7 @@ import { handlers as hospitality } from "../src/handlers/hospitality.ts";
 import { handlers as identity } from "../src/handlers/identity.ts";
 import { handlers as logistics } from "../src/handlers/logistics.ts";
 import { handlers as people } from "../src/handlers/people.ts";
+import { handlers as settings } from "../src/handlers/settings.ts";
 import { contractApp, expectContract, testContext } from "./support/contract.ts";
 import { memoryDb, refusal, requests, success, tenantRow } from "./support/memory-db.ts";
 import type { Row } from "./support/memory-db.ts";
@@ -828,5 +829,63 @@ describe("Canon: library mirrors, rate cards, supersessions, ratifications and U
     const unknown = await http.get("/canon/urns/resolve?urn=urn:xpms:phase:NONE");
     expect(unknown.status).toBe(422);
     await expectContract(unknown, "canonUrns.resolve");
+  });
+});
+
+describe("Settings: full org exports", () => {
+  const EXPORT = id(601);
+  const SHA = "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b";
+
+  function world() {
+    const db = memoryDb(
+      {
+        org_exports: [
+          tenantRow(EXPORT, ORG, {
+            table_count: 412,
+            row_count: 182340,
+            file_count: 96,
+            manifest_sha256: SHA,
+          }),
+        ],
+      },
+      {
+        record_org_export: (args, db) => {
+          if (args["p_table_count"] === 0) throw refusal("org_export_empty");
+          const row = tenantRow(id(602), String(args["p_org_id"]), {
+            table_count: args["p_table_count"],
+            row_count: args["p_row_count"],
+            file_count: args["p_file_count"],
+            manifest_sha256: args["p_manifest_sha256"],
+          });
+          db.tables["org_exports"]?.push(row);
+          return row["id"];
+        },
+      },
+    );
+    return { db, http: requests(contractApp({ handlers: [settings], db })) };
+  }
+
+  it("lists, reads and logs full exports", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/org-exports")), "orgExports.list");
+    await expectContract(await success(http.get(`/org-exports/${EXPORT}`)), "orgExports.get");
+    expect((await http.get(`/org-exports/${MISSING}`)).status).toBe(404);
+    const create = await success(
+      http.post("/org-exports", {
+        table_count: 415,
+        row_count: 190000,
+        file_count: 97,
+        manifest_sha256: SHA,
+      }),
+    );
+    const made = (await expectContract(create, "orgExports.create")) as { table_count: number };
+    expect(made.table_count).toBe(415);
+    const refused = await http.post("/org-exports", {
+      table_count: 0,
+      row_count: 0,
+      file_count: 0,
+      manifest_sha256: SHA,
+    });
+    expect(refused.status).toBe(422);
   });
 });

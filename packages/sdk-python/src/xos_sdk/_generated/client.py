@@ -272,8 +272,6 @@ from .resources import (
     TeamsResource,
     TeamMembersResource,
     OrgBrandingsResource,
-    OrgLegalEntitiesResource,
-    OrgIpAllowlistEntriesResource,
     RolesResource,
     CapabilitiesResource,
     RoleCapabilitiesResource,
@@ -283,10 +281,6 @@ from .resources import (
     SpendAuthorityLimitsResource,
     SeparationOfDutiesRulesResource,
     ColumnClassificationsResource,
-    AccessReviewCampaignsResource,
-    AccessReviewItemsResource,
-    BreakGlassSessionsResource,
-    ProjectSharesResource,
     ScimGroupMappingsResource,
     ApiKeysResource,
     ServiceAccountsResource,
@@ -673,8 +667,6 @@ class XosClient(XosClientCore):
     teams: TeamsResource
     team_members: TeamMembersResource
     org_brandings: OrgBrandingsResource
-    org_legal_entities: OrgLegalEntitiesResource
-    org_ip_allowlist_entries: OrgIpAllowlistEntriesResource
     roles: RolesResource
     capabilities: CapabilitiesResource
     role_capabilities: RoleCapabilitiesResource
@@ -684,10 +676,6 @@ class XosClient(XosClientCore):
     spend_authority_limits: SpendAuthorityLimitsResource
     separation_of_duties_rules: SeparationOfDutiesRulesResource
     column_classifications: ColumnClassificationsResource
-    access_review_campaigns: AccessReviewCampaignsResource
-    access_review_items: AccessReviewItemsResource
-    break_glass_sessions: BreakGlassSessionsResource
-    project_shares: ProjectSharesResource
     scim_group_mappings: ScimGroupMappingsResource
     api_keys: ApiKeysResource
     service_accounts: ServiceAccountsResource
@@ -1062,8 +1050,6 @@ class XosClient(XosClientCore):
         self.teams = TeamsResource(self)
         self.team_members = TeamMembersResource(self)
         self.org_brandings = OrgBrandingsResource(self)
-        self.org_legal_entities = OrgLegalEntitiesResource(self)
-        self.org_ip_allowlist_entries = OrgIpAllowlistEntriesResource(self)
         self.roles = RolesResource(self)
         self.capabilities = CapabilitiesResource(self)
         self.role_capabilities = RoleCapabilitiesResource(self)
@@ -1073,10 +1059,6 @@ class XosClient(XosClientCore):
         self.spend_authority_limits = SpendAuthorityLimitsResource(self)
         self.separation_of_duties_rules = SeparationOfDutiesRulesResource(self)
         self.column_classifications = ColumnClassificationsResource(self)
-        self.access_review_campaigns = AccessReviewCampaignsResource(self)
-        self.access_review_items = AccessReviewItemsResource(self)
-        self.break_glass_sessions = BreakGlassSessionsResource(self)
-        self.project_shares = ProjectSharesResource(self)
         self.scim_group_mappings = ScimGroupMappingsResource(self)
         self.api_keys = ApiKeysResource(self)
         self.service_accounts = ServiceAccountsResource(self)

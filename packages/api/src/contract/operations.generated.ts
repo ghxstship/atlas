@@ -34,37 +34,6 @@ export interface Components {
     window_starts_at?: string;
     window_ends_at?: string;
   };
-  AccessReviewCampaign: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    name: string;
-    due_on: string;
-    auto_remove_unreviewed: boolean;
-    campaign_state: string;
-  };
-  AccessReviewCampaignCreate: { name: string; due_on: string; auto_remove_unreviewed: boolean };
-  AccessReviewCampaignPage: {
-    data: Array<Components["AccessReviewCampaign"]>;
-    next_cursor: string | null;
-  };
-  AccessReviewCampaignUpdate: { name?: string; due_on?: string; auto_remove_unreviewed?: boolean };
-  AccessReviewItem: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    access_review_campaign_id: string;
-    membership_role_id: string;
-    decision: string | null;
-  };
-  AccessReviewItemPage: { data: Array<Components["AccessReviewItem"]>; next_cursor: string | null };
-  AccessReviewItemUpdate: { decision?: string | null };
   AccessScan: {
     id: string;
     org_id: string;
@@ -1071,23 +1040,6 @@ export interface Components {
     period_end?: string;
     amount_requested_minor?: number;
     currency_code?: string;
-  };
-  BreakGlassSession: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    person_id: string;
-    reason: string;
-    started_at: string;
-    expires_at: string;
-  };
-  BreakGlassSessionCreate: { reason: string };
-  BreakGlassSessionPage: {
-    data: Array<Components["BreakGlassSession"]>;
-    next_cursor: string | null;
   };
   Budget: {
     id: string;
@@ -4601,56 +4553,18 @@ export interface Components {
     created_by: string | null;
     updated_at: string;
     updated_by: string | null;
-    format: Components["ExportFormat"];
-    export_state: string;
-    document_id: string | null;
+    table_count: number;
+    row_count: number;
+    file_count: number;
+    manifest_sha256: string;
   };
-  OrgExportCreate: { format: Components["ExportFormat"] };
+  OrgExportCreate: {
+    table_count: number;
+    row_count: number;
+    file_count: number;
+    manifest_sha256: string;
+  };
   OrgExportPage: { data: Array<Components["OrgExport"]>; next_cursor: string | null };
-  OrgIpAllowlistEntry: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    cidr: string;
-    label: string;
-  };
-  OrgIpAllowlistEntryCreate: { cidr: string; label: string };
-  OrgIpAllowlistEntryPage: {
-    data: Array<Components["OrgIpAllowlistEntry"]>;
-    next_cursor: string | null;
-  };
-  OrgIpAllowlistEntryUpdate: { cidr?: string; label?: string };
-  OrgLegalEntity: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    legal_name: string;
-    country: string;
-    tax_identifier: string | Components["Masked"] | null;
-    fiscal_year_start_month: number;
-    base_currency: string;
-  };
-  OrgLegalEntityCreate: {
-    legal_name: string;
-    country: string;
-    tax_identifier?: string | null;
-    fiscal_year_start_month: number;
-    base_currency: string;
-  };
-  OrgLegalEntityPage: { data: Array<Components["OrgLegalEntity"]>; next_cursor: string | null };
-  OrgLegalEntityUpdate: {
-    legal_name?: string;
-    country?: string;
-    tax_identifier?: string | null;
-    fiscal_year_start_month?: number;
-    base_currency?: string;
-  };
   OrgRole: "Owner" | "Admin" | "Manager" | "Member" | "Collaborator" | "Field" | "Viewer";
   OrgStateLabel: {
     id: string;
@@ -5313,24 +5227,6 @@ export interface Components {
     data: Array<Components["ProjectPhaseTransition"]>;
     next_cursor: string | null;
   };
-  ProjectShare: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    project_id: string;
-    partner_organization_id: string;
-    valid_to: string | null;
-  };
-  ProjectShareCreate: {
-    project_id: string;
-    partner_organization_id: string;
-    valid_to?: string | null;
-  };
-  ProjectSharePage: { data: Array<Components["ProjectShare"]>; next_cursor: string | null };
-  ProjectShareUpdate: { valid_to?: string | null };
   ProjectTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   ProjectUpdate: {
     name?: string;
@@ -7081,7 +6977,6 @@ export interface Components {
     subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
   };
   SubscriptionPage: { data: Array<Components["Subscription"]>; next_cursor: string | null };
-  SubscriptionUpdate: { plan_code?: string };
   SupportSession: {
     id: string;
     org_id: string;
@@ -18954,15 +18849,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["Subscription"] };
   };
-  "subscriptions.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/subscriptions/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["SubscriptionUpdate"];
-    responses: { 200: Components["Subscription"] };
-  };
   "plans.list": {
     module: "Settings";
     method: "get";
@@ -19210,108 +19096,6 @@ export interface Operations {
     module: "Settings";
     method: "delete";
     path: "/org-branding/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
-  "orgLegalEntities.list": {
-    module: "Settings";
-    method: "get";
-    path: "/org-legal-entities";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["OrgLegalEntityPage"] };
-  };
-  "orgLegalEntities.create": {
-    module: "Settings";
-    method: "post";
-    path: "/org-legal-entities";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["OrgLegalEntityCreate"];
-    responses: { 201: Components["OrgLegalEntity"] };
-  };
-  "orgLegalEntities.get": {
-    module: "Settings";
-    method: "get";
-    path: "/org-legal-entities/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["OrgLegalEntity"] };
-  };
-  "orgLegalEntities.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/org-legal-entities/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["OrgLegalEntityUpdate"];
-    responses: { 200: Components["OrgLegalEntity"] };
-  };
-  "orgLegalEntities.delete": {
-    module: "Settings";
-    method: "delete";
-    path: "/org-legal-entities/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
-  "orgIpAllowlistEntries.list": {
-    module: "Settings";
-    method: "get";
-    path: "/org-ip-allowlist";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["OrgIpAllowlistEntryPage"] };
-  };
-  "orgIpAllowlistEntries.create": {
-    module: "Settings";
-    method: "post";
-    path: "/org-ip-allowlist";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["OrgIpAllowlistEntryCreate"];
-    responses: { 201: Components["OrgIpAllowlistEntry"] };
-  };
-  "orgIpAllowlistEntries.get": {
-    module: "Settings";
-    method: "get";
-    path: "/org-ip-allowlist/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["OrgIpAllowlistEntry"] };
-  };
-  "orgIpAllowlistEntries.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/org-ip-allowlist/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["OrgIpAllowlistEntryUpdate"];
-    responses: { 200: Components["OrgIpAllowlistEntry"] };
-  };
-  "orgIpAllowlistEntries.delete": {
-    module: "Settings";
-    method: "delete";
-    path: "/org-ip-allowlist/{id}";
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
@@ -19658,174 +19442,6 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["ColumnClassificationPage"] };
-  };
-  "accessReviewCampaigns.list": {
-    module: "Settings";
-    method: "get";
-    path: "/access-review-campaigns";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["AccessReviewCampaignPage"] };
-  };
-  "accessReviewCampaigns.create": {
-    module: "Settings";
-    method: "post";
-    path: "/access-review-campaigns";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["AccessReviewCampaignCreate"];
-    responses: { 201: Components["AccessReviewCampaign"] };
-  };
-  "accessReviewCampaigns.get": {
-    module: "Settings";
-    method: "get";
-    path: "/access-review-campaigns/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["AccessReviewCampaign"] };
-  };
-  "accessReviewCampaigns.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/access-review-campaigns/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AccessReviewCampaignUpdate"];
-    responses: { 200: Components["AccessReviewCampaign"] };
-  };
-  "accessReviewCampaigns.delete": {
-    module: "Settings";
-    method: "delete";
-    path: "/access-review-campaigns/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
-  "accessReviewItems.list": {
-    module: "Settings";
-    method: "get";
-    path: "/access-review-items";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["AccessReviewItemPage"] };
-  };
-  "accessReviewItems.get": {
-    module: "Settings";
-    method: "get";
-    path: "/access-review-items/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["AccessReviewItem"] };
-  };
-  "accessReviewItems.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/access-review-items/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["AccessReviewItemUpdate"];
-    responses: { 200: Components["AccessReviewItem"] };
-  };
-  "breakGlassSessions.list": {
-    module: "Settings";
-    method: "get";
-    path: "/break-glass-sessions";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["BreakGlassSessionPage"] };
-  };
-  "breakGlassSessions.create": {
-    module: "Settings";
-    method: "post";
-    path: "/break-glass-sessions";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["BreakGlassSessionCreate"];
-    responses: { 201: Components["BreakGlassSession"] };
-  };
-  "breakGlassSessions.get": {
-    module: "Settings";
-    method: "get";
-    path: "/break-glass-sessions/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["BreakGlassSession"] };
-  };
-  "projectShares.list": {
-    module: "Settings";
-    method: "get";
-    path: "/project-shares";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProjectSharePage"] };
-  };
-  "projectShares.create": {
-    module: "Settings";
-    method: "post";
-    path: "/project-shares";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ProjectShareCreate"];
-    responses: { 201: Components["ProjectShare"] };
-  };
-  "projectShares.get": {
-    module: "Settings";
-    method: "get";
-    path: "/project-shares/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProjectShare"] };
-  };
-  "projectShares.update": {
-    module: "Settings";
-    method: "patch";
-    path: "/project-shares/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["ProjectShareUpdate"];
-    responses: { 200: Components["ProjectShare"] };
-  };
-  "projectShares.delete": {
-    module: "Settings";
-    method: "delete";
-    path: "/project-shares/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
   };
   "scimGroupMappings.list": {
     module: "Settings";
@@ -25371,7 +24987,6 @@ export interface ModuleOperations {
   Settings:
     | "subscriptions.list"
     | "subscriptions.get"
-    | "subscriptions.update"
     | "plans.list"
     | "workspaces.list"
     | "workspaces.create"
@@ -25396,16 +25011,6 @@ export interface ModuleOperations {
     | "orgBrandings.get"
     | "orgBrandings.update"
     | "orgBrandings.delete"
-    | "orgLegalEntities.list"
-    | "orgLegalEntities.create"
-    | "orgLegalEntities.get"
-    | "orgLegalEntities.update"
-    | "orgLegalEntities.delete"
-    | "orgIpAllowlistEntries.list"
-    | "orgIpAllowlistEntries.create"
-    | "orgIpAllowlistEntries.get"
-    | "orgIpAllowlistEntries.update"
-    | "orgIpAllowlistEntries.delete"
     | "roles.list"
     | "roles.create"
     | "roles.get"
@@ -25438,22 +25043,6 @@ export interface ModuleOperations {
     | "spendAuthorityLimits.delete"
     | "separationOfDutiesRules.list"
     | "columnClassifications.list"
-    | "accessReviewCampaigns.list"
-    | "accessReviewCampaigns.create"
-    | "accessReviewCampaigns.get"
-    | "accessReviewCampaigns.update"
-    | "accessReviewCampaigns.delete"
-    | "accessReviewItems.list"
-    | "accessReviewItems.get"
-    | "accessReviewItems.update"
-    | "breakGlassSessions.list"
-    | "breakGlassSessions.create"
-    | "breakGlassSessions.get"
-    | "projectShares.list"
-    | "projectShares.create"
-    | "projectShares.get"
-    | "projectShares.update"
-    | "projectShares.delete"
     | "scimGroupMappings.list"
     | "scimGroupMappings.create"
     | "scimGroupMappings.get"
