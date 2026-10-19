@@ -777,7 +777,6 @@ export type OperationId =
   | "listingReports.create"
   | "listingReports.get"
   | "moderationActions.list"
-  | "moderationActions.create"
   | "moderationActions.get"
   | "profileShares.list"
   | "profileShares.create"
@@ -19273,29 +19272,6 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: "ModerationAction",
     tag: "Gateway",
     summary: "List moderation action rows",
-    capability: "opportunities.marketplace.manage",
-    scopes: ["opportunities"],
-  },
-  "moderationActions.create": {
-    id: "moderationActions.create",
-    resource: "moderationActions",
-    verb: "create",
-    method: "POST",
-    path: "/moderation-actions",
-    pathParams: [],
-    queryParams: [],
-    requiredQueryParams: [],
-    paged: false,
-    fields: false,
-    idempotent: true,
-    ifMatch: false,
-    body: "ModerationActionCreate",
-    bodyRequired: true,
-    successStatus: 201,
-    response: "ModerationAction",
-    item: null,
-    tag: "Gateway",
-    summary: "Create a moderation action",
     capability: "opportunities.marketplace.manage",
     scopes: ["opportunities"],
   },
@@ -38816,7 +38792,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
   {
     name: "moderationActions",
     tag: "Gateway",
-    operations: ["moderationActions.list", "moderationActions.create", "moderationActions.get"],
+    operations: ["moderationActions.list", "moderationActions.get"],
   },
   {
     name: "profileShares",

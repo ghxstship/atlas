@@ -21189,31 +21189,6 @@ export interface ModerationAction {
 }
 
 /**
- * Fields accepted when creating a ModerationAction.
- */
-export interface ModerationActionCreate {
-  /**
-   * Identifier of the listing report.
-   * Format: `uuid`.
-   */
-  readonly listing_report_id?: string | null;
-  /**
-   * Decision taken.
-   */
-  readonly action: "Removed" | "Restricted" | "Restored" | "No Action";
-  /**
-   * Statement of reasons.
-   * Length: 1 to 20000.
-   */
-  readonly statement_of_reasons: string;
-  /**
-   * Identifier of the opportunity decided on.
-   * Format: `uuid`.
-   */
-  readonly opportunity_id: string;
-}
-
-/**
  * One page of results with a cursor to the next page.
  */
 export interface ProfileSharePage {

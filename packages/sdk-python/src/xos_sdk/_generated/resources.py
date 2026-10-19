@@ -692,7 +692,6 @@ if TYPE_CHECKING:
         MergeReviewPage,
         MergeReviewUpdate,
         ModerationAction,
-        ModerationActionCreate,
         ModerationActionPage,
         Notification,
         NotificationActRequest,
@@ -18261,22 +18260,6 @@ class ModerationActionsResource(Resource):
         Requires the capability ``opportunities.marketplace.manage``.
         """
         return self._client.paginate(OPERATIONS["moderationActions.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
-
-    def create(
-        self,
-        body: ModerationActionCreate,
-        *,
-        idempotency_key: Optional[str] = None,
-        options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[ModerationAction]:
-        """Create a moderation action
-
-        A moderation decision with a statement of reasons sent to the affected party. Creates a moderation action. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-
-        ``POST /moderation-actions`` (operation ``moderationActions.create``).
-        Requires the capability ``opportunities.marketplace.manage``.
-        """
-        return self._client.request(OPERATIONS["moderationActions.create"], body=body, idempotency_key=idempotency_key, options=options)
 
     def get(
         self,

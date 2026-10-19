@@ -693,7 +693,6 @@ __all__ = [
     "ListingReportCreate",
     "ModerationActionPage",
     "ModerationAction",
-    "ModerationActionCreate",
     "ProfileSharePage",
     "ProfileShare",
     "ProfileShareCreate",
@@ -12242,22 +12241,6 @@ class ModerationAction(TypedDict):
     opportunity_id: str
     #: When the decision was made.
     decided_at: str
-
-
-class _ModerationActionCreateRequired(TypedDict):
-    #: Decision taken.
-    action: Literal["Removed", "Restricted", "Restored", "No Action"]
-    #: Statement of reasons.
-    statement_of_reasons: str
-    #: Identifier of the opportunity decided on.
-    opportunity_id: str
-
-
-class ModerationActionCreate(_ModerationActionCreateRequired, total=False):
-    """Fields accepted when creating a ModerationAction."""
-
-    #: Identifier of the listing report.
-    listing_report_id: Optional[str]
 
 
 class ProfileSharePage(TypedDict):

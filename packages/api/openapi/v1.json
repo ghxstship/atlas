@@ -28336,38 +28336,6 @@
         ],
         "description": "A moderation decision with a statement of reasons sent to the affected party."
       },
-      "ModerationActionCreate": {
-        "type": "object",
-        "properties": {
-          "listing_report_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the listing report.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "action": {
-            "type": "string",
-            "enum": ["Removed", "Restricted", "Restored", "No Action"],
-            "description": "Decision taken.",
-            "example": "Removed"
-          },
-          "statement_of_reasons": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 20000,
-            "description": "Statement of reasons.",
-            "example": "The listing requested a fee from applicants."
-          },
-          "opportunity_id": {
-            "type": "string",
-            "format": "uuid",
-            "description": "Identifier of the opportunity decided on.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
-        },
-        "required": ["action", "statement_of_reasons", "opportunity_id"],
-        "description": "Fields accepted when creating a ModerationAction."
-      },
       "ProfileSharePage": {
         "type": "object",
         "properties": {
@@ -100769,61 +100737,6 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
-          "429": { "$ref": "#/components/responses/TooManyRequests" }
-        }
-      },
-      "post": {
-        "operationId": "moderationActions.create",
-        "tags": ["Gateway"],
-        "x-xos-table": "app.moderation_actions",
-        "x-xos-capability": "opportunities.marketplace.manage",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
-        "summary": "Create a moderation action",
-        "description": "A moderation decision with a statement of reasons sent to the affected party. Creates a moderation action. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "example": {
-                "listing_report_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "action": "Removed",
-                "statement_of_reasons": "The listing requested a fee from applicants.",
-                "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-              },
-              "schema": { "$ref": "#/components/schemas/ModerationActionCreate" }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "The created moderation action.",
-            "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
-              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
-              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
-              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
-            },
-            "content": {
-              "application/json": {
-                "example": {
-                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "created_at": "2026-10-08T14:30:00Z",
-                  "updated_at": "2026-10-08T14:30:00Z",
-                  "listing_report_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "action": "Removed",
-                  "statement_of_reasons": "The listing requested a fee from applicants.",
-                  "opportunity_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "decided_at": "2026-10-08T14:30:00Z"
-                },
-                "schema": { "$ref": "#/components/schemas/ModerationAction" }
-              }
-            }
-          },
-          "400": { "$ref": "#/components/responses/BadRequest" },
-          "401": { "$ref": "#/components/responses/Unauthorized" },
-          "409": { "$ref": "#/components/responses/Conflict" },
-          "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

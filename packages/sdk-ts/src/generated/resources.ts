@@ -501,7 +501,6 @@ import type {
   MergeReview,
   MergeReviewUpdate,
   ModerationAction,
-  ModerationActionCreate,
   Notification,
   NotificationActRequest,
   NotificationPreference,
@@ -19050,25 +19049,6 @@ export class ModerationActionsResource extends $Resource {
     return this.client.paginate<ModerationAction>(
       $OPERATIONS["moderationActions.list"],
       { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a moderation action
-   *
-   * A moderation decision with a statement of reasons sent to the affected party. Creates a moderation action. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /moderation-actions` (operation `moderationActions.create`).
-   * Requires the capability `opportunities.marketplace.manage`.
-   */
-  create(
-    body: ModerationActionCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<ModerationAction>> {
-    return this.client.request<ModerationAction>(
-      $OPERATIONS["moderationActions.create"],
-      { body },
       options,
     );
   }

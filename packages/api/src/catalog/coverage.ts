@@ -408,7 +408,8 @@ export const SECTION_COVERAGE: readonly CoverageEntry[] = [
   {
     module: "Gateway",
     entity: "Abuse reports",
-    operations: [...read("listingReports"), "moderationActions.create"],
+    // Decisions are recorded by the platform operator console (Section 4.10); ADR 0031.
+    operations: [...read("listingReports"), ...read("moderationActions")],
   },
   {
     module: "Gateway",

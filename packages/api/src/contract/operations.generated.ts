@@ -4103,12 +4103,6 @@ export interface Components {
     opportunity_id: string;
     decided_at: string;
   };
-  ModerationActionCreate: {
-    listing_report_id?: string | null;
-    action: "Removed" | "Restricted" | "Restored" | "No Action";
-    statement_of_reasons: string;
-    opportunity_id: string;
-  };
   ModerationActionPage: { data: Array<Components["ModerationAction"]>; next_cursor: string | null };
   MoneyTotal: { total_minor: number | null; currency: string; unpriced_count: number };
   Notification: {
@@ -16374,15 +16368,6 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["ModerationActionPage"] };
   };
-  "moderationActions.create": {
-    module: "Gateway";
-    method: "post";
-    path: "/moderation-actions";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ModerationActionCreate"];
-    responses: { 201: Components["ModerationAction"] };
-  };
   "moderationActions.get": {
     module: "Gateway";
     method: "get";
@@ -25822,7 +25807,6 @@ export interface ModuleOperations {
     | "listingReports.create"
     | "listingReports.get"
     | "moderationActions.list"
-    | "moderationActions.create"
     | "moderationActions.get"
     | "profileShares.list"
     | "profileShares.create"
