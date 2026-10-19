@@ -12,6 +12,7 @@ import { canonCodes, defineResource, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
+import { financeFieldHomes } from "./parts/playbook-field-homes.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -582,5 +583,6 @@ export const additions = defineAdditions("Finance", {
         "app.price_books (1170, built for this operation by ADR 0032) names the column `currency_code`, as every money table does.",
       apply: editShape({ rename: { currency: "currency_code" } }),
     },
+    ...financeFieldHomes,
   ],
 });

@@ -300,6 +300,16 @@ export interface Project {
    * Format: `date-time`.
    */
   readonly archived_at: string | null;
+  /**
+   * Anchor date (usually the show day) that template day offsets count from.
+   * Format: `date`.
+   */
+  readonly anchor_on: string | null;
+  /**
+   * Budget envelope approved for the project. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly budget_envelope_minor: number | null;
 }
 
 /**
@@ -433,6 +443,16 @@ export interface ProjectUpdate {
    * Format: `uuid`.
    */
   readonly client_counterparty_id?: string | null;
+  /**
+   * Anchor date (usually the show day) that template day offsets count from.
+   * Format: `date`.
+   */
+  readonly anchor_on?: string | null;
+  /**
+   * Budget envelope approved for the project. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly budget_envelope_minor?: number | null;
 }
 
 /**
@@ -1521,6 +1541,32 @@ export interface Record {
    * External role types that may see the record; empty means internal only. Stored as junction rows, presented as a set.
    */
   readonly external_visibility: ReadonlyArray<ExternalRoleType>;
+  /**
+   * Identifier of the project the record belongs to, derived from its scope node and never changed.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the summary record this record rolls up to, in the same project.
+   * Format: `uuid`.
+   */
+  readonly parent_record_id: string | null;
+  /**
+   * Work breakdown structure code, dot separated.
+   * Pattern: `^[0-9]+(\.[0-9]+)*$`. Length: 1 to 50.
+   */
+  readonly wbs_code: string | null;
+  /**
+   * What the record involves, in sentence case.
+   * Length: 1 to 4000.
+   */
+  readonly description: string | null;
+  /**
+   * Identifier of the standard operating procedure that governs the work.
+   * Format: `uuid`.
+   */
+  readonly sop_id: string | null;
+  readonly team_code: TeamId | null;
 }
 
 /**
@@ -1574,6 +1620,11 @@ export type ExternalRoleType =
   | "Artist"
   | "Artist Representative"
   | "Sponsor";
+
+/**
+ * Canon team identifier from `xpms.dim_team`.
+ */
+export type TeamId = string;
 
 /**
  * Fields accepted when creating a Record.
@@ -1692,6 +1743,27 @@ export interface RecordUpdate {
    * External role types that may see the record; empty means internal only. Stored as junction rows, presented as a set.
    */
   readonly external_visibility?: ReadonlyArray<ExternalRoleType>;
+  /**
+   * Identifier of the summary record this record rolls up to, in the same project.
+   * Format: `uuid`.
+   */
+  readonly parent_record_id?: string | null;
+  /**
+   * Work breakdown structure code, dot separated.
+   * Pattern: `^[0-9]+(\.[0-9]+)*$`. Length: 1 to 50.
+   */
+  readonly wbs_code?: string | null;
+  /**
+   * What the record involves, in sentence case.
+   * Length: 1 to 4000.
+   */
+  readonly description?: string | null;
+  /**
+   * Identifier of the standard operating procedure that governs the work.
+   * Format: `uuid`.
+   */
+  readonly sop_id?: string | null;
+  readonly team_code?: TeamId | null;
 }
 
 /**
@@ -2195,6 +2267,30 @@ export interface WorkOrder {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency: string;
+  /**
+   * Sequence number within the project; the display key is {project_key}-WO-{number}.
+   * Range: 1 to unbounded.
+   */
+  readonly work_order_number: number;
+  /**
+   * Where the work happens, in words, when no zone says it.
+   * Length: 1 to 300.
+   */
+  readonly location_text: string | null;
+  /**
+   * The scope bidders price, in sentence case.
+   * Length: 1 to 20000.
+   */
+  readonly scope_of_work: string | null;
+  /**
+   * Planned start.
+   * Format: `date-time`.
+   */
+  readonly scheduled_starts_at: string | null;
+  /**
+   * Estimated labor hours; null when unestimated.
+   */
+  readonly estimated_hours: number | null;
 }
 
 /**
@@ -2264,6 +2360,25 @@ export interface WorkOrderUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly currency?: string;
+  /**
+   * Where the work happens, in words, when no zone says it.
+   * Length: 1 to 300.
+   */
+  readonly location_text?: string | null;
+  /**
+   * The scope bidders price, in sentence case.
+   * Length: 1 to 20000.
+   */
+  readonly scope_of_work?: string | null;
+  /**
+   * Planned start.
+   * Format: `date-time`.
+   */
+  readonly scheduled_starts_at?: string | null;
+  /**
+   * Estimated labor hours; null when unestimated.
+   */
+  readonly estimated_hours?: number | null;
 }
 
 /**
@@ -2487,6 +2602,11 @@ export interface RunOfShow {
    * Format: `uuid`.
    */
   readonly project_id: string;
+  /**
+   * Identifier of the schedule record the running order belongs to, in the same project.
+   * Format: `uuid`.
+   */
+  readonly record_id: string | null;
 }
 
 /**
@@ -2513,6 +2633,11 @@ export interface RunOfShowCreate {
    * Format: `uuid`.
    */
   readonly project_id: string;
+  /**
+   * Identifier of the schedule record the running order belongs to, in the same project.
+   * Format: `uuid`.
+   */
+  readonly record_id?: string | null;
 }
 
 /**
@@ -2529,6 +2654,11 @@ export interface RunOfShowUpdate {
    * Format: `date`.
    */
   readonly show_date?: string;
+  /**
+   * Identifier of the schedule record the running order belongs to, in the same project.
+   * Format: `uuid`.
+   */
+  readonly record_id?: string | null;
 }
 
 /**
@@ -2619,6 +2749,21 @@ export interface Cue {
    * Format: `uuid`.
    */
   readonly project_id: string;
+  /**
+   * Show segment the cue belongs to.
+   * Length: 1 to 200.
+   */
+  readonly segment: string | null;
+  /**
+   * What happens on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly description: string | null;
+  /**
+   * Identifier of the space the cue happens in.
+   * Format: `uuid`.
+   */
+  readonly space_id: string | null;
 }
 
 /**
@@ -2650,6 +2795,21 @@ export interface CueCreate {
    * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
    */
   readonly duration?: string | null;
+  /**
+   * Show segment the cue belongs to.
+   * Length: 1 to 200.
+   */
+  readonly segment?: string | null;
+  /**
+   * What happens on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * Identifier of the space the cue happens in.
+   * Format: `uuid`.
+   */
+  readonly space_id?: string | null;
 }
 
 /**
@@ -2676,6 +2836,21 @@ export interface CueUpdate {
    * Pattern: `^\d{2,}:\d{2}:\d{2}(\.\d+)?$`.
    */
   readonly duration?: string | null;
+  /**
+   * Show segment the cue belongs to.
+   * Length: 1 to 200.
+   */
+  readonly segment?: string | null;
+  /**
+   * What happens on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * Identifier of the space the cue happens in.
+   * Format: `uuid`.
+   */
+  readonly space_id?: string | null;
 }
 
 /**
@@ -3598,6 +3773,11 @@ export interface Space {
    */
   readonly area_sq_ft: number | null;
   readonly urid: Urid | null;
+  /**
+   * What the space is used for.
+   * Length: 1 to 2000.
+   */
+  readonly description: string | null;
 }
 
 /**
@@ -3629,6 +3809,11 @@ export interface SpaceCreate {
    */
   readonly area_sq_ft?: number | null;
   readonly urid?: Urid | null;
+  /**
+   * What the space is used for.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
 }
 
 /**
@@ -3650,6 +3835,11 @@ export interface SpaceUpdate {
    */
   readonly area_sq_ft?: number | null;
   readonly urid?: Urid | null;
+  /**
+   * What the space is used for.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
 }
 
 /**
@@ -4703,6 +4893,63 @@ export interface Shipment {
    * Range: 1 to unbounded.
    */
   readonly shipment_number: number;
+  readonly urid: Urid | null;
+  /**
+   * What the shipment carries, in a sentence.
+   * Length: 1 to 2000.
+   */
+  readonly description: string | null;
+  /**
+   * Where the freight ships from, as a locality.
+   * Length: 1 to 200.
+   */
+  readonly origin: string | null;
+  /**
+   * Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.
+   * Format: `uuid`.
+   */
+  readonly sender_counterparty_id: string | null;
+  /**
+   * Number of pallets.
+   * Range: 0 to unbounded.
+   */
+  readonly pallet_count: number | null;
+  /**
+   * Number of pieces.
+   * Range: 0 to unbounded.
+   */
+  readonly piece_count: number | null;
+  /**
+   * Length of the load in feet.
+   */
+  readonly length_ft: number | null;
+  /**
+   * Width of the load in feet.
+   */
+  readonly width_ft: number | null;
+  /**
+   * Height of the load in feet.
+   */
+  readonly height_ft: number | null;
+  /**
+   * Weight of the load in pounds.
+   */
+  readonly weight_lb: number | null;
+  /**
+   * License plate of the trailer.
+   * Length: 1 to 100.
+   */
+  readonly trailer_license: string | null;
+  /**
+   * Number of the seal applied to the trailer.
+   * Length: 1 to 100.
+   */
+  readonly seal_identifier: string | null;
+  /**
+   * Bill of lading number issued by the carrier.
+   * Length: 1 to 100.
+   */
+  readonly bill_of_lading_identifier: string | null;
 }
 
 /**
@@ -4744,6 +4991,63 @@ export interface ShipmentCreate {
    * Format: `date-time`.
    */
   readonly arrives_at?: string | null;
+  readonly urid?: Urid | null;
+  /**
+   * What the shipment carries, in a sentence.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * Where the freight ships from, as a locality.
+   * Length: 1 to 200.
+   */
+  readonly origin?: string | null;
+  /**
+   * Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.
+   * Format: `uuid`.
+   */
+  readonly sender_counterparty_id?: string | null;
+  /**
+   * Number of pallets.
+   * Range: 0 to unbounded.
+   */
+  readonly pallet_count?: number | null;
+  /**
+   * Number of pieces.
+   * Range: 0 to unbounded.
+   */
+  readonly piece_count?: number | null;
+  /**
+   * Length of the load in feet.
+   */
+  readonly length_ft?: number | null;
+  /**
+   * Width of the load in feet.
+   */
+  readonly width_ft?: number | null;
+  /**
+   * Height of the load in feet.
+   */
+  readonly height_ft?: number | null;
+  /**
+   * Weight of the load in pounds.
+   */
+  readonly weight_lb?: number | null;
+  /**
+   * License plate of the trailer.
+   * Length: 1 to 100.
+   */
+  readonly trailer_license?: string | null;
+  /**
+   * Number of the seal applied to the trailer.
+   * Length: 1 to 100.
+   */
+  readonly seal_identifier?: string | null;
+  /**
+   * Bill of lading number issued by the carrier.
+   * Length: 1 to 100.
+   */
+  readonly bill_of_lading_identifier?: string | null;
 }
 
 /**
@@ -4780,6 +5084,63 @@ export interface ShipmentUpdate {
    * Format: `date-time`.
    */
   readonly arrives_at?: string | null;
+  readonly urid?: Urid | null;
+  /**
+   * What the shipment carries, in a sentence.
+   * Length: 1 to 2000.
+   */
+  readonly description?: string | null;
+  /**
+   * Where the freight ships from, as a locality.
+   * Length: 1 to 200.
+   */
+  readonly origin?: string | null;
+  /**
+   * Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.
+   * Format: `uuid`.
+   */
+  readonly sender_counterparty_id?: string | null;
+  /**
+   * Number of pallets.
+   * Range: 0 to unbounded.
+   */
+  readonly pallet_count?: number | null;
+  /**
+   * Number of pieces.
+   * Range: 0 to unbounded.
+   */
+  readonly piece_count?: number | null;
+  /**
+   * Length of the load in feet.
+   */
+  readonly length_ft?: number | null;
+  /**
+   * Width of the load in feet.
+   */
+  readonly width_ft?: number | null;
+  /**
+   * Height of the load in feet.
+   */
+  readonly height_ft?: number | null;
+  /**
+   * Weight of the load in pounds.
+   */
+  readonly weight_lb?: number | null;
+  /**
+   * License plate of the trailer.
+   * Length: 1 to 100.
+   */
+  readonly trailer_license?: string | null;
+  /**
+   * Number of the seal applied to the trailer.
+   * Length: 1 to 100.
+   */
+  readonly seal_identifier?: string | null;
+  /**
+   * Bill of lading number issued by the carrier.
+   * Length: 1 to 100.
+   */
+  readonly bill_of_lading_identifier?: string | null;
 }
 
 /**
@@ -5116,6 +5477,16 @@ export interface GateQueueEntry {
    * Format: `uuid`.
    */
   readonly released_by: string | null;
+  /**
+   * Kind of vehicle at the gate.
+   * Length: 1 to 100.
+   */
+  readonly vehicle_type: string | null;
+  /**
+   * Driver of the vehicle, as given at check-in.
+   * Length: 1 to 200.
+   */
+  readonly driver_name: string | null;
 }
 
 /**
@@ -5142,6 +5513,16 @@ export interface GateQueueEntryCreate {
    * Format: `uuid`.
    */
   readonly shipment_id?: string | null;
+  /**
+   * Kind of vehicle at the gate.
+   * Length: 1 to 100.
+   */
+  readonly vehicle_type?: string | null;
+  /**
+   * Driver of the vehicle, as given at check-in.
+   * Length: 1 to 200.
+   */
+  readonly driver_name?: string | null;
 }
 
 /**
@@ -5163,6 +5544,16 @@ export interface GateQueueEntryUpdate {
    * Format: `uuid`.
    */
   readonly shipment_id?: string | null;
+  /**
+   * Kind of vehicle at the gate.
+   * Length: 1 to 100.
+   */
+  readonly vehicle_type?: string | null;
+  /**
+   * Driver of the vehicle, as given at check-in.
+   * Length: 1 to 200.
+   */
+  readonly driver_name?: string | null;
 }
 
 /**
@@ -5238,6 +5629,7 @@ export interface MarshallingLogEntry {
    * Format: `uuid`.
    */
   readonly zone_id: string | null;
+  readonly urid: Urid | null;
 }
 
 /**
@@ -5269,6 +5661,7 @@ export interface MarshallingLogEntryCreate {
    * Format: `uuid`.
    */
   readonly zone_id?: string | null;
+  readonly urid?: Urid | null;
 }
 
 /**
@@ -8561,6 +8954,11 @@ export interface Shift {
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * Meal break scheduled within the shift, in minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly scheduled_break_minutes: number | null;
 }
 
 /**
@@ -8608,6 +9006,11 @@ export interface ShiftCreate {
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * Meal break scheduled within the shift, in minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly scheduled_break_minutes?: number | null;
 }
 
 /**
@@ -8650,6 +9053,11 @@ export interface ShiftUpdate {
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone?: string;
+  /**
+   * Meal break scheduled within the shift, in minutes.
+   * Range: 0 to unbounded.
+   */
+  readonly scheduled_break_minutes?: number | null;
 }
 
 /**
@@ -11855,6 +12263,8 @@ export interface BudgetLine {
    * Range: 1 to unbounded.
    */
   readonly line_number: number;
+  readonly phase_code: PhaseCode | null;
+  readonly tier_code: TierCode | null;
 }
 
 /**
@@ -11915,6 +12325,8 @@ export interface BudgetLineCreate {
    * Range: 1 to unbounded.
    */
   readonly line_number: number;
+  readonly phase_code?: PhaseCode | null;
+  readonly tier_code?: TierCode | null;
 }
 
 /**
@@ -11960,6 +12372,8 @@ export interface BudgetLineUpdate {
    * Range: 1 to unbounded.
    */
   readonly line_number?: number;
+  readonly phase_code?: PhaseCode | null;
+  readonly tier_code?: TierCode | null;
 }
 
 /**
@@ -12307,6 +12721,16 @@ export interface ChangeOrder {
    * Format: `uuid`.
    */
   readonly priced_by: string | null;
+  /**
+   * Days the change moves the schedule; negative when it pulls it in, zero for none.
+   * Range: -3650 to unbounded.
+   */
+  readonly schedule_impact_days: number | null;
+  /**
+   * Effect of the change on the client, as stated.
+   * Length: 1 to 500.
+   */
+  readonly client_impact: string | null;
 }
 
 /**
@@ -12338,6 +12762,16 @@ export interface ChangeOrderCreate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly order_type_enum_id?: string | null;
+  /**
+   * Days the change moves the schedule; negative when it pulls it in, zero for none.
+   * Range: -3650 to unbounded.
+   */
+  readonly schedule_impact_days?: number | null;
+  /**
+   * Effect of the change on the client, as stated.
+   * Length: 1 to 500.
+   */
+  readonly client_impact?: string | null;
 }
 
 /**
@@ -12359,6 +12793,16 @@ export interface ChangeOrderUpdate {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly order_type_enum_id?: string | null;
+  /**
+   * Days the change moves the schedule; negative when it pulls it in, zero for none.
+   * Range: -3650 to unbounded.
+   */
+  readonly schedule_impact_days?: number | null;
+  /**
+   * Effect of the change on the client, as stated.
+   * Length: 1 to 500.
+   */
+  readonly client_impact?: string | null;
 }
 
 /**
@@ -14770,6 +15214,26 @@ export interface PurchaseOrder {
    * Format: `uuid`.
    */
   readonly rfq_response_id: string | null;
+  /**
+   * Date the order is due to be delivered.
+   * Format: `date`.
+   */
+  readonly delivery_due_on: string | null;
+  /**
+   * Days after invoice the order is payable (Net 30 is 30).
+   * Range: 0 to unbounded.
+   */
+  readonly payment_terms_days: number | null;
+  /**
+   * Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly tax_minor: number | null;
+  /**
+   * Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly shipping_minor: number | null;
 }
 
 /**
@@ -14796,6 +15260,26 @@ export interface PurchaseOrderCreate {
    * Format: `uuid`.
    */
   readonly rfq_response_id?: string | null;
+  /**
+   * Date the order is due to be delivered.
+   * Format: `date`.
+   */
+  readonly delivery_due_on?: string | null;
+  /**
+   * Days after invoice the order is payable (Net 30 is 30).
+   * Range: 0 to unbounded.
+   */
+  readonly payment_terms_days?: number | null;
+  /**
+   * Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly tax_minor?: number | null;
+  /**
+   * Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly shipping_minor?: number | null;
 }
 
 /**
@@ -14807,6 +15291,26 @@ export interface PurchaseOrderUpdate {
    * Format: `uuid`.
    */
   readonly rfq_response_id?: string | null;
+  /**
+   * Date the order is due to be delivered.
+   * Format: `date`.
+   */
+  readonly delivery_due_on?: string | null;
+  /**
+   * Days after invoice the order is payable (Net 30 is 30).
+   * Range: 0 to unbounded.
+   */
+  readonly payment_terms_days?: number | null;
+  /**
+   * Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly tax_minor?: number | null;
+  /**
+   * Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly shipping_minor?: number | null;
 }
 
 /**
@@ -15762,6 +16266,12 @@ export interface Vendor {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly default_currency_code: string | null;
+  readonly default_account_code: GlAccountCode | null;
+  /**
+   * Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
+   * Format: `uuid`.
+   */
+  readonly default_cost_center_id: string | null;
 }
 
 /**
@@ -15788,6 +16298,12 @@ export interface VendorCreate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly default_currency_code?: string | null;
+  readonly default_account_code?: GlAccountCode | null;
+  /**
+   * Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
+   * Format: `uuid`.
+   */
+  readonly default_cost_center_id?: string | null;
 }
 
 /**
@@ -15804,6 +16320,12 @@ export interface VendorUpdate {
    * Pattern: `^[A-Z]{3}$`.
    */
   readonly default_currency_code?: string | null;
+  readonly default_account_code?: GlAccountCode | null;
+  /**
+   * Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
+   * Format: `uuid`.
+   */
+  readonly default_cost_center_id?: string | null;
 }
 
 /**
@@ -16908,6 +17430,7 @@ export interface Inspection {
    * Format: `date-time`.
    */
   readonly inspected_at: string;
+  readonly urid: Urid | null;
 }
 
 /**
@@ -16934,6 +17457,7 @@ export interface InspectionCreate {
    * Format: `date-time`.
    */
   readonly inspected_at?: string;
+  readonly urid?: Urid | null;
 }
 
 /**
@@ -16945,6 +17469,7 @@ export interface InspectionUpdate {
    * Format: `uuid`.
    */
   readonly record_id?: string | null;
+  readonly urid?: Urid | null;
 }
 
 /**
@@ -22327,11 +22852,6 @@ export interface CanonTeam {
    */
   readonly responsibilities: string | null;
 }
-
-/**
- * Canon team identifier from `xpms.dim_team`.
- */
-export type TeamId = string;
 
 /**
  * One page of results with a cursor to the next page.

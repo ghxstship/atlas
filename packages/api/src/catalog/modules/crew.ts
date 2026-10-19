@@ -21,6 +21,7 @@ import {
 } from "../correct.ts";
 import { itemAction, transition } from "../define.ts";
 import type { ActionSpec, ResourceSpec } from "../types.ts";
+import { crewFieldHomes } from "./parts/playbook-field-homes.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -678,5 +679,6 @@ export const additions = defineAdditions("Crew", {
         },
       }),
     },
+    ...crewFieldHomes,
   ],
 });

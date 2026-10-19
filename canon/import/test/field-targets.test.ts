@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { readColumnMap } from "../src/playbook/column-map.ts";
+import { schemaColumns } from "../src/playbook/targets.ts";
 
 /**
  * Section 18 gate 14: every `field` target in the Playbook column map exists in the schema. The schema is read
@@ -33,44 +34,6 @@ const OWNER_BLOCKED: Readonly<Record<string, number>> = {
 const TEMPLATE_VALUES = "xpms.production_template_values.value_text";
 const OWNER_PREFIX = "Blocked on owner (RRR-64): ";
 const TEMPLATE_PREFIX = "Template only: ";
-
-/** Every `schema.relation.column` of a table or view Row in the generated database types. */
-export function schemaColumns(types: string): Set<string> {
-  const columns = new Set<string>();
-  let schema = "";
-  let section = "";
-  let relation = "";
-  let inRow = false;
-  for (const line of types.split("\n")) {
-    const schemaMatch = /^ {2}([a-z_]+): \{$/.exec(line);
-    if (schemaMatch) {
-      schema = schemaMatch[1] as string;
-      continue;
-    }
-    const sectionMatch = /^ {4}(Tables|Views|Functions|Enums|CompositeTypes): \{$/.exec(line);
-    if (sectionMatch) {
-      section = sectionMatch[1] as string;
-      continue;
-    }
-    if (section !== "Tables" && section !== "Views") continue;
-    const relationMatch = /^ {6}([a-z0-9_]+): \{$/.exec(line);
-    if (relationMatch) {
-      relation = relationMatch[1] as string;
-      continue;
-    }
-    if (/^ {8}Row: \{$/.test(line)) {
-      inRow = true;
-      continue;
-    }
-    if (inRow && /^ {8}\}/.test(line)) {
-      inRow = false;
-      continue;
-    }
-    const columnMatch = /^ {10}([a-z0-9_]+)\??:/.exec(line);
-    if (inRow && columnMatch) columns.add(`${schema}.${relation}.${columnMatch[1] as string}`);
-  }
-  return columns;
-}
 
 const columns = schemaColumns(readFileSync(repo("packages/data/src/database.types.ts"), "utf8"));
 const sheets = readColumnMap(readFileSync(repo("canon/map/playbook-columns.yaml"), "utf8")).sheets;

@@ -716,6 +716,18 @@
             "format": "date-time",
             "description": "When the project was archived; archived projects leave the default lists.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "anchor_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Anchor date (usually the show day) that template day offsets count from.",
+            "example": "2026-10-08"
+          },
+          "budget_envelope_minor": {
+            "type": ["integer", "null"],
+            "description": "Budget envelope approved for the project. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 25000000,
+            "format": "int64"
           }
         },
         "required": [
@@ -741,7 +753,9 @@
           "venue_id",
           "client_counterparty_id",
           "production_state",
-          "archived_at"
+          "archived_at",
+          "anchor_on",
+          "budget_envelope_minor"
         ],
         "description": "A production project. Jurisdiction is resolved at gate 1."
       },
@@ -906,6 +920,18 @@
             "format": "uuid",
             "description": "Identifier of the client counterparty the project is produced for.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "anchor_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Anchor date (usually the show day) that template day offsets count from.",
+            "example": "2026-10-08"
+          },
+          "budget_envelope_minor": {
+            "type": ["integer", "null"],
+            "description": "Budget envelope approved for the project. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 25000000,
+            "format": "int64"
           }
         },
         "description": "Fields accepted when updating a Project. Omitted fields are unchanged."
@@ -2325,7 +2351,41 @@
             "items": { "$ref": "#/components/schemas/ExternalRoleType" },
             "description": "External role types that may see the record; empty means internal only. Stored as junction rows, presented as a set.",
             "example": ["Vendor"]
-          }
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the record belongs to, derived from its scope node and never changed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "parent_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the summary record this record rolls up to, in the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "wbs_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "^[0-9]+(\\.[0-9]+)*$",
+            "description": "Work breakdown structure code, dot separated.",
+            "example": "1.2.1"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "What the record involves, in sentence case.",
+            "example": "Rig the downstage truss."
+          },
+          "sop_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the standard operating procedure that governs the work.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "team_code": { "anyOf": [{ "$ref": "#/components/schemas/TeamId" }, { "type": "null" }] }
         },
         "required": [
           "id",
@@ -2351,7 +2411,13 @@
           "due_at",
           "blocker_text",
           "replan_reason",
-          "external_visibility"
+          "external_visibility",
+          "project_id",
+          "parent_record_id",
+          "wbs_code",
+          "description",
+          "sop_id",
+          "team_code"
         ],
         "description": "A record of any of the 26 kinds. Kind-specific attributes live in 1:1 extension tables keyed by `record_id`."
       },
@@ -2415,6 +2481,12 @@
         ],
         "description": "External role type (Section 4.4.2).",
         "example": "Crew"
+      },
+      "TeamId": {
+        "type": "string",
+        "pattern": "^[0-9]000-T[0-9]{2}$",
+        "description": "Canon team identifier from `xpms.dim_team`.",
+        "example": "4000-T01"
       },
       "RecordCreate": {
         "type": "object",
@@ -2567,7 +2639,35 @@
             "items": { "$ref": "#/components/schemas/ExternalRoleType" },
             "description": "External role types that may see the record; empty means internal only. Stored as junction rows, presented as a set.",
             "example": ["Vendor"]
-          }
+          },
+          "parent_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the summary record this record rolls up to, in the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "wbs_code": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 50,
+            "pattern": "^[0-9]+(\\.[0-9]+)*$",
+            "description": "Work breakdown structure code, dot separated.",
+            "example": "1.2.1"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4000,
+            "description": "What the record involves, in sentence case.",
+            "example": "Rig the downstage truss."
+          },
+          "sop_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the standard operating procedure that governs the work.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "team_code": { "anyOf": [{ "$ref": "#/components/schemas/TeamId" }, { "type": "null" }] }
         },
         "description": "Fields accepted when updating a Record. Omitted fields are unchanged."
       },
@@ -3226,6 +3326,37 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "work_order_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Sequence number within the project; the display key is {project_key}-WO-{number}.",
+            "example": 12
+          },
+          "location_text": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Where the work happens, in words, when no zone says it.",
+            "example": "Main stage, stage left wing."
+          },
+          "scope_of_work": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "The scope bidders price, in sentence case.",
+            "example": "Supply and hang 24 moving lights."
+          },
+          "scheduled_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Planned start.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "estimated_hours": {
+            "type": ["number", "null"],
+            "description": "Estimated labor hours; null when unestimated.",
+            "example": 16
           }
         },
         "required": [
@@ -3242,7 +3373,12 @@
           "work_order_state",
           "due_at",
           "budget_minor",
-          "currency"
+          "currency",
+          "work_order_number",
+          "location_text",
+          "scope_of_work",
+          "scheduled_starts_at",
+          "estimated_hours"
         ],
         "description": "A work order issued against a record, open to bids."
       },
@@ -3325,6 +3461,31 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency code of every money field.",
             "example": "USD"
+          },
+          "location_text": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Where the work happens, in words, when no zone says it.",
+            "example": "Main stage, stage left wing."
+          },
+          "scope_of_work": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "The scope bidders price, in sentence case.",
+            "example": "Supply and hang 24 moving lights."
+          },
+          "scheduled_starts_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Planned start.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "estimated_hours": {
+            "type": ["number", "null"],
+            "description": "Estimated labor hours; null when unestimated.",
+            "example": 16
           }
         },
         "description": "Fields accepted when updating a WorkOrder. Omitted fields are unchanged."
@@ -3607,6 +3768,12 @@
             "format": "uuid",
             "description": "Identifier of the project of the running order.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the schedule record the running order belongs to, in the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -3619,7 +3786,8 @@
           "scope_node_id",
           "name",
           "show_date",
-          "project_id"
+          "project_id",
+          "record_id"
         ],
         "description": "A run of show for one show scope node."
       },
@@ -3650,6 +3818,12 @@
             "format": "uuid",
             "description": "Identifier of the project of the running order.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the schedule record the running order belongs to, in the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": ["name", "show_date", "project_id"],
@@ -3670,6 +3844,12 @@
             "format": "date",
             "description": "Show date.",
             "example": "2026-10-08"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the schedule record the running order belongs to, in the same project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a RunOfShow. Omitted fields are unchanged."
@@ -3778,6 +3958,26 @@
             "format": "uuid",
             "description": "Identifier of the project of the running order, stamped by the database.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "segment": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Show segment the cue belongs to.",
+            "example": "Act II, Official Opening and Remarks"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What happens on the cue.",
+            "example": "House lights to half; walk-in music fades."
+          },
+          "space_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the space the cue happens in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -3794,7 +3994,10 @@
           "called_at",
           "duration",
           "called_by",
-          "project_id"
+          "project_id",
+          "segment",
+          "description",
+          "space_id"
         ],
         "description": "A cue in a run of show."
       },
@@ -3831,6 +4034,26 @@
             "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
             "description": "Planned length as hours:minutes:seconds.",
             "example": "00:05:00"
+          },
+          "segment": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Show segment the cue belongs to.",
+            "example": "Act II, Official Opening and Remarks"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What happens on the cue.",
+            "example": "House lights to half; walk-in music fades."
+          },
+          "space_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the space the cue happens in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": ["run_of_show_id", "position", "label"],
@@ -3863,6 +4086,26 @@
             "pattern": "^\\d{2,}:\\d{2}:\\d{2}(\\.\\d+)?$",
             "description": "Planned length as hours:minutes:seconds.",
             "example": "00:05:00"
+          },
+          "segment": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Show segment the cue belongs to.",
+            "example": "Act II, Official Opening and Remarks"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What happens on the cue.",
+            "example": "House lights to half; walk-in music fades."
+          },
+          "space_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the space the cue happens in.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a Cue. Omitted fields are unchanged."
@@ -5087,7 +5330,14 @@
             "description": "Floor area in square feet.",
             "example": 18000
           },
-          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the space is used for.",
+            "example": "Backstage green room for talent."
+          }
         },
         "required": [
           "id",
@@ -5100,7 +5350,8 @@
           "name",
           "capacity",
           "area_sq_ft",
-          "urid"
+          "urid",
+          "description"
         ],
         "description": "A space within a venue."
       },
@@ -5137,7 +5388,14 @@
             "description": "Floor area in square feet.",
             "example": 18000
           },
-          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the space is used for.",
+            "example": "Backstage green room for talent."
+          }
         },
         "required": ["venue_id", "name"],
         "description": "Fields accepted when creating a Space."
@@ -5163,7 +5421,14 @@
             "description": "Floor area in square feet.",
             "example": 18000
           },
-          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the space is used for.",
+            "example": "Backstage green room for talent."
+          }
         },
         "description": "Fields accepted when updating a Space. Omitted fields are unchanged."
       },
@@ -6547,6 +6812,80 @@
             "minimum": 1,
             "description": "Number within the project; the display key is {project_key}-{shipment_number}.",
             "example": 7
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the shipment carries, in a sentence.",
+            "example": "Two pallets of truss and motors."
+          },
+          "origin": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Where the freight ships from, as a locality.",
+            "example": "Orlando, FL"
+          },
+          "sender_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "pallet_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pallets.",
+            "example": 2
+          },
+          "piece_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pieces.",
+            "example": 14
+          },
+          "length_ft": {
+            "type": ["number", "null"],
+            "description": "Length of the load in feet.",
+            "example": 48
+          },
+          "width_ft": {
+            "type": ["number", "null"],
+            "description": "Width of the load in feet.",
+            "example": 8.5
+          },
+          "height_ft": {
+            "type": ["number", "null"],
+            "description": "Height of the load in feet.",
+            "example": 9
+          },
+          "weight_lb": {
+            "type": ["number", "null"],
+            "description": "Weight of the load in pounds.",
+            "example": 12000
+          },
+          "trailer_license": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "License plate of the trailer.",
+            "example": "FL TRL-4410"
+          },
+          "seal_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Number of the seal applied to the trailer.",
+            "example": "SL-778120"
+          },
+          "bill_of_lading_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Bill of lading number issued by the carrier.",
+            "example": "BOL-2027-0611"
           }
         },
         "required": [
@@ -6563,7 +6902,20 @@
           "carrier_counterparty_id",
           "freight_type_enum_id",
           "arrives_at",
-          "shipment_number"
+          "shipment_number",
+          "urid",
+          "description",
+          "origin",
+          "sender_counterparty_id",
+          "pallet_count",
+          "piece_count",
+          "length_ft",
+          "width_ft",
+          "height_ft",
+          "weight_lb",
+          "trailer_license",
+          "seal_identifier",
+          "bill_of_lading_identifier"
         ],
         "description": "A shipment into or out of a venue."
       },
@@ -6611,6 +6963,80 @@
             "format": "date-time",
             "description": "When the shipment is due to arrive.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the shipment carries, in a sentence.",
+            "example": "Two pallets of truss and motors."
+          },
+          "origin": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Where the freight ships from, as a locality.",
+            "example": "Orlando, FL"
+          },
+          "sender_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "pallet_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pallets.",
+            "example": 2
+          },
+          "piece_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pieces.",
+            "example": 14
+          },
+          "length_ft": {
+            "type": ["number", "null"],
+            "description": "Length of the load in feet.",
+            "example": 48
+          },
+          "width_ft": {
+            "type": ["number", "null"],
+            "description": "Width of the load in feet.",
+            "example": 8.5
+          },
+          "height_ft": {
+            "type": ["number", "null"],
+            "description": "Height of the load in feet.",
+            "example": 9
+          },
+          "weight_lb": {
+            "type": ["number", "null"],
+            "description": "Weight of the load in pounds.",
+            "example": 12000
+          },
+          "trailer_license": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "License plate of the trailer.",
+            "example": "FL TRL-4410"
+          },
+          "seal_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Number of the seal applied to the trailer.",
+            "example": "SL-778120"
+          },
+          "bill_of_lading_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Bill of lading number issued by the carrier.",
+            "example": "BOL-2027-0611"
           }
         },
         "required": ["project_id", "direction"],
@@ -6654,6 +7080,80 @@
             "format": "date-time",
             "description": "When the shipment is due to arrive.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] },
+          "description": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the shipment carries, in a sentence.",
+            "example": "Two pallets of truss and motors."
+          },
+          "origin": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Where the freight ships from, as a locality.",
+            "example": "Orlando, FL"
+          },
+          "sender_counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "pallet_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pallets.",
+            "example": 2
+          },
+          "piece_count": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Number of pieces.",
+            "example": 14
+          },
+          "length_ft": {
+            "type": ["number", "null"],
+            "description": "Length of the load in feet.",
+            "example": 48
+          },
+          "width_ft": {
+            "type": ["number", "null"],
+            "description": "Width of the load in feet.",
+            "example": 8.5
+          },
+          "height_ft": {
+            "type": ["number", "null"],
+            "description": "Height of the load in feet.",
+            "example": 9
+          },
+          "weight_lb": {
+            "type": ["number", "null"],
+            "description": "Weight of the load in pounds.",
+            "example": 12000
+          },
+          "trailer_license": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "License plate of the trailer.",
+            "example": "FL TRL-4410"
+          },
+          "seal_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Number of the seal applied to the trailer.",
+            "example": "SL-778120"
+          },
+          "bill_of_lading_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Bill of lading number issued by the carrier.",
+            "example": "BOL-2027-0611"
           }
         },
         "description": "Fields accepted when updating a Shipment. Omitted fields are unchanged."
@@ -7071,6 +7571,20 @@
             "format": "uuid",
             "description": "Identifier of the person who released the vehicle.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vehicle_type": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Kind of vehicle at the gate.",
+            "example": "53ft Tractor-Trailer"
+          },
+          "driver_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Driver of the vehicle, as given at check-in.",
+            "example": "Luis Ortega"
           }
         },
         "required": [
@@ -7085,7 +7599,9 @@
           "released_at",
           "project_id",
           "shipment_id",
-          "released_by"
+          "released_by",
+          "vehicle_type",
+          "driver_name"
         ],
         "description": "A vehicle waiting at the venue gate."
       },
@@ -7116,6 +7632,20 @@
             "format": "uuid",
             "description": "Identifier of the shipment the vehicle carries.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vehicle_type": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Kind of vehicle at the gate.",
+            "example": "53ft Tractor-Trailer"
+          },
+          "driver_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Driver of the vehicle, as given at check-in.",
+            "example": "Luis Ortega"
           }
         },
         "required": ["vehicle_identifier", "project_id"],
@@ -7142,6 +7672,20 @@
             "format": "uuid",
             "description": "Identifier of the shipment the vehicle carries.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "vehicle_type": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Kind of vehicle at the gate.",
+            "example": "53ft Tractor-Trailer"
+          },
+          "driver_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Driver of the vehicle, as given at check-in.",
+            "example": "Luis Ortega"
           }
         },
         "description": "Fields accepted when updating a GateQueueEntry. Omitted fields are unchanged."
@@ -7232,7 +7776,8 @@
             "format": "uuid",
             "description": "Identifier of the yard zone concerned.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "required": [
           "id",
@@ -7245,7 +7790,8 @@
           "logged_at",
           "project_id",
           "shipment_id",
-          "zone_id"
+          "zone_id",
+          "urid"
         ],
         "description": "A marshalling yard log entry: staging and release."
       },
@@ -7282,7 +7828,8 @@
             "format": "uuid",
             "description": "Identifier of the yard zone concerned.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "required": ["entry", "project_id"],
         "description": "Fields accepted when creating a MarshallingLogEntry."
@@ -11559,6 +12106,12 @@
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the call and wrap times are shown in.",
             "example": "America/New_York"
+          },
+          "scheduled_break_minutes": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Meal break scheduled within the shift, in minutes.",
+            "example": 30
           }
         },
         "required": [
@@ -11577,7 +12130,8 @@
           "shift_state",
           "membership_id",
           "scope_node_id",
-          "time_zone"
+          "time_zone",
+          "scheduled_break_minutes"
         ],
         "description": "A staffed crew block. A shift cannot end before it starts."
       },
@@ -11634,6 +12188,12 @@
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the call and wrap times are shown in.",
             "example": "America/New_York"
+          },
+          "scheduled_break_minutes": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Meal break scheduled within the shift, in minutes.",
+            "example": 30
           }
         },
         "required": ["project_id", "starts_at", "ends_at", "time_zone"],
@@ -11686,6 +12246,12 @@
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
             "description": "IANA time zone the call and wrap times are shown in.",
             "example": "America/New_York"
+          },
+          "scheduled_break_minutes": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Meal break scheduled within the shift, in minutes.",
+            "example": 30
           }
         },
         "description": "Fields accepted when updating a Shift. Omitted fields are unchanged."
@@ -15951,6 +16517,12 @@
             "minimum": 1,
             "description": "Line number within the budget.",
             "example": 1
+          },
+          "phase_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/PhaseCode" }, { "type": "null" }]
+          },
+          "tier_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
           }
         },
         "required": [
@@ -15973,7 +16545,9 @@
           "unit_basis",
           "unit_price_minor",
           "line_total_minor",
-          "line_number"
+          "line_number",
+          "phase_code",
+          "tier_code"
         ],
         "description": "A budget line. A blank unit price is unpriced; zero is a claim. Fee and Contingency are line types."
       },
@@ -16045,6 +16619,12 @@
             "minimum": 1,
             "description": "Line number within the budget.",
             "example": 1
+          },
+          "phase_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/PhaseCode" }, { "type": "null" }]
+          },
+          "tier_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
           }
         },
         "required": ["budget_id", "urid", "xyz", "xyz_basis", "description", "line_number"],
@@ -16100,6 +16680,12 @@
             "minimum": 1,
             "description": "Line number within the budget.",
             "example": 1
+          },
+          "phase_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/PhaseCode" }, { "type": "null" }]
+          },
+          "tier_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
           }
         },
         "description": "Fields accepted when updating a BudgetLine. Omitted fields are unchanged."
@@ -16558,6 +17144,19 @@
             "format": "uuid",
             "description": "Identifier of the person who priced the change order.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "schedule_impact_days": {
+            "type": ["integer", "null"],
+            "minimum": -3650,
+            "description": "Days the change moves the schedule; negative when it pulls it in, zero for none.",
+            "example": 2
+          },
+          "client_impact": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Effect of the change on the client, as stated.",
+            "example": "Adds a second stage to the run of show."
           }
         },
         "required": [
@@ -16576,7 +17175,9 @@
           "budget_id",
           "change_order_number",
           "order_type_enum_id",
-          "priced_by"
+          "priced_by",
+          "schedule_impact_days",
+          "client_impact"
         ],
         "description": "A change order. An unpriced change order cannot be stored at zero; its requester cannot price and approve it alone."
       },
@@ -16614,6 +17215,19 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon change order type.",
             "example": "ENM-092"
+          },
+          "schedule_impact_days": {
+            "type": ["integer", "null"],
+            "minimum": -3650,
+            "description": "Days the change moves the schedule; negative when it pulls it in, zero for none.",
+            "example": 2
+          },
+          "client_impact": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Effect of the change on the client, as stated.",
+            "example": "Adds a second stage to the run of show."
           }
         },
         "required": ["project_id", "title", "budget_id"],
@@ -16641,6 +17255,19 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon change order type.",
             "example": "ENM-092"
+          },
+          "schedule_impact_days": {
+            "type": ["integer", "null"],
+            "minimum": -3650,
+            "description": "Days the change moves the schedule; negative when it pulls it in, zero for none.",
+            "example": 2
+          },
+          "client_impact": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Effect of the change on the client, as stated.",
+            "example": "Adds a second stage to the run of show."
           }
         },
         "description": "Fields accepted when updating a ChangeOrder. Omitted fields are unchanged."
@@ -19790,6 +20417,30 @@
             "format": "uuid",
             "description": "Identifier of the awarded RFQ response the order comes from.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "delivery_due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date the order is due to be delivered.",
+            "example": "2026-10-08"
+          },
+          "payment_terms_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days after invoice the order is payable (Net 30 is 30).",
+            "example": 30
+          },
+          "tax_minor": {
+            "type": ["integer", "null"],
+            "description": "Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4200,
+            "format": "int64"
+          },
+          "shipping_minor": {
+            "type": ["integer", "null"],
+            "description": "Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 15000,
+            "format": "int64"
           }
         },
         "required": [
@@ -19804,7 +20455,11 @@
           "po_number",
           "currency_code",
           "po_state",
-          "rfq_response_id"
+          "rfq_response_id",
+          "delivery_due_on",
+          "payment_terms_days",
+          "tax_minor",
+          "shipping_minor"
         ],
         "description": "A purchase order. Its creator cannot approve it; spend authority applies inside the approval RPC."
       },
@@ -19834,6 +20489,30 @@
             "format": "uuid",
             "description": "Identifier of the awarded RFQ response the order comes from.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "delivery_due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date the order is due to be delivered.",
+            "example": "2026-10-08"
+          },
+          "payment_terms_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days after invoice the order is payable (Net 30 is 30).",
+            "example": 30
+          },
+          "tax_minor": {
+            "type": ["integer", "null"],
+            "description": "Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4200,
+            "format": "int64"
+          },
+          "shipping_minor": {
+            "type": ["integer", "null"],
+            "description": "Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 15000,
+            "format": "int64"
           }
         },
         "required": ["project_id", "vendor_id", "currency_code"],
@@ -19847,6 +20526,30 @@
             "format": "uuid",
             "description": "Identifier of the awarded RFQ response the order comes from.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "delivery_due_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Date the order is due to be delivered.",
+            "example": "2026-10-08"
+          },
+          "payment_terms_days": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Days after invoice the order is payable (Net 30 is 30).",
+            "example": 30
+          },
+          "tax_minor": {
+            "type": ["integer", "null"],
+            "description": "Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 4200,
+            "format": "int64"
+          },
+          "shipping_minor": {
+            "type": ["integer", "null"],
+            "description": "Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 15000,
+            "format": "int64"
           }
         },
         "description": "Fields accepted when updating a PurchaseOrder. Omitted fields are unchanged."
@@ -21090,6 +21793,15 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency the vendor bills in by default.",
             "example": "USD"
+          },
+          "default_account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
+          },
+          "default_cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -21103,7 +21815,9 @@
           "vendor_state",
           "counterparty_id",
           "payment_terms_days",
-          "default_currency_code"
+          "default_currency_code",
+          "default_account_code",
+          "default_cost_center_id"
         ],
         "description": "An organization in the vendor relationship with this org, with its counterparty type."
       },
@@ -21133,6 +21847,15 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency the vendor bills in by default.",
             "example": "USD"
+          },
+          "default_account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
+          },
+          "default_cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": ["counterparty_id"],
@@ -21152,6 +21875,15 @@
             "pattern": "^[A-Z]{3}$",
             "description": "ISO 4217 currency the vendor bills in by default.",
             "example": "USD"
+          },
+          "default_account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
+          },
+          "default_cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a Vendor. Omitted fields are unchanged."
@@ -22600,7 +23332,8 @@
             "format": "date-time",
             "description": "When the inspection took place.",
             "example": "2026-10-08T14:30:00Z"
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "required": [
           "id",
@@ -22615,7 +23348,8 @@
           "signed_off_by",
           "signed_off_at",
           "record_id",
-          "inspected_at"
+          "inspected_at",
+          "urid"
         ],
         "description": "An inspection performed from a template, with sign-off."
       },
@@ -22645,7 +23379,8 @@
             "format": "date-time",
             "description": "When the inspection took place.",
             "example": "2026-10-08T14:30:00Z"
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "required": ["project_id", "inspection_template_id"],
         "description": "Fields accepted when creating a Inspection."
@@ -22658,7 +23393,8 @@
             "format": "uuid",
             "description": "Identifier of the Inspection record of the same project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          }
+          },
+          "urid": { "anyOf": [{ "$ref": "#/components/schemas/Urid" }, { "type": "null" }] }
         },
         "description": "Fields accepted when updating a Inspection. Omitted fields are unchanged."
       },
@@ -29860,12 +30596,6 @@
           "responsibilities"
         ],
         "description": "A canon team: a tag that rolls up to a department, never a tree level."
-      },
-      "TeamId": {
-        "type": "string",
-        "pattern": "^[0-9]000-T[0-9]{2}$",
-        "description": "Canon team identifier from `xpms.dim_team`.",
-        "example": "4000-T01"
       },
       "CanonTagPage": {
         "type": "object",
@@ -55436,7 +56166,9 @@
                       "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "production_state": "Proposed",
-                      "archived_at": "2026-10-08T14:30:00Z"
+                      "archived_at": "2026-10-08T14:30:00Z",
+                      "anchor_on": "2026-10-08",
+                      "budget_envelope_minor": 25000000
                     }
                   ],
                   "next_cursor": null
@@ -55515,7 +56247,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -55587,7 +56321,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -55639,7 +56375,9 @@
                 "project_key": "NWL-24",
                 "time_zone": "America/New_York",
                 "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "anchor_on": "2026-10-08",
+                "budget_envelope_minor": 25000000
               },
               "schema": { "$ref": "#/components/schemas/ProjectUpdate" }
             }
@@ -55679,7 +56417,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -55766,7 +56506,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -55848,7 +56590,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -55978,7 +56722,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -56051,7 +56797,9 @@
                   "venue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "client_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "production_state": "Proposed",
-                  "archived_at": "2026-10-08T14:30:00Z"
+                  "archived_at": "2026-10-08T14:30:00Z",
+                  "anchor_on": "2026-10-08",
+                  "budget_envelope_minor": 25000000
                 },
                 "schema": { "$ref": "#/components/schemas/Project" }
               }
@@ -58003,7 +58751,13 @@
                       "due_at": "2026-10-08T14:30:00Z",
                       "blocker_text": "Waiting on the rigging plot.",
                       "replan_reason": "Moved to the second weekend.",
-                      "external_visibility": ["Vendor"]
+                      "external_visibility": ["Vendor"],
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "wbs_code": "1.2.1",
+                      "description": "Rig the downstage truss.",
+                      "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "team_code": "4000-T01"
                     }
                   ],
                   "next_cursor": null
@@ -58086,7 +58840,13 @@
                   "due_at": "2026-10-08T14:30:00Z",
                   "blocker_text": "Waiting on the rigging plot.",
                   "replan_reason": "Moved to the second weekend.",
-                  "external_visibility": ["Vendor"]
+                  "external_visibility": ["Vendor"],
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "wbs_code": "1.2.1",
+                  "description": "Rig the downstage truss.",
+                  "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_code": "4000-T01"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -58159,7 +58919,13 @@
                   "due_at": "2026-10-08T14:30:00Z",
                   "blocker_text": "Waiting on the rigging plot.",
                   "replan_reason": "Moved to the second weekend.",
-                  "external_visibility": ["Vendor"]
+                  "external_visibility": ["Vendor"],
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "wbs_code": "1.2.1",
+                  "description": "Rig the downstage truss.",
+                  "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_code": "4000-T01"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -58212,7 +58978,12 @@
                 "due_at": "2026-10-08T14:30:00Z",
                 "blocker_text": "Waiting on the rigging plot.",
                 "replan_reason": "Moved to the second weekend.",
-                "external_visibility": ["Vendor"]
+                "external_visibility": ["Vendor"],
+                "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "wbs_code": "1.2.1",
+                "description": "Rig the downstage truss.",
+                "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "team_code": "4000-T01"
               },
               "schema": { "$ref": "#/components/schemas/RecordUpdate" }
             }
@@ -58253,7 +59024,13 @@
                   "due_at": "2026-10-08T14:30:00Z",
                   "blocker_text": "Waiting on the rigging plot.",
                   "replan_reason": "Moved to the second weekend.",
-                  "external_visibility": ["Vendor"]
+                  "external_visibility": ["Vendor"],
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "wbs_code": "1.2.1",
+                  "description": "Rig the downstage truss.",
+                  "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_code": "4000-T01"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -58372,7 +59149,13 @@
                   "due_at": "2026-10-08T14:30:00Z",
                   "blocker_text": "Waiting on the rigging plot.",
                   "replan_reason": "Moved to the second weekend.",
-                  "external_visibility": ["Vendor"]
+                  "external_visibility": ["Vendor"],
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "wbs_code": "1.2.1",
+                  "description": "Rig the downstage truss.",
+                  "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_code": "4000-T01"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -58446,7 +59229,13 @@
                   "due_at": "2026-10-08T14:30:00Z",
                   "blocker_text": "Waiting on the rigging plot.",
                   "replan_reason": "Moved to the second weekend.",
-                  "external_visibility": ["Vendor"]
+                  "external_visibility": ["Vendor"],
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "parent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "wbs_code": "1.2.1",
+                  "description": "Rig the downstage truss.",
+                  "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "team_code": "4000-T01"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -59166,7 +59955,12 @@
                       "work_order_state": "Proposed",
                       "due_at": "2026-10-08T14:30:00Z",
                       "budget_minor": 850000,
-                      "currency": "USD"
+                      "currency": "USD",
+                      "work_order_number": 12,
+                      "location_text": "Main stage, stage left wing.",
+                      "scope_of_work": "Supply and hang 24 moving lights.",
+                      "scheduled_starts_at": "2026-10-08T14:30:00Z",
+                      "estimated_hours": 16
                     }
                   ],
                   "next_cursor": null
@@ -59231,7 +60025,12 @@
                   "work_order_state": "Proposed",
                   "due_at": "2026-10-08T14:30:00Z",
                   "budget_minor": 850000,
-                  "currency": "USD"
+                  "currency": "USD",
+                  "work_order_number": 12,
+                  "location_text": "Main stage, stage left wing.",
+                  "scope_of_work": "Supply and hang 24 moving lights.",
+                  "scheduled_starts_at": "2026-10-08T14:30:00Z",
+                  "estimated_hours": 16
                 },
                 "schema": { "$ref": "#/components/schemas/WorkOrder" }
               }
@@ -59294,7 +60093,12 @@
                   "work_order_state": "Proposed",
                   "due_at": "2026-10-08T14:30:00Z",
                   "budget_minor": 850000,
-                  "currency": "USD"
+                  "currency": "USD",
+                  "work_order_number": 12,
+                  "location_text": "Main stage, stage left wing.",
+                  "scope_of_work": "Supply and hang 24 moving lights.",
+                  "scheduled_starts_at": "2026-10-08T14:30:00Z",
+                  "estimated_hours": 16
                 },
                 "schema": { "$ref": "#/components/schemas/WorkOrder" }
               }
@@ -59339,7 +60143,11 @@
                 "urid": "4000.01",
                 "due_at": "2026-10-08T14:30:00Z",
                 "budget_minor": 850000,
-                "currency": "USD"
+                "currency": "USD",
+                "location_text": "Main stage, stage left wing.",
+                "scope_of_work": "Supply and hang 24 moving lights.",
+                "scheduled_starts_at": "2026-10-08T14:30:00Z",
+                "estimated_hours": 16
               },
               "schema": { "$ref": "#/components/schemas/WorkOrderUpdate" }
             }
@@ -59370,7 +60178,12 @@
                   "work_order_state": "Proposed",
                   "due_at": "2026-10-08T14:30:00Z",
                   "budget_minor": 850000,
-                  "currency": "USD"
+                  "currency": "USD",
+                  "work_order_number": 12,
+                  "location_text": "Main stage, stage left wing.",
+                  "scope_of_work": "Supply and hang 24 moving lights.",
+                  "scheduled_starts_at": "2026-10-08T14:30:00Z",
+                  "estimated_hours": 16
                 },
                 "schema": { "$ref": "#/components/schemas/WorkOrder" }
               }
@@ -59478,7 +60291,12 @@
                   "work_order_state": "Proposed",
                   "due_at": "2026-10-08T14:30:00Z",
                   "budget_minor": 850000,
-                  "currency": "USD"
+                  "currency": "USD",
+                  "work_order_number": 12,
+                  "location_text": "Main stage, stage left wing.",
+                  "scope_of_work": "Supply and hang 24 moving lights.",
+                  "scheduled_starts_at": "2026-10-08T14:30:00Z",
+                  "estimated_hours": 16
                 },
                 "schema": { "$ref": "#/components/schemas/WorkOrder" }
               }
@@ -59844,7 +60662,8 @@
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "name": "Saturday Main Stage",
                       "show_date": "2026-10-08",
-                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -59875,7 +60694,8 @@
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "name": "Saturday Main Stage",
                 "show_date": "2026-10-08",
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/RunOfShowCreate" }
             }
@@ -59902,7 +60722,8 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Saturday Main Stage",
                   "show_date": "2026-10-08",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RunOfShow" }
               }
@@ -59961,7 +60782,8 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Saturday Main Stage",
                   "show_date": "2026-10-08",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RunOfShow" }
               }
@@ -60000,7 +60822,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "name": "Saturday Main Stage", "show_date": "2026-10-08" },
+              "example": {
+                "name": "Saturday Main Stage",
+                "show_date": "2026-10-08",
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/RunOfShowUpdate" }
             }
           }
@@ -60026,7 +60852,8 @@
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "name": "Saturday Main Stage",
                   "show_date": "2026-10-08",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/RunOfShow" }
               }
@@ -60115,7 +60942,10 @@
                       "called_at": "2026-10-08T14:30:00Z",
                       "duration": "00:05:00",
                       "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "segment": "Act II, Official Opening and Remarks",
+                      "description": "House lights to half; walk-in music fades.",
+                      "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -60147,7 +60977,10 @@
                 "position": 10,
                 "label": "Headliner Walk-On",
                 "planned_at": "2026-10-08T14:30:00Z",
-                "duration": "00:05:00"
+                "duration": "00:05:00",
+                "segment": "Act II, Official Opening and Remarks",
+                "description": "House lights to half; walk-in music fades.",
+                "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/CueCreate" }
             }
@@ -60178,7 +61011,10 @@
                   "called_at": "2026-10-08T14:30:00Z",
                   "duration": "00:05:00",
                   "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment": "Act II, Official Opening and Remarks",
+                  "description": "House lights to half; walk-in music fades.",
+                  "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -60241,7 +61077,10 @@
                   "called_at": "2026-10-08T14:30:00Z",
                   "duration": "00:05:00",
                   "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment": "Act II, Official Opening and Remarks",
+                  "description": "House lights to half; walk-in music fades.",
+                  "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -60284,7 +61123,10 @@
                 "position": 10,
                 "label": "Headliner Walk-On",
                 "planned_at": "2026-10-08T14:30:00Z",
-                "duration": "00:05:00"
+                "duration": "00:05:00",
+                "segment": "Act II, Official Opening and Remarks",
+                "description": "House lights to half; walk-in music fades.",
+                "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/CueUpdate" }
             }
@@ -60315,7 +61157,10 @@
                   "called_at": "2026-10-08T14:30:00Z",
                   "duration": "00:05:00",
                   "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment": "Act II, Official Opening and Remarks",
+                  "description": "House lights to half; walk-in music fades.",
+                  "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -60410,7 +61255,10 @@
                   "called_at": "2026-10-08T14:30:00Z",
                   "duration": "00:05:00",
                   "called_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "segment": "Act II, Official Opening and Remarks",
+                  "description": "House lights to half; walk-in music fades.",
+                  "space_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Cue" }
               }
@@ -62602,7 +63450,8 @@
                       "name": "North Lawn",
                       "capacity": 2500,
                       "area_sq_ft": 18000,
-                      "urid": "4000.01.01"
+                      "urid": "4000.01.01",
+                      "description": "Backstage green room for talent."
                     }
                   ],
                   "next_cursor": null
@@ -62634,7 +63483,8 @@
                 "name": "North Lawn",
                 "capacity": 2500,
                 "area_sq_ft": 18000,
-                "urid": "4000.01.01"
+                "urid": "4000.01.01",
+                "description": "Backstage green room for talent."
               },
               "schema": { "$ref": "#/components/schemas/SpaceCreate" }
             }
@@ -62662,7 +63512,8 @@
                   "name": "North Lawn",
                   "capacity": 2500,
                   "area_sq_ft": 18000,
-                  "urid": "4000.01.01"
+                  "urid": "4000.01.01",
+                  "description": "Backstage green room for talent."
                 },
                 "schema": { "$ref": "#/components/schemas/Space" }
               }
@@ -62722,7 +63573,8 @@
                   "name": "North Lawn",
                   "capacity": 2500,
                   "area_sq_ft": 18000,
-                  "urid": "4000.01.01"
+                  "urid": "4000.01.01",
+                  "description": "Backstage green room for talent."
                 },
                 "schema": { "$ref": "#/components/schemas/Space" }
               }
@@ -62765,7 +63617,8 @@
                 "name": "North Lawn",
                 "capacity": 2500,
                 "area_sq_ft": 18000,
-                "urid": "4000.01.01"
+                "urid": "4000.01.01",
+                "description": "Backstage green room for talent."
               },
               "schema": { "$ref": "#/components/schemas/SpaceUpdate" }
             }
@@ -62793,7 +63646,8 @@
                   "name": "North Lawn",
                   "capacity": 2500,
                   "area_sq_ft": 18000,
-                  "urid": "4000.01.01"
+                  "urid": "4000.01.01",
+                  "description": "Backstage green room for talent."
                 },
                 "schema": { "$ref": "#/components/schemas/Space" }
               }
@@ -64972,7 +65826,20 @@
                       "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "freight_type_enum_id": "ENM-041",
                       "arrives_at": "2026-10-08T14:30:00Z",
-                      "shipment_number": 7
+                      "shipment_number": 7,
+                      "urid": "4000.01.01",
+                      "description": "Two pallets of truss and motors.",
+                      "origin": "Orlando, FL",
+                      "sender_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "pallet_count": 2,
+                      "piece_count": 14,
+                      "length_ft": 48,
+                      "width_ft": 8.5,
+                      "height_ft": 9,
+                      "weight_lb": 12000,
+                      "trailer_license": "FL TRL-4410",
+                      "seal_identifier": "SL-778120",
+                      "bill_of_lading_identifier": "BOL-2027-0611"
                     }
                   ],
                   "next_cursor": null
@@ -65006,7 +65873,20 @@
                 "ships_at": "2026-10-08T14:30:00Z",
                 "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "freight_type_enum_id": "ENM-041",
-                "arrives_at": "2026-10-08T14:30:00Z"
+                "arrives_at": "2026-10-08T14:30:00Z",
+                "urid": "4000.01.01",
+                "description": "Two pallets of truss and motors.",
+                "origin": "Orlando, FL",
+                "sender_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "pallet_count": 2,
+                "piece_count": 14,
+                "length_ft": 48,
+                "width_ft": 8.5,
+                "height_ft": 9,
+                "weight_lb": 12000,
+                "trailer_license": "FL TRL-4410",
+                "seal_identifier": "SL-778120",
+                "bill_of_lading_identifier": "BOL-2027-0611"
               },
               "schema": { "$ref": "#/components/schemas/ShipmentCreate" }
             }
@@ -65037,7 +65917,20 @@
                   "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "freight_type_enum_id": "ENM-041",
                   "arrives_at": "2026-10-08T14:30:00Z",
-                  "shipment_number": 7
+                  "shipment_number": 7,
+                  "urid": "4000.01.01",
+                  "description": "Two pallets of truss and motors.",
+                  "origin": "Orlando, FL",
+                  "sender_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pallet_count": 2,
+                  "piece_count": 14,
+                  "length_ft": 48,
+                  "width_ft": 8.5,
+                  "height_ft": 9,
+                  "weight_lb": 12000,
+                  "trailer_license": "FL TRL-4410",
+                  "seal_identifier": "SL-778120",
+                  "bill_of_lading_identifier": "BOL-2027-0611"
                 },
                 "schema": { "$ref": "#/components/schemas/Shipment" }
               }
@@ -65100,7 +65993,20 @@
                   "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "freight_type_enum_id": "ENM-041",
                   "arrives_at": "2026-10-08T14:30:00Z",
-                  "shipment_number": 7
+                  "shipment_number": 7,
+                  "urid": "4000.01.01",
+                  "description": "Two pallets of truss and motors.",
+                  "origin": "Orlando, FL",
+                  "sender_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pallet_count": 2,
+                  "piece_count": 14,
+                  "length_ft": 48,
+                  "width_ft": 8.5,
+                  "height_ft": 9,
+                  "weight_lb": 12000,
+                  "trailer_license": "FL TRL-4410",
+                  "seal_identifier": "SL-778120",
+                  "bill_of_lading_identifier": "BOL-2027-0611"
                 },
                 "schema": { "$ref": "#/components/schemas/Shipment" }
               }
@@ -65145,7 +66051,20 @@
                 "ships_at": "2026-10-08T14:30:00Z",
                 "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "freight_type_enum_id": "ENM-041",
-                "arrives_at": "2026-10-08T14:30:00Z"
+                "arrives_at": "2026-10-08T14:30:00Z",
+                "urid": "4000.01.01",
+                "description": "Two pallets of truss and motors.",
+                "origin": "Orlando, FL",
+                "sender_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "pallet_count": 2,
+                "piece_count": 14,
+                "length_ft": 48,
+                "width_ft": 8.5,
+                "height_ft": 9,
+                "weight_lb": 12000,
+                "trailer_license": "FL TRL-4410",
+                "seal_identifier": "SL-778120",
+                "bill_of_lading_identifier": "BOL-2027-0611"
               },
               "schema": { "$ref": "#/components/schemas/ShipmentUpdate" }
             }
@@ -65176,7 +66095,20 @@
                   "carrier_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "freight_type_enum_id": "ENM-041",
                   "arrives_at": "2026-10-08T14:30:00Z",
-                  "shipment_number": 7
+                  "shipment_number": 7,
+                  "urid": "4000.01.01",
+                  "description": "Two pallets of truss and motors.",
+                  "origin": "Orlando, FL",
+                  "sender_counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "pallet_count": 2,
+                  "piece_count": 14,
+                  "length_ft": 48,
+                  "width_ft": 8.5,
+                  "height_ft": 9,
+                  "weight_lb": 12000,
+                  "trailer_license": "FL TRL-4410",
+                  "seal_identifier": "SL-778120",
+                  "bill_of_lading_identifier": "BOL-2027-0611"
                 },
                 "schema": { "$ref": "#/components/schemas/Shipment" }
               }
@@ -65882,7 +66814,9 @@
                       "released_at": "2026-10-08T14:30:00Z",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "vehicle_type": "53ft Tractor-Trailer",
+                      "driver_name": "Luis Ortega"
                     }
                   ],
                   "next_cursor": null
@@ -65913,7 +66847,9 @@
                 "vehicle_identifier": "FL TRK-2231",
                 "arrived_at": "2026-10-08T14:30:00Z",
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "vehicle_type": "53ft Tractor-Trailer",
+                "driver_name": "Luis Ortega"
               },
               "schema": { "$ref": "#/components/schemas/GateQueueEntryCreate" }
             }
@@ -65942,7 +66878,9 @@
                   "released_at": "2026-10-08T14:30:00Z",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vehicle_type": "53ft Tractor-Trailer",
+                  "driver_name": "Luis Ortega"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66003,7 +66941,9 @@
                   "released_at": "2026-10-08T14:30:00Z",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vehicle_type": "53ft Tractor-Trailer",
+                  "driver_name": "Luis Ortega"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66045,7 +66985,9 @@
               "example": {
                 "vehicle_identifier": "FL TRK-2231",
                 "arrived_at": "2026-10-08T14:30:00Z",
-                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "vehicle_type": "53ft Tractor-Trailer",
+                "driver_name": "Luis Ortega"
               },
               "schema": { "$ref": "#/components/schemas/GateQueueEntryUpdate" }
             }
@@ -66074,7 +67016,9 @@
                   "released_at": "2026-10-08T14:30:00Z",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vehicle_type": "53ft Tractor-Trailer",
+                  "driver_name": "Luis Ortega"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66137,7 +67081,9 @@
                   "released_at": "2026-10-08T14:30:00Z",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "released_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "vehicle_type": "53ft Tractor-Trailer",
+                  "driver_name": "Luis Ortega"
                 },
                 "schema": { "$ref": "#/components/schemas/GateQueueEntry" }
               }
@@ -66192,7 +67138,8 @@
                       "logged_at": "2026-10-08T14:30:00Z",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "urid": "4000.01.01"
                     }
                   ],
                   "next_cursor": null
@@ -66224,7 +67171,8 @@
                 "logged_at": "2026-10-08T14:30:00Z",
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "urid": "4000.01.01"
               },
               "schema": { "$ref": "#/components/schemas/MarshallingLogEntryCreate" }
             }
@@ -66252,7 +67200,8 @@
                   "logged_at": "2026-10-08T14:30:00Z",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/MarshallingLogEntry" }
               }
@@ -66312,7 +67261,8 @@
                   "logged_at": "2026-10-08T14:30:00Z",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "shipment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "zone_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/MarshallingLogEntry" }
               }
@@ -73015,7 +73965,8 @@
                       "shift_state": "Draft",
                       "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "time_zone": "America/New_York"
+                      "time_zone": "America/New_York",
+                      "scheduled_break_minutes": 30
                     }
                   ],
                   "next_cursor": null
@@ -73051,7 +74002,8 @@
                 "ends_at": "2026-10-08T14:30:00Z",
                 "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "scheduled_break_minutes": 30
               },
               "schema": { "$ref": "#/components/schemas/ShiftCreate" }
             }
@@ -73084,7 +74036,8 @@
                   "shift_state": "Draft",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
                 },
                 "schema": { "$ref": "#/components/schemas/Shift" }
               }
@@ -73149,7 +74102,8 @@
                   "shift_state": "Draft",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
                 },
                 "schema": { "$ref": "#/components/schemas/Shift" }
               }
@@ -73196,7 +74150,8 @@
                 "ends_at": "2026-10-08T14:30:00Z",
                 "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "scheduled_break_minutes": 30
               },
               "schema": { "$ref": "#/components/schemas/ShiftUpdate" }
             }
@@ -73229,7 +74184,8 @@
                   "shift_state": "Draft",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
                 },
                 "schema": { "$ref": "#/components/schemas/Shift" }
               }
@@ -73339,7 +74295,8 @@
                   "shift_state": "Draft",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
                 },
                 "schema": { "$ref": "#/components/schemas/Shift" }
               }
@@ -73405,7 +74362,8 @@
                   "shift_state": "Draft",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
                 },
                 "schema": { "$ref": "#/components/schemas/Shift" }
               }
@@ -73471,7 +74429,8 @@
                   "shift_state": "Draft",
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "time_zone": "America/New_York"
+                  "time_zone": "America/New_York",
+                  "scheduled_break_minutes": 30
                 },
                 "schema": { "$ref": "#/components/schemas/Shift" }
               }
@@ -80481,7 +81440,9 @@
                       "unit_basis": "each",
                       "unit_price_minor": 4500,
                       "line_total_minor": 108000,
-                      "line_number": 1
+                      "line_number": 1,
+                      "phase_code": "SCP",
+                      "tier_code": "04"
                     }
                   ],
                   "next_cursor": null
@@ -80521,7 +81482,9 @@
                 "quantity": 24,
                 "unit_basis": "each",
                 "unit_price_minor": 4500,
-                "line_number": 1
+                "line_number": 1,
+                "phase_code": "SCP",
+                "tier_code": "04"
               },
               "schema": { "$ref": "#/components/schemas/BudgetLineCreate" }
             }
@@ -80558,7 +81521,9 @@
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
                   "line_total_minor": 108000,
-                  "line_number": 1
+                  "line_number": 1,
+                  "phase_code": "SCP",
+                  "tier_code": "04"
                 },
                 "schema": { "$ref": "#/components/schemas/BudgetLine" }
               }
@@ -80627,7 +81592,9 @@
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
                   "line_total_minor": 108000,
-                  "line_number": 1
+                  "line_number": 1,
+                  "phase_code": "SCP",
+                  "tier_code": "04"
                 },
                 "schema": { "$ref": "#/components/schemas/BudgetLine" }
               }
@@ -80678,7 +81645,9 @@
                 "quantity": 24,
                 "unit_basis": "each",
                 "unit_price_minor": 4500,
-                "line_number": 1
+                "line_number": 1,
+                "phase_code": "SCP",
+                "tier_code": "04"
               },
               "schema": { "$ref": "#/components/schemas/BudgetLineUpdate" }
             }
@@ -80715,7 +81684,9 @@
                   "unit_basis": "each",
                   "unit_price_minor": 4500,
                   "line_total_minor": 108000,
-                  "line_number": 1
+                  "line_number": 1,
+                  "phase_code": "SCP",
+                  "tier_code": "04"
                 },
                 "schema": { "$ref": "#/components/schemas/BudgetLine" }
               }
@@ -81364,7 +82335,9 @@
                       "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "change_order_number": 3,
                       "order_type_enum_id": "ENM-092",
-                      "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "schedule_impact_days": 2,
+                      "client_impact": "Adds a second stage to the run of show."
                     }
                   ],
                   "next_cursor": null
@@ -81396,7 +82369,9 @@
                 "title": "Add Second Bar",
                 "reason": "Client added a second bar at the north lawn.",
                 "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "order_type_enum_id": "ENM-092"
+                "order_type_enum_id": "ENM-092",
+                "schedule_impact_days": 2,
+                "client_impact": "Adds a second stage to the run of show."
               },
               "schema": { "$ref": "#/components/schemas/ChangeOrderCreate" }
             }
@@ -81429,7 +82404,9 @@
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
                   "order_type_enum_id": "ENM-092",
-                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "schedule_impact_days": 2,
+                  "client_impact": "Adds a second stage to the run of show."
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -81494,7 +82471,9 @@
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
                   "order_type_enum_id": "ENM-092",
-                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "schedule_impact_days": 2,
+                  "client_impact": "Adds a second stage to the run of show."
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -81536,7 +82515,9 @@
               "example": {
                 "title": "Add Second Bar",
                 "reason": "Client added a second bar at the north lawn.",
-                "order_type_enum_id": "ENM-092"
+                "order_type_enum_id": "ENM-092",
+                "schedule_impact_days": 2,
+                "client_impact": "Adds a second stage to the run of show."
               },
               "schema": { "$ref": "#/components/schemas/ChangeOrderUpdate" }
             }
@@ -81569,7 +82550,9 @@
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
                   "order_type_enum_id": "ENM-092",
-                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "schedule_impact_days": 2,
+                  "client_impact": "Adds a second stage to the run of show."
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -81649,7 +82632,9 @@
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
                   "order_type_enum_id": "ENM-092",
-                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "schedule_impact_days": 2,
+                  "client_impact": "Adds a second stage to the run of show."
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -81715,7 +82700,9 @@
                   "budget_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "change_order_number": 3,
                   "order_type_enum_id": "ENM-092",
-                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "schedule_impact_days": 2,
+                  "client_impact": "Adds a second stage to the run of show."
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -86585,7 +87572,11 @@
                       "po_number": 7,
                       "currency_code": "USD",
                       "po_state": "Proposed",
-                      "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "delivery_due_on": "2026-10-08",
+                      "payment_terms_days": 30,
+                      "tax_minor": 4200,
+                      "shipping_minor": 15000
                     }
                   ],
                   "next_cursor": null
@@ -86616,7 +87607,11 @@
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "vendor_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "currency_code": "USD",
-                "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "delivery_due_on": "2026-10-08",
+                "payment_terms_days": 30,
+                "tax_minor": 4200,
+                "shipping_minor": 15000
               },
               "schema": { "$ref": "#/components/schemas/PurchaseOrderCreate" }
             }
@@ -86645,7 +87640,11 @@
                   "po_number": 7,
                   "currency_code": "USD",
                   "po_state": "Proposed",
-                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delivery_due_on": "2026-10-08",
+                  "payment_terms_days": 30,
+                  "tax_minor": 4200,
+                  "shipping_minor": 15000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -86706,7 +87705,11 @@
                   "po_number": 7,
                   "currency_code": "USD",
                   "po_state": "Proposed",
-                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delivery_due_on": "2026-10-08",
+                  "payment_terms_days": 30,
+                  "tax_minor": 4200,
+                  "shipping_minor": 15000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -86745,7 +87748,13 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "example": {
+                "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "delivery_due_on": "2026-10-08",
+                "payment_terms_days": 30,
+                "tax_minor": 4200,
+                "shipping_minor": 15000
+              },
               "schema": { "$ref": "#/components/schemas/PurchaseOrderUpdate" }
             }
           }
@@ -86773,7 +87782,11 @@
                   "po_number": 7,
                   "currency_code": "USD",
                   "po_state": "Proposed",
-                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delivery_due_on": "2026-10-08",
+                  "payment_terms_days": 30,
+                  "tax_minor": 4200,
+                  "shipping_minor": 15000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -86845,7 +87858,11 @@
                   "po_number": 7,
                   "currency_code": "USD",
                   "po_state": "Proposed",
-                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delivery_due_on": "2026-10-08",
+                  "payment_terms_days": 30,
+                  "tax_minor": 4200,
+                  "shipping_minor": 15000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -86920,7 +87937,11 @@
                   "po_number": 7,
                   "currency_code": "USD",
                   "po_state": "Proposed",
-                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delivery_due_on": "2026-10-08",
+                  "payment_terms_days": 30,
+                  "tax_minor": 4200,
+                  "shipping_minor": 15000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -86982,7 +88003,11 @@
                   "po_number": 7,
                   "currency_code": "USD",
                   "po_state": "Proposed",
-                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "rfq_response_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "delivery_due_on": "2026-10-08",
+                  "payment_terms_days": 30,
+                  "tax_minor": 4200,
+                  "shipping_minor": 15000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -88862,7 +89887,9 @@
                       "vendor_state": "Prospect",
                       "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "payment_terms_days": 30,
-                      "default_currency_code": "USD"
+                      "default_currency_code": "USD",
+                      "default_account_code": "5400",
+                      "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -88892,7 +89919,9 @@
               "example": {
                 "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "payment_terms_days": 30,
-                "default_currency_code": "USD"
+                "default_currency_code": "USD",
+                "default_account_code": "5400",
+                "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/VendorCreate" }
             }
@@ -88920,7 +89949,9 @@
                   "vendor_state": "Prospect",
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "payment_terms_days": 30,
-                  "default_currency_code": "USD"
+                  "default_currency_code": "USD",
+                  "default_account_code": "5400",
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -88980,7 +90011,9 @@
                   "vendor_state": "Prospect",
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "payment_terms_days": 30,
-                  "default_currency_code": "USD"
+                  "default_currency_code": "USD",
+                  "default_account_code": "5400",
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -89019,7 +90052,12 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "payment_terms_days": 30, "default_currency_code": "USD" },
+              "example": {
+                "payment_terms_days": 30,
+                "default_currency_code": "USD",
+                "default_account_code": "5400",
+                "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
               "schema": { "$ref": "#/components/schemas/VendorUpdate" }
             }
           }
@@ -89046,7 +90084,9 @@
                   "vendor_state": "Prospect",
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "payment_terms_days": 30,
-                  "default_currency_code": "USD"
+                  "default_currency_code": "USD",
+                  "default_account_code": "5400",
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -89151,7 +90191,9 @@
                   "vendor_state": "Prospect",
                   "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "payment_terms_days": 30,
-                  "default_currency_code": "USD"
+                  "default_currency_code": "USD",
+                  "default_account_code": "5400",
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -91527,7 +92569,8 @@
                       "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "signed_off_at": "2026-10-08T14:30:00Z",
                       "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "inspected_at": "2026-10-08T14:30:00Z"
+                      "inspected_at": "2026-10-08T14:30:00Z",
+                      "urid": "4000.01.01"
                     }
                   ],
                   "next_cursor": null
@@ -91558,7 +92601,8 @@
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "inspection_template_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "inspected_at": "2026-10-08T14:30:00Z"
+                "inspected_at": "2026-10-08T14:30:00Z",
+                "urid": "4000.01.01"
               },
               "schema": { "$ref": "#/components/schemas/InspectionCreate" }
             }
@@ -91588,7 +92632,8 @@
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_at": "2026-10-08T14:30:00Z",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspected_at": "2026-10-08T14:30:00Z"
+                  "inspected_at": "2026-10-08T14:30:00Z",
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -91650,7 +92695,8 @@
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_at": "2026-10-08T14:30:00Z",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspected_at": "2026-10-08T14:30:00Z"
+                  "inspected_at": "2026-10-08T14:30:00Z",
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -91689,7 +92735,10 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "example": {
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "urid": "4000.01.01"
+              },
               "schema": { "$ref": "#/components/schemas/InspectionUpdate" }
             }
           }
@@ -91718,7 +92767,8 @@
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_at": "2026-10-08T14:30:00Z",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspected_at": "2026-10-08T14:30:00Z"
+                  "inspected_at": "2026-10-08T14:30:00Z",
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }
@@ -91782,7 +92832,8 @@
                   "signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "signed_off_at": "2026-10-08T14:30:00Z",
                   "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "inspected_at": "2026-10-08T14:30:00Z"
+                  "inspected_at": "2026-10-08T14:30:00Z",
+                  "urid": "4000.01.01"
                 },
                 "schema": { "$ref": "#/components/schemas/Inspection" }
               }

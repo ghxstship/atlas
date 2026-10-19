@@ -70,6 +70,7 @@ __all__ = [
     "UridAtAnyGrain",
     "Xyz",
     "ExternalRoleType",
+    "TeamId",
     "RecordCreate",
     "RecordUpdate",
     "RecordTransitionRequest",
@@ -739,7 +740,6 @@ __all__ = [
     "CanonTier",
     "CanonTeamPage",
     "CanonTeam",
-    "TeamId",
     "CanonTagPage",
     "CanonTag",
     "TagId",
@@ -1533,6 +1533,10 @@ class Project(TypedDict):
     production_state: str
     #: When the project was archived; archived projects leave the default lists.
     archived_at: Optional[str]
+    #: Anchor date (usually the show day) that template day offsets count from.
+    anchor_on: Optional[str]
+    #: Budget envelope approved for the project. Integer minor units of the resource currency; null means unpriced, never zero.
+    budget_envelope_minor: Optional[int]
 
 
 class _ProjectCreateRequired(TypedDict):
@@ -1590,6 +1594,10 @@ class ProjectUpdate(TypedDict, total=False):
     venue_id: Optional[str]
     #: Identifier of the client counterparty the project is produced for.
     client_counterparty_id: Optional[str]
+    #: Anchor date (usually the show day) that template day offsets count from.
+    anchor_on: Optional[str]
+    #: Budget envelope approved for the project. Integer minor units of the resource currency; null means unpriced, never zero.
+    budget_envelope_minor: Optional[int]
 
 
 class _ProjectTransitionRequestRequired(TypedDict):
@@ -2150,6 +2158,17 @@ class Record(TypedDict):
     replan_reason: Optional[str]
     #: External role types that may see the record; empty means internal only. Stored as junction rows, presented as a set.
     external_visibility: List[ExternalRoleType]
+    #: Identifier of the project the record belongs to, derived from its scope node and never changed.
+    project_id: str
+    #: Identifier of the summary record this record rolls up to, in the same project.
+    parent_record_id: Optional[str]
+    #: Work breakdown structure code, dot separated.
+    wbs_code: Optional[str]
+    #: What the record involves, in sentence case.
+    description: Optional[str]
+    #: Identifier of the standard operating procedure that governs the work.
+    sop_id: Optional[str]
+    team_code: Optional[TeamId]
 
 
 class _RecordCreateRequired(TypedDict):
@@ -2212,6 +2231,15 @@ class RecordUpdate(TypedDict, total=False):
     replan_reason: Optional[str]
     #: External role types that may see the record; empty means internal only. Stored as junction rows, presented as a set.
     external_visibility: List[ExternalRoleType]
+    #: Identifier of the summary record this record rolls up to, in the same project.
+    parent_record_id: Optional[str]
+    #: Work breakdown structure code, dot separated.
+    wbs_code: Optional[str]
+    #: What the record involves, in sentence case.
+    description: Optional[str]
+    #: Identifier of the standard operating procedure that governs the work.
+    sop_id: Optional[str]
+    team_code: Optional[TeamId]
 
 
 class _RecordTransitionRequestRequired(TypedDict):
@@ -2460,6 +2488,16 @@ class WorkOrder(TypedDict):
     budget_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency: str
+    #: Sequence number within the project; the display key is {project_key}-WO-{number}.
+    work_order_number: int
+    #: Where the work happens, in words, when no zone says it.
+    location_text: Optional[str]
+    #: The scope bidders price, in sentence case.
+    scope_of_work: Optional[str]
+    #: Planned start.
+    scheduled_starts_at: Optional[str]
+    #: Estimated labor hours; null when unestimated.
+    estimated_hours: Optional[float]
 
 
 class _WorkOrderCreateRequired(TypedDict):
@@ -2497,6 +2535,14 @@ class WorkOrderUpdate(TypedDict, total=False):
     budget_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
     currency: str
+    #: Where the work happens, in words, when no zone says it.
+    location_text: Optional[str]
+    #: The scope bidders price, in sentence case.
+    scope_of_work: Optional[str]
+    #: Planned start.
+    scheduled_starts_at: Optional[str]
+    #: Estimated labor hours; null when unestimated.
+    estimated_hours: Optional[float]
 
 
 class _WorkOrderTransitionRequestRequired(TypedDict):
@@ -2612,6 +2658,8 @@ class RunOfShow(TypedDict):
     show_date: str
     #: Identifier of the project of the running order.
     project_id: str
+    #: Identifier of the schedule record the running order belongs to, in the same project.
+    record_id: Optional[str]
 
 
 class _RunOfShowCreateRequired(TypedDict):
@@ -2628,6 +2676,8 @@ class RunOfShowCreate(_RunOfShowCreateRequired, total=False):
 
     #: Identifier of the show scope node.
     scope_node_id: Optional[str]
+    #: Identifier of the schedule record the running order belongs to, in the same project.
+    record_id: Optional[str]
 
 
 class RunOfShowUpdate(TypedDict, total=False):
@@ -2637,6 +2687,8 @@ class RunOfShowUpdate(TypedDict, total=False):
     name: str
     #: Show date.
     show_date: str
+    #: Identifier of the schedule record the running order belongs to, in the same project.
+    record_id: Optional[str]
 
 
 class CuePage(TypedDict):
@@ -2679,6 +2731,12 @@ class Cue(TypedDict):
     called_by: Optional[str]
     #: Identifier of the project of the running order, stamped by the database.
     project_id: str
+    #: Show segment the cue belongs to.
+    segment: Optional[str]
+    #: What happens on the cue.
+    description: Optional[str]
+    #: Identifier of the space the cue happens in.
+    space_id: Optional[str]
 
 
 class _CueCreateRequired(TypedDict):
@@ -2697,6 +2755,12 @@ class CueCreate(_CueCreateRequired, total=False):
     planned_at: Optional[str]
     #: Planned length as hours:minutes:seconds.
     duration: Optional[str]
+    #: Show segment the cue belongs to.
+    segment: Optional[str]
+    #: What happens on the cue.
+    description: Optional[str]
+    #: Identifier of the space the cue happens in.
+    space_id: Optional[str]
 
 
 class CueUpdate(TypedDict, total=False):
@@ -2710,6 +2774,12 @@ class CueUpdate(TypedDict, total=False):
     planned_at: Optional[str]
     #: Planned length as hours:minutes:seconds.
     duration: Optional[str]
+    #: Show segment the cue belongs to.
+    segment: Optional[str]
+    #: What happens on the cue.
+    description: Optional[str]
+    #: Identifier of the space the cue happens in.
+    space_id: Optional[str]
 
 
 class DaySheetPage(TypedDict):
@@ -3178,6 +3248,8 @@ class Space(TypedDict):
     #: Floor area in square feet.
     area_sq_ft: Optional[float]
     urid: Optional[Urid]
+    #: What the space is used for.
+    description: Optional[str]
 
 
 class _SpaceCreateRequired(TypedDict):
@@ -3195,6 +3267,8 @@ class SpaceCreate(_SpaceCreateRequired, total=False):
     #: Floor area in square feet.
     area_sq_ft: Optional[float]
     urid: Optional[Urid]
+    #: What the space is used for.
+    description: Optional[str]
 
 
 class SpaceUpdate(TypedDict, total=False):
@@ -3207,6 +3281,8 @@ class SpaceUpdate(TypedDict, total=False):
     #: Floor area in square feet.
     area_sq_ft: Optional[float]
     urid: Optional[Urid]
+    #: What the space is used for.
+    description: Optional[str]
 
 
 class ZonePage(TypedDict):
@@ -3750,6 +3826,31 @@ class Shipment(TypedDict):
     arrives_at: Optional[str]
     #: Number within the project; the display key is {project_key}-{shipment_number}.
     shipment_number: int
+    urid: Optional[Urid]
+    #: What the shipment carries, in a sentence.
+    description: Optional[str]
+    #: Where the freight ships from, as a locality.
+    origin: Optional[str]
+    #: Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.
+    sender_counterparty_id: Optional[str]
+    #: Number of pallets.
+    pallet_count: Optional[int]
+    #: Number of pieces.
+    piece_count: Optional[int]
+    #: Length of the load in feet.
+    length_ft: Optional[float]
+    #: Width of the load in feet.
+    width_ft: Optional[float]
+    #: Height of the load in feet.
+    height_ft: Optional[float]
+    #: Weight of the load in pounds.
+    weight_lb: Optional[float]
+    #: License plate of the trailer.
+    trailer_license: Optional[str]
+    #: Number of the seal applied to the trailer.
+    seal_identifier: Optional[str]
+    #: Bill of lading number issued by the carrier.
+    bill_of_lading_identifier: Optional[str]
 
 
 class _ShipmentCreateRequired(TypedDict):
@@ -3772,6 +3873,31 @@ class ShipmentCreate(_ShipmentCreateRequired, total=False):
     freight_type_enum_id: Optional[str]
     #: When the shipment is due to arrive.
     arrives_at: Optional[str]
+    urid: Optional[Urid]
+    #: What the shipment carries, in a sentence.
+    description: Optional[str]
+    #: Where the freight ships from, as a locality.
+    origin: Optional[str]
+    #: Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.
+    sender_counterparty_id: Optional[str]
+    #: Number of pallets.
+    pallet_count: Optional[int]
+    #: Number of pieces.
+    piece_count: Optional[int]
+    #: Length of the load in feet.
+    length_ft: Optional[float]
+    #: Width of the load in feet.
+    width_ft: Optional[float]
+    #: Height of the load in feet.
+    height_ft: Optional[float]
+    #: Weight of the load in pounds.
+    weight_lb: Optional[float]
+    #: License plate of the trailer.
+    trailer_license: Optional[str]
+    #: Number of the seal applied to the trailer.
+    seal_identifier: Optional[str]
+    #: Bill of lading number issued by the carrier.
+    bill_of_lading_identifier: Optional[str]
 
 
 class ShipmentUpdate(TypedDict, total=False):
@@ -3789,6 +3915,31 @@ class ShipmentUpdate(TypedDict, total=False):
     freight_type_enum_id: Optional[str]
     #: When the shipment is due to arrive.
     arrives_at: Optional[str]
+    urid: Optional[Urid]
+    #: What the shipment carries, in a sentence.
+    description: Optional[str]
+    #: Where the freight ships from, as a locality.
+    origin: Optional[str]
+    #: Identifier of the vendor sending the freight; the carrier is carrier_counterparty_id.
+    sender_counterparty_id: Optional[str]
+    #: Number of pallets.
+    pallet_count: Optional[int]
+    #: Number of pieces.
+    piece_count: Optional[int]
+    #: Length of the load in feet.
+    length_ft: Optional[float]
+    #: Width of the load in feet.
+    width_ft: Optional[float]
+    #: Height of the load in feet.
+    height_ft: Optional[float]
+    #: Weight of the load in pounds.
+    weight_lb: Optional[float]
+    #: License plate of the trailer.
+    trailer_license: Optional[str]
+    #: Number of the seal applied to the trailer.
+    seal_identifier: Optional[str]
+    #: Bill of lading number issued by the carrier.
+    bill_of_lading_identifier: Optional[str]
 
 
 class ShipmentLinePage(TypedDict):
@@ -3959,6 +4110,10 @@ class GateQueueEntry(TypedDict):
     shipment_id: Optional[str]
     #: Identifier of the person who released the vehicle.
     released_by: Optional[str]
+    #: Kind of vehicle at the gate.
+    vehicle_type: Optional[str]
+    #: Driver of the vehicle, as given at check-in.
+    driver_name: Optional[str]
 
 
 class _GateQueueEntryCreateRequired(TypedDict):
@@ -3975,6 +4130,10 @@ class GateQueueEntryCreate(_GateQueueEntryCreateRequired, total=False):
     arrived_at: str
     #: Identifier of the shipment the vehicle carries.
     shipment_id: Optional[str]
+    #: Kind of vehicle at the gate.
+    vehicle_type: Optional[str]
+    #: Driver of the vehicle, as given at check-in.
+    driver_name: Optional[str]
 
 
 class GateQueueEntryUpdate(TypedDict, total=False):
@@ -3986,6 +4145,10 @@ class GateQueueEntryUpdate(TypedDict, total=False):
     arrived_at: str
     #: Identifier of the shipment the vehicle carries.
     shipment_id: Optional[str]
+    #: Kind of vehicle at the gate.
+    vehicle_type: Optional[str]
+    #: Driver of the vehicle, as given at check-in.
+    driver_name: Optional[str]
 
 
 class MarshallingLogEntryPage(TypedDict):
@@ -4022,6 +4185,7 @@ class MarshallingLogEntry(TypedDict):
     shipment_id: Optional[str]
     #: Identifier of the yard zone concerned.
     zone_id: Optional[str]
+    urid: Optional[Urid]
 
 
 class _MarshallingLogEntryCreateRequired(TypedDict):
@@ -4040,6 +4204,7 @@ class MarshallingLogEntryCreate(_MarshallingLogEntryCreateRequired, total=False)
     shipment_id: Optional[str]
     #: Identifier of the yard zone concerned.
     zone_id: Optional[str]
+    urid: Optional[Urid]
 
 
 class AdvancePacketPage(TypedDict):
@@ -5686,6 +5851,8 @@ class Shift(TypedDict):
     scope_node_id: Optional[str]
     #: IANA time zone the call and wrap times are shown in.
     time_zone: str
+    #: Meal break scheduled within the shift, in minutes.
+    scheduled_break_minutes: Optional[int]
 
 
 class _ShiftCreateRequired(TypedDict):
@@ -5711,6 +5878,8 @@ class ShiftCreate(_ShiftCreateRequired, total=False):
     membership_id: Optional[str]
     #: Identifier of the scope node of the same project, such as the show.
     scope_node_id: Optional[str]
+    #: Meal break scheduled within the shift, in minutes.
+    scheduled_break_minutes: Optional[int]
 
 
 class ShiftUpdate(TypedDict, total=False):
@@ -5731,6 +5900,8 @@ class ShiftUpdate(TypedDict, total=False):
     scope_node_id: Optional[str]
     #: IANA time zone the call and wrap times are shown in.
     time_zone: str
+    #: Meal break scheduled within the shift, in minutes.
+    scheduled_break_minutes: Optional[int]
 
 
 class _ShiftTransitionRequestRequired(TypedDict):
@@ -7384,6 +7555,8 @@ class BudgetLine(TypedDict):
     line_total_minor: Optional[int]
     #: Line number within the budget.
     line_number: int
+    phase_code: Optional[PhaseCode]
+    tier_code: Optional[TierCode]
 
 
 class _BudgetLineCreateRequired(TypedDict):
@@ -7413,6 +7586,8 @@ class BudgetLineCreate(_BudgetLineCreateRequired, total=False):
     unit_basis: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    phase_code: Optional[PhaseCode]
+    tier_code: Optional[TierCode]
 
 
 class BudgetLineUpdate(TypedDict, total=False):
@@ -7437,6 +7612,8 @@ class BudgetLineUpdate(TypedDict, total=False):
     unit_price_minor: Optional[int]
     #: Line number within the budget.
     line_number: int
+    phase_code: Optional[PhaseCode]
+    tier_code: Optional[TierCode]
 
 
 class ExpensePage(TypedDict):
@@ -7606,6 +7783,10 @@ class ChangeOrder(TypedDict):
     order_type_enum_id: Optional[str]
     #: Identifier of the person who priced the change order.
     priced_by: Optional[str]
+    #: Days the change moves the schedule; negative when it pulls it in, zero for none.
+    schedule_impact_days: Optional[int]
+    #: Effect of the change on the client, as stated.
+    client_impact: Optional[str]
 
 
 class _ChangeOrderCreateRequired(TypedDict):
@@ -7624,6 +7805,10 @@ class ChangeOrderCreate(_ChangeOrderCreateRequired, total=False):
     reason: Optional[str]
     #: Canon change order type.
     order_type_enum_id: Optional[str]
+    #: Days the change moves the schedule; negative when it pulls it in, zero for none.
+    schedule_impact_days: Optional[int]
+    #: Effect of the change on the client, as stated.
+    client_impact: Optional[str]
 
 
 class ChangeOrderUpdate(TypedDict, total=False):
@@ -7635,6 +7820,10 @@ class ChangeOrderUpdate(TypedDict, total=False):
     reason: Optional[str]
     #: Canon change order type.
     order_type_enum_id: Optional[str]
+    #: Days the change moves the schedule; negative when it pulls it in, zero for none.
+    schedule_impact_days: Optional[int]
+    #: Effect of the change on the client, as stated.
+    client_impact: Optional[str]
 
 
 class _ChangeOrderTransitionRequestRequired(TypedDict):
@@ -8886,6 +9075,14 @@ class PurchaseOrder(TypedDict):
     po_state: Literal["Proposed", "Approved", "Sent", "Closed", "Canceled"]
     #: Identifier of the awarded RFQ response the order comes from.
     rfq_response_id: Optional[str]
+    #: Date the order is due to be delivered.
+    delivery_due_on: Optional[str]
+    #: Days after invoice the order is payable (Net 30 is 30).
+    payment_terms_days: Optional[int]
+    #: Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+    tax_minor: Optional[int]
+    #: Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+    shipping_minor: Optional[int]
 
 
 class _PurchaseOrderCreateRequired(TypedDict):
@@ -8902,6 +9099,14 @@ class PurchaseOrderCreate(_PurchaseOrderCreateRequired, total=False):
 
     #: Identifier of the awarded RFQ response the order comes from.
     rfq_response_id: Optional[str]
+    #: Date the order is due to be delivered.
+    delivery_due_on: Optional[str]
+    #: Days after invoice the order is payable (Net 30 is 30).
+    payment_terms_days: Optional[int]
+    #: Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+    tax_minor: Optional[int]
+    #: Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+    shipping_minor: Optional[int]
 
 
 class PurchaseOrderUpdate(TypedDict, total=False):
@@ -8909,6 +9114,14 @@ class PurchaseOrderUpdate(TypedDict, total=False):
 
     #: Identifier of the awarded RFQ response the order comes from.
     rfq_response_id: Optional[str]
+    #: Date the order is due to be delivered.
+    delivery_due_on: Optional[str]
+    #: Days after invoice the order is payable (Net 30 is 30).
+    payment_terms_days: Optional[int]
+    #: Tax on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+    tax_minor: Optional[int]
+    #: Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
+    shipping_minor: Optional[int]
 
 
 class PurchaseOrderApproveRequest(TypedDict):
@@ -9409,6 +9622,9 @@ class Vendor(TypedDict):
     payment_terms_days: Optional[int]
     #: ISO 4217 currency the vendor bills in by default.
     default_currency_code: Optional[str]
+    default_account_code: Optional[GlAccountCode]
+    #: Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
+    default_cost_center_id: Optional[str]
 
 
 class _VendorCreateRequired(TypedDict):
@@ -9423,6 +9639,9 @@ class VendorCreate(_VendorCreateRequired, total=False):
     payment_terms_days: Optional[int]
     #: ISO 4217 currency the vendor bills in by default.
     default_currency_code: Optional[str]
+    default_account_code: Optional[GlAccountCode]
+    #: Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
+    default_cost_center_id: Optional[str]
 
 
 class VendorUpdate(TypedDict, total=False):
@@ -9432,6 +9651,9 @@ class VendorUpdate(TypedDict, total=False):
     payment_terms_days: Optional[int]
     #: ISO 4217 currency the vendor bills in by default.
     default_currency_code: Optional[str]
+    default_account_code: Optional[GlAccountCode]
+    #: Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
+    default_cost_center_id: Optional[str]
 
 
 class _VendorTransitionRequestRequired(TypedDict):
@@ -9999,6 +10221,7 @@ class Inspection(TypedDict):
     record_id: Optional[str]
     #: When the inspection took place.
     inspected_at: str
+    urid: Optional[Urid]
 
 
 class _InspectionCreateRequired(TypedDict):
@@ -10015,6 +10238,7 @@ class InspectionCreate(_InspectionCreateRequired, total=False):
     record_id: Optional[str]
     #: When the inspection took place.
     inspected_at: str
+    urid: Optional[Urid]
 
 
 class InspectionUpdate(TypedDict, total=False):
@@ -10022,6 +10246,7 @@ class InspectionUpdate(TypedDict, total=False):
 
     #: Identifier of the Inspection record of the same project.
     record_id: Optional[str]
+    urid: Optional[Urid]
 
 
 class InspectionResultPage(TypedDict):
@@ -22496,6 +22721,9 @@ Xyz = str
 #: External role type (Section 4.4.2).
 ExternalRoleType = Literal["Client", "Vendor", "Contractor", "Crew", "Staff", "Artist", "Artist Representative", "Sponsor"]
 
+#: Canon team identifier from `xpms.dim_team`.
+TeamId = str
+
 #: Category URID `DDDD.DD.DD` from `xpms.dim_category` (Section 3.3). There is no fourth segment.
 Urid = str
 
@@ -22561,9 +22789,6 @@ DiscCode = str
 
 #: Act from `xpms.dim_act`.
 ActCode = str
-
-#: Canon team identifier from `xpms.dim_team`.
-TeamId = str
 
 #: Sustainability or compliance tag from `xpms.dim_tag`.
 TagId = str

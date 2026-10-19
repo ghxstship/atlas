@@ -7,6 +7,7 @@ import { z } from "@hono/zod-openapi";
 import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { editShape, orNull } from "../correct.ts";
+import { showFieldHomes } from "./parts/playbook-field-homes.ts";
 
 const projectId = (what: string) => ({
   schema: fields.ref(`project of the ${what}`),
@@ -125,5 +126,6 @@ export const additions = defineAdditions("Show", {
         },
       }),
     },
+    ...showFieldHomes,
   ],
 });
