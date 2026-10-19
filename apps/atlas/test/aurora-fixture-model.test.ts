@@ -112,11 +112,11 @@ describe("fixture model answers", () => {
   });
 
   it("answers NO ANSWER for an unpriced line instead of a price (journey 35)", async () => {
-    const q = "What does stage floor plan drafting cost?";
+    const q = "What does the guard booth cost?";
     const final = await model.complete(
       ask(q, [
         block("budget-lines", [
-          { id: "b1", description: "Stage floor plan drafting.", unit_price_minor: null },
+          { id: "b1", description: "Guard booth for the back gate.", unit_price_minor: null },
         ]),
       ]),
     );

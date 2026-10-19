@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect, type APIRequestContext, type Locator, type Page } from "@playwright/test";
 import { drainImportJobs, supabaseImportStore } from "@xos/data/import-worker";
 
@@ -40,6 +40,28 @@ export async function apiPost(
 }
 
 /**
+ * Stands in for the upload-scan worker's local pass-through (ADR 0034) on the import spreadsheets:
+ * an import is detected only once its file scans Clean (1240), and no clamd runs in e2e. Only the
+ * imports bucket is claimed (app.claim_bucket_scans); other buckets' scans are left alone.
+ */
+async function passImportScans(client: SupabaseClient) {
+  const app = client.schema("app");
+  const { data, error } = await app.rpc("claim_bucket_scans", {
+    p_bucket_id: "imports",
+    p_worker: "atlas-e2e",
+    p_limit: 100,
+  });
+  if (error) throw new Error(`claim_bucket_scans: ${error.message}`);
+  for (const scan of (data as { object_scan_id: string }[] | null) ?? []) {
+    const verdict = await app.rpc("record_object_scan", {
+      p_object_scan_id: scan.object_scan_id,
+      p_clean: true,
+    });
+    if (verdict.error) throw new Error(`record_object_scan: ${verdict.error.message}`);
+  }
+}
+
+/**
  * Runs the import worker until no import job is left (local stack only). E2E_SUPABASE_URL and
  * E2E_SUPABASE_SERVICE_KEY name the local stack; the key is the local development key that
  * `supabase status` prints, never a hosted project's.
@@ -54,6 +76,7 @@ export async function runImportWorker() {
   const client = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  await passImportScans(client);
   const results = await drainImportJobs(supabaseImportStore(client), "atlas-e2e");
   const failed = results.filter((r) => r.status !== "Succeeded");
   expect(failed, JSON.stringify(failed)).toEqual([]);

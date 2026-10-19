@@ -32,7 +32,7 @@ This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS 4.0 
 - Passwords are checked against known breached-password lists.
 - Multi-factor authentication with TOTP or passkeys, which organizations can require per role.
 - Step-up authentication for billing, data export, role changes and API key creation.
-- Configurable session lifetime and IP allow-lists.
+- Configurable session lifetime and IP allow-lists. An org's IP allow-list is enforced wherever Atlas and the XOS API check a session or an API key. It is not yet enforced on direct calls to the underlying Supabase data endpoint (REST, Storage and Realtime) made with a valid session token, because only Atlas and the API see the caller's address. So a signed-in person outside the allowed networks who calls that endpoint directly can still read and write what their role allows. We plan to close this gap by routing all data access through the API.
 - Role-based access with fine-grained capabilities, spend authority limits and separation of duties enforced in the database.
 - "View as role" and "Why can I see this" make access transparent. Quarterly access reviews flag unreviewed access.
 - Break-glass access requires MFA and a written reason, notifies every Admin, and expires after one hour.
@@ -51,7 +51,7 @@ This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS 4.0 
 
 - Strict Content Security Policy with nonces, same-site cookies and CSRF protection.
 - SSRF protection on webhooks and imports.
-- Uploads are MIME-sniffed, size-capped, virus-scanned and, for SVG, sanitized. Active content is never served inline from public storage.
+- Uploads are MIME-sniffed, size-capped, virus-scanned and, for SVG, sanitized. Active content is never served inline from public storage. Virus scanning uses ClamAV that we run ourselves, so files never leave XOS infrastructure for scanning. A file stays quarantined until it scans clean, and an infected file is deleted.
 - Rate limits per IP, user, API key and token; repeated token failures lock the token.
 - Webhooks are signed with HMAC-SHA256 and a timestamp.
 

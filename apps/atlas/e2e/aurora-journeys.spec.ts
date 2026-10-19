@@ -61,9 +61,9 @@ test("journey 35: blocked permits with the records cited, and NO ANSWER for an u
   // Only the blocked one: the Proposed and Scheduled permits are not cited.
   await expect(permits.getByText("Noise variance / sound permit")).toHaveCount(0);
 
-  await input.fill("What does stage floor plan drafting cost?");
+  await input.fill("What does the guard booth cost?");
   await input.press("Enter");
-  const price = panel.getByRole("article", { name: "What does stage floor plan drafting cost?" });
+  const price = panel.getByRole("article", { name: "What does the guard booth cost?" });
   await expect(price.getByText("No answer")).toBeVisible();
   await expect(price.getByText(/the budget line is Unpriced/)).toBeVisible();
   await expect(price.getByText(/\$|USD/)).toHaveCount(0);

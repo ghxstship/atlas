@@ -271,11 +271,14 @@
     "working": {
       "reading": "Reading the spreadsheet. This page updates on its own.",
       "validating": "Checking every row. This page updates on its own.",
-      "committing": "Writing the rows. This page updates on its own."
+      "committing": "Writing the rows. This page updates on its own.",
+      "scanning": "Checking the file for viruses before reading it. This page updates on its own."
     },
     "failed": {
       "title": "This import could not be processed",
-      "body": "The file could not be read or written. Check that it is a .csv or .xlsx spreadsheet and start a new import."
+      "body": "The file could not be read or written. Check that it is a .csv or .xlsx spreadsheet and start a new import.",
+      "infected": "Our virus scan found something harmful in this file, so it was deleted and nothing was imported. Check the file on your computer with your antivirus, then upload a clean copy.",
+      "scanFailed": "This file could not be checked for viruses, so it was not read. Save it again as .csv or .xlsx and start a new import."
     },
     "map": {
       "title": "Map the columns",
@@ -551,5 +554,9 @@
       "history": "Exports taken",
       "past": "{when}: {tables} tables, {rows} rows, {files} files"
     }
+  },
+  "uploadScan": {
+    "infected": "Our virus scan found something harmful in this file, so it was deleted. Nobody can open it. Check the file on your device and upload a clean copy.",
+    "scanFailed": "This file could not be checked for viruses, so it stays closed. Upload it again, or save it in another format first."
   }
 }

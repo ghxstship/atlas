@@ -123,8 +123,8 @@
     "learnMore": "Más información",
     "dismiss": "Descartar consejo",
     "gates": {
-      "title": "Las puertas protegen cada fase",
-      "body": "Una puerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de puerta para ver su definición."
+      "title": "Las compuertas protegen cada fase",
+      "body": "Una compuerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de compuerta para ver su definición."
     },
     "access-grid": {
       "title": "Cambie el acceso celda por celda",
@@ -139,8 +139,8 @@
       "body": "Defina sus filtros y abra Vistas guardadas para conservarlos, compartirlos o abrirlos de forma predeterminada."
     },
     "reconciliation": {
-      "title": "Las brechas alimentan la próxima puerta",
-      "body": "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha."
+      "title": "Las brechas alimentan la próxima compuerta",
+      "body": "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha de compuerta."
     }
   },
   "contact": {

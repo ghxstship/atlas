@@ -35,6 +35,10 @@ select pg_temp.as_platform();
 select is(private.import_object_owner('../etc/passwd'), null::uuid, 'a malformed object name has no owner');
 
 -- Jobs ----------------------------------------------------------------------------------------------------
+-- The upload scans Clean first; an import waits for that before detection (1240).
+select pg_temp.as_platform();
+do $$ begin perform app.record_object_scan((select s.id from private.object_scans s where s.bucket_id = 'imports'
+  and s.object_name = pg_temp.id('alice') || '/' || pg_temp.id('alice_upload') || '.csv'), true); end $$;
 select pg_temp.as_user('carol');
 select throws_ok(format($$insert into app.import_jobs (org_id, target_code, source, original_filename, storage_object_path)
   values ('%s', 'counterparties', 'CSV', 'customers.csv', '%s/%s.csv')$$,

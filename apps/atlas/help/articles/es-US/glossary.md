@@ -8,9 +8,9 @@ order: 5
 
 - **Calificación de aserción:** qué tan respaldado está un valor del canon, desde un estándar ratificado hasta una afirmación no verificada.
 - **Línea base:** una copia congelada de un cronograma, usada para medir retrasos.
-- **Canon:** la referencia compartida de XOS de fases, puertas, tipos de registro, roles y otros valores estándar.
+- **Canon:** la referencia compartida de XOS de fases, compuertas, tipos de registro, roles y otros valores estándar.
 - **Compromiso:** la relación de trabajo entre su organización y una persona o empresa externa.
-- **Puerta:** el control entre dos fases de un proyecto; los criterios bloqueantes deben cumplirse para pasar.
+- **Compuerta:** el control entre dos fases de un proyecto; los criterios bloqueantes deben cumplirse para pasar.
 - **Panel lateral:** el panel que abre un registro sin salir de la lista.
 - **Fase:** una etapa en la vida de un proyecto, desde el concepto hasta el cierre.
 - **Procedencia:** de dónde proviene un valor y cuánto se puede confiar en él.

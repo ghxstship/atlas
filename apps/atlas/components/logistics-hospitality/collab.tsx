@@ -1,5 +1,6 @@
 "use client";
 
+import { ScanNotice } from "@/components/platform/scan-notice";
 import type { Attachment } from "@xos/data/attachments";
 import type { Thread } from "@xos/data/comments";
 import { Button, Tag, Textarea } from "@xos/ui";
@@ -157,6 +158,7 @@ export function CollabPanels({
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-8 py-8">
                 <span className="flex flex-col gap-2">
                   <span className="text-text-14">{a.title}</span>
+                  <ScanNotice status={scan(a)} />
                   <span className="text-text-12 text-text-secondary">
                     {t("version", { n: a.versions[0]?.versionNumber ?? 1 })} ·{" "}
                     {format.dateTime(new Date(a.createdAt), { dateStyle: "medium" })}

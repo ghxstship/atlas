@@ -25,7 +25,7 @@ Muestra los mismos registros por día, semana o mes, con una lista de agenda par
 
 ## Hitos
 
-Los hitos son las fechas con las que se mide el proyecto. Aparecen en la línea de tiempo y en la preparación de puertas.
+Los hitos son las fechas con las que se mide el proyecto. Aparecen en la línea de tiempo y en la preparación de compuertas.
 
 ## Líneas base
 

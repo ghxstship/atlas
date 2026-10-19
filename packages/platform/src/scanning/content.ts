@@ -74,18 +74,20 @@ function ascii(bytes: Uint8Array, offset: number, length: number): string {
   return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
 
+/**
+ * Text: no NUL byte and almost no control characters in the first 8 KiB. UTF-8 and single-byte
+ * encodings both pass, so a spreadsheet saved as CSV in Windows-1252 is still accepted for import.
+ */
 function looksLikeText(bytes: Uint8Array): boolean {
   const sample = bytes.subarray(0, 8192);
-  if (sample.includes(0)) return false;
-  try {
-    new TextDecoder("utf-8", { fatal: true }).decode(
-      sample.length === bytes.length ? sample : bytes,
-    );
-    return true;
-  } catch (error) {
-    if (error instanceof TypeError) return false;
-    throw error;
+  let control = 0;
+  for (const byte of sample) {
+    if (byte === 0) return false;
+    if (byte < 0x20 && byte !== 0x09 && byte !== 0x0a && byte !== 0x0c && byte !== 0x0d) {
+      control += 1;
+    }
   }
+  return control * 100 <= sample.length;
 }
 
 /** The signature families the leading bytes match. */

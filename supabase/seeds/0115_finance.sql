@@ -120,8 +120,8 @@ begin
     (2, '5000.10.01-XPMS-002', 'Headline DJ package.', 'Cost', 'premium', 1, true),
     (3, '5000.02.01-GHXST-007', 'Bistro string lights across the lawn.', 'Cost', 'base', 40, false),
     (4, '4000.01.01-GHXST-023', 'Telehandler for load-in.', 'Cost', 'base', 3, false),
-    (5, '6000.06.02-XPMS-006', 'Portable shower trailer for crew.', 'Cost', 'base', 1, false),
-    (6, '5000.01.01-XOS-001', 'Stage floor plan drafting.', 'Cost', 'base', 1, false)
+    (5, '4000.09.01-XPMS-005', 'General install labor and scenic finishes.', 'Cost', 'base', 1, false),
+    (6, '6000.06.02-XPMS-001', 'Guard booth for the back gate.', 'Cost', 'base', 1, false)
   ) as x (n, element_id, description, line_type, grade, qty, event)
   join xpms.elements e on e.element_id = x.element_id
   cross join (values (c_baseline), (c_working)) as b (budget_id);

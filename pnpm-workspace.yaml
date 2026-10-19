@@ -6,3 +6,9 @@ packages:
 
 onlyBuiltDependencies:
   - unrs-resolver
+
+# exceljs 4.4.0 pins unzipper 0.10, which pulls in binary and buffers 0.1.1; buffers declares no
+# license (owner decision 17, ADR 0034). unzipper 0.12 (MIT) dropped both and keeps the Parse API
+# exceljs's streaming reader uses.
+overrides:
+  exceljs>unzipper: 0.12.3

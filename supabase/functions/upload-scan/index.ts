@@ -1,12 +1,17 @@
-// Upload scan worker (A22-011): claims due attachment.scan jobs and object scans, checks each file's
-// bytes against its declared type, scans it with ClamAV (clamd over TCP at CLAMD_HOST and CLAMD_PORT)
-// and records the verdict, so attachments reach Clean and unscanned files are never served to others.
-// Called on a schedule with the service key, like webhook-dispatch.
+// Upload scan worker (A22-011, owner decision 10, ADR 0034): claims due attachment.scan jobs and object
+// scans, checks each file's bytes against its declared type, scans it with self-hosted ClamAV (clamd over
+// TCP at XOS_CLAMAV_HOST and XOS_CLAMAV_PORT) and records the verdict, so files leave quarantine only
+// once Clean. Called on a schedule with the service key, like webhook-dispatch.
+//
+// Without XOS_CLAMAV_HOST: on a local stack a logged pass-through marks files clean; anywhere else the
+// function claims nothing and answers 503, so files stay quarantined until a scanner is configured.
 import { createClient } from "@supabase/supabase-js";
 import {
-  clamavScanner,
+  createLogger,
+  identityFromEnv,
   runUploadScans,
   scanStore,
+  selectVirusScanner,
   supabaseStorage,
   type ClamdConnection,
 } from "../_vendor/xos-platform.js";
@@ -15,6 +20,7 @@ import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 /** A clamd connection over Deno TCP that reads until the NUL byte that ends clamd's reply. */
 async function connectClamd(hostname: string, port: number): Promise<ClamdConnection> {
   const conn = await Deno.connect({ hostname, port });
+  let closed = false;
   return {
     async write(bytes) {
       let written = 0;
@@ -40,6 +46,8 @@ async function connectClamd(hostname: string, port: number): Promise<ClamdConnec
       return reply;
     },
     close() {
+      if (closed) return;
+      closed = true;
       conn.close();
     },
   };
@@ -49,16 +57,29 @@ serve(async (request) => {
   if (!hasBearer(request, env("SUPABASE_SERVICE_ROLE_KEY"))) {
     return json(401, { type: "/problems/unauthorized", title: "Unauthorized", status: 401 });
   }
-  const hostname = env("CLAMD_HOST");
-  const port = Number(env("CLAMD_PORT"));
+  const logger = createLogger(identityFromEnv("edge.upload-scan", Deno.env.toObject()));
+  const { choice, scanner } = selectVirusScanner({
+    env: (name) => Deno.env.get(name),
+    connect: connectClamd,
+    warn: (message) => logger.warn(message, { scanner: "pass-through" }),
+  });
+  if (scanner === null) {
+    logger.error(choice.reason, { scanner: "none" });
+    return json(503, {
+      type: "/problems/scanner-not-configured",
+      title: "Upload scanner not configured",
+      status: 503,
+      detail: choice.reason,
+    });
+  }
   const client = createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_ROLE_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const outcomes = await runUploadScans({
     store: scanStore(serviceDb()),
     storage: supabaseStorage(client),
-    scanner: clamavScanner({ connect: () => connectClamd(hostname, port) }),
+    scanner,
     worker: `upload-scan:${crypto.randomUUID()}`,
   });
-  return json(200, { scanned: outcomes.length, outcomes });
+  return json(200, { scanner: choice.kind, scanned: outcomes.length, outcomes });
 });

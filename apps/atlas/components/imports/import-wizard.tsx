@@ -181,11 +181,14 @@ export function ImportWizard({
         </p>
       </div>
       <Stepper steps={STEP_KEYS.map((k) => t(`imports.steps.${k}`))} current={step} />
-      <Refresher active={working} label={t(`imports.working.${workingKey(detail.status)}`)} />
+      <Refresher
+        active={working}
+        label={t(`imports.working.${workingKey(detail.status, detail.scanStatus)}`)}
+      />
 
       {detail.status === "Failed" ? (
         <InlineAlert tone="danger" title={t("imports.failed.title")}>
-          {t("imports.failed.body")}
+          {t(`imports.failed.${failedKey(detail.scanStatus)}`)}
         </InlineAlert>
       ) : null}
       {detail.status === "Canceled" ? (
@@ -213,10 +216,18 @@ export function ImportWizard({
   );
 }
 
-function workingKey(status: ImportStatus): string {
+function workingKey(status: ImportStatus, scan: ImportDetail["scanStatus"]): string {
   if (status === "Committing") return "committing";
   if (status === "Mapped") return "validating";
+  if (status === "Uploaded" && scan === "Scanning") return "scanning";
   return "reading";
+}
+
+/** Why an import failed, in plain words: a virus, a file the scanner refused, or anything else. */
+function failedKey(scan: ImportDetail["scanStatus"]): string {
+  if (scan === "Infected") return "infected";
+  if (scan === "Scan Failed") return "scanFailed";
+  return "body";
 }
 
 function MappingStep({

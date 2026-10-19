@@ -699,6 +699,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: records have no priority, and owner decision 25 adds no structure the Bible lacks (the Bible wins on structure), so the label stays in the template. Incident Priority is a different list."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: R
         header: DELIVERABLE
         key: deliverable
@@ -807,6 +808,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: records have no priority, and owner decision 25 adds no structure the Bible lacks (the Bible wins on structure), so the label stays in the template. Incident Priority is a different list."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: H
         header: LOCATION ID
         key: location_id
@@ -1376,6 +1378,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: LOCATION
         key: location
@@ -4057,6 +4060,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: budget lines have no lifecycle column, and owner decision 25 adds none. Open maps to the canon state Active and Estimated to Quoted (xpms.label_mapping); a line's commitment is derived from the purchase order lines that draw on it."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: AD
         header: FLAG
         key: flag

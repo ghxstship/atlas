@@ -119,7 +119,7 @@ En una pila autoalojada, monta `supabase/functions` en el servicio de funciones 
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Quién puede recibir correo; usa `XOS_EMAIL_DELIVER_TO_ANY=true` solo en producción                                |
 | `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, para las respuestas por correo                                                                   |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, solo si cobras mediante Stripe                                                                  |
-| `CLAMD_HOST`, `CLAMD_PORT`                                | `upload-scan`, el demonio de ClamAV (`infra/scanning` tiene un archivo Compose)                                   |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, el demonio de ClamAV; el puerto predeterminado es 3310 (consulta Análisis de archivos subidos)     |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Reporte de errores y nivel de registro opcionales                                                                 |
 
 ### Programa las funciones de trabajo
@@ -140,6 +140,21 @@ $$);
 ```
 
 Repite para las otras tres funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió.
+
+### Análisis de archivos subidos
+
+Cada archivo subido se analiza con ClamAV, que ejecutas tú mismo con la imagen `clamav/clamav:1.5.4`. Los archivos quedan en cuarentena hasta que el análisis los da por limpios, y un archivo infectado se elimina y se le explica el motivo a quien lo subió.
+
+1. Ejecuta clamd en un servidor al que las Edge Functions lleguen por una red privada. La imagen solo se publica para linux/amd64. Dale al menos 2 vCPU y 4 GiB de memoria, y un volumen persistente en `/var/lib/clamav`. Usa la configuración de `infra/scanning/docker-compose.yaml`, que también funciona tal cual con Docker Compose.
+2. clamd no tiene autenticación, así que nunca expongas el puerto 3310 a internet. Llega a él por una red privada o un túnel.
+3. Configura los secretos de las funciones `XOS_CLAMAV_HOST` y `XOS_CLAMAV_PORT`, y `XOS_ENVIRONMENT=production`.
+4. Llama a `upload-scan` una vez con la clave de rol de servicio. Una respuesta con `"scanner": "clamav"` indica que está conectado.
+
+Sin `XOS_CLAMAV_HOST`, `upload-scan` responde 503 y no analiza nada, así que los archivos siguen en cuarentena. Solo en una pila de desarrollo local marca los archivos como limpios sin analizarlos y registra una advertencia por cada uno. La imagen actualiza sus propias firmas, así que permite HTTPS saliente a `database.clamav.net`. `infra/runbooks/production.md` explica el tamaño, las alertas y las actualizaciones.
+
+### Conoce el límite de la lista de IP permitidas
+
+La lista de IP permitidas de una organización se aplica donde Atlas y la API comprueban una sesión o una clave de API. No se aplica a las llamadas directas a tu endpoint de Supabase (REST, Storage y Realtime) hechas con un token de sesión válido, porque solo Atlas y la API ven la dirección de quien llama. Si dependes de la lista, restringe también quién puede llegar al endpoint de Supabase en el perímetro de tu red. La solución prevista es que todo el acceso a los datos pase por la API.
 
 ## 4. Atlas, Gateway y docs
 

@@ -19,6 +19,8 @@ import {
  *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
  *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
  * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
+ * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
+ * database queues detection on the Clean verdict, and every step checks again before reading.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 
@@ -66,6 +68,8 @@ export interface ImportStore {
   finishJob(jobId: string, succeeded: boolean, error: string | null): Promise<string>;
   job(id: string): Promise<ImportJobRecord | null>;
   batchJob(batchId: string): Promise<string | null>;
+  /** The upload's virus-scan status (1240): Scanning, Clean, Infected, Scan Failed, or null. */
+  scanStatus(path: string): Promise<string | null>;
   download(path: string): Promise<Uint8Array>;
   targetFields(
     targetCode: string,
@@ -301,10 +305,44 @@ export async function validateRow(
 
 // The jobs ---------------------------------------------------------------------------------------------------
 
+/** The upload has not scanned Clean yet; the job goes back to the queue. */
+export class UploadNotScannedError extends Error {
+  constructor(status: string | null) {
+    super(
+      `The spreadsheet is not scanned yet (${status ?? "no scan"}); it is read once it scans Clean.`,
+    );
+    this.name = "UploadNotScannedError";
+  }
+}
+
+/** The upload was Infected or refused by the scanner: it is never read. */
+export class UploadRejectedError extends Error {
+  constructor(status: string) {
+    super(`The spreadsheet was not read: its virus scan is ${status}.`);
+    this.name = "UploadRejectedError";
+  }
+}
+
+/** Downloads the upload only once its scan is Clean. */
+async function readUpload(store: ImportStore, job: ImportJobRecord): Promise<Sheet> {
+  const status = await store.scanStatus(job.path);
+  if (status === "Infected" || status === "Scan Failed") throw new UploadRejectedError(status);
+  if (status !== "Clean") throw new UploadNotScannedError(status);
+  return readSheet(job.source, job.filename, await store.download(job.path));
+}
+
 async function detect(store: ImportStore, jobId: string): Promise<void> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Uploaded") return;
-  const sheet = await readSheet(job.source, job.filename, await store.download(job.path));
+  let sheet: Sheet;
+  try {
+    sheet = await readUpload(store, job);
+  } catch (error) {
+    if (!(error instanceof UploadRejectedError)) throw error;
+    // Atlas tells the uploader why (app.my_upload_scan_status); nothing is retried.
+    await store.setStatus(job.id, "Failed");
+    return;
+  }
   const fields = (await store.targetFields(job.targetCode)).map((f) => f.name);
   const profile = job.profileId
     ? await store.profileMapping(job.profileId)
@@ -323,7 +361,7 @@ async function detect(store: ImportStore, jobId: string): Promise<void> {
 async function validate(store: ImportStore, jobId: string): Promise<void> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Mapped") return;
-  const sheet = await readSheet(job.source, job.filename, await store.download(job.path));
+  const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
   for (const row of dataRows(sheet)) {
@@ -361,7 +399,7 @@ async function commit(store: ImportStore, batchId: string): Promise<void> {
   const jobId = await store.batchJob(batchId);
   const job = jobId ? await store.job(jobId) : null;
   if (!job || job.status !== "Committing") return;
-  const sheet = await readSheet(job.source, job.filename, await store.download(job.path));
+  const sheet = await readUpload(store, job);
   const fields = await store.targetFields(job.targetCode);
   const columns = await store.mappedColumns(job.id);
   const byNumber = new Map(dataRows(sheet).map((r) => [r.rowNumber, r]));
@@ -704,6 +742,13 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         "import_batches",
       );
       return row ? text(row, "import_job_id") : null;
+    },
+    async scanStatus(path) {
+      const status = await call("object_scan_status", {
+        p_bucket_id: "imports",
+        p_object_name: path,
+      });
+      return typeof status === "string" ? status : null;
     },
     async download(path) {
       const { data, error } = await client.storage.from("imports").download(path);

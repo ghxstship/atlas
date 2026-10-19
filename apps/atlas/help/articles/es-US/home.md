@@ -1,6 +1,6 @@
 ---
 title: Inicio
-summary: Lo que necesita su atención hoy, qué puertas están en riesgo y los registros que abrió por última vez.
+summary: Lo que necesita su atención hoy, qué compuertas están en riesgo y los registros que abrió por última vez.
 kind: page
 nodes: [home.today, home.gate-readiness, home.alerts, home.recent]
 order: 10
@@ -12,9 +12,9 @@ Inicio responde una pregunta: qué necesita su atención ahora.
 
 Hoy muestra los registros asignados a usted o que esperan su decisión, ordenados por vencimiento. Use **J** y **K** para moverse y **Enter** para abrir un registro.
 
-## Preparación de puertas
+## Preparación de compuertas
 
-Muestra la próxima puerta de cada proyecto activo y los criterios bloqueantes que siguen abiertos.
+Muestra la próxima compuerta de cada proyecto activo y los criterios bloqueantes que siguen abiertos.
 
 ## Alertas
 
@@ -24,4 +24,4 @@ Reúne las advertencias que requieren atención, como permisos vencidos, certifi
 
 Muestra los registros que abrió hace poco, para volver a ellos en un paso.
 
-Relacionado: [Puertas](help:gates), [Proyectos](help:projects).
+Relacionado: [Compuertas](help:gates), [Proyectos](help:projects).

@@ -28,25 +28,33 @@ Notes:
 - Atlas and Gateway also refuse passwords that contain a product name, the email's local part or a
   part of the person's name. That check runs in the sign-up server actions and needs no setting.
 
-## Upload virus scanning (A22-011): owner decision
+## Upload virus scanning (A22-011): self-hosted ClamAV
 
-The `upload-scan` Edge Function scans through the `VirusScanner` port in `@xos/platform`. The
-repository ships one adapter, ClamAV over TCP (`clamavScanner`). Until production has a scanner,
-attachments stay in Scanning and unscanned field and onboarding files reach only their uploaders, so
-the failure is closed, but those features are not usable by others.
+The owner chose self-hosted ClamAV, `clamav/clamav` 1.5.4 (decision 10, ADR 0034). Files never leave XOS
+infrastructure, so there is no new subprocessor.
 
-Choose one:
+1. Run clamd as described in `production.md`, "Upload scanning (ClamAV)".
+2. Set the function secrets `XOS_CLAMAV_HOST` and `XOS_CLAMAV_PORT`.
+3. Schedule `upload-scan` every minute with the service key, as for `webhook-dispatch`.
 
-1. **Self-hosted ClamAV.** Run clamd (the image pinned in ADR 0001) on a small container host that the
-   Edge Functions can reach over a private network or TLS tunnel, and set the function secrets
-   `CLAMD_HOST` and `CLAMD_PORT`. No new subprocessor, because files never leave XOS infrastructure.
-   Keep signatures updated (freshclam runs inside the image) and alert when clamd is unreachable
-   (the worker's `retrying` and `failed` outcomes).
-2. **A hosted scanning service.** Add an adapter for it behind `VirusScanner`. Because it receives
-   customer files, it is a subprocessor: add it to `legal/subprocessors.md` with 30 days' notice
-   (DPA, `legal/OWNER_INPUTS.md` Part C) before it is used. No account has been opened.
+Without `XOS_CLAMAV_HOST`, `upload-scan` answers 503 and claims nothing. Every upload stays quarantined,
+and nothing is passed through unscanned outside a local stack.
 
-Then schedule `upload-scan` every minute with the service key, as for `webhook-dispatch`.
+## Org IP allow-list (A52, migration 1201): known limit
+
+An org's IP allow-list is enforced only where Atlas and the XOS API check credentials:
+
+- the API runtime, before any handler runs, for sessions and API keys;
+- Atlas, before it resolves a member's context in the org (pages, server actions and the route guard).
+
+It is **not** enforced on direct calls to the Supabase endpoint (REST, Storage and Realtime) made with a
+valid session token. Only Atlas and the API see the caller's own address; row level security does not.
+A signed-in member outside the allowed networks can still read and write what their role allows by
+calling that endpoint directly with their session token. No setting closes this.
+
+The planned fix is routing all data access through the API, so that the Supabase endpoint no longer
+accepts end-user tokens directly (owner decision 33, ADR 0034). Until then, say so to any customer who
+relies on the allow-list. `legal/security-overview.md` states it publicly.
 
 ## Report runs (A35)
 

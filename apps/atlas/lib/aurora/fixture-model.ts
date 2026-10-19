@@ -104,7 +104,7 @@ type Question = "blocked-permits" | "element-price" | null;
 
 function questionOf(text: string): Question {
   if (/blocked/i.test(text) && /permit/i.test(text)) return "blocked-permits";
-  if (/(price|cost)/i.test(text) && /floor plan/i.test(text)) return "element-price";
+  if (/(price|cost)/i.test(text) && /guard booth/i.test(text)) return "element-price";
   return null;
 }
 
@@ -217,7 +217,7 @@ export class FixtureModelClient implements ModelClient {
           "list_records",
           {
             path: "budget-lines",
-            filters: [{ field: "description", op: "contains", value: "floor plan" }],
+            filters: [{ field: "description", op: "contains", value: "guard booth" }],
             limit: 10,
           },
           "fixture_budget_lines",
@@ -231,8 +231,7 @@ export class FixtureModelClient implements ModelClient {
           "answer",
           {
             no_answer: {
-              missing:
-                "Stage floor plan drafting has no price on record; the budget line is Unpriced.",
+              missing: "The guard booth has no price on record; the budget line is Unpriced.",
             },
           },
           "fixture_answer",
@@ -241,7 +240,7 @@ export class FixtureModelClient implements ModelClient {
       return toolCall(
         "answer",
         {
-          text: `Stage floor plan drafting is priced at ${String(priced[0]?.["unit_price_minor"])} minor units.`,
+          text: `The guard booth is priced at ${String(priced[0]?.["unit_price_minor"])} minor units.`,
           citations: priced.map((l) => ({
             path: "budget-lines",
             id: String(l["id"]),

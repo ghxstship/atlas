@@ -10108,10 +10108,15 @@ var platform_default$1 = {
       reading: "Reading the spreadsheet. This page updates on its own.",
       validating: "Checking every row. This page updates on its own.",
       committing: "Writing the rows. This page updates on its own.",
+      scanning: "Checking the file for viruses before reading it. This page updates on its own.",
     },
     failed: {
       title: "This import could not be processed",
       body: "The file could not be read or written. Check that it is a .csv or .xlsx spreadsheet and start a new import.",
+      infected:
+        "Our virus scan found something harmful in this file, so it was deleted and nothing was imported. Check the file on your computer with your antivirus, then upload a clean copy.",
+      scanFailed:
+        "This file could not be checked for viruses, so it was not read. Save it again as .csv or .xlsx and start a new import.",
     },
     map: {
       title: "Map the columns",
@@ -10397,6 +10402,12 @@ var platform_default$1 = {
       history: "Exports taken",
       past: "{when}: {tables} tables, {rows} rows, {files} files",
     },
+  },
+  uploadScan: {
+    infected:
+      "Our virus scan found something harmful in this file, so it was deleted. Nobody can open it. Check the file on your device and upload a clean copy.",
+    scanFailed:
+      "This file could not be checked for viruses, so it stays closed. Upload it again, or save it in another format first.",
   },
 };
 var procurement_default$1 = {
@@ -16750,7 +16761,7 @@ var activity_default = {
     evidence_attested: "certificó evidencia para",
     evidence_withdrawn: "retiró evidencia de",
     fulfilled: "cumplió",
-    gate_passed: "pasó una puerta en",
+    gate_passed: "pasó una compuerta en",
     issued: "emitió",
     locked: "bloqueó",
     member_added: "agregó un miembro a",
@@ -16811,7 +16822,7 @@ var activity_default = {
     engagement_message: "un mensaje del encargo",
     expense: "un gasto",
     fulfillment: "un cumplimiento",
-    gate: "un criterio de puerta",
+    gate: "un criterio de compuerta",
     gate_queue: "la fila de acceso",
     incident: "un incidente",
     invoice: "una factura",
@@ -17809,7 +17820,7 @@ var aurora_default = {
       summaries: {
         label: "Resúmenes",
         description:
-          "Resume la actividad de un registro, la semana de un proyecto y la preparación de una puerta de fase.",
+          "Resume la actividad de un registro, la semana de un proyecto y la preparación de una compuerta de fase.",
       },
       mapping: {
         label: "Ayuda de asignación",
@@ -19991,7 +20002,7 @@ var documents_default = {
     title: "Informe de costo final {project}",
     basis: "Base",
     basisValue:
-      "Presupuesto base de la puerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
+      "Presupuesto base de la compuerta 3, órdenes de cambio aprobadas y reales contabilizados por cuenta de gasto",
     byAccount: "Costo por cuenta de gasto",
     account: "Cuenta",
     baseline: "Base",
@@ -20002,7 +20013,7 @@ var documents_default = {
     totalIn: "Total {currency}",
     noRows: "Aún no hay líneas base, cambios ni reales.",
     noBaseline:
-      "Este proyecto no tiene presupuesto base de la puerta 3, así que el informe de costo final aún no tiene respuesta.",
+      "Este proyecto no tiene presupuesto base de la compuerta 3, así que el informe de costo final aún no tiene respuesta.",
   },
   agreementCertificate: {
     title: "Certificado de firma",
@@ -22452,8 +22463,8 @@ var help_default = {
     learnMore: "Más información",
     dismiss: "Descartar consejo",
     gates: {
-      title: "Las puertas protegen cada fase",
-      body: "Una puerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de puerta para ver su definición.",
+      title: "Las compuertas protegen cada fase",
+      body: "Una compuerta pasa solo cuando se cumplen sus criterios bloqueantes. Pase el puntero sobre un chip de compuerta para ver su definición.",
     },
     "access-grid": {
       title: "Cambie el acceso celda por celda",
@@ -22468,8 +22479,8 @@ var help_default = {
       body: "Defina sus filtros y abra Vistas guardadas para conservarlos, compartirlos o abrirlos de forma predeterminada.",
     },
     reconciliation: {
-      title: "Las brechas alimentan la próxima puerta",
-      body: "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha.",
+      title: "Las brechas alimentan la próxima compuerta",
+      body: "Un requisito del rider que la sede no puede cumplir, o uno marcado como UNKNOWN en un elemento crítico, aparece como brecha de compuerta.",
     },
   },
   contact: {
@@ -22526,14 +22537,14 @@ var home_default = {
     dueToday: "Vence hoy para ti",
     dueCaption: "Registros que te pertenecen o de los que eres responsable",
     openBlockers: "Criterios bloqueantes abiertos",
-    openCaption: "En la puerta actual de cada proyecto",
-    readinessTitle: "Preparación de puertas",
+    openCaption: "En la compuerta actual de cada proyecto",
+    readinessTitle: "Preparación de compuertas",
     alertsTitle: "Alertas",
     recentTitle: "Actividad reciente",
     seeAll: "Ver todo",
     noAlerts: "No hay alertas en este momento.",
     noActivity: "Aún no hay actividad. Crea un proyecto para empezar.",
-    noReadiness: "Aún no hay proyectos avanzando por las puertas.",
+    noReadiness: "Aún no hay proyectos avanzando por las compuertas.",
   },
   today: {
     title: "Hoy",
@@ -22549,23 +22560,23 @@ var home_default = {
     open: "Abrir proyecto",
   },
   readiness: {
-    title: "Preparación de puertas",
-    caption: "Preparación de puertas en todos los proyectos",
+    title: "Preparación de compuertas",
+    caption: "Preparación de compuertas en todos los proyectos",
     project: "Proyecto",
     phase: "Fase actual",
     blocking: "Criterios bloqueantes con evidencia",
     unmet: "Evidencia faltante",
     met: "{met} de {total}",
-    closed: "Todas las puertas pasadas",
+    closed: "Todas las compuertas pasadas",
     none: "Ninguna",
     empty:
-      "Aún no hay proyectos avanzando por las puertas. Inicia un proyecto para seguir su preparación.",
+      "Aún no hay proyectos avanzando por las compuertas. Inicia un proyecto para seguir su preparación.",
     emptyAction: "Abrir proyectos",
-    chartTitle: "Criterios bloqueantes en la puerta actual",
+    chartTitle: "Criterios bloqueantes en la compuerta actual",
     chartSubtitle: "Criterios con evidencia y criterios aún abiertos, por proyecto",
     seriesMet: "Con evidencia",
     seriesOpen: "Abiertos",
-    matrixCaption: "Puertas por proyecto",
+    matrixCaption: "Compuertas por proyecto",
     passed: "Pasada",
     current: "{met} de {total}",
     upcoming: "Próxima",
@@ -22574,13 +22585,13 @@ var home_default = {
     title: "Alertas",
     label: "Alertas",
     empty:
-      "No hay alertas en este momento. El trabajo bloqueado, los registros vencidos y las brechas de puerta cerca del primer día de producción aparecen aquí.",
+      "No hay alertas en este momento. El trabajo bloqueado, los registros vencidos y las brechas de compuerta cerca del primer día de producción aparecen aquí.",
     emptyAction: "Abrir proyectos",
     blockedProject: "{key} {name} está bloqueado.",
     blockedRecord: "{key} {title} está bloqueado: {blocker}",
     overdue: "{key} {title} vencía el {date}.",
     gateGap:
-      "{key} empieza el {date} con {count, plural, one {# criterio bloqueante abierto} other {# criterios bloqueantes abiertos}} en la puerta {gate}.",
+      "{key} empieza el {date} con {count, plural, one {# criterio bloqueante abierto} other {# criterios bloqueantes abiertos}} en la compuerta {gate}.",
     noJurisdiction:
       "{key} aún no tiene jurisdicción. Las preguntas de permisos y códigos no se pueden responder hasta resolverla.",
     open: "Abrir",
@@ -26045,10 +26056,16 @@ var platform_default = {
       reading: "Leyendo la hoja de cálculo. Esta página se actualiza sola.",
       validating: "Revisando cada fila. Esta página se actualiza sola.",
       committing: "Escribiendo las filas. Esta página se actualiza sola.",
+      scanning:
+        "Revisando el archivo en busca de virus antes de leerlo. Esta página se actualiza sola.",
     },
     failed: {
       title: "No se pudo procesar esta importación",
       body: "No se pudo leer o escribir el archivo. Verifique que sea una hoja de cálculo .csv o .xlsx e inicie una nueva importación.",
+      infected:
+        "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó y no se importó nada. Revise el archivo en su computadora con su antivirus y suba una copia limpia.",
+      scanFailed:
+        "No se pudo revisar este archivo en busca de virus, así que no se leyó. Guárdelo de nuevo como .csv o .xlsx e inicie una nueva importación.",
     },
     map: {
       title: "Asignar las columnas",
@@ -26342,6 +26359,12 @@ var platform_default = {
       history: "Exportaciones realizadas",
       past: "{when}: {tables} tablas, {rows} filas, {files} archivos",
     },
+  },
+  uploadScan: {
+    infected:
+      "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
+    scanFailed:
+      "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato.",
   },
 };
 var procurement_default = {
@@ -27169,7 +27192,7 @@ var projects_default = {
   peek: {
     title: "{key} {name}",
     openProject: "Abrir proyecto",
-    gates: "Abrir puertas",
+    gates: "Abrir compuertas",
     close: "Cerrar",
   },
   create: {
@@ -27217,12 +27240,12 @@ var projects_default = {
       "Se alcanzó el límite de proyectos activos de tu plan. Completa o cancela un proyecto, o cambia de plan, para agregar otro.",
     time_zone_unknown: "Esa zona horaria no se reconoce. Elige una de la lista.",
     gate_criteria_unmet:
-      "La puerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
+      "La compuerta {gate} no puede pasar hasta que cada criterio bloqueante tenga evidencia. Falta: {criteria}.",
     gate_phase_conflict:
-      "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su puerta actual.",
-    gate_already_passed: "Esta puerta ya se pasó.",
+      "El proyecto pasó a otra fase mientras trabajabas. Vuelve a cargar para ver su compuerta actual.",
+    gate_already_passed: "Esta compuerta ya se pasó.",
     project_canceled:
-      "Un proyecto cancelado no pasa puertas. Reábrelo primero si el trabajo continúa.",
+      "Un proyecto cancelado no pasa compuertas. Reábrelo primero si el trabajo continúa.",
     transition_reason_required: "Indica el motivo. Cada cambio se registra con su motivo.",
     project_transition_not_allowed:
       "El proyecto no puede pasar a ese estado desde donde está ahora.",
@@ -27263,17 +27286,17 @@ var projects_default = {
   overview: {
     title: "Resumen",
     phase: "Fase",
-    phaseOf: "Puerta {gate} de {total}",
-    nextGate: "Siguiente puerta",
-    readiness: "Preparación de la puerta",
+    phaseOf: "Compuerta {gate} de {total}",
+    nextGate: "Siguiente compuerta",
+    readiness: "Preparación de la compuerta",
     readinessValue: "{met} de {total} criterios bloqueantes tienen evidencia",
-    allPassed: "Todas las puertas se pasaron. El proyecto queda en Cierre.",
+    allPassed: "Todas las compuertas se pasaron. El proyecto queda en Cierre.",
     keyDates: "Fechas clave",
     lifecycle: "Ciclo de vida",
     blockers: "Bloqueos abiertos",
     noBlockers:
-      "Nada bloquea la siguiente puerta. Pásala desde la pestaña Puertas cuando el equipo esté listo.",
-    openGates: "Abrir puertas",
+      "Nada bloquea la siguiente compuerta. Pásala desde la pestaña Compuertas cuando el equipo esté listo.",
+    openGates: "Abrir compuertas",
     recent: "Actividad reciente",
     noActivity:
       "Aún no hay actividad en este proyecto. Los cambios aparecen aquí mientras el equipo trabaja.",
@@ -27331,9 +27354,9 @@ var projects_default = {
       "Los recintos permanentes contienen funciones; una función puede estar bajo la raíz o bajo un recinto permanente.",
   },
   gates: {
-    title: "Puertas",
-    listLabel: "Puertas de {key}",
-    gate: "Puerta {gate}",
+    title: "Compuertas",
+    listLabel: "Compuertas de {key}",
+    gate: "Compuerta {gate}",
     passed: "Pasada",
     current: "Actual",
     upcoming: "Próxima",
@@ -27359,25 +27382,25 @@ var projects_default = {
     withdrawConfirm:
       "¿Retirar esta evidencia? Deja de contar para el criterio y queda en el historial.",
     withdrawAction: "Retirar evidencia",
-    pass: "Pasar la puerta {gate}",
-    passTitle: "Pasar la puerta {gate} y entrar en {next}",
-    passTitleLast: "Pasar la puerta {gate} y cerrar el proyecto",
+    pass: "Pasar la compuerta {gate}",
+    passTitle: "Pasar la compuerta {gate} y entrar en {next}",
+    passTitleLast: "Pasar la compuerta {gate} y cerrar el proyecto",
     passDescription:
-      "La base de datos verifica cada criterio bloqueante antes de que el proyecto avance. Pasar una puerta no se puede deshacer.",
+      "La base de datos verifica cada criterio bloqueante antes de que el proyecto avance. Pasar una compuerta no se puede deshacer.",
     passReason: "Decisión",
     passReasonHelp: "Por ejemplo, la decisión de seguir o no seguir y quién la ratificó.",
-    passSubmit: "Pasar puerta",
+    passSubmit: "Pasar compuerta",
     cancel: "Cancelar",
     blockedBy:
       "{count, plural, one {# criterio bloqueante necesita evidencia} other {# criterios bloqueantes necesitan evidencia}}",
     ready: "Cada criterio bloqueante tiene evidencia.",
-    boardLabel: "Criterios por puerta",
+    boardLabel: "Criterios por compuerta",
     history: "Historial de transiciones",
-    noHistory: "Aún no se ha pasado ninguna puerta. La puerta 1 cierra Alcance.",
-    historyEntry: "Puerta {gate}: {from} a {to}",
-    historyEntryLast: "Puerta {gate}: {from} cerrada",
+    noHistory: "Aún no se ha pasado ninguna compuerta. La compuerta 1 cierra Alcance.",
+    historyEntry: "Compuerta {gate}: {from} a {to}",
+    historyEntryLast: "Compuerta {gate}: {from} cerrada",
     readOnly:
-      "Puedes leer las puertas. Pide a un gerente del proyecto que certifique evidencia o pase una puerta.",
+      "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta.",
   },
   settings: {
     title: "Configuración del proyecto",
@@ -29516,7 +29539,7 @@ var ui_default = {
     metCount: "{met} de {total} cumplidos",
     openMany: "{n} criterios bloqueantes abiertos.",
     openOne: "{n} criterio bloqueante abierto.",
-    readiness: "Preparación del Gate",
+    readiness: "Preparación de la compuerta",
   },
   grid: {
     derived: "Derivado del canon. Edite el registro de origen para cambiarlo.",
@@ -29627,8 +29650,8 @@ var ui_default = {
   },
   peek: { openFull: "Abrir página completa" },
   phase: {
-    gate: "Gate {n}",
-    gateName: "Gate {n} · {name}",
+    gate: "Compuerta {n}",
+    gateName: "Compuerta {n} · {name}",
   },
   photo: {
     annotate: "Anotar",
@@ -34594,33 +34617,56 @@ function parseClamdReply(reply) {
     };
   throw new ScannerUnavailableError(`clamd gave no verdict: ${text.slice(0, 200)}`);
 }
+/** Rejects after `ms`, so a clamd that stops answering cannot hold a worker for ever. */
+function withTimeout(work, ms, onTimeout) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      onTimeout();
+      reject(new ScannerUnavailableError(`clamd did not answer within ${ms} ms`));
+    }, ms);
+  });
+  return Promise.race([work, timeout]).finally(() => clearTimeout(timer));
+}
 function clamavScanner(options) {
   const chunkSize = options.chunkSize ?? 65536;
+  const timeoutMs = options.timeoutMs ?? 6e4;
   return {
-    async scan(bytes) {
-      let connection;
-      try {
-        connection = await options.connect();
-      } catch (error) {
-        throw new ScannerUnavailableError("clamd is unreachable", { cause: error });
-      }
-      try {
-        await connection.write(COMMAND);
-        for (let offset = 0; offset < bytes.length; offset += chunkSize) {
-          const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
-          await connection.write(lengthPrefix(chunk.length));
-          await connection.write(chunk);
-        }
-        await connection.write(lengthPrefix(0));
-        return parseClamdReply(new TextDecoder().decode(await connection.readReply()));
-      } catch (error) {
-        if (error instanceof ScannerUnavailableError) throw error;
-        throw new ScannerUnavailableError("clamd stopped answering", { cause: error });
-      } finally {
-        connection.close();
-      }
+    scan(bytes) {
+      let open;
+      return withTimeout(
+        scanOnce(bytes, (connection) => {
+          open = connection;
+        }),
+        timeoutMs,
+        () => open?.close(),
+      );
     },
   };
+  async function scanOnce(bytes, opened) {
+    let connection;
+    try {
+      connection = await options.connect();
+    } catch (error) {
+      throw new ScannerUnavailableError("clamd is unreachable", { cause: error });
+    }
+    opened(connection);
+    try {
+      await connection.write(COMMAND);
+      for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+        const chunk = bytes.subarray(offset, Math.min(offset + chunkSize, bytes.length));
+        await connection.write(lengthPrefix(chunk.length));
+        await connection.write(chunk);
+      }
+      await connection.write(lengthPrefix(0));
+      return parseClamdReply(new TextDecoder().decode(await connection.readReply()));
+    } catch (error) {
+      if (error instanceof ScannerUnavailableError) throw error;
+      throw new ScannerUnavailableError("clamd stopped answering", { cause: error });
+    } finally {
+      connection.close();
+    }
+  }
 }
 //#endregion
 //#region src/scanning/content.ts
@@ -34728,18 +34774,18 @@ function startsWith(bytes, signature, offset = 0) {
 function ascii(bytes, offset, length) {
   return String.fromCharCode(...bytes.subarray(offset, offset + length));
 }
+/**
+ * Text: no NUL byte and almost no control characters in the first 8 KiB. UTF-8 and single-byte
+ * encodings both pass, so a spreadsheet saved as CSV in Windows-1252 is still accepted for import.
+ */
 function looksLikeText(bytes) {
   const sample = bytes.subarray(0, 8192);
-  if (sample.includes(0)) return false;
-  try {
-    new TextDecoder("utf-8", { fatal: true }).decode(
-      sample.length === bytes.length ? sample : bytes,
-    );
-    return true;
-  } catch (error) {
-    if (error instanceof TypeError) return false;
-    throw error;
+  let control = 0;
+  for (const byte of sample) {
+    if (byte === 0) return false;
+    if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 12 && byte !== 13) control += 1;
   }
+  return control * 100 <= sample.length;
 }
 /** The signature families the leading bytes match. */
 function sniffFamilies(bytes) {
@@ -35223,6 +35269,107 @@ function supabaseStorage(client) {
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
     },
   };
+}
+//#endregion
+//#region src/scanning/select.ts
+/**
+ * Chooses the virus scanner from the environment (owner decision 10, ADR 0034).
+ *
+ * - `XOS_CLAMAV_HOST` set: ClamAV (clamd over TCP, INSTREAM) at that host and `XOS_CLAMAV_PORT`
+ *   (default 3310). This is the production scanner: self-hosted `clamav/clamav`, pinned in ADR 0001.
+ * - No host, local development: a pass-through that marks every file clean and logs a warning on
+ *   every file it lets through, so a developer can use uploads without running clamd. Local means
+ *   `SUPABASE_URL` names a loopback or Docker-internal host and `XOS_ENVIRONMENT` is not `production`.
+ * - No host anywhere else: no scanner. The worker must not claim scans, so files stay quarantined
+ *   (Scanning) and attempts are not used up while the scanner is missing (ADR 0026: fail closed).
+ */
+var CLAMAV_DEFAULT_PORT = 3310;
+/** Hosts a local Supabase stack or a developer's machine uses; never a production deployment's. */
+var LOCAL_HOSTS$1 = /* @__PURE__ */ new Set([
+  "localhost",
+  "127.0.0.1",
+  "::1",
+  "[::1]",
+  "kong",
+  "host.docker.internal",
+]);
+function present(env, name) {
+  const value = env(name)?.trim();
+  return value === void 0 || value === "" ? void 0 : value;
+}
+/** True only for a local development stack: a loopback or Docker-internal SUPABASE_URL. */
+function isLocalDevelopment(env) {
+  if (present(env, "XOS_ENVIRONMENT")?.toLowerCase() === "production") return false;
+  const url = present(env, "SUPABASE_URL");
+  if (url === void 0) return false;
+  let host;
+  try {
+    host = new URL(url).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return LOCAL_HOSTS$1.has(host) || host.endsWith(".localhost");
+}
+/** Reads the scanner configuration. Throws on a port that is not a TCP port number. */
+function scannerChoice(env) {
+  const host = present(env, "XOS_CLAMAV_HOST");
+  if (host !== void 0) {
+    const rawPort = present(env, "XOS_CLAMAV_PORT");
+    const port = rawPort === void 0 ? CLAMAV_DEFAULT_PORT : Number(rawPort);
+    if (!Number.isInteger(port) || port < 1 || port > 65535)
+      throw new Error(`XOS_CLAMAV_PORT must be a TCP port number, not ${rawPort ?? ""}.`);
+    return {
+      kind: "clamav",
+      host,
+      port,
+    };
+  }
+  if (isLocalDevelopment(env))
+    return {
+      kind: "pass-through",
+      reason:
+        "XOS_CLAMAV_HOST is not set on a local stack: uploads are marked clean without a virus scan.",
+    };
+  return {
+    kind: "none",
+    reason: "XOS_CLAMAV_HOST is not set: uploads stay quarantined until a scanner is configured.",
+  };
+}
+/**
+ * Development only: lets every file through as clean and warns on each one. `selectVirusScanner`
+ * returns it only for a local stack; nothing else should construct it.
+ */
+function passThroughScanner(warn) {
+  return {
+    async scan(bytes) {
+      warn(
+        `UPLOAD SCAN PASS-THROUGH (local development only): ${bytes.length} bytes marked clean without a virus scan. Set XOS_CLAMAV_HOST to scan with ClamAV.`,
+      );
+      return { clean: true };
+    },
+  };
+}
+/** The scanner for this environment, with the choice that produced it for logs and responses. */
+function selectVirusScanner(options) {
+  const choice = scannerChoice(options.env);
+  switch (choice.kind) {
+    case "clamav":
+      return {
+        choice,
+        scanner: clamavScanner({ connect: () => options.connect(choice.host, choice.port) }),
+      };
+    case "pass-through":
+      options.warn(choice.reason);
+      return {
+        choice,
+        scanner: passThroughScanner(options.warn),
+      };
+    case "none":
+      return {
+        choice,
+        scanner: null,
+      };
+  }
 }
 //#endregion
 //#region ../../infra/observability/src/redact.ts
@@ -37448,6 +37595,7 @@ var planRegistry = parsePlanRegistry(plans_default);
 export {
   ATTACHMENT_SCAN_JOB,
   BillingNotConfiguredError,
+  CLAMAV_DEFAULT_PORT,
   MAX_SCAN_ATTEMPTS,
   PUNCH_KINDS,
   PlatformDbError,
@@ -37478,6 +37626,7 @@ export {
   identityFromEnv,
   inboundStore,
   internalErrorResponse,
+  isLocalDevelopment,
   isPublicAddress,
   isTestKey,
   kioskPunch,
@@ -37488,6 +37637,7 @@ export {
   observe,
   observeEdgeFunction,
   parseClamdReply,
+  passThroughScanner,
   planForLookupKey,
   planRegistry,
   readBillingEnv,
@@ -37505,6 +37655,8 @@ export {
   runScheduledReports,
   runUploadScans,
   scanStore,
+  scannerChoice,
+  selectVirusScanner,
   signWebhook,
   sniffFamilies,
   stripQuotedText,

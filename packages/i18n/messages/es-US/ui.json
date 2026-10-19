@@ -216,7 +216,7 @@
     "metCount": "{met} de {total} cumplidos",
     "openMany": "{n} criterios bloqueantes abiertos.",
     "openOne": "{n} criterio bloqueante abierto.",
-    "readiness": "Preparación del Gate"
+    "readiness": "Preparación de la compuerta"
   },
   "grid": {
     "derived": "Derivado del canon. Edite el registro de origen para cambiarlo.",
@@ -338,8 +338,8 @@
     "openFull": "Abrir página completa"
   },
   "phase": {
-    "gate": "Gate {n}",
-    "gateName": "Gate {n} · {name}"
+    "gate": "Compuerta {n}",
+    "gateName": "Compuerta {n} · {name}"
   },
   "photo": {
     "annotate": "Anotar",

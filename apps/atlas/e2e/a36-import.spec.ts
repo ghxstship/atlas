@@ -33,7 +33,8 @@ test("journey 27: import customers, review a fuzzy duplicate, commit and undo th
     .setInputFiles({ name: `customers-${id}.csv`, mimeType: "text/csv", buffer: Buffer.from(csv) });
   await page.getByRole("button", { name: "Upload and read" }).click();
   await page.waitForURL(/\?import=/);
-  await expect(page.getByText("Reading the spreadsheet")).toBeVisible();
+  // The spreadsheet is checked for viruses before it is read (ADR 0034).
+  await expect(page.getByText("Checking the file for viruses")).toBeVisible();
 
   // Detect, then map: the wizard suggests Name and Vendor type and skips Notes.
   await runImportWorker();

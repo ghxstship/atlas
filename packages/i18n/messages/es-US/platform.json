@@ -271,11 +271,14 @@
     "working": {
       "reading": "Leyendo la hoja de cálculo. Esta página se actualiza sola.",
       "validating": "Revisando cada fila. Esta página se actualiza sola.",
-      "committing": "Escribiendo las filas. Esta página se actualiza sola."
+      "committing": "Escribiendo las filas. Esta página se actualiza sola.",
+      "scanning": "Revisando el archivo en busca de virus antes de leerlo. Esta página se actualiza sola."
     },
     "failed": {
       "title": "No se pudo procesar esta importación",
-      "body": "No se pudo leer o escribir el archivo. Verifique que sea una hoja de cálculo .csv o .xlsx e inicie una nueva importación."
+      "body": "No se pudo leer o escribir el archivo. Verifique que sea una hoja de cálculo .csv o .xlsx e inicie una nueva importación.",
+      "infected": "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó y no se importó nada. Revise el archivo en su computadora con su antivirus y suba una copia limpia.",
+      "scanFailed": "No se pudo revisar este archivo en busca de virus, así que no se leyó. Guárdelo de nuevo como .csv o .xlsx e inicie una nueva importación."
     },
     "map": {
       "title": "Asignar las columnas",
@@ -551,5 +554,9 @@
       "history": "Exportaciones realizadas",
       "past": "{when}: {tables} tablas, {rows} filas, {files} archivos"
     }
+  },
+  "uploadScan": {
+    "infected": "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
+    "scanFailed": "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato."
   }
 }

@@ -120,16 +120,16 @@ None. The site is built from the repository and the OpenAPI document.
 
 ### Edge Functions (production Supabase project secrets)
 
-| Secret                                                    | Notes                                                                                             |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                         |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Links and the postal address in email (CAN-SPAM)                                                  |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; the verified sending address; the Resend key                                            |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email                                                                                    |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                    |
-| `CLAMD_HOST`, `CLAMD_PORT`                                | The ClamAV daemon, once the scanner decision is made (`hosted-security-settings.md`)              |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                              |
+| Secret                                                    | Notes                                                                                               |
+| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                           |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Links and the postal address in email (CAN-SPAM)                                                    |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; the verified sending address; the Resend key                                              |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email   |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email                                                                                      |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                      |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310 |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
@@ -155,6 +155,61 @@ None. The site is built from the repository and the OpenAPI document.
 | `XOS_ALERT_WEBHOOK_URL`                         | Secret   | `synthetics.yml`, alerts to on-call                                 |
 | `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |
 | `XOS_STAGING_*` URLs and the staging anon key   | Variable | `synthetics.yml`                                                    |
+
+## Upload scanning (ClamAV)
+
+Uploads are scanned by self-hosted ClamAV (owner decision 10, ADR 0034). Until clamd answers, every upload
+stays quarantined: attachments cannot be downloaded, imports wait, and private uploads reach only their
+uploader. Files never leave XOS infrastructure, so ClamAV is not a subprocessor.
+
+**Run clamd**
+
+- Image: `clamav/clamav:1.5.4` (pinned in ADR 0001). It is published for linux/amd64 only, so use an amd64
+  host.
+- Size: at least 2 vCPU and 4 GiB of memory. clamd holds the signature database in memory (about 1.5 GiB)
+  and briefly needs twice that while it reloads after an update. Keep the signature volume on disk.
+- Use the same settings as `infra/scanning/docker-compose.yaml`:
+  - `CLAMD_CONF_StreamMaxLength=60M`, above the largest bucket limit of 50 MiB;
+  - `CLAMD_CONF_MaxScanSize=150M` and `CLAMD_CONF_MaxFileSize=60M`;
+  - a persistent volume at `/var/lib/clamav`;
+  - the `clamdcheck.sh` health check.
+- The image runs `freshclam` itself and updates signatures several times a day. Allow outbound HTTPS from
+  the host to `database.clamav.net`. The first start downloads the database and takes a few minutes, and
+  the health check stays red until it finishes.
+- clamd has no authentication. Never expose port 3310 to the internet. The Edge Functions must reach it
+  over a private network or an authenticated tunnel, for example WireGuard, Tailscale or a TLS tunnel
+  that terminates on the clamd host. Allow only the tunnel's address on 3310.
+- Run two instances behind a TCP load balancer if one host is a single point of failure you cannot
+  accept. Scans are stateless.
+
+**Connect the functions**
+
+```sh
+supabase secrets set --project-ref <production-ref> XOS_CLAMAV_HOST=<private address> XOS_CLAMAV_PORT=3310
+```
+
+Then call `upload-scan` once with the service key. A 200 with `"scanner": "clamav"` means it is connected.
+A 503 `scanner-not-configured` means the secret is missing. The `retrying` outcome, with "clamd is
+unreachable", means the network path is wrong. Leave `XOS_ENVIRONMENT=production` set: with it, the function
+never falls back to the development pass-through, even if `SUPABASE_URL` looked local.
+
+**Check it end to end on staging**
+
+Upload the EICAR test file (eicar.org) as an attachment. After the next worker run it shows "Blocked",
+the file is gone from storage, and clamd logs `Eicar-Test-Signature FOUND`. Upload an ordinary PDF: it
+becomes downloadable after the next run.
+
+**Alerts**
+
+- `upload-scan` answering 503, or `retrying` and `failed` outcomes in its logs: clamd is missing or
+  unreachable. Files are safe, because they stay quarantined, but nothing can be downloaded.
+- Rows in `private.object_scans` or `attachment.scan` jobs in Scanning for more than 15 minutes.
+- The clamd health check failing, or `freshclam` failing to update for more than 24 hours.
+
+**Upgrade**
+
+Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
+together. Roll hosts one at a time; while one restarts, scans retry with backoff.
 
 ## Monitoring and alerting
 
@@ -182,7 +237,7 @@ One-minute checks from five regions (Section 5.1) need a paid monitoring service
 **Daily**
 
 - [ ] Yesterday's errors in Sentry: each new issue has an owner or is resolved.
-- [ ] The webhook, notification, upload-scan and report workers ran: `app.job_queue`, `app.webhook_deliveries` and `app.notification_deliveries` are not growing, no object waits in `private.object_scans`, and `cron.job_run_details` shows no failed database jobs.
+- [ ] The webhook, notification, upload-scan and report workers ran: `app.job_queue`, `app.webhook_deliveries` and `app.notification_deliveries` are not growing, no object waits in `private.object_scans` for more than a few minutes (`select bucket_id, count(*) from private.object_scans where scan_status = 'Scanning' group by 1;`), `upload-scan` answers 200 and not 503, and `cron.job_run_details` shows no failed database jobs.
 - [ ] Database CPU, connections and disk are below 70 percent of the plan.
 
 **Weekly**
