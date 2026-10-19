@@ -52634,6 +52634,14 @@ export type Database = {
           slug: string;
         }[];
       };
+      my_upload_scan_status: {
+        Args: { p_bucket_id: string; p_object_name: string };
+        Returns: Database["app"]["Enums"]["scan_status"];
+      };
+      object_scan_status: {
+        Args: { p_bucket_id: string; p_object_name: string };
+        Returns: Database["app"]["Enums"]["scan_status"];
+      };
       open_help_desk_request: {
         Args: {
           p_body: string;
