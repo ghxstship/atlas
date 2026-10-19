@@ -93,6 +93,11 @@ const engagementRow = {
   role_type: "Crew",
   engagement_state: "Active",
   application_id: id(70),
+  worker_classification: "INDEPENDENT_CONTRACTOR",
+  pay_basis: "Day Rate",
+  arrangement: "Per Engagement",
+  start_date: "2026-09-01",
+  end_date: null,
   counterparty: { organization_id: id(60) },
   transitions: [
     { to_state: "Onboarding", created_at: "2026-09-01T00:00:00.000Z" },
@@ -167,6 +172,7 @@ describe("Opportunities contract: onboarding", () => {
     engagement_id: id(1),
     onboarding_requirement_id: id(12),
     document_id: null,
+    submitted_at: null,
   };
   it("lists and reads onboarding items with their derived state", async () => {
     const { api } = app({
@@ -574,5 +580,150 @@ describe("Opportunities contract: pools and pay transparency", () => {
     expect(page.data[0]?.range_required).toBe(true);
     const next = await api.request(`/pay-transparency-rules?cursor=${page.next_cursor}`);
     await expectContract(next, "payTransparencyRules.list");
+  });
+});
+
+// A50 (gate 5, RRR-94): the Opportunities writes corrected in catalog/modules/opportunities.ts.
+describe("Opportunities contract: answers, bid lines, engagements and onboarding writes (A50)", () => {
+  it("records an application answer under its column name", async () => {
+    const answer = {
+      ...auditRow(61),
+      application_id: id(41),
+      opportunity_question_id: id(43),
+      answer_text: "Two arena rigs.",
+    };
+    const { api, calls } = app({ "from:application_answers": [ok(answer)] });
+    const made = await api.request(
+      "/application-answers",
+      post({ application_id: id(41), opportunity_question_id: id(43), answer: "Two arena rigs." }),
+    );
+    const body = (await expectContract(made, "applicationAnswers.create")) as { answer: string };
+    expect(body.answer).toBe("Two arena rigs.");
+    expect(calls[0]?.steps[0]).toEqual([
+      "insert",
+      [{ application_id: id(41), opportunity_question_id: id(43), answer_text: "Two arena rigs." }],
+    ]);
+  });
+
+  it("creates, updates and deletes bid lines priced in the bid's currency", async () => {
+    const line = {
+      ...auditRow(62),
+      bid_id: id(44),
+      description: "Line array",
+      quantity: 2,
+      unit_price_minor: null,
+      bid: { currency_code: "EUR" },
+    };
+    const { api, calls } = app({
+      "from:bid_lines": [
+        ok(line),
+        ok(line),
+        ok({ ...line, unit_price_minor: 250000 }),
+        ok({ id: id(62) }),
+        ok(null),
+        hidden,
+      ],
+    });
+    const made = await api.request(
+      "/bid-lines",
+      post({ bid_id: id(44), description: "Line array", quantity: 2 }),
+    );
+    const body = (await expectContract(made, "bidLines.create")) as { currency: string };
+    expect(body.currency).toBe("EUR");
+    const updated = await api.request(`/bid-lines/${id(62)}`, patch({ unit_price_minor: 250000 }));
+    await expectContract(updated, "bidLines.update");
+    const deleted = await api.request(`/bid-lines/${id(62)}`, { method: "DELETE" });
+    await expectContract(deleted, "bidLines.delete");
+    expect(calls.at(-1)?.steps[0]?.[0]).toBe("update");
+    expect((await api.request(`/bid-lines/${id(63)}`, { method: "DELETE" })).status).toBe(404);
+  });
+
+  it("creates an engagement from an accepted application", async () => {
+    const { api, calls } = app({
+      "rpc:create_engagement_from_application": [
+        ok(id(1)),
+        refusal("engagement_application_not_accepted"),
+      ],
+      "from:engagements": [ok({ ...engagementRow, engagement_state: "Onboarding" })],
+    });
+    const made = await api.request(
+      "/engagements",
+      post({
+        application_id: id(70),
+        worker_classification: "INDEPENDENT_CONTRACTOR",
+        pay_basis: "Day Rate",
+        arrangement: "Per Engagement",
+      }),
+    );
+    const body = (await expectContract(made, "engagements.create")) as {
+      engagement_state: string;
+      application_id: string;
+    };
+    expect(body).toMatchObject({ engagement_state: "Onboarding", application_id: id(70) });
+    expect(calls[0]?.steps[0]?.[1]).toEqual([
+      {
+        p_application_id: id(70),
+        p_worker_classification: "INDEPENDENT_CONTRACTOR",
+        p_pay_basis: "Day Rate",
+        p_arrangement: "Per Engagement",
+        p_start_date: null,
+        p_end_date: null,
+      },
+    ]);
+    const refused = await api.request(
+      "/engagements",
+      post({ application_id: id(71), worker_classification: "EMPLOYEE" }, "a50-key-2"),
+    );
+    expect(refused.status).toBe(422);
+  });
+
+  it("adds an onboarding item and the engaged party submits it", async () => {
+    const item = {
+      ...auditRow(64),
+      engagement_id: id(1),
+      onboarding_requirement_id: id(12),
+      document_id: null,
+      submitted_at: null,
+    };
+    const status = (submitted: string | null) =>
+      ok([
+        {
+          onboarding_item_id: id(64),
+          submitted_at: submitted,
+          latest_outcome: null,
+          expires_on: null,
+          passes: false,
+          carried_over: false,
+        },
+      ]);
+    const { api, calls } = app({
+      "from:onboarding_items": [
+        ok(item),
+        ok({ id: id(64) }),
+        ok({ ...item, document_id: id(65), submitted_at: T }),
+      ],
+      "from:onboarding_item_status": [status(null), status(T)],
+      "rpc:submit_onboarding_item": [ok(null)],
+    });
+    const made = await api.request(
+      "/onboarding-items",
+      post({ engagement_id: id(1), onboarding_requirement_id: id(12) }),
+    );
+    const body = (await expectContract(made, "onboardingItems.create")) as {
+      onboarding_item_state: string;
+    };
+    expect(body.onboarding_item_state).toBe("Pending");
+    const submitted = await api.request(
+      `/onboarding-items/${id(64)}/submit`,
+      post({ document_id: id(65) }, "a50-key-3"),
+    );
+    const after = (await expectContract(submitted, "onboardingItems.submit")) as {
+      onboarding_item_state: string;
+      document_id: string;
+    };
+    expect(after).toMatchObject({ onboarding_item_state: "Submitted", document_id: id(65) });
+    expect(calls.find((c) => c.target === "rpc:submit_onboarding_item")?.steps[0]?.[1]).toEqual([
+      { p_item_id: id(64), p_document_id: id(65) },
+    ]);
   });
 });

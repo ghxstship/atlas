@@ -19231,9 +19231,9 @@ export interface BidLine {
    */
   readonly description: string;
   /**
-   * Quantity.
+   * Quantity; defaults to 1.
    */
-  readonly quantity: number | null;
+  readonly quantity: number;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
@@ -19261,19 +19261,14 @@ export interface BidLineCreate {
    */
   readonly description: string;
   /**
-   * Quantity.
+   * Quantity; defaults to 1.
    */
-  readonly quantity?: number | null;
+  readonly quantity?: number;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency: string;
 }
 
 /**
@@ -19286,19 +19281,14 @@ export interface BidLineUpdate {
    */
   readonly description?: string;
   /**
-   * Quantity.
+   * Quantity; defaults to 1.
    */
-  readonly quantity?: number | null;
+  readonly quantity?: number;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
-  /**
-   * ISO 4217 currency code of every money field.
-   * Pattern: `^[A-Z]{3}$`.
-   */
-  readonly currency?: string;
 }
 
 /**
@@ -19698,6 +19688,36 @@ export interface Engagement {
    * Format: `date-time`.
    */
   readonly completed_at: string | null;
+  /**
+   * Identifier of the accepted application the engagement came from.
+   * Format: `uuid`.
+   */
+  readonly application_id: string | null;
+  /**
+   * Worker classification, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly worker_classification: string;
+  /**
+   * Pay basis; with the arrangement a permitted canon pair.
+   * Length: 1 to 300.
+   */
+  readonly pay_basis: string | null;
+  /**
+   * Arrangement; with the pay basis a permitted canon pair.
+   * Length: 1 to 300.
+   */
+  readonly arrangement: string | null;
+  /**
+   * First day of the engagement; defaults to the offer's or the opportunity's.
+   * Format: `date`.
+   */
+  readonly start_date: string;
+  /**
+   * Last day of the engagement; defaults to the offer's or the opportunity's.
+   * Format: `date`.
+   */
+  readonly end_date: string | null;
 }
 
 /**
@@ -19711,26 +19731,35 @@ export type EngagementState =
  */
 export interface EngagementCreate {
   /**
-   * Identifier of the engaged person.
+   * Identifier of the accepted application the engagement comes from.
    * Format: `uuid`.
    */
-  readonly person_id?: string | null;
+  readonly application_id: string;
   /**
-   * Identifier of the engaged external account.
-   * Format: `uuid`.
+   * Worker classification, from xpms.worker_classification.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
-  readonly organization_id?: string | null;
+  readonly worker_classification: string;
   /**
-   * Identifier of the project.
-   * Format: `uuid`.
+   * Pay basis; with the arrangement a permitted canon pair.
+   * Length: 1 to 300.
    */
-  readonly project_id?: string | null;
+  readonly pay_basis?: string | null;
   /**
-   * Identifier of the accepted offer.
-   * Format: `uuid`.
+   * Arrangement; with the pay basis a permitted canon pair.
+   * Length: 1 to 300.
    */
-  readonly offer_id?: string | null;
-  readonly role_type: ExternalRoleType;
+  readonly arrangement?: string | null;
+  /**
+   * First day of the engagement; defaults to the offer's or the opportunity's.
+   * Format: `date`.
+   */
+  readonly start_date?: string;
+  /**
+   * Last day of the engagement; defaults to the offer's or the opportunity's.
+   * Format: `date`.
+   */
+  readonly end_date?: string | null;
 }
 
 /**
@@ -20161,6 +20190,11 @@ export interface OnboardingItem {
    * Whether a verified item carried over from an earlier engagement.
    */
   readonly carried_over: boolean;
+  /**
+   * When the engaged party submitted the item.
+   * Format: `date-time`.
+   */
+  readonly submitted_at: string | null;
 }
 
 /**
@@ -20177,32 +20211,17 @@ export interface OnboardingItemCreate {
    * Format: `uuid`.
    */
   readonly onboarding_requirement_id: string;
-  /**
-   * Identifier of the submitted document.
-   * Format: `uuid`.
-   */
-  readonly document_id?: string | null;
-  /**
-   * Expiry.
-   * Format: `date`.
-   */
-  readonly expires_on?: string | null;
 }
 
 /**
- * Fields accepted when updating a OnboardingItem. Omitted fields are unchanged.
+ * The document submitted with the item, if any.
  */
-export interface OnboardingItemUpdate {
+export interface OnboardingItemSubmitRequest {
   /**
-   * Identifier of the submitted document.
+   * Identifier of the document of the org submitted for the item.
    * Format: `uuid`.
    */
   readonly document_id?: string | null;
-  /**
-   * Expiry.
-   * Format: `date`.
-   */
-  readonly expires_on?: string | null;
 }
 
 /**

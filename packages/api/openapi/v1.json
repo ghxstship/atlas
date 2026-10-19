@@ -25705,7 +25705,12 @@
             "description": "Line description.",
             "example": "Line array rental"
           },
-          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 1 },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity; defaults to 1.",
+            "example": 2
+          },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
@@ -25750,21 +25755,20 @@
             "description": "Line description.",
             "example": "Line array rental"
           },
-          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 1 },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity; defaults to 1.",
+            "example": 2
+          },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 1800000,
             "format": "int64"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
           }
         },
-        "required": ["bid_id", "description", "currency"],
+        "required": ["bid_id", "description"],
         "description": "Fields accepted when creating a BidLine."
       },
       "BidLineUpdate": {
@@ -25777,18 +25781,17 @@
             "description": "Line description.",
             "example": "Line array rental"
           },
-          "quantity": { "type": ["number", "null"], "description": "Quantity.", "example": 1 },
+          "quantity": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "Quantity; defaults to 1.",
+            "example": 2
+          },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 1800000,
             "format": "int64"
-          },
-          "currency": {
-            "type": "string",
-            "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
-            "example": "USD"
           }
         },
         "description": "Fields accepted when updating a BidLine. Omitted fields are unchanged."
@@ -26305,6 +26308,44 @@
             "format": "date-time",
             "description": "When it became Complete.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "application_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the accepted application the engagement came from.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "worker_classification": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Worker classification, from xpms.worker_classification.",
+            "example": "INDEPENDENT_CONTRACTOR"
+          },
+          "pay_basis": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Pay basis; with the arrangement a permitted canon pair.",
+            "example": "Day Rate"
+          },
+          "arrangement": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Arrangement; with the pay basis a permitted canon pair.",
+            "example": "Per Engagement"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the engagement; defaults to the offer's or the opportunity's.",
+            "example": "2026-10-08"
+          },
+          "end_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Last day of the engagement; defaults to the offer's or the opportunity's.",
+            "example": "2026-10-08"
           }
         },
         "required": [
@@ -26321,7 +26362,13 @@
           "role_type",
           "engagement_state",
           "activated_at",
-          "completed_at"
+          "completed_at",
+          "application_id",
+          "worker_classification",
+          "pay_basis",
+          "arrangement",
+          "start_date",
+          "end_date"
         ],
         "description": "An external relationship: a person or external account working for an org. It cannot become Active until every blocking onboarding item passes."
       },
@@ -26334,33 +26381,46 @@
       "EngagementCreate": {
         "type": "object",
         "properties": {
-          "person_id": {
-            "type": ["string", "null"],
+          "application_id": {
+            "type": "string",
             "format": "uuid",
-            "description": "Identifier of the engaged person.",
+            "description": "Identifier of the accepted application the engagement comes from.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "organization_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the engaged external account.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          "worker_classification": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Worker classification, from xpms.worker_classification.",
+            "example": "INDEPENDENT_CONTRACTOR"
           },
-          "project_id": {
+          "pay_basis": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the project.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Pay basis; with the arrangement a permitted canon pair.",
+            "example": "Day Rate"
           },
-          "offer_id": {
+          "arrangement": {
             "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the accepted offer.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Arrangement; with the pay basis a permitted canon pair.",
+            "example": "Per Engagement"
           },
-          "role_type": { "$ref": "#/components/schemas/ExternalRoleType" }
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "First day of the engagement; defaults to the offer's or the opportunity's.",
+            "example": "2026-10-08"
+          },
+          "end_date": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Last day of the engagement; defaults to the offer's or the opportunity's.",
+            "example": "2026-10-08"
+          }
         },
-        "required": ["role_type"],
+        "required": ["application_id", "worker_classification"],
         "description": "Fields accepted when creating a Engagement."
       },
       "EngagementTransitionRequest": {
@@ -26913,6 +26973,12 @@
             "type": "boolean",
             "description": "Whether a verified item carried over from an earlier engagement.",
             "example": false
+          },
+          "submitted_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the engaged party submitted the item.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -26927,7 +26993,8 @@
           "document_id",
           "onboarding_item_state",
           "expires_on",
-          "carried_over"
+          "carried_over",
+          "submitted_at"
         ],
         "description": "One onboarding requirement instantiated for an engagement."
       },
@@ -26945,40 +27012,22 @@
             "format": "uuid",
             "description": "Identifier of the onboarding requirement.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "document_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the submitted document.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "expires_on": {
-            "type": ["string", "null"],
-            "format": "date",
-            "description": "Expiry.",
-            "example": "2026-10-08"
           }
         },
         "required": ["engagement_id", "onboarding_requirement_id"],
         "description": "Fields accepted when creating a OnboardingItem."
       },
-      "OnboardingItemUpdate": {
+      "OnboardingItemSubmitRequest": {
         "type": "object",
         "properties": {
           "document_id": {
             "type": ["string", "null"],
             "format": "uuid",
-            "description": "Identifier of the submitted document.",
+            "description": "Identifier of the document of the org submitted for the item.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
-          "expires_on": {
-            "type": ["string", "null"],
-            "format": "date",
-            "description": "Expiry.",
-            "example": "2026-10-08"
           }
         },
-        "description": "Fields accepted when updating a OnboardingItem. Omitted fields are unchanged."
+        "description": "The document submitted with the item, if any."
       },
       "OnboardingVerificationPage": {
         "type": "object",
@@ -96955,7 +97004,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "bid_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "description": "Line array rental",
-                      "quantity": 1,
+                      "quantity": 2,
                       "unit_price_minor": 1800000,
                       "currency": "USD"
                     }
@@ -96987,9 +97036,8 @@
               "example": {
                 "bid_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "description": "Line array rental",
-                "quantity": 1,
-                "unit_price_minor": 1800000,
-                "currency": "USD"
+                "quantity": 2,
+                "unit_price_minor": 1800000
               },
               "schema": { "$ref": "#/components/schemas/BidLineCreate" }
             }
@@ -97015,7 +97063,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "bid_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Line array rental",
-                  "quantity": 1,
+                  "quantity": 2,
                   "unit_price_minor": 1800000,
                   "currency": "USD"
                 },
@@ -97075,7 +97123,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "bid_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Line array rental",
-                  "quantity": 1,
+                  "quantity": 2,
                   "unit_price_minor": 1800000,
                   "currency": "USD"
                 },
@@ -97118,9 +97166,8 @@
             "application/json": {
               "example": {
                 "description": "Line array rental",
-                "quantity": 1,
-                "unit_price_minor": 1800000,
-                "currency": "USD"
+                "quantity": 2,
+                "unit_price_minor": 1800000
               },
               "schema": { "$ref": "#/components/schemas/BidLineUpdate" }
             }
@@ -97146,7 +97193,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "bid_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "Line array rental",
-                  "quantity": 1,
+                  "quantity": 2,
                   "unit_price_minor": 1800000,
                   "currency": "USD"
                 },
@@ -97973,7 +98020,13 @@
                       "role_type": "Crew",
                       "engagement_state": "Onboarding",
                       "activated_at": "2026-10-08T14:30:00Z",
-                      "completed_at": "2026-10-08T14:30:00Z"
+                      "completed_at": "2026-10-08T14:30:00Z",
+                      "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "worker_classification": "INDEPENDENT_CONTRACTOR",
+                      "pay_basis": "Day Rate",
+                      "arrangement": "Per Engagement",
+                      "start_date": "2026-10-08",
+                      "end_date": "2026-10-08"
                     }
                   ],
                   "next_cursor": null
@@ -97991,7 +98044,7 @@
         "operationId": "engagements.create",
         "tags": ["Opportunities"],
         "x-xos-table": "app.engagements",
-        "x-xos-capability": "opportunities.offer.send",
+        "x-xos-capability": "opportunities.engagement.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
         "summary": "Create an engagement",
         "description": "An external relationship: a person or external account working for an org. It cannot become Active until every blocking onboarding item passes. Creates an engagement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
@@ -98001,11 +98054,12 @@
           "content": {
             "application/json": {
               "example": {
-                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "organization_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "offer_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "role_type": "Crew"
+                "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "worker_classification": "INDEPENDENT_CONTRACTOR",
+                "pay_basis": "Day Rate",
+                "arrangement": "Per Engagement",
+                "start_date": "2026-10-08",
+                "end_date": "2026-10-08"
               },
               "schema": { "$ref": "#/components/schemas/EngagementCreate" }
             }
@@ -98036,7 +98090,13 @@
                   "role_type": "Crew",
                   "engagement_state": "Onboarding",
                   "activated_at": "2026-10-08T14:30:00Z",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "worker_classification": "INDEPENDENT_CONTRACTOR",
+                  "pay_basis": "Day Rate",
+                  "arrangement": "Per Engagement",
+                  "start_date": "2026-10-08",
+                  "end_date": "2026-10-08"
                 },
                 "schema": { "$ref": "#/components/schemas/Engagement" }
               }
@@ -98099,7 +98159,13 @@
                   "role_type": "Crew",
                   "engagement_state": "Onboarding",
                   "activated_at": "2026-10-08T14:30:00Z",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "worker_classification": "INDEPENDENT_CONTRACTOR",
+                  "pay_basis": "Day Rate",
+                  "arrangement": "Per Engagement",
+                  "start_date": "2026-10-08",
+                  "end_date": "2026-10-08"
                 },
                 "schema": { "$ref": "#/components/schemas/Engagement" }
               }
@@ -98174,7 +98240,13 @@
                   "role_type": "Crew",
                   "engagement_state": "Onboarding",
                   "activated_at": "2026-10-08T14:30:00Z",
-                  "completed_at": "2026-10-08T14:30:00Z"
+                  "completed_at": "2026-10-08T14:30:00Z",
+                  "application_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "worker_classification": "INDEPENDENT_CONTRACTOR",
+                  "pay_basis": "Day Rate",
+                  "arrangement": "Per Engagement",
+                  "start_date": "2026-10-08",
+                  "end_date": "2026-10-08"
                 },
                 "schema": { "$ref": "#/components/schemas/Engagement" }
               }
@@ -98777,7 +98849,8 @@
                       "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "onboarding_item_state": "In Review",
                       "expires_on": "2026-10-08",
-                      "carried_over": false
+                      "carried_over": false,
+                      "submitted_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -98806,9 +98879,7 @@
             "application/json": {
               "example": {
                 "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "onboarding_requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "expires_on": "2026-10-08"
+                "onboarding_requirement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/OnboardingItemCreate" }
             }
@@ -98837,7 +98908,8 @@
                   "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "onboarding_item_state": "In Review",
                   "expires_on": "2026-10-08",
-                  "carried_over": false
+                  "carried_over": false,
+                  "submitted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OnboardingItem" }
               }
@@ -98898,7 +98970,8 @@
                   "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "onboarding_item_state": "In Review",
                   "expires_on": "2026-10-08",
-                  "carried_over": false
+                  "carried_over": false,
+                  "submitted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OnboardingItem" }
               }
@@ -98909,15 +98982,18 @@
           "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
-      },
-      "patch": {
-        "operationId": "onboardingItems.update",
+      }
+    },
+    "/onboarding-items/{id}/submit": {
+      "post": {
+        "operationId": "onboardingItems.submit",
         "tags": ["Opportunities"],
         "x-xos-table": "app.onboarding_items",
-        "x-xos-capability": "opportunities.onboarding.write",
-        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
-        "summary": "Update an onboarding item",
-        "description": "One onboarding requirement instantiated for an engagement. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "submit_onboarding_item",
+        "summary": "Submit an onboarding item",
+        "description": "The engaged party submits the item while onboarding is open, optionally attaching a document of the org. Anyone else is refused (403). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -98931,23 +99007,20 @@
             "name": "id",
             "in": "path"
           },
-          { "$ref": "#/components/parameters/IfMatch" }
+          { "$ref": "#/components/parameters/IdempotencyKey" }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "expires_on": "2026-10-08"
-              },
-              "schema": { "$ref": "#/components/schemas/OnboardingItemUpdate" }
+              "example": { "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/OnboardingItemSubmitRequest" }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "The updated onboarding item.",
+            "description": "The result.",
             "headers": {
               "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
@@ -98968,7 +99041,8 @@
                   "document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "onboarding_item_state": "In Review",
                   "expires_on": "2026-10-08",
-                  "carried_over": false
+                  "carried_over": false,
+                  "submitted_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/OnboardingItem" }
               }
@@ -98977,9 +99051,8 @@
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
-          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
-          "428": { "$ref": "#/components/responses/PreconditionRequired" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

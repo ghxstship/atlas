@@ -661,7 +661,7 @@ __all__ = [
     "OnboardingItemPage",
     "OnboardingItem",
     "OnboardingItemCreate",
-    "OnboardingItemUpdate",
+    "OnboardingItemSubmitRequest",
     "OnboardingVerificationPage",
     "OnboardingVerification",
     "OnboardingVerificationCreate",
@@ -11247,8 +11247,8 @@ class BidLine(TypedDict):
     bid_id: str
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: Optional[float]
+    #: Quantity; defaults to 1.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
     #: ISO 4217 currency code of every money field.
@@ -11260,15 +11260,13 @@ class _BidLineCreateRequired(TypedDict):
     bid_id: str
     #: Line description.
     description: str
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class BidLineCreate(_BidLineCreateRequired, total=False):
     """Fields accepted when creating a BidLine."""
 
-    #: Quantity.
-    quantity: Optional[float]
+    #: Quantity; defaults to 1.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
 
@@ -11278,12 +11276,10 @@ class BidLineUpdate(TypedDict, total=False):
 
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: Optional[float]
+    #: Quantity; defaults to 1.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class AgencySlatePage(TypedDict):
@@ -11489,23 +11485,38 @@ class Engagement(TypedDict):
     activated_at: Optional[str]
     #: When it became Complete.
     completed_at: Optional[str]
+    #: Identifier of the accepted application the engagement came from.
+    application_id: Optional[str]
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: str
+    #: Pay basis; with the arrangement a permitted canon pair.
+    pay_basis: Optional[str]
+    #: Arrangement; with the pay basis a permitted canon pair.
+    arrangement: Optional[str]
+    #: First day of the engagement; defaults to the offer's or the opportunity's.
+    start_date: str
+    #: Last day of the engagement; defaults to the offer's or the opportunity's.
+    end_date: Optional[str]
 
 
 class _EngagementCreateRequired(TypedDict):
-    role_type: ExternalRoleType
+    #: Identifier of the accepted application the engagement comes from.
+    application_id: str
+    #: Worker classification, from xpms.worker_classification.
+    worker_classification: str
 
 
 class EngagementCreate(_EngagementCreateRequired, total=False):
     """Fields accepted when creating a Engagement."""
 
-    #: Identifier of the engaged person.
-    person_id: Optional[str]
-    #: Identifier of the engaged external account.
-    organization_id: Optional[str]
-    #: Identifier of the project.
-    project_id: Optional[str]
-    #: Identifier of the accepted offer.
-    offer_id: Optional[str]
+    #: Pay basis; with the arrangement a permitted canon pair.
+    pay_basis: Optional[str]
+    #: Arrangement; with the pay basis a permitted canon pair.
+    arrangement: Optional[str]
+    #: First day of the engagement; defaults to the offer's or the opportunity's.
+    start_date: str
+    #: Last day of the engagement; defaults to the offer's or the opportunity's.
+    end_date: Optional[str]
 
 
 class _EngagementTransitionRequestRequired(TypedDict):
@@ -11709,31 +11720,24 @@ class OnboardingItem(TypedDict):
     expires_on: Optional[str]
     #: Whether a verified item carried over from an earlier engagement.
     carried_over: bool
+    #: When the engaged party submitted the item.
+    submitted_at: Optional[str]
 
 
-class _OnboardingItemCreateRequired(TypedDict):
+class OnboardingItemCreate(TypedDict):
+    """Fields accepted when creating a OnboardingItem."""
+
     #: Identifier of the engagement.
     engagement_id: str
     #: Identifier of the onboarding requirement.
     onboarding_requirement_id: str
 
 
-class OnboardingItemCreate(_OnboardingItemCreateRequired, total=False):
-    """Fields accepted when creating a OnboardingItem."""
+class OnboardingItemSubmitRequest(TypedDict, total=False):
+    """The document submitted with the item, if any."""
 
-    #: Identifier of the submitted document.
+    #: Identifier of the document of the org submitted for the item.
     document_id: Optional[str]
-    #: Expiry.
-    expires_on: Optional[str]
-
-
-class OnboardingItemUpdate(TypedDict, total=False):
-    """Fields accepted when updating a OnboardingItem. Omitted fields are unchanged."""
-
-    #: Identifier of the submitted document.
-    document_id: Optional[str]
-    #: Expiry.
-    expires_on: Optional[str]
 
 
 class OnboardingVerificationPage(TypedDict):

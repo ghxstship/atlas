@@ -524,7 +524,7 @@ import type {
   OfferWithdrawRequest,
   OnboardingItem,
   OnboardingItemCreate,
-  OnboardingItemUpdate,
+  OnboardingItemSubmitRequest,
   OnboardingRequirement,
   OnboardingRequirementCreate,
   OnboardingRequirementUpdate,
@@ -17868,7 +17868,7 @@ export class EngagementsResource extends $Resource {
    * An external relationship: a person or external account working for an org. It cannot become Active until every blocking onboarding item passes. Creates an engagement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
    *
    * `POST /engagements` (operation `engagements.create`).
-   * Requires the capability `opportunities.offer.send`.
+   * Requires the capability `opportunities.engagement.write`.
    */
   create(body: EngagementCreate, options?: $MutationOptions): Promise<$ApiResponse<Engagement>> {
     return this.client.request<Engagement>($OPERATIONS["engagements.create"], { body }, options);
@@ -18229,20 +18229,20 @@ export class OnboardingItemsResource extends $Resource {
   }
 
   /**
-   * Update an onboarding item
+   * Submit an onboarding item
    *
-   * One onboarding requirement instantiated for an engagement. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   * The engaged party submits the item while onboarding is open, optionally attaching a document of the org. Anyone else is refused (403). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
-   * `PATCH /onboarding-items/{id}` (operation `onboardingItems.update`).
-   * Requires the capability `opportunities.onboarding.write`.
+   * `POST /onboarding-items/{id}/submit` (operation `onboardingItems.submit`).
+   * Requires the capability `me.work_details.write`.
    */
-  update(
+  submit(
     id: string,
-    body: OnboardingItemUpdate,
-    options: $UpdateOptions,
+    body: OnboardingItemSubmitRequest,
+    options?: $MutationOptions,
   ): Promise<$ApiResponse<OnboardingItem>> {
     return this.client.request<OnboardingItem>(
-      $OPERATIONS["onboardingItems.update"],
+      $OPERATIONS["onboardingItems.submit"],
       { path: { id }, body },
       options,
     );

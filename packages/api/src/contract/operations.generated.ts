@@ -1034,24 +1034,18 @@ export interface Components {
     updated_by: string | null;
     bid_id: string;
     description: string;
-    quantity: number | null;
+    quantity: number;
     unit_price_minor: number | null;
     currency: string;
   };
   BidLineCreate: {
     bid_id: string;
     description: string;
-    quantity?: number | null;
+    quantity?: number;
     unit_price_minor?: number | null;
-    currency: string;
   };
   BidLinePage: { data: Array<Components["BidLine"]>; next_cursor: string | null };
-  BidLineUpdate: {
-    description?: string;
-    quantity?: number | null;
-    unit_price_minor?: number | null;
-    currency?: string;
-  };
+  BidLineUpdate: { description?: string; quantity?: number; unit_price_minor?: number | null };
   BidPage: { data: Array<Components["Bid"]>; next_cursor: string | null };
   BidUpdate: { valid_until?: string | null };
   BillingDraw: {
@@ -2502,13 +2496,20 @@ export interface Components {
     engagement_state: Components["EngagementState"];
     activated_at: string | null;
     completed_at: string | null;
+    application_id: string | null;
+    worker_classification: string;
+    pay_basis: string | null;
+    arrangement: string | null;
+    start_date: string;
+    end_date: string | null;
   };
   EngagementCreate: {
-    person_id?: string | null;
-    organization_id?: string | null;
-    project_id?: string | null;
-    offer_id?: string | null;
-    role_type: Components["ExternalRoleType"];
+    application_id: string;
+    worker_classification: string;
+    pay_basis?: string | null;
+    arrangement?: string | null;
+    start_date?: string;
+    end_date?: string | null;
   };
   EngagementDocument: {
     id: string;
@@ -4281,15 +4282,11 @@ export interface Components {
     onboarding_item_state: string;
     expires_on: string | null;
     carried_over: boolean;
+    submitted_at: string | null;
   };
-  OnboardingItemCreate: {
-    engagement_id: string;
-    onboarding_requirement_id: string;
-    document_id?: string | null;
-    expires_on?: string | null;
-  };
+  OnboardingItemCreate: { engagement_id: string; onboarding_requirement_id: string };
   OnboardingItemPage: { data: Array<Components["OnboardingItem"]>; next_cursor: string | null };
-  OnboardingItemUpdate: { document_id?: string | null; expires_on?: string | null };
+  OnboardingItemSubmitRequest: { document_id?: string | null };
   OnboardingRequirement: {
     id: string;
     org_id: string;
@@ -16026,13 +16023,13 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["OnboardingItem"] };
   };
-  "onboardingItems.update": {
+  "onboardingItems.submit": {
     module: "Opportunities";
-    method: "patch";
-    path: "/onboarding-items/{id}";
+    method: "post";
+    path: "/onboarding-items/{id}/submit";
     params: { id: string };
     query: Record<string, never>;
-    body: Components["OnboardingItemUpdate"];
+    body: Components["OnboardingItemSubmitRequest"];
     responses: { 200: Components["OnboardingItem"] };
   };
   "onboardingVerifications.list": {
@@ -25040,7 +25037,7 @@ export interface ModuleOperations {
     | "onboardingItems.list"
     | "onboardingItems.create"
     | "onboardingItems.get"
-    | "onboardingItems.update"
+    | "onboardingItems.submit"
     | "onboardingVerifications.list"
     | "onboardingVerifications.create"
     | "onboardingVerifications.get"

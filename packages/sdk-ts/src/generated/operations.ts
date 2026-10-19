@@ -745,7 +745,7 @@ export type OperationId =
   | "onboardingItems.list"
   | "onboardingItems.create"
   | "onboardingItems.get"
-  | "onboardingItems.update"
+  | "onboardingItems.submit"
   | "onboardingVerifications.list"
   | "onboardingVerifications.create"
   | "onboardingVerifications.get"
@@ -18214,7 +18214,7 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Opportunities",
     summary: "Create an engagement",
-    capability: "opportunities.offer.send",
+    capability: "opportunities.engagement.write",
     scopes: ["opportunities"],
   },
   "engagements.get": {
@@ -18539,28 +18539,28 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "opportunities.engagement.read",
     scopes: ["opportunities"],
   },
-  "onboardingItems.update": {
-    id: "onboardingItems.update",
+  "onboardingItems.submit": {
+    id: "onboardingItems.submit",
     resource: "onboardingItems",
-    verb: "update",
-    method: "PATCH",
-    path: "/onboarding-items/{id}",
+    verb: "submit",
+    method: "POST",
+    path: "/onboarding-items/{id}/submit",
     pathParams: ["id"],
     queryParams: [],
     requiredQueryParams: [],
     paged: false,
     fields: false,
-    idempotent: false,
-    ifMatch: true,
-    body: "OnboardingItemUpdate",
+    idempotent: true,
+    ifMatch: false,
+    body: "OnboardingItemSubmitRequest",
     bodyRequired: true,
     successStatus: 200,
     response: "OnboardingItem",
     item: null,
     tag: "Opportunities",
-    summary: "Update an onboarding item",
-    capability: "opportunities.onboarding.write",
-    scopes: ["opportunities"],
+    summary: "Submit an onboarding item",
+    capability: "me.work_details.write",
+    scopes: ["me"],
   },
   "onboardingVerifications.list": {
     id: "onboardingVerifications.list",
@@ -38723,7 +38723,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "onboardingItems.list",
       "onboardingItems.create",
       "onboardingItems.get",
-      "onboardingItems.update",
+      "onboardingItems.submit",
     ],
   },
   {
