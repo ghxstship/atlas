@@ -246,6 +246,7 @@ import {
   MembershipsResource,
   MembershipRolesResource,
   ProjectAssignmentsResource,
+  ProjectAssignmentRolesResource,
   AccountMembershipsResource,
   AccountMembershipRolesResource,
   OrganizationRelationshipsResource,
@@ -259,6 +260,7 @@ import {
   OrganizationProfilesResource,
   ProfileVisibilityRulesResource,
   VerificationsResource,
+  BlocksResource,
   SubscriptionsResource,
   PlansResource,
   WorkspacesResource,
@@ -266,6 +268,8 @@ import {
   TeamsResource,
   TeamMembersResource,
   OrgBrandingsResource,
+  OrgLegalEntitiesResource,
+  OrgIpAllowlistEntriesResource,
   RolesResource,
   CapabilitiesResource,
   RoleCapabilitiesResource,
@@ -275,6 +279,10 @@ import {
   SpendAuthorityLimitsResource,
   SeparationOfDutiesRulesResource,
   ColumnClassificationsResource,
+  AccessReviewCampaignsResource,
+  AccessReviewItemsResource,
+  BreakGlassSessionsResource,
+  ProjectSharesResource,
   ScimGroupMappingsResource,
   ApiKeysResource,
   ServiceAccountsResource,
@@ -938,6 +946,9 @@ export class XosClient extends XosClientCore {
   readonly membershipRoles: MembershipRolesResource = new MembershipRolesResource(this);
   /** Identity: operations on `projectAssignments`. */
   readonly projectAssignments: ProjectAssignmentsResource = new ProjectAssignmentsResource(this);
+  /** Identity: operations on `projectAssignmentRoles`. */
+  readonly projectAssignmentRoles: ProjectAssignmentRolesResource =
+    new ProjectAssignmentRolesResource(this);
   /** Identity: operations on `accountMemberships`. */
   readonly accountMemberships: AccountMembershipsResource = new AccountMembershipsResource(this);
   /** Identity: operations on `accountMembershipRoles`. */
@@ -971,6 +982,8 @@ export class XosClient extends XosClientCore {
     new ProfileVisibilityRulesResource(this);
   /** Identity: operations on `verifications`. */
   readonly verifications: VerificationsResource = new VerificationsResource(this);
+  /** Identity: operations on `blocks`. */
+  readonly blocks: BlocksResource = new BlocksResource(this);
   /** Settings: operations on `subscriptions`. */
   readonly subscriptions: SubscriptionsResource = new SubscriptionsResource(this);
   /** Settings: operations on `plans`. */
@@ -985,6 +998,12 @@ export class XosClient extends XosClientCore {
   readonly teamMembers: TeamMembersResource = new TeamMembersResource(this);
   /** Settings: operations on `orgBrandings`. */
   readonly orgBrandings: OrgBrandingsResource = new OrgBrandingsResource(this);
+  /** Settings: operations on `orgLegalEntities`. */
+  readonly orgLegalEntities: OrgLegalEntitiesResource = new OrgLegalEntitiesResource(this);
+  /** Settings: operations on `orgIpAllowlistEntries`. */
+  readonly orgIpAllowlistEntries: OrgIpAllowlistEntriesResource = new OrgIpAllowlistEntriesResource(
+    this,
+  );
   /** Settings: operations on `roles`. */
   readonly roles: RolesResource = new RolesResource(this);
   /** Settings: operations on `capabilities`. */
@@ -1010,6 +1029,16 @@ export class XosClient extends XosClientCore {
   readonly columnClassifications: ColumnClassificationsResource = new ColumnClassificationsResource(
     this,
   );
+  /** Settings: operations on `accessReviewCampaigns`. */
+  readonly accessReviewCampaigns: AccessReviewCampaignsResource = new AccessReviewCampaignsResource(
+    this,
+  );
+  /** Settings: operations on `accessReviewItems`. */
+  readonly accessReviewItems: AccessReviewItemsResource = new AccessReviewItemsResource(this);
+  /** Settings: operations on `breakGlassSessions`. */
+  readonly breakGlassSessions: BreakGlassSessionsResource = new BreakGlassSessionsResource(this);
+  /** Settings: operations on `projectShares`. */
+  readonly projectShares: ProjectSharesResource = new ProjectSharesResource(this);
   /** Settings: operations on `scimGroupMappings`. */
   readonly scimGroupMappings: ScimGroupMappingsResource = new ScimGroupMappingsResource(this);
   /** Settings: operations on `apiKeys`. */

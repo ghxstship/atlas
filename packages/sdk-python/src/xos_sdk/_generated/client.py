@@ -252,6 +252,7 @@ from .resources import (
     MembershipsResource,
     MembershipRolesResource,
     ProjectAssignmentsResource,
+    ProjectAssignmentRolesResource,
     AccountMembershipsResource,
     AccountMembershipRolesResource,
     OrganizationRelationshipsResource,
@@ -265,6 +266,7 @@ from .resources import (
     OrganizationProfilesResource,
     ProfileVisibilityRulesResource,
     VerificationsResource,
+    BlocksResource,
     SubscriptionsResource,
     PlansResource,
     WorkspacesResource,
@@ -272,6 +274,8 @@ from .resources import (
     TeamsResource,
     TeamMembersResource,
     OrgBrandingsResource,
+    OrgLegalEntitiesResource,
+    OrgIpAllowlistEntriesResource,
     RolesResource,
     CapabilitiesResource,
     RoleCapabilitiesResource,
@@ -281,6 +285,10 @@ from .resources import (
     SpendAuthorityLimitsResource,
     SeparationOfDutiesRulesResource,
     ColumnClassificationsResource,
+    AccessReviewCampaignsResource,
+    AccessReviewItemsResource,
+    BreakGlassSessionsResource,
+    ProjectSharesResource,
     ScimGroupMappingsResource,
     ApiKeysResource,
     ServiceAccountsResource,
@@ -647,6 +655,7 @@ class XosClient(XosClientCore):
     memberships: MembershipsResource
     membership_roles: MembershipRolesResource
     project_assignments: ProjectAssignmentsResource
+    project_assignment_roles: ProjectAssignmentRolesResource
     account_memberships: AccountMembershipsResource
     account_membership_roles: AccountMembershipRolesResource
     organization_relationships: OrganizationRelationshipsResource
@@ -660,6 +669,7 @@ class XosClient(XosClientCore):
     organization_profiles: OrganizationProfilesResource
     profile_visibility_rules: ProfileVisibilityRulesResource
     verifications: VerificationsResource
+    blocks: BlocksResource
     subscriptions: SubscriptionsResource
     plans: PlansResource
     workspaces: WorkspacesResource
@@ -667,6 +677,8 @@ class XosClient(XosClientCore):
     teams: TeamsResource
     team_members: TeamMembersResource
     org_brandings: OrgBrandingsResource
+    org_legal_entities: OrgLegalEntitiesResource
+    org_ip_allowlist_entries: OrgIpAllowlistEntriesResource
     roles: RolesResource
     capabilities: CapabilitiesResource
     role_capabilities: RoleCapabilitiesResource
@@ -676,6 +688,10 @@ class XosClient(XosClientCore):
     spend_authority_limits: SpendAuthorityLimitsResource
     separation_of_duties_rules: SeparationOfDutiesRulesResource
     column_classifications: ColumnClassificationsResource
+    access_review_campaigns: AccessReviewCampaignsResource
+    access_review_items: AccessReviewItemsResource
+    break_glass_sessions: BreakGlassSessionsResource
+    project_shares: ProjectSharesResource
     scim_group_mappings: ScimGroupMappingsResource
     api_keys: ApiKeysResource
     service_accounts: ServiceAccountsResource
@@ -1030,6 +1046,7 @@ class XosClient(XosClientCore):
         self.memberships = MembershipsResource(self)
         self.membership_roles = MembershipRolesResource(self)
         self.project_assignments = ProjectAssignmentsResource(self)
+        self.project_assignment_roles = ProjectAssignmentRolesResource(self)
         self.account_memberships = AccountMembershipsResource(self)
         self.account_membership_roles = AccountMembershipRolesResource(self)
         self.organization_relationships = OrganizationRelationshipsResource(self)
@@ -1043,6 +1060,7 @@ class XosClient(XosClientCore):
         self.organization_profiles = OrganizationProfilesResource(self)
         self.profile_visibility_rules = ProfileVisibilityRulesResource(self)
         self.verifications = VerificationsResource(self)
+        self.blocks = BlocksResource(self)
         self.subscriptions = SubscriptionsResource(self)
         self.plans = PlansResource(self)
         self.workspaces = WorkspacesResource(self)
@@ -1050,6 +1068,8 @@ class XosClient(XosClientCore):
         self.teams = TeamsResource(self)
         self.team_members = TeamMembersResource(self)
         self.org_brandings = OrgBrandingsResource(self)
+        self.org_legal_entities = OrgLegalEntitiesResource(self)
+        self.org_ip_allowlist_entries = OrgIpAllowlistEntriesResource(self)
         self.roles = RolesResource(self)
         self.capabilities = CapabilitiesResource(self)
         self.role_capabilities = RoleCapabilitiesResource(self)
@@ -1059,6 +1079,10 @@ class XosClient(XosClientCore):
         self.spend_authority_limits = SpendAuthorityLimitsResource(self)
         self.separation_of_duties_rules = SeparationOfDutiesRulesResource(self)
         self.column_classifications = ColumnClassificationsResource(self)
+        self.access_review_campaigns = AccessReviewCampaignsResource(self)
+        self.access_review_items = AccessReviewItemsResource(self)
+        self.break_glass_sessions = BreakGlassSessionsResource(self)
+        self.project_shares = ProjectSharesResource(self)
         self.scim_group_mappings = ScimGroupMappingsResource(self)
         self.api_keys = ApiKeysResource(self)
         self.service_accounts = ServiceAccountsResource(self)

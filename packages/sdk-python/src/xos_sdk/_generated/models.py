@@ -874,6 +874,10 @@ __all__ = [
     "ProjectAssignment",
     "ProjectAssignmentCreate",
     "ProjectAssignmentUpdate",
+    "ProjectAssignmentRolePage",
+    "ProjectAssignmentRole",
+    "ProjectRole",
+    "ProjectAssignmentRoleCreate",
     "AccountMembershipPage",
     "AccountMembership",
     "AccountMembershipCreate",
@@ -925,6 +929,9 @@ __all__ = [
     "ProfileVisibilityRuleUpdate",
     "VerificationPage",
     "Verification",
+    "BlockPage",
+    "Block",
+    "BlockCreate",
     "SubscriptionPage",
     "Subscription",
     "PlanPage",
@@ -947,6 +954,14 @@ __all__ = [
     "OrgBranding",
     "OrgBrandingCreate",
     "OrgBrandingUpdate",
+    "OrgLegalEntityPage",
+    "OrgLegalEntity",
+    "OrgLegalEntityCreate",
+    "OrgLegalEntityUpdate",
+    "OrgIpAllowlistEntryPage",
+    "OrgIpAllowlistEntry",
+    "OrgIpAllowlistEntryCreate",
+    "OrgIpAllowlistEntryUpdate",
     "RolePage",
     "Role",
     "RoleCreate",
@@ -977,6 +992,20 @@ __all__ = [
     "ColumnClassificationPage",
     "ColumnClassification",
     "Classification",
+    "AccessReviewCampaignPage",
+    "AccessReviewCampaign",
+    "AccessReviewCampaignCreate",
+    "AccessReviewCampaignUpdate",
+    "AccessReviewItemPage",
+    "AccessReviewItem",
+    "AccessReviewItemUpdate",
+    "BreakGlassSessionPage",
+    "BreakGlassSession",
+    "BreakGlassSessionCreate",
+    "ProjectSharePage",
+    "ProjectShare",
+    "ProjectShareCreate",
+    "ProjectShareUpdate",
     "ScimGroupMappingPage",
     "ScimGroupMapping",
     "ScimGroupMappingCreate",
@@ -14392,6 +14421,43 @@ class ProjectAssignmentUpdate(TypedDict, total=False):
     project_role: Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 
+class ProjectAssignmentRolePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectAssignmentRole]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectAssignmentRole(TypedDict):
+    """A project role held through a project assignment."""
+
+    #: Identifier of the project assignment role.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the project assignment.
+    project_member_id: str
+    project_role: ProjectRole
+
+
+class ProjectAssignmentRoleCreate(TypedDict):
+    """Fields accepted when creating a ProjectAssignmentRole."""
+
+    #: Identifier of the project assignment.
+    project_member_id: str
+    project_role: ProjectRole
+
+
 class AccountMembershipPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15053,6 +15119,35 @@ class Verification(TypedDict):
     revocation_reason: Optional[str]
 
 
+class BlockPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[Block]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class Block(TypedDict):
+    """A person's block of another person or an organization (Section 4.5.6 Profile Privacy). It hides the blocker's profile from the blocked person and from every member of a blocked organization, and the blocked profile from the blocker. Memberships and engagements are not affected."""
+
+    #: Identifier of the block.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: URN of the blocked person (urn:xpms:person:{id}) or organization (urn:xpms:organization:{id}).
+    blocked_urn: str
+
+
+class BlockCreate(TypedDict):
+    """Fields accepted when creating a Block."""
+
+    #: URN of the blocked person (urn:xpms:person:{id}) or organization (urn:xpms:organization:{id}).
+    blocked_urn: str
+
+
 class SubscriptionPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15381,6 +15476,128 @@ class OrgBrandingUpdate(TypedDict, total=False):
     legal_entity_name: Optional[str]
     #: True hides Powered by XOS; it takes effect only while the plan includes white label.
     suppress_powered_by: bool
+
+
+class OrgLegalEntityPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OrgLegalEntity]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OrgLegalEntity(TypedDict):
+    """A legal entity of the organization with its fiscal settings."""
+
+    #: Identifier of the org legal entity.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Legal name.
+    legal_name: str
+    #: ISO 3166-1 alpha-2 country code.
+    country_code: str
+    tax_identifier: Optional[Union[str, Masked]]
+    #: Fiscal year start month.
+    fiscal_year_start_month: int
+    #: Base currency.
+    base_currency: str
+    #: True for the org's primary entity, printed on generated documents. The first entity is primary; marking another moves the mark.
+    is_primary: bool
+    #: Last four characters of the tax identifier.
+    tax_identifier_last4: Optional[str]
+
+
+class _OrgLegalEntityCreateRequired(TypedDict):
+    #: Legal name.
+    legal_name: str
+    #: ISO 3166-1 alpha-2 country code.
+    country_code: str
+    #: Fiscal year start month.
+    fiscal_year_start_month: int
+    #: Base currency.
+    base_currency: str
+
+
+class OrgLegalEntityCreate(_OrgLegalEntityCreateRequired, total=False):
+    """Fields accepted when creating a OrgLegalEntity."""
+
+    #: Tax identifier.
+    tax_identifier: Optional[str]
+    #: True for the org's primary entity, printed on generated documents. The first entity is primary; marking another moves the mark.
+    is_primary: bool
+
+
+class OrgLegalEntityUpdate(TypedDict, total=False):
+    """Fields accepted when updating a OrgLegalEntity. Omitted fields are unchanged."""
+
+    #: Legal name.
+    legal_name: str
+    #: ISO 3166-1 alpha-2 country code.
+    country_code: str
+    #: Tax identifier.
+    tax_identifier: Optional[str]
+    #: Fiscal year start month.
+    fiscal_year_start_month: int
+    #: Base currency.
+    base_currency: str
+    #: True for the org's primary entity, printed on generated documents. The first entity is primary; marking another moves the mark.
+    is_primary: bool
+
+
+class OrgIpAllowlistEntryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OrgIpAllowlistEntry]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OrgIpAllowlistEntry(TypedDict):
+    """An allowed network for Atlas and the API."""
+
+    #: Identifier of the org ip allowlist entry.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: CIDR block.
+    cidr: str
+    #: Label.
+    label: str
+
+
+class OrgIpAllowlistEntryCreate(TypedDict):
+    """Fields accepted when creating a OrgIpAllowlistEntry."""
+
+    #: CIDR block.
+    cidr: str
+    #: Label.
+    label: str
+
+
+class OrgIpAllowlistEntryUpdate(TypedDict, total=False):
+    """Fields accepted when updating a OrgIpAllowlistEntry. Omitted fields are unchanged."""
+
+    #: Label.
+    label: str
 
 
 class RolePage(TypedDict):
@@ -15884,6 +16101,221 @@ class ColumnClassification(TypedDict):
     classification: Classification
     #: Capability that unmasks it.
     read_capability: Optional[str]
+
+
+class AccessReviewCampaignPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AccessReviewCampaign]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AccessReviewCampaign(TypedDict):
+    """A quarterly access review campaign."""
+
+    #: Identifier of the access review campaign.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Campaign name.
+    name: str
+    #: Due date.
+    due_on: str
+    #: Remove access left unreviewed after 14 days.
+    auto_remove_unreviewed: bool
+    #: Campaign state. A Title Case value from the lifecycle's database enum.
+    campaign_state: str
+    #: When the campaign opened and its items were taken.
+    opened_at: str
+    #: When the campaign completed or was canceled; null while Active.
+    closed_at: Optional[str]
+
+
+class _AccessReviewCampaignCreateRequired(TypedDict):
+    #: Campaign name.
+    name: str
+    #: Due date.
+    due_on: str
+
+
+class AccessReviewCampaignCreate(_AccessReviewCampaignCreateRequired, total=False):
+    """Fields accepted when creating a AccessReviewCampaign."""
+
+    #: Remove access left unreviewed after 14 days.
+    auto_remove_unreviewed: bool
+
+
+class AccessReviewCampaignUpdate(TypedDict, total=False):
+    """Fields accepted when updating a AccessReviewCampaign. Omitted fields are unchanged."""
+
+    #: Campaign name.
+    name: str
+    #: Due date.
+    due_on: str
+    #: Remove access left unreviewed after 14 days.
+    auto_remove_unreviewed: bool
+
+
+class AccessReviewItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[AccessReviewItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class AccessReviewItem(TypedDict):
+    """One membership role to confirm or remove."""
+
+    #: Identifier of the access review item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the campaign.
+    access_review_campaign_id: str
+    #: Identifier of the membership role.
+    membership_role_id: str
+    #: Confirmed keeps the role; Removed ends it at once. Null while unreviewed; final once set.
+    decision: Optional[Literal["Confirmed", "Removed"]]
+    #: Identifier of the reviewer; null for an automatic removal.
+    decided_by: Optional[str]
+    #: When the decision was recorded.
+    decided_at: Optional[str]
+    #: When the item was flagged as unreviewed after the grace period.
+    flagged_at: Optional[str]
+
+
+class AccessReviewItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a AccessReviewItem. Omitted fields are unchanged."""
+
+    #: Confirmed keeps the role; Removed ends it at once. Null while unreviewed; final once set.
+    decision: Optional[Literal["Confirmed", "Removed"]]
+
+
+class BreakGlassSessionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[BreakGlassSession]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class BreakGlassSession(TypedDict):
+    """One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified."""
+
+    #: Identifier of the break glass session.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the Owner.
+    person_id: str
+    #: Written reason, 20 to 2000 characters.
+    reason: str
+    #: Start.
+    started_at: str
+    #: End, one hour after start.
+    expires_at: str
+    #: When the holder ended it early; null when it ran its hour.
+    ended_at: Optional[str]
+
+
+class BreakGlassSessionCreate(TypedDict):
+    """Fields accepted when creating a BreakGlassSession."""
+
+    #: Written reason, 20 to 2000 characters.
+    reason: str
+
+
+class ProjectSharePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectShare]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectShare(TypedDict):
+    """A project shared with a partner org, mapping its roles onto project roles."""
+
+    #: Identifier of the project share.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the partner organization.
+    partner_organization_id: str
+    #: End of the share.
+    valid_to: Optional[str]
+    project_role: ProjectRole
+    #: Scope nodes the share opens, with everything under them; empty shares the whole scope tree.
+    scope_node_ids: List[str]
+    #: When the share started.
+    valid_from: str
+
+
+class _ProjectShareCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the partner organization.
+    partner_organization_id: str
+
+
+class ProjectShareCreate(_ProjectShareCreateRequired, total=False):
+    """Fields accepted when creating a ProjectShare."""
+
+    #: End of the share.
+    valid_to: Optional[str]
+    project_role: ProjectRole
+    #: Scope nodes the share opens, with everything under them; empty shares the whole scope tree.
+    scope_node_ids: List[str]
+
+
+class ProjectShareUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectShare. Omitted fields are unchanged."""
+
+    #: End of the share.
+    valid_to: Optional[str]
+    project_role: ProjectRole
+    #: Scope nodes the share opens, with everything under them; empty shares the whole scope tree.
+    scope_node_ids: List[str]
 
 
 class ScimGroupMappingPage(TypedDict):
@@ -22585,6 +23017,9 @@ StdCode = str
 
 #: URN in the `urn:xpms` namespace.
 Urn = str
+
+#: Project role (Section 8).
+ProjectRole = Literal["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]
 
 #: Role inside an external account.
 AccountRole = Literal["Account Owner", "Account Admin", "Account Finance", "Account Member"]

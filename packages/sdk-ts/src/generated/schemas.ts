@@ -25334,6 +25334,80 @@ export interface ProjectAssignmentUpdate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ProjectAssignmentRolePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectAssignmentRole>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A project role held through a project assignment.
+ */
+export interface ProjectAssignmentRole {
+  /**
+   * Identifier of the project assignment role.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project assignment.
+   * Format: `uuid`.
+   */
+  readonly project_member_id: string;
+  readonly project_role: ProjectRole;
+}
+
+/**
+ * Project role (Section 8).
+ */
+export type ProjectRole =
+  "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
+
+/**
+ * Fields accepted when creating a ProjectAssignmentRole.
+ */
+export interface ProjectAssignmentRoleCreate {
+  /**
+   * Identifier of the project assignment.
+   * Format: `uuid`.
+   */
+  readonly project_member_id: string;
+  readonly project_role: ProjectRole;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface AccountMembershipPage {
   /**
    * Items on this page, in the documented default order.
@@ -26605,6 +26679,57 @@ export interface Verification {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface BlockPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Block>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A person's block of another person or an organization (Section 4.5.6 Profile Privacy). It hides the blocker's profile from the blocked person and from every member of a blocked organization, and the blocked profile from the blocker. Memberships and engagements are not affected.
+ */
+export interface Block {
+  /**
+   * Identifier of the block.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * URN of the blocked person (urn:xpms:person:{id}) or organization (urn:xpms:organization:{id}).
+   * Length: 1 to 300.
+   */
+  readonly blocked_urn: string;
+}
+
+/**
+ * Fields accepted when creating a Block.
+ */
+export interface BlockCreate {
+  /**
+   * URN of the blocked person (urn:xpms:person:{id}) or organization (urn:xpms:organization:{id}).
+   * Length: 1 to 300.
+   */
+  readonly blocked_urn: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface SubscriptionPage {
   /**
    * Items on this page, in the documented default order.
@@ -27261,6 +27386,243 @@ export interface OrgBrandingUpdate {
    * True hides Powered by XOS; it takes effect only while the plan includes white label.
    */
   readonly suppress_powered_by?: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface OrgLegalEntityPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OrgLegalEntity>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A legal entity of the organization with its fiscal settings.
+ */
+export interface OrgLegalEntity {
+  /**
+   * Identifier of the org legal entity.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Legal name.
+   * Length: 1 to 300.
+   */
+  readonly legal_name: string;
+  /**
+   * ISO 3166-1 alpha-2 country code.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly country_code: string;
+  readonly tax_identifier: string | Masked | null;
+  /**
+   * Fiscal year start month.
+   * Range: 1 to unbounded.
+   */
+  readonly fiscal_year_start_month: number;
+  /**
+   * Base currency.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly base_currency: string;
+  /**
+   * True for the org's primary entity, printed on generated documents. The first entity is primary; marking another moves the mark.
+   */
+  readonly is_primary: boolean;
+  /**
+   * Last four characters of the tax identifier.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly tax_identifier_last4: string | null;
+}
+
+/**
+ * Fields accepted when creating a OrgLegalEntity.
+ */
+export interface OrgLegalEntityCreate {
+  /**
+   * Legal name.
+   * Length: 1 to 300.
+   */
+  readonly legal_name: string;
+  /**
+   * ISO 3166-1 alpha-2 country code.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly country_code: string;
+  /**
+   * Tax identifier.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly tax_identifier?: string | null;
+  /**
+   * Fiscal year start month.
+   * Range: 1 to unbounded.
+   */
+  readonly fiscal_year_start_month: number;
+  /**
+   * Base currency.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly base_currency: string;
+  /**
+   * True for the org's primary entity, printed on generated documents. The first entity is primary; marking another moves the mark.
+   */
+  readonly is_primary?: boolean;
+}
+
+/**
+ * Fields accepted when updating a OrgLegalEntity. Omitted fields are unchanged.
+ */
+export interface OrgLegalEntityUpdate {
+  /**
+   * Legal name.
+   * Length: 1 to 300.
+   */
+  readonly legal_name?: string;
+  /**
+   * ISO 3166-1 alpha-2 country code.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly country_code?: string;
+  /**
+   * Tax identifier.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly tax_identifier?: string | null;
+  /**
+   * Fiscal year start month.
+   * Range: 1 to unbounded.
+   */
+  readonly fiscal_year_start_month?: number;
+  /**
+   * Base currency.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly base_currency?: string;
+  /**
+   * True for the org's primary entity, printed on generated documents. The first entity is primary; marking another moves the mark.
+   */
+  readonly is_primary?: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface OrgIpAllowlistEntryPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OrgIpAllowlistEntry>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An allowed network for Atlas and the API.
+ */
+export interface OrgIpAllowlistEntry {
+  /**
+   * Identifier of the org ip allowlist entry.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * CIDR block.
+   * Length: 1 to 300.
+   */
+  readonly cidr: string;
+  /**
+   * Label.
+   * Length: 1 to 300.
+   */
+  readonly label: string;
+}
+
+/**
+ * Fields accepted when creating a OrgIpAllowlistEntry.
+ */
+export interface OrgIpAllowlistEntryCreate {
+  /**
+   * CIDR block.
+   * Length: 1 to 300.
+   */
+  readonly cidr: string;
+  /**
+   * Label.
+   * Length: 1 to 300.
+   */
+  readonly label: string;
+}
+
+/**
+ * Fields accepted when updating a OrgIpAllowlistEntry. Omitted fields are unchanged.
+ */
+export interface OrgIpAllowlistEntryUpdate {
+  /**
+   * Label.
+   * Length: 1 to 300.
+   */
+  readonly label?: string;
 }
 
 /**
@@ -28289,6 +28651,417 @@ export interface ColumnClassification {
  * Column classification (Section 8.3).
  */
 export type Classification = "Public" | "Internal" | "Confidential" | "Restricted";
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AccessReviewCampaignPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AccessReviewCampaign>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A quarterly access review campaign.
+ */
+export interface AccessReviewCampaign {
+  /**
+   * Identifier of the access review campaign.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Campaign name.
+   * Length: 1 to 300.
+   */
+  readonly name: string;
+  /**
+   * Due date.
+   * Format: `date`.
+   */
+  readonly due_on: string;
+  /**
+   * Remove access left unreviewed after 14 days.
+   */
+  readonly auto_remove_unreviewed: boolean;
+  /**
+   * Campaign state. A Title Case value from the lifecycle's database enum.
+   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   */
+  readonly campaign_state: string;
+  /**
+   * When the campaign opened and its items were taken.
+   * Format: `date-time`.
+   */
+  readonly opened_at: string;
+  /**
+   * When the campaign completed or was canceled; null while Active.
+   * Format: `date-time`.
+   */
+  readonly closed_at: string | null;
+}
+
+/**
+ * Fields accepted when creating a AccessReviewCampaign.
+ */
+export interface AccessReviewCampaignCreate {
+  /**
+   * Campaign name.
+   * Length: 1 to 300.
+   */
+  readonly name: string;
+  /**
+   * Due date.
+   * Format: `date`.
+   */
+  readonly due_on: string;
+  /**
+   * Remove access left unreviewed after 14 days.
+   */
+  readonly auto_remove_unreviewed?: boolean;
+}
+
+/**
+ * Fields accepted when updating a AccessReviewCampaign. Omitted fields are unchanged.
+ */
+export interface AccessReviewCampaignUpdate {
+  /**
+   * Campaign name.
+   * Length: 1 to 300.
+   */
+  readonly name?: string;
+  /**
+   * Due date.
+   * Format: `date`.
+   */
+  readonly due_on?: string;
+  /**
+   * Remove access left unreviewed after 14 days.
+   */
+  readonly auto_remove_unreviewed?: boolean;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AccessReviewItemPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AccessReviewItem>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One membership role to confirm or remove.
+ */
+export interface AccessReviewItem {
+  /**
+   * Identifier of the access review item.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the campaign.
+   * Format: `uuid`.
+   */
+  readonly access_review_campaign_id: string;
+  /**
+   * Identifier of the membership role.
+   * Format: `uuid`.
+   */
+  readonly membership_role_id: string;
+  /**
+   * Confirmed keeps the role; Removed ends it at once. Null while unreviewed; final once set.
+   */
+  readonly decision: "Confirmed" | "Removed" | null;
+  /**
+   * Identifier of the reviewer; null for an automatic removal.
+   * Format: `uuid`.
+   */
+  readonly decided_by: string | null;
+  /**
+   * When the decision was recorded.
+   * Format: `date-time`.
+   */
+  readonly decided_at: string | null;
+  /**
+   * When the item was flagged as unreviewed after the grace period.
+   * Format: `date-time`.
+   */
+  readonly flagged_at: string | null;
+}
+
+/**
+ * Fields accepted when updating a AccessReviewItem. Omitted fields are unchanged.
+ */
+export interface AccessReviewItemUpdate {
+  /**
+   * Confirmed keeps the role; Removed ends it at once. Null while unreviewed; final once set.
+   */
+  readonly decision?: "Confirmed" | "Removed" | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface BreakGlassSessionPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<BreakGlassSession>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One hour of emergency full access for an Owner. Requires MFA and a reason; every Admin is notified.
+ */
+export interface BreakGlassSession {
+  /**
+   * Identifier of the break glass session.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the Owner.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Written reason, 20 to 2000 characters.
+   * Length: 20 to 2000.
+   */
+  readonly reason: string;
+  /**
+   * Start.
+   * Format: `date-time`.
+   */
+  readonly started_at: string;
+  /**
+   * End, one hour after start.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * When the holder ended it early; null when it ran its hour.
+   * Format: `date-time`.
+   */
+  readonly ended_at: string | null;
+}
+
+/**
+ * Fields accepted when creating a BreakGlassSession.
+ */
+export interface BreakGlassSessionCreate {
+  /**
+   * Written reason, 20 to 2000 characters.
+   * Length: 20 to 2000.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectSharePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectShare>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A project shared with a partner org, mapping its roles onto project roles.
+ */
+export interface ProjectShare {
+  /**
+   * Identifier of the project share.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row; null when a seed, platform or system process created it.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the partner organization.
+   * Format: `uuid`.
+   */
+  readonly partner_organization_id: string;
+  /**
+   * End of the share.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string | null;
+  readonly project_role: ProjectRole;
+  /**
+   * Scope nodes the share opens, with everything under them; empty shares the whole scope tree.
+   */
+  readonly scope_node_ids: ReadonlyArray<string>;
+  /**
+   * When the share started.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string;
+}
+
+/**
+ * Fields accepted when creating a ProjectShare.
+ */
+export interface ProjectShareCreate {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Identifier of the partner organization.
+   * Format: `uuid`.
+   */
+  readonly partner_organization_id: string;
+  /**
+   * End of the share.
+   * Format: `date-time`.
+   */
+  readonly valid_to?: string | null;
+  readonly project_role?: ProjectRole;
+  /**
+   * Scope nodes the share opens, with everything under them; empty shares the whole scope tree.
+   */
+  readonly scope_node_ids?: ReadonlyArray<string>;
+}
+
+/**
+ * Fields accepted when updating a ProjectShare. Omitted fields are unchanged.
+ */
+export interface ProjectShareUpdate {
+  /**
+   * End of the share.
+   * Format: `date-time`.
+   */
+  readonly valid_to?: string | null;
+  readonly project_role?: ProjectRole;
+  /**
+   * Scope nodes the share opens, with everything under them; empty shares the whole scope tree.
+   */
+  readonly scope_node_ids?: ReadonlyArray<string>;
+}
 
 /**
  * One page of results with a cursor to the next page.
