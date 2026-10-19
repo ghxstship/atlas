@@ -1,0 +1,34 @@
+# Paths Semgrep skips (Section 18 gate 11). A .semgrepignore replaces Semgrep's defaults, so the
+# build and dependency folders are listed here too. Only generated or vendored code is skipped:
+# every hand-written file, tests included, is scanned.
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+out/
+dist/
+coverage/
+storybook-static/
+.claude/
+canon/reports/
+supabase/.branches/
+supabase/.temp/
+
+# Generated from other sources, which are scanned instead.
+*.generated.ts
+*.generated.svg
+packages/sdk-ts/src/generated/
+packages/sdk-python/src/xos_sdk/_generated/
+packages/api/openapi/
+packages/data/src/database.types.ts
+
+# Fixture of the local rules: it holds the unsafe patterns on purpose and is checked with --test.
+infra/security/semgrep-rules.ts
+
+# Bundle of packages/platform built for the Edge Functions; its sources are scanned.
+supabase/functions/_vendor/
+
+# Claude Design exports, kept byte for byte as exported with vendored libraries (design/README.md).
+# Nothing in apps/ or packages/ imports them; the finish guard and Prettier skip them too. The
+# components they model are implemented and scanned in packages/ui and packages/ui-native.
+design/

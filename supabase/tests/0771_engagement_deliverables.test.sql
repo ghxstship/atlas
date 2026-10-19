@@ -42,7 +42,7 @@ select throws_ok(format($$select app.add_engagement_deliverable('%s', '%s')$$, p
   'a deliverable is a record of the engagement''s project');
 with d as (select app.add_engagement_deliverable(pg_temp.id('eng_ivy_a'), pg_temp.id('rec')) as id) insert into world select 'dlv', id from d;
 select throws_ok(format($$select app.add_engagement_deliverable('%s', '%s')$$, pg_temp.id('eng_ivy_a'), pg_temp.id('rec')), '23505', null, 'a record is owed once per engagement');
-select throws_ok(format($$select app.decide_deliverable('%s', 'Approved', null)$$, pg_temp.id('dlv')), 'XR001', null, 'Open cannot jump to Accepted');
+select throws_ok(format($$select app.decide_deliverable('%s', 'Approved', null)$$, pg_temp.id('dlv')), 'XR001', 'deliverable_state_conflict: The deliverable is not in the expected state Submitted.', 'Open cannot jump to Accepted');
 select pg_temp.as_platform();
 select is(pg_temp.state('dlv'), 'Open', 'a new deliverable is Open');
 
@@ -52,7 +52,7 @@ select throws_ok(format($$select app.submit_deliverable('%s', null, 'Not mine.')
 select pg_temp.as_user('ivy');
 select is((select count(*)::int from api_external.deliverables where deliverable_state = 'Open'), 1, 'own engagement: the party sees what is owed');
 select lives_ok(format($$select app.submit_deliverable('%s', '%s', 'First pass of the plot.')$$, pg_temp.id('dlv'), pg_temp.id('doc')), 'the party hands it in');
-select throws_ok(format($$select app.submit_deliverable('%s', null, 'Again.')$$, pg_temp.id('dlv')), 'XR001', null, 'Submitted cannot be handed in again until returned');
+select throws_ok(format($$select app.submit_deliverable('%s', null, 'Again.')$$, pg_temp.id('dlv')), 'XR001', 'deliverable_transition_not_allowed: A deliverable cannot move from Submitted to Submitted.', 'Submitted cannot be handed in again until returned');
 select pg_temp.as_platform();
 select is(pg_temp.state('dlv'), 'Submitted', 'the deliverable is Submitted');
 select is((select submitted_by from app.engagement_deliverables where id = pg_temp.id('dlv')), pg_temp.id('ivy'), 'the submitter comes from the session');

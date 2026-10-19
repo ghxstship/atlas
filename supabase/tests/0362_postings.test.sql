@@ -71,7 +71,7 @@ with x as (insert into app.invoices (project_id, direction, counterparty_id, cur
   values (pg_temp.id('prj_a'), 'Receivable', pg_temp.id('cp_client'), 'USD', '2028-02-01') returning id) insert into world select 'inv_noperiod', id from x;
 insert into app.invoice_lines (invoice_id, line_number, description, unit_price_minor, urid) values (pg_temp.id('inv_noperiod'), 1, 'Retainer.', 1000, '0000.01.01');
 select throws_ok($$select app.issue_invoice((select id from world where key = 'inv_noperiod'), 'Send.')$$,
-  'XR001', 'period_missing: No accounting period covers 2028-02-01; open one before posting.', 'an issue date without a period refuses the issue (invariant 13)');
+  'XR001', 'period_missing: No accounting period covers 2028-02-01; open one before posting.', 'inv_13_period_postings: an issue date without a period refuses the issue (invariant 13)');
 select pg_temp.as_platform();
 select is((select string_agg(invoice_state::text, ',') from app.invoices where id in (pg_temp.id('inv_noclass'), pg_temp.id('inv_nodim'), pg_temp.id('inv_noperiod'))), 'Proposed,Proposed,Proposed', 'a refused posting leaves the invoice Proposed');
 select is((select count(*)::int from app.journal_entries where source_id in (pg_temp.id('inv_noclass'), pg_temp.id('inv_nodim'), pg_temp.id('inv_noperiod'))), 0, 'and writes no entry');

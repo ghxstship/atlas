@@ -55,6 +55,12 @@ export const RECORD_COLUMNS = [
   "due_at",
   "blocker_text",
   "replan_reason",
+  "project_id",
+  "parent_record_id",
+  "wbs_code",
+  "description",
+  "sop_id",
+  "team_code",
 ] as const;
 
 const RECORD_ALIASES = { record_key: "record_display_key" } as const;
@@ -311,6 +317,11 @@ export const WORK_ORDER_COLUMNS = [
   "due_at",
   "budget_minor",
   "currency",
+  "work_order_number",
+  "location_text",
+  "scope_of_work",
+  "scheduled_starts_at",
+  "estimated_hours",
 ] as const;
 const WORK_ORDER_ALIASES = { due_at: "scheduled_ends_at", currency: "currency_code" } as const;
 
@@ -726,6 +737,10 @@ export const handlers = defineHandlers("Work", {
       scheduled_ends_at: body.due_at,
       budget_minor: body.budget_minor,
       currency_code: body.currency,
+      location_text: body.location_text,
+      scope_of_work: body.scope_of_work,
+      scheduled_starts_at: body.scheduled_starts_at,
+      estimated_hours: body.estimated_hours,
     });
     if (Object.keys(patch).length > 0) {
       await guardedUpdate(db, "work_orders", params.id, patch, ifMatch, () =>

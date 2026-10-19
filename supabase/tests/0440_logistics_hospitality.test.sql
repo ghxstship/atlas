@@ -61,8 +61,7 @@ select throws_ok($$update app.fulfillments set fulfillment_state = 'Active' wher
   'XR001', null, 'the state changes only through its RPC');
 select throws_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Proposed', 'Active', ' ')$$,
   'XR001', 'transition_reason_required: Every state change carries a reason.', 'every move carries a reason');
-select throws_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Proposed', 'Complete', 'Delivered.')$$,
-  'XR001', null, 'Proposed cannot jump to Complete');
+select throws_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Proposed', 'Complete', 'Delivered.')$$, 'XR001', 'fulfillment_transition_not_allowed: A fulfillment cannot move from Proposed to Complete.', 'Proposed cannot jump to Complete');
 select throws_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Active', 'Complete', 'Delivered.')$$,
   'XR001', null, 'compare-and-set refuses a stale expected state');
 select lives_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Proposed', 'Active', 'Caterer confirmed.')$$, 'Proposed to Active');
@@ -73,8 +72,7 @@ select throws_ok($$insert into app.fulfillment_lines (fulfillment_id, descriptio
   'XR001', null, 'a Complete fulfillment takes no new lines');
 select lives_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Complete', 'Active', 'Second service added.')$$, 'Complete reopens to Active');
 select lives_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Active', 'Canceled', 'Show canceled.')$$, 'Active to Canceled');
-select throws_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Canceled', 'Active', 'Back on.')$$,
-  'XR001', null, 'Canceled is final');
+select throws_ok($$select app.transition_fulfillment((select id from world where key = 'ful'), 'Canceled', 'Active', 'Back on.')$$, 'XR001', 'fulfillment_transition_not_allowed: A fulfillment cannot move from Canceled to Active.', 'Canceled is final');
 select pg_temp.as_platform();
 select is((select count(*)::int from app.domain_events where subject_id = pg_temp.id('ful') and event_type = 'fulfillment.state_changed'), 6, 'each move emits fulfillment.state_changed');
 select pg_temp.as_user('frank');

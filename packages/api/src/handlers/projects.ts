@@ -48,6 +48,8 @@ export const PROJECT_COLUMNS = [
   "client_counterparty_id",
   "production_state",
   "archived_at",
+  "anchor_on",
+  "budget_envelope_minor",
 ] as const;
 
 const SCOPE_NODE_COLUMNS = [

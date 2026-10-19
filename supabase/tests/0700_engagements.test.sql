@@ -173,13 +173,10 @@ select lives_ok($$select app.transition_engagement((select id from world where k
 select lives_ok($$select app.transition_engagement((select id from world where key = 'eng_ivy_a'), 'Closing', 'Active', 'Extra day.')$$, 'Closing back to Active');
 select lives_ok($$select app.transition_engagement((select id from world where key = 'eng_ivy_a'), 'Active', 'Closing', 'Done.')$$, 'Active to Closing again');
 select lives_ok($$select app.transition_engagement((select id from world where key = 'eng_ivy_a'), 'Closing', 'Complete', 'Paid and rated.')$$, 'Closing to Complete');
-select throws_ok($$select app.transition_engagement((select id from world where key = 'eng_ivy_a'), 'Complete', 'Active', 'Reopen.')$$,
-  'XR001', null, 'Complete is terminal');
-select throws_ok($$select app.transition_engagement((select id from world where key = 'eng_art_a'), 'Onboarding', 'Closing', 'Skip.')$$,
-  'XR001', null, 'Onboarding cannot jump to Closing');
+select throws_ok($$select app.transition_engagement((select id from world where key = 'eng_ivy_a'), 'Complete', 'Active', 'Reopen.')$$, 'XR001', 'engagement_transition_not_allowed: A engagement cannot move from Complete to Active.', 'Complete is terminal');
+select throws_ok($$select app.transition_engagement((select id from world where key = 'eng_art_a'), 'Onboarding', 'Closing', 'Skip.')$$, 'XR001', 'engagement_transition_not_allowed: A engagement cannot move from Onboarding to Closing.', 'Onboarding cannot jump to Closing');
 select lives_ok($$select app.transition_engagement((select id from world where key = 'eng_art_a'), 'Onboarding', 'Canceled', 'Date moved.')$$, 'Onboarding to Canceled');
-select throws_ok($$select app.transition_engagement((select id from world where key = 'eng_art_a'), 'Canceled', 'Onboarding', 'Back.')$$,
-  'XR001', null, 'Canceled is terminal');
+select throws_ok($$select app.transition_engagement((select id from world where key = 'eng_art_a'), 'Canceled', 'Onboarding', 'Back.')$$, 'XR001', 'engagement_transition_not_allowed: A engagement cannot move from Canceled to Onboarding.', 'Canceled is terminal');
 select is((select count(*)::int from app.engagement_state_transitions where engagement_id = pg_temp.id('eng_ivy_a')), 8,
   'every move is in the ledger');
 select is((select count(*)::int from app.lifecycle_transition_rules where lifecycle = 'engagement'), 11, 'the engagement lifecycle declares eleven moves');
@@ -196,8 +193,7 @@ select throws_ok($$update app.engagements set role_type = 'Staff' where id = (se
 select pg_temp.as_user('carol');
 with d as (insert into app.engagement_documents (engagement_id, document_kind, title) values (pg_temp.id('eng_vendor_a'), 'Agreement', 'Audio Supply Agreement') returning id)
   insert into world select 'doc_v', id from d;
-select throws_ok($$select app.transition_engagement_document((select id from world where key = 'doc_v'), 'Proposed', 'Executed', 'Skip.')$$,
-  'XR001', null, 'a draft cannot be executed before it is sent and signed');
+select throws_ok($$select app.transition_engagement_document((select id from world where key = 'doc_v'), 'Proposed', 'Executed', 'Skip.')$$, 'XR001', 'engagement_document_transition_not_allowed: A engagement document cannot move from Proposed to Executed.', 'a draft cannot be executed before it is sent and signed');
 select lives_ok($$select app.transition_engagement_document((select id from world where key = 'doc_v'), 'Proposed', 'Sent', 'Sent for signature.')$$, 'Proposed to Sent');
 select throws_ok($$select app.transition_engagement_document((select id from world where key = 'doc_v'), 'Sent', 'Signed', 'Org signs.')$$,
   'XR001', 'engagement_document_party_signs: Only the engaged party signs; the org countersigns to execute.', 'the org cannot sign for the party');

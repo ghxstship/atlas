@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(40);
+select plan(41);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -96,6 +96,8 @@ select is((select ticket_state::text from app.support_tickets where id = (select
   'the requester''s reply hands the ticket back');
 select pg_temp.as_user('bob');
 select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Open', 'Resolved', 'Zone B was archived; restored it.');
+select throws_ok($$select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Resolved', 'Waiting', 'Asked again.')$$,
+  'XR001', 'support_ticket_transition_not_allowed: A support ticket cannot move from Resolved to Waiting.', 'a Resolved ticket does not wait on the requester');
 select pg_temp.as_user('dave');
 select lives_ok($$select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Resolved', 'Open', 'Still failing.')$$,
   'a requester reopens a resolved ticket');
@@ -103,8 +105,7 @@ select lives_ok($$select app.transition_support_ticket((select id from k where k
   'a requester closes their ticket');
 select throws_ok($$select app.post_support_message((select id from k where key = 'org_ticket'), 'One more thing.')$$,
   'XR001', null, 'a closed ticket takes no messages');
-select throws_ok($$select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Closed', 'Open', 'Again.')$$,
-  'XR001', null, 'a closed ticket is final');
+select throws_ok($$select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Closed', 'Open', 'Again.')$$, 'XR001', null, 'a closed ticket is final');
 select is((select count(*)::integer from app.support_ticket_state_transitions where support_ticket_id = (select id from k where key = 'org_ticket')), 6,
   'every state change is in the ledger');
 

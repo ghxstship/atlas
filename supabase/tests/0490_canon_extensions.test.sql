@@ -78,14 +78,14 @@ select throws_ok($$select app.decide_canon_extension((select id from world where
   'XR001', null, 'the proposer cannot reject');
 select pg_temp.as_user('alice');
 select throws_ok($$select app.decide_canon_extension((select id from world where key = 'disc'), 'Approved', 'Rejected', 'Stale.')$$,
-  'XR001', null, 'compare-and-set refuses a stale expected state');
+  'XR001', 'canon_extension_transition_not_allowed: A canon extension cannot move from Approved to Rejected.', 'compare-and-set refuses a stale expected state');
 select lives_ok($$select app.decide_canon_extension((select id from world where key = 'disc'), 'Proposed', 'Approved', 'Core service.')$$,
   'another Owner approves');
 select is((select proposal_state::text from app.canon_extension_proposals where id = pg_temp.id('disc')), 'Approved', 'the proposal is Approved');
 select is((select decided_by from app.canon_extension_proposals where id = pg_temp.id('disc')), pg_temp.id('alice'), 'the decider is recorded');
 select is((select count(*)::int from app.domain_events where subject_id = pg_temp.id('disc') and event_type = 'canon_extension.decided'), 1, 'deciding emits canon_extension.decided');
 select throws_ok($$select app.decide_canon_extension((select id from world where key = 'disc'), 'Approved', 'Withdrawn', 'Undo.')$$,
-  'XR001', null, 'an approved proposal cannot be withdrawn');
+  'XR001', 'canon_extension_transition_not_allowed: A canon extension cannot move from Approved to Withdrawn.', 'an approved proposal cannot be withdrawn');
 select throws_ok($$update app.canon_extension_proposals set label = 'Changed' where id = (select id from world where key = 'disc')$$,
   'XR001', null, 'a decided proposal never changes');
 select throws_ok($$update app.canon_extension_proposals set decided_at = now() + interval '1 day' where id = (select id from world where key = 'disc')$$,
@@ -104,7 +104,7 @@ select is((select count(*)::int from app.canon_extension_proposals where id in (
 select lives_ok($$select app.decide_canon_extension((select id from world where key = 'cat2'), 'Proposed', 'Withdrawn', 'Not needed.')$$,
   'the proposer withdraws');
 select throws_ok($$select app.decide_canon_extension((select id from world where key = 'cat2'), 'Withdrawn', 'Proposed', 'Again.')$$,
-  'XR001', null, 'a withdrawn proposal is final');
+  'XR001', 'canon_extension_transition_not_allowed: A canon extension cannot move from Withdrawn to Proposed.', 'a withdrawn proposal is final');
 select is((select decided_by from app.canon_extension_proposals where id = pg_temp.id('cat2')), null::uuid, 'a withdrawal records no decider');
 select pg_temp.as_user('alice');
 select lives_ok($$select app.decide_canon_extension((select id from world where key = 'cat'), 'Proposed', 'Rejected', 'Covered elsewhere.')$$,

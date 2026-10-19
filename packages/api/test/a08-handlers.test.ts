@@ -78,7 +78,16 @@ const DEFAULTS: Record<string, Row> = {
     blocker_text: null,
     replan_reason: null,
   },
-  work_orders: { work_order_state: "Draft", awarded_bid_id: null, scheduled_ends_at: null },
+  work_orders: {
+    work_order_state: "Draft",
+    awarded_bid_id: null,
+    scheduled_ends_at: null,
+    work_order_number: 8,
+    location_text: null,
+    scope_of_work: null,
+    scheduled_starts_at: null,
+    estimated_hours: null,
+  },
   work_order_bids: { withdrawn_at: null, work_order: { awarded_bid_id: null } },
 };
 
@@ -307,6 +316,11 @@ function world(rpcs: Record<string, (args: Row) => RpcResult> = {}) {
         budget_minor: 900000,
         currency_code: "USD",
         awarded_bid_id: null,
+        work_order_number: 7,
+        location_text: "Main stage, stage left wing.",
+        scope_of_work: null,
+        scheduled_starts_at: null,
+        estimated_hours: null,
       },
     ],
     work_order_bids: [

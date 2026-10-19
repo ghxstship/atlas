@@ -105,7 +105,7 @@ select lives_ok($$select app.reject_requisition((select id from world where key 
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Rejected', 'Proposed', 'Reduced.')$$, 'the requester resubmits');
 select lives_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Proposed', 'Canceled', 'Withdrawn.')$$, 'and cancels');
-select throws_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', null, 'Canceled is terminal');
+select throws_ok($$select app.transition_requisition((select id from world where key = 'req_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', 'requisition_transition_not_allowed: A requisition cannot move from Canceled to Proposed.', 'Canceled is terminal');
 select pg_temp.as_platform();
 select is((select string_agg(from_state || '>' || to_state, ' ' order by from_state, to_state) from app.lifecycle_transition_rules where lifecycle = 'requisition'),
   'Approved>Canceled Approved>Filled Proposed>Approved Proposed>Canceled Proposed>Rejected Rejected>Proposed', 'the requisition lifecycle moves');
@@ -165,7 +165,7 @@ select is((select count(*)::int from app.role_assignments), 0, 'another org read
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Proposed', 'Active', 'Started.')$$, 'Proposed to Active');
 select lives_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Active', 'Complete', 'Wrapped.')$$, 'Active to Complete');
-select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Complete', 'Active', 'Again.')$$, 'XR001', null, 'Complete is terminal');
+select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra1'), 'Complete', 'Active', 'Again.')$$, 'XR001', 'role_assignment_transition_not_allowed: A role assignment cannot move from Complete to Active.', 'Complete is terminal');
 select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra2'), 'Active', 'Complete', 'Stale.')$$, 'XR001', null, 'compare-and-set refuses a stale expected state');
 select pg_temp.as_user('dave');
 select throws_ok($$select app.transition_role_assignment((select id from world where key = 'ra2'), 'Proposed', 'Canceled', 'Member.')$$, '42501', null, 'a Member cannot move assignments');
@@ -211,10 +211,10 @@ select pg_temp.as_anon();
 select throws_ok('select 1 from app.agreements', '42501', null, 'anon cannot read the table');
 
 -- Token signing (invariant 8)
-select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr1'), '00000000')), 0, 'a wrong access code reads nothing');
+select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr1'), '00000000')), 0, 'inv_08_token_rpcs_hashed_secrets: a wrong access code reads nothing');
 select is((select count(*)::int from api_public.read_agreement('xagr_unknown', (select code from tokens where key = 'agr1'))), 0, 'an unknown token reads nothing');
 select is((select title from api_public.read_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'))),
-  'Production Manager Offer Letter', 'the token and access code read the agreement');
+  'Production Manager Offer Letter', 'inv_08_token_rpcs_hashed_secrets: the token and access code read the agreement');
 select is(api_public.sign_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'), 'Nina Patel', repeat('0', 64)),
   false, 'a signature over other text is refused');
 select is(api_public.sign_agreement((select token from tokens where key = 'agr1'), (select code from tokens where key = 'agr1'), 'Nina Patel',
@@ -232,14 +232,14 @@ select is((select count(*)::int from app.domain_events where event_type = 'agree
 -- Lock at 5
 select pg_temp.as_anon();
 select is((select count(*)::int from generate_series(1, 5) g cross join lateral api_public.read_agreement((select token from tokens where key = 'agr_lock'), repeat('1', 8 + 0 * g)) r), 0, 'five wrong access codes');
-select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr_lock'), (select code from tokens where key = 'agr_lock'))), 0, 'lock the token even for the right code');
+select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr_lock'), (select code from tokens where key = 'agr_lock'))), 0, 'inv_08_token_rpcs_hashed_secrets: lock the token even for the right code');
 select pg_temp.as_platform();
 select is((select failed_attempts::int from app.agreements where id = pg_temp.id('agr_lock')), 5, 'the token locked at 5');
 
 -- Signed agreements are never revoked or unsigned (journey 9)
 select pg_temp.as_user('carol');
-select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Canceled', 'Revoke.')$$, 'XR001', null, 'a signed agreement cannot be revoked');
-select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Proposed', 'Unsign.')$$, 'XR001', null, 'or unsigned');
+select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Canceled', 'Revoke.')$$, 'XR001', 'agreement_transition_not_allowed: A agreement cannot move from Signed to Canceled.', 'a signed agreement cannot be revoked');
+select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Proposed', 'Unsign.')$$, 'XR001', 'agreement_transition_not_allowed: A agreement cannot move from Signed to Proposed.', 'or unsigned');
 select throws_ok($$update app.agreements set title = 'Edited' where id = (select id from world where key = 'agr1')$$,
   'XR001', 'agreement_signed_permanent: A signed agreement is never revoked, unsigned or edited; supersede it with a new agreement.', 'or edited');
 select throws_ok($$update app.agreements set deleted_at = now() where id = (select id from world where key = 'agr1')$$, 'XR001', null, 'or deleted');
@@ -252,7 +252,7 @@ select lives_ok($$select app.transition_agreement((select id from world where ke
 select pg_temp.as_anon();
 select is((select count(*)::int from api_public.read_agreement((select token from tokens where key = 'agr_nda'), (select code from tokens where key = 'agr_nda'))), 0, 'a recalled token reads nothing');
 select pg_temp.as_user('carol');
-select throws_ok($$select app.send_agreement((select id from world where key = 'agr_nda'), 'Too long.', interval '1 year')$$, 'XR001', null, 'a signing token lives at most 90 days');
+select throws_ok($$select app.send_agreement((select id from world where key = 'agr_nda'), 'Too long.', interval '1 year')$$, 'XR001', null, 'inv_08_token_rpcs_hashed_secrets: a signing token lives at most 90 days');
 select lives_ok($$select app.send_agreement((select id from world where key = 'agr_nda'), 'Sent again.')$$, 'it is sent again');
 select pg_temp.as_user('mia');
 select throws_ok($$select app.sign_agreement((select id from world where key = 'agr_nda'), 'Mia Takahashi', repeat('0', 64))$$, '42501', null, 'only the person named signs while signed in');

@@ -81,7 +81,7 @@ insert into n values ('gina_1', private.notify(pg_temp.id('org_a'), pg_temp.id('
 select pg_temp.as_user('gina');
 select is((select count(*)::integer from app.notifications), 1, 'a member reads their notification');
 select app.leave_organization(pg_temp.id('org_a'));
-select is((select count(*)::integer from app.notifications), 0, 'after leaving, the notification is gone at once');
+select is((select count(*)::integer from app.notifications), 0, 'inv_03_leaving_ends_access: after leaving, the notification is gone at once');
 select pg_temp.as_platform();
 
 -- Claiming and sending ------------------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ select is((select address from claimed where recipient_person_id = pg_temp.id('d
 select is((select email_template_code from claimed where recipient_person_id = pg_temp.id('dave')), 'notification',
   'the claim names the React Email template');
 select is((select message_status from app.notification_deliveries where notification_id = (select id from n where key = 'gina_1') and channel = 'Email'),
-  'Suppressed'::app.message_status, 'a delivery to someone who left the org is suppressed');
+  'Suppressed'::app.message_status, 'inv_03_leaving_ends_access: a delivery to someone who left the org is suppressed');
 select is((select count(*)::integer from app.claim_notification_deliveries('Email', 50)), 0, 'a claimed delivery is not claimed twice');
 select lives_ok($$select app.record_notification_delivery((select delivery_id from claimed where recipient_person_id = pg_temp.id('dave')), 'Sent', 're_123', null)$$,
   'the sender records a sent email');

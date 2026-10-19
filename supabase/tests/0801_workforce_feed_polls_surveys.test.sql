@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(54);
+select plan(55);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -137,6 +137,8 @@ select pg_temp.as_user('frank');
 select is((select count(*)::integer from app.surveys where id = (select id from k where key = 'survey')), 0, 'a draft is hidden from the audience');
 select pg_temp.as_user('carol');
 select app.transition_survey((select id from k where key = 'survey'), 'Draft', 'Open', 'Ready.');
+select throws_ok($$select app.transition_survey((select id from k where key = 'survey'), 'Open', 'Draft', 'Back.')$$,
+  'XR001', 'survey_transition_not_allowed: A survey cannot move from Open to Draft.', 'an Open survey does not return to Draft');
 select throws_ok($$insert into app.survey_questions (survey_id, position, prompt, question_kind) values ((select id from k where key = 'survey'), 9, 'Late', 'Text')$$,
   '42501', null, 'questions are not written directly');
 select pg_temp.as_user('frank');

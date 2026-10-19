@@ -135,7 +135,7 @@ select ok(app.transition_dsar((select id from app.dsar_requests), 'Received', 'I
 select ok(app.transition_dsar((select id from app.dsar_requests), 'In Progress', 'Extended', 'Records span three projects.') is not null,
   'a request can be extended with a reason');
 select is((select due_at - received_at from app.dsar_request_clock), interval '90 days', 'an extension adds 60 days to the clock');
-select throws_ok($$select app.transition_dsar((select id from app.dsar_requests), 'Extended', 'Received', 'Back.')$$, 'XR001', null,
+select throws_ok($$select app.transition_dsar((select id from app.dsar_requests), 'Extended', 'Received', 'Back.')$$, 'XR001', 'dsar_transition_not_allowed: A dsar cannot move from Extended to Received.',
   'a request cannot move backwards');
 select throws_ok($$update app.dsar_requests set dsar_state = 'Completed'$$, 'XR001', null, 'state changes only through the transition RPC');
 select pg_temp.as_user('xavier');

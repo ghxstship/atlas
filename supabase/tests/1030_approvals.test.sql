@@ -107,8 +107,7 @@ select throws_ok($$update app.approval_policies set policy_state = 'Active' wher
   'XR001', null, 'the policy state changes only through its RPC');
 select lives_ok($$select app.transition_approval_policy((select id from world where key = 'pol'), 'Draft', 'Active', 'Ready.')$$, 'Draft to Active');
 select lives_ok($$select app.transition_approval_policy((select id from world where key = 'pol_req'), 'Draft', 'Active', 'Ready.')$$, 'the requisition policy is Active');
-select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol'), 'Active', 'Draft', 'Back.')$$,
-  'XR001', null, 'an Active policy cannot return to Draft');
+select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol'), 'Active', 'Draft', 'Back.')$$, 'XR001', 'approval_policy_transition_not_allowed: A approval policy cannot move from Active to Draft.', 'an Active policy cannot return to Draft');
 select throws_ok($$insert into app.approval_steps (approval_policy_id, step_order, name, approver_role_id) values ((select id from world where key = 'pol'), 3, 'Late', pg_temp.system_role('admin'))$$,
   'XR001', null, 'steps are frozen once the policy leaves Draft');
 select throws_ok($$update app.approval_steps set name = 'Renamed' where approval_policy_id = (select id from world where key = 'pol')$$,
@@ -123,8 +122,7 @@ insert into app.approval_steps (approval_policy_id, step_order, name, approver_r
 select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Draft', 'Active', 'Go.')$$,
   'XR001', null, 'only one policy per document type is Active');
 select lives_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Draft', 'Retired', 'Not needed.')$$, 'Draft to Retired');
-select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Retired', 'Active', 'Again.')$$,
-  'XR001', null, 'a Retired policy stays retired');
+select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Retired', 'Active', 'Again.')$$, 'XR001', null, 'a Retired policy stays retired');
 select pg_temp.as_user('carol');
 select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_empty'), 'Draft', 'Retired', 'x')$$,
   '42501', null, 'a Manager cannot move policies');
@@ -221,7 +219,7 @@ select pg_temp.as_platform();
 update app.setting_values set value_boolean = true where setting_key = 'approvals.requester_may_cancel' and org_id = pg_temp.id('org_a');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.cancel_approval((select id from world where key = 'ai3'), 'Withdrawn.')$$, 'the requester withdraws');
-select throws_ok($$select app.cancel_approval((select id from world where key = 'ai3'), 'Again.')$$, 'XR001', null, 'a Canceled approval stays canceled');
+select throws_ok($$select app.cancel_approval((select id from world where key = 'ai3'), 'Again.')$$, 'XR001', 'approval_transition_not_allowed: A approval cannot move from Canceled to Canceled.', 'a Canceled approval stays canceled');
 select pg_temp.as_platform();
 
 -- Supersession when the amount grows ----------------------------------------------------------------------

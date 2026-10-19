@@ -56,10 +56,10 @@ select matches((select token from tokens where key = 'pete'), '^xinv_[0-9a-f]{64
 select pg_temp.as_platform();
 select is((select email from app.invites where org_id = pg_temp.id('org_m')), 'pete@marigold.test', 'the invite email is normalized');
 select is((select token_hash from app.invites where org_id = pg_temp.id('org_m')),
-  sha256(convert_to((select token from tokens where key = 'pete'), 'UTF8')), 'only the SHA-256 of the token is stored');
+  sha256(convert_to((select token from tokens where key = 'pete'), 'UTF8')), 'inv_08_token_rpcs_hashed_secrets: only the SHA-256 of the token is stored');
 select ok(
   (select expires_at from app.invites where org_id = pg_temp.id('org_m')) = now() + interval '14 days',
-  'invites expire after 14 days by default');
+  'inv_08_token_rpcs_hashed_secrets: invites expire after 14 days by default');
 select pg_temp.as_user('olive');
 select throws_like(
   $$select * from app.invite_member(pg_temp.id('org_m'), 'pete@marigold.test', pg_temp.system_role('viewer'), interval '31 days')$$,
@@ -149,7 +149,7 @@ where token_hash = sha256(convert_to((select token from tokens where key = 'sam3
 select pg_temp.as_user('sam');
 select results_eq(
   $$select reason from app.accept_invite((select token from tokens where key = 'sam3'))$$,
-  array['invite_invalid'], 'a token locked after 5 mismatches is refused even for its owner');
+  array['invite_invalid'], 'inv_08_token_rpcs_hashed_secrets: a token locked after 5 mismatches is refused even for its owner');
 
 select pg_temp.as_user('bob');
 insert into tokens select 'quinn', i.invite_token from app.invite_member(pg_temp.id('org_a'), 'quinn@northwind.test', pg_temp.system_role('viewer')) i;

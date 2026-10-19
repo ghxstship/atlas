@@ -5,7 +5,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(35);
+select plan(36);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -98,7 +98,7 @@ select is((select count(*)::integer from app.form_submissions where form_templat
   'a holder of the approver role reads the submissions it approves');
 select throws_ok($$select app.decide_form_submission((select id from k where key = 'sub'), false)$$, 'XR001', null, 'a rejection needs a note');
 select lives_ok($$select app.decide_form_submission((select id from k where key = 'sub'), true, 'Good to lift.')$$, 'the approver approves');
-select throws_ok($$select app.decide_form_submission((select id from k where key = 'sub'), true)$$, 'XR001', null, 'a decision is final');
+select throws_ok($$select app.decide_form_submission((select id from k where key = 'sub'), true)$$, 'XR001', 'form_submission_state_conflict: The form submission is not in the expected state Submitted.', 'a decision is final');
 select is((select count(*)::integer from app.form_submission_state_transitions where form_submission_id = (select id from k where key = 'sub')), 2,
   'the ledger records submission and approval');
 
@@ -110,6 +110,8 @@ select throws_ok($$select app.decide_form_submission((select id from k where key
   'sod_form_submitter: The person who submitted a form cannot approve or reject it.', 'nobody approves their own submission');
 select pg_temp.as_user('dave');
 select app.retire_form_template((select id from k where key = 'tpl'), 'Replaced by the 2027 check.');
+select throws_ok($$select app.retire_form_template((select id from k where key = 'tpl'), 'Again.')$$,
+  'XR001', 'form_template_state_conflict: The form template is not in the expected state Published.', 'a retired form is not retired again');
 select pg_temp.as_user('frank');
 select throws_ok($$select app.submit_form((select id from k where key = 'tpl'), '{}'::jsonb)$$, 'XR001', null, 'a retired form takes no submissions');
 

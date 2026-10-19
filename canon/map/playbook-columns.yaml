@@ -15,6 +15,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: B
         header: ""
         key: b
@@ -22,6 +23,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: C
         header: ""
         key: c
@@ -29,6 +31,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: D
         header: ""
         key: d
@@ -36,6 +39,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: ""
         key: e
@@ -43,6 +47,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: ""
         key: f
@@ -50,6 +55,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: ""
         key: g
@@ -57,6 +63,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: H
         header: ""
         key: h
@@ -64,6 +71,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: I
         header: ""
         key: i
@@ -71,6 +79,7 @@ sheets:
         target: xpms.production_template_metadata.value_text
         type: text
         transform: Cover cell stored at its row and column; a formula cell keeps its evaluated value and its formula text as template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
   - sheet: Projects
     key: projects
     destination: production-template
@@ -248,6 +257,7 @@ sheets:
         target: app.domain_events.project_id
         type: text
         transform: Project of the domain event the activity row projects (activity_events.domain_event_id).
+        api: Exposed as app.activity_events.project_id
       - letter: D
         header: DEPARTMENT
         key: department
@@ -255,6 +265,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.activity_events carries no URID; an activity row inherits its classification from the subject of its domain event."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: CATEGORY
         key: category
@@ -262,6 +273,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.activity_events carries no URID; an activity row inherits its classification from the subject of its domain event."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
@@ -269,6 +281,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: TIMESTAMP
         key: timestamp
@@ -276,6 +289,7 @@ sheets:
         target: app.domain_events.occurred_at
         type: text
         transform: When the domain event occurred.
+        api: Exposed as app.activity_events.occurred_at
       - letter: H
         header: LOCATION / ZONE
         key: location_zone
@@ -283,6 +297,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: location is a property of the event's subject, not of the activity row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: I
         header: SUBJECT / ITEM
         key: subject_item
@@ -290,6 +305,7 @@ sheets:
         target: app.domain_events.subject_id
         type: text
         transform: Subject row of the domain event (with subject_table).
+        api: Exposed as app.activity_events.subject_urn
       - letter: J
         header: DESCRIPTION
         key: description
@@ -297,6 +313,7 @@ sheets:
         target: app.domain_events.event_type
         type: text
         transform: Description resolves to the domain event type; its display label comes from the i18n catalog.
+        api: Exposed as app.activity_events.verb
       - letter: K
         header: PARTY INVOLVED
         key: party_involved
@@ -304,6 +321,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: parties are those of the event's subject; the activity row names only its actor."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: QTY / VALUE
         key: qty_value
@@ -311,6 +329,7 @@ sheets:
         target: app.domain_events.data
         type: text
         transform: Quantity or value carried in the domain event payload.
+        api: "Not exposed: the domain event payload is internal; the activity feed returns its summary."
       - letter: M
         header: PRIORITY
         key: priority
@@ -318,6 +337,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: activity rows are immutable facts and carry no priority."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: N
         header: LOGGED BY
         key: logged_by
@@ -325,6 +345,7 @@ sheets:
         target: app.activity_events.actor_person_id
         type: text
         transform: Person who performed the action.
+        api: Exposed as app.activity_events.actor_id
       - letter: O
         header: REFERENCE ID
         key: reference_id
@@ -339,6 +360,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: activity rows are immutable facts and have no lifecycle state."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Q
         header: FLAG
         key: flag
@@ -346,6 +368,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: R
         header: NOTES
         key: notes
@@ -452,6 +475,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the deliverable is named in free text; XOS models deliverables as Document records (Section 3.10), which the template does not mint by name."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: SOP ID
         key: sop_id
@@ -466,6 +490,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the owner role column holds people's initials (TIGRE/JC), not role codes; the owner is the personnel id."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: N
         header: PERSONNEL ID
         key: personnel_id
@@ -494,6 +519,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: numeric
         transform: "Template only: duration is derived from starts_at and ends_at (Section 3.15)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: R
         header: CRITICAL PATH
         key: critical_path
@@ -501,6 +527,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the critical path is computed from record dependencies at read time (Section 11, Schedule)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: S
         header: TOTAL TASKS
         key: total_tasks
@@ -539,6 +566,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: X
         header: NOTES
         key: notes
@@ -655,6 +683,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: numeric
         transform: "Template only: duration is derived from starts_at and ends_at (Section 3.15)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: P
         header: PREDECESSORS
         key: predecessors
@@ -662,6 +691,7 @@ sheets:
         target: app.record_dependencies.predecessor_record_id
         type: text
         transform: Each predecessor task becomes a Finish to Start dependency.
+        api: Exposed as app.record_dependencies.predecessor_id
       - letter: Q
         header: PRIORITY
         key: priority
@@ -676,6 +706,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the deliverable is named in free text; XOS models deliverables as Document records (Section 3.10), which the template does not mint by name."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: S
         header: LINKED WORK ORDER ID
         key: linked_work_order_id
@@ -711,6 +742,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: X
         header: NOTES
         key: notes
@@ -760,6 +792,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: WORK ORDER TYPE
         key: work_order_type
@@ -796,6 +829,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the item a work order installs is reached through its record's supply lines; work orders hold no element."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: K
         header: TEAM CODE
         key: team_code
@@ -853,6 +887,7 @@ sheets:
         target: app.work_orders.scheduled_ends_at
         type: date
         transform: Scheduled end.
+        api: Exposed as app.work_orders.due_at
       - letter: S
         header: ACTUAL START DATE
         key: actual_start_date
@@ -860,6 +895,7 @@ sheets:
         target: app.schedule_actuals.actual_starts_at
         type: date
         transform: Actual start of the work order's record.
+        api: Exposed as app.schedule_actuals.actual_start_at
       - letter: T
         header: ACTUAL END DATE
         key: actual_end_date
@@ -867,6 +903,7 @@ sheets:
         target: app.schedule_actuals.actual_ends_at
         type: date
         transform: Actual end of the work order's record.
+        api: Exposed as app.schedule_actuals.actual_end_at
       - letter: U
         header: ESTIMATED HOURS
         key: estimated_hours
@@ -881,6 +918,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: numeric
         transform: "Template only: actual hours are derived from time entries (Section 3.15)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: W
         header: LABOR RATE
         key: labor_rate
@@ -889,6 +927,7 @@ sheets:
         type: numeric
         transform: "Template only: the labor rate resolves from the rate card of the assigned role; the work order does not restate it."
         real_world: price
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: X
         header: TOTAL LABOR COST
         key: total_labor_cost
@@ -904,6 +943,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a hazard rating has no list in the Enumerations library; the work order's safety notes go on its comment thread."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Z
         header: COMPLETION PERCENTAGE
         key: completion_percentage
@@ -925,6 +965,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: AC
         header: RESOLUTION NOTES
         key: resolution_notes
@@ -1033,6 +1074,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: time
         transform: "Template only: the end time is derived as planned_at plus duration (Section 3.15)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: K
         header: DURATION (MIN)
         key: duration_min
@@ -1103,6 +1145,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: U
         header: NOTES
         key: notes
@@ -1263,6 +1306,7 @@ sheets:
         disposition: field
         target: xpms.std_sop.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: V
         header: NOTES
         key: notes
@@ -1275,18 +1319,21 @@ sheets:
         disposition: field
         target: xpms.std_sop.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: X
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_sop.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: Y
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_sop.updated_at
         type: date
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
   - sheet: Locations
     key: locations
     destination: production-template
@@ -1351,6 +1398,7 @@ sheets:
         target: app.spaces.deleted_at
         type: text
         transform: Active while deleted_at is null; spaces have no other state.
+        api: "Not exposed: soft-delete marker; lists and reads leave deleted rows out, and DELETE sets it."
       - letter: I
         header: FLAG
         key: flag
@@ -1358,6 +1406,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: J
         header: NOTES
         key: notes
@@ -1425,6 +1474,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: VENDOR ID
         key: vendor_id
@@ -1540,6 +1590,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the shipment's point person is the owner of its logistics record; shipments hold no person column."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: V
         header: LOCATION ID
         key: location_id
@@ -1563,6 +1614,7 @@ sheets:
         type: text
         transform: "Template only: a carrier's phone is contact data the identity model (Section 4.8) holds for people, not for carriers."
         real_world: contact
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Y
         header: TRAILER LICENSE
         key: trailer_license
@@ -1616,6 +1668,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: AF
         header: NOTES
         key: notes
@@ -1683,6 +1736,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: VEHICLE CALLSIGN
         key: vehicle_callsign
@@ -1726,6 +1780,7 @@ sheets:
         type: text
         transform: "Template only: a carrier's phone is contact data the identity model (Section 4.8) holds for people, not for carriers."
         real_world: contact
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: TRAILER LICENSE
         key: trailer_license
@@ -1805,6 +1860,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: W
         header: NOTES
         key: notes
@@ -1864,6 +1920,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.advance_submissions carries no URID; an advance submission is an answer to a section of an advance packet."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: CATEGORY
         key: category
@@ -1871,6 +1928,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.advance_submissions carries no URID; an advance submission is an answer to a section of an advance packet."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
@@ -1878,6 +1936,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: VENDOR ID
         key: vendor_id
@@ -1906,6 +1965,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an advance answer is narrative; a costed request becomes a requisition or budget line, which carry the URID."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: K
         header: QUANTITY
         key: quantity
@@ -1913,6 +1973,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an advance answer is narrative; quantities belong on the requisition or budget line it leads to."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: UNIT BASIS
         key: unit_basis
@@ -1920,6 +1981,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an advance answer is narrative; units belong on the requisition or budget line it leads to."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: M
         header: ESTIMATE RATE
         key: estimate_rate
@@ -1927,6 +1989,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an advance answer is narrative; rates belong on the requisition or budget line it leads to."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: N
         header: TOTAL ESTIMATE
         key: total_estimate
@@ -1934,6 +1997,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a total is derived (Section 3.15) and an advance answer stores no amounts."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: O
         header: LOCATION ID
         key: location_id
@@ -1941,6 +2005,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an advance answer names no space; logistics needs become records with a location."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: P
         header: NEEDED BY DATE
         key: needed_by_date
@@ -1962,6 +2027,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: approval is recorded by the reviewer (reviewed_by); the approving role is not stored."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: S
         header: APPROVAL DATE
         key: approval_date
@@ -1976,6 +2042,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an advance answer is not linked to a purchase order; the order references its requisition."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: U
         header: STATUS
         key: status
@@ -1990,6 +2057,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: W
         header: NOTES
         key: notes
@@ -2048,6 +2116,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.fulfillments carries no URID; a fulfillment is classified by its fulfillment_kind."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: CATEGORY
         key: category
@@ -2062,6 +2131,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: ARTIST NAME
         key: artist_name
@@ -2076,6 +2146,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the place of service is the BEO's or the rider's; the fulfillment names no space."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: I
         header: LIAISON ID
         key: liaison_id
@@ -2104,6 +2175,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: dietary needs are sensitive Work Details (Section 4, profile) shared per engagement with consent; they have no home yet."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: M
         header: HEADCOUNT
         key: headcount
@@ -2125,6 +2197,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the delivery point is free text on the BEO; the column is empty in the Playbook."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: P
         header: SERVICE STYLE
         key: service_style
@@ -2132,6 +2205,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the service style is free text on the BEO; the column is empty in the Playbook."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Q
         header: STATUS
         key: status
@@ -2146,6 +2220,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: S
         header: NOTES
         key: notes
@@ -2230,6 +2305,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a free attribute of the physical unit; the unit records identifiers and condition, not appearance."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: H
         header: MAKE & MODEL
         key: make_and_model
@@ -2237,6 +2313,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: make and model belong to the asset class and its element, not to each unit; the column is empty in the Playbook."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: I
         header: SERIAL NUMBER
         key: serial_number
@@ -2252,6 +2329,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a working nickname (Radio 01); the unit is identified by its asset tag."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: K
         header: QUANTITY
         key: quantity
@@ -2259,6 +2337,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: numeric
         transform: "Template only: a unit is one physical thing (grain unit, Section 3.9); quantities apply to lots (app.asset_lots)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: CONDITION
         key: condition
@@ -2280,6 +2359,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the renting or owning vendor of a unit has no column; ownership is recorded through the procurement record that brought it in."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: O
         header: UNIT COST
         key: unit_cost
@@ -2302,6 +2382,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: R
         header: NOTES
         key: notes
@@ -2374,6 +2455,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: ASSET ID
         key: asset_id
@@ -2395,6 +2477,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: radio all-call group of the custodian; the radio plan (app.radio_channels) holds channels, not per-person groups."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: J
         header: STATUS
         key: status
@@ -2402,6 +2485,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: custody rows are a history; the current custodian is the latest row and no state is stored."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: K
         header: FLAG
         key: flag
@@ -2409,6 +2493,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: NOTES
         key: notes
@@ -2500,6 +2585,7 @@ sheets:
         type: text
         transform: "Template only: the identity model (Section 4.8) holds no phone number; SMS numbers are stored only with consent."
         real_world: contact
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: I
         header: COMPANY
         key: company
@@ -2543,6 +2629,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: O
         header: CLEARANCE TIER
         key: clearance_tier
@@ -2592,6 +2679,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: V
         header: SHIRT SIZE
         key: shirt_size
@@ -2599,6 +2687,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: W
         header: SPECIAL ACCOMMODATIONS
         key: special_accommodations
@@ -2606,6 +2695,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: X
         header: EMERGENCY CONTACT NAME
         key: emergency_contact_name
@@ -2614,6 +2704,7 @@ sheets:
         type: text
         transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
         real_world: person
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Y
         header: EMERGENCY CONTACT PHONE
         key: emergency_contact_phone
@@ -2622,6 +2713,7 @@ sheets:
         type: text
         transform: "Template only: sensitive Work Details (Section 4, profile: emergency contacts, uniform sizes, dietary and accessibility needs) shared per engagement only with consent; they have no home yet and the template does not create them."
         real_world: contact
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Z
         header: STATUS
         key: status
@@ -2636,6 +2728,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: AB
         header: NOTES
         key: notes
@@ -2716,6 +2809,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: numeric
         transform: "Template only: duration is derived from starts_on and ends_on (Section 3.15)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: H
         header: STANDARD RATE
         key: standard_rate
@@ -2746,6 +2840,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: NOTES
         key: notes
@@ -2840,6 +2935,7 @@ sheets:
         target: xpms.rate_card.rate_card_id
         type: text
         transform: Rate card resolved from the shift's role (Labor Rate Cards); the shift does not restate it.
+        api: Exposed as xpms.rate_card_resolved.rate_card_id
       - letter: J
         header: JOB TITLE
         key: job_title
@@ -2923,6 +3019,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: U
         header: NOTES
         key: notes
@@ -3184,6 +3281,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: AE
         header: NOTES
         key: notes
@@ -3220,12 +3318,14 @@ sheets:
         disposition: field
         target: xpms.rate_card.rate_card_id
         type: text
+        api: Exposed as xpms.rate_card_resolved.rate_card_id
       - letter: B
         header: ROLE CODE
         key: role_code
         disposition: field
         target: xpms.rate_card.role_code
         type: text
+        api: Exposed as xpms.rate_card_resolved.role_code
       - letter: C
         header: JOB TITLE
         key: job_title
@@ -3241,12 +3341,14 @@ sheets:
         target: xpms.rate_card.worker_classification
         type: text
         transform: "Ruling D16: Engagement Type becomes worker_classification and arrangement (canon/rulings/owner-rulings.yaml engagement_types)."
+        api: Exposed as xpms.rate_card_resolved.worker_classification
       - letter: E
         header: PAY BASIS
         key: pay_basis
         disposition: field
         target: xpms.rate_card.pay_basis
         type: text
+        api: Exposed as xpms.rate_card_resolved.pay_basis
       - letter: F
         header: STANDARD RATE
         key: standard_rate
@@ -3254,6 +3356,7 @@ sheets:
         target: xpms.rate_card.standard_rate_minor
         type: numeric
         transform: Dollars to minor units of currency_code.
+        api: Exposed as xpms.rate_card_resolved.standard_rate_minor
       - letter: G
         header: MIN GRADE RATE
         key: min_grade_rate
@@ -3261,6 +3364,7 @@ sheets:
         target: xpms.rate_card.min_grade_rate_minor
         type: numeric
         transform: Dollars to minor units of currency_code.
+        api: Exposed as xpms.rate_card_resolved.min_grade_rate_minor
       - letter: H
         header: MAX GRADE RATE
         key: max_grade_rate
@@ -3268,6 +3372,7 @@ sheets:
         target: xpms.rate_card.max_grade_rate_minor
         type: numeric
         transform: Dollars to minor units of currency_code.
+        api: Exposed as xpms.rate_card_resolved.max_grade_rate_minor
       - letter: I
         header: OT MULTIPLIER
         key: ot_multiplier
@@ -3275,6 +3380,7 @@ sheets:
         target: xpms.rate_card.overtime_rule_id
         type: text
         transform: "Ruling D14: the multiplier pair resolves to an overtime_rule; 1.5x text is parsed."
+        api: Exposed as xpms.rate_card_resolved.overtime_rule_id
       - letter: J
         header: DT MULTIPLIER
         key: dt_multiplier
@@ -3282,6 +3388,7 @@ sheets:
         target: xpms.rate_card.overtime_rule_id
         type: text
         transform: "Ruling D14: the multiplier pair resolves to an overtime_rule."
+        api: Exposed as xpms.rate_card_resolved.overtime_rule_id
       - letter: K
         header: PER DIEM RATE
         key: per_diem_rate
@@ -3289,6 +3396,7 @@ sheets:
         target: xpms.rate_card.per_diem_rate_minor
         type: numeric
         transform: Dollars to minor units of currency_code.
+        api: Exposed as xpms.rate_card_resolved.per_diem_rate_minor
       - letter: L
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
@@ -3310,36 +3418,42 @@ sheets:
         disposition: field
         target: xpms.rate_card.source_status
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: O
         header: FLAG
         key: flag
         disposition: field
         target: xpms.rate_card.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: P
         header: NOTES
         key: notes
         disposition: field
         target: xpms.rate_card.notes
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: Q
         header: CREATED BY
         key: created_by
         disposition: field
         target: xpms.rate_card.source_created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: R
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.rate_card.source_created_at
         type: date
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: S
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.rate_card.source_updated_at
         type: date
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select rc.source_row, xpms.pb_text(rc.rate_card_id) as rate_card_id, xpms.pb_text(rc.role_code) as role_code, xpms.pb_text(v.job_title) as job_title, case when rc.worker_classification = 'EMPLOYEE' then 'W2 Daily' when rc.worker_classification = 'VENDOR_SUPPLIED' then 'Vendor Master' when rc.arrangement = 'Retainer' then 'Retainer' else 'Contractor 1099' end as engagement_type, xpms.pb_text(rc.pay_basis) as pay_basis, xpms.pb_num(rc.standard_rate_minor / 100.0) as standard_rate, xpms.pb_num(rc.min_grade_rate_minor / 100.0) as min_grade_rate, xpms.pb_num(rc.max_grade_rate_minor / 100.0) as max_grade_rate, xpms.pb_num(v.ot_multiplier) as ot_multiplier, xpms.pb_num(v.dt_multiplier) as dt_multiplier, xpms.pb_num(rc.per_diem_rate_minor / 100.0) as per_diem_rate, xpms.pb_text(v.gl_account) as default_gl_account, xpms.pb_text(v.gl_account_name) as default_gl_name, xpms.pb_text(rc.source_status) as status, xpms.pb_bool(rc.flag) as flag, xpms.pb_text(rc.notes) as notes, xpms.pb_text(rc.source_created_by) as created_by, xpms.pb_ts(rc.source_created_at) as created_at, xpms.pb_ts(rc.source_updated_at) as updated_at from xpms.rate_card rc join xpms.rate_card_resolved v on v.rate_card_id = rc.rate_card_id
   - sheet: Roles Library
     key: roles_library
@@ -3425,12 +3539,14 @@ sheets:
         disposition: field
         target: xpms.role.source_status
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: N
         header: FLAG
         key: flag
         disposition: field
         target: xpms.role.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: O
         header: NOTES
         key: notes
@@ -3443,18 +3559,21 @@ sheets:
         disposition: field
         target: xpms.role.source_created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: Q
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.role.source_created_at
         type: date
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: R
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.role.source_updated_at
         type: date
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select r.source_row, xpms.pb_text(r.role_code) as role_code, xpms.pb_text(r.job_title) as job_title, xpms.pb_text(d.dept_code || ' ' || d.department) as department, xpms.pb_text(r.discipline) as discipline, xpms.pb_text(r.rank) as rank, xpms.pb_text(r.job_summary) as job_summary, xpms.pb_text(r.key_responsibilities) as key_responsibilities, xpms.pb_text(r.qualifications) as qualifications, xpms.pb_text(r.physical_requirements) as physical_requirements, xpms.pb_text(r.required_certifications) as required_certifications, xpms.pb_text(r.default_clearance_tier) as default_clearance_tier, xpms.pb_text(r.default_radio_channel) as default_radio_channel, xpms.pb_text(r.source_status) as status, xpms.pb_bool(r.flag) as flag, xpms.pb_text(r.notes) as notes, xpms.pb_text(r.source_created_by) as created_by, xpms.pb_ts(r.source_created_at) as created_at, xpms.pb_ts(r.source_updated_at) as updated_at from xpms.role r join xpms.dim_department d on d.dept_code = r.class_code
   - sheet: Credential Issuance
     key: credential_issuance
@@ -3506,6 +3625,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: CREDENTIAL SERIAL
         key: credential_serial
@@ -3563,6 +3683,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: badge return is not tracked; revocation (revoked_at) ends a credential."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: O
         header: STATUS
         key: status
@@ -3577,6 +3698,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Q
         header: NOTES
         key: notes
@@ -3635,6 +3757,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.access_grid carries no URID; an access grid row is classified by its zone and credential category."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: CATEGORY
         key: category
@@ -3642,6 +3765,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.access_grid carries no URID; an access grid row is classified by its zone and credential category."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
@@ -3649,6 +3773,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: CREDENTIAL
         key: credential
@@ -3684,6 +3809,7 @@ sheets:
         target: app.access_grid.deleted_at
         type: text
         transform: Active while deleted_at is null; the grid row has no other state.
+        api: "Not exposed: soft-delete marker; lists and reads leave deleted rows out, and DELETE sets it."
       - letter: L
         header: FLAG
         key: flag
@@ -3691,6 +3817,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: M
         header: NOTES
         key: notes
@@ -3800,6 +3927,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: ITEM
         key: item
@@ -3936,6 +4064,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: AE
         header: EXTERNAL NOTES
         key: external_notes
@@ -4044,6 +4173,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the PO line a change touches is reached through the budget line both share (change_order_lines.budget_line_id)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: EXPENSE REF ID
         key: expense_ref_id
@@ -4079,6 +4209,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the reason code restates the change order type one to one (RC-SCOPE with Scope Addition, RC-UPGRADE with Material Upgrade)."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: J
         header: DESCRIPTION
         key: description
@@ -4187,6 +4318,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Y
         header: NOTES
         key: notes
@@ -4342,6 +4474,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: R
         header: NOTES
         key: notes
@@ -4759,6 +4892,7 @@ sheets:
         type: text
         transform: "Template only: the Playbook names a desk or initials (Fuel Dispatch, R. Kowalski), not a person the identity model can hold."
         real_world: person
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: K
         header: PRIMARY EMAIL
         key: primary_email
@@ -4775,6 +4909,7 @@ sheets:
         type: text
         transform: "Template only: the identity model (Section 4.8) holds no phone number for organizations."
         real_world: contact
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: M
         header: TAX ID
         key: tax_id
@@ -4783,6 +4918,7 @@ sheets:
         type: text
         transform: Taxpayer identification number of the vendor's W-9, stored encrypted.
         real_world: identifier
+        api: "Not exposed: Restricted (data.restricted.read.tax); the encrypted TIN is readable only by the service role for year-end export."
       - letter: N
         header: DEFAULT GL ACCOUNT
         key: default_gl_account
@@ -4860,6 +4996,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: Y
         header: NOTES
         key: notes
@@ -4960,6 +5097,7 @@ sheets:
         disposition: field
         target: xpms.std_vendor_class.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: L
         header: NOTES
         key: notes
@@ -4972,18 +5110,21 @@ sheets:
         disposition: field
         target: xpms.std_vendor_class.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: N
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_vendor_class.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: O
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_vendor_class.updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
   - sheet: Vendor Entitlements
     key: vendor_entitlements
     destination: standard-library
@@ -5041,6 +5182,7 @@ sheets:
         disposition: field
         target: xpms.std_vendor_entitlement.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: NOTES
         key: notes
@@ -5053,18 +5195,21 @@ sheets:
         disposition: field
         target: xpms.std_vendor_entitlement.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: K
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_vendor_entitlement.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: L
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_vendor_entitlement.updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
   - sheet: Inspection Compliance
     key: inspection_compliance
     destination: production-template
@@ -5114,6 +5259,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: INSPECTION TYPE
         key: inspection_type
@@ -5151,6 +5297,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a permit document is an attachment of the permit record; the PMT id is a Playbook token."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: L
         header: LOCATION ID
         key: location_id
@@ -5158,6 +5305,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: an inspection covers its template's scope; the space is named on the inspection record."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: M
         header: VENDOR ID
         key: vendor_id
@@ -5165,6 +5313,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the inspected vendor is the counterparty of the inspection record's engagement; inspections hold no vendor column."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: N
         header: INSPECTOR NAME
         key: inspector_name
@@ -5215,6 +5364,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a sign-off link is an attachment of the inspection; the column is empty in the Playbook."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: U
         header: STATUS
         key: status
@@ -5229,6 +5379,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: bool
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: W
         header: NOTES
         key: notes
@@ -5287,6 +5438,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.incidents carries no URID; an incident is classified by severity and zone."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: E
         header: CATEGORY
         key: category
@@ -5294,6 +5446,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: app.incidents carries no URID; an incident is classified by severity and zone."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: F
         header: SUB CATEGORY
         key: sub_category
@@ -5301,6 +5454,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the URID has no fourth segment (Section 3.3), so a sub category below the category has no column; the label stays in the template."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: G
         header: INCIDENT TIMESTAMP
         key: incident_timestamp
@@ -5349,6 +5503,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the outside agency or unit is free text; dispatch assignments name members of the org."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: N
         header: DISPATCH TIME
         key: dispatch_time
@@ -5377,6 +5532,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: a police report number is recorded on the incident's comment thread; the column is empty in the Playbook."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: R
         header: INCIDENT SUMMARY
         key: incident_summary
@@ -5391,6 +5547,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the resolution protocol is the emergency protocol of the alert's code (xpms.emergency_protocol), not a fact of the incident."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: T
         header: FOLLOW UP REQUIRED
         key: follow_up_required
@@ -5398,6 +5555,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: follow-up work becomes a record linked to the incident; the column is empty in the Playbook."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: U
         header: STATUS
         key: status
@@ -5412,6 +5570,7 @@ sheets:
         target: xpms.production_template_values.value_text
         type: text
         transform: "Template only: the spreadsheet's attention checkbox. XOS keeps no per-row flag column; attention is a favorite, a watcher or an inbox item of a person, not a fact of the row."
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: W
         header: NOTES
         key: notes
@@ -5456,6 +5615,7 @@ sheets:
         type: text
         formula: ='Cover Page'!$I$8
         transform: Formula reference to Cover Page I8; ruling D15 drops organization from protocols, so it is read from the template metadata.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: C
         header: PROJECT
         key: project
@@ -5464,6 +5624,7 @@ sheets:
         type: text
         formula: ='Cover Page'!$C$7
         transform: Formula reference to Cover Page C7; ruling D15 drops project from protocols.
+        api: "Not exposed: Production Template store, read and written by the Playbook import and export (canon/import), not a REST resource."
       - letter: D
         header: DEPARTMENT
         key: department
@@ -5514,36 +5675,42 @@ sheets:
         disposition: field
         target: xpms.emergency_protocol.source_status
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: L
         header: FLAG
         key: flag
         disposition: field
         target: xpms.emergency_protocol.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: M
         header: NOTES
         key: notes
         disposition: field
         target: xpms.emergency_protocol.notes
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: N
         header: CREATED BY
         key: created_by
         disposition: field
         target: xpms.emergency_protocol.source_created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: O
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.emergency_protocol.source_created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: P
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.emergency_protocol.source_updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: "select p.source_row, xpms.pb_text(p.record_key) as record_id, xpms.pb_text(xpms.pb_cover(8, 9)) as organization, xpms.pb_text(xpms.pb_cover(7, 3)) as project, xpms.pb_text(p.department) as department, xpms.pb_text(p.category) as category, xpms.pb_text(p.sub_category) as sub_category, xpms.pb_text(c.emergency) as emergency, replace(c.code, '_', ' ') as radio_call, xpms.pb_text(p.domain) as operational_domain, xpms.pb_text('Actions: ' || (select string_agg(s.step_no || '. ' || s.body, ' ' order by s.step_no) from xpms.emergency_protocol_step s where s.record_key = p.record_key)) as action_protocol, xpms.pb_text(p.source_status) as status, xpms.pb_bool(p.flag) as flag, xpms.pb_text(p.notes) as notes, xpms.pb_text(p.source_created_by) as created_by, xpms.pb_ts(p.source_created_at) as created_at, xpms.pb_ts(p.source_updated_at) as updated_at from xpms.emergency_protocol p join xpms.emergency_code c on c.code = p.code"
   - sheet: Radio Channels
     key: radio_channels
@@ -5620,6 +5787,7 @@ sheets:
         disposition: field
         target: xpms.std_radio_channel.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: L
         header: NOTES
         key: notes
@@ -5632,18 +5800,21 @@ sheets:
         disposition: field
         target: xpms.std_radio_channel.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: N
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_radio_channel.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: O
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_radio_channel.updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
   - sheet: Document & Asset Library
     key: document_asset_library
     destination: standard-library
@@ -5751,6 +5922,7 @@ sheets:
         disposition: field
         target: xpms.std_document_library.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: R
         header: NOTES
         key: notes
@@ -5763,18 +5935,21 @@ sheets:
         disposition: field
         target: xpms.std_document_library.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: T
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_document_library.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: U
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_document_library.updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
   - sheet: GL Accounts
     key: gl_accounts
     destination: canon-mirror
@@ -5829,6 +6004,7 @@ sheets:
         target: xpms.dim_gl_account.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: H
         header: CREATED BY
         key: created_by
@@ -5836,6 +6012,7 @@ sheets:
         target: xpms.dim_gl_account.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: CREATED AT
         key: created_at
@@ -5843,6 +6020,7 @@ sheets:
         target: xpms.dim_gl_account.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: J
         header: UPDATED AT
         key: updated_at
@@ -5850,6 +6028,7 @@ sheets:
         target: xpms.dim_gl_account.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select d.source_row, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'ACCOUNT CODE', (d.account_code)::text)) as account_code, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'ACCOUNT NAME', (d.account_name)::text)) as account_name, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'ACCOUNT TYPE', (d.account_type)::text)) as account_type, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'TAX TYPE', (d.tax_type)::text)) as tax_type, xpms.pb_text(t.normal_balance) as normal_balance, xpms.pb_text(xpms.pb_overlay('GL Accounts', d.source_row::integer, 'DESCRIPTION', (d.description)::text)) as description, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_gl_account d join xpms.dim_gl_account_type t on t.account_type = d.account_type where d.source_row is not null
   - sheet: Cost Centers
     key: cost_centers
@@ -5898,6 +6077,7 @@ sheets:
         target: xpms.dim_cost_center_template.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: G
         header: CREATED BY
         key: created_by
@@ -5905,6 +6085,7 @@ sheets:
         target: xpms.dim_cost_center_template.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: H
         header: CREATED AT
         key: created_at
@@ -5912,6 +6093,7 @@ sheets:
         target: xpms.dim_cost_center_template.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: UPDATED AT
         key: updated_at
@@ -5919,6 +6101,7 @@ sheets:
         target: xpms.dim_cost_center_template.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'COST CENTER CODE', (d.cost_center_id)::text)) as cost_center_code, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'COST CENTER NAME', (d.cost_center)::text)) as cost_center_name, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'DIMENSION', (d.kind)::text)) as dimension, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'SCOPE CODE', (d.scope_code)::text)) as scope_code, xpms.pb_text(xpms.pb_overlay('Cost Centers', d.source_row::integer, 'ALLOCATION SCOPE', (d.note)::text)) as allocation_scope, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_cost_center_template d where d.source_row is not null
   - sheet: Departments
     key: departments
@@ -5967,6 +6150,7 @@ sheets:
         target: xpms.dim_department.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: G
         header: CREATED BY
         key: created_by
@@ -5974,6 +6158,7 @@ sheets:
         target: xpms.dim_department.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: H
         header: CREATED AT
         key: created_at
@@ -5981,6 +6166,7 @@ sheets:
         target: xpms.dim_department.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: UPDATED AT
         key: updated_at
@@ -5988,6 +6174,7 @@ sheets:
         target: xpms.dim_department.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Departments', d.source_row::integer, 'CLASS CODE', (d.dept_code)::text)) as class_code, xpms.pb_text(xpms.pb_overlay('Departments', d.source_row::integer, 'DEPARTMENT NAME', (d.department)::text)) as department_name, xpms.pb_text(d.executive_lead) as executive_lead, xpms.pb_text(d.core_function) as core_function, xpms.pb_text(d.scope) as scope, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_department d where d.source_row is not null
   - sheet: Disciplines
     key: disciplines
@@ -6029,6 +6216,7 @@ sheets:
         target: xpms.dim_discipline.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: F
         header: CREATED BY
         key: created_by
@@ -6036,6 +6224,7 @@ sheets:
         target: xpms.dim_discipline.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: G
         header: CREATED AT
         key: created_at
@@ -6043,6 +6232,7 @@ sheets:
         target: xpms.dim_discipline.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: H
         header: UPDATED AT
         key: updated_at
@@ -6050,6 +6240,7 @@ sheets:
         target: xpms.dim_discipline.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DISCIPLINE CODE', (d.disc_code)::text)) as discipline_code, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DISCIPLINE NAME', (d.discipline)::text)) as discipline_name, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DEPARTMENT CLASS', (d.dept_code)::text)) as department_class, xpms.pb_text(xpms.pb_overlay('Disciplines', d.source_row::integer, 'DESCRIPTION', (d.source)::text)) as description, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_discipline d where d.source_row is not null
   - sheet: Categories & URID Master
     key: categories_urid_master
@@ -6112,6 +6303,7 @@ sheets:
         target: xpms.dim_category.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: CREATED BY
         key: created_by
@@ -6119,6 +6311,7 @@ sheets:
         target: xpms.dim_category.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: J
         header: CREATED AT
         key: created_at
@@ -6126,6 +6319,7 @@ sheets:
         target: xpms.dim_category.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: K
         header: UPDATED AT
         key: updated_at
@@ -6133,6 +6327,7 @@ sheets:
         target: xpms.dim_category.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'URID', (d.cat_urid)::text)) as urid, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DEPARTMENT', (dep.department)::text)) as department, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DISCIPLINE', (dis.discipline)::text)) as discipline, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'CATEGORY', (d.category)::text)) as category, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DEFAULT COST CENTER', (gl.default_cost_center)::text)) as default_cost_center, xpms.pb_text(xpms.pb_overlay('Categories & URID Master', d.source_row::integer, 'DEFAULT GL ACCOUNT', (gl.account_code)::text)) as default_gl_account, xpms.pb_text(d.xyz) as schema_family_xyz, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_category d join xpms.dim_discipline dis on dis.disc_code = d.disc_code join xpms.dim_department dep on dep.dept_code = dis.dept_code join xpms.v_category_gl gl on gl.cat_urid = d.cat_urid where d.source_row is not null
   - sheet: Teams
     key: teams
@@ -6188,6 +6383,7 @@ sheets:
         target: xpms.dim_team.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: H
         header: CREATED BY
         key: created_by
@@ -6195,6 +6391,7 @@ sheets:
         target: xpms.dim_team.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: CREATED AT
         key: created_at
@@ -6202,6 +6399,7 @@ sheets:
         target: xpms.dim_team.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: J
         header: UPDATED AT
         key: updated_at
@@ -6209,6 +6407,7 @@ sheets:
         target: xpms.dim_team.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: select d.source_row, xpms.pb_text(xpms.pb_overlay('Teams', d.source_row::integer, 'TEAM CODE', (d.team_id)::text)) as team_code, xpms.pb_text(xpms.pb_overlay('Teams', d.source_row::integer, 'TEAM NAME', (d.team)::text)) as team_name, xpms.pb_text(d.workgroup_tag) as workgroup_tag, xpms.pb_text(xpms.pb_overlay('Teams', d.source_row::integer, 'DEPARTMENT CLASS', (d.dept_code)::text)) as department_class, xpms.pb_text(d.lead_role) as lead_role, xpms.pb_text(d.responsibilities) as responsibilities, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_team d where d.source_row is not null
   - sheet: Counterparty Types
     key: counterparty_types
@@ -6264,6 +6463,7 @@ sheets:
         target: xpms.dim_counterparty_type.source_status
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: H
         header: CREATED BY
         key: created_by
@@ -6271,6 +6471,7 @@ sheets:
         target: xpms.dim_counterparty_type.source_created_by
         type: text
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: I
         header: CREATED AT
         key: created_at
@@ -6278,6 +6479,7 @@ sheets:
         target: xpms.dim_counterparty_type.source_created_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: J
         header: UPDATED AT
         key: updated_at
@@ -6285,6 +6487,7 @@ sheets:
         target: xpms.dim_counterparty_type.source_updated_at
         type: date
         transform: Playbook-only column, stored on the canon row.
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
     query: |-
       select d.source_row, xpms.pb_text(d.classification_code) as classification_code, xpms.pb_text(xpms.pb_overlay('Counterparty Types', d.source_row::integer, 'COUNTERPARTY TYPE', (d.counterparty_type)::text)) as counterparty_type, xpms.pb_text(d.vendor_class) as vendor_class, xpms.pb_text(d.clearance_tier) as clearance_tier, xpms.pb_text(xpms.pb_overlay('Counterparty Types', d.source_row::integer, 'COMPLIANCE REQUIREMENTS', (d.definition)::text)) as compliance_requirements, xpms.pb_text(d.default_account_code) as default_gl_account, xpms.pb_text(d.source_status) as status, xpms.pb_text(d.source_created_by) as created_by, xpms.pb_ts(d.source_created_at) as created_at, xpms.pb_ts(d.source_updated_at) as updated_at from xpms.dim_counterparty_type d where d.source_row is not null
       union all
@@ -6370,6 +6573,7 @@ sheets:
         disposition: field
         target: xpms.std_verbiage.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: M
         header: NOTES
         key: notes
@@ -6382,18 +6586,21 @@ sheets:
         disposition: field
         target: xpms.std_verbiage.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: O
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_verbiage.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: P
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_verbiage.updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
   - sheet: Enumerations
     key: enumerations
     destination: standard-library
@@ -6555,6 +6762,7 @@ sheets:
         disposition: field
         target: xpms.std_enumeration.flag
         type: bool
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: X
         header: NOTES
         key: notes
@@ -6567,15 +6775,18 @@ sheets:
         disposition: field
         target: xpms.std_enumeration.created_by
         type: text
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: Z
         header: CREATED AT
         key: created_at
         disposition: field
         target: xpms.std_enumeration.created_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."
       - letter: AA
         header: UPDATED AT
         key: updated_at
         disposition: field
         target: xpms.std_enumeration.updated_at
         type: timestamp
+        api: "Not exposed: bookkeeping of the source workbook (status, flag, notes, who and when), kept for the round trip; canon resources return the canon values."

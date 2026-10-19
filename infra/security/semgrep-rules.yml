@@ -1,0 +1,45 @@
+# Local Semgrep rules (Section 18 gate 11), run with the registry rulesets by infra/security/semgrep.sh.
+# They cover the two ways this codebase builds query text: node-postgres calls (canon import, scripts)
+# and PostgREST filter strings (supabase-js `.or()` and `.filter()`).
+rules:
+  - id: xos-pg-query-interpolated
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      SQL text built by string interpolation reaches a node-postgres query. Pass values as parameters
+      ($1, $2) and quote identifiers with a fixed allowlist.
+    metadata:
+      category: security
+      cwe: "CWE-89: Improper Neutralization of Special Elements used in an SQL Command"
+    pattern-either:
+      - pattern: $CLIENT.query(`...${$X}...`, ...)
+      - pattern: $CLIENT.query("..." + $X + "...", ...)
+      - pattern: $CLIENT.query("..." + $X, ...)
+
+  # A search term typed by a person reaches a PostgREST `or` filter. A comma or a parenthesis in it would
+  # add filter clauses, so the term must pass through a sanitizer first: `safeTerm()` or a `.replace()`
+  # that removes the reserved characters. Server values (ISO times, session ids) are not sources.
+  - id: xos-postgrest-search-term-unsanitized
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      A search term reaches a PostgREST filter string without passing through safeTerm() or a
+      .replace() of the reserved characters (comma, parentheses, percent). Sanitize it first.
+    metadata:
+      category: security
+      cwe: "CWE-943: Improper Neutralization of Special Elements in Data Query Logic"
+    mode: taint
+    pattern-sources:
+      - pattern-either:
+          - pattern: $O.query
+          - pattern: $O.search
+          - pattern: $O.q
+          - pattern: $O.term
+    pattern-sanitizers:
+      - pattern-either:
+          - pattern: $X.replace(...)
+          - pattern: safeTerm(...)
+    pattern-sinks:
+      - pattern-either:
+          - pattern: $Q.or(...)
+          - pattern: $Q.filter($COL, $OP, ...)
