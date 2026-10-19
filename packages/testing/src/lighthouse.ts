@@ -37,7 +37,15 @@ export const lighthouseTargets: Record<LighthouseApp, AppTarget> = {
   docs: {
     baseUrl: "http://127.0.0.1:3014",
     email: null,
-    paths: ["/en-US", "/en-US/reference", "/en-US/guides/getting-started", "/en-US/help"],
+    paths: [
+      "/en-US",
+      "/en-US/reference",
+      "/en-US/reference/projects",
+      "/en-US/reference/projects/list",
+      "/en-US/guides/getting-started",
+      "/en-US/guides/self-hosting",
+      "/en-US/help",
+    ],
   },
 };
 
