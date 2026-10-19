@@ -349,6 +349,7 @@ export default async function Page({
         sentence={canWrite ? t("crew.entries.emptyWriter") : t("crew.entries.emptyReader")}
         actionLabel={canWrite ? t("crew.entries.create") : t("crew.swapsPage.viewShifts")}
         href={canWrite ? withParams(base, search, { create: "1" }) : `/${crew.slug}/crew/shifts`}
+        secondary={canWrite && projects.length > 0}
       />
     );
   } else if (view === "list") {

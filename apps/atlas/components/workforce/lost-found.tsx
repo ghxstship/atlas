@@ -307,6 +307,7 @@ export async function LostFoundSection({
             sentence={t("lostFound.empty")}
             actionLabel={t("lostFound.create")}
             href={createHref}
+            secondary
           />
         ) : (
           <EmptyRefresh icon="PackageSearch" sentence={t("lostFound.emptyRead")} />

@@ -29,6 +29,7 @@ async function createProject(page: Page, slug: string, key: string, name: string
   await expectAccessible(page);
   await dialog.getByLabel("Project key").fill(key);
   await dialog.getByLabel("Project name").fill(name);
+  await dialog.getByRole("button", { name: "More fields" }).click();
   await dialog.getByLabel("Jurisdiction").selectOption("US-FL-MIAMI-DADE");
   await dialog.getByLabel("Tier of experience").selectOption({ index: 5 });
   await dialog.getByLabel("First production day").fill("2027-03-12");

@@ -115,6 +115,7 @@ export function ImportList({
             sentence={t("imports.past.empty")}
             actionLabel={t("imports.past.emptyAction")}
             href="#import-file"
+            secondary
           />
         ) : (
           <DataTable

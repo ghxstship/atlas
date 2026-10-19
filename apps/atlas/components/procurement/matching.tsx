@@ -266,6 +266,7 @@ export async function InvoiceMatchingSection({
             sentence={t("matching.empty")}
             actionLabel={t("matching.create")}
             href={withQuery(path, state, { create: "1" })}
+            secondary
           />
         ) : canMatch ? (
           <EmptyStateLink
@@ -273,6 +274,7 @@ export async function InvoiceMatchingSection({
             sentence={t("matching.emptyNoInvoices")}
             actionLabel={t("matching.openInvoices")}
             href={`/${ctx.org.slug}/finance/invoices`}
+            secondary
           />
         ) : (
           <EmptyRefresh icon="Scale" sentence={t("matching.emptyRead")} />

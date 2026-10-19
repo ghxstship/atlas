@@ -16,6 +16,7 @@ import {
   Drawer,
   IconButton,
   Input,
+  MoreFields,
   Select,
   Textarea,
   ToastRegion,
@@ -280,23 +281,6 @@ export function EditRecordForm({
           onChange={(e) => setOwner(e.target.value)}
         />
         <Select
-          id="edit-accountable"
-          label={t("fields.accountable")}
-          value={accountable}
-          options={personOptions}
-          onChange={(e) => setAccountable(e.target.value)}
-        />
-        <Select
-          id="edit-scope"
-          label={t("fields.scope")}
-          value={scope}
-          options={[
-            { value: "", label: t("values.none") },
-            ...scopeNodes.map((n) => ({ value: n.id, label: n.name })),
-          ]}
-          onChange={(e) => setScope(e.target.value)}
-        />
-        <Select
           id="edit-phase"
           label={t("fields.phase")}
           value={phase}
@@ -323,14 +307,35 @@ export function EditRecordForm({
           name="endsAt"
           defaultValue={toLocalInput(record.endsAt, tz)}
         />
-        <Input
-          id="edit-due"
-          type="datetime-local"
-          label={t("fields.due")}
-          name="dueAt"
-          defaultValue={toLocalInput(record.dueAt, tz)}
-        />
       </div>
+      <MoreFields>
+        <div className="grid grid-cols-2 gap-12 max-sm:grid-cols-1">
+          <Select
+            id="edit-accountable"
+            label={t("fields.accountable")}
+            value={accountable}
+            options={personOptions}
+            onChange={(e) => setAccountable(e.target.value)}
+          />
+          <Select
+            id="edit-scope"
+            label={t("fields.scope")}
+            value={scope}
+            options={[
+              { value: "", label: t("values.none") },
+              ...scopeNodes.map((n) => ({ value: n.id, label: n.name })),
+            ]}
+            onChange={(e) => setScope(e.target.value)}
+          />
+          <Input
+            id="edit-due"
+            type="datetime-local"
+            label={t("fields.due")}
+            name="dueAt"
+            defaultValue={toLocalInput(record.dueAt, tz)}
+          />
+        </div>
+      </MoreFields>
       <p className="m-0 text-text-12 text-text-secondary">{t("fields.zoneNote", { zone: tz })}</p>
       {logsReplans ? (
         <Textarea

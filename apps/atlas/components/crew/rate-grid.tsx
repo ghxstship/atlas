@@ -52,7 +52,7 @@ export function RateGrid(props: {
           <input type="hidden" name="changes" value={JSON.stringify(changes)} />
           <Button
             type="submit"
-            variant="primary"
+            variant="secondary"
             size="sm"
             loading={pending}
             disabled={changes.length === 0}

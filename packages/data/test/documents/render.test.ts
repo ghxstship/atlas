@@ -67,7 +67,8 @@ describe("tagged PDF/UA output", () => {
       expect(pdf).not.toContain("/CIDSet");
       expect(pdf).not.toMatch(/\/BaseFont \/Helvetica/);
     },
-    20_000,
+    // The first render loads and subsets the fonts, which takes longer on a loaded machine or CI.
+    60_000,
   );
 
   it("draws A4 and Letter page sizes", async () => {

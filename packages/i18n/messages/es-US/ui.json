@@ -206,6 +206,9 @@
   "fmt": {
     "multiplier": "{n}x"
   },
+  "form": {
+    "moreFields": "Más campos"
+  },
   "gate": {
     "allMet": "Se cumplen todos los criterios bloqueantes.",
     "blocking": "Bloqueante",

@@ -18,7 +18,13 @@ export type TabsProps = ReferenceTabsProps & {
 
 export type SegmentedControlProps = ReferenceSegmentedControlProps;
 
-export type AccordionProps = ReferenceAccordionProps;
+export type AccordionProps = ReferenceAccordionProps & {
+  /**
+   * Keeps closed sections in the DOM, hidden, instead of unmounting them. Use it for the More fields
+   * pattern inside a form, so collapsed fields keep their values and still submit with the form.
+   */
+  keepMounted?: boolean;
+};
 
 export type BreadcrumbsProps = ReferenceBreadcrumbsProps;
 

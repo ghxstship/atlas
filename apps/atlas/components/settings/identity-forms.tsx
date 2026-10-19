@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, MoreFields, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState, type CSSProperties } from "react";
 import { checkAccentAction } from "@/app/[org]/settings/actions";
@@ -206,38 +206,40 @@ export function BrandForm(props: BrandFormProps) {
         width="100%"
         error={fieldError("emailSenderName")}
       />
-      <Input
-        id="brand-support-email"
-        name="supportEmail"
-        type="email"
-        label={t("supportEmail")}
-        defaultValue={props.brand.supportEmail}
-        disabled={disabled}
-        width="100%"
-        error={fieldError("supportEmail")}
-      />
-      <Input
-        id="brand-legal-entity"
-        name="legalEntityName"
-        label={t("legalEntity")}
-        help={t("legalEntityHelp")}
-        defaultValue={props.brand.legalEntityName}
-        disabled={disabled}
-        width="100%"
-        error={fieldError("legalEntityName")}
-      />
-      <div className="flex flex-col gap-4">
-        <Checkbox
-          id="brand-powered-by"
-          name="suppressPoweredBy"
-          label={t("suppressPoweredBy")}
-          defaultChecked={props.brand.suppressPoweredBy}
-          disabled={disabled || !props.whiteLabelInPlan}
+      <MoreFields open={Boolean(fieldError("supportEmail") || fieldError("legalEntityName"))}>
+        <Input
+          id="brand-support-email"
+          name="supportEmail"
+          type="email"
+          label={t("supportEmail")}
+          defaultValue={props.brand.supportEmail}
+          disabled={disabled}
+          width="100%"
+          error={fieldError("supportEmail")}
         />
-        <p className="m-0 text-text-12 text-text-secondary">
-          {props.whiteLabelInPlan ? t("suppressHelp") : t("suppressNeedsPlan")}
-        </p>
-      </div>
+        <Input
+          id="brand-legal-entity"
+          name="legalEntityName"
+          label={t("legalEntity")}
+          help={t("legalEntityHelp")}
+          defaultValue={props.brand.legalEntityName}
+          disabled={disabled}
+          width="100%"
+          error={fieldError("legalEntityName")}
+        />
+        <div className="flex flex-col gap-4">
+          <Checkbox
+            id="brand-powered-by"
+            name="suppressPoweredBy"
+            label={t("suppressPoweredBy")}
+            defaultChecked={props.brand.suppressPoweredBy}
+            disabled={disabled || !props.whiteLabelInPlan}
+          />
+          <p className="m-0 text-text-12 text-text-secondary">
+            {props.whiteLabelInPlan ? t("suppressHelp") : t("suppressNeedsPlan")}
+          </p>
+        </div>
+      </MoreFields>
       {props.canEdit ? (
         <div>
           <Button
@@ -402,6 +404,9 @@ export function RemoveDomainButton({
 
 // Modules -----------------------------------------------------------------------------------------
 
+/** Fields a form shows before More fields (Section 11.10, gate 27). */
+const VISIBLE_FIELDS = 7;
+
 export function ModulesForm({
   org,
   modules,
@@ -413,6 +418,19 @@ export function ModulesForm({
 }) {
   const t = useCopy("settings.modules");
   const [state, action, pending] = useActionState(saveModulesAction, INITIAL);
+  const moduleRow = (m: (typeof modules)[number]) => (
+    <div key={m.module} className="py-8">
+      <input type="hidden" name="module" value={m.module} />
+      <Checkbox
+        id={`module-${m.module}`}
+        name="enabled"
+        value={m.module}
+        label={m.label}
+        defaultChecked={m.enabled}
+        disabled={!canEdit}
+      />
+    </div>
+  );
   return (
     <form
       action={action}
@@ -423,20 +441,15 @@ export function ModulesForm({
       <FormStatus state={state} />
       <fieldset className="m-0 flex flex-col divide-y divide-border-subtle border-0 p-0">
         <legend className="mb-8 text-heading-16 font-semibold">{t("legend")}</legend>
-        {modules.map((m) => (
-          <div key={m.module} className="py-8">
-            <input type="hidden" name="module" value={m.module} />
-            <Checkbox
-              id={`module-${m.module}`}
-              name="enabled"
-              value={m.module}
-              label={m.label}
-              defaultChecked={m.enabled}
-              disabled={!canEdit}
-            />
-          </div>
-        ))}
+        {modules.slice(0, VISIBLE_FIELDS).map(moduleRow)}
       </fieldset>
+      {modules.length > VISIBLE_FIELDS ? (
+        <MoreFields>
+          <div className="flex flex-col divide-y divide-border-subtle">
+            {modules.slice(VISIBLE_FIELDS).map(moduleRow)}
+          </div>
+        </MoreFields>
+      ) : null}
       <p className="m-0 text-text-12 text-text-secondary">{t("help")}</p>
       {canEdit ? (
         <div>

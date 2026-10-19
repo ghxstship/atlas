@@ -104,7 +104,10 @@ export function StatementForm({
   );
 }
 
-/** Runs app.reconcile_project for the project. */
+/**
+ * Runs app.reconcile_project for the project. It sits on the Scope page under the scope tree, whose
+ * Add node is the page's one primary action, so its submit is secondary (gate 27).
+ */
 export function ReconcileForm({ org, projectId }: { org: string; projectId: string }) {
   const t = useCopy("places");
   return (
@@ -113,6 +116,7 @@ export function ReconcileForm({ org, projectId }: { org: string; projectId: stri
       org={org}
       hidden={{ projectId }}
       submitLabel={t("reconciliation.run")}
+      submitVariant="secondary"
       successMessage={t("reconciliation.ran")}
     >
       {() => (

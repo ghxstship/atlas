@@ -389,6 +389,21 @@ describe("surfaces and states", () => {
     await expectAccessible(container);
   });
 
+  it("makes the empty state's action secondary when the header holds the primary (gate 27)", () => {
+    render(
+      <div>
+        <EmptyState sentence="No slots." actionLabel="Book Dock Slot" actionVariant="secondary" />
+        <EmptyState sentence="No shifts." actionLabel="Post Crew Call" />
+      </div>,
+    );
+    expect(screen.getByRole("button", { name: "Book Dock Slot" }).className).not.toContain(
+      "xos-fill-accent",
+    );
+    expect(screen.getByRole("button", { name: "Post Crew Call" }).className).toContain(
+      "xos-fill-accent",
+    );
+  });
+
   it("announces alerts and banners by tone", async () => {
     const onDismiss = vi.fn();
     const onAction = vi.fn();

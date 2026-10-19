@@ -57,6 +57,7 @@ async function createProject(page: Page, slug: string, key: string, name: string
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill(key);
   await dialog.getByLabel("Project name").fill(name);
+  await dialog.getByRole("button", { name: "More fields" }).click();
   await dialog.getByLabel("Jurisdiction").selectOption("US-FL-MIAMI-DADE");
   await dialog.getByLabel("Tier of experience").selectOption({ index: 5 });
   await dialog.getByLabel("First production day").fill("2027-03-12");
@@ -172,6 +173,11 @@ test("journey 14: dependencies, a baseline, a slip and the logged replan", async
 
   // Slip the second record by two days with a reason.
   await page.goto(`/${slug}/r/${second}`);
+  // Due sits under More fields in the edit form (gate 27).
+  await page
+    .getByRole("form", { name: "Edit record" })
+    .getByRole("button", { name: "More fields" })
+    .click();
   await page.getByLabel("Due", { exact: true }).fill("2027-03-15T10:00");
   await page.getByLabel("Replan reason").fill("Lift delivery moved to Monday.");
   await page

@@ -8,7 +8,13 @@ import type {
   UndoToastProps as ReferenceUndoToastProps,
 } from "../types/reference";
 
-export type EmptyStateProps = ReferenceEmptyStateProps;
+export type EmptyStateProps = ReferenceEmptyStateProps & {
+  /**
+   * Weight of the action button. Primary by default; pass "secondary" when the page header already
+   * carries the same primary action, so the screen keeps one primary action (Section 18 gate 27).
+   */
+  actionVariant?: "primary" | "secondary";
+};
 
 export type ErrorStateProps = ReferenceErrorStateProps;
 

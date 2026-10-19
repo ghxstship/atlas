@@ -41,6 +41,7 @@ async function newOwnerOrg(page: Page): Promise<string> {
   const dialog = page.getByRole("dialog", { name: "New project" });
   await dialog.getByLabel("Project key").fill("SHW");
   await dialog.getByLabel("Project name").fill("Summer Headline Weekend");
+  await dialog.getByRole("button", { name: "More fields" }).click();
   await dialog.getByLabel("Jurisdiction").selectOption("US-FL-MIAMI-DADE");
   await dialog.getByLabel("Tier of experience").selectOption({ index: 5 });
   await dialog.getByLabel("First production day").fill("2027-03-12");

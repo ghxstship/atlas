@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, MoreFields, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useState, type ReactNode } from "react";
 import {
@@ -146,36 +146,40 @@ export function ProfileForm(props: ProfileFormProps) {
           error={fieldError(t, state, "countryCode")}
         />
       </div>
-      <fieldset className="m-0 flex flex-wrap items-end gap-12 border-0 p-0">
-        <legend className="mb-8 text-label-13 font-medium">{t("fields.rate")}</legend>
-        <Input
-          id="profile-rate"
-          name="rate"
-          inputMode="decimal"
-          label={t("fields.rateAmount")}
-          help={t("fields.rateHelp")}
-          defaultValue={p.rate}
-          error={fieldError(t, state, "rate")}
-        />
-        <Select
-          id="profile-rate-currency"
-          name="rateCurrency"
-          label={t("fields.rateCurrency")}
-          value={p.rateCurrency || "USD"}
-          options={[...props.currencies]}
-          error={fieldError(t, state, "rateCurrency")}
-        />
-        <Select
-          id="profile-rate-unit"
-          name="rateUnit"
-          label={t("fields.rateUnit")}
-          value={p.rateUnit || "Day"}
-          options={(["Hour", "Day", "Week", "Project"] as const).map((u) => ({
-            value: u,
-            label: t(`rateUnits.${u}`),
-          }))}
-        />
-      </fieldset>
+      <MoreFields
+        open={Boolean(state.fieldErrors?.["rate"] ?? state.fieldErrors?.["rateCurrency"])}
+      >
+        <fieldset className="m-0 flex flex-wrap items-end gap-12 border-0 p-0">
+          <legend className="mb-8 text-label-13 font-medium">{t("fields.rate")}</legend>
+          <Input
+            id="profile-rate"
+            name="rate"
+            inputMode="decimal"
+            label={t("fields.rateAmount")}
+            help={t("fields.rateHelp")}
+            defaultValue={p.rate}
+            error={fieldError(t, state, "rate")}
+          />
+          <Select
+            id="profile-rate-currency"
+            name="rateCurrency"
+            label={t("fields.rateCurrency")}
+            value={p.rateCurrency || "USD"}
+            options={[...props.currencies]}
+            error={fieldError(t, state, "rateCurrency")}
+          />
+          <Select
+            id="profile-rate-unit"
+            name="rateUnit"
+            label={t("fields.rateUnit")}
+            value={p.rateUnit || "Day"}
+            options={(["Hour", "Day", "Week", "Project"] as const).map((u) => ({
+              value: u,
+              label: t(`rateUnits.${u}`),
+            }))}
+          />
+        </fieldset>
+      </MoreFields>
       <div>
         <Button type="submit" variant="primary" loading={pending}>
           {t("saveProfile")}
@@ -195,11 +199,27 @@ export interface PrivacyFormProps {
   readonly sections: readonly { readonly section: string; readonly value: string }[];
 }
 
+/** Section selects shown before More fields: with the three profile-wide fields, seven in all (gate 27). */
+const VISIBLE_SECTIONS = 4;
+
 export function PrivacyForm(props: PrivacyFormProps) {
   const t = useCopy("profiles");
   const [state, action, pending] = useActionState(savePrivacyAction, INITIAL);
   const [visibility, setVisibility] = useState(props.visibility);
   const levels = ["Private", "Network", "Public"] as const;
+  const sectionSelect = (s: PrivacyFormProps["sections"][number]) => (
+    <Select
+      key={s.section}
+      id={`section-${s.section}`}
+      name={`section-${s.section}`}
+      label={t(`sections.${s.section}`)}
+      value={s.value}
+      options={[
+        { value: "inherit", label: t("privacy.inherit") },
+        ...levels.map((v) => ({ value: v, label: t(`visibility.${v}`) })),
+      ]}
+    />
+  );
   return (
     <form
       action={action}
@@ -237,20 +257,15 @@ export function PrivacyForm(props: PrivacyFormProps) {
         <legend className="mb-4 text-heading-16 font-semibold">{t("privacy.sections")}</legend>
         <p className="m-0 text-text-12 text-text-secondary">{t("privacy.sectionsHelp")}</p>
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2">
-          {props.sections.map((s) => (
-            <Select
-              key={s.section}
-              id={`section-${s.section}`}
-              name={`section-${s.section}`}
-              label={t(`sections.${s.section}`)}
-              value={s.value}
-              options={[
-                { value: "inherit", label: t("privacy.inherit") },
-                ...levels.map((v) => ({ value: v, label: t(`visibility.${v}`) })),
-              ]}
-            />
-          ))}
+          {props.sections.slice(0, VISIBLE_SECTIONS).map(sectionSelect)}
         </div>
+        {props.sections.length > VISIBLE_SECTIONS ? (
+          <MoreFields>
+            <div className="grid grid-cols-1 gap-12 sm:grid-cols-2">
+              {props.sections.slice(VISIBLE_SECTIONS).map(sectionSelect)}
+            </div>
+          </MoreFields>
+        ) : null}
       </fieldset>
       <div>
         <Button type="submit" variant="primary" loading={pending}>

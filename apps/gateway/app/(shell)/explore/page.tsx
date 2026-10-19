@@ -14,7 +14,7 @@ import {
   SectionTabs,
   ViewSwitcher,
 } from "@/components/page/page";
-import { Button, EmptyStateLink, Input } from "@/components/ui";
+import { Accordion, Button, EmptyStateLink, Input, MoreFields } from "@/components/ui";
 import { exploreViews, hasFilters, parseExploreQuery } from "@/lib/explore";
 import { formatDate, formatDateRange, formatPayRange } from "@/lib/format";
 import { childTabs } from "@/lib/shell/nav-model";
@@ -94,58 +94,68 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
             width="100%"
           />
         </div>
-        <details className="rounded-control border border-border-subtle p-12" open={filtered}>
-          <summary className="min-h-touch-min cursor-pointer content-center text-text-13 font-medium">
-            {t("gateway.explore.filters")}
-          </summary>
-          <div className="flex flex-col gap-12 pt-12">
-            <fieldset className="m-0 flex flex-wrap gap-8 border-0 p-0">
-              <legend className="mb-8 text-text-12 font-medium text-text-secondary">
-                {t("gateway.explore.roleTypes")}
-              </legend>
-              {APP_ENUMS.external_role_type
-                .filter((r) => r !== "Client" && r !== "Artist Representative")
-                .map((role) => (
-                  <label
-                    key={role}
-                    className="inline-flex min-h-touch-min cursor-pointer items-center gap-6 rounded-pill border border-border-control px-12 text-text-13 has-checked:bg-bg-hover has-checked:text-text-primary"
-                  >
-                    <input
-                      type="checkbox"
-                      name="role"
-                      value={role}
-                      defaultChecked={parsed.roles.includes(role)}
-                    />
-                    {t(enumLabelKey("externalRoleType", role))}
-                  </label>
-                ))}
-            </fieldset>
-            <div className="flex flex-wrap gap-8">
-              <Input
-                id="explore-from"
-                name="from"
-                type="date"
-                label={t("gateway.explore.startsAfter")}
-                defaultValue={parsed.from}
-              />
-              <Input
-                id="explore-to"
-                name="to"
-                type="date"
-                label={t("gateway.explore.endsBefore")}
-                defaultValue={parsed.to}
-              />
-              <Input
-                id="explore-min-pay"
-                name="minPay"
-                inputMode="decimal"
-                label={t("gateway.explore.minPay")}
-                help={t("gateway.explore.minPayHelp")}
-                defaultValue={parsed.minPay}
-              />
-            </div>
-          </div>
-        </details>
+        {/* Filters and, inside them, More fields are kept-mounted disclosures: collapsed controls are
+            hidden and still submit with the search (gate 27: at most seven fields before More fields). */}
+        <Accordion
+          keepMounted
+          items={[
+            {
+              title: t("gateway.explore.filters"),
+              open: filtered,
+              content: (
+                <div className="flex flex-col gap-12 pt-12">
+                  <fieldset className="m-0 flex flex-wrap gap-8 border-0 p-0">
+                    <legend className="mb-8 text-text-12 font-medium text-text-secondary">
+                      {t("gateway.explore.roleTypes")}
+                    </legend>
+                    {APP_ENUMS.external_role_type
+                      .filter((r) => r !== "Client" && r !== "Artist Representative")
+                      .map((role) => (
+                        <label
+                          key={role}
+                          className="inline-flex min-h-touch-min cursor-pointer items-center gap-6 rounded-pill border border-border-control px-12 text-text-13 has-checked:bg-bg-hover has-checked:text-text-primary"
+                        >
+                          <input
+                            type="checkbox"
+                            name="role"
+                            value={role}
+                            defaultChecked={parsed.roles.includes(role)}
+                          />
+                          {t(enumLabelKey("externalRoleType", role))}
+                        </label>
+                      ))}
+                  </fieldset>
+                  <MoreFields open={Boolean(parsed.from || parsed.to || parsed.minPay)}>
+                    <div className="flex flex-wrap gap-8">
+                      <Input
+                        id="explore-from"
+                        name="from"
+                        type="date"
+                        label={t("gateway.explore.startsAfter")}
+                        defaultValue={parsed.from}
+                      />
+                      <Input
+                        id="explore-to"
+                        name="to"
+                        type="date"
+                        label={t("gateway.explore.endsBefore")}
+                        defaultValue={parsed.to}
+                      />
+                      <Input
+                        id="explore-min-pay"
+                        name="minPay"
+                        inputMode="decimal"
+                        label={t("gateway.explore.minPay")}
+                        help={t("gateway.explore.minPayHelp")}
+                        defaultValue={parsed.minPay}
+                      />
+                    </div>
+                  </MoreFields>
+                </div>
+              ),
+            },
+          ]}
+        />
         <div className="flex flex-wrap items-center gap-8">
           <Button type="submit" variant="primary" icon="Search">
             {t("gateway.explore.search")}
@@ -195,6 +205,7 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
               sentence={t("gateway.explore.empty")}
               actionLabel={t("gateway.explore.emptyAction")}
               href="/explore"
+              secondary
             />
           ) : view === "list" ? (
             <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle bg-bg-raised p-0">

@@ -207,6 +207,9 @@
     "fmt": {
       "multiplier": "‮{n}x‬"
     },
+    "form": {
+      "moreFields": "‮Woɹǝ ɟıǝlps‬"
+    },
     "gate": {
       "allMet": "‮∀ll qloɔʞıuƃ ɔɹıʇǝɹıɐ ɯǝʇ.‬",
       "blocking": "‮ꓭloɔʞıuƃ‬",

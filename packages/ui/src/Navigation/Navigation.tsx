@@ -12,6 +12,7 @@ export {
 export { Tabs } from "./Tabs.tsx";
 export { SegmentedControl } from "./SegmentedControl.tsx";
 export { Accordion } from "./Accordion.tsx";
+export { MoreFields, type MoreFieldsProps } from "./MoreFields.tsx";
 export { Breadcrumbs } from "./Breadcrumbs.tsx";
 export { Pagination } from "./Pagination.tsx";
 export { Sidebar } from "./Sidebar.tsx";

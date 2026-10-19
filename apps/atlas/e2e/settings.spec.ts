@@ -72,6 +72,7 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
 
   // Journey 51: turn Hospitality off; it leaves the sidebar.
   await page.goto(`/${slug}/settings/modules`);
+  await page.getByRole("button", { name: "More fields" }).click();
   await page.getByRole("checkbox", { name: "Hospitality" }).uncheck();
   await page.getByRole("button", { name: "Save modules" }).click();
   await expect(page.getByText("Saved.")).toBeVisible();
@@ -80,6 +81,7 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
 
   // A24-003: Site Operations is switchable too, and the whole form saves in one pass.
   await page.goto(`/${slug}/settings/modules`);
+  await page.getByRole("button", { name: "More fields" }).click();
   await expect(page.getByRole("checkbox", { name: "Hospitality" })).not.toBeChecked();
   await page.getByRole("checkbox", { name: "Site Operations" }).uncheck();
   await page.getByRole("button", { name: "Save modules" }).click();
@@ -88,6 +90,7 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
   await expect(page.locator(`a[href="/${slug}/site-ops"]`)).toHaveCount(0);
   await expect(page.locator(`a[href="/${slug}/hospitality"]`)).toHaveCount(0);
   await page.goto(`/${slug}/settings/modules`);
+  await page.getByRole("button", { name: "More fields" }).click();
   await page.getByRole("checkbox", { name: "Site Operations" }).check();
   await page.getByRole("button", { name: "Save modules" }).click();
   await expect(page.getByText("Saved.")).toBeVisible();

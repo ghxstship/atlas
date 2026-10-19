@@ -207,6 +207,9 @@
     "fmt": {
       "multiplier": "[{n}x ·]"
     },
+    "form": {
+      "moreFields": "[Möré fîélds ···]"
+    },
     "gate": {
       "allMet": "[Àll blöçkîñg çrîtérîà mét. ··········]",
       "blocking": "[Blöçkîñg ···]",

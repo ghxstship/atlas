@@ -261,6 +261,7 @@ export async function OccupancySection({
             sentence={t("occupancy.empty")}
             actionLabel={t("occupancy.create")}
             href={createHref}
+            secondary
           />
         ) : (
           <EmptyRefresh icon="Users" sentence={t("occupancy.emptyRead")} />
