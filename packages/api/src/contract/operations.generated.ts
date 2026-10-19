@@ -966,16 +966,17 @@ export interface Components {
     updated_by: string | null;
     project_id: string;
     fulfillment_id: string | null;
-    title: string;
-    service_at: string;
-    guest_count: number;
+    event_at: string;
+    guest_count: number | null;
+    beo_number: number;
+    approved_at: string | null;
+    approved_by: string | null;
   };
   BeoCreate: {
     project_id: string;
     fulfillment_id?: string | null;
-    title: string;
-    service_at: string;
-    guest_count: number;
+    event_at: string;
+    guest_count?: number | null;
   };
   BeoLine: {
     id: string;
@@ -988,29 +989,24 @@ export interface Components {
     description: string;
     quantity: number;
     unit_price_minor: number | null;
-    currency: string;
+    currency_code: string | null;
   };
   BeoLineCreate: {
     beo_id: string;
     description: string;
-    quantity: number;
+    quantity?: number;
     unit_price_minor?: number | null;
-    currency: string;
+    currency_code?: string | null;
   };
   BeoLinePage: { data: Array<Components["BeoLine"]>; next_cursor: string | null };
   BeoLineUpdate: {
     description?: string;
     quantity?: number;
     unit_price_minor?: number | null;
-    currency?: string;
+    currency_code?: string | null;
   };
   BeoPage: { data: Array<Components["Beo"]>; next_cursor: string | null };
-  BeoUpdate: {
-    fulfillment_id?: string | null;
-    title?: string;
-    service_at?: string;
-    guest_count?: number;
-  };
+  BeoUpdate: { fulfillment_id?: string | null; event_at?: string; guest_count?: number | null };
   Bid: {
     id: string;
     org_id: string;
@@ -2871,20 +2867,21 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    kind: Components["FulfillmentKind"];
-    engagement_id: string | null;
+    fulfillment_kind: Components["FulfillmentKind"];
     title: string;
-    fulfillment_state: string;
+    fulfillment_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
     starts_at: string | null;
     ends_at: string | null;
+    counterparty_id: string | null;
+    fulfillment_number: number;
   };
   FulfillmentCreate: {
     project_id: string;
-    kind: Components["FulfillmentKind"];
-    engagement_id?: string | null;
+    fulfillment_kind: Components["FulfillmentKind"];
     title: string;
     starts_at?: string | null;
     ends_at?: string | null;
+    counterparty_id?: string | null;
   };
   FulfillmentKind: "Lodging" | "Catering" | "Travel" | "Amenity";
   FulfillmentLine: {
@@ -2897,34 +2894,34 @@ export interface Components {
     fulfillment_id: string;
     description: string;
     quantity: number;
-    unit: Components["UnitCode"];
     unit_price_minor: number | null;
-    currency: string;
+    currency_code: string | null;
+    person_id: string | null;
   };
   FulfillmentLineCreate: {
     fulfillment_id: string;
     description: string;
-    quantity: number;
-    unit: Components["UnitCode"];
+    quantity?: number;
     unit_price_minor?: number | null;
-    currency: string;
+    currency_code?: string | null;
+    person_id?: string | null;
   };
   FulfillmentLinePage: { data: Array<Components["FulfillmentLine"]>; next_cursor: string | null };
   FulfillmentLineUpdate: {
     description?: string;
     quantity?: number;
-    unit?: Components["UnitCode"];
     unit_price_minor?: number | null;
-    currency?: string;
+    currency_code?: string | null;
+    person_id?: string | null;
   };
   FulfillmentPage: { data: Array<Components["Fulfillment"]>; next_cursor: string | null };
   FulfillmentTransitionRequest: { expected_state: string; to_state: string; reason?: string };
   FulfillmentUpdate: {
-    kind?: Components["FulfillmentKind"];
-    engagement_id?: string | null;
+    fulfillment_kind?: Components["FulfillmentKind"];
     title?: string;
     starts_at?: string | null;
     ends_at?: string | null;
+    counterparty_id?: string | null;
   };
   FxRate: {
     base_currency: string;

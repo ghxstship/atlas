@@ -4512,23 +4512,25 @@ class Fulfillment(TypedDict):
     updated_by: Optional[str]
     #: Identifier of the project.
     project_id: str
-    kind: FulfillmentKind
-    #: Identifier of the engagement served.
-    engagement_id: Optional[str]
+    fulfillment_kind: FulfillmentKind
     #: Fulfillment title.
     title: str
-    #: Fulfillment state. A Title Case value from the lifecycle's database enum.
-    fulfillment_state: str
+    #: Fulfillment state.
+    fulfillment_state: Literal["Proposed", "Active", "Blocked", "Complete", "Canceled"]
     #: Service start.
     starts_at: Optional[str]
     #: Service end.
     ends_at: Optional[str]
+    #: Identifier of the supplier, such as the hotel or caterer.
+    counterparty_id: Optional[str]
+    #: Number within the project; the display key is {project_key}-{fulfillment_number}.
+    fulfillment_number: int
 
 
 class _FulfillmentCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    kind: FulfillmentKind
+    fulfillment_kind: FulfillmentKind
     #: Fulfillment title.
     title: str
 
@@ -4536,26 +4538,26 @@ class _FulfillmentCreateRequired(TypedDict):
 class FulfillmentCreate(_FulfillmentCreateRequired, total=False):
     """Fields accepted when creating a Fulfillment."""
 
-    #: Identifier of the engagement served.
-    engagement_id: Optional[str]
     #: Service start.
     starts_at: Optional[str]
     #: Service end.
     ends_at: Optional[str]
+    #: Identifier of the supplier, such as the hotel or caterer.
+    counterparty_id: Optional[str]
 
 
 class FulfillmentUpdate(TypedDict, total=False):
     """Fields accepted when updating a Fulfillment. Omitted fields are unchanged."""
 
-    kind: FulfillmentKind
-    #: Identifier of the engagement served.
-    engagement_id: Optional[str]
+    fulfillment_kind: FulfillmentKind
     #: Fulfillment title.
     title: str
     #: Service start.
     starts_at: Optional[str]
     #: Service end.
     ends_at: Optional[str]
+    #: Identifier of the supplier, such as the hotel or caterer.
+    counterparty_id: Optional[str]
 
 
 class _FulfillmentTransitionRequestRequired(TypedDict):
@@ -4602,11 +4604,12 @@ class FulfillmentLine(TypedDict):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
+    #: Identifier of the guest the line is for, such as a room night.
+    person_id: Optional[str]
 
 
 class _FulfillmentLineCreateRequired(TypedDict):
@@ -4614,18 +4617,19 @@ class _FulfillmentLineCreateRequired(TypedDict):
     fulfillment_id: str
     #: Line description.
     description: str
-    #: Quantity.
-    quantity: float
-    unit: UnitCode
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class FulfillmentLineCreate(_FulfillmentLineCreateRequired, total=False):
     """Fields accepted when creating a FulfillmentLine."""
 
+    #: Quantity.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
+    #: Identifier of the guest the line is for, such as a room night.
+    person_id: Optional[str]
 
 
 class FulfillmentLineUpdate(TypedDict, total=False):
@@ -4635,11 +4639,12 @@ class FulfillmentLineUpdate(TypedDict, total=False):
     description: str
     #: Quantity.
     quantity: float
-    unit: UnitCode
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
+    #: Identifier of the guest the line is for, such as a room night.
+    person_id: Optional[str]
 
 
 class BeoPage(TypedDict):
@@ -4670,23 +4675,23 @@ class Beo(TypedDict):
     project_id: str
     #: Identifier of the catering fulfillment.
     fulfillment_id: Optional[str]
-    #: BEO title.
-    title: str
     #: Service time.
-    service_at: str
+    event_at: str
     #: Guaranteed count.
-    guest_count: int
+    guest_count: Optional[int]
+    #: Number within the project; the display key is {project_key}-{beo_number}.
+    beo_number: int
+    #: When the BEO was approved.
+    approved_at: Optional[str]
+    #: Identifier of the person who approved the BEO; never its author.
+    approved_by: Optional[str]
 
 
 class _BeoCreateRequired(TypedDict):
     #: Identifier of the project.
     project_id: str
-    #: BEO title.
-    title: str
     #: Service time.
-    service_at: str
-    #: Guaranteed count.
-    guest_count: int
+    event_at: str
 
 
 class BeoCreate(_BeoCreateRequired, total=False):
@@ -4694,6 +4699,8 @@ class BeoCreate(_BeoCreateRequired, total=False):
 
     #: Identifier of the catering fulfillment.
     fulfillment_id: Optional[str]
+    #: Guaranteed count.
+    guest_count: Optional[int]
 
 
 class BeoUpdate(TypedDict, total=False):
@@ -4701,12 +4708,10 @@ class BeoUpdate(TypedDict, total=False):
 
     #: Identifier of the catering fulfillment.
     fulfillment_id: Optional[str]
-    #: BEO title.
-    title: str
     #: Service time.
-    service_at: str
+    event_at: str
     #: Guaranteed count.
-    guest_count: int
+    guest_count: Optional[int]
 
 
 class BeoLinePage(TypedDict):
@@ -4741,8 +4746,8 @@ class BeoLine(TypedDict):
     quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
 
 
 class _BeoLineCreateRequired(TypedDict):
@@ -4750,17 +4755,17 @@ class _BeoLineCreateRequired(TypedDict):
     beo_id: str
     #: Menu item or service.
     description: str
-    #: Quantity.
-    quantity: float
-    #: ISO 4217 currency code of every money field.
-    currency: str
 
 
 class BeoLineCreate(_BeoLineCreateRequired, total=False):
     """Fields accepted when creating a BeoLine."""
 
+    #: Quantity.
+    quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
 
 
 class BeoLineUpdate(TypedDict, total=False):
@@ -4772,8 +4777,8 @@ class BeoLineUpdate(TypedDict, total=False):
     quantity: float
     #: Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
     unit_price_minor: Optional[int]
-    #: ISO 4217 currency code of every money field.
-    currency: str
+    #: ISO 4217 currency of the price; required when the line is priced.
+    currency_code: Optional[str]
 
 
 class AssetClassPage(TypedDict):

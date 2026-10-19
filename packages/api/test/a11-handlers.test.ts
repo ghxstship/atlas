@@ -69,10 +69,6 @@ const ROUTES: [string, string, string][] = [
   ["/shipments", "shipments.delete", "shipments"],
   ["/shipment-lines", "shipmentLines.delete", "shipment_lines"],
   ["/dock-slots", "dockSlots.delete", "dock_slots"],
-  ["/fulfillments", "fulfillments.delete", "fulfillments"],
-  ["/fulfillment-lines", "fulfillmentLines.delete", "fulfillment_lines"],
-  ["/beos", "beos.delete", "beos"],
-  ["/beo-lines", "beoLines.delete", "beo_lines"],
 ];
 
 describe("Logistics and Hospitality deletes", () => {
@@ -96,13 +92,13 @@ describe("Logistics and Hospitality deletes", () => {
       handlers: [logistics, hospitality],
       db: world({
         code: "XR001",
-        message: "fulfillment_closed: Closed.",
-        hint: "fulfillment_closed",
+        message: "shipment_closed: Closed.",
+        hint: "shipment_closed",
       }).db,
     });
-    const response = await refused.request(`/fulfillments/${ID}`, del);
+    const response = await refused.request(`/shipments/${ID}`, del);
     expect(response.status).toBe(422);
-    await expectContract(response, "fulfillments.delete");
+    await expectContract(response, "shipments.delete");
     const hidden = contractApp({
       handlers: [logistics, hospitality],
       db: world({ code: "42501", message: "permission denied" }).db,
@@ -119,32 +115,13 @@ describe("Logistics and Hospitality deletes", () => {
     await expectContract(shipmentLine, "shipmentLines.delete");
     const dockSlot = await app.request(`/dock-slots/${ID}`, del);
     await expectContract(dockSlot, "dockSlots.delete");
-    const fulfillment = await app.request(`/fulfillments/${ID}`, del);
-    await expectContract(fulfillment, "fulfillments.delete");
-    const fulfillmentLine = await app.request(`/fulfillment-lines/${ID}`, del);
-    await expectContract(fulfillmentLine, "fulfillmentLines.delete");
-    const beo = await app.request(`/beos/${ID}`, del);
-    await expectContract(beo, "beos.delete");
-    const beoLine = await app.request(`/beo-lines/${ID}`, del);
-    await expectContract(beoLine, "beoLines.delete");
-    expect(
-      [shipment, shipmentLine, dockSlot, fulfillment, fulfillmentLine, beo, beoLine].map(
-        (r) => r.status,
-      ),
-    ).toEqual([204, 204, 204, 204, 204, 204, 204]);
+    expect([shipment, shipmentLine, dockSlot].map((r) => r.status)).toEqual([204, 204, 204]);
   });
 
   it("keeps the mismatched operations document-only", async () => {
     const { db } = world();
     const app = contractApp({ handlers: [logistics, hospitality], db });
-    for (const path of [
-      "/shipments",
-      "/dock-slots",
-      "/gate-queue",
-      "/marshalling-log",
-      "/fulfillments",
-      "/beos",
-    ]) {
+    for (const path of ["/shipments", "/dock-slots", "/gate-queue", "/marshalling-log"]) {
       expect((await app.request(path)).status).toBe(404);
     }
   });

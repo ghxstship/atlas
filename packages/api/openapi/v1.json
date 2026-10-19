@@ -8319,13 +8319,7 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "kind": { "$ref": "#/components/schemas/FulfillmentKind" },
-          "engagement_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the engagement served.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
+          "fulfillment_kind": { "$ref": "#/components/schemas/FulfillmentKind" },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -8335,9 +8329,9 @@
           },
           "fulfillment_state": {
             "type": "string",
-            "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
-            "description": "Fulfillment state. A Title Case value from the lifecycle's database enum.",
-            "example": "Committed"
+            "enum": ["Proposed", "Active", "Blocked", "Complete", "Canceled"],
+            "description": "Fulfillment state.",
+            "example": "Proposed"
           },
           "starts_at": {
             "type": ["string", "null"],
@@ -8350,6 +8344,18 @@
             "format": "date-time",
             "description": "Service end.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the supplier, such as the hotel or caterer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "fulfillment_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number within the project; the display key is {project_key}-{fulfillment_number}.",
+            "example": 3
           }
         },
         "required": [
@@ -8360,12 +8366,13 @@
           "updated_at",
           "updated_by",
           "project_id",
-          "kind",
-          "engagement_id",
+          "fulfillment_kind",
           "title",
           "fulfillment_state",
           "starts_at",
-          "ends_at"
+          "ends_at",
+          "counterparty_id",
+          "fulfillment_number"
         ],
         "description": "A lodging, catering, travel or amenity fulfillment."
       },
@@ -8384,13 +8391,7 @@
             "description": "Identifier of the project.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "kind": { "$ref": "#/components/schemas/FulfillmentKind" },
-          "engagement_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the engagement served.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
+          "fulfillment_kind": { "$ref": "#/components/schemas/FulfillmentKind" },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -8409,21 +8410,21 @@
             "format": "date-time",
             "description": "Service end.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the supplier, such as the hotel or caterer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["project_id", "kind", "title"],
+        "required": ["project_id", "fulfillment_kind", "title"],
         "description": "Fields accepted when creating a Fulfillment."
       },
       "FulfillmentUpdate": {
         "type": "object",
         "properties": {
-          "kind": { "$ref": "#/components/schemas/FulfillmentKind" },
-          "engagement_id": {
-            "type": ["string", "null"],
-            "format": "uuid",
-            "description": "Identifier of the engagement served.",
-            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
-          },
+          "fulfillment_kind": { "$ref": "#/components/schemas/FulfillmentKind" },
           "title": {
             "type": "string",
             "minLength": 1,
@@ -8442,6 +8443,12 @@
             "format": "date-time",
             "description": "Service end.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the supplier, such as the hotel or caterer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a Fulfillment. Omitted fields are unchanged."
@@ -8453,13 +8460,13 @@
             "type": "string",
             "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
             "description": "The state the caller believes the row is in (compare-and-set).",
-            "example": "Quoted"
+            "example": "Proposed"
           },
           "to_state": {
             "type": "string",
             "pattern": "^[A-Z][A-Za-z]*( [A-Z][A-Za-z]*)*$",
             "description": "Target state.",
-            "example": "Committed"
+            "example": "Active"
           },
           "reason": {
             "type": "string",
@@ -8541,18 +8548,23 @@
             "example": "King room, 3 nights"
           },
           "quantity": { "type": "number", "description": "Quantity.", "example": 4 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 32900,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the price; required when the line is priced.",
             "example": "USD"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the guest the line is for, such as a room night.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -8565,9 +8577,9 @@
           "fulfillment_id",
           "description",
           "quantity",
-          "unit",
           "unit_price_minor",
-          "currency"
+          "currency_code",
+          "person_id"
         ],
         "description": "A line of a fulfillment."
       },
@@ -8588,21 +8600,26 @@
             "example": "King room, 3 nights"
           },
           "quantity": { "type": "number", "description": "Quantity.", "example": 4 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 32900,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the price; required when the line is priced.",
             "example": "USD"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the guest the line is for, such as a room night.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
-        "required": ["fulfillment_id", "description", "quantity", "unit", "currency"],
+        "required": ["fulfillment_id", "description"],
         "description": "Fields accepted when creating a FulfillmentLine."
       },
       "FulfillmentLineUpdate": {
@@ -8616,18 +8633,23 @@
             "example": "King room, 3 nights"
           },
           "quantity": { "type": "number", "description": "Quantity.", "example": 4 },
-          "unit": { "$ref": "#/components/schemas/UnitCode" },
           "unit_price_minor": {
             "type": ["integer", "null"],
             "description": "Unit price. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 32900,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the price; required when the line is priced.",
             "example": "USD"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the guest the line is for, such as a room night.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "description": "Fields accepted when updating a FulfillmentLine. Omitted fields are unchanged."
@@ -8700,24 +8722,35 @@
             "description": "Identifier of the catering fulfillment.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "BEO title.",
-            "example": "Crew Lunch Saturday"
-          },
-          "service_at": {
+          "event_at": {
             "type": "string",
             "format": "date-time",
             "description": "Service time.",
             "example": "2026-10-08T14:30:00Z"
           },
           "guest_count": {
-            "type": "integer",
+            "type": ["integer", "null"],
             "minimum": 0,
             "description": "Guaranteed count.",
             "example": 140
+          },
+          "beo_number": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Number within the project; the display key is {project_key}-{beo_number}.",
+            "example": 4
+          },
+          "approved_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the BEO was approved.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "approved_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who approved the BEO; never its author.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -8729,9 +8762,11 @@
           "updated_by",
           "project_id",
           "fulfillment_id",
-          "title",
-          "service_at",
-          "guest_count"
+          "event_at",
+          "guest_count",
+          "beo_number",
+          "approved_at",
+          "approved_by"
         ],
         "description": "A banquet event order."
       },
@@ -8750,27 +8785,20 @@
             "description": "Identifier of the catering fulfillment.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "BEO title.",
-            "example": "Crew Lunch Saturday"
-          },
-          "service_at": {
+          "event_at": {
             "type": "string",
             "format": "date-time",
             "description": "Service time.",
             "example": "2026-10-08T14:30:00Z"
           },
           "guest_count": {
-            "type": "integer",
+            "type": ["integer", "null"],
             "minimum": 0,
             "description": "Guaranteed count.",
             "example": 140
           }
         },
-        "required": ["project_id", "title", "service_at", "guest_count"],
+        "required": ["project_id", "event_at"],
         "description": "Fields accepted when creating a Beo."
       },
       "BeoUpdate": {
@@ -8782,21 +8810,14 @@
             "description": "Identifier of the catering fulfillment.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "title": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 300,
-            "description": "BEO title.",
-            "example": "Crew Lunch Saturday"
-          },
-          "service_at": {
+          "event_at": {
             "type": "string",
             "format": "date-time",
             "description": "Service time.",
             "example": "2026-10-08T14:30:00Z"
           },
           "guest_count": {
-            "type": "integer",
+            "type": ["integer", "null"],
             "minimum": 0,
             "description": "Guaranteed count.",
             "example": 140
@@ -8880,10 +8901,10 @@
             "example": 1450,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the price; required when the line is priced.",
             "example": "USD"
           }
         },
@@ -8898,7 +8919,7 @@
           "description",
           "quantity",
           "unit_price_minor",
-          "currency"
+          "currency_code"
         ],
         "description": "A line of a banquet event order."
       },
@@ -8925,14 +8946,14 @@
             "example": 1450,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the price; required when the line is priced.",
             "example": "USD"
           }
         },
-        "required": ["beo_id", "description", "quantity", "currency"],
+        "required": ["beo_id", "description"],
         "description": "Fields accepted when creating a BeoLine."
       },
       "BeoLineUpdate": {
@@ -8952,10 +8973,10 @@
             "example": 1450,
             "format": "int64"
           },
-          "currency": {
-            "type": "string",
+          "currency_code": {
+            "type": ["string", "null"],
             "pattern": "^[A-Z]{3}$",
-            "description": "ISO 4217 currency code of every money field.",
+            "description": "ISO 4217 currency of the price; required when the line is priced.",
             "example": "USD"
           }
         },
@@ -68724,12 +68745,13 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "kind": "Lodging",
-                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "fulfillment_kind": "Lodging",
                       "title": "Headliner Hotel Block",
-                      "fulfillment_state": "Committed",
+                      "fulfillment_state": "Proposed",
                       "starts_at": "2026-10-08T14:30:00Z",
-                      "ends_at": "2026-10-08T14:30:00Z"
+                      "ends_at": "2026-10-08T14:30:00Z",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "fulfillment_number": 3
                     }
                   ],
                   "next_cursor": null
@@ -68758,11 +68780,11 @@
             "application/json": {
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "kind": "Lodging",
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "fulfillment_kind": "Lodging",
                 "title": "Headliner Hotel Block",
                 "starts_at": "2026-10-08T14:30:00Z",
-                "ends_at": "2026-10-08T14:30:00Z"
+                "ends_at": "2026-10-08T14:30:00Z",
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/FulfillmentCreate" }
             }
@@ -68787,12 +68809,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Lodging",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_kind": "Lodging",
                   "title": "Headliner Hotel Block",
-                  "fulfillment_state": "Committed",
+                  "fulfillment_state": "Proposed",
                   "starts_at": "2026-10-08T14:30:00Z",
-                  "ends_at": "2026-10-08T14:30:00Z"
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_number": 3
                 },
                 "schema": { "$ref": "#/components/schemas/Fulfillment" }
               }
@@ -68849,12 +68872,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Lodging",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_kind": "Lodging",
                   "title": "Headliner Hotel Block",
-                  "fulfillment_state": "Committed",
+                  "fulfillment_state": "Proposed",
                   "starts_at": "2026-10-08T14:30:00Z",
-                  "ends_at": "2026-10-08T14:30:00Z"
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_number": 3
                 },
                 "schema": { "$ref": "#/components/schemas/Fulfillment" }
               }
@@ -68894,11 +68918,11 @@
           "content": {
             "application/json": {
               "example": {
-                "kind": "Lodging",
-                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "fulfillment_kind": "Lodging",
                 "title": "Headliner Hotel Block",
                 "starts_at": "2026-10-08T14:30:00Z",
-                "ends_at": "2026-10-08T14:30:00Z"
+                "ends_at": "2026-10-08T14:30:00Z",
+                "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/FulfillmentUpdate" }
             }
@@ -68923,12 +68947,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Lodging",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_kind": "Lodging",
                   "title": "Headliner Hotel Block",
-                  "fulfillment_state": "Committed",
+                  "fulfillment_state": "Proposed",
                   "starts_at": "2026-10-08T14:30:00Z",
-                  "ends_at": "2026-10-08T14:30:00Z"
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_number": 3
                 },
                 "schema": { "$ref": "#/components/schemas/Fulfillment" }
               }
@@ -69003,8 +69028,8 @@
           "content": {
             "application/json": {
               "example": {
-                "expected_state": "Quoted",
-                "to_state": "Committed",
+                "expected_state": "Proposed",
+                "to_state": "Active",
                 "reason": "Client approved the revised scope."
               },
               "schema": { "$ref": "#/components/schemas/FulfillmentTransitionRequest" }
@@ -69030,12 +69055,13 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "kind": "Lodging",
-                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_kind": "Lodging",
                   "title": "Headliner Hotel Block",
-                  "fulfillment_state": "Committed",
+                  "fulfillment_state": "Proposed",
                   "starts_at": "2026-10-08T14:30:00Z",
-                  "ends_at": "2026-10-08T14:30:00Z"
+                  "ends_at": "2026-10-08T14:30:00Z",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "fulfillment_number": 3
                 },
                 "schema": { "$ref": "#/components/schemas/Fulfillment" }
               }
@@ -69089,9 +69115,9 @@
                       "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "description": "King room, 3 nights",
                       "quantity": 4,
-                      "unit": "each",
                       "unit_price_minor": 32900,
-                      "currency": "USD"
+                      "currency_code": "USD",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -69109,7 +69135,7 @@
         "operationId": "fulfillmentLines.create",
         "tags": ["Hospitality"],
         "x-xos-table": "app.fulfillment_lines",
-        "x-xos-capability": "hospitality.accommodation.write",
+        "x-xos-capability": "hospitality.fulfillment.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
         "summary": "Create a fulfillment line",
         "description": "A line of a fulfillment. Creates a fulfillment line. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
@@ -69122,9 +69148,9 @@
                 "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "description": "King room, 3 nights",
                 "quantity": 4,
-                "unit": "each",
                 "unit_price_minor": 32900,
-                "currency": "USD"
+                "currency_code": "USD",
+                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/FulfillmentLineCreate" }
             }
@@ -69151,9 +69177,9 @@
                   "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "King room, 3 nights",
                   "quantity": 4,
-                  "unit": "each",
                   "unit_price_minor": 32900,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/FulfillmentLine" }
               }
@@ -69212,9 +69238,9 @@
                   "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "King room, 3 nights",
                   "quantity": 4,
-                  "unit": "each",
                   "unit_price_minor": 32900,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/FulfillmentLine" }
               }
@@ -69230,7 +69256,7 @@
         "operationId": "fulfillmentLines.update",
         "tags": ["Hospitality"],
         "x-xos-table": "app.fulfillment_lines",
-        "x-xos-capability": "hospitality.accommodation.write",
+        "x-xos-capability": "hospitality.fulfillment.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
         "summary": "Update a fulfillment line",
         "description": "A line of a fulfillment. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
@@ -69256,9 +69282,9 @@
               "example": {
                 "description": "King room, 3 nights",
                 "quantity": 4,
-                "unit": "each",
                 "unit_price_minor": 32900,
-                "currency": "USD"
+                "currency_code": "USD",
+                "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
               },
               "schema": { "$ref": "#/components/schemas/FulfillmentLineUpdate" }
             }
@@ -69285,9 +69311,9 @@
                   "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "description": "King room, 3 nights",
                   "quantity": 4,
-                  "unit": "each",
                   "unit_price_minor": 32900,
-                  "currency": "USD"
+                  "currency_code": "USD",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/FulfillmentLine" }
               }
@@ -69306,7 +69332,7 @@
         "operationId": "fulfillmentLines.delete",
         "tags": ["Hospitality"],
         "x-xos-table": "app.fulfillment_lines",
-        "x-xos-capability": "hospitality.accommodation.write",
+        "x-xos-capability": "hospitality.fulfillment.write",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["hospitality"] }],
         "summary": "Delete a fulfillment line",
         "description": "A line of a fulfillment. Soft-deletes the fulfillment line: it moves to Trash and can be restored for its table's retention period.",
@@ -69371,9 +69397,11 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "title": "Crew Lunch Saturday",
-                      "service_at": "2026-10-08T14:30:00Z",
-                      "guest_count": 140
+                      "event_at": "2026-10-08T14:30:00Z",
+                      "guest_count": 140,
+                      "beo_number": 4,
+                      "approved_at": "2026-10-08T14:30:00Z",
+                      "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -69403,8 +69431,7 @@
               "example": {
                 "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "title": "Crew Lunch Saturday",
-                "service_at": "2026-10-08T14:30:00Z",
+                "event_at": "2026-10-08T14:30:00Z",
                 "guest_count": 140
               },
               "schema": { "$ref": "#/components/schemas/BeoCreate" }
@@ -69431,9 +69458,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Crew Lunch Saturday",
-                  "service_at": "2026-10-08T14:30:00Z",
-                  "guest_count": 140
+                  "event_at": "2026-10-08T14:30:00Z",
+                  "guest_count": 140,
+                  "beo_number": 4,
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Beo" }
               }
@@ -69491,9 +69520,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Crew Lunch Saturday",
-                  "service_at": "2026-10-08T14:30:00Z",
-                  "guest_count": 140
+                  "event_at": "2026-10-08T14:30:00Z",
+                  "guest_count": 140,
+                  "beo_number": 4,
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Beo" }
               }
@@ -69534,8 +69565,7 @@
             "application/json": {
               "example": {
                 "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                "title": "Crew Lunch Saturday",
-                "service_at": "2026-10-08T14:30:00Z",
+                "event_at": "2026-10-08T14:30:00Z",
                 "guest_count": 140
               },
               "schema": { "$ref": "#/components/schemas/BeoUpdate" }
@@ -69562,9 +69592,11 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "fulfillment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "title": "Crew Lunch Saturday",
-                  "service_at": "2026-10-08T14:30:00Z",
-                  "guest_count": 140
+                  "event_at": "2026-10-08T14:30:00Z",
+                  "guest_count": 140,
+                  "beo_number": 4,
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Beo" }
               }
@@ -69650,7 +69682,7 @@
                       "description": "Grilled vegetable wraps",
                       "quantity": 140,
                       "unit_price_minor": 1450,
-                      "currency": "USD"
+                      "currency_code": "USD"
                     }
                   ],
                   "next_cursor": null
@@ -69682,7 +69714,7 @@
                 "description": "Grilled vegetable wraps",
                 "quantity": 140,
                 "unit_price_minor": 1450,
-                "currency": "USD"
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/BeoLineCreate" }
             }
@@ -69710,7 +69742,7 @@
                   "description": "Grilled vegetable wraps",
                   "quantity": 140,
                   "unit_price_minor": 1450,
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/BeoLine" }
               }
@@ -69770,7 +69802,7 @@
                   "description": "Grilled vegetable wraps",
                   "quantity": 140,
                   "unit_price_minor": 1450,
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/BeoLine" }
               }
@@ -69813,7 +69845,7 @@
                 "description": "Grilled vegetable wraps",
                 "quantity": 140,
                 "unit_price_minor": 1450,
-                "currency": "USD"
+                "currency_code": "USD"
               },
               "schema": { "$ref": "#/components/schemas/BeoLineUpdate" }
             }
@@ -69841,7 +69873,7 @@
                   "description": "Grilled vegetable wraps",
                   "quantity": 140,
                   "unit_price_minor": 1450,
-                  "currency": "USD"
+                  "currency_code": "USD"
                 },
                 "schema": { "$ref": "#/components/schemas/BeoLine" }
               }

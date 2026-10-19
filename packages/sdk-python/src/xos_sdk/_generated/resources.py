@@ -6432,7 +6432,7 @@ class FulfillmentLinesResource(Resource):
         A line of a fulfillment. Creates a fulfillment line. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
 
         ``POST /fulfillment-lines`` (operation ``fulfillmentLines.create``).
-        Requires the capability ``hospitality.accommodation.write``.
+        Requires the capability ``hospitality.fulfillment.write``.
         """
         return self._client.request(OPERATIONS["fulfillmentLines.create"], body=body, idempotency_key=idempotency_key, options=options)
 
@@ -6465,7 +6465,7 @@ class FulfillmentLinesResource(Resource):
         A line of a fulfillment. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
 
         ``PATCH /fulfillment-lines/{id}`` (operation ``fulfillmentLines.update``).
-        Requires the capability ``hospitality.accommodation.write``.
+        Requires the capability ``hospitality.fulfillment.write``.
         """
         return self._client.request(OPERATIONS["fulfillmentLines.update"], path={"id": id}, body=body, if_match=if_match, options=options)
 
@@ -6480,7 +6480,7 @@ class FulfillmentLinesResource(Resource):
         A line of a fulfillment. Soft-deletes the fulfillment line: it moves to Trash and can be restored for its table's retention period.
 
         ``DELETE /fulfillment-lines/{id}`` (operation ``fulfillmentLines.delete``).
-        Requires the capability ``hospitality.accommodation.write``.
+        Requires the capability ``hospitality.fulfillment.write``.
         """
         return self._client.request(OPERATIONS["fulfillmentLines.delete"], path={"id": id}, options=options)
 

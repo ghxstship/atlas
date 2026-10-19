@@ -6064,22 +6064,16 @@ export interface Fulfillment {
    * Format: `uuid`.
    */
   readonly project_id: string;
-  readonly kind: FulfillmentKind;
-  /**
-   * Identifier of the engagement served.
-   * Format: `uuid`.
-   */
-  readonly engagement_id: string | null;
+  readonly fulfillment_kind: FulfillmentKind;
   /**
    * Fulfillment title.
    * Length: 1 to 300.
    */
   readonly title: string;
   /**
-   * Fulfillment state. A Title Case value from the lifecycle's database enum.
-   * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
+   * Fulfillment state.
    */
-  readonly fulfillment_state: string;
+  readonly fulfillment_state: "Proposed" | "Active" | "Blocked" | "Complete" | "Canceled";
   /**
    * Service start.
    * Format: `date-time`.
@@ -6090,6 +6084,16 @@ export interface Fulfillment {
    * Format: `date-time`.
    */
   readonly ends_at: string | null;
+  /**
+   * Identifier of the supplier, such as the hotel or caterer.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
+  /**
+   * Number within the project; the display key is {project_key}-{fulfillment_number}.
+   * Range: 1 to unbounded.
+   */
+  readonly fulfillment_number: number;
 }
 
 /**
@@ -6106,12 +6110,7 @@ export interface FulfillmentCreate {
    * Format: `uuid`.
    */
   readonly project_id: string;
-  readonly kind: FulfillmentKind;
-  /**
-   * Identifier of the engagement served.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
+  readonly fulfillment_kind: FulfillmentKind;
   /**
    * Fulfillment title.
    * Length: 1 to 300.
@@ -6127,18 +6126,18 @@ export interface FulfillmentCreate {
    * Format: `date-time`.
    */
   readonly ends_at?: string | null;
+  /**
+   * Identifier of the supplier, such as the hotel or caterer.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
 }
 
 /**
  * Fields accepted when updating a Fulfillment. Omitted fields are unchanged.
  */
 export interface FulfillmentUpdate {
-  readonly kind?: FulfillmentKind;
-  /**
-   * Identifier of the engagement served.
-   * Format: `uuid`.
-   */
-  readonly engagement_id?: string | null;
+  readonly fulfillment_kind?: FulfillmentKind;
   /**
    * Fulfillment title.
    * Length: 1 to 300.
@@ -6154,6 +6153,11 @@ export interface FulfillmentUpdate {
    * Format: `date-time`.
    */
   readonly ends_at?: string | null;
+  /**
+   * Identifier of the supplier, such as the hotel or caterer.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id?: string | null;
 }
 
 /**
@@ -6239,17 +6243,21 @@ export interface FulfillmentLine {
    * Quantity.
    */
   readonly quantity: number;
-  readonly unit: UnitCode;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the price; required when the line is priced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string | null;
+  /**
+   * Identifier of the guest the line is for, such as a room night.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
 }
 
 /**
@@ -6269,18 +6277,22 @@ export interface FulfillmentLineCreate {
   /**
    * Quantity.
    */
-  readonly quantity: number;
-  readonly unit: UnitCode;
+  readonly quantity?: number;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the price; required when the line is priced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
+  /**
+   * Identifier of the guest the line is for, such as a room night.
+   * Format: `uuid`.
+   */
+  readonly person_id?: string | null;
 }
 
 /**
@@ -6296,17 +6308,21 @@ export interface FulfillmentLineUpdate {
    * Quantity.
    */
   readonly quantity?: number;
-  readonly unit?: UnitCode;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the price; required when the line is priced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string | null;
+  /**
+   * Identifier of the guest the line is for, such as a room night.
+   * Format: `uuid`.
+   */
+  readonly person_id?: string | null;
 }
 
 /**
@@ -6368,20 +6384,30 @@ export interface Beo {
    */
   readonly fulfillment_id: string | null;
   /**
-   * BEO title.
-   * Length: 1 to 300.
-   */
-  readonly title: string;
-  /**
    * Service time.
    * Format: `date-time`.
    */
-  readonly service_at: string;
+  readonly event_at: string;
   /**
    * Guaranteed count.
    * Range: 0 to unbounded.
    */
-  readonly guest_count: number;
+  readonly guest_count: number | null;
+  /**
+   * Number within the project; the display key is {project_key}-{beo_number}.
+   * Range: 1 to unbounded.
+   */
+  readonly beo_number: number;
+  /**
+   * When the BEO was approved.
+   * Format: `date-time`.
+   */
+  readonly approved_at: string | null;
+  /**
+   * Identifier of the person who approved the BEO; never its author.
+   * Format: `uuid`.
+   */
+  readonly approved_by: string | null;
 }
 
 /**
@@ -6399,20 +6425,15 @@ export interface BeoCreate {
    */
   readonly fulfillment_id?: string | null;
   /**
-   * BEO title.
-   * Length: 1 to 300.
-   */
-  readonly title: string;
-  /**
    * Service time.
    * Format: `date-time`.
    */
-  readonly service_at: string;
+  readonly event_at: string;
   /**
    * Guaranteed count.
    * Range: 0 to unbounded.
    */
-  readonly guest_count: number;
+  readonly guest_count?: number | null;
 }
 
 /**
@@ -6425,20 +6446,15 @@ export interface BeoUpdate {
    */
   readonly fulfillment_id?: string | null;
   /**
-   * BEO title.
-   * Length: 1 to 300.
-   */
-  readonly title?: string;
-  /**
    * Service time.
    * Format: `date-time`.
    */
-  readonly service_at?: string;
+  readonly event_at?: string;
   /**
    * Guaranteed count.
    * Range: 0 to unbounded.
    */
-  readonly guest_count?: number;
+  readonly guest_count?: number | null;
 }
 
 /**
@@ -6509,10 +6525,10 @@ export interface BeoLine {
    */
   readonly unit_price_minor: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the price; required when the line is priced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code: string | null;
 }
 
 /**
@@ -6532,17 +6548,17 @@ export interface BeoLineCreate {
   /**
    * Quantity.
    */
-  readonly quantity: number;
+  readonly quantity?: number;
   /**
    * Unit price. Integer minor units of the resource currency; null means unpriced, never zero.
    * Format: `int64`.
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the price; required when the line is priced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency: string;
+  readonly currency_code?: string | null;
 }
 
 /**
@@ -6564,10 +6580,10 @@ export interface BeoLineUpdate {
    */
   readonly unit_price_minor?: number | null;
   /**
-   * ISO 4217 currency code of every money field.
+   * ISO 4217 currency of the price; required when the line is priced.
    * Pattern: `^[A-Z]{3}$`.
    */
-  readonly currency?: string;
+  readonly currency_code?: string | null;
 }
 
 /**

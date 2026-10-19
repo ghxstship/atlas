@@ -7,6 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { handlers as finance } from "../src/handlers/finance.ts";
+import { handlers as hospitality } from "../src/handlers/hospitality.ts";
 import { handlers as people } from "../src/handlers/people.ts";
 import { contractApp, expectContract, testContext } from "./support/contract.ts";
 import { memoryDb, refusal, requests, success, tenantRow } from "./support/memory-db.ts";
@@ -250,5 +251,171 @@ describe("People: role assignments, requisitions and agreements", () => {
       body_sha256: "9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b",
     });
     expect(again.status).toBe(422);
+  });
+});
+
+describe("Hospitality: fulfillments, lines, BEOs and BEO lines", () => {
+  const PROJECT = id(301);
+  const FULFILLMENT = id(302);
+  const LINE = id(303);
+  const BEO = id(304);
+  const BEO_LINE = id(305);
+
+  function world() {
+    const db = memoryDb(
+      {
+        fulfillments: [
+          tenantRow(FULFILLMENT, ORG, {
+            project_id: PROJECT,
+            fulfillment_kind: "Catering",
+            counterparty_id: null,
+            title: "Crew Catering Opening Night",
+            fulfillment_state: "Proposed",
+            fulfillment_number: 3,
+            starts_at: "2027-06-01T16:00:00.000Z",
+            ends_at: null,
+          }),
+        ],
+        fulfillment_lines: [
+          tenantRow(LINE, ORG, {
+            fulfillment_id: FULFILLMENT,
+            description: "Hot meal",
+            person_id: null,
+            quantity: 80,
+            unit_price_minor: null,
+            currency_code: null,
+          }),
+        ],
+        beos: [
+          tenantRow(BEO, ORG, {
+            project_id: PROJECT,
+            fulfillment_id: FULFILLMENT,
+            event_at: "2027-06-01T17:00:00.000Z",
+            guest_count: null,
+            beo_number: 4,
+            approved_at: null,
+            approved_by: null,
+          }),
+        ],
+        beo_lines: [
+          tenantRow(BEO_LINE, ORG, {
+            beo_id: BEO,
+            description: "Buffet dinner",
+            quantity: 80,
+            unit_price_minor: 2500,
+            currency_code: "USD",
+          }),
+        ],
+      },
+      {
+        transition_fulfillment: (args, db) => {
+          const row = db.tables["fulfillments"]?.find((r) => r["id"] === args["p_fulfillment_id"]);
+          if (args["p_next"] === "Complete") throw refusal("fulfillment_transition_not_allowed");
+          (row as Row)["fulfillment_state"] = args["p_next"];
+          return id(7002);
+        },
+      },
+      {
+        fulfillments: {
+          fulfillment_state: "Proposed",
+          fulfillment_number: 5,
+          counterparty_id: null,
+        },
+        fulfillment_lines: { quantity: 1, person_id: null, currency_code: null },
+        beos: { beo_number: 6, approved_at: null, approved_by: null, guest_count: null },
+        beo_lines: { quantity: 1, currency_code: null, unit_price_minor: null },
+      },
+    );
+    return { db, http: requests(contractApp({ handlers: [hospitality], db })) };
+  }
+
+  it("serves fulfillments and moves one with compare-and-set", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/fulfillments")), "fulfillments.list");
+    await expectContract(
+      await success(http.get(`/fulfillments/${FULFILLMENT}`)),
+      "fulfillments.get",
+    );
+    expect((await http.get(`/fulfillments/${MISSING}`)).status).toBe(404);
+    const create = await success(
+      http.post("/fulfillments", {
+        project_id: PROJECT,
+        fulfillment_kind: "Lodging",
+        title: "Crew Hotel",
+      }),
+    );
+    await expectContract(create, "fulfillments.create");
+    const update = await success(
+      http.patch(`/fulfillments/${FULFILLMENT}`, { title: "Crew Catering, Opening Night" }),
+    );
+    await expectContract(update, "fulfillments.update");
+    const move = await success(
+      http.post(`/fulfillments/${FULFILLMENT}/transitions`, {
+        expected_state: "Proposed",
+        to_state: "Active",
+      }),
+    );
+    const moved = (await expectContract(move, "fulfillments.transition")) as {
+      fulfillment_state: string;
+    };
+    expect(moved.fulfillment_state).toBe("Active");
+    const stale = await http.post(`/fulfillments/${FULFILLMENT}/transitions`, {
+      expected_state: "Proposed",
+      to_state: "Canceled",
+    });
+    expect(stale.status).toBe(409);
+    const refused = await http.post(`/fulfillments/${FULFILLMENT}/transitions`, {
+      expected_state: "Active",
+      to_state: "Complete",
+    });
+    expect(refused.status).toBe(422);
+    await expectContract(
+      await success(http.delete(`/fulfillments/${FULFILLMENT}`)),
+      "fulfillments.delete",
+    );
+  });
+
+  it("serves fulfillment lines, unpriced lines without a currency", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/fulfillment-lines")), "fulfillmentLines.list");
+    const one = (await expectContract(
+      await success(http.get(`/fulfillment-lines/${LINE}`)),
+      "fulfillmentLines.get",
+    )) as { currency_code: string | null };
+    expect(one.currency_code).toBeNull();
+    const create = await success(
+      http.post("/fulfillment-lines", { fulfillment_id: FULFILLMENT, description: "Room night" }),
+    );
+    const made = (await expectContract(create, "fulfillmentLines.create")) as { quantity: number };
+    expect(made.quantity).toBe(1);
+    const update = await success(
+      http.patch(`/fulfillment-lines/${LINE}`, { unit_price_minor: 1800, currency_code: "USD" }),
+    );
+    await expectContract(update, "fulfillmentLines.update");
+    await expectContract(
+      await success(http.delete(`/fulfillment-lines/${LINE}`)),
+      "fulfillmentLines.delete",
+    );
+  });
+
+  it("serves BEOs and BEO lines", async () => {
+    const { http } = world();
+    await expectContract(await success(http.get("/beos")), "beos.list");
+    await expectContract(await success(http.get(`/beos/${BEO}`)), "beos.get");
+    const create = await success(
+      http.post("/beos", { project_id: PROJECT, event_at: "2027-06-02T17:00:00.000Z" }),
+    );
+    await expectContract(create, "beos.create");
+    const update = await success(http.patch(`/beos/${BEO}`, { guest_count: 85 }));
+    await expectContract(update, "beos.update");
+    await expectContract(await success(http.delete(`/beos/${BEO}`)), "beos.delete");
+
+    await expectContract(await success(http.get("/beo-lines")), "beoLines.list");
+    await expectContract(await success(http.get(`/beo-lines/${BEO_LINE}`)), "beoLines.get");
+    const line = await success(http.post("/beo-lines", { beo_id: BEO, description: "Coffee" }));
+    await expectContract(line, "beoLines.create");
+    const change = await success(http.patch(`/beo-lines/${BEO_LINE}`, { quantity: 85 }));
+    await expectContract(change, "beoLines.update");
+    await expectContract(await success(http.delete(`/beo-lines/${BEO_LINE}`)), "beoLines.delete");
   });
 });

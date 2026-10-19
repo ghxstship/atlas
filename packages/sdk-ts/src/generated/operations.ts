@@ -6875,7 +6875,7 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Hospitality",
     summary: "Create a fulfillment line",
-    capability: "hospitality.accommodation.write",
+    capability: "hospitality.fulfillment.write",
     scopes: ["hospitality"],
   },
   "fulfillmentLines.get": {
@@ -6921,7 +6921,7 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Hospitality",
     summary: "Update a fulfillment line",
-    capability: "hospitality.accommodation.write",
+    capability: "hospitality.fulfillment.write",
     scopes: ["hospitality"],
   },
   "fulfillmentLines.delete": {
@@ -6944,7 +6944,7 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     item: null,
     tag: "Hospitality",
     summary: "Delete a fulfillment line",
-    capability: "hospitality.accommodation.write",
+    capability: "hospitality.fulfillment.write",
     scopes: ["hospitality"],
   },
   "beos.list": {
