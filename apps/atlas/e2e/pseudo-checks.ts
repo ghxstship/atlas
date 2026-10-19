@@ -102,7 +102,9 @@ export async function unwrappedText(page: Page): Promise<Found[]> {
     // Labels a person meets without seeing them on screen, and the shown option of a select.
     for (const el of document.body.querySelectorAll("*")) {
       if (el.closest(skip) || !visible(el)) continue;
-      for (const attribute of ["aria-label", "placeholder", "title", "alt"]) {
+      // The attributes that label an element, keyed so the names read as attributes.
+      const labelling = { "aria-label": 1, placeholder: 1, title: 1, alt: 1 };
+      for (const attribute of Object.keys(labelling)) {
         const value = el.getAttribute(attribute);
         if (!value?.trim()) continue;
         for (const run of runsOf(value, outside(value), 0)) {
@@ -226,7 +228,7 @@ const FORMATTED = [
   /^\d{1,2}:\d{2}( ?[AP]M)?$/,
   /^[AP]M$/,
   /^[A-Z]{3}$/,
-  /^[\d\s.,:/$€£¥%+\-–—()·]*(AM|PM|USD|EUR|GBP|hrs?|min|h|d|K|M|B)?[\d\s.,:/$€£¥%+\-–—()·]*$/,
+  /^[\d\s.,:/$€£¥%+\-\u2013\u2014()·]*(AM|PM|USD|EUR|GBP|hrs?|min|h|d|K|M|B)?[\d\s.,:/$€£¥%+\-\u2013\u2014()·]*$/,
 ];
 
 /** Never human text even when the database holds it: an event type or enum key shown raw. */
@@ -279,14 +281,14 @@ export function databaseText(): Promise<Set<string>> {
 }
 
 /** Separators code puts between data values ("NWS · Northwind Summer Series", "Lee, Jordan"). */
-const SEPARATORS = /\s*(?:·|•|—|–|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-\s+/;
+const SEPARATORS = /\s*(?:·|•|\u2014|\u2013|\||\/|,|:|›|>|\(|\)|\+)\s*|\s+-\s+/;
 
 /** A record key (NWS-12) or a code (US-FL-MIAMI-DADE, G2.CONTRACTS), with any hyphen glyph. */
-const CODE = /^[A-Z0-9]+(?:[-‐‑‒–−_.][A-Z0-9]+)*$/;
+const CODE = /^[A-Z0-9]+(?:[-‐‑‒\u2013−_.][A-Z0-9]+)*$/;
 
 function isData(raw: string, data: Set<string>): boolean {
   // Punctuation code puts between values ("· NWS") belongs to neither side.
-  const text = raw.replace(/^[\s·•.,:;|/()–—-]+|[\s·•.,:;|/()–—-]+$/g, "");
+  const text = raw.replace(/^[\s·•.,:;|/()\u2013\u2014-]+|[\s·•.,:;|/()\u2013\u2014-]+$/g, "");
   if (!/[A-Za-z]{2,}/.test(text)) return true;
   if (RAW_KEY.test(text)) return false;
   if (data.has(raw.trim()) || data.has(text)) return true;
