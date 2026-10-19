@@ -2,13 +2,13 @@ import type { ReactElement } from "react";
 import type {
   CardProps as ReferenceCardProps,
   DividerProps as ReferenceDividerProps,
-  SkeletonProps as ReferenceSkeletonProps,
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
 
+export { Skeleton, type SkeletonProps } from "./Skeleton.tsx";
+
 export type CardProps = ReferenceCardProps & { className?: string };
 export type DividerProps = ReferenceDividerProps;
-export type SkeletonProps = ReferenceSkeletonProps;
 
 export const cardClass = cx(
   "bg-bg-raised border border-border-subtle rounded-card forced-colors:border-[CanvasText]",
@@ -59,19 +59,5 @@ export function Divider({ label }: DividerProps): ReactElement {
     >
       <span aria-hidden="true">{label}</span>
     </div>
-  );
-}
-
-/** Reserves space for streamed content; stops pulsing under reduced motion. */
-export function Skeleton({ width, height }: SkeletonProps): ReactElement {
-  return (
-    <span
-      aria-hidden="true"
-      className="xos-anim-pulse block rounded-chip bg-bg-hover"
-      style={{
-        inlineSize: width ?? "var(--ui-skeleton-inline)",
-        blockSize: height ?? "var(--ui-skeleton-block)",
-      }}
-    />
   );
 }
