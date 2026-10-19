@@ -39,7 +39,14 @@ const config: NextConfig = {
   // Playwright and local tools reach the dev server at 127.0.0.1.
   allowedDevOrigins: ["127.0.0.1"],
   // Attachments upload through server actions; the bucket allows 50 MiB (migration 0590), above Next's 1 MB default.
-  experimental: { serverActions: { bodySizeLimit: "50mb" } },
+  experimental: {
+    serverActions: { bodySizeLimit: "50mb" },
+    // Turbopack merges chunks below this raw size (default 50,000). At 200,000 a signed-in page
+    // loads 13 chunks instead of 19 and 3 KB less gzip, since each chunk carries its own wrapper and
+    // compresses alone; the cost is shared code merged into page chunks, fetched again on
+    // navigation (ADR 0027, A24-009).
+    turbopackChunking: { minChunkSize: 200_000 },
+  },
 };
 
 export default withNextIntl(config);
