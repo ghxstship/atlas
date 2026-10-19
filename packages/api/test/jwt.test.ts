@@ -64,6 +64,9 @@ function fakeAuth(options: { jwks?: "ok" | "down" } = {}) {
       return json([membership]);
     }
     void init;
+    if (url.pathname === "/rest/v1/rpc/network_access") {
+      return json([{ enforced: false, allowed: true, covered: false }]);
+    }
     return json({ message: `unexpected ${url.pathname}` }, 404);
   };
   return { calls, fetcher };

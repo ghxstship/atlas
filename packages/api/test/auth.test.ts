@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { createApiApp } from "../src/app.ts";
 import {
   apiKeyTokenScopes,
+  clientIp,
   createSupabaseAuthenticator,
   jwtClaims,
   negotiateLocale,
@@ -31,7 +32,10 @@ function jwt(claims: Record<string, unknown>): string {
 
 const VALID = jwt({});
 
-function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}) {
+function fakeSupabase(
+  orgs: (typeof ORG_A)[],
+  options: { person?: boolean; allowedIps?: readonly string[] } = {},
+) {
   const calls: string[] = [];
   const exchanges: string[] = [];
   const fetcher: typeof fetch = async (input, init) => {
@@ -80,6 +84,14 @@ function fakeSupabase(orgs: (typeof ORG_A)[], options: { person?: boolean } = {}
           membership_roles: [],
         })),
       );
+    }
+    if (url.pathname === "/rest/v1/rpc/network_access") {
+      // Migration 1201: an org with an allow-list admits only the listed addresses.
+      const body = JSON.parse(String(init?.body ?? "{}")) as { p_ip?: string };
+      const list = options.allowedIps;
+      const enforced = list !== undefined;
+      const allowed = list === undefined || list.includes(body.p_ip ?? "");
+      return json([{ enforced, allowed, covered: allowed }]);
     }
     return json({ message: `unexpected ${url.pathname}` }, 500);
   };
@@ -152,6 +164,49 @@ describe("bearer session tokens", () => {
     expect(context?.org).toBeNull();
     expect(() => requireOrg(context as RequestContext)).toThrow(ApiProblem);
     expect(() => requirePerson(context as RequestContext)).toThrow(ApiProblem);
+  });
+});
+
+describe("org IP allow-list (migration 1201)", () => {
+  it("admits an address inside the list and refuses one outside it, for sessions and API keys", async () => {
+    const { authenticate, calls } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
+    const inside = await resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-forwarded-for": "203.0.113.40, 10.0.0.1",
+    });
+    expect(inside?.org?.id).toBe(ORG_A.id);
+    expect(calls.some((c) => c.startsWith("/rest/v1/rpc/network_access"))).toBe(true);
+    const outside = resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-real-ip": "198.51.100.7",
+    });
+    await expect(outside).rejects.toMatchObject({ body: { status: 401 } });
+    await expect(
+      resolve(authenticate, {
+        authorization: "Bearer xos_live_valid",
+        "x-forwarded-for": "198.51.100.7",
+      }),
+    ).rejects.toBeInstanceOf(ApiProblem);
+    await expect(
+      resolve(authenticate, { authorization: `Bearer ${VALID}` }),
+    ).rejects.toBeInstanceOf(ApiProblem);
+  });
+
+  it("admits every address while the org has not turned the list on", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    const context = await resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-forwarded-for": "198.51.100.7",
+    });
+    expect(context?.org?.id).toBe(ORG_A.id);
+  });
+
+  it("reads the caller's address from the proxy headers", () => {
+    expect(clientIp(new Headers({ "x-forwarded-for": " 203.0.113.40 , 10.0.0.1" }))).toBe(
+      "203.0.113.40",
+    );
+    expect(clientIp(new Headers({ "x-real-ip": "198.51.100.7" }))).toBe("198.51.100.7");
+    expect(clientIp(new Headers())).toBeNull();
   });
 });
 
