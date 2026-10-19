@@ -181,7 +181,7 @@ describe("data mapping", () => {
     });
     const agreement = FIXTURES["agreement-certificate"];
     expect(DESCRIBE["agreement-certificate"]({ ...agreement, project: null }, NOW).recordKey).toBe(
-      "AGR-AGR-b0000000",
+      "AGR-b0000000",
     );
   });
 

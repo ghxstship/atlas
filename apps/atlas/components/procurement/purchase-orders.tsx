@@ -50,6 +50,7 @@ import {
   type SearchParams,
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
 const REFUSALS = "procurement.refusals";
@@ -314,7 +315,12 @@ async function PurchaseOrderRecord({
           value: ack.data ? date(ack.data.acknowledgedAt) : t("orders.notAcknowledged"),
         },
       ]}
-      actions={controls}
+      actions={
+        <>
+          {controls}
+          <DocumentActions org={ctx.org.slug} kind="purchase-order" id={order.id} />
+        </>
+      }
     >
       <KitSection id="po-lines" title={t("orders.lines")}>
         {lines.data.length === 0 ? (

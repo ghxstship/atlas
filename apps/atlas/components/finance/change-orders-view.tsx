@@ -26,6 +26,7 @@ import { InlineActionButton } from "./kit-inline-action-button";
 import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Finance > Change orders (Section 4.5.5, journey 6): a change order raised without a price is stored
@@ -152,6 +153,7 @@ export async function ChangeOrdersView({ page }: { page: FinancePage }) {
       content: (
         <>
           <div className="flex flex-wrap gap-8">
+            <DocumentActions org={ctx.org.slug} kind="change-order" id={peek.id} />
             <TransitionBar
               org={ctx.org.slug}
               lifecycle="change_order"

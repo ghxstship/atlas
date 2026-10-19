@@ -17,6 +17,7 @@ import { toneFor } from "@/lib/states";
 import { AdvanceAnswerForm, TaxFormForm } from "./forms";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Vendor tabs (Section 4.4.4 Vendor: bid, purchase orders with acknowledgment, deliveries and dock
@@ -121,25 +122,30 @@ export async function PurchaseOrdersTab({ view, t, locale, engagementKey }: TabP
             }
           : {}),
         detail: (
-          <ul className="m-0 flex list-none flex-col gap-2 ps-12 text-text-13 text-text-secondary">
-            {lines.data
-              .filter((l) => l.purchase_order_id === po.id)
-              .map((l) => (
-                <li key={l.id ?? ""}>
-                  {[
-                    t("gateway.engagement.po.line", {
-                      n: l.line_number ?? 0,
-                      description: l.description ?? "",
-                    }),
-                    [l.quantity, l.unit_basis]
-                      .filter((v) => v !== null && v !== undefined)
-                      .join(" "),
-                    formatMoney(locale, l.amount_minor, po.currency_code) ??
-                      t("gateway.common.unpriced"),
-                  ].join(" · ")}
-                </li>
-              ))}
-          </ul>
+          <div className="flex flex-col gap-8">
+            <ul className="m-0 flex list-none flex-col gap-2 ps-12 text-text-13 text-text-secondary">
+              {lines.data
+                .filter((l) => l.purchase_order_id === po.id)
+                .map((l) => (
+                  <li key={l.id ?? ""}>
+                    {[
+                      t("gateway.engagement.po.line", {
+                        n: l.line_number ?? 0,
+                        description: l.description ?? "",
+                      }),
+                      [l.quantity, l.unit_basis]
+                        .filter((v) => v !== null && v !== undefined)
+                        .join(" "),
+                      formatMoney(locale, l.amount_minor, po.currency_code) ??
+                        t("gateway.common.unpriced"),
+                    ].join(" · ")}
+                  </li>
+                ))}
+            </ul>
+            {po.id ? (
+              <DocumentActions kind="purchase-order" id={po.id} engagementKey={engagementKey} />
+            ) : null}
+          </div>
         ),
       }))}
     />

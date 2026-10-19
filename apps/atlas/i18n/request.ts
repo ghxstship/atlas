@@ -42,6 +42,7 @@ export function messagesFor(locale: AtlasLocale): Messages {
 const SERVER_ONLY_NAMESPACES: readonly Namespace[] = [
   "compass",
   "docs",
+  "documents",
   "email",
   "gateway",
   "handoff",

@@ -1,9 +1,7 @@
 {
   "actions": {
     "download": "Download PDF",
-    "downloadA4": "PDF (A4)",
-    "downloadLabel": "Download {document} as a tagged PDF on US Letter",
-    "downloadA4Label": "Download {document} as a tagged PDF on A4"
+    "downloadA4": "PDF (A4)"
   },
   "kinds": {
     "purchase-order": "Purchase order",

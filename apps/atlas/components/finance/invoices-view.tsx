@@ -29,6 +29,7 @@ import { InlineActionButton } from "./kit-inline-action-button";
 import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Finance > Invoices (Section 4.5.5): receivables the org issues and payables it receives. A
@@ -172,6 +173,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       content: (
         <>
           <div className="flex flex-wrap gap-8">
+            <DocumentActions org={ctx.org.slug} kind="invoice" id={peek.id} />
             <TransitionBar
               org={ctx.org.slug}
               lifecycle="invoice"

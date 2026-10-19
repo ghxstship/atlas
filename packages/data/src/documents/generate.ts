@@ -5,6 +5,7 @@ import { documentTranslator, formatter } from "./format.ts";
 import type { DocumentKind, DocumentLogo, DocumentModel, Paper } from "./model.ts";
 import { isEmbeddableImage, renderDocumentPdf } from "./render.ts";
 import { loadDocumentData } from "./sources.ts";
+import { loadExternalDocumentData, type ExternalDocumentKind } from "./sources-external.ts";
 import {
   DESCRIBE,
   TEMPLATES,
@@ -104,7 +105,10 @@ export interface GenerateInput {
   readonly messages: unknown;
   readonly paper: Paper;
   /** The link the QR code opens: the record in the shell that serves the document. */
-  readonly recordUrl: (record: { readonly projectKey: string | null }) => string;
+  readonly recordUrl: (record: {
+    readonly recordKey: string;
+    readonly projectKey: string | null;
+  }) => string;
   readonly now?: Date;
 }
 
@@ -123,23 +127,48 @@ export function documentFileName(kind: DocumentKind, recordKey: string, paper: P
 export async function generateDocument(input: GenerateInput): Promise<Result<GeneratedDocument>> {
   const data = await loadDocumentData(input.db, input.orgId, input.kind, input.id);
   if (!data.ok) return data;
+  return renderLoaded(input, input.kind, data.data, input.orgId, input.orgName);
+}
+
+export type ExternalGenerateInput = Omit<GenerateInput, "orgId" | "orgName" | "kind"> & {
+  readonly kind: ExternalDocumentKind;
+};
+
+/** A document for Gateway, read through the api_external views (sources-external.ts). */
+export async function generateExternalDocument(
+  input: ExternalGenerateInput,
+): Promise<Result<GeneratedDocument>> {
+  const loaded = await loadExternalDocumentData(input.db, input.kind, input.id);
+  if (!loaded.ok) return loaded;
+  return renderLoaded(input, input.kind, loaded.data.data, loaded.data.orgId, loaded.data.orgName);
+}
+
+async function renderLoaded<K extends DocumentKind>(
+  input: Omit<GenerateInput, "orgId" | "orgName" | "kind">,
+  kind: K,
+  data: DocumentDataMap[K],
+  orgId: string,
+  orgName: string,
+): Promise<Result<GeneratedDocument>> {
   const t = documentTranslator(input.messages);
-  const brand = await loadDocumentBrand(input.db, input.orgId, input.orgName, (name) =>
+  const brand = await loadDocumentBrand(input.db, orgId, orgName, (name) =>
     t("facts.logoAlt", { name }),
   );
-  const project = "project" in data.data ? data.data.project : null;
-  const model = buildDocumentModel(input.kind, data.data, {
+  const project = "project" in data ? data.project : null;
+  const now = input.now ?? new Date();
+  const { recordKey } = DESCRIBE[kind](data, now);
+  const model = buildDocumentModel(kind, data, {
     locale: input.locale,
     messages: input.messages,
     brand,
-    recordUrl: input.recordUrl({ projectKey: project?.key ?? null }),
-    ...(input.now ? { now: input.now } : {}),
+    recordUrl: input.recordUrl({ recordKey, projectKey: project?.key || null }),
+    now,
   });
   try {
     const bytes = await renderDocumentPdf(model, { paper: input.paper });
     return ok({
       bytes,
-      fileName: documentFileName(input.kind, model.facts.recordKey, input.paper),
+      fileName: documentFileName(kind, model.facts.recordKey, input.paper),
       templateVersion: model.facts.templateVersion,
     });
   } catch (error) {

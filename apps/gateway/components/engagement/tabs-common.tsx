@@ -42,6 +42,7 @@ import {
 } from "./forms";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /** Engagement stages (Section 4.4.4) and where an engagement state sits among them. */
 const STAGE_KEYS = ["offer", "onboarding", "engaged", "closeOut"] as const;
@@ -421,6 +422,9 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
                 locale={locale}
                 t={t}
               />
+              {inv.id ? (
+                <DocumentActions kind="invoice" id={inv.id} engagementKey={engagementKey} />
+              ) : null}
             </li>
           ))}
         </ul>

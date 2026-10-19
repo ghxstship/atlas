@@ -62,6 +62,7 @@ import {
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
 import { AccessMatrixEditor, CredentialBadge } from "./client";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * The Credentials module (Section 4.2: categories, issuance, the access grid and scans), one
@@ -646,6 +647,7 @@ async function CredentialRecord({
             c.validTo ? dateTime(format, c.validTo, timeZone) : t("credentials.issued.openEnded")
           }
         />
+        <DocumentActions org={page.ctx.org.slug} kind="credential-badge" id={c.id} />
       </RecordSection>
       {canEdit ? (
         <RecordSection id="credential-window" title={t("credentials.issued.windowHeading")}>

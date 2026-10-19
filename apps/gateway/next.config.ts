@@ -16,6 +16,9 @@ const config: NextConfig = {
     "@xos/ui",
   ],
   typedRoutes: true,
+  // Generated documents render with pdfkit, which reads its own files at runtime; it stays a
+  // server-side external, loaded from node_modules and never bundled (ADR 0031).
+  serverExternalPackages: ["pdfkit"],
   // The release on browser error reports (instrumentation-client.ts). Always defined, so the build
   // inlines a string instead of shipping a process.env lookup.
   env: { NEXT_PUBLIC_XOS_RELEASE: process.env["VERCEL_GIT_COMMIT_SHA"] ?? "" },

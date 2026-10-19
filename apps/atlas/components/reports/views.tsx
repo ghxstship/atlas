@@ -27,6 +27,7 @@ import { EmptyPanel, ErrorPanel, RefusalPanel } from "@/components/finance/panel
 import { PageHeader, TemplateCollection } from "@/components/finance/ui";
 import { Chart } from "@/components/platform/client/chart";
 import { ExportCsvButton, MatrixWithDrill } from "./client";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * The built-in reports (Section 4.2 Reports, Section 4.5.5): gate readiness, the coordinate matrix,
@@ -981,6 +982,7 @@ export async function FinalCostReport({ page }: { page: FinancePage }) {
       <h2 className="m-0 text-heading-16 font-semibold">
         {t("reports.final.heading", { project: `${report.project.key} · ${report.project.name}` })}
       </h2>
+      <DocumentActions org={org} kind="final-cost-report" id={report.project.id} />
       {!report.hasBaseline ? (
         <EmptyPanel
           icon="FileCheck"

@@ -1,9 +1,7 @@
 {
   "actions": {
     "download": "Descargar PDF",
-    "downloadA4": "PDF (A4)",
-    "downloadLabel": "Descargar {document} como PDF etiquetado en tamaño carta",
-    "downloadA4Label": "Descargar {document} como PDF etiquetado en A4"
+    "downloadA4": "PDF (A4)"
   },
   "kinds": {
     "purchase-order": "Orden de compra",

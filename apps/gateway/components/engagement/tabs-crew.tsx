@@ -13,6 +13,7 @@ import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Crew and staff tabs (Section 4.4.4: shifts, timesheets, travel and lodging, credentials,
@@ -466,6 +467,13 @@ export async function CredentialsTab({ view, t, locale, engagementKey }: TabProp
         tag: c.revoked_at
           ? { label: t("gateway.engagement.credentials.revoked"), tone: "danger" as const }
           : { label: t("gateway.engagement.credentials.valid"), tone: "success" as const },
+        ...(c.id
+          ? {
+              detail: (
+                <DocumentActions kind="credential-badge" id={c.id} engagementKey={engagementKey} />
+              ),
+            }
+          : {}),
       }))}
     />
   );

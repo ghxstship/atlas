@@ -15,6 +15,7 @@ import { ApprovalForm, DeliverableForm } from "./forms";
 import { SponsorAssetForm } from "./sponsor-forms";
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Client, contractor and sponsor tabs (Section 4.4.4): approvals and change orders, the shared
@@ -132,6 +133,9 @@ export async function ChangeOrdersTab({ view, t, locale, engagementKey }: TabPro
                   ))}
               </ul>
               {pending?.id ? <ApprovalForm requestId={pending.id} subject={o.title ?? ""} /> : null}
+              {o.id ? (
+                <DocumentActions kind="change-order" id={o.id} engagementKey={engagementKey} />
+              ) : null}
             </div>
           ),
         };
@@ -260,6 +264,9 @@ export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps)
             .filter(Boolean)
             .join(" · ")}
         >
+          {show.id ? (
+            <DocumentActions kind="run-of-show" id={show.id} engagementKey={engagementKey} />
+          ) : null}
           <RowList
             label={show.name ?? ""}
             items={cues.data

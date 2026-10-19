@@ -57,6 +57,26 @@ export function ButtonLink({
   );
 }
 
+/**
+ * A file download styled as an @xos/ui Button: a plain anchor with `download`, because a route
+ * handler answers it with a file, not a page Next.js could prefetch (generated documents, ADR 0031).
+ */
+export function DownloadLink({
+  href,
+  variant = "secondary",
+  children,
+}: {
+  href: string;
+  variant?: ButtonProps["variant"];
+  children: ReactNode;
+}) {
+  return (
+    <a href={href} download className={buttonClass(variant ?? "secondary", "sm")}>
+      {children}
+    </a>
+  );
+}
+
 /** @xos/ui EmptyState whose one action navigates (Section 11.10, rule 10). */
 export function EmptyStateLink(props: {
   sentence: string;

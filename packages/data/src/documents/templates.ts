@@ -134,23 +134,23 @@ export const DESCRIBE: {
 } = {
   "purchase-order": (d) => ({ recordKey: d.order.key, issuedAt: d.order.createdAt }),
   invoice: (d) => ({
-    recordKey: d.invoice.number ?? `${d.project.key}-INV-${d.invoice.id.slice(0, 8)}`,
+    recordKey: d.invoice.number ?? keyed(d.project.key, `INV-${d.invoice.id.slice(0, 8)}`),
     issuedAt: d.invoice.issuedOn ? `${d.invoice.issuedOn}T00:00:00Z` : d.invoice.createdAt,
   }),
   "change-order": (d) => ({
-    recordKey: `${d.project.key}-CO${d.order.number}`,
+    recordKey: keyed(d.project.key, `CO${d.order.number}`),
     issuedAt: d.order.createdAt,
   }),
   "day-sheet": (d) => ({
-    recordKey: `${d.project.key}-DS-${d.sheet.day}`,
+    recordKey: keyed(d.project.key, `DS-${d.sheet.day}`),
     issuedAt: d.sheet.publishedAt ?? d.sheet.updatedAt,
   }),
   "call-sheet": (d) => ({
-    recordKey: `${d.project.key}-CS-${d.sheet.day}`,
+    recordKey: keyed(d.project.key, `CS-${d.sheet.day}`),
     issuedAt: d.sheet.publishedAt ?? d.sheet.updatedAt,
   }),
   "run-of-show": (d) => ({
-    recordKey: `${d.project.key}-ROS-${d.run.showDate}`,
+    recordKey: keyed(d.project.key, `ROS-${d.run.showDate}`),
     issuedAt: `${d.run.showDate}T00:00:00Z`,
   }),
   beo: (d) => ({ recordKey: d.beo.key, issuedAt: d.beo.approvedAt ?? d.beo.createdAt }),
@@ -159,21 +159,27 @@ export const DESCRIBE: {
     issuedAt: d.credential.createdAt,
   }),
   "inspection-report": (d) => ({
-    recordKey: `${d.project.key}-INS-${d.inspection.id.slice(0, 8)}`,
+    recordKey: keyed(d.project.key, `INS-${d.inspection.id.slice(0, 8)}`),
     issuedAt: d.inspection.signedOffAt ?? d.inspection.inspectedAt,
   }),
   "incident-report": (d) => ({ recordKey: d.incident.key, issuedAt: d.incident.createdAt }),
   "final-cost-report": (d, generatedAt) => ({
-    recordKey: `${d.project.key}-FCR`,
+    recordKey: keyed(d.project.key, "FCR"),
     issuedAt: generatedAt.toISOString(),
   }),
   "agreement-certificate": (d) => ({
-    recordKey: `${d.project?.key ?? "AGR"}-AGR-${d.agreement.id.slice(0, 8)}`,
+    recordKey: keyed(d.project?.key ?? "", `AGR-${d.agreement.id.slice(0, 8)}`),
     issuedAt: d.agreement.signedAt ?? d.agreement.createdAt,
   }),
 };
 
 const field = (label: string, value: string) => ({ label, value });
+
+/** A project as "KEY Name"; Gateway's views carry no project key, so the key may be empty. */
+export const projectLabel = (p: DocumentProject) => [p.key, p.name].filter(Boolean).join(" ");
+
+/** A record key under its project key, or the bare key when the project key is not known. */
+const keyed = (projectKey: string, rest: string) => (projectKey ? `${projectKey}-${rest}` : rest);
 const yesNo = (t: Translate, value: boolean) => t(value ? "common.yes" : "common.no");
 
 /** The money columns every priced line table shares. */
@@ -204,7 +210,7 @@ export const TEMPLATES: TemplateRegistry = {
               caption: t("common.details"),
               fields: [
                 field(t("purchaseOrder.vendor"), order.vendorName ?? t("common.none")),
-                field(t("common.project"), `${project.key} ${project.name}`),
+                field(t("common.project"), projectLabel(project)),
                 field(t("common.state"), t(`purchaseOrder.states.${keyOf(order.state)}`)),
                 field(t("common.currency"), order.currencyCode),
                 field(t("common.created"), f.dateTime(order.createdAt)),
@@ -275,7 +281,7 @@ export const TEMPLATES: TemplateRegistry = {
                 ),
                 field(t("invoice.direction"), t(`invoice.directions.${keyOf(invoice.direction)}`)),
                 field(t("invoice.number"), invoice.number ?? t("common.none")),
-                field(t("common.project"), `${project.key} ${project.name}`),
+                field(t("common.project"), projectLabel(project)),
                 field(t("common.state"), t(`invoice.states.${keyOf(invoice.state)}`)),
                 field(t("invoice.issuedOn"), f.day(invoice.issuedOn)),
                 field(t("invoice.dueOn"), f.day(invoice.dueOn)),
@@ -321,14 +327,14 @@ export const TEMPLATES: TemplateRegistry = {
       build: ({ project, order, lines, budgetName, currency }, { t, f }) => {
         const money = (m: number | null) => f.money(m, currency);
         return {
-          title: t("changeOrder.title", { key: `${project.key}-CO${order.number}` }),
+          title: t("changeOrder.title", { key: keyed(project.key, `CO${order.number}`) }),
           blocks: [
             { kind: "paragraph", text: order.title, size: "body" },
             {
               kind: "fields",
               caption: t("common.details"),
               fields: [
-                field(t("common.project"), `${project.key} ${project.name}`),
+                field(t("common.project"), projectLabel(project)),
                 field(t("changeOrder.budget"), budgetName ?? t("common.none")),
                 field(t("common.state"), t(`changeOrder.states.${keyOf(order.state)}`)),
                 field(t("changeOrder.reason"), order.reason ?? t("common.none")),
@@ -379,7 +385,7 @@ export const TEMPLATES: TemplateRegistry = {
             kind: "fields",
             caption: t("common.details"),
             fields: [
-              field(t("common.project"), `${project.key} ${project.name}`),
+              field(t("common.project"), projectLabel(project)),
               field(t("common.day"), f.day(sheet.day)),
               field(
                 t("common.published"),
@@ -407,7 +413,7 @@ export const TEMPLATES: TemplateRegistry = {
             kind: "fields",
             caption: t("common.details"),
             fields: [
-              field(t("common.project"), `${project.key} ${project.name}`),
+              field(t("common.project"), projectLabel(project)),
               field(t("common.day"), f.day(sheet.day)),
               field(t("common.timeZone"), f.timeZone),
               field(
@@ -449,7 +455,7 @@ export const TEMPLATES: TemplateRegistry = {
             kind: "fields",
             caption: t("common.details"),
             fields: [
-              field(t("common.project"), `${project.key} ${project.name}`),
+              field(t("common.project"), projectLabel(project)),
               field(t("runOfShow.showDate"), f.day(run.showDate)),
               field(t("common.timeZone"), f.timeZone),
               field(
@@ -496,7 +502,7 @@ export const TEMPLATES: TemplateRegistry = {
               kind: "fields",
               caption: t("common.details"),
               fields: [
-                field(t("common.project"), `${project.key} ${project.name}`),
+                field(t("common.project"), projectLabel(project)),
                 field(t("beo.eventAt"), f.dateTime(beo.eventAt)),
                 field(
                   t("beo.guests"),
@@ -572,7 +578,7 @@ export const TEMPLATES: TemplateRegistry = {
                 `${credential.categoryName} (${credential.categoryCode})`,
               ),
               field(t("credentialBadge.number"), credential.number),
-              field(t("common.project"), `${project.key} ${project.name}`),
+              field(t("common.project"), projectLabel(project)),
               field(t("credentialBadge.validFrom"), f.dateTime(credential.validFrom)),
               field(
                 t("credentialBadge.validTo"),
@@ -603,7 +609,7 @@ export const TEMPLATES: TemplateRegistry = {
               kind: "fields",
               caption: t("common.details"),
               fields: [
-                field(t("common.project"), `${d.project.key} ${d.project.name}`),
+                field(t("common.project"), projectLabel(d.project)),
                 field(t("inspectionReport.template"), d.templateName),
                 field(t("inspectionReport.inspectedAt"), f.dateTime(d.inspection.inspectedAt)),
                 field(t("inspectionReport.inspector"), d.inspectorName ?? t("common.none")),
@@ -658,7 +664,7 @@ export const TEMPLATES: TemplateRegistry = {
             kind: "fields",
             caption: t("common.details"),
             fields: [
-              field(t("common.project"), `${project.key} ${project.name}`),
+              field(t("common.project"), projectLabel(project)),
               field(t("incidentReport.severity"), severityLabel ?? t("common.none")),
               field(t("common.state"), t(`incidentReport.states.${keyOf(incident.state)}`)),
               field(t("incidentReport.occurredAt"), f.dateTime(incident.occurredAt)),
@@ -728,7 +734,7 @@ export const TEMPLATES: TemplateRegistry = {
               kind: "fields",
               caption: t("common.details"),
               fields: [
-                field(t("common.project"), `${project.key} ${project.name}`),
+                field(t("common.project"), projectLabel(project)),
                 field(t("finalCostReport.basis"), t("finalCostReport.basisValue")),
               ],
             },
@@ -772,10 +778,7 @@ export const TEMPLATES: TemplateRegistry = {
                 t("agreementCertificate.kind"),
                 t(`agreementCertificate.kinds.${keyOf(agreement.kind)}`),
               ),
-              field(
-                t("common.project"),
-                project ? `${project.key} ${project.name}` : t("common.none"),
-              ),
+              field(t("common.project"), project ? projectLabel(project) : t("common.none")),
               field(t("agreementCertificate.signer"), agreement.personName ?? t("common.none")),
               field(t("agreementCertificate.signedName"), agreement.signedName ?? t("common.none")),
               field(t("agreementCertificate.signedAt"), f.dateTime(agreement.signedAt)),

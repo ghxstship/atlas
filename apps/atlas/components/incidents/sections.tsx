@@ -78,6 +78,7 @@ import {
 } from "@/lib/incidents/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
+import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
  * Safety incidents (Section 4.2: incidents with dispatch, emergency codes, radio): the incident
@@ -515,6 +516,7 @@ async function IncidentRecord({
         />
       }
     >
+      <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
         <RecordSection id="incident-move" title={t("incidents.moveHeading")}>
           {moves
