@@ -36,7 +36,7 @@ var plans_default =
 var PRICE_BOOK_CURRENCIES = ["USD", "EUR", "GBP", "CAD", "AUD"];
 //#endregion
 //#region ../schemas/src/plans/load.ts
-var CODE = /^[a-z][a-z0-9_]*$/;
+var CODE$1 = /^[a-z][a-z0-9_]*$/;
 var minor = z.int().min(0).nullable();
 var priceSchema = z.strictObject({
   monthly_minor: minor,
@@ -62,7 +62,7 @@ var quoteSchema = z.strictObject({
   from_monthly_minor: z.record(z.string(), minor),
 });
 var planSchema = z.strictObject({
-  code: z.string().regex(CODE),
+  code: z.string().regex(CODE$1),
   free: z.boolean().optional(),
   extends: z.string().optional(),
   limits: z.record(z.string(), z.int().min(0).nullable()),
@@ -73,9 +73,9 @@ var planSchema = z.strictObject({
   stripe: stripeSchema.optional(),
 });
 var addonSchema = z.strictObject({
-  code: z.string().regex(CODE),
+  code: z.string().regex(CODE$1),
   adds: z.strictObject({
-    limit: z.string().regex(CODE),
+    limit: z.string().regex(CODE$1),
     amount: z.int().min(1),
   }),
   plans: z.array(z.string()).min(1),
@@ -86,7 +86,7 @@ var addonSchema = z.strictObject({
   }),
 });
 var offerSchema = z.strictObject({
-  code: z.string().regex(CODE),
+  code: z.string().regex(CODE$1),
   percent_off: z.int().min(1).max(100),
   duration_months: z.int().min(1).max(36),
   max_redemptions: z.int().min(1),
@@ -96,10 +96,10 @@ var offerSchema = z.strictObject({
     promotion_code: z.string().regex(/^[A-Z0-9]{3,20}$/),
   }),
 });
-var registrySchema = z.strictObject({
+var registrySchema$1 = z.strictObject({
   version: z.literal(1),
-  limits: z.array(z.string().regex(CODE)).min(1),
-  features: z.array(z.string().regex(CODE)).min(1),
+  limits: z.array(z.string().regex(CODE$1)).min(1),
+  features: z.array(z.string().regex(CODE$1)).min(1),
   currencies: z.array(z.enum(PRICE_BOOK_CURRENCIES)),
   annual_multiplier: z.int().min(1).max(12),
   extra_seat_product_lookup_key: lookupKey,
@@ -352,7 +352,7 @@ function toRegistry(raw) {
 }
 /** Parses and validates plan registry text. */
 function parsePlanRegistry(text) {
-  const parsed = registrySchema.safeParse(parse(text));
+  const parsed = registrySchema$1.safeParse(parse(text));
   if (!parsed.success)
     throw new PlanRegistryError(
       parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`),
@@ -887,7 +887,7 @@ async function hmacHex(secret, message) {
 async function signWebhook(secret, timestamp, body) {
   return `t=${timestamp},v1=${await hmacHex(secret, `${timestamp}.${body}`)}`;
 }
-function constantTimeEqual(a, b) {
+function constantTimeEqual$1(a, b) {
   if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
@@ -910,7 +910,7 @@ async function verifyWebhook(header, body, secret, options = {}) {
   const now = options.now ?? Math.floor(Date.now() / 1e3);
   if (Math.abs(now - timestamp) > (options.toleranceSeconds ?? 300)) return false;
   const expected = await hmacHex(secret, `${timestamp}.${body}`);
-  return (parts.get("v1") ?? []).some((candidate) => constantTimeEqual(candidate, expected));
+  return (parts.get("v1") ?? []).some((candidate) => constantTimeEqual$1(candidate, expected));
 }
 //#endregion
 //#region src/webhooks/dispatch.ts
@@ -4838,6 +4838,13 @@ var email_default$1 = {
     subject: "We received your {requestType} request",
     heading: "Request received",
     body: "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}.",
+  },
+  sms: {
+    message: "{orgName}: {body} {url} Reply STOP to opt out.",
+    help: "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: {helpContact}. Reply STOP to opt out.",
+    stop: "You will get no more texts from XOS notifications. Reply START to subscribe again.",
+    start:
+      "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
   },
 };
 var finance_default$1 = {
@@ -12819,6 +12826,10 @@ var settings_default$1 = {
       label: "Keyboard shortcuts",
       help: "Single-key shortcuts such as J, K and ? on desktop.",
     },
+    messageTranslation: {
+      label: "Translate chat messages",
+      help: "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default.",
+    },
   },
   choices: {
     shell_start_page: {
@@ -13196,6 +13207,122 @@ var settings_default$1 = {
     sharedWithUs: {
       title: "Shared with your organization",
       entry: "Shared by {owner} · Your members act as {role}",
+    },
+  },
+  notifications: {
+    category: "Category",
+    channels: {
+      inApp: "In app",
+      email: "Email",
+      sms: "Text (SMS)",
+      push: "Push",
+    },
+    cellLabel: "{category} by {channel}",
+    urgent: "Urgent: arrives at once, even in quiet hours.",
+    save: "Save notification settings",
+    saved: "Notification settings saved.",
+    loadFailed: "Notification settings could not be loaded. Reload the page to try again.",
+    digest: {
+      Off: "Off",
+      Daily: "Daily",
+      Weekly: "Weekly (Mondays)",
+    },
+    errors: {
+      notification_category_mandatory:
+        "Your organization made this category mandatory on that channel, so it stays on.",
+      time_zone_unknown: "Choose a time zone from the list.",
+      denied: "You cannot change these settings.",
+      invalid: "Check the highlighted fields.",
+      unexpected: "The settings were not saved. Try again.",
+      sms_phone_unverified: "Verify a phone number on your account before turning on texts.",
+    },
+    fieldErrors: {
+      invalid: "Enter a valid value.",
+      quietPair: "Set both the start and the end of quiet hours, or neither.",
+      quietSame: "Quiet hours end at a different time than they start.",
+    },
+    mine: {
+      formLabel: "Your notification settings",
+      matrixTitle: "What reaches you",
+      matrixDescription:
+        "Choose how each kind of notification reaches you. Until you choose, your organization's defaults apply.",
+      locked: "Required by your organization",
+      smsNote:
+        "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
+      quietTitle: "Quiet hours and digest",
+      quietDescription:
+        "During quiet hours, texts and push notifications wait until the end, except urgent ones. Texts also wait between 21:00 and 08:00 unless you set your own quiet hours.",
+      quietStart: "Quiet hours start",
+      quietEnd: "Quiet hours end",
+      timeZone: "Time zone",
+      digest: "Email digest",
+      digestHelp: "Gathers email that is not urgent into one message.",
+      digestHour: "Digest time",
+      smsNoPhone: "Add and verify a phone number on your account to receive texts.",
+      smsConsent:
+        "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help.",
+    },
+    org: {
+      formLabel: "Organization notification defaults",
+      matrixTitle: "Defaults for members",
+      matrixDescription:
+        "What members receive until they choose for themselves. Mark a category mandatory to keep its checked channels on for everyone.",
+      mandatory: "Mandatory",
+      mandatoryLabel: "{category} is mandatory",
+      mandatoryHelp:
+        "Mandatory categories stay on for every channel checked here. Texts still need each member's consent, and STOP still stops them.",
+      readOnly:
+        "You can see the defaults. Changing them needs the notification settings permission.",
+    },
+    categories: {
+      mentions: {
+        label: "Mentions",
+        help: "Someone mentions you in a comment or message.",
+      },
+      assignments: {
+        label: "Assignments",
+        help: "Work, training or a help request is assigned to you.",
+      },
+      approvals: {
+        label: "Approvals",
+        help: "Requests waiting for your decision, and decisions on your requests.",
+      },
+      comments: {
+        label: "Comments",
+        help: "New comments on records you follow.",
+      },
+      schedule: {
+        label: "Schedule",
+        help: "Shifts assigned or changed, and event invitations.",
+      },
+      finance: {
+        label: "Invoices and payments",
+        help: "Invoices approved, received, scheduled and paid.",
+      },
+      safety: {
+        label: "Safety",
+        help: "Incidents, occupancy thresholds and weather alerts.",
+      },
+      account: {
+        label: "Account and billing",
+        help: "Security changes, break-glass access and payment problems.",
+      },
+      reports: {
+        label: "Reports",
+        help: "Scheduled reports ready to read.",
+      },
+      imports: {
+        label: "Imports and exports",
+        help: "Imports that finished and exports ready to download.",
+      },
+      messages: {
+        label: "Messages",
+        help: "New chat messages to you or your groups.",
+      },
+      feed: {
+        label: "Feed",
+        help: "Announcements, surveys and recognition.",
+      },
     },
   },
 };
@@ -16439,9 +16566,11 @@ var workforce_default$1 = {
       Organization: "Organization",
       Project: "Project",
       Team: "Team",
+      Department: "Department",
       Role: "Role",
       Group: "Group",
     },
+    departmentOption: "Department: {name} · {code}",
   },
   site: {
     project: "Project",
@@ -21288,6 +21417,13 @@ var email_default = {
     subject: "Recibimos tu solicitud de {requestType}",
     heading: "Solicitud recibida",
     body: "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}.",
+  },
+  sms: {
+    message: "{orgName}: {body} {url} Responde STOP para cancelar.",
+    help: "Notificaciones de XOS: novedades sobre tu trabajo de las organizaciones a las que perteneces. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Ayuda: {helpContact}. Responde STOP para cancelar.",
+    stop: "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte.",
+    start:
+      "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar.",
   },
 };
 var finance_default = {
@@ -29351,6 +29487,10 @@ var settings_default = {
       label: "Atajos de teclado",
       help: "Atajos de una tecla como J, K y ? en el escritorio.",
     },
+    messageTranslation: {
+      label: "Traducir mensajes del chat",
+      help: "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada.",
+    },
   },
   choices: {
     shell_start_page: {
@@ -29736,6 +29876,125 @@ var settings_default = {
     sharedWithUs: {
       title: "Compartido con su organización",
       entry: "Compartido por {owner} · Sus miembros actúan como {role}",
+    },
+  },
+  notifications: {
+    category: "Categoría",
+    channels: {
+      inApp: "En la app",
+      email: "Correo electrónico",
+      sms: "Mensaje de texto (SMS)",
+      push: "Push",
+    },
+    cellLabel: "{category} por {channel}",
+    urgent: "Urgente: llega de inmediato, incluso en horas de silencio.",
+    save: "Guardar configuración de notificaciones",
+    saved: "Configuración de notificaciones guardada.",
+    loadFailed:
+      "No se pudo cargar la configuración de notificaciones. Vuelve a cargar la página para intentarlo de nuevo.",
+    digest: {
+      Off: "Desactivado",
+      Daily: "Diario",
+      Weekly: "Semanal (los lunes)",
+    },
+    errors: {
+      notification_category_mandatory:
+        "Tu organización hizo obligatoria esta categoría en ese canal, así que sigue activada.",
+      time_zone_unknown: "Elige una zona horaria de la lista.",
+      denied: "No puedes cambiar esta configuración.",
+      invalid: "Revisa los campos marcados.",
+      unexpected: "No se guardó la configuración. Inténtalo de nuevo.",
+      sms_phone_unverified:
+        "Verifica un número de teléfono en tu cuenta antes de activar los mensajes de texto.",
+    },
+    fieldErrors: {
+      invalid: "Escribe un valor válido.",
+      quietPair: "Indica el inicio y el fin de las horas de silencio, o ninguno.",
+      quietSame: "Las horas de silencio terminan a una hora distinta de la de inicio.",
+    },
+    mine: {
+      formLabel: "Tu configuración de notificaciones",
+      matrixTitle: "Qué te llega",
+      matrixDescription:
+        "Elige cómo te llega cada tipo de notificación. Mientras no elijas, se aplican los valores predeterminados de tu organización.",
+      locked: "Obligatorio por tu organización",
+      smsNote:
+        "Los mensajes de texto solo van a un número de teléfono verificado en el que aceptaste recibirlos. Responde STOP a cualquier mensaje para dejar de recibirlos.",
+      quietTitle: "Horas de silencio y resumen",
+      quietDescription:
+        "Durante las horas de silencio, los mensajes de texto y las notificaciones push esperan hasta el final, salvo los urgentes. Los mensajes de texto también esperan entre las 21:00 y las 08:00 si no defines tus propias horas de silencio.",
+      quietStart: "Inicio de las horas de silencio",
+      quietEnd: "Fin de las horas de silencio",
+      timeZone: "Zona horaria",
+      digest: "Resumen por correo electrónico",
+      digestHelp: "Reúne en un solo mensaje el correo que no es urgente.",
+      digestHour: "Hora del resumen",
+      smsNoPhone:
+        "Agrega y verifica un número de teléfono en tu cuenta para recibir mensajes de texto.",
+      smsConsent:
+        "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda.",
+    },
+    org: {
+      formLabel: "Valores predeterminados de notificaciones de la organización",
+      matrixTitle: "Valores predeterminados para los miembros",
+      matrixDescription:
+        "Lo que reciben los miembros mientras no elijan por su cuenta. Marca una categoría como obligatoria para mantener activados sus canales marcados para todos.",
+      mandatory: "Obligatoria",
+      mandatoryLabel: "{category} es obligatoria",
+      mandatoryHelp:
+        "Las categorías obligatorias siguen activadas en cada canal marcado aquí. Los mensajes de texto siguen necesitando el consentimiento de cada miembro, y STOP sigue deteniéndolos.",
+      readOnly:
+        "Puedes ver los valores predeterminados. Para cambiarlos necesitas el permiso de configuración de notificaciones.",
+    },
+    categories: {
+      mentions: {
+        label: "Menciones",
+        help: "Alguien te menciona en un comentario o mensaje.",
+      },
+      assignments: {
+        label: "Asignaciones",
+        help: "Se te asigna trabajo, una capacitación o una solicitud de ayuda.",
+      },
+      approvals: {
+        label: "Aprobaciones",
+        help: "Solicitudes que esperan tu decisión y decisiones sobre tus solicitudes.",
+      },
+      comments: {
+        label: "Comentarios",
+        help: "Comentarios nuevos en los registros que sigues.",
+      },
+      schedule: {
+        label: "Horario",
+        help: "Turnos asignados o cambiados e invitaciones a eventos.",
+      },
+      finance: {
+        label: "Facturas y pagos",
+        help: "Facturas aprobadas, recibidas, programadas y pagadas.",
+      },
+      safety: {
+        label: "Seguridad",
+        help: "Incidentes, umbrales de aforo y alertas meteorológicas.",
+      },
+      account: {
+        label: "Cuenta y facturación",
+        help: "Cambios de seguridad, acceso de emergencia y problemas de pago.",
+      },
+      reports: {
+        label: "Informes",
+        help: "Informes programados listos para leer.",
+      },
+      imports: {
+        label: "Importaciones y exportaciones",
+        help: "Importaciones terminadas y exportaciones listas para descargar.",
+      },
+      messages: {
+        label: "Mensajes",
+        help: "Mensajes de chat nuevos para ti o tus grupos.",
+      },
+      feed: {
+        label: "Noticias",
+        help: "Anuncios, encuestas y reconocimientos.",
+      },
     },
   },
 };
@@ -33045,9 +33304,11 @@ var workforce_default = {
       Organization: "Organización",
       Project: "Proyecto",
       Team: "Equipo",
+      Department: "Departamento",
       Role: "Rol",
       Group: "Grupo",
     },
+    departmentOption: "Departamento: {name} · {code}",
   },
   site: {
     project: "Proyecto",
@@ -35135,7 +35396,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$4(name) {
+function text$5(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -35164,12 +35425,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$4("heading-20"),
+    ...text$5("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$4("label-13"),
+    ...text$5("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -35181,7 +35442,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$4("text-12"),
+    ...text$5("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -35191,7 +35452,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$4("text-14"),
+      ...text$5("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -35357,7 +35618,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$4("text-14"),
+                          ...text$5("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -35711,6 +35972,1864 @@ async function dispatchEmail(store, transport, limit = 50) {
   };
 }
 //#endregion
+//#region ../schemas/src/notifications/registry.generated.ts
+/** The templates index: every notification kind. */
+var NOTIFICATION_KINDS = [
+  {
+    kind: "mention.created",
+    category: "mentions",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.mention.created.subject",
+      body: "kinds.mention.created.body",
+    },
+  },
+  {
+    kind: "assignment.created",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.assignment.created.subject",
+      body: "kinds.assignment.created.body",
+    },
+  },
+  {
+    kind: "approval.requested",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: "approval_request",
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.approval.requested.subject",
+      body: "kinds.approval.requested.body",
+    },
+  },
+  {
+    kind: "approval.decided",
+    category: "approvals",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.approval.decided.subject",
+      body: "kinds.approval.decided.body",
+    },
+  },
+  {
+    kind: "comment.created",
+    category: "comments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.comment.created.subject",
+      body: "kinds.comment.created.body",
+    },
+  },
+  {
+    kind: "shift.assigned",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.assigned.subject",
+      body: "kinds.shift.assigned.body",
+    },
+  },
+  {
+    kind: "shift.changed",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.shift.changed.subject",
+      body: "kinds.shift.changed.body",
+    },
+  },
+  {
+    kind: "event.invited",
+    category: "schedule",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.event.invited.subject",
+      body: "kinds.event.invited.body",
+    },
+  },
+  {
+    kind: "invoice.approved",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.invoice.approved.subject",
+      body: "kinds.invoice.approved.body",
+    },
+  },
+  {
+    kind: "invoice.submitted",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.invoice.submitted.subject",
+      body: "kinds.invoice.submitted.body",
+    },
+  },
+  {
+    kind: "invoice.scheduled",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.invoice.scheduled.subject",
+      body: "kinds.invoice.scheduled.body",
+    },
+  },
+  {
+    kind: "invoice.paid",
+    category: "finance",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.invoice.paid.subject",
+      body: "kinds.invoice.paid.body",
+    },
+  },
+  {
+    kind: "incident.reported",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.incident.reported.subject",
+      body: "kinds.incident.reported.body",
+    },
+  },
+  {
+    kind: "occupancy.threshold",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.occupancy.threshold.subject",
+      body: "kinds.occupancy.threshold.body",
+    },
+  },
+  {
+    kind: "weather.alert",
+    category: "safety",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.weather.alert.subject",
+      body: "kinds.weather.alert.body",
+    },
+  },
+  {
+    kind: "account.security_changed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.security_changed.subject",
+      body: "kinds.account.security_changed.body",
+    },
+  },
+  {
+    kind: "billing.payment_failed",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.payment_failed.subject",
+      body: "kinds.billing.payment_failed.body",
+    },
+  },
+  {
+    kind: "billing.read_only",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.read_only.subject",
+      body: "kinds.billing.read_only.body",
+    },
+  },
+  {
+    kind: "access.break_glass_started",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.access.break_glass_started.subject",
+      body: "kinds.access.break_glass_started.body",
+    },
+  },
+  {
+    kind: "report.delivered",
+    category: "reports",
+    emailTemplate: "report_delivery",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.report.delivered.subject",
+      body: "kinds.report.delivered.body",
+    },
+  },
+  {
+    kind: "import.finished",
+    category: "imports",
+    emailTemplate: "import_finished",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.import.finished.subject",
+      body: "kinds.import.finished.body",
+    },
+  },
+  {
+    kind: "export.ready",
+    category: "imports",
+    emailTemplate: "export_ready",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.export.ready.subject",
+      body: "kinds.export.ready.body",
+    },
+  },
+  {
+    kind: "message.received",
+    category: "messages",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.message.received.subject",
+      body: "kinds.message.received.body",
+    },
+  },
+  {
+    kind: "announcement.posted",
+    category: "feed",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.announcement.posted.subject",
+      body: "kinds.announcement.posted.body",
+    },
+  },
+  {
+    kind: "survey.opened",
+    category: "feed",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.survey.opened.subject",
+      body: "kinds.survey.opened.body",
+    },
+  },
+  {
+    kind: "recognition.received",
+    category: "feed",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.recognition.received.subject",
+      body: "kinds.recognition.received.body",
+    },
+  },
+  {
+    kind: "training.assigned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.training.assigned.subject",
+      body: "kinds.training.assigned.body",
+    },
+  },
+  {
+    kind: "help_request.assigned",
+    category: "assignments",
+    emailTemplate: "notification",
+    pushCategory: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.help_request.assigned.subject",
+      body: "kinds.help_request.assigned.body",
+    },
+  },
+];
+//#endregion
+//#region ../schemas/src/notifications/model.ts
+/**
+ * The notification kind registry model (Section 3.15). `notification-kinds.yaml` declares every channel
+ * default, email template, preference category and notification kind once; the database reference rows,
+ * the preference matrix and the templates index are generated from it.
+ */
+/** Channels a notification can reach a person on (app.notification_channel), in matrix order. */
+var NOTIFICATION_CHANNELS = ["In App", "Email", "SMS", "Push"];
+/** Catalog keys (in the `email` namespace) of a kind's subject and body. */
+function copyKeys(kind) {
+  return {
+    subject: `kinds.${kind}.subject`,
+    body: `kinds.${kind}.body`,
+  };
+}
+//#endregion
+//#region ../schemas/src/notifications/parse.ts
+var CODE = /^[a-z][a-z_]*$/;
+var KIND = /^[a-z][a-z_]*\.[a-z][a-z_]*$/;
+var channelSchema = z.strictObject({
+  code: z.enum(NOTIFICATION_CHANNELS),
+  default: z.boolean(),
+});
+var emailTemplateSchema = z.strictObject({
+  code: z.string().regex(CODE),
+  transactional: z.boolean(),
+  description: z.string().trim().min(1).max(300),
+});
+var categorySchema = z.strictObject({
+  code: z.string().regex(CODE),
+  urgent: z.boolean(),
+  order: z.int().min(1).max(32767),
+});
+var kindSchema = z.strictObject({
+  kind: z.string().regex(KIND),
+  category: z.string().regex(CODE),
+  email_template: z.string().regex(CODE).optional(),
+  push_category: z.string().regex(CODE).optional(),
+  channels: z.array(z.enum(NOTIFICATION_CHANNELS)).min(1).optional(),
+});
+z.strictObject({
+  version: z.literal(1),
+  channels: z.array(channelSchema).length(NOTIFICATION_CHANNELS.length),
+  email_templates: z.array(emailTemplateSchema).min(1),
+  categories: z.array(categorySchema).min(1),
+  kinds: z.array(kindSchema).min(1),
+});
+"supabase/migrations/1360_notification_kind_seed.sql"
+  .replace("supabase/migrations/", "supabase/tests/")
+  .replace(/\.sql$/, ".test.sql");
+//#endregion
+//#region ../schemas/src/notifications/index.ts
+/** The registry entry of a kind, or undefined for a kind the registry does not declare. */
+function notificationKind(kind) {
+  return NOTIFICATION_KINDS.find((k) => k.kind === kind);
+}
+//#endregion
+//#region src/notifications/copy.ts
+/** An ISO 8601 instant, which message arguments carry for `{x, date}` and `{x, time}` formats. */
+var ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})$/;
+/**
+ * The ICU arguments of a notification: display strings and numbers from `message_args`, with ISO
+ * instants as dates so a date or time format renders them in the recipient's time zone. Nested values
+ * are never relational data and are dropped.
+ */
+function notificationArgs(raw) {
+  const args = {};
+  for (const [key, value] of Object.entries(raw))
+    if (typeof value === "number") args[key] = value;
+    else if (typeof value === "string")
+      args[key] = ISO_INSTANT.test(value) ? new Date(value) : value;
+  return args;
+}
+/** The recipient's locale when the catalogs carry it, else en-US. */
+function localeOf(value) {
+  return value !== null && value !== void 0 && isLocale(value) ? value : "en-US";
+}
+/**
+ * A kind's copy for push and SMS, from the `email` catalog under the registry's keys
+ * (`email.kinds.<subject>.<event>`), the one home of notification copy on every channel (Section 3.15).
+ * A missing message or argument throws, so a raw key never reaches a phone.
+ */
+function notificationText(kind, raw, locale, timeZone) {
+  const keys = copyKeys(kind);
+  const args = notificationArgs(raw);
+  return {
+    title: formatMessage(locale, keys.subject, args, timeZone),
+    body: formatMessage(locale, keys.body, args, timeZone),
+  };
+}
+/** Shortens text to a limit on a word boundary where it can, ending with an ellipsis. */
+function clip(text, limit) {
+  if (text.length <= limit) return text;
+  const cut = text.slice(0, limit - 1);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > limit / 2 ? cut.slice(0, space) : cut).trimEnd()}…`;
+}
+//#endregion
+//#region src/notifications/push.ts
+/**
+ * Push notifications through the Expo push service (Section 5, ADR 0030, finding A65-012). Compass
+ * registers each device's Expo push token in app.push_subscriptions; this sender claims Push deliveries,
+ * pushes every device not yet pushed for the delivery, stores one ticket per device (app.push_tickets,
+ * which makes a retry idempotent per delivery and device), and later reads the receipts, revoking the
+ * devices Expo reports as DeviceNotRegistered.
+ *
+ * The contract Compass handles (apps/compass/src/domain/notifications.ts):
+ *   - `categoryId` is the kind's push category from notification-kinds.yaml (`approval_request` for
+ *     approval.requested), whose Approve and Reject actions answer through notifications.act;
+ *   - `data` is { notificationId, kind, subjectTable, subjectId, title, url }, where url is the deep link
+ *     (Section 4.5.7: a push always carries one).
+ */
+/** Expo push service endpoints. */
+var EXPO_PUSH_SEND_URL = "https://exp.host/--/api/v2/push/send";
+var EXPO_PUSH_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts";
+/** Expo accepts at most 100 messages per send and 1,000 ids per receipts request. */
+var EXPO_SEND_BATCH = 100;
+var EXPO_RECEIPT_BATCH = 1e3;
+/** Errors that mean the message can never reach that device: no retry. */
+var PERMANENT = /* @__PURE__ */ new Set(["DeviceNotRegistered", "MessageTooBig"]);
+/** The Expo message of one device, in the recipient's locale and time zone. */
+function pushMessage(claim, device, recipient, url) {
+  const text = notificationText(
+    claim.kind,
+    claim.messageArgs,
+    localeOf(recipient.locale),
+    recipient.timeZone,
+  );
+  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const title = claim.messageArgs["title"];
+  return {
+    to: device.token,
+    title: clip(text.title, 120),
+    body: clip(text.body, 900),
+    data: {
+      notificationId: claim.notificationId,
+      kind: claim.kind,
+      subjectTable: claim.subjectTable,
+      subjectId: claim.subjectId,
+      title: typeof title === "string" ? title : null,
+      url,
+    },
+    ...(pushCategory === null ? {} : { categoryId: pushCategory }),
+    sound: "default",
+    priority: pushCategory === null ? "default" : "high",
+    ttl: 86400,
+  };
+}
+/** The delivery outcome of a delivery's tickets. */
+function outcomeOf(tickets) {
+  const accepted = tickets.find((t) => t.status === "ok");
+  if (accepted)
+    return {
+      outcome: "Sent",
+      providerMessageId: accepted.ticketId,
+      error: null,
+    };
+  const error = tickets.map((t) => t.message ?? t.error ?? "Expo refused the message").join("; ");
+  return {
+    outcome:
+      tickets.length > 0 && tickets.every((t) => PERMANENT.has(t.error ?? ""))
+        ? "Bounced"
+        : "Failed",
+    providerMessageId: null,
+    error,
+  };
+}
+async function inBatches(items, size, concurrency, run) {
+  const batches = [];
+  for (let i = 0; i < items.length; i += size) batches.push(items.slice(i, i + size));
+  const results = new Array(batches.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < batches.length) {
+      const index = next;
+      next += 1;
+      results[index] = await run(batches[index] ?? []);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, batches.length) }, worker));
+  return results.flat();
+}
+/**
+ * Pushes claimed deliveries: one message per device not yet pushed, sent in batches of 100 with a
+ * bounded number of requests in flight, one ticket stored per device, then the delivery's outcome
+ * (Sent when any device accepted, Bounced when every device is gone, Failed otherwise, which retries
+ * with backoff). A delivery whose devices were all pushed before only records its outcome. A failure
+ * to render or send is recorded, never dropped.
+ */
+async function dispatchPush(store, client, options = {}) {
+  const claims = await store.claimPush(options.limit ?? 50);
+  const pending = [];
+  const failedEarly = /* @__PURE__ */ new Map();
+  for (const claim of claims)
+    try {
+      const recipient = await store.recipient(claim.recipientPersonId);
+      const url = await store.deepLink(claim);
+      for (const device of claim.devices)
+        pending.push({
+          claim,
+          device,
+          message: pushMessage(claim, device, recipient, url),
+        });
+    } catch (error) {
+      failedEarly.set(claim.deliveryId, error instanceof Error ? error.message : String(error));
+    }
+  const tickets = await inBatches(pending, 100, options.concurrency ?? 3, async (batch) => {
+    try {
+      const answer = await client.send(batch.map((p) => p.message));
+      return batch.map((p, i) => [
+        p,
+        answer[i] ?? {
+          status: "error",
+          message: "Expo returned no ticket",
+          error: null,
+        },
+      ]);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return batch.map((p) => [
+        p,
+        {
+          status: "error",
+          message,
+          error: "RequestFailed",
+        },
+      ]);
+    }
+  });
+  let sent = 0;
+  let failed = 0;
+  let bounced = 0;
+  for (const claim of claims) {
+    const early = failedEarly.get(claim.deliveryId);
+    if (early !== void 0) {
+      await store.record(claim.deliveryId, "Failed", null, early);
+      failed += 1;
+      continue;
+    }
+    const mine = tickets
+      .filter(([p]) => p.claim.deliveryId === claim.deliveryId)
+      .map(([p, t]) =>
+        t.status === "ok"
+          ? {
+              subscriptionId: p.device.subscriptionId,
+              status: "ok",
+              ticketId: t.id,
+              error: null,
+              message: null,
+            }
+          : {
+              subscriptionId: p.device.subscriptionId,
+              status: "error",
+              ticketId: null,
+              error: t.error,
+              message: t.message,
+            },
+      );
+    if (mine.length > 0) await store.recordTickets(claim.deliveryId, mine);
+    const result =
+      claim.devices.length === 0
+        ? {
+            outcome: "Sent",
+            providerMessageId: null,
+            error: null,
+          }
+        : outcomeOf(mine);
+    await store.record(claim.deliveryId, result.outcome, result.providerMessageId, result.error);
+    if (result.outcome === "Sent") sent += 1;
+    else if (result.outcome === "Bounced") bounced += 1;
+    else failed += 1;
+  }
+  return {
+    attempted: claims.length,
+    sent,
+    failed,
+    bounced,
+    devices: pending.length,
+  };
+}
+/**
+ * Reads the receipts of tickets at least 15 minutes old (Expo keeps them 24 hours) and records them:
+ * Delivered, or the error; DeviceNotRegistered revokes the device so it is never pushed again.
+ */
+async function checkPushReceipts(store, client) {
+  const ids = await store.claimReceipts(EXPO_RECEIPT_BATCH);
+  if (ids.length === 0)
+    return {
+      checked: 0,
+      pruned: 0,
+    };
+  const receipts = await client.receipts(ids);
+  const rows = Object.entries(receipts).map(([ticketId, r]) =>
+    r.status === "ok"
+      ? {
+          ticketId,
+          status: "ok",
+          error: null,
+          message: null,
+        }
+      : {
+          ticketId,
+          status: "error",
+          error: r.error,
+          message: r.message,
+        },
+  );
+  if (rows.length === 0)
+    return {
+      checked: 0,
+      pruned: 0,
+    };
+  return {
+    checked: rows.length,
+    pruned: await store.recordReceipts(rows),
+  };
+}
+/** A send or receipts request failed after its retries. */
+var PushServiceError = class extends Error {
+  status;
+  constructor(status, message) {
+    super(message);
+    this.name = "PushServiceError";
+    this.status = status;
+  }
+};
+var ticketSchema = z.union([
+  z.object({
+    status: z.literal("ok"),
+    id: z.string().min(1),
+  }),
+  z.object({
+    status: z.literal("error"),
+    message: z.string().default(""),
+    details: z.object({ error: z.string().optional() }).loose().optional(),
+  }),
+]);
+var sendReplySchema = z.object({ data: z.array(ticketSchema) });
+var receiptSchema = z.union([
+  z.object({ status: z.literal("ok") }).loose(),
+  z.object({
+    status: z.literal("error"),
+    message: z.string().default(""),
+    details: z.object({ error: z.string().optional() }).loose().optional(),
+  }),
+]);
+var receiptsReplySchema = z.object({ data: z.record(z.string(), receiptSchema) });
+/** The Expo push service over its REST API, with retries and backoff; no SDK dependency. */
+function expoPushClient(options = {}) {
+  const doFetch = options.fetch ?? fetch;
+  const sleep = options.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+  const attempts = options.attempts ?? 4;
+  const headers = {
+    Accept: "application/json",
+    "Accept-Encoding": "gzip, deflate",
+    "Content-Type": "application/json",
+  };
+  if (options.accessToken) headers["Authorization"] = `Bearer ${options.accessToken}`;
+  async function post(url, body) {
+    let lastError = "";
+    for (let attempt = 1; attempt <= attempts; attempt += 1)
+      try {
+        const response = await doFetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+        });
+        const status = response.status;
+        if (response.ok) return await response.json();
+        lastError = `Expo answered ${response.status}: ${(await response.text()).slice(0, 300)}`;
+        if (status !== 429 && status < 500) throw new PushServiceError(status, lastError);
+        const retryAfter = Number(response.headers.get("retry-after"));
+        if (attempt < attempts)
+          await sleep(
+            Number.isFinite(retryAfter) && retryAfter > 0
+              ? retryAfter * 1e3
+              : 500 * 2 ** (attempt - 1),
+          );
+      } catch (error) {
+        if (error instanceof PushServiceError) throw error;
+        lastError = error instanceof Error ? error.message : String(error);
+        if (attempt < attempts) await sleep(500 * 2 ** (attempt - 1));
+      }
+    throw new PushServiceError(503, lastError);
+  }
+  return {
+    name: "expo",
+    async send(messages) {
+      if (messages.length > 100)
+        throw new PushServiceError(400, `Expo takes at most 100 messages per request`);
+      return sendReplySchema.parse(await post(EXPO_PUSH_SEND_URL, messages)).data.map((t) =>
+        t.status === "ok"
+          ? {
+              status: "ok",
+              id: t.id,
+            }
+          : {
+              status: "error",
+              message: t.message,
+              error: t.details?.error ?? null,
+            },
+      );
+    },
+    async receipts(ids) {
+      const out = {};
+      for (let i = 0; i < ids.length; i += EXPO_RECEIPT_BATCH) {
+        const reply = receiptsReplySchema.parse(
+          await post(EXPO_PUSH_RECEIPTS_URL, { ids: ids.slice(i, i + EXPO_RECEIPT_BATCH) }),
+        );
+        for (const [id, r] of Object.entries(reply.data))
+          out[id] =
+            r.status === "ok"
+              ? { status: "ok" }
+              : {
+                  status: "error",
+                  message: r.message,
+                  error: r.details?.error ?? null,
+                };
+      }
+      return out;
+    },
+  };
+}
+/**
+ * Records pushes instead of sending them: tests, local development and every environment without
+ * XOS_PUSH_TRANSPORT=expo. Every message gets an accepted ticket and every receipt is ok.
+ */
+var RecordingPushClient = class {
+  name = "record";
+  sent = [];
+  async send(messages) {
+    return messages.map((m) => {
+      this.sent.push(m);
+      return {
+        status: "ok",
+        id: `recorded-push-${this.sent.length}`,
+      };
+    });
+  }
+  async receipts(ids) {
+    return Object.fromEntries(ids.map((id) => [id, { status: "ok" }]));
+  }
+};
+var pushEnvSchema = z.object({
+  XOS_PUSH_TRANSPORT: z.enum(["record", "expo"]).default("record"),
+  EXPO_ACCESS_TOKEN: z.string().min(20).optional(),
+});
+/** Parses the push environment, naming each bad variable without echoing its value. */
+function readPushEnv(source) {
+  const parsed = pushEnvSchema.safeParse(source);
+  if (!parsed.success)
+    throw new Error(
+      `Invalid push environment: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+    );
+  return parsed.data;
+}
+/** The client the environment asks for: Expo with XOS_PUSH_TRANSPORT=expo, recording otherwise. */
+function createPushClient(env, fetchImpl) {
+  if (env.XOS_PUSH_TRANSPORT !== "expo") return new RecordingPushClient();
+  return expoPushClient({
+    accessToken: env.EXPO_ACCESS_TOKEN ?? null,
+    ...(fetchImpl === void 0 ? {} : { fetch: fetchImpl }),
+  });
+}
+//#endregion
+//#region src/notifications/sms.ts
+/**
+ * SMS through Twilio (Section 5, Section 14.5 TCPA and 10DLC, finding A65-012), behind the SmsProvider
+ * port so tests and local runs never reach the network. The database decides who may be texted:
+ * app.claim_notification_deliveries hands over only numbers that are verified, have recorded consent in the
+ * org, are not suppressed, and are outside quiet hours in the recipient's time zone. Twilio is called over
+ * its REST API with fetch, which runs unchanged in Node and the Deno Edge runtime: the `twilio` package
+ * would add a Node-only dependency tree for one POST and one HMAC.
+ *
+ * The inbound webhook (sms-webhook) verifies Twilio's signature, records STOP, START and HELP through
+ * app.record_sms_keyword (the existing STOP suppression reason), answers with the catalog's reply, and
+ * records status callbacks through app.record_sms_status.
+ */
+var TWILIO_API = "https://api.twilio.com/2010-04-01";
+/** The provider refused or failed the send. `permanent` errors are not retried. */
+var SmsSendError = class extends Error {
+  code;
+  permanent;
+  constructor(message, code, permanent) {
+    super(message);
+    this.name = "SmsSendError";
+    this.code = code;
+    this.permanent = permanent;
+  }
+};
+/** The number is outside the SMS allow-list (Section 19.8: no real recipients outside production). */
+var SmsRecipientRefusedError = class extends Error {
+  constructor(recipient) {
+    super(`Recipient ${recipient.slice(0, 4)}… is outside the SMS allow-list`);
+    this.name = "SmsRecipientRefusedError";
+  }
+};
+/** Records texts instead of sending them: tests, local development and staging by default. */
+var RecordingSmsProvider = class {
+  name = "record";
+  sent = [];
+  async send(message) {
+    this.sent.push(message);
+    return { providerMessageId: `recorded-sms-${this.sent.length}` };
+  }
+};
+/** Refuses numbers outside the allow-list before anything reaches the provider. */
+var GuardedSmsProvider = class {
+  name;
+  #inner;
+  #allowed;
+  #deliverToAny;
+  constructor(inner, policy) {
+    this.name = inner.name;
+    this.#inner = inner;
+    this.#allowed = policy.allowed;
+    this.#deliverToAny = policy.deliverToAny;
+  }
+  async send(message) {
+    if (!this.#deliverToAny && !this.#allowed.includes(message.to))
+      throw new SmsRecipientRefusedError(message.to);
+    return this.#inner.send(message);
+  }
+};
+/** Twilio error codes a retry cannot fix: invalid or unreachable numbers, opted-out recipients. */
+var PERMANENT_TWILIO = /* @__PURE__ */ new Set([
+  "21211",
+  "21408",
+  "21610",
+  "21612",
+  "21614",
+  "30003",
+  "30005",
+  "30006",
+]);
+function basicAuth(user, password) {
+  return `Basic ${btoa(`${user}:${password}`)}`;
+}
+/** Twilio's Messages API over fetch, sending from the 10DLC Messaging Service. */
+function twilioSmsProvider(options) {
+  const doFetch = options.fetch ?? fetch;
+  return {
+    name: "twilio",
+    async send(message) {
+      const form = new URLSearchParams({
+        To: message.to,
+        MessagingServiceSid: options.messagingServiceSid,
+        Body: message.body,
+      });
+      if (options.statusCallbackUrl) form.set("StatusCallback", options.statusCallbackUrl);
+      let response;
+      try {
+        response = await doFetch(`${TWILIO_API}/Accounts/${options.accountSid}/Messages.json`, {
+          method: "POST",
+          headers: {
+            Authorization: basicAuth(options.accountSid, options.authToken),
+            "Content-Type": "application/x-www-form-urlencoded",
+            Accept: "application/json",
+          },
+          body: form.toString(),
+        });
+      } catch (error) {
+        throw new SmsSendError(
+          `Twilio unreachable: ${error instanceof Error ? error.message : String(error)}`,
+          "network",
+          false,
+        );
+      }
+      const reply = await response.json().catch(() => ({}));
+      if (response.ok && typeof reply.sid === "string") return { providerMessageId: reply.sid };
+      const code = reply.code === void 0 ? String(response.status) : String(reply.code);
+      throw new SmsSendError(
+        `Twilio refused the message (${code}): ${typeof reply.message === "string" ? reply.message : `HTTP ${response.status}`}`,
+        code,
+        PERMANENT_TWILIO.has(code),
+      );
+    },
+  };
+}
+var sid = (prefix) => new RegExp(`^${prefix}[0-9a-f]{32}$`);
+var smsEnvSchema = z
+  .object({
+    XOS_SMS_TRANSPORT: z.enum(["record", "twilio"]).default("record"),
+    TWILIO_ACCOUNT_SID: z
+      .string()
+      .regex(sid("AC"), "TWILIO_ACCOUNT_SID is AC followed by 32 hex digits")
+      .optional(),
+    TWILIO_AUTH_TOKEN: z
+      .string()
+      .regex(/^[0-9a-f]{32}$/, "TWILIO_AUTH_TOKEN is 32 hex digits")
+      .optional(),
+    TWILIO_MESSAGING_SERVICE_SID: z
+      .string()
+      .regex(sid("MG"), "TWILIO_MESSAGING_SERVICE_SID is MG followed by 32 hex digits")
+      .optional(),
+    XOS_SMS_ALLOWLIST: z
+      .string()
+      .default("")
+      .transform((v) =>
+        v
+          .split(",")
+          .map((e) => e.trim())
+          .filter((e) => e.length > 0),
+      ),
+    XOS_SMS_DELIVER_TO_ANY: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((v) => v === "true"),
+    /** Where HELP replies send people: a support mailbox or page (an owner input, Section 14.5). */
+    XOS_SMS_HELP_CONTACT: z.string().trim().min(3).max(80).optional(),
+  })
+  .superRefine((env, ctx) => {
+    if (env.XOS_SMS_TRANSPORT !== "twilio") return;
+    for (const name of [
+      "TWILIO_ACCOUNT_SID",
+      "TWILIO_AUTH_TOKEN",
+      "TWILIO_MESSAGING_SERVICE_SID",
+      "XOS_SMS_HELP_CONTACT",
+    ])
+      if (env[name] === void 0)
+        ctx.addIssue({
+          code: "custom",
+          path: [name],
+          message: `${name} is required for the twilio transport`,
+        });
+  });
+/** Parses the SMS environment, naming each bad variable without echoing its value. */
+function readSmsEnv(source) {
+  const parsed = smsEnvSchema.safeParse(source);
+  if (!parsed.success)
+    throw new Error(
+      `Invalid SMS environment: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+    );
+  return parsed.data;
+}
+/** The provider the environment asks for: Twilio behind the allow-list, or recording. */
+function createSmsProvider(env, options = {}) {
+  if (
+    env.XOS_SMS_TRANSPORT !== "twilio" ||
+    !env.TWILIO_ACCOUNT_SID ||
+    !env.TWILIO_AUTH_TOKEN ||
+    !env.TWILIO_MESSAGING_SERVICE_SID
+  )
+    return new RecordingSmsProvider();
+  return new GuardedSmsProvider(
+    twilioSmsProvider({
+      accountSid: env.TWILIO_ACCOUNT_SID,
+      authToken: env.TWILIO_AUTH_TOKEN,
+      messagingServiceSid: env.TWILIO_MESSAGING_SERVICE_SID,
+      statusCallbackUrl: options.statusCallbackUrl ?? null,
+      ...(options.fetch === void 0 ? {} : { fetch: options.fetch }),
+    }),
+    {
+      allowed: env.XOS_SMS_ALLOWLIST,
+      deliverToAny: env.XOS_SMS_DELIVER_TO_ANY,
+    },
+  );
+}
+/** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
+async function smsBody(claim, store) {
+  const recipient = await store.recipient(claim.recipientPersonId);
+  const locale = localeOf(recipient.locale);
+  const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
+  return formatMessage(locale, "sms.message", {
+    orgName: clip(await store.orgName(claim.orgId), 40),
+    body: clip(text.body, 300),
+    url: await store.linkFor(claim),
+  });
+}
+/**
+ * Sends claimed SMS deliveries and records each outcome: Sent with Twilio's message SID, Bounced for an
+ * error a retry cannot fix (an invalid or opted-out number), Failed otherwise, which retries with backoff.
+ */
+async function dispatchSms(store, provider, limit = 50) {
+  const claims = await store.claimSms(limit);
+  let sent = 0;
+  let failed = 0;
+  let bounced = 0;
+  for (const claim of claims)
+    try {
+      const body = await smsBody(claim, store);
+      const result = await provider.send({
+        to: claim.address,
+        body,
+        deliveryId: claim.deliveryId,
+      });
+      await store.record(claim.deliveryId, "Sent", result.providerMessageId, null);
+      sent += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const permanent = error instanceof SmsSendError && error.permanent;
+      await store.record(claim.deliveryId, permanent ? "Bounced" : "Failed", null, message);
+      if (permanent) bounced += 1;
+      else failed += 1;
+    }
+  return {
+    attempted: claims.length,
+    sent,
+    failed,
+    bounced,
+  };
+}
+/** Twilio's standard opt-out, opt-in and help keywords (10DLC), matched on the whole trimmed message. */
+var KEYWORDS = {
+  STOP: "Opt Out",
+  STOPALL: "Opt Out",
+  UNSUBSCRIBE: "Opt Out",
+  CANCEL: "Opt Out",
+  END: "Opt Out",
+  QUIT: "Opt Out",
+  REVOKE: "Opt Out",
+  OPTOUT: "Opt Out",
+  START: "Opt In",
+  YES: "Opt In",
+  UNSTOP: "Opt In",
+  HELP: "Help",
+  INFO: "Help",
+};
+/** The keyword an inbound message carries, or null for any other text. */
+function smsKeyword(body) {
+  const word = body
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "");
+  const action = KEYWORDS[word];
+  return action === void 0
+    ? null
+    : {
+        action,
+        keyword: word,
+      };
+}
+function toBase64$1(bytes) {
+  let binary = "";
+  for (const b of new Uint8Array(bytes)) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+/**
+ * Twilio's request signature: base64 HMAC-SHA1, keyed with the auth token, of the full webhook URL
+ * followed by every POST parameter name and value, sorted by name.
+ */
+async function twilioSignature(url, params, authToken) {
+  const data = Object.keys(params)
+    .sort()
+    .reduce((acc, key) => acc + key + (params[key] ?? ""), url);
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(authToken),
+    {
+      name: "HMAC",
+      hash: "SHA-1",
+    },
+    false,
+    ["sign"],
+  );
+  return toBase64$1(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(data)));
+}
+function constantTimeEqual(a, b) {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+/** True when the X-Twilio-Signature header matches the request. */
+async function verifyTwilioSignature(url, params, signature, authToken) {
+  if (!signature) return false;
+  return constantTimeEqual(await twilioSignature(url, params, authToken), signature);
+}
+function escapeXml(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+function twiml(reply) {
+  return {
+    status: 200,
+    contentType: "text/xml",
+    body: `<?xml version="1.0" encoding="UTF-8"?><Response>${reply === null ? "" : `<Message>${escapeXml(reply)}</Message>`}</Response>`,
+  };
+}
+var E164 = /^\+[1-9][0-9]{6,14}$/;
+/**
+ * Handles one Twilio webhook: refuses a bad signature (403); records a status callback (MessageStatus);
+ * records STOP, START and HELP from an inbound message and answers with the catalog's reply (TwiML).
+ * Any other inbound text gets no reply: notifications take no SMS replies.
+ */
+async function handleTwilioWebhook(request, store, options) {
+  if (
+    !(await verifyTwilioSignature(
+      request.url,
+      request.params,
+      request.signature,
+      options.authToken,
+    ))
+  )
+    return {
+      status: 403,
+      contentType: "text/plain",
+      body: "Forbidden",
+    };
+  const p = request.params;
+  const status = p["MessageStatus"];
+  if (status !== void 0 && p["MessageSid"] !== void 0 && p["Body"] === void 0) {
+    const error = p["ErrorCode"] ? `${p["ErrorCode"]} ${p["ErrorMessage"] ?? ""}`.trim() : null;
+    await store.recordStatus(p["MessageSid"], status, error);
+    return {
+      status: 204,
+      contentType: "text/plain",
+      body: "",
+    };
+  }
+  const from = p["From"] ?? "";
+  const keyword = smsKeyword(p["Body"] ?? "");
+  if (keyword === null || !E164.test(from)) return twiml(null);
+  await store.recordKeyword(from, keyword.action, keyword.keyword);
+  return twiml(
+    formatMessage(
+      "en-US",
+      keyword.action === "Opt Out"
+        ? "sms.stop"
+        : keyword.action === "Opt In"
+          ? "sms.start"
+          : "sms.help",
+      { helpContact: options.helpContact },
+    ),
+  );
+}
+//#endregion
+//#region src/notifications/translation.ts
+/** Raised when translation is off or the provider failed. */
+var TranslationUnavailableError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "TranslationUnavailableError";
+  }
+};
+/** The default provider: translation is off and nothing leaves the platform. */
+var translationOff = {
+  provider: "off",
+  enabled: false,
+  translate() {
+    return Promise.reject(new TranslationUnavailableError("Message translation is off."));
+  },
+};
+/**
+ * A token minted outside the process: GOOGLE_OAUTH_ACCESS_TOKEN set by google-github-actions/auth, or
+ * by `gcloud auth application-default print-access-token` on a developer machine (ADR 0037).
+ */
+function staticAccessToken(token) {
+  return () => Promise.resolve(token);
+}
+var stsReply = z.object({ access_token: z.string().min(1) });
+var iamReply = z.object({
+  accessToken: z.string().min(1),
+  expireTime: z.string(),
+});
+/**
+ * Workload Identity Federation: exchanges the platform's OIDC token at Google STS, then impersonates the
+ * translation service account for a one-hour access token, cached until five minutes before it expires.
+ */
+function workloadIdentityToken(options) {
+  const doFetch = options.fetch ?? fetch;
+  let cached = null;
+  return async (refresh = false) => {
+    if (!refresh && cached && cached.expires - Date.now() > 3e5) return cached.token;
+    const sts = await doFetch("https://sts.googleapis.com/v1/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        grantType: "urn:ietf:params:oauth:grant-type:token-exchange",
+        audience: options.audience,
+        scope: "https://www.googleapis.com/auth/cloud-platform",
+        requestedTokenType: "urn:ietf:params:oauth:token-type:access_token",
+        subjectToken: await options.subjectToken(),
+        subjectTokenType: "urn:ietf:params:oauth:token-type:jwt",
+      }),
+    });
+    if (!sts.ok)
+      throw new TranslationUnavailableError(`Google STS refused the token (${sts.status}).`);
+    const federated = stsReply.parse(await sts.json()).access_token;
+    const iam = await doFetch(
+      `https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${encodeURIComponent(options.serviceAccountEmail)}:generateAccessToken`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${federated}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          scope: ["https://www.googleapis.com/auth/cloud-platform"],
+          lifetime: "3600s",
+        }),
+      },
+    );
+    if (!iam.ok)
+      throw new TranslationUnavailableError(
+        `Service account impersonation failed (${iam.status}).`,
+      );
+    const reply = iamReply.parse(await iam.json());
+    cached = {
+      token: reply.accessToken,
+      expires: Date.parse(reply.expireTime),
+    };
+    return reply.accessToken;
+  };
+}
+var GOOGLE_TRANSLATE_HOST = "https://translation.googleapis.com/v3";
+var translateReply = z.object({
+  translations: z
+    .array(
+      z.object({
+        translatedText: z.string(),
+        detectedLanguageCode: z.string().optional(),
+      }),
+    )
+    .min(1),
+});
+/** Google's code for a BCP 47 tag: es-US becomes es for NMT, zh-TW and pt-BR keep their region. */
+function googleLanguage(tag) {
+  const [language, region] = tag.split("-");
+  return region !== void 0 &&
+    /* @__PURE__ */ new Set(["zh-TW", "zh-CN", "pt-BR", "pt-PT", "fr-CA"]).has(
+      `${language}-${region}`,
+    )
+    ? tag
+    : (language ?? tag);
+}
+/** Cloud Translation v3 translateText as plain text, with the access token and the billing project. */
+function googleMessageTranslator(options) {
+  const doFetch = options.fetch ?? fetch;
+  const location = options.location ?? "global";
+  const parent = `projects/${options.project}/locations/${location}`;
+  const model = `${parent}/models/${options.model ?? "general/nmt"}`;
+  return {
+    provider: "google",
+    enabled: true,
+    async translate(request) {
+      const body = JSON.stringify({
+        contents: [request.text],
+        mimeType: "text/plain",
+        targetLanguageCode: googleLanguage(request.targetLanguage),
+        ...(request.sourceLanguage
+          ? { sourceLanguageCode: googleLanguage(request.sourceLanguage) }
+          : {}),
+        model,
+        labels: { tool: "xos-chat" },
+      });
+      const call = async (refresh) =>
+        doFetch(`${GOOGLE_TRANSLATE_HOST}/${parent}:translateText`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${await options.token(refresh)}`,
+            "x-goog-user-project": options.project,
+            "Content-Type": "application/json; charset=utf-8",
+          },
+          body,
+        });
+      let response = await call(false);
+      if (response.status === 401) response = await call(true);
+      if (!response.ok)
+        throw new TranslationUnavailableError(`Cloud Translation answered ${response.status}.`);
+      const first = translateReply.parse(await response.json()).translations[0];
+      return {
+        text: first?.translatedText ?? "",
+        detectedSourceLanguage: first?.detectedLanguageCode ?? null,
+      };
+    },
+  };
+}
+var translationEnvSchema = z.object({
+  XOS_MESSAGE_TRANSLATION: z.enum(["off", "google"]).default("off"),
+  GOOGLE_CLOUD_PROJECT: z
+    .string()
+    .regex(/^[a-z][a-z0-9-]{4,28}[a-z0-9]$/)
+    .optional(),
+  GOOGLE_TRANSLATE_LOCATION: z
+    .string()
+    .regex(/^[a-z0-9-]+$/)
+    .default("global"),
+  GOOGLE_OAUTH_ACCESS_TOKEN: z.string().min(1).optional(),
+  GOOGLE_WORKLOAD_IDENTITY_AUDIENCE: z.string().startsWith("//iam.googleapis.com/").optional(),
+  GOOGLE_TRANSLATE_SERVICE_ACCOUNT: z.email().optional(),
+});
+/**
+ * The translator the environment asks for. `off` unless XOS_MESSAGE_TRANSLATION=google with a project
+ * and a way to get tokens: GOOGLE_OAUTH_ACCESS_TOKEN, or the Workload Identity audience and service
+ * account with the platform's OIDC token.
+ */
+function createMessageTranslator(source, options = {}) {
+  const parsed = translationEnvSchema.safeParse(source);
+  if (!parsed.success || parsed.data.XOS_MESSAGE_TRANSLATION !== "google") return translationOff;
+  const env = parsed.data;
+  if (env.GOOGLE_CLOUD_PROJECT === void 0) return translationOff;
+  let token = null;
+  if (env.GOOGLE_OAUTH_ACCESS_TOKEN) token = staticAccessToken(env.GOOGLE_OAUTH_ACCESS_TOKEN);
+  else if (
+    env.GOOGLE_WORKLOAD_IDENTITY_AUDIENCE &&
+    env.GOOGLE_TRANSLATE_SERVICE_ACCOUNT &&
+    options.subjectToken
+  )
+    token = workloadIdentityToken({
+      audience: env.GOOGLE_WORKLOAD_IDENTITY_AUDIENCE,
+      serviceAccountEmail: env.GOOGLE_TRANSLATE_SERVICE_ACCOUNT,
+      subjectToken: options.subjectToken,
+      ...(options.fetch === void 0 ? {} : { fetch: options.fetch }),
+    });
+  if (token === null) return translationOff;
+  return googleMessageTranslator({
+    project: env.GOOGLE_CLOUD_PROJECT,
+    location: env.GOOGLE_TRANSLATE_LOCATION,
+    token,
+    ...(options.fetch === void 0 ? {} : { fetch: options.fetch }),
+  });
+}
+function baseLanguage(tag) {
+  return tag === null ? null : (tag.split("-")[0] ?? null);
+}
+/**
+ * Translates one chat message into the reader's language: nothing when the org or the platform has
+ * translation off or the message is already in that language, the cached translation when one exists,
+ * otherwise the provider's, which is cached for the next reader.
+ */
+async function translateChatMessage(store, translator, input) {
+  const message = await store.message(input.messageId);
+  if (message === null || message.body === null)
+    return {
+      kind: "unavailable",
+      reason: "No text to translate.",
+    };
+  if (!translator.enabled || !(await store.enabled(message.orgId))) return { kind: "off" };
+  if (baseLanguage(message.language) === baseLanguage(input.targetLanguage))
+    return { kind: "same-language" };
+  const cached = await store.cached(input.messageId, input.targetLanguage);
+  if (cached !== null)
+    return {
+      kind: "translated",
+      text: cached,
+      cached: true,
+    };
+  try {
+    const result = await translator.translate({
+      text: message.body,
+      targetLanguage: input.targetLanguage,
+      sourceLanguage: message.language,
+    });
+    await store.save(
+      input.messageId,
+      input.targetLanguage,
+      result.text,
+      message.language ?? result.detectedSourceLanguage,
+      translator.provider,
+    );
+    return {
+      kind: "translated",
+      text: result.text,
+      cached: false,
+    };
+  } catch (error) {
+    return {
+      kind: "unavailable",
+      reason: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+//#endregion
+//#region ../ia/src/handoff.ts
+/** The Compass URL scheme (apps/compass/app.json `scheme`). */
+var COMPASS_SCHEME = "compass";
+var RECORD_KEY = /^[A-Z]{2,5}-[1-9][0-9]{0,17}$/;
+/** True for a record display key such as `NWS-12`. */
+function isRecordKey(value) {
+  return RECORD_KEY.test(value);
+}
+/** The route Compass opens for the item. */
+function compassRoute(target) {
+  return target.kind === "record"
+    ? `/r/${encodeURIComponent(target.recordKey)}?org=${encodeURIComponent(target.org)}`
+    : `/e/${encodeURIComponent(target.engagementKey)}`;
+}
+/** The Compass scheme link, which opens Compass directly where it is installed. */
+function compassSchemeUrl(target) {
+  return `${COMPASS_SCHEME}:/${compassRoute(target)}`;
+}
+//#endregion
+//#region src/stores.ts
+/** A database call failed; carries the PostgREST message (refusals keep their rule code). */
+var PlatformDbError = class extends Error {
+  constructor(operation, message) {
+    super(`${operation}: ${message}`);
+    this.name = "PlatformDbError";
+  }
+};
+/** PlatformDb over a service-role Supabase client. */
+function supabaseDb(client) {
+  const app = client.schema("app");
+  return {
+    async rpc(fn, args) {
+      const { data, error } = await app.rpc(fn, { ...args });
+      if (error !== null) throw new PlatformDbError(fn, error.message);
+      return data;
+    },
+    async selectOne(table, columns, match) {
+      const { data, error } = await app
+        .from(table)
+        .select(columns)
+        .match({ ...match })
+        .limit(1)
+        .maybeSingle();
+      if (error !== null) throw new PlatformDbError(table, error.message);
+      return data ?? null;
+    },
+  };
+}
+function rows$3(data) {
+  return Array.isArray(data) ? data : [];
+}
+function text$4(row, key) {
+  const value = row?.[key];
+  if (typeof value !== "string")
+    throw new PlatformDbError(key, "expected text in the database response");
+  return value;
+}
+function optionalText$2(row, key) {
+  const value = row?.[key];
+  return typeof value === "string" ? value : null;
+}
+/** BillingStore over the 0560 RPCs. */
+function billingStore(db) {
+  return {
+    async recordStripeEvent(event) {
+      const row = rows$3(
+        await db.rpc("record_stripe_event", {
+          p_stripe_event_id: event.id,
+          p_event_type: event.type,
+          p_livemode: event.livemode,
+          p_stripe_created_at: event.createdAt.toISOString(),
+          p_payload: event.payload,
+          p_org_id: event.orgId,
+        }),
+      )[0];
+      const rowId = text$4(row, "stripe_event_row_id");
+      const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
+      return {
+        rowId,
+        isNew: row?.["is_new"] === true,
+        processed: optionalText$2(stored ?? void 0, "processed_at") !== null,
+      };
+    },
+    async finishStripeEvent(rowId, error) {
+      await db.rpc("finish_stripe_event", {
+        p_stripe_event_row_id: rowId,
+        p_error: error,
+      });
+    },
+    async orgForCustomer(customerId) {
+      return optionalText$2(
+        (await db.selectOne("stripe_subscription_links", "org_id", {
+          stripe_customer_id: customerId,
+        })) ?? void 0,
+        "org_id",
+      );
+    },
+    async syncSubscription(input) {
+      const state = await db.rpc("sync_subscription_from_stripe", {
+        p_org_id: input.orgId,
+        p_stripe_customer_id: input.customerId,
+        p_stripe_subscription_id: input.subscriptionId,
+        p_plan_code: input.planCode,
+        p_billing_interval: input.interval,
+        p_stripe_status: input.status,
+        p_current_period_end: input.currentPeriodEnd?.toISOString() ?? null,
+        p_livemode: input.livemode,
+        p_extra_seats: input.extraSeats,
+      });
+      return String(state);
+    },
+    async recordAddonPurchase(input) {
+      const id = await db.rpc("record_addon_purchase_from_stripe", {
+        p_org_id: input.orgId,
+        p_addon_code: input.addonCode,
+        p_quantity: input.quantity,
+        p_stripe_checkout_session_id: input.checkoutSessionId,
+        p_currency_code: input.currency,
+        p_amount_total_minor: input.amountTotalMinor,
+        p_livemode: input.livemode,
+        p_paid_at: input.paidAt.toISOString(),
+      });
+      return String(id);
+    },
+  };
+}
+/** WebhookStore over the 0510 dispatcher RPCs. */
+function webhookStore(db) {
+  return {
+    async claim(limit) {
+      return rows$3(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
+        deliveryId: text$4(row, "delivery_id"),
+        url: text$4(row, "url"),
+        eventType: text$4(row, "event_type"),
+        body: text$4(row, "body"),
+        signature: text$4(row, "signature"),
+      }));
+    },
+    async record(deliveryId, responseStatus, error) {
+      return String(
+        await db.rpc("record_webhook_attempt", {
+          p_delivery_id: deliveryId,
+          p_response_status: responseStatus,
+          p_error: error,
+        }),
+      );
+    },
+  };
+}
+/** The Gateway link of a notification for an external party, or null. */
+function gatewayLink(claim, gatewayUrl) {
+  const path = claim.messageArgs["gatewayPath"];
+  if (!gatewayUrl || typeof path !== "string" || !/^\/[A-Za-z0-9/_-]*$/.test(path)) return null;
+  return `${gatewayUrl.replace(/\/$/, "")}${path}`;
+}
+/**
+ * A person's name, language and time zone for rendering any channel: their own `locale.language` and
+ * `locale.time_zone` personal settings, else en-US and UTC.
+ */
+async function recipientProfile(db, personId) {
+  const person = await db.selectOne("people", "full_name", { id: personId });
+  const setting = async (key) =>
+    optionalText$2(
+      (await db.selectOne("personal_setting_values", "value_text", {
+        person_id: personId,
+        setting_key: key,
+      })) ?? void 0,
+      "value_text",
+    );
+  return {
+    name: optionalText$2(person ?? void 0, "full_name") ?? "",
+    locale: (await setting("locale.language")) ?? "en-US",
+    timeZone: (await setting("locale.time_zone")) ?? "UTC",
+  };
+}
+/** NotificationStore over the 0520 RPCs and identity reads. */
+function notificationStore(db, options) {
+  const orgSlug = async (orgId) =>
+    text$4((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+  return {
+    async claimEmail(limit) {
+      return rows$3(
+        await db.rpc("claim_notification_deliveries", {
+          p_channel: "Email",
+          p_limit: limit,
+        }),
+      ).map((row) => ({
+        deliveryId: text$4(row, "delivery_id"),
+        orgId: text$4(row, "org_id"),
+        recipientPersonId: text$4(row, "recipient_person_id"),
+        address: text$4(row, "address"),
+        kind: text$4(row, "kind"),
+        emailTemplateCode: text$4(row, "email_template_code"),
+        messageArgs: row["message_args"] ?? {},
+        subjectTable: optionalText$2(row, "subject_table"),
+        subjectId: optionalText$2(row, "subject_id"),
+      }));
+    },
+    async senderFor(orgId, personId) {
+      const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
+      const slug = text$4(org, "slug");
+      const name = text$4(org, "name");
+      return {
+        orgName: name,
+        postalAddress: options.postalAddress,
+        preferencesUrl: `${options.appUrl}/${slug}/me/notifications`,
+        unsubscribeUrl: await options.unsubscribeUrl(orgId, personId, "notification"),
+        from: `${name} <${options.fromAddress}>`,
+      };
+    },
+    recipient: (personId) => recipientProfile(db, personId),
+    async linkFor(claim) {
+      const gateway = gatewayLink(claim, options.gatewayUrl);
+      if (gateway !== null) return gateway;
+      return `${options.appUrl}/${await orgSlug(claim.orgId)}/inbox`;
+    },
+    async replyAddressFor(claim) {
+      if (options.inboundDomain === null || claim.subjectId === null) return null;
+      const local = await db.rpc("reply_address_local_part", {
+        p_person_id: claim.recipientPersonId,
+        p_subject_id: claim.subjectId,
+      });
+      return typeof local === "string" ? `${local}@${options.inboundDomain}` : null;
+    },
+    async record(deliveryId, outcome, providerMessageId, error) {
+      await db.rpc("record_notification_delivery", {
+        p_delivery_id: deliveryId,
+        p_status: outcome,
+        p_provider_message_id: providerMessageId,
+        p_error: error,
+      });
+    },
+  };
+}
+/** InboundStore over app.receive_inbound_email. */
+function inboundStore(db) {
+  return {
+    async receive(input) {
+      const id = await db.rpc("receive_inbound_email", {
+        p_local_part: input.localPart,
+        p_from_address: input.from,
+        p_subject_line: input.subject,
+        p_message_id_header: input.messageId,
+        p_dkim_verified: input.dkimVerified,
+        p_body_text: input.bodyText,
+        p_raw_object_path: input.rawObjectPath,
+      });
+      return typeof id === "string" ? id : null;
+    },
+  };
+}
+/** Punch kinds of app.punch_kind (A03F, migration 0365). */
+var PUNCH_KINDS = ["In", "Break Start", "Break End", "Out"];
+function isPunchKind(value) {
+  return value !== null && PUNCH_KINDS.includes(value);
+}
+/** The kiosk PIN service for A17 Compass: one punch through app.kiosk_punch, which calls app.record_punch. */
+async function kioskPunch(db, input) {
+  const row = rows$3(
+    await db.rpc("kiosk_punch", {
+      p_device_key: input.deviceKey,
+      p_membership_id: input.membershipId,
+      p_pin: input.pin,
+      p_punch_id: input.punchId,
+      p_punch_kind: input.punchKind,
+      p_device_time: input.deviceAt.toISOString(),
+      p_monotonic_offset_ms: input.monotonicOffsetMs ?? null,
+      p_photo_uri: input.photoUri ?? null,
+      p_project_id: input.projectId ?? null,
+    }),
+  )[0];
+  const kind = optionalText$2(row, "punch_kind");
+  const skew = row?.["skew_flagged"];
+  return {
+    punchId: optionalText$2(row, "punch_id"),
+    timeEntryId: optionalText$2(row, "time_entry_id"),
+    punchKind: isPunchKind(kind) ? kind : null,
+    effectiveAt: optionalText$2(row, "effective_at"),
+    skewFlagged: typeof skew === "boolean" ? skew : null,
+    refusal: optionalText$2(row, "refusal"),
+  };
+}
+//#endregion
+//#region src/notifications/stores.ts
+function rows$2(data) {
+  return Array.isArray(data) ? data : [];
+}
+function text$3(row, key) {
+  const value = row?.[key];
+  if (typeof value !== "string")
+    throw new PlatformDbError(key, "expected text in the database response");
+  return value;
+}
+function optionalText$1(row, key) {
+  const value = row?.[key];
+  return typeof value === "string" ? value : null;
+}
+function devices(value) {
+  return rows$2(value).flatMap((d) => {
+    const subscriptionId = optionalText$1(d, "subscriptionId");
+    const token = optionalText$1(d, "token");
+    return subscriptionId !== null && token !== null
+      ? [
+          {
+            subscriptionId,
+            token,
+          },
+        ]
+      : [];
+  });
+}
+/** The Compass deep link of a notification: the record screen for a record, else the Inbox. */
+async function compassLink(db, claim) {
+  const inbox = `${COMPASS_SCHEME}://inbox`;
+  if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
+    return inbox;
+  const record = await db.selectOne("records", "project_id, record_number", {
+    id: claim.subjectId,
+  });
+  const projectId = optionalText$1(record, "project_id");
+  if (record === null || projectId === null) return inbox;
+  const project = await db.selectOne("projects", "project_key", { id: projectId });
+  const org = await db.selectOne("organizations", "slug", { id: claim.orgId });
+  const recordKey = `${optionalText$1(project, "project_key") ?? ""}-${String(record["record_number"] ?? "")}`;
+  const slug = optionalText$1(org, "slug");
+  if (slug === null || !isRecordKey(recordKey)) return inbox;
+  return compassSchemeUrl({
+    kind: "record",
+    org: slug,
+    recordKey,
+  });
+}
+/** PushStore over app.claim_notification_deliveries, app.record_push_tickets and the receipt RPCs. */
+function pushStore(db) {
+  return {
+    async claimPush(limit) {
+      return rows$2(
+        await db.rpc("claim_notification_deliveries", {
+          p_channel: "Push",
+          p_limit: limit,
+        }),
+      ).map((row) => ({
+        deliveryId: text$3(row, "delivery_id"),
+        notificationId: text$3(row, "notification_id"),
+        orgId: text$3(row, "org_id"),
+        recipientPersonId: text$3(row, "recipient_person_id"),
+        kind: text$3(row, "kind"),
+        categoryCode: text$3(row, "category_code"),
+        messageArgs: row["message_args"] ?? {},
+        subjectTable: optionalText$1(row, "subject_table"),
+        subjectId: optionalText$1(row, "subject_id"),
+        devices: devices(row["push_devices"]),
+      }));
+    },
+    recipient: (personId) => recipientProfile(db, personId),
+    deepLink: (claim) => compassLink(db, claim),
+    async recordTickets(deliveryId, tickets) {
+      await db.rpc("record_push_tickets", {
+        p_delivery_id: deliveryId,
+        p_tickets: tickets,
+      });
+    },
+    async record(deliveryId, outcome, providerMessageId, error) {
+      await db.rpc("record_notification_delivery", {
+        p_delivery_id: deliveryId,
+        p_status: outcome,
+        p_provider_message_id: providerMessageId,
+        p_error: error,
+      });
+    },
+    async claimReceipts(limit) {
+      return rows$2(await db.rpc("claim_push_receipts", { p_limit: limit })).map((r) =>
+        text$3(r, "ticket_id"),
+      );
+    },
+    async recordReceipts(receipts) {
+      const pruned = await db.rpc("record_push_receipts", { p_receipts: receipts });
+      return typeof pruned === "number" ? pruned : 0;
+    },
+  };
+}
+/** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
+function smsStore(db, options) {
+  const org = async (orgId) =>
+    (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
+  return {
+    async claimSms(limit) {
+      return rows$2(
+        await db.rpc("claim_notification_deliveries", {
+          p_channel: "SMS",
+          p_limit: limit,
+        }),
+      ).map((row) => ({
+        deliveryId: text$3(row, "delivery_id"),
+        orgId: text$3(row, "org_id"),
+        recipientPersonId: text$3(row, "recipient_person_id"),
+        address: text$3(row, "address"),
+        kind: text$3(row, "kind"),
+        messageArgs: row["message_args"] ?? {},
+      }));
+    },
+    recipient: (personId) => recipientProfile(db, personId),
+    async orgName(orgId) {
+      return text$3(await org(orgId), "name");
+    },
+    async linkFor(claim) {
+      return `${options.appUrl.replace(/\/$/, "")}/${text$3(await org(claim.orgId), "slug")}/inbox`;
+    },
+    async record(deliveryId, outcome, providerMessageId, error) {
+      await db.rpc("record_notification_delivery", {
+        p_delivery_id: deliveryId,
+        p_status: outcome,
+        p_provider_message_id: providerMessageId,
+        p_error: error,
+      });
+    },
+  };
+}
+/** SmsInboundStore over app.record_sms_keyword and app.record_sms_status. */
+function smsInboundStore(db) {
+  return {
+    async recordKeyword(phone, action, keyword) {
+      const count = await db.rpc("record_sms_keyword", {
+        p_phone_e164: phone,
+        p_action: action,
+        p_keyword: keyword,
+      });
+      return typeof count === "number" ? count : 0;
+    },
+    async recordStatus(sid, status, error) {
+      return (
+        (await db.rpc("record_sms_status", {
+          p_provider_message_id: sid,
+          p_status: status,
+          p_error: error,
+        })) === true
+      );
+    },
+  };
+}
+/** TranslationStore over app.chat_messages, the org setting and app.record_chat_message_translation. */
+function translationStore(db) {
+  return {
+    async message(messageId) {
+      const row = await db.selectOne("chat_messages", "org_id, body, language, deleted_at", {
+        id: messageId,
+      });
+      if (row === null || optionalText$1(row, "deleted_at") !== null) return null;
+      return {
+        orgId: text$3(row, "org_id"),
+        body: optionalText$1(row, "body"),
+        language: optionalText$1(row, "language"),
+      };
+    },
+    async enabled(orgId) {
+      return (await db.rpc("message_translation_enabled", { p_org_id: orgId })) === true;
+    },
+    async cached(messageId, targetLanguage) {
+      return optionalText$1(
+        await db.selectOne("chat_message_translations", "body", {
+          chat_message_id: messageId,
+          target_language: targetLanguage,
+        }),
+        "body",
+      );
+    },
+    async save(messageId, targetLanguage, translated, sourceLanguage, provider) {
+      await db.rpc("record_chat_message_translation", {
+        p_chat_message_id: messageId,
+        p_target_language: targetLanguage,
+        p_body: translated,
+        p_source_language: sourceLanguage,
+        p_provider: provider,
+      });
+    },
+  };
+}
+//#endregion
 //#region src/inbound/parse.ts
 /**
  * Inbound mail (Section 4.6.5). The mail provider verifies DKIM and posts a parsed message; this module
@@ -35761,260 +37880,6 @@ async function receiveInbound(store, message, inboundDomain) {
     bodyText: stripQuotedText(message.text),
     rawObjectPath: message.rawObjectPath,
   });
-}
-//#endregion
-//#region src/stores.ts
-/** A database call failed; carries the PostgREST message (refusals keep their rule code). */
-var PlatformDbError = class extends Error {
-  constructor(operation, message) {
-    super(`${operation}: ${message}`);
-    this.name = "PlatformDbError";
-  }
-};
-/** PlatformDb over a service-role Supabase client. */
-function supabaseDb(client) {
-  const app = client.schema("app");
-  return {
-    async rpc(fn, args) {
-      const { data, error } = await app.rpc(fn, { ...args });
-      if (error !== null) throw new PlatformDbError(fn, error.message);
-      return data;
-    },
-    async selectOne(table, columns, match) {
-      const { data, error } = await app
-        .from(table)
-        .select(columns)
-        .match({ ...match })
-        .limit(1)
-        .maybeSingle();
-      if (error !== null) throw new PlatformDbError(table, error.message);
-      return data ?? null;
-    },
-  };
-}
-function rows$2(data) {
-  return Array.isArray(data) ? data : [];
-}
-function text$3(row, key) {
-  const value = row?.[key];
-  if (typeof value !== "string")
-    throw new PlatformDbError(key, "expected text in the database response");
-  return value;
-}
-function optionalText$1(row, key) {
-  const value = row?.[key];
-  return typeof value === "string" ? value : null;
-}
-/** BillingStore over the 0560 RPCs. */
-function billingStore(db) {
-  return {
-    async recordStripeEvent(event) {
-      const row = rows$2(
-        await db.rpc("record_stripe_event", {
-          p_stripe_event_id: event.id,
-          p_event_type: event.type,
-          p_livemode: event.livemode,
-          p_stripe_created_at: event.createdAt.toISOString(),
-          p_payload: event.payload,
-          p_org_id: event.orgId,
-        }),
-      )[0];
-      const rowId = text$3(row, "stripe_event_row_id");
-      const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
-      return {
-        rowId,
-        isNew: row?.["is_new"] === true,
-        processed: optionalText$1(stored ?? void 0, "processed_at") !== null,
-      };
-    },
-    async finishStripeEvent(rowId, error) {
-      await db.rpc("finish_stripe_event", {
-        p_stripe_event_row_id: rowId,
-        p_error: error,
-      });
-    },
-    async orgForCustomer(customerId) {
-      return optionalText$1(
-        (await db.selectOne("stripe_subscription_links", "org_id", {
-          stripe_customer_id: customerId,
-        })) ?? void 0,
-        "org_id",
-      );
-    },
-    async syncSubscription(input) {
-      const state = await db.rpc("sync_subscription_from_stripe", {
-        p_org_id: input.orgId,
-        p_stripe_customer_id: input.customerId,
-        p_stripe_subscription_id: input.subscriptionId,
-        p_plan_code: input.planCode,
-        p_billing_interval: input.interval,
-        p_stripe_status: input.status,
-        p_current_period_end: input.currentPeriodEnd?.toISOString() ?? null,
-        p_livemode: input.livemode,
-        p_extra_seats: input.extraSeats,
-      });
-      return String(state);
-    },
-    async recordAddonPurchase(input) {
-      const id = await db.rpc("record_addon_purchase_from_stripe", {
-        p_org_id: input.orgId,
-        p_addon_code: input.addonCode,
-        p_quantity: input.quantity,
-        p_stripe_checkout_session_id: input.checkoutSessionId,
-        p_currency_code: input.currency,
-        p_amount_total_minor: input.amountTotalMinor,
-        p_livemode: input.livemode,
-        p_paid_at: input.paidAt.toISOString(),
-      });
-      return String(id);
-    },
-  };
-}
-/** WebhookStore over the 0510 dispatcher RPCs. */
-function webhookStore(db) {
-  return {
-    async claim(limit) {
-      return rows$2(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$3(row, "delivery_id"),
-        url: text$3(row, "url"),
-        eventType: text$3(row, "event_type"),
-        body: text$3(row, "body"),
-        signature: text$3(row, "signature"),
-      }));
-    },
-    async record(deliveryId, responseStatus, error) {
-      return String(
-        await db.rpc("record_webhook_attempt", {
-          p_delivery_id: deliveryId,
-          p_response_status: responseStatus,
-          p_error: error,
-        }),
-      );
-    },
-  };
-}
-/** The Gateway link of a notification for an external party, or null. */
-function gatewayLink(claim, gatewayUrl) {
-  const path = claim.messageArgs["gatewayPath"];
-  if (!gatewayUrl || typeof path !== "string" || !/^\/[A-Za-z0-9/_-]*$/.test(path)) return null;
-  return `${gatewayUrl.replace(/\/$/, "")}${path}`;
-}
-/** NotificationStore over the 0520 RPCs and identity reads. */
-function notificationStore(db, options) {
-  const orgSlug = async (orgId) =>
-    text$3((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
-  return {
-    async claimEmail(limit) {
-      return rows$2(
-        await db.rpc("claim_notification_deliveries", {
-          p_channel: "Email",
-          p_limit: limit,
-        }),
-      ).map((row) => ({
-        deliveryId: text$3(row, "delivery_id"),
-        orgId: text$3(row, "org_id"),
-        recipientPersonId: text$3(row, "recipient_person_id"),
-        address: text$3(row, "address"),
-        kind: text$3(row, "kind"),
-        emailTemplateCode: text$3(row, "email_template_code"),
-        messageArgs: row["message_args"] ?? {},
-        subjectTable: optionalText$1(row, "subject_table"),
-        subjectId: optionalText$1(row, "subject_id"),
-      }));
-    },
-    async senderFor(orgId, personId) {
-      const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$3(org, "slug");
-      const name = text$3(org, "name");
-      return {
-        orgName: name,
-        postalAddress: options.postalAddress,
-        preferencesUrl: `${options.appUrl}/${slug}/me/notifications`,
-        unsubscribeUrl: await options.unsubscribeUrl(orgId, personId, "notification"),
-        from: `${name} <${options.fromAddress}>`,
-      };
-    },
-    async recipient(personId) {
-      return {
-        name:
-          optionalText$1(
-            (await db.selectOne("people", "full_name", { id: personId })) ?? void 0,
-            "full_name",
-          ) ?? "",
-        locale: "en-US",
-        timeZone: "UTC",
-      };
-    },
-    async linkFor(claim) {
-      const gateway = gatewayLink(claim, options.gatewayUrl);
-      if (gateway !== null) return gateway;
-      return `${options.appUrl}/${await orgSlug(claim.orgId)}/inbox`;
-    },
-    async replyAddressFor(claim) {
-      if (options.inboundDomain === null || claim.subjectId === null) return null;
-      const local = await db.rpc("reply_address_local_part", {
-        p_person_id: claim.recipientPersonId,
-        p_subject_id: claim.subjectId,
-      });
-      return typeof local === "string" ? `${local}@${options.inboundDomain}` : null;
-    },
-    async record(deliveryId, outcome, providerMessageId, error) {
-      await db.rpc("record_notification_delivery", {
-        p_delivery_id: deliveryId,
-        p_status: outcome,
-        p_provider_message_id: providerMessageId,
-        p_error: error,
-      });
-    },
-  };
-}
-/** InboundStore over app.receive_inbound_email. */
-function inboundStore(db) {
-  return {
-    async receive(input) {
-      const id = await db.rpc("receive_inbound_email", {
-        p_local_part: input.localPart,
-        p_from_address: input.from,
-        p_subject_line: input.subject,
-        p_message_id_header: input.messageId,
-        p_dkim_verified: input.dkimVerified,
-        p_body_text: input.bodyText,
-        p_raw_object_path: input.rawObjectPath,
-      });
-      return typeof id === "string" ? id : null;
-    },
-  };
-}
-/** Punch kinds of app.punch_kind (A03F, migration 0365). */
-var PUNCH_KINDS = ["In", "Break Start", "Break End", "Out"];
-function isPunchKind(value) {
-  return value !== null && PUNCH_KINDS.includes(value);
-}
-/** The kiosk PIN service for A17 Compass: one punch through app.kiosk_punch, which calls app.record_punch. */
-async function kioskPunch(db, input) {
-  const row = rows$2(
-    await db.rpc("kiosk_punch", {
-      p_device_key: input.deviceKey,
-      p_membership_id: input.membershipId,
-      p_pin: input.pin,
-      p_punch_id: input.punchId,
-      p_punch_kind: input.punchKind,
-      p_device_time: input.deviceAt.toISOString(),
-      p_monotonic_offset_ms: input.monotonicOffsetMs ?? null,
-      p_photo_uri: input.photoUri ?? null,
-      p_project_id: input.projectId ?? null,
-    }),
-  )[0];
-  const kind = optionalText$1(row, "punch_kind");
-  const skew = row?.["skew_flagged"];
-  return {
-    punchId: optionalText$1(row, "punch_id"),
-    timeEntryId: optionalText$1(row, "time_entry_id"),
-    punchKind: isPunchKind(kind) ? kind : null,
-    effectiveAt: optionalText$1(row, "effective_at"),
-    skewFlagged: typeof skew === "boolean" ? skew : null,
-    refusal: optionalText$1(row, "refusal"),
-  };
 }
 //#endregion
 //#region src/http/failure.ts
@@ -39170,6 +41035,12 @@ export {
   ATTACHMENT_SCAN_JOB,
   BillingNotConfiguredError,
   CLAMAV_DEFAULT_PORT,
+  EXPO_PUSH_RECEIPTS_URL,
+  EXPO_PUSH_SEND_URL,
+  EXPO_RECEIPT_BATCH,
+  EXPO_SEND_BATCH,
+  GOOGLE_TRANSLATE_HOST,
+  GuardedSmsProvider,
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
   MAX_SCAN_ATTEMPTS,
@@ -39178,34 +41049,53 @@ export {
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
+  PushServiceError,
   REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
+  RecordingPushClient,
+  RecordingSmsProvider,
   ScannerUnavailableError,
+  SmsRecipientRefusedError,
+  SmsSendError,
   StorageUnavailableError,
   StripeSignatureError,
+  TWILIO_API,
+  TranslationUnavailableError,
   UPLOAD_STAGING_BUCKET,
   ZIP_LIMITS,
   addonForLookupKey,
   billingEnvSchema,
   billingStore,
   checkContent,
+  checkPushReceipts,
   checkZip,
   clamavScanner,
+  clip,
+  compassLink,
   createAddonCheckoutSession,
   createCheckoutSession,
   createLogger,
+  createMessageTranslator,
   createObservability,
   createPortalSession,
+  createPushClient,
+  createSmsProvider,
   createStripeClient,
   createTransport,
   dispatchEmail,
+  dispatchPush,
+  dispatchSms,
   dispatchWebhooks,
   edgeFunctionName,
+  expoPushClient,
   extraSeatForLookupKey,
   extraSeatLookupKeyFor,
   gatewayLink,
+  googleLanguage,
+  googleMessageTranslator,
   handleStripeWebhook,
+  handleTwilioWebhook,
   identityFromEnv,
   inboundStore,
   internalErrorResponse,
@@ -39214,20 +41104,30 @@ export {
   isTestKey,
   kioskPunch,
   localPartFor,
+  localeOf,
   lookupKeyFor,
   mailpitMailer,
+  notificationArgs,
   notificationStore,
+  notificationText,
   observe,
   observeEdgeFunction,
+  outcomeOf,
   parseClamdReply,
   passThroughScanner,
   planForLookupKey,
   planRegistry,
+  pushEnvSchema,
+  pushMessage,
+  pushStore,
   readBillingEnv,
   readEmailEnv,
+  readPushEnv,
+  readSmsEnv,
   readZipDirectory,
   receiveInbound,
   recipientAllowed,
+  recipientProfile,
   reportDeliveryCopy,
   reportRunLabels,
   requestIdFor,
@@ -39242,8 +41142,14 @@ export {
   selectVirusScanner,
   setExtraSeats,
   signWebhook,
+  smsBody,
+  smsEnvSchema,
+  smsInboundStore,
+  smsKeyword,
+  smsStore,
   sniffFamilies,
   stagedUploadTarget,
+  staticAccessToken,
   stripQuotedText,
   supabaseDb,
   supabaseReportDeliveryStore,
@@ -39251,6 +41157,14 @@ export {
   supabaseResultFiles,
   supabaseResultStorage,
   supabaseStorage,
+  translateChatMessage,
+  translationEnvSchema,
+  translationOff,
+  translationStore,
+  twilioSignature,
+  twilioSmsProvider,
+  verifyTwilioSignature,
   verifyWebhook,
   webhookStore,
+  workloadIdentityToken,
 };
