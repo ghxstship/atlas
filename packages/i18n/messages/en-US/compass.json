@@ -42,6 +42,15 @@
     "identityTitle": "Your access did not load",
     "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation."
   },
+  "secondFactor": {
+    "title": "Verify It's You",
+    "sentence": "Enter the 6-digit code from your authenticator app.",
+    "code": "Code",
+    "verify": "Verify",
+    "invalid": "That code didn't match. Enter the code your app shows now.",
+    "requiredTitle": "Set Up a Second Factor",
+    "required": "Your organization requires a second factor for your role. Set up an authenticator app in Atlas or Gateway under Settings, Security, then try again."
+  },
   "denial": {
     "roleTitle": "Not part of your role",
     "role": "Your role does not include this in Compass. Ask your organization if you need it.",

@@ -42,6 +42,15 @@
     "identityTitle": "Tu acceso no cargó",
     "identity": "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación."
   },
+  "secondFactor": {
+    "title": "Confirma Que Eres Tú",
+    "sentence": "Escribe el código de 6 dígitos de tu app de autenticación.",
+    "code": "Código",
+    "verify": "Verificar",
+    "invalid": "Ese código no coincide. Escribe el código que muestra tu app ahora.",
+    "requiredTitle": "Configura un Segundo Factor",
+    "required": "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo."
+  },
   "denial": {
     "roleTitle": "No es parte de tu rol",
     "role": "Tu rol no incluye esto en Compass. Pregunta a tu organización si lo necesitas.",
