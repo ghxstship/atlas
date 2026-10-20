@@ -8,6 +8,15 @@ import { createServerSupabase } from "@/lib/supabase/server";
 const HOME = "/home";
 
 /**
+ * A redirect within this site. The Location is relative, so the browser stays on the host it used:
+ * Next names a loopback host localhost in request.url, and an absolute redirect built from it would
+ * move a person signed in on 127.0.0.1 to localhost, where their new session cookie does not apply.
+ */
+function goTo(path: string): NextResponse {
+  return new NextResponse(null, { status: 307, headers: { location: path } });
+}
+
+/**
  * OAuth and email-link (PKCE) return. Supabase Auth comes back with a code, which is exchanged for
  * the session cookies, or with the provider's refusal, which goes back to sign-in with its message.
  * `next` survives both ways (safeNext keeps it on this site), so a token flow's claim page or an
@@ -18,8 +27,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
   const next = safeNext(params.get("next"), HOME);
   const oauth = isOAuthProvider(params.get("provider"));
-  const back = (error: AuthErrorKey) =>
-    NextResponse.redirect(new URL(signInErrorPath(error, next, HOME), request.url));
+  const back = (error: AuthErrorKey) => goTo(signInErrorPath(error, next, HOME));
 
   const refused = oauthCallbackError(params);
   if (refused) return back(refused);
@@ -38,5 +46,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
   // A new account accepted the Worker Terms at sign-up; the first session writes them to the log.
   await recordPendingAcceptances(db, clientIp(request.headers));
-  return NextResponse.redirect(new URL(next, request.url));
+  return goTo(next);
 }

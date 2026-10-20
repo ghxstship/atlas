@@ -134,16 +134,17 @@ async function startWith(fields: Record<string, string>): Promise<URL> {
   throw new Error("signInWithProvider did not redirect");
 }
 
-/** NextRequest names a loopback host localhost; redirects stay on whatever host the request has. */
-let requestOrigin = "";
-
+/**
+ * Calls the callback and resolves its redirect as the browser would. The Location is always a path
+ * on this site, so the browser stays on the host it used.
+ */
 async function callback(query: string): Promise<URL> {
   const { GET } = await import("../app/auth/callback/route");
-  const request = new NextRequest(`${SITE}/auth/callback?${query}`);
-  requestOrigin = new URL(request.url).origin;
-  const response = await GET(request);
+  const response = await GET(new NextRequest(`${SITE}/auth/callback?${query}`));
   expect(response.status).toBe(307);
-  return new URL(response.headers.get("location") ?? "");
+  const location = response.headers.get("location") ?? "";
+  expect(location).toMatch(/^\/(?![/\\])/);
+  return new URL(location, SITE);
 }
 
 /** A value @supabase/ssr wrote to the jar, decoded from its base64url encoding. */
@@ -229,7 +230,7 @@ describe("Continue with Google: the callback", () => {
     back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000001");
 
     const landed = await callback(back.searchParams.toString());
-    expect(`${landed.origin}${landed.pathname}`).toBe(`${requestOrigin}/auth/invite/xlnk_abc123`);
+    expect(`${landed.origin}${landed.pathname}`).toBe(`${SITE}/auth/invite/xlnk_abc123`);
     expect(tokenRequests).toEqual([
       { auth_code: "c0ffee00-0000-4000-8000-000000000001", code_verifier: verifier },
     ]);
@@ -260,7 +261,7 @@ describe("Continue with Google: the callback", () => {
       const landed = await callback(
         new URLSearchParams({ code: "abc", provider: "google", next }).toString(),
       );
-      expect(landed.origin).toBe(requestOrigin);
+      expect(landed.origin).toBe(SITE);
       expect(landed.pathname).toBe("/");
     }
   });

@@ -110,14 +110,13 @@ async function startWith(fields: Record<string, string>): Promise<URL> {
   throw new Error("signInWithProvider did not redirect");
 }
 
+/** Calls the callback and resolves its redirect, always a path on this site, as the browser would. */
 async function callback(query: string): Promise<{ to: URL; origin: string }> {
   const { GET } = await import("../app/auth/callback/route");
-  const request = new NextRequest(`${SITE}/auth/callback?${query}`);
-  const response = await GET(request);
-  return {
-    to: new URL(response.headers.get("location") ?? ""),
-    origin: new URL(request.url).origin,
-  };
+  const response = await GET(new NextRequest(`${SITE}/auth/callback?${query}`));
+  const location = response.headers.get("location") ?? "";
+  expect(location).toMatch(/^\/(?![/\\])/);
+  return { to: new URL(location, SITE), origin: SITE };
 }
 
 function stored(name: string): unknown {
