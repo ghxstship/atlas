@@ -27,7 +27,7 @@ export interface InboxDescription {
   readonly href: string | null;
 }
 
-/** Placeholders each kind's email copy reads beyond title and actorName, that only the notification carries. */
+/** Arguments each kind's email copy reads beyond title and actorName, which only the notification carries. */
 const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "shift.assigned": ["startsAt"],
   "shift.changed": ["startsAt"],
@@ -76,7 +76,7 @@ function date(value: string | undefined): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
-/** The arguments the copy reads, with readable defaults; null when a placeholder the kind needs is missing. */
+/** The arguments the copy reads, with readable defaults; null when an argument the kind needs is missing. */
 function values(
   item: InboxItem,
   copy: InboxCopy,

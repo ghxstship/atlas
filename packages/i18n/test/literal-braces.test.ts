@@ -5,7 +5,7 @@ import { flatten, icuArguments, type Catalog } from "./icu.ts";
 /**
  * Finding A59-007: ICU reads `{PROJECT}` as an argument, so a help line meant to show the literal
  * token rendered "Use undefined and undefined". Arguments are camelCase or snake_case names that call
- * sites pass; a token written in capitals (a format placeholder, a code) is literal text and must be
+ * sites pass; a token written in capitals (a format token, a code) is literal text and must be
  * quoted with apostrophes ('{PROJECT}'). Every message of every catalog is checked.
  */
 
