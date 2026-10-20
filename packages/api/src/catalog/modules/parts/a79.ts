@@ -28,12 +28,10 @@ const OwnershipTransfer = audited(
     fields: {
       from_person_id: fields.ref("Owner who offered the org"),
       to_person_id: fields.ref("member the org is offered to"),
-      previous_owner_outcome: z
-        .enum(["admin", "leave"])
-        .meta({
-          description: "What happens to the Owner who offered on acceptance.",
-          example: "admin",
-        }),
+      previous_owner_outcome: z.enum(["admin", "leave"]).meta({
+        description: "What happens to the Owner who offered on acceptance.",
+        example: "admin",
+      }),
       offered_at: fields.instant("When the offer was made."),
       expires_at: fields.instant("When an unanswered offer lapses, 7 days after it was made."),
       accepted_at: fields.instant("When the member accepted and became an Owner.").nullable(),
@@ -86,13 +84,10 @@ const DeletionCertificate = defineResource({
     deleted_org_id: fields.uuid("Id the deleted org had."),
     org_name: fields.text("Name of the org when it was deleted.", "Harbor Lights Productions"),
     org_slug: fields.text("Web address of the org when it was deleted.", "harbor-lights", 100),
-    basis: z
-      .enum(["cancellation", "deletion_request"])
-      .meta({
-        description:
-          "Day 90 of a cancellation, or the end of a deletion request's recovery window.",
-        example: "cancellation",
-      }),
+    basis: z.enum(["cancellation", "deletion_request"]).meta({
+      description: "Day 90 of a cancellation, or the end of a deletion request's recovery window.",
+      example: "cancellation",
+    }),
     requested_at: fields.instant("When the Owner canceled or asked for deletion."),
     due_at: fields.instant("When the data became due for deletion."),
     purged_at: fields.instant("When every row of the org was deleted.").nullable(),
@@ -166,12 +161,10 @@ export const a79Resources: readonly ResourceSpec[] = [
         body: z
           .object({
             to_person_id: fields.ref("member to offer the org to"),
-            previous_owner_outcome: z
-              .enum(["admin", "leave"])
-              .meta({
-                description: "What happens to the offering Owner on acceptance.",
-                example: "admin",
-              }),
+            previous_owner_outcome: z.enum(["admin", "leave"]).meta({
+              description: "What happens to the offering Owner on acceptance.",
+              example: "admin",
+            }),
           })
           .meta({ id: "OwnershipTransferOfferRequest", description: "An ownership offer." }),
         rpc: "offer_ownership_transfer",
@@ -381,12 +374,10 @@ export const a79IdentityCorrections: readonly CorrectionInput[] = [
             .meta({ description: "DNS records to publish for the provider." }),
         },
         tls_ready: {
-          schema: z
-            .boolean()
-            .meta({
-              description: "True once the provider issued the TLS certificate.",
-              example: false,
-            }),
+          schema: z.boolean().meta({
+            description: "True once the provider issued the TLS certificate.",
+            example: false,
+          }),
         },
         provisioning_error: {
           schema: orNull(
