@@ -15,6 +15,7 @@ export {
 } from "./lib/i18n.ts";
 export {
   XOSProvider,
+  PreferencesProvider,
   useLocale,
   useT,
   useFormat,

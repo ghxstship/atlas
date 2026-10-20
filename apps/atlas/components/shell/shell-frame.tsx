@@ -5,6 +5,7 @@ import {
   AppShell,
   Breadcrumbs,
   Button,
+  PreferencesProvider,
   Select,
   Sidebar,
   TabBar,
@@ -14,6 +15,7 @@ import {
 import {
   applyDocumentAttributes,
   decodePreferences,
+  preferencesCookie,
   singleKeyShortcutsEnabled,
 } from "@xos/ui/preferences";
 import type { Route } from "next";
@@ -31,13 +33,7 @@ import {
 import { clientSitemap } from "@/ia/sitemap.client.generated";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
-import {
-  selectOrganization,
-  setLocale,
-  setTheme,
-  setWorkspace,
-  syncPreferences,
-} from "@/lib/shell/actions";
+import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { AuroraCenter } from "@/components/aurora/aurora-center";
@@ -150,11 +146,12 @@ export function ShellFrame(props: ShellFrameProps) {
   // Settings changed here or in Gateway or Compass reach this device: apply them now and keep the cookie
   // in step, so the next page renders with them (A65-001).
   const { preferences, storedPreferences } = props;
+  const displayPreferences = useMemo(() => decodePreferences(preferences), [preferences]);
   useEffect(() => {
     if (preferences === storedPreferences) return;
-    applyDocumentAttributes(document.documentElement, decodePreferences(preferences));
-    void syncPreferences(preferences).then(() => router.refresh());
-  }, [preferences, storedPreferences, router]);
+    applyDocumentAttributes(document.documentElement, displayPreferences);
+    document.cookie = preferencesCookie(preferences, window.location.protocol === "https:");
+  }, [preferences, storedPreferences, displayPreferences]);
 
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;
   const crumbs = resolveBreadcrumbs(
@@ -360,7 +357,9 @@ export function ShellFrame(props: ShellFrameProps) {
           tabIndex={-1}
           className="flex min-w-0 flex-col gap-16 outline-none [&>*]:shrink-0"
         >
-          {props.children}
+          <PreferencesProvider preferences={displayPreferences}>
+            {props.children}
+          </PreferencesProvider>
         </div>
       </AppShell>
       {command ? (

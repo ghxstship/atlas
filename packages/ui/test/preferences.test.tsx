@@ -6,6 +6,7 @@ import {
   DEFAULT_PREFERENCES,
   DataTable,
   DatePicker,
+  PreferencesProvider,
   RecordList,
   RecordRow,
   XOSProvider,
@@ -14,6 +15,7 @@ import {
   decodePreferences,
   documentAttributes,
   encodePreferences,
+  preferencesCookie,
   formatDate,
   formatDistance,
   monthCells,
@@ -72,14 +74,24 @@ describe("preferences from settings", () => {
           ["payroll.week_start", "sunday"],
         ]),
       ),
-    ).toEqual({ ...DEFAULT_PREFERENCES, weekStart: 0 });
+    ).toEqual(DEFAULT_PREFERENCES);
   });
 
   it("round-trips through the cookie, which holds only what differs", () => {
     expect(encodePreferences(DEFAULT_PREFERENCES)).toBe("");
     expect(decodePreferences(encodePreferences(chosen))).toEqual(chosen);
     expect(decodePreferences(undefined)).toEqual(DEFAULT_PREFERENCES);
-    expect(decodePreferences("x.1|t.huge|w.0")).toEqual({ ...DEFAULT_PREFERENCES, weekStart: 0 });
+    expect(decodePreferences("x.1|t.huge|w.0")).toEqual(DEFAULT_PREFERENCES);
+  });
+
+  it("keeps the cookie in the browser, expiring it at the defaults", () => {
+    expect(preferencesCookie("t.large|d.compact", true)).toBe(
+      "xos-prefs=t.large|d.compact; path=/; max-age=31536000; samesite=lax; secure",
+    );
+    expect(preferencesCookie("", false)).toBe("xos-prefs=; path=/; max-age=0; samesite=lax");
+    expect(preferencesCookie("t.large;evil=1", false)).toBe(
+      "xos-prefs=; path=/; max-age=0; samesite=lax",
+    );
   });
 
   it("sets the document attributes the styles read", () => {
@@ -175,6 +187,20 @@ describe("components follow the provider's preferences", () => {
       </XOSProvider>,
     );
     expect(screen.getByText("metric")).toBeTruthy();
+  });
+
+  it("lets the shell set the resolved preferences below the root provider", () => {
+    function Probe() {
+      return <span>{usePreferences().dateFormat}</span>;
+    }
+    render(
+      <XOSProvider>
+        <PreferencesProvider preferences={chosen}>
+          <Probe />
+        </PreferencesProvider>
+      </XOSProvider>,
+    );
+    expect(screen.getByText(chosen.dateFormat)).toBeTruthy();
   });
 
   it("ignores single-key shortcuts while me.shortcuts_enabled is off, keeping Cmd shortcuts", () => {

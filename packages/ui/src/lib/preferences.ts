@@ -11,8 +11,11 @@ export type Motion = "system" | "reduce" | "full";
 export type Density = "comfortable" | "compact";
 export type DateFormat = "locale" | "iso";
 export type Units = "imperial" | "metric";
-/** 0 for Sunday, 1 for Monday; null follows the locale. */
-export type WeekStart = 0 | 1 | null;
+/**
+ * 0 for Sunday (payroll.week_start's default), 1 for Monday. The default is the registry's, so a person who
+ * never chose one keeps the cookie empty and nothing resyncs.
+ */
+export type WeekStart = 0 | 1;
 
 export interface DisplayPreferences {
   readonly textSize: TextSize;
@@ -33,11 +36,24 @@ export const DEFAULT_PREFERENCES: DisplayPreferences = {
   shortcuts: true,
   dateFormat: "locale",
   units: "imperial",
-  weekStart: null,
+  weekStart: 0,
 };
 
 /** The cookie that carries the preferences for server rendering. */
 export const PREFERENCES_COOKIE = "xos-prefs";
+
+const YEAR_SECONDS = 60 * 60 * 24 * 365;
+
+/**
+ * The `document.cookie` assignment that keeps the preferences cookie in step with the person's settings. It is
+ * set in the browser, not by a server action, so keeping it current never re-renders or interrupts the page.
+ * The value holds only letters, digits, dots and bars; an empty value expires the cookie.
+ */
+export function preferencesCookie(encoded: string, secure: boolean): string {
+  const value = /^[a-z0-9.|]*$/.test(encoded) ? encoded : "";
+  const age = value === "" ? 0 : YEAR_SECONDS;
+  return `${PREFERENCES_COOKIE}=${value}; path=/; max-age=${age}; samesite=lax${secure ? "; secure" : ""}`;
+}
 
 /** The registry key each preference reads (packages/schemas/settings). */
 export const PREFERENCE_SETTINGS = {
@@ -73,7 +89,7 @@ export function preferencesFromSettings(
     shortcuts: get(PREFERENCE_SETTINGS.shortcuts) !== false,
     dateFormat: pick(get(PREFERENCE_SETTINGS.dateFormat), ["locale", "iso"], "locale"),
     units: pick(get(PREFERENCE_SETTINGS.units), ["imperial", "metric"], "imperial"),
-    weekStart: week === "monday" ? 1 : week === "sunday" ? 0 : null,
+    weekStart: week === "monday" ? 1 : 0,
   };
 }
 
@@ -117,7 +133,7 @@ export function decodePreferences(raw: string | undefined | null): DisplayPrefer
     shortcuts: found.get(CODES.shortcuts) !== "0",
     dateFormat: pick(found.get(CODES.dateFormat), ["locale", "iso"], "locale"),
     units: pick(found.get(CODES.units), ["imperial", "metric"], "imperial"),
-    weekStart: week === "1" ? 1 : week === "0" ? 0 : null,
+    weekStart: week === "1" ? 1 : 0,
   };
 }
 

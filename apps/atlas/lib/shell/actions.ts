@@ -6,7 +6,6 @@ import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
 import { env } from "@/lib/env";
 import { THEME_COOKIE, THEMES } from "@/lib/theme";
 import { setPersonalSetting } from "@xos/data/settings";
-import { PREFERENCES_COOKIE, decodePreferences, encodePreferences } from "@xos/ui/preferences";
 import { getMyOrganizations, getViewer } from "./context";
 import { WORKSPACE_COOKIE } from "./workspace";
 import { devicePreference } from "./org-settings";
@@ -59,17 +58,6 @@ export async function applyDevicePreference(key: string, value: string): Promise
   const device = devicePreference(key, value, THEMES, locales);
   if (device)
     await setPreference(device.cookie === "theme" ? THEME_COOKIE : LOCALE_COOKIE, device.value);
-}
-
-/**
- * Keeps the display preferences cookie (text size, contrast, motion, density, shortcuts, date format,
- * units, week start) in step with the person's settings, so the server renders the next page with them.
- * The shell calls it when the resolved settings and the cookie differ.
- */
-export async function syncPreferences(encoded: string): Promise<void> {
-  const value = encodePreferences(decodePreferences(z.string().max(200).parse(encoded)));
-  if (value === "") (await cookies()).delete(PREFERENCES_COOKIE);
-  else await setPreference(PREFERENCES_COOKIE, value);
 }
 
 /**

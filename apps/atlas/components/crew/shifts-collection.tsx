@@ -74,7 +74,7 @@ export async function ShiftsCollection(props: {
   const { preferences } = await getShellSettings(db, crew.orgId, null);
   const week = weekStartOf(
     isIsoDate(search["week"]) ? search["week"] : today,
-    preferences.weekStart ?? 0,
+    preferences.weekStart,
   );
   const monthStart = `${week.slice(0, 7)}-01`;
   const from = view === "calendar" ? monthStart : week;

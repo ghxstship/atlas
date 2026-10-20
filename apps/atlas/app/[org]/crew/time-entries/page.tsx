@@ -52,7 +52,7 @@ export default async function Page({
   const { preferences } = await getShellSettings(db, crew.orgId, null);
   const week = weekStartOf(
     isIsoDate(search["week"]) ? search["week"] : today,
-    preferences.weekStart ?? 0,
+    preferences.weekStart,
   );
   const projects = await getProjects(crew.ctx);
   const projectFilter = projects.find((p) => p.key === search["project"]) ?? null;

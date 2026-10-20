@@ -212,7 +212,7 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   const members = canSubmitOthers ? await getMembers(crew.ctx) : [];
   // A new timesheet covers the person's week (payroll.week_start).
   const { preferences } = await getShellSettings(crew.ctx.viewer.db, crew.orgId, null);
-  const week = weekStartOf(new Date().toISOString().slice(0, 10), preferences.weekStart ?? 0);
+  const week = weekStartOf(new Date().toISOString().slice(0, 10), preferences.weekStart);
   const defaultProject = projectFilter ?? projects[0] ?? null;
   const drawer =
     search["create"] === "1" && canCreate && defaultProject ? (

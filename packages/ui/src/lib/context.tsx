@@ -46,6 +46,20 @@ export function XOSProvider({ locale, messages, theme, preferences, children }: 
   );
 }
 
+/**
+ * Sets the display preferences for the components below it, under an `XOSProvider`. The app shells use it
+ * with the person's resolved settings, so a saved setting shows on the page it was saved from.
+ */
+export function PreferencesProvider({
+  preferences,
+  children,
+}: {
+  preferences: DisplayPreferences;
+  children: ReactNode;
+}) {
+  return <PreferencesContext.Provider value={preferences}>{children}</PreferencesContext.Provider>;
+}
+
 /** The person's display preferences from the nearest provider (Section 4.5.6, A65-001). */
 export function usePreferences(): DisplayPreferences {
   return useContext(PreferencesContext);

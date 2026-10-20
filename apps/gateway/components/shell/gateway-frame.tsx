@@ -8,6 +8,7 @@ import {
   Drawer,
   IconButton,
   Avatar,
+  PreferencesProvider,
   TabBar,
   TemplateGatewayShell,
   TopNav,
@@ -26,10 +27,11 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { setActing, setLocale, setTheme, syncPreferences } from "@/lib/shell/actions";
+import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import {
   applyDocumentAttributes,
   decodePreferences,
+  preferencesCookie,
   singleKeyShortcutsEnabled,
 } from "@xos/ui/preferences";
 import type { ThemePreference } from "@/lib/theme";
@@ -144,11 +146,12 @@ export function GatewayFrame(props: GatewayFrameProps) {
   // Settings changed in Atlas, Compass or Gateway settings reach this device: apply them now and keep the
   // cookie in step, so the next page renders with them (A65-001).
   const { preferences, storedPreferences } = props;
+  const displayPreferences = useMemo(() => decodePreferences(preferences), [preferences]);
   useEffect(() => {
     if (preferences === storedPreferences) return;
-    applyDocumentAttributes(document.documentElement, decodePreferences(preferences));
-    void syncPreferences(preferences).then(() => router.refresh());
-  }, [preferences, storedPreferences, router]);
+    applyDocumentAttributes(document.documentElement, displayPreferences);
+    document.cookie = preferencesCookie(preferences, window.location.protocol === "https:");
+  }, [preferences, storedPreferences, displayPreferences]);
 
   const runAvatar = (entry: FrameAvatarEntry) => {
     setAccountOpen(false);
@@ -232,7 +235,9 @@ export function GatewayFrame(props: GatewayFrameProps) {
         }
       >
         <div id="content" className="flex flex-col gap-16 min-w-0">
-          {props.children}
+          <PreferencesProvider preferences={displayPreferences}>
+            {props.children}
+          </PreferencesProvider>
         </div>
         {props.showPoweredBy ? (
           <p className="m-0 pt-24 text-center text-text-12 text-text-tertiary">
