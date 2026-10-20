@@ -1,10 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
-import {
-  clientIp,
-  missingSignUpAcceptances,
-  recordPendingAcceptances,
-} from "@/lib/auth/legal";
+import { clientIp, missingSignUpAcceptances, recordPendingAcceptances } from "@/lib/auth/legal";
 import { isOAuthProvider } from "@/lib/auth/providers";
 import { safeNext, signInErrorPath } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
