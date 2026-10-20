@@ -58,7 +58,12 @@ select throws_ok($$insert into app.cue_calls (cue_id, call_kind, instruction) va
 select throws_ok($$update app.projects set budget_envelope_minor = -1 where id = (select id from world where key = 'prj_a')$$,
   '23514', null, 'a budget envelope is never negative');
 select pg_temp.as_platform();
-select throws_ok($$update app.shifts set scheduled_break_minutes = 2000$$, '23514', null, 'a scheduled break fits in a day');
+-- The suite's own shift, so the shape rule is checked without the demo seed (A71, RRR-116).
+with x as (insert into app.shifts (project_id, membership_id, starts_at, ends_at, time_zone)
+  values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '2027-06-05 14:00+00', '2027-06-05 22:00+00', 'America/New_York') returning id)
+insert into world select 'shift', id from x;
+select throws_ok($$update app.shifts set scheduled_break_minutes = 2000 where id = (select id from world where key = 'shift')$$,
+  '23514', null, 'a scheduled break fits in a day');
 select throws_ok($$insert into app.shipments (org_id, project_id, direction, pallet_count) values
   ((select id from world where key = 'org_a'), (select id from world where key = 'prj_a'), 'Inbound', -1)$$,
   '23514', null, 'a shipment never has negative pallets');
