@@ -15,6 +15,7 @@ import {
   pickWorker,
   pressDigit,
   searchRoster,
+  sendKioskPunch,
   type KioskStep,
   type RosterEntry,
 } from "../src/domain/kiosk";
@@ -192,14 +193,16 @@ function Kiosk(): ReactElement {
     }
     const token = (await client.auth.getSession()).data.session?.access_token;
     try {
-      const response = await fetch(`${config.supabaseUrl}/functions/v1/kiosk-punch`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ ...input.payload, monotonicOffsetMs: 0 }),
-      });
+      const response = await sendKioskPunch(() =>
+        fetch(`${config.supabaseUrl}/functions/v1/kiosk-punch`, {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            ...(token ? { authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ ...input.payload, monotonicOffsetMs: 0 }),
+        }),
+      );
       if (response.ok) {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setStep(afterServer(step, { ok: true }));
