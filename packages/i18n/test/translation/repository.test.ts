@@ -80,10 +80,12 @@ describe("report helpers", () => {
     const refs = findTestReferences(repo.root, [
       { id: "email.kinds.approval.requested.subject", before: "Aprobación solicitada: {title}" },
       { id: "short", before: "Sí" },
+      { id: "word", before: "Aprobación" },
       { id: "help/x.md", before: "Aprobación solicitada: x" },
     ]);
-    expect([...refs]).toEqual([
+    expect([...refs].sort()).toEqual([
       ["email.kinds.approval.requested.subject", ["packages/email/test/email.test.ts"]],
+      ["short", ["apps/atlas/e2e/home.spec.ts"]],
     ]);
   });
 });

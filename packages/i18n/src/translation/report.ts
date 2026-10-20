@@ -195,28 +195,31 @@ function testFiles(root: string): string[] {
 }
 
 /**
- * Tests that quote the old value of a changed string: its longest literal run (outside ICU
- * arguments), when that run is at least 10 characters long.
+ * Tests that quote the old value of a changed string: the whole value in quotes, or its longest
+ * literal run outside ICU arguments when that run has at least two words and 12 characters.
  */
 export function findTestReferences(
   root: string,
   changes: ReadonlyArray<{ readonly id: string; readonly before: string | undefined }>,
 ): Map<string, string[]> {
   const probes = changes
-    .filter((c) => c.before !== undefined && !c.id.includes("/"))
-    .map((c) => ({
-      id: c.id,
-      probe: (c.before ?? "")
+    .filter((c) => c.before !== undefined && c.before !== "" && !c.id.includes("/"))
+    .map((c) => {
+      const before = c.before ?? "";
+      const run = before
         .split(/\{[^{}]*\}|<\/?\w+>/)
-        .reduce((a, b) => (b.trim().length > a.length ? b.trim() : a), ""),
-    }))
-    .filter((p) => p.probe.length >= 10);
+        .reduce((a, b) => (b.trim().length > a.length ? b.trim() : a), "");
+      const quoted = ['"', "'", "`"].map((q) => `${q}${before}${q}`);
+      return { id: c.id, needles: run.length >= 12 && /\s/.test(run) ? [run] : quoted };
+    });
   const out = new Map<string, string[]>();
   if (probes.length === 0) return out;
   for (const file of testFiles(root)) {
     const text = readFileSync(file, "utf8");
     for (const p of probes) {
-      if (text.includes(p.probe)) out.set(p.id, [...(out.get(p.id) ?? []), relative(root, file)]);
+      if (p.needles.some((n) => text.includes(n))) {
+        out.set(p.id, [...(out.get(p.id) ?? []), relative(root, file)]);
+      }
     }
   }
   return out;
