@@ -9,6 +9,7 @@ import { clientMessages, uiMessages } from "@/i18n/request";
 import { brandStyle } from "@/lib/brand/brand";
 import { getRequestFacts } from "@/lib/shell/context";
 import { THEME_COOKIE, preferenceFromCookie, renderedTheme } from "@/lib/theme";
+import { PREFERENCES_COOKIE, decodePreferences, documentAttributes } from "@xos/ui/preferences";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,6 +35,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const preference = preferenceFromCookie(cookieStore.get(THEME_COOKIE)?.value);
   const theme = renderedTheme(preference, headerStore.get("sec-ch-prefers-color-scheme"));
   const overrides = uiMessages(locale as GatewayLocale);
+  // The person's display preferences (A65-001), kept in a cookie the shell syncs from their settings.
+  const display = decodePreferences(cookieStore.get(PREFERENCES_COOKIE)?.value);
   return (
     <html
       lang={locale}
@@ -41,10 +44,15 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       data-theme={theme}
       data-theme-preference={preference}
       style={brandStyle(facts.brand)}
+      {...documentAttributes(display)}
     >
       <body>
         <NextIntlClientProvider messages={clientMessages(locale as GatewayLocale)}>
-          <XOSProvider locale={locale} {...(overrides ? { messages: overrides } : {})}>
+          <XOSProvider
+            locale={locale}
+            preferences={display}
+            {...(overrides ? { messages: overrides } : {})}
+          >
             {preference === "system" ? <ThemeFollower /> : null}
             {children}
           </XOSProvider>

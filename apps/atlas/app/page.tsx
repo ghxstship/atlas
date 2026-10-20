@@ -1,12 +1,15 @@
 import { cookies } from "next/headers";
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
 import { getMyOrganizations, getViewer } from "@/lib/shell/context";
+import { getShellSettings, startPath } from "@/lib/shell/org-settings";
 
 /**
- * Entry. A signed-in person goes to the Home of the org they used last (or their first org), a
- * person with no org creates one, and everyone else signs in. An email link that fell back to the
- * site root still completes through /auth/callback.
+ * Entry. A signed-in person goes to the start page (shell.start_page: Home, My Work, Inbox or
+ * Projects) of the org they used last (or their first org), a person with no org creates one, and
+ * everyone else signs in. An email link that fell back to the site root still completes through
+ * /auth/callback.
  */
 export default async function EntryPage({ searchParams }: PageProps<"/">) {
   const code = (await searchParams)["code"];
@@ -17,5 +20,7 @@ export default async function EntryPage({ searchParams }: PageProps<"/">) {
   if (orgs.length === 0) redirect("/auth/organization");
   const last = (await cookies()).get(LAST_ORG_COOKIE)?.value;
   const org = orgs.find((o) => o.slug === last) ?? orgs[0];
-  redirect(`/${org?.slug ?? ""}/home`);
+  if (!org) redirect("/auth/organization");
+  const settings = await getShellSettings(viewer.db, org.id, null);
+  redirect(startPath(org.slug, settings.startPage) as Route);
 }

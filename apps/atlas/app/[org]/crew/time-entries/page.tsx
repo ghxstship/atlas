@@ -25,7 +25,8 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, weekStartOf } from "@/lib/crew/time";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -48,7 +49,11 @@ export default async function Page({
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
   const today = new Date().toISOString().slice(0, 10);
-  const week = mondayOf(isIsoDate(search["week"]) ? search["week"] : today);
+  const { preferences } = await getShellSettings(db, crew.orgId, null);
+  const week = weekStartOf(
+    isIsoDate(search["week"]) ? search["week"] : today,
+    preferences.weekStart ?? 0,
+  );
   const projects = await getProjects(crew.ctx);
   const projectFilter = projects.find((p) => p.key === search["project"]) ?? null;
   const zoneOf = (projectId: string) => projects.find((p) => p.id === projectId)?.timeZone ?? "UTC";

@@ -1,4 +1,5 @@
 import { getSubscription, listMembers } from "@xos/data";
+import { legalEntityDefaults, reviewRemovesUnreviewed } from "@/lib/shell/org-settings";
 import {
   breakGlassOpen,
   listAccessReviewCampaigns,
@@ -106,12 +107,9 @@ async function LegalEntitiesPanel({ ctx }: SettingsPanelProps) {
     value: String(i + 1),
     label: monthName.format(new Date(Date.UTC(2026, i, 1))),
   }));
-  const orgValue = (key: string) =>
-    settings.data.find((v) => v.key === key && v.scopeKind === "Organization");
-  const month = orgValue("org.fiscal_year_start_month")?.value;
-  const currency = orgValue("org.base_currency")?.value;
-  const defaultMonth = String(typeof month === "number" ? month : 1);
-  const defaultCurrency = (typeof currency === "string" ? currency : "USD").toUpperCase();
+  const { month: defaultMonth, currency: defaultCurrency } = legalEntityDefaults(
+    (key) => settings.data.find((v) => v.key === key && v.scopeKind === "Organization")?.value,
+  );
   return (
     <Section
       id="legal-entities"
@@ -306,10 +304,9 @@ async function AccessReviewsPanel({ ctx }: SettingsPanelProps) {
   if (items && !items.ok) return loadFailed(t);
   const date = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" });
   const me = ctx.viewer.person?.id;
-  const removeUnreviewed =
-    settings.data.find(
-      (v) => v.key === "access_reviews.remove_unreviewed" && v.scopeKind === "Organization",
-    )?.value === true;
+  const removeUnreviewed = reviewRemovesUnreviewed(
+    (key) => settings.data.find((v) => v.key === key && v.scopeKind === "Organization")?.value,
+  );
   const today = new Date();
   const due = new Date(today.getTime() + 14 * 86_400_000).toISOString().slice(0, 10);
   const quarter = Math.floor(today.getUTCMonth() / 3) + 1;

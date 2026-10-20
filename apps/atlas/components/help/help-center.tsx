@@ -10,6 +10,7 @@ import { forNode } from "@/help/model";
 import { clientSitemap } from "@/ia/sitemap.client.generated";
 import { loadHelpStateAction, type HelpPanelState } from "@/lib/help/actions";
 import { onDemand, useOnDemand } from "@/components/shell/on-demand";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { installErrorCapture, type CollectedDiagnostics } from "./diagnostics";
 
 /** What the help panel shows. */
@@ -80,7 +81,14 @@ export function HelpCenter({ org }: { org: string }) {
       const el = event.target as HTMLElement | null;
       const typing =
         el?.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(el?.tagName ?? "");
-      if (event.key === "?" && !typing && !event.metaKey && !event.ctrlKey && !event.altKey) {
+      if (
+        event.key === "?" &&
+        !typing &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        !event.altKey &&
+        singleKeyShortcutsEnabled()
+      ) {
         event.preventDefault();
         setView({ kind: "home" });
         setOpen((o) => !o);

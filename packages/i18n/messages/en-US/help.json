@@ -181,5 +181,12 @@
     "screenshotHelp": "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
     "screenshotNeedsConsent": "Tick the diagnostics box above to attach a screenshot.",
     "screenshotTooBig": "That image is larger than 5 MB. Choose a smaller one."
+  },
+  "orgSupport": {
+    "title": "Your organization's support",
+    "email": "Email",
+    "hours": "Hours",
+    "link": "Guides",
+    "linkLabel": "Open your organization's guides"
   }
 }

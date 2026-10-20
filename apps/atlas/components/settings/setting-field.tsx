@@ -143,6 +143,8 @@ export function SettingField(props: SettingFieldProps) {
       {def.type === "boolean" && error ? <InlineAlert tone="danger">{error}</InlineAlert> : null}
       <p id={`${id}-source`} className="m-0 text-text-12 text-text-secondary">
         {props.sourceText}
+        {/* A setting deferred by a recorded decision is kept but not applied yet (A65-001). */}
+        {def.deferred ? ` ${t("notInEffect")}` : null}
       </p>
       {def.lockable && props.group === "org" && !props.scopeKind && props.canEdit ? (
         <Checkbox

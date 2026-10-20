@@ -31,7 +31,8 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, weekStartOf } from "@/lib/crew/time";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -209,7 +210,9 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
 
   const canCreate = crew.can("crew.timesheet.submit");
   const members = canSubmitOthers ? await getMembers(crew.ctx) : [];
-  const week = mondayOf(new Date().toISOString().slice(0, 10));
+  // A new timesheet covers the person's week (payroll.week_start).
+  const { preferences } = await getShellSettings(crew.ctx.viewer.db, crew.orgId, null);
+  const week = weekStartOf(new Date().toISOString().slice(0, 10), preferences.weekStart ?? 0);
   const defaultProject = projectFilter ?? projects[0] ?? null;
   const drawer =
     search["create"] === "1" && canCreate && defaultProject ? (

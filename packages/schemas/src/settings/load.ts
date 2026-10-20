@@ -11,6 +11,7 @@ import {
   TEXT_INPUTS,
   pageGroup,
   type SettingDefinition,
+  type SettingEnforcement,
 } from "./model.ts";
 
 /** Directory of the per-contributor registry files. */
@@ -21,6 +22,10 @@ const CHOICE = /^[A-Za-z0-9][A-Za-z0-9_./+:-]*$/;
 const CATALOG_KEY = /^[a-z][a-zA-Z0-9]*(\.[a-zA-Z0-9]+)+$/;
 const NODE = /^(settings|me)(\.[a-z0-9-]+)?$/;
 const CONTRIBUTOR = /^[a-z][a-z0-9-]*$/;
+/** A repository-relative file, optionally followed by `#symbol`. */
+const CONSUMER =
+  /^(apps|packages|supabase)\/[A-Za-z0-9_./()[\]-]+\.(ts|tsx|sql)(#[A-Za-z0-9_.]+)?$/;
+const TEST = /^(apps|packages|supabase)\/[A-Za-z0-9_./()[\]-]+\.(test\.tsx?|test\.sql|spec\.ts)$/;
 
 const settingSchema = z.strictObject({
   key: z.string().regex(KEY).max(120),
@@ -40,6 +45,16 @@ const settingSchema = z.strictObject({
     org: z.string().regex(NODE).optional(),
     personal: z.string().regex(NODE).optional(),
   }),
+  enforced_by: z
+    .array(z.strictObject({ consumer: z.string().regex(CONSUMER), test: z.string().regex(TEST) }))
+    .min(1)
+    .optional(),
+  deferred: z
+    .strictObject({
+      reason: z.string().min(20).max(400),
+      decision: z.string().min(5).max(200),
+    })
+    .optional(),
 });
 
 const fileSchema = z.strictObject({
@@ -101,6 +116,13 @@ export function validateSetting(raw: RawSetting, capabilities: ReadonlySet<strin
             : typeof d === "string" && d.length <= (raw.max_length ?? 4000);
     if (!fits) issues.push(`${at} has a default that does not fit its type`);
   }
+  if (raw.enforced_by && raw.deferred) {
+    issues.push(`${at} is both enforced and deferred; keep one`);
+  } else if (!raw.enforced_by && !raw.deferred) {
+    issues.push(
+      `${at} names no consumer: add enforced_by (the module that applies it and its test) or a deferred reason (A65-001)`,
+    );
+  }
   const groups = new Set(raw.scopes.map(pageGroup));
   for (const group of ["org", "personal"] as const) {
     const page = raw.pages[group];
@@ -133,7 +155,20 @@ function toDefinition(contributor: string, raw: RawSetting): SettingDefinition {
       ...(raw.pages.org ? { org: raw.pages.org } : {}),
       ...(raw.pages.personal ? { personal: raw.pages.personal } : {}),
     },
+    deferred: raw.deferred !== undefined,
   };
+}
+
+function toEnforcement(raw: RawSetting): SettingEnforcement {
+  return raw.deferred
+    ? {
+        kind: "deferred",
+        deferral: { reason: raw.deferred.reason, decision: raw.deferred.decision },
+      }
+    : {
+        kind: "enforced",
+        by: (raw.enforced_by ?? []).map((c) => ({ consumer: c.consumer, test: c.test })),
+      };
 }
 
 /** Parses registry files (name to text) into definitions, contributor files in name order. */
@@ -141,8 +176,23 @@ export function parseSettingsFiles(
   files: ReadonlyMap<string, string>,
   capabilities: ReadonlySet<string>,
 ): SettingDefinition[] {
+  return parseSettingsRegistry(files, capabilities).settings;
+}
+
+/** Definitions and how each takes effect, keyed by setting key in registry order. */
+export interface ParsedSettingsRegistry {
+  readonly settings: SettingDefinition[];
+  readonly enforcement: Map<string, SettingEnforcement>;
+}
+
+/** Parses registry files into definitions and their enforcement metadata. */
+export function parseSettingsRegistry(
+  files: ReadonlyMap<string, string>,
+  capabilities: ReadonlySet<string>,
+): ParsedSettingsRegistry {
   const issues: string[] = [];
   const out: SettingDefinition[] = [];
+  const enforcement = new Map<string, SettingEnforcement>();
   const seen = new Map<string, string>();
   for (const name of [...files.keys()].sort()) {
     const parsed = fileSchema.safeParse(parse(files.get(name) ?? ""));
@@ -161,10 +211,11 @@ export function parseSettingsFiles(
       seen.set(raw.key, name);
       issues.push(...validateSetting(raw, capabilities).map((i) => `${name}: ${i}`));
       out.push(toDefinition(parsed.data.contributor, raw));
+      enforcement.set(raw.key, toEnforcement(raw));
     }
   }
   if (issues.length > 0) throw new SettingsRegistryError(issues);
-  return out;
+  return { settings: out, enforcement };
 }
 
 /** Reads every contributor file in the settings directory. */
@@ -178,6 +229,11 @@ export function readSettingsFiles(dir: string = SETTINGS_DIR): Map<string, strin
 
 /** Loads and validates the whole registry against the capability registry. */
 export function loadSettingsRegistry(dir: string = SETTINGS_DIR): SettingDefinition[] {
+  return loadSettingsWithEnforcement(dir).settings;
+}
+
+/** The whole registry with each setting's consumers or deferral (A65-001 regression guard). */
+export function loadSettingsWithEnforcement(dir: string = SETTINGS_DIR): ParsedSettingsRegistry {
   const capabilities = new Set(allCapabilities(loadCapabilityRegistry()).map((c) => c.code));
-  return parseSettingsFiles(readSettingsFiles(dir), capabilities);
+  return parseSettingsRegistry(readSettingsFiles(dir), capabilities);
 }

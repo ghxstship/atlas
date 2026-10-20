@@ -15,6 +15,7 @@ import { z } from "zod";
 import { clientIp } from "@/lib/auth/legal";
 import { parseSettingValue, settingByKey, settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext } from "@/lib/shell/context";
+import { applyDevicePreference } from "@/lib/shell/actions";
 
 /**
  * Saves one registered setting (Section 4.5.6) from a settings page: an org, workspace, team or
@@ -110,6 +111,11 @@ export async function saveSettingAction(
           });
   }
   if (!result.ok) return { error: settingErrorKey(result.error), value: raw ?? "" };
+  // A theme or language saved here applies on this device at once, as the shell's pickers do. The
+  // display preferences follow through the shell, which re-resolves them on the next render.
+  if (input.group === "personal" && input.intent === "save" && typeof raw === "string") {
+    await applyDevicePreference(def.key, raw.trim());
+  }
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return { ok: true };
 }

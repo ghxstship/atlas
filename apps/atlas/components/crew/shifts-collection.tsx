@@ -13,7 +13,10 @@ import { getFormatter } from "next-intl/server";
 import { EmptyStateLink, ButtonLink } from "@/components/ui";
 import {
   acceptShiftAction,
+  awardShiftAction,
   claimShiftAction,
+  decideClaimAction,
+  withdrawClaimAction,
   clockInAction,
   clockOutAction,
   createShiftAction,
@@ -32,7 +35,10 @@ import {
   type SearchParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, weekStartOf } from "@/lib/crew/time";
+import { getShellSettings } from "@/lib/shell/org-settings";
+import { claimingRule, listShiftClaims } from "@xos/data/crew";
+import { resolveSettings } from "@xos/data/settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { CrewFrame, resolveView } from "./frame";
@@ -64,7 +70,12 @@ export async function ShiftsCollection(props: {
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, params) ?? "/";
   const today = new Date().toISOString().slice(0, 10);
-  const week = mondayOf(isIsoDate(search["week"]) ? search["week"] : today);
+  // Weeks start on the person's or org's first day (payroll.week_start).
+  const { preferences } = await getShellSettings(db, crew.orgId, null);
+  const week = weekStartOf(
+    isIsoDate(search["week"]) ? search["week"] : today,
+    preferences.weekStart ?? 0,
+  );
   const monthStart = `${week.slice(0, 7)}-01`;
   const from = view === "calendar" ? monthStart : week;
   const to =
@@ -132,6 +143,17 @@ export async function ShiftsCollection(props: {
           )
         : undefined;
       const hidden = { org: crew.slug, id: s.id };
+      // The project's scheduling settings decide claims and swaps (1322).
+      const scheduling = await resolveSettings(db, { orgId: crew.orgId, projectId: s.projectId });
+      const rule = claimingRule(
+        scheduling.ok ? scheduling.data.get("scheduling.open_shift_claiming")?.value : undefined,
+      );
+      const swapsAllowed =
+        !scheduling.ok || scheduling.data.get("scheduling.allow_swaps")?.value !== false;
+      const open = s.member === null && s.state === "Published";
+      const claims = open ? await listShiftClaims(db, s.id) : null;
+      const waiting = claims?.ok ? claims.data : [];
+      const myClaim = waiting.find((c) => c.member.membershipId === crew.membershipId) ?? null;
       const actions = (
         <>
           {canWrite && s.state === "Draft" ? (
@@ -163,17 +185,40 @@ export async function ShiftsCollection(props: {
               variant="primary"
             />
           ) : null}
-          {s.member === null && s.state === "Published" ? (
+          {open && !myClaim ? (
             <ConfirmButton
               label={t("crew.shifts.claim")}
               title={t("crew.shifts.claimTitle")}
+              {...(rule === "first-come" ? {} : { description: t(`crew.claims.ruleHelp.${rule}`) })}
               defaultReason={t("crew.shifts.claimReason")}
               action={claimShiftAction}
               hidden={hidden}
               variant="primary"
             />
           ) : null}
+          {myClaim ? (
+            <ConfirmButton
+              label={t("crew.claims.withdraw")}
+              title={t("crew.claims.withdrawTitle")}
+              defaultReason=""
+              reason={false}
+              action={withdrawClaimAction}
+              hidden={{ org: crew.slug, id: myClaim.id }}
+              variant="ghost"
+            />
+          ) : null}
+          {canWrite && open && rule === "seniority" && waiting.length > 0 ? (
+            <ConfirmButton
+              label={t("crew.claims.award")}
+              title={t("crew.claims.awardTitle")}
+              defaultReason={t("crew.claims.awardReason")}
+              action={awardShiftAction}
+              hidden={hidden}
+              variant="primary"
+            />
+          ) : null}
           {mine &&
+          swapsAllowed &&
           (s.state === "Published" || s.state === "Accepted") &&
           crew.can("crew.swap.request") ? (
             <ButtonLink href={withParams(base, search, { swap: s.id })} size="sm">
@@ -257,6 +302,53 @@ export async function ShiftsCollection(props: {
             },
           ]}
         >
+          {myClaim ? (
+            <p role="status" className="m-0 text-text-13 text-text-secondary">
+              {t("crew.claims.waiting")}
+            </p>
+          ) : null}
+          {canWrite && waiting.length > 0 ? (
+            <section aria-labelledby="shift-claims" className="flex flex-col gap-8">
+              <h2 id="shift-claims" className="m-0 text-text-13 font-semibold">
+                {t("crew.claims.title")}
+              </h2>
+              <p className="m-0 text-text-12 text-text-secondary">
+                {t(`crew.claims.ruleHelp.${rule}`)}
+              </p>
+              <ul className="m-0 flex list-none flex-col gap-8 p-0">
+                {waiting.map((c) => (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-8">
+                    <span className="text-text-13">
+                      {c.member.name ?? t("crew.common.unnamed")}
+                    </span>
+                    <span className="flex flex-wrap gap-8">
+                      {rule === "approval" ? (
+                        <ConfirmButton
+                          label={t("crew.claims.approve")}
+                          title={t("crew.claims.approveTitle", {
+                            name: c.member.name ?? t("crew.common.unnamed"),
+                          })}
+                          defaultReason={t("crew.claims.approveReason")}
+                          action={decideClaimAction}
+                          hidden={{ org: crew.slug, id: c.id, decision: "Approved" }}
+                          variant="primary"
+                        />
+                      ) : null}
+                      <ConfirmButton
+                        label={t("crew.claims.reject")}
+                        title={t("crew.claims.rejectTitle", {
+                          name: c.member.name ?? t("crew.common.unnamed"),
+                        })}
+                        defaultReason=""
+                        action={decideClaimAction}
+                        hidden={{ org: crew.slug, id: c.id, decision: "Rejected" }}
+                      />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
           {entries.ok && entries.data.length > 0 ? (
             <section aria-labelledby="shift-entries" className="flex flex-col gap-8">
               <h2 id="shift-entries" className="m-0 text-text-13 font-semibold">

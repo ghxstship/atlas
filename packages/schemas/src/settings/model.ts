@@ -43,7 +43,33 @@ export interface SettingDefinition {
   readonly label: string;
   readonly help: string | null;
   readonly pages: Readonly<Partial<Record<PageGroup, string>>>;
+  /**
+   * True while the setting is saved but nothing applies it yet, by a recorded decision (the
+   * registry file's `deferred` block). Settings pages say so next to the control.
+   */
+  readonly deferred: boolean;
 }
+
+/**
+ * One place a setting takes effect (ADR 0032, A65-001): the module or migration that reads it and
+ * the test that changes it and observes the behavior. Paths are relative to the repository root;
+ * a consumer may name a symbol after `#`, such as `supabase/migrations/0941_record_punch.sql#app.record_punch`.
+ */
+export interface SettingConsumer {
+  readonly consumer: string;
+  readonly test: string;
+}
+
+/** Why a setting is not applied yet, and the owner decision or work package it waits on. */
+export interface SettingDeferral {
+  readonly reason: string;
+  readonly decision: string;
+}
+
+/** How a setting takes effect: its consumers, or the recorded reason it does not yet. */
+export type SettingEnforcement =
+  | { readonly kind: "enforced"; readonly by: readonly SettingConsumer[] }
+  | { readonly kind: "deferred"; readonly deferral: SettingDeferral };
 
 /** The database enum value of a registry type. */
 export function dbValueType(type: SettingType): "Text" | "Boolean" | "Integer" | "Choice" {

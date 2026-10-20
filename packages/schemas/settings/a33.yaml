@@ -11,3 +11,6 @@ settings:
     label: workflow.settings.requesterMayCancel.label
     help: workflow.settings.requesterMayCancel.help
     pages: { org: settings.approval-policies }
+    enforced_by:
+      - consumer: supabase/migrations/1030_approvals.sql#private.approval_requester_may_cancel
+        test: supabase/tests/1030_approvals.test.sql

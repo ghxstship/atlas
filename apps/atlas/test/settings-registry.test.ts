@@ -27,6 +27,7 @@ const base: SettingDefinition = {
   label: "settings.fields.legalName.label",
   help: null,
   pages: { org: "settings.general" },
+  deferred: false,
 };
 
 describe("registry lookups", () => {

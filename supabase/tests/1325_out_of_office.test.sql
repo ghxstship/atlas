@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(16);
+select plan(17);
 
 create temporary table k (key text primary key, id uuid);
 grant select, insert on k to public;
@@ -31,6 +31,14 @@ select app.set_personal_setting('me.out_of_office.starts_on', null, p_value_text
 select app.set_personal_setting('me.out_of_office.ends_on', null, p_value_text => to_char(current_date + 2, 'YYYY-MM-DD'));
 select pg_temp.as_platform();
 select is(private.person_away(pg_temp.id('bob'), pg_temp.id('org_a'), now() + interval '5 days'), false, 'after the end date the person is back');
+-- The day counts in the person's own time zone (locale.time_zone): late on the last day in New York is already
+-- the next day in UTC, and the person is still away.
+select pg_temp.as_user('bob');
+select app.set_personal_setting('locale.time_zone', null, p_value_text => 'America/New_York');
+select pg_temp.as_platform();
+select is(private.person_away(pg_temp.id('bob'), pg_temp.id('org_a'),
+  ((current_date + 2)::timestamp + interval '23 hours') at time zone 'America/New_York'), true,
+  'the end date counts in the person''s time zone');
 
 -- Automatic reply -------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('alice');

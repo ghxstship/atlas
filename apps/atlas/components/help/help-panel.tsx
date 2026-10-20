@@ -311,6 +311,48 @@ export function HelpPanel({
                 ))}
               </ul>,
             )}
+            {state?.orgSupport
+              ? section(
+                  t("orgSupport.title"),
+                  <dl className="m-0 flex flex-col gap-4">
+                    {state.orgSupport.email ? (
+                      <div className="flex flex-col">
+                        <dt className="text-text-12 text-text-secondary">
+                          {t("orgSupport.email")}
+                        </dt>
+                        <dd className="m-0">
+                          <a className="text-accent-text" href={`mailto:${state.orgSupport.email}`}>
+                            {state.orgSupport.email}
+                          </a>
+                        </dd>
+                      </div>
+                    ) : null}
+                    {state.orgSupport.hours ? (
+                      <div className="flex flex-col">
+                        <dt className="text-text-12 text-text-secondary">
+                          {t("orgSupport.hours")}
+                        </dt>
+                        <dd className="m-0">{state.orgSupport.hours}</dd>
+                      </div>
+                    ) : null}
+                    {state.orgSupport.link ? (
+                      <div className="flex flex-col">
+                        <dt className="text-text-12 text-text-secondary">{t("orgSupport.link")}</dt>
+                        <dd className="m-0">
+                          <a
+                            className="text-accent-text"
+                            href={state.orgSupport.link}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                          >
+                            {t("orgSupport.linkLabel")}
+                          </a>
+                        </dd>
+                      </div>
+                    ) : null}
+                  </dl>,
+                )
+              : null}
             <Button
               icon="LifeBuoy"
               onClick={() =>

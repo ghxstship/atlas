@@ -11,6 +11,11 @@ import {
   type MenuItem,
   type NavItem,
 } from "@xos/ui";
+import {
+  applyDocumentAttributes,
+  decodePreferences,
+  singleKeyShortcutsEnabled,
+} from "@xos/ui/preferences";
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -26,7 +31,13 @@ import {
 import { clientSitemap } from "@/ia/sitemap.client.generated";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
-import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
+import {
+  selectOrganization,
+  setLocale,
+  setTheme,
+  setWorkspace,
+  syncPreferences,
+} from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { AuroraCenter } from "@/components/aurora/aurora-center";
@@ -52,6 +63,10 @@ export interface ShellFrameProps {
   readonly email: string | null;
   /** Whether the viewer can turn AI features on (org.ai.write), for the Aurora panel. */
   readonly canManageAi: boolean;
+  /** The person's display preferences resolved from their settings (encoded as the cookie keeps them). */
+  readonly preferences: string;
+  /** The preferences cookie this page was rendered with. */
+  readonly storedPreferences: string;
   readonly children: ReactNode;
 }
 
@@ -112,7 +127,13 @@ export function ShellFrame(props: ShellFrameProps) {
       } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setCommandOpen((o) => !o);
-      } else if (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey) {
+      } else if (
+        event.key === "/" &&
+        !typing &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        singleKeyShortcutsEnabled()
+      ) {
         event.preventDefault();
         setCommandOpen(true);
       }
@@ -125,6 +146,15 @@ export function ShellFrame(props: ShellFrameProps) {
       window.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  // Settings changed here or in Gateway or Compass reach this device: apply them now and keep the cookie
+  // in step, so the next page renders with them (A65-001).
+  const { preferences, storedPreferences } = props;
+  useEffect(() => {
+    if (preferences === storedPreferences) return;
+    applyDocumentAttributes(document.documentElement, decodePreferences(preferences));
+    void syncPreferences(preferences).then(() => router.refresh());
+  }, [preferences, storedPreferences, router]);
 
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;
   const crumbs = resolveBreadcrumbs(

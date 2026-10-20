@@ -7,6 +7,7 @@ import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { THEME_COOKIE, THEME_PREFERENCES } from "@/lib/theme";
+import { PREFERENCES_COOKIE, decodePreferences, encodePreferences } from "@xos/ui/preferences";
 import { ACTING_COOKIE } from "./standing";
 
 /**
@@ -38,6 +39,16 @@ export async function setTheme(preference: string): Promise<void> {
     return;
   }
   await setPreference(THEME_COOKIE, value);
+}
+
+/**
+ * Keeps the display preferences cookie (text size, contrast, motion, shortcuts, date format, units, week
+ * start) in step with the person's settings, so the server renders the next page with them (A65-001).
+ */
+export async function syncPreferences(encoded: string): Promise<void> {
+  const value = encodePreferences(decodePreferences(z.string().max(200).parse(encoded)));
+  if (value === "") (await cookies()).delete(PREFERENCES_COOKIE);
+  else await setPreference(PREFERENCES_COOKIE, value);
 }
 
 /** Acts for oneself (`self`) or for one of the person's external accounts. */

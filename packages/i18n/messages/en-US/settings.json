@@ -73,7 +73,7 @@
     },
     "defaultWorkspace": {
       "label": "Default workspace",
-      "help": "New members start in this workspace."
+      "help": "New members join this workspace."
     },
     "startPage": {
       "label": "Start page",
@@ -89,7 +89,7 @@
     },
     "invoicePrefix": {
       "label": "Invoice number prefix",
-      "help": "Up to 12 characters placed before each invoice number, for example INV-."
+      "help": "Up to 12 characters placed before each new invoice number, for example INV-."
     },
     "mfaPolicy": {
       "label": "Multi-factor authentication",
@@ -137,11 +137,11 @@
     },
     "photoOnPunch": {
       "label": "Photo on punch",
-      "help": "Ask for a photo at every clock-in and clock-out."
+      "help": "Ask kiosks for a photo at every clock-in and clock-out."
     },
     "geofenceRequired": {
       "label": "Require the geofence",
-      "help": "Refuse clock-ins outside the project's geofence."
+      "help": "Refuse phone and web clock-ins outside the project's geofence. Kiosks are exempt."
     },
     "kioskEnabled": {
       "label": "Kiosk clock-in",
@@ -149,7 +149,7 @@
     },
     "openShiftClaiming": {
       "label": "Open shift claiming",
-      "help": "How crew claim open shifts."
+      "help": "How crew claim open shifts: the first to claim gets it, a supervisor approves, or the most senior claimant gets it."
     },
     "allowSwaps": {
       "label": "Allow shift swaps",
@@ -157,11 +157,11 @@
     },
     "swapApproval": {
       "label": "Swaps need approval",
-      "help": "A supervisor approves each swap before it takes effect."
+      "help": "A supervisor approves each swap before it takes effect. When off, the person offered the shift accepts it."
     },
     "payPeriod": {
       "label": "Pay period",
-      "help": "How often payroll runs."
+      "help": "How often payroll runs. New pay periods follow it."
     },
     "weekStart": {
       "label": "Week starts on",
@@ -169,7 +169,7 @@
     },
     "marketplaceVisibility": {
       "label": "Marketplace visibility",
-      "help": "Who can find the organization in the Gateway marketplace."
+      "help": "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees."
     },
     "ratingsEnabled": {
       "label": "Ratings",
@@ -177,7 +177,7 @@
     },
     "messageRetention": {
       "label": "Message retention in days",
-      "help": "Keep messages this many days, from 30 to 3,650."
+      "help": "Delete messages older than this many days, from 30 to 3,650. A legal hold keeps them."
     },
     "autoTranslate": {
       "label": "Translate messages",
@@ -185,15 +185,15 @@
     },
     "supportEmail": {
       "label": "Internal support email",
-      "help": "Where members send questions about how your organization works."
+      "help": "Where members send questions about how your organization works. Shown in the help panel."
     },
     "supportHours": {
       "label": "Support hours",
-      "help": "For example Monday to Friday, 9 AM to 6 PM Eastern."
+      "help": "Shown in the help panel, for example Monday to Friday, 9 AM to 6 PM Eastern."
     },
     "helpLink": {
       "label": "Custom help link",
-      "help": "A page with your own guides, shown in the help menu."
+      "help": "A page with your own guides, shown in the help panel."
     },
     "language": {
       "label": "Language",
@@ -618,5 +618,6 @@
       "title": "Shared with your organization",
       "entry": "Shared by {owner} · Your members act as {role}"
     }
-  }
+  },
+  "notInEffect": "Saved, but not in effect yet."
 }

@@ -26,7 +26,12 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
+import { setActing, setLocale, setTheme, syncPreferences } from "@/lib/shell/actions";
+import {
+  applyDocumentAttributes,
+  decodePreferences,
+  singleKeyShortcutsEnabled,
+} from "@xos/ui/preferences";
 import type { ThemePreference } from "@/lib/theme";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
@@ -64,6 +69,10 @@ export interface GatewayFrameProps {
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
+  /** The person's display preferences resolved from their settings (encoded as the cookie keeps them). */
+  readonly preferences: string;
+  /** The preferences cookie this page was rendered with. */
+  readonly storedPreferences: string;
   readonly children: ReactNode;
 }
 
@@ -117,7 +126,13 @@ export function GatewayFrame(props: GatewayFrameProps) {
       const typing =
         target?.isContentEditable ||
         ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
-      if (event.key === "?" && !typing && !event.metaKey && !event.ctrlKey) {
+      if (
+        event.key === "?" &&
+        !typing &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        singleKeyShortcutsEnabled()
+      ) {
         event.preventDefault();
         setHelpOpen(true);
       }
@@ -125,6 +140,15 @@ export function GatewayFrame(props: GatewayFrameProps) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Settings changed in Atlas, Compass or Gateway settings reach this device: apply them now and keep the
+  // cookie in step, so the next page renders with them (A65-001).
+  const { preferences, storedPreferences } = props;
+  useEffect(() => {
+    if (preferences === storedPreferences) return;
+    applyDocumentAttributes(document.documentElement, decodePreferences(preferences));
+    void syncPreferences(preferences).then(() => router.refresh());
+  }, [preferences, storedPreferences, router]);
 
   const runAvatar = (entry: FrameAvatarEntry) => {
     setAccountOpen(false);
