@@ -50,4 +50,12 @@ Both runs passed every flow. Times are in seconds.
 ## Not run here
 
 - **Android.** This Mac has no Android SDK or emulator image. The nightly `maestro-android` job on GitHub runs the same suite on an API 34 emulator, with airplane mode for the offline flows.
-- **The fake recorder build.** It was not used in the two runs above. Its unit tests cover it (`test/voice-recorder.test.ts`).
+
+## The CI recorder
+
+The two runs above used the device recorder. A separate build with `EXPO_PUBLIC_XOS_FAKE_RECORDER=1`, the one the nightly iOS job makes, then passed `field-incident-report` on a fresh seed. Its voice note reached field-media as the 910-byte silent `audio/mp4` file. The device recorder's note was 87,839 bytes. Its unit tests are in `test/voice-recorder.test.ts`.
+
+## Open findings, not fixed here
+
+- **Kiosk-punch cold start.** The kiosk-punch Edge Function, like every function, imports `_shared/runtime.ts`, which loads the whole 1.5 MB `_vendor/xos-platform.js`. That bundle includes Stripe, Resend, react-email and every message catalog. Locally, each new worker reached its CPU soft limit while starting and was retired after one request, and about half of them hit the hard limit (546). Hosted Edge Functions have CPU limits as well, so per-function bundles for the PIN path are worth considering. The kiosk now sends a punch again on a 5xx, which covers the symptom.
+- **A kiosk cannot be re-keyed.** The kiosk device key is kept in the device settings (the keychain), which outlive sign-out and reinstall. If that key is retired or unknown to the server, the kiosk opens on its roster, every PIN is refused as a wrong PIN, and no failed attempt is counted. There is no "forget this kiosk" action. A distinct refusal for an unknown device key, and a way to clear it, would let a supervisor recover.
