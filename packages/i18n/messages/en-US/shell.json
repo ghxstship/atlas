@@ -1047,7 +1047,7 @@
   },
   "chrome": {
     "search": "Search",
-    "searchHint": "Search pages and settings",
+    "searchHint": "Search records, people, pages and actions",
     "favoritesEmpty": "Pin projects, saved views and records to keep them here.",
     "organizations": "Organizations",
     "createOrganization": "Create organization",
@@ -1226,6 +1226,22 @@
       "code": "That code did not match. Enter the current six-digit code from the app.",
       "expired": "That code expired. Enter the new code from the app.",
       "unexpected": "The second factor could not be checked. Try again."
+    }
+  },
+  "commandMenu": {
+    "groups": {
+      "actions": "Actions",
+      "records": "Records",
+      "people": "People"
+    },
+    "incident": "Incident",
+    "actions": {
+      "newProject": "New project",
+      "newRecord": "New record",
+      "reportIncident": "Report incident",
+      "approveTimesheets": "Approve timesheets",
+      "openApprovals": "Open approvals",
+      "openInbox": "Open Inbox"
     }
   }
 }

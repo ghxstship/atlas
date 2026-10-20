@@ -1047,7 +1047,7 @@
   },
   "chrome": {
     "search": "Buscar",
-    "searchHint": "Busca páginas y ajustes",
+    "searchHint": "Busca registros, personas, páginas y acciones",
     "favoritesEmpty": "Fija proyectos, vistas guardadas y registros para tenerlos aquí.",
     "organizations": "Organizaciones",
     "createOrganization": "Crear organización",
@@ -1226,6 +1226,22 @@
       "code": "Ese código no coincide. Escribe el código actual de seis dígitos de la aplicación.",
       "expired": "Ese código venció. Escribe el código nuevo de la aplicación.",
       "unexpected": "No se pudo comprobar el segundo factor. Inténtalo de nuevo."
+    }
+  },
+  "commandMenu": {
+    "groups": {
+      "actions": "Acciones",
+      "records": "Registros",
+      "people": "Personas"
+    },
+    "incident": "Incidente",
+    "actions": {
+      "newProject": "Nuevo proyecto",
+      "newRecord": "Nuevo registro",
+      "reportIncident": "Reportar incidente",
+      "approveTimesheets": "Aprobar hojas de horas",
+      "openApprovals": "Abrir aprobaciones",
+      "openInbox": "Abrir Bandeja"
     }
   }
 }
