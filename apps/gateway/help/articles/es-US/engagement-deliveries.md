@@ -16,4 +16,4 @@ Los horarios reservados para ti en el muelle: la zona, el inicio y el fin, el n�
 
 Los envíos del proyecto con su número de seguimiento, cuándo salen y cuándo llegan.
 
-Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios de muelle aparecen cuando la organización los reserva; pregunta en Mensajes si necesitas uno. En Compass, tu horario de muelle también aparece en Hoy.
+Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios de muelle aparecen cuando la organización los reserva; pregunta en Mensajes si necesitas uno.

@@ -413,7 +413,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Dates appear once the organization schedules them. In Compass, your activation schedule also shows on Today.",
+            v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Dates appear once the organization schedules them.",
           },
         ],
       },
@@ -752,7 +752,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Dock times appear once the organization books them; ask in Messages if you need one. In Compass, your dock slot also shows on Today.",
+            v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Dock times appear once the organization books them; ask in Messages if you need one.",
           },
         ],
       },
@@ -1574,7 +1574,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Set times appear once the run of show is shared. In Compass, your set time also shows on Today.",
+            v: "This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Set times appear once the run of show is shared.",
           },
         ],
       },
@@ -3886,7 +3886,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Las fechas aparecen cuando la organización las programa. En Compass, tu calendario de activaciones también aparece en Hoy.",
+            v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Las fechas aparecen cuando la organización las programa.",
           },
         ],
       },
@@ -4239,7 +4239,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios de muelle aparecen cuando la organización los reserva; pregunta en Mensajes si necesitas uno. En Compass, tu horario de muelle también aparece en Hoy.",
+            v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios de muelle aparecen cuando la organización los reserva; pregunta en Mensajes si necesitas uno.",
           },
         ],
       },
@@ -5083,7 +5083,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios aparecen cuando se comparte la escaleta. En Compass, tu horario de presentación también aparece en Hoy.",
+            v: "Esta pestaña se abre cuando la contratación pasa a Activa, después de la incorporación, y se cierra cuando se completa o se cancela. Los horarios aparecen cuando se comparte la escaleta.",
           },
         ],
       },

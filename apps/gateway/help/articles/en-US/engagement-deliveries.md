@@ -16,4 +16,4 @@ The times booked for you at the dock: the zone, the start and end, any tracking 
 
 The project's shipments with their tracking number, when they ship and when they arrive.
 
-This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Dock times appear once the organization books them; ask in Messages if you need one. In Compass, your dock slot also shows on Today.
+This tab opens when the engagement becomes Active, after onboarding, and closes when it completes or is canceled. Dock times appear once the organization books them; ask in Messages if you need one.
