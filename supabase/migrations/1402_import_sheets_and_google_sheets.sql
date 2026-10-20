@@ -20,6 +20,10 @@ comment on type app.import_suggestion_source is 'Where the worker''s column sugg
 insert into private.job_kinds (code, subject_table, max_attempts, description) values
   ('import.fetch', 'app.import_jobs', 5, 'Reads a Google Sheets link through the org''s Google Drive connection and saves it to the imports bucket for scanning.');
 
+-- The assistant's mapping step is built (the wizard calls aurora.mapColumns through the AI seam, which checks the
+-- org's AI switch, plan and allowance); the flag that held it back since 0540 now defaults on.
+update private.feature_flags set default_enabled = true where flag_key = 'imports.ai_mapping';
+
 -- Import jobs ------------------------------------------------------------------------------------------------------
 
 alter table app.import_jobs add column sheet_name text;

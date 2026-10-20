@@ -1,0 +1,14 @@
+{
+  "name": "xos-zapier",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The XOS app for Zapier, on the public API v1 and its webhooks. Published by the owner with the Zapier CLI (infra/runbooks/integrations.md).",
+  "license": "AGPL-3.0-only",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "zapier-platform-core": "16.0.0"
+  }
+}

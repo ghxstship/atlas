@@ -112,7 +112,7 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch` and `api-token` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
+For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token` and `integration-inbound` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
 
 | Secret                                                    | Used by                                                                                          |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -128,7 +128,7 @@ For a self-hosted stack, mount `supabase/functions` into the Compose stack's fun
 
 ### Schedule the workers
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan` and `report-run` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run` and `integration-worker` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
 
 ```sql
 select vault.create_secret('<service role key>', 'xos_worker_key');
@@ -143,7 +143,7 @@ select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
 $$);
 ```
 
-Repeat for the other three functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them.
+Repeat for the other five functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them. Until `import-run` runs, imports are not read, and until `integration-worker` runs, integrations do not sync and warehouse deliveries wait. Provider apps and their webhook secrets are in `infra/runbooks/integrations.md`.
 
 ### Upload scanning
 
