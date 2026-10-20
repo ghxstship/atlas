@@ -119,6 +119,8 @@ call private.describe('app.shift_claims', 'Claims on open shifts that wait for a
 ]);
 call private.install_policies('app.shift_claims',
   $$membership_id in (select private.my_membership_ids()) or project_id in (select private.project_ids_with('crew.shift.write'))$$);
+call private.install_default_retention('app.shift_claims');
+call private.install_audit_trail('app.shift_claims');
 
 -- The claiming rule of a shift's project and the most senior claimant.
 create or replace function private.shift_claiming_rule(p_shift_id uuid)
