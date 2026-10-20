@@ -197,6 +197,7 @@ export function ProjectTabs({
               ref={moreButton}
               type="button"
               aria-label={moreName}
+              title={moreName}
               aria-expanded={open}
               aria-controls={panelId}
               onClick={() => setOpenOn(open ? null : pathname)}

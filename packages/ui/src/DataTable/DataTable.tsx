@@ -250,7 +250,13 @@ function DataTableCards({
   totalsLabel: string;
   onRowActivate: ((row: Record<string, unknown>, index: number) => void) | undefined;
 }): ReactElement {
+  const t = useT();
   const [first, ...rest] = fields;
+  const empty = (value: unknown) =>
+    value === null ||
+    value === undefined ||
+    value === "" ||
+    (first?.type === "state" && !isStateValue(value));
   const details = (values: Record<string, unknown>, columns: DataTableColumn[]) =>
     columns.length > 0 ? (
       <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-12 gap-y-2 m-0 text-text-12">
@@ -269,7 +275,13 @@ function DataTableCards({
       {caption ? <p className="m-0 text-text-13 font-semibold">{caption}</p> : null}
       <ul className="flex flex-col gap-8 m-0 p-0 list-none">
         {rows.map((row, index) => {
-          const title = first ? <CellValue column={first} value={row[first.key]} /> : null;
+          // A row whose title field is empty still gets a name, so its button is never unlabeled.
+          const title =
+            first && !empty(row[first.key]) ? (
+              <CellValue column={first} value={row[first.key]} />
+            ) : (
+              t("table.row", { n: index + 1 })
+            );
           return (
             <li
               key={index}
