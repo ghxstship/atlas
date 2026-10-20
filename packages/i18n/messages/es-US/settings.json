@@ -376,6 +376,7 @@
     "assetCurrent": "Archivo actual: {name}",
     "assetNone": "Aún no hay archivo. Se usa la marca de la plataforma.",
     "assetHelp": "PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
+    "assetScanning": "Se está revisando en busca de virus. Reemplaza la marca actual cuando pase la revisión.",
     "upload": "Subir"
   },
   "domains": {
