@@ -276,3 +276,74 @@ export async function transitionSupportTicket(
   });
   return error ? fail(toDataError(error)) : ok(null);
 }
+
+// Account support (migration 1300) ---------------------------------------------------------------
+
+/**
+ * What a person may ask platform support about their own account (Section 11.16). Everything else
+ * belongs to an org, which external parties reach through Messages and members through Contact
+ * Support.
+ */
+export const ACCOUNT_SUPPORT_CATEGORIES = ["Account", "Access", "Problem", "Question"] as const;
+export type AccountSupportCategory = (typeof ACCOUNT_SUPPORT_CATEGORIES)[number];
+
+export interface AccountSupportRequest {
+  readonly number: string;
+  readonly category: AccountSupportCategory;
+  readonly subject: string;
+  readonly state: SupportTicketState;
+  readonly createdAt: string;
+}
+
+/**
+ * Sends platform support a request about the signed-in person's own account
+ * (app.open_account_support_request). Diagnostics are sent only when given, with consent. Returns the
+ * request number; platform support answers by email.
+ */
+export async function openAccountSupportRequest(
+  db: XosClient,
+  input: {
+    readonly category: AccountSupportCategory;
+    readonly subject: string;
+    readonly body: string;
+    readonly diagnostics?: Partial<Diagnostics> | null;
+  },
+): Promise<Result<string>> {
+  const d = input.diagnostics;
+  const { data, error } = await db.rpc("open_account_support_request", {
+    p_category: input.category,
+    p_subject: input.subject,
+    p_body: input.body,
+    ...(d
+      ? {
+          p_diagnostics: {
+            consent: true,
+            route: d.route ?? null,
+            app_version: d.appVersion ?? null,
+            device: d.device ?? null,
+            recent_errors: d.recentErrors ?? null,
+            screenshot_path: d.screenshotPath ?? null,
+          },
+        }
+      : {}),
+  });
+  if (error) return fail(toDataError(error));
+  return ok(data);
+}
+
+/** The signed-in person's own account support requests, newest first. */
+export async function listMyAccountSupportRequests(
+  db: XosClient,
+): Promise<Result<AccountSupportRequest[]>> {
+  const { data, error } = await db.rpc("my_account_support_requests");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((r) => ({
+      number: r.request_number,
+      category: r.category as AccountSupportCategory,
+      subject: r.subject,
+      state: r.request_state,
+      createdAt: r.created_at,
+    })),
+  );
+}

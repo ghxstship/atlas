@@ -3342,6 +3342,57 @@ var compass_default$1 = {
       "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
     turnOn: "Turn On Notifications",
   },
+  help: {
+    title: "Help",
+    entry: "Help",
+    entryHelp: "Articles for each screen, and Contact Support",
+    search: "Search help",
+    results: "Articles matching {query}",
+    searchEmpty: "No articles match {query}. Try another word, or contact support below.",
+    forScreen: "For the screen you were on",
+    general: "Everywhere in Compass",
+    all: "All help for your role",
+    offline: "Help is saved on this phone, so it works offline.",
+    missing: "This article is not available. Go back to Help for the others.",
+    back: "Back to Help",
+    contact: {
+      open: "Contact Support",
+      title: "Contact Support",
+      orgTitle: "Your organization",
+      orgBody:
+        "Ask your organization's teams, such as operations, IT, HR or facilities, in the Help Desk. They answer there.",
+      orgAction: "Open Help Desk",
+      workTitle: "Your work with an organization",
+      workBody:
+        "Questions about an engagement, a payment, a schedule or a document go to the organization that engaged you, in Messages in Gateway.",
+      workAction: "Open Messages in Gateway",
+      accountTitle: "Your account",
+      accountBody:
+        "Platform support helps only with your own account: signing in, your email and deleting your account. It answers by email.",
+      category: "Category",
+      categories: {
+        Account: "Account",
+        Access: "Sign-In",
+        Problem: "Problem",
+        Question: "Question",
+      },
+      subject: "Subject",
+      body: "What happened, and what do you need?",
+      diagnostics: "Attach Diagnostics",
+      diagnosticsHelp:
+        "Sends the screen you were on ({screen}), the app version ({version}) and your device ({device}).",
+      send: "Send Request",
+      required: "Fill in the subject and the message to send the request.",
+      offline: "Sending a request needs a connection. Connect, then try again.",
+      sent: "Request {number} sent. Platform support answers by email.",
+      errors: {
+        limit:
+          "You sent five requests in the last day. Platform support answers each by email; wait for those answers first.",
+        invalid: "The request is missing something. Check the subject and the message.",
+        unexpected: "The request could not be sent. Try again in a moment.",
+      },
+    },
+  },
 };
 var credentials_default$1 = {
   categories: {
@@ -4276,7 +4327,7 @@ var docs_default$1 = {
   help: {
     title: "Help center",
     sentence:
-      "How Atlas works, page by page. These are the articles the help panel shows inside the app.",
+      "How Atlas, Gateway and Compass work, page by page. These are the articles each app's help panel shows.",
     searchLabel: "Search help",
     searchButton: "Search",
     results: "{count} articles match {query}.",
@@ -4284,6 +4335,21 @@ var docs_default$1 = {
     whatsNew: "What's new",
     related: "Open the related article",
     back: "All help articles",
+    shells: {
+      atlas: {
+        title: "Atlas",
+        sentence: "For members of an organization, page by page.",
+      },
+      gateway: {
+        title: "Gateway",
+        sentence:
+          "For the people and companies organizations engage: opportunities, engagements, pay and settings.",
+      },
+      compass: {
+        title: "Compass",
+        sentence: "The field app for members and everyone they engage, screen by screen.",
+      },
+    },
   },
   notFound: {
     title: "This page does not exist",
@@ -6734,15 +6800,6 @@ var gateway_default$1 = {
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)",
     },
-    help: {
-      title: "Help",
-      body: "Questions about an engagement go to the organization that engaged you. Open Messages to reach them; they answer there.",
-      messages: "Open Messages",
-      ranking: "How ranking works",
-      account:
-        "Platform support helps only with your own account: sign-in, email and account deletion.",
-      close: "Close",
-    },
     switchOrg: {
       title: "Switch org",
       body: "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
@@ -7126,6 +7183,66 @@ var help_default$1 = {
       "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
     screenshotNeedsConsent: "Tick the diagnostics box above to attach a screenshot.",
     screenshotTooBig: "That image is larger than 5 MB. Choose a smaller one.",
+  },
+  gateway: {
+    general: "Everywhere in Gateway",
+    shortcuts: { search: "Search Gateway" },
+    whatsNew: {
+      "contextual-help": {
+        title: "Help for every page",
+        body: "Press ? or choose Help for the articles of the page you are on, the shortcuts and Contact Support.",
+      },
+      "continue-on-phone": {
+        title: "Continue on your phone",
+        body: "Every engagement has Continue on phone: scan the code to open the same engagement in Compass.",
+      },
+      "delete-account": {
+        title: "Delete your account in Settings",
+        body: "Settings, Account shows what would stop a deletion and what is kept, then deletes your account when you confirm.",
+      },
+      "asset-approvals": {
+        title: "Sponsors approve brand assets",
+        body: "Approve or return the banners, artwork and copy an organization submits for your entitlements.",
+      },
+      "invoice-updates": {
+        title: "Every invoice step on Home",
+        body: "Home shows when an organization receives, approves, schedules and pays your invoice. Choose email or push in Settings, Notifications.",
+      },
+      "self-billing": {
+        title: "Self-billing for individuals",
+        body: "Crew, staff and contractors can agree to self-billing, so the organization raises their invoices from approved timesheets.",
+      },
+    },
+    contact: {
+      workTitle: "About your work",
+      workBody:
+        "Questions about an engagement, a payment, a schedule or a document go to the organization that engaged you. Message them and they answer in Messages.",
+      messageOrg: "Message the organization",
+      openMessages: "Open Messages",
+      accountTitle: "About your account",
+      accountBody:
+        "Platform support helps only with your own Gateway account: signing in, your email and deleting your account. It answers by email.",
+      categories: {
+        Account: "My account",
+        Access: "Signing in",
+        Problem: "Something is not working",
+        Question: "A question",
+      },
+      subjectHint: "The sign-in link never arrives",
+      body: "What happened, and what do you need?",
+      bodyHint: "What you tried, what you expected and what you saw",
+      required: "Fill in the subject and the message to send the request.",
+      sent: "Request {number} sent. Platform support answers by email at {email}.",
+      errors: {
+        denied: "Sign in again, then send the request.",
+        invalid: "The request is missing something. Check the subject and the message.",
+        category:
+          "Platform support helps only with your own account. Ask the organization about anything else in Messages.",
+        limit:
+          "You sent five requests in the last day. Platform support answers each by email; wait for those answers first.",
+        unexpected: "The request could not be sent. Try again in a moment.",
+      },
+    },
   },
 };
 var home_default$1 = {
@@ -19352,6 +19469,58 @@ var compass_default = {
       "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
     turnOn: "Activar notificaciones",
   },
+  help: {
+    title: "Ayuda",
+    entry: "Ayuda",
+    entryHelp: "Artículos para cada pantalla, y Contactar a soporte",
+    search: "Buscar en la ayuda",
+    results: "Artículos que coinciden con {query}",
+    searchEmpty:
+      "Ningún artículo coincide con {query}. Prueba con otra palabra o contacta a soporte abajo.",
+    forScreen: "Para la pantalla donde estabas",
+    general: "En todo Compass",
+    all: "Toda la ayuda para tu rol",
+    offline: "La ayuda se guarda en este teléfono, así que funciona sin conexión.",
+    missing: "Este artículo no está disponible. Vuelve a Ayuda para ver los demás.",
+    back: "Volver a Ayuda",
+    contact: {
+      open: "Contactar a soporte",
+      title: "Contactar a soporte",
+      orgTitle: "Tu organización",
+      orgBody:
+        "Pregunta a los equipos de tu organización, como operaciones, TI, recursos humanos o instalaciones, en la Mesa de ayuda. Responden ahí.",
+      orgAction: "Abrir Mesa de ayuda",
+      workTitle: "Tu trabajo con una organización",
+      workBody:
+        "Las preguntas sobre una contratación, un pago, un horario o un documento van a la organización que te contrató, en Mensajes de Gateway.",
+      workAction: "Abrir Mensajes en Gateway",
+      accountTitle: "Tu cuenta",
+      accountBody:
+        "El soporte de la plataforma solo ayuda con tu propia cuenta: el acceso, tu correo y la eliminación de tu cuenta. Responde por correo.",
+      category: "Categoría",
+      categories: {
+        Account: "Cuenta",
+        Access: "Acceso",
+        Problem: "Problema",
+        Question: "Pregunta",
+      },
+      subject: "Asunto",
+      body: "¿Qué ocurrió y qué necesitas?",
+      diagnostics: "Adjuntar diagnósticos",
+      diagnosticsHelp:
+        "Envía la pantalla donde estabas ({screen}), la versión de la aplicación ({version}) y tu dispositivo ({device}).",
+      send: "Enviar solicitud",
+      required: "Completa el asunto y el mensaje para enviar la solicitud.",
+      offline: "Para enviar una solicitud necesitas conexión. Conéctate y vuelve a intentarlo.",
+      sent: "Se envió la solicitud {number}. El soporte de la plataforma responde por correo.",
+      errors: {
+        limit:
+          "Enviaste cinco solicitudes en el último día. El soporte de la plataforma responde cada una por correo; espera esas respuestas primero.",
+        invalid: "Falta información en la solicitud. Revisa el asunto y el mensaje.",
+        unexpected: "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento.",
+      },
+    },
+  },
 };
 var credentials_default = {
   categories: {
@@ -20318,7 +20487,7 @@ var docs_default = {
   help: {
     title: "Centro de ayuda",
     sentence:
-      "Cómo funciona Atlas, página por página. Son los artículos que muestra el panel de ayuda dentro de la aplicación.",
+      "Cómo funcionan Atlas, Gateway y Compass, página por página. Son los artículos que muestra el panel de ayuda de cada aplicación.",
     searchLabel: "Buscar en la ayuda",
     searchButton: "Buscar",
     results: "{count} artículos coinciden con {query}.",
@@ -20327,6 +20496,22 @@ var docs_default = {
     whatsNew: "Novedades",
     related: "Abrir el artículo relacionado",
     back: "Todos los artículos de ayuda",
+    shells: {
+      atlas: {
+        title: "Atlas",
+        sentence: "Para los miembros de una organización, página por página.",
+      },
+      gateway: {
+        title: "Gateway",
+        sentence:
+          "Para las personas y empresas que contratan las organizaciones: oportunidades, contrataciones, pagos y configuración.",
+      },
+      compass: {
+        title: "Compass",
+        sentence:
+          "La aplicación de campo para los miembros y todas las personas que contratan, pantalla por pantalla.",
+      },
+    },
   },
   notFound: {
     title: "Esta página no existe",
@@ -22690,15 +22875,6 @@ var gateway_default = {
       "en-XA": "Pseudolocal (acentos)",
       "ar-XB": "Pseudolocal (derecha a izquierda)",
     },
-    help: {
-      title: "Ayuda",
-      body: "Las preguntas sobre una contratación van a la organización que te contrató. Abre Mensajes para escribirles; responden ahí.",
-      messages: "Abrir mensajes",
-      ranking: "Cómo funciona el orden",
-      account:
-        "El soporte de la plataforma solo ayuda con tu propia cuenta: acceso, correo y eliminación de la cuenta.",
-      close: "Cerrar",
-    },
     switchOrg: {
       title: "Cambiar de organización",
       body: "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
@@ -23089,6 +23265,66 @@ var help_default = {
     screenshotNeedsConsent:
       "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     screenshotTooBig: "Esa imagen supera los 5 MB. Elija una más pequeña.",
+  },
+  gateway: {
+    general: "En todo Gateway",
+    shortcuts: { search: "Buscar en Gateway" },
+    whatsNew: {
+      "contextual-help": {
+        title: "Ayuda en cada página",
+        body: "Pulsa ? o elige Ayuda para ver los artículos de la página donde estás, los atajos y Contactar a soporte.",
+      },
+      "continue-on-phone": {
+        title: "Continúa en tu teléfono",
+        body: "Cada contratación tiene Continuar en teléfono: escanea el código para abrir la misma contratación en Compass.",
+      },
+      "delete-account": {
+        title: "Elimina tu cuenta en Configuración",
+        body: "Configuración, Cuenta muestra lo que impediría la eliminación y lo que se conserva, y elimina tu cuenta cuando confirmas.",
+      },
+      "asset-approvals": {
+        title: "Los patrocinadores aprueban materiales de marca",
+        body: "Aprueba o devuelve los banners, artes y textos que una organización envía para tus beneficios.",
+      },
+      "invoice-updates": {
+        title: "Cada paso de tus facturas en Inicio",
+        body: "Inicio muestra cuándo una organización recibe, aprueba, programa y paga tu factura. Elige correo o notificación push en Configuración, Notificaciones.",
+      },
+      "self-billing": {
+        title: "Autofacturación para personas",
+        body: "El equipo técnico, el personal y los contratistas pueden aceptar la autofacturación, y la organización genera sus facturas a partir de las hojas de horas aprobadas.",
+      },
+    },
+    contact: {
+      workTitle: "Sobre tu trabajo",
+      workBody:
+        "Las preguntas sobre una contratación, un pago, un horario o un documento van a la organización que te contrató. Escríbeles y te responden en Mensajes.",
+      messageOrg: "Escribir a la organización",
+      openMessages: "Abrir Mensajes",
+      accountTitle: "Sobre tu cuenta",
+      accountBody:
+        "El soporte de la plataforma solo ayuda con tu propia cuenta de Gateway: el acceso, tu correo y la eliminación de tu cuenta. Responde por correo.",
+      categories: {
+        Account: "Mi cuenta",
+        Access: "Acceso",
+        Problem: "Algo no funciona",
+        Question: "Una pregunta",
+      },
+      subjectHint: "El enlace de acceso nunca llega",
+      body: "¿Qué ocurrió y qué necesitas?",
+      bodyHint: "Lo que intentaste, lo que esperabas y lo que viste",
+      required: "Completa el asunto y el mensaje para enviar la solicitud.",
+      sent: "Se envió la solicitud {number}. El soporte de la plataforma responde por correo a {email}.",
+      errors: {
+        denied: "Vuelve a iniciar sesión y envía la solicitud.",
+        invalid: "Falta información en la solicitud. Revisa el asunto y el mensaje.",
+        category:
+          "El soporte de la plataforma solo ayuda con tu propia cuenta. Pregunta a la organización por todo lo demás en Mensajes.",
+        limit:
+          "Enviaste cinco solicitudes en el último día. El soporte de la plataforma responde cada una por correo; espera esas respuestas primero.",
+        unexpected: "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento.",
+      },
+    },
   },
 };
 var home_default = {

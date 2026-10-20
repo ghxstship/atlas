@@ -7,6 +7,7 @@ import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CompassProvider, useCompass } from "../src/runtime/CompassProvider";
 import { playHaptic } from "../src/runtime/haptics";
+import { HelpScreenTracker } from "../src/runtime/help";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { useActionableNotifications } from "../src/runtime/notifications";
@@ -101,6 +102,7 @@ function Gatekeeper(): ReactElement {
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <NotificationActions />
+      <HelpScreenTracker />
       <BiometricLock enabled={settings.biometric}>
         <NativeHeaderContext.Provider value={true}>
           <Stack

@@ -1427,14 +1427,6 @@
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)"
     },
-    "help": {
-      "title": "Help",
-      "body": "Questions about an engagement go to the organization that engaged you. Open Messages to reach them; they answer there.",
-      "messages": "Open Messages",
-      "ranking": "How ranking works",
-      "account": "Platform support helps only with your own account: sign-in, email and account deletion.",
-      "close": "Close"
-    },
     "switchOrg": {
       "title": "Switch org",
       "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",

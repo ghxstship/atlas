@@ -34,6 +34,8 @@ const PAGES = [
   { path: "/en-US/help/gates", heading: "Gates" },
   { path: "/en-US/help?q=gate", heading: "Help center" },
   { path: "/en-US/help?q=zzzz", heading: "Help center" },
+  { path: "/en-US/help/gateway/engagement-invoices", heading: "Invoices" },
+  { path: "/es-US/help/compass/today", heading: "Hoy" },
   { path: "/es-US", heading: "Desarrolla sobre XOS" },
   { path: "/es-US/guides/errors", heading: "Errores y rechazos" },
   { path: "/es-US/reference/purchase-orders", heading: "purchaseOrders" },
