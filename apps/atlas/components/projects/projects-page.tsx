@@ -1,3 +1,4 @@
+import { listMembers } from "@xos/data";
 import { listSharedWithMe } from "@xos/data/access-controls";
 import { getNode } from "@xos/ia";
 import {
@@ -33,6 +34,16 @@ const PROJECT_VIEWS: readonly ProjectView[] = [
 function one(search: Search, name: string): string | undefined {
   const v = search[name];
   return Array.isArray(v) ? v[0] : v;
+}
+
+/** Up to three people who can add the reader to a project: the org's Owners, Admins and Producers. */
+async function projectSharers(ctx: OrgContext): Promise<string[]> {
+  const members = await listMembers(ctx.viewer.db, ctx.org.id);
+  if (!members.ok) return [];
+  return members.data
+    .filter((m) => m.roles.some((r) => ["owner", "admin", "manager"].includes(r.code)))
+    .flatMap((m) => (m.fullName ? [m.fullName] : []))
+    .slice(0, 3);
 }
 
 /** The New project form's lists: canon jurisdictions, tiers and regions, and the org's venues. */
@@ -108,6 +119,8 @@ export async function ProjectsPage({
   ]);
   if (!projects.ok || !phases.ok) return <LoadError title={translate(entry.label)} />;
   const canCreate = ctx.capabilities.has("projects.project.create");
+  // A reader who cannot create a project and has none shared learns who can share one (A59-014).
+  const sharers = !canCreate && projects.data.length === 0 ? await projectSharers(ctx) : [];
 
   return (
     <>
@@ -127,6 +140,7 @@ export async function ProjectsPage({
             ? { options: await projectFormOptions(ctx), open: one(searchParams, "create") === "1" }
             : null
         }
+        sharers={sharers}
       />
       <SharedWithUs shared={shared.ok ? shared.data : []} />
     </>

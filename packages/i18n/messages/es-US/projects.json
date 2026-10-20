@@ -106,8 +106,9 @@
     "loadErrorTitle": "Los proyectos no se cargaron",
     "retry": "Intentar de nuevo",
     "empty": "Aún no hay proyectos. Crea el primero con su clave, jurisdicción y fase.",
-    "emptyReadOnly": "Aún no se ha compartido ningún proyecto contigo. Pide a un productor que te agregue a un proyecto.",
-    "emptyReadOnlyAction": "Ver mi trabajo"
+    "emptyReadOnly": "Todavía no se ha compartido ningún proyecto contigo. El propietario o un productor puede agregarte a un proyecto y entonces aparecerá aquí.",
+    "emptyReadOnlyAction": "Ir a Inicio",
+    "emptyReadOnlyNamed": "Todavía no se ha compartido ningún proyecto contigo. {names} puede agregarte a un proyecto y entonces aparecerá aquí."
   },
   "peek": {
     "title": "{key} {name}",
