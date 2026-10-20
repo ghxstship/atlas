@@ -914,43 +914,90 @@ async function verifyWebhook(header, body, secret, options = {}) {
 }
 //#endregion
 //#region src/webhooks/dispatch.ts
-var PRIVATE_V4 = [
+/**
+ * IPv4 blocks that are not the public internet (IANA special-purpose registry, RFC 6890 and later):
+ * this network, private, shared, loopback, link-local, protocol assignments, documentation, the
+ * 6to4 relay, benchmarking, multicast and reserved (with the limited broadcast).
+ */
+var NON_PUBLIC_V4 = [
+  [0, 8],
   [167772160, 8],
-  [2886729728, 12],
-  [3232235520, 16],
+  [1681915904, 10],
   [2130706432, 8],
   [2851995648, 16],
-  [1681915904, 10],
-  [0, 8],
+  [2886729728, 12],
+  [3221225472, 24],
+  [3221225984, 24],
+  [3227017984, 24],
+  [3232235520, 16],
+  [3323068416, 15],
+  [3325256704, 24],
+  [3405803776, 24],
+  [3758096384, 4],
+  [4026531840, 4],
 ];
-/** True for an address on the public internet; false for private, loopback, link-local and unique local ranges. */
-function isPublicAddress(address) {
-  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(address);
-  if (v4 !== null) {
-    const octets = v4.slice(1).map(Number);
-    if (octets.some((o) => o > 255)) return false;
-    const value =
-      ((octets[0] ?? 0) * 2 ** 24 +
-        (octets[1] ?? 0) * 2 ** 16 +
-        (octets[2] ?? 0) * 256 +
-        (octets[3] ?? 0)) >>>
-      0;
-    return !PRIVATE_V4.some(([base, bits]) => value >>> (32 - bits) === base >>> (32 - bits));
+/** Dotted-quad IPv4 as an unsigned 32-bit number, or null. */
+function parseIpv4(address) {
+  const parts = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(address);
+  if (parts === null) return null;
+  const octets = parts.slice(1).map(Number);
+  if (octets.some((o) => o > 255)) return null;
+  return octets.reduce((value, octet) => value * 256 + octet, 0);
+}
+function publicV4(value) {
+  return !NON_PUBLIC_V4.some(
+    ([base, bits]) => Math.floor(value / 2 ** (32 - bits)) === Math.floor(base / 2 ** (32 - bits)),
+  );
+}
+/**
+ * An IPv6 address as its eight 16-bit groups, or null. Accepts `::` compression and a dotted IPv4
+ * tail (`::ffff:10.0.0.1`); refuses zone ids and anything malformed.
+ */
+function parseIpv6(address) {
+  if (!/^[0-9a-f:.]+$/i.test(address) || !address.includes(":")) return null;
+  let text = address.toLowerCase();
+  const tail = /^(.*:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.exec(text);
+  if (tail !== null) {
+    const v4 = parseIpv4(tail[2]);
+    if (v4 === null) return null;
+    text = `${tail[1]}${Math.floor(v4 / 65536).toString(16)}:${(v4 % 65536).toString(16)}`;
   }
-  const v6 = address.toLowerCase();
-  if (v6 === "::1" || v6 === "::") return false;
-  if (
-    v6.startsWith("fc") ||
-    v6.startsWith("fd") ||
-    v6.startsWith("fe8") ||
-    v6.startsWith("fe9") ||
-    v6.startsWith("fea") ||
-    v6.startsWith("feb")
-  )
-    return false;
-  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v6);
-  if (mapped?.[1] !== void 0) return isPublicAddress(mapped[1]);
-  return v6.includes(":");
+  const halves = text.split("::");
+  if (halves.length > 2) return null;
+  const groups = (part) => (part === "" ? [] : part.split(":"));
+  const head = groups(halves[0]);
+  const rest = halves.length === 2 ? groups(halves[1]) : [];
+  const missing = 8 - head.length - rest.length;
+  if (halves.length === 2 ? missing < 1 : missing !== 0) return null;
+  const all = [...head, ...Array(halves.length === 2 ? missing : 0).fill("0"), ...rest];
+  if (all.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return null;
+  return all.map((g) => parseInt(g, 16));
+}
+/**
+ * True for an address on the public internet. Refuses every special-purpose IPv4 block, and for
+ * IPv6 anything outside global unicast (2000::/3) or inside its special blocks (protocol
+ * assignments and Teredo, documentation, 6to4, SRv6). IPv4 written in IPv6 (mapped `::ffff:`,
+ * compatible `::`, NAT64 `64:ff9b::`) is judged by its IPv4 address, in hex as well as dotted
+ * form, so `::ffff:7f00:1` is loopback (A69-004).
+ */
+function isPublicAddress(address) {
+  const v4 = parseIpv4(address);
+  if (v4 !== null) return publicV4(v4);
+  const g = parseIpv6(address);
+  if (g === null) return false;
+  const [g0, g1, g2, g3, g4, g5, g6, g7] = g;
+  const embedded = g6 * 65536 + g7;
+  const zeroHead = g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0;
+  if (zeroHead && g5 === 65535) return publicV4(embedded);
+  if (zeroHead && g5 === 0) return embedded > 1 && publicV4(embedded);
+  if (g0 === 100 && g1 === 65435 && g2 === 0 && g3 === 0 && g4 === 0 && g5 === 0)
+    return publicV4(embedded);
+  if (g0 < 8192 || g0 > 16383) return false;
+  if (g0 === 8193 && g1 < 512) return false;
+  if (g0 === 8193 && g1 === 3512) return false;
+  if (g0 === 8194) return false;
+  if (g0 === 16383 && g1 < 4096) return false;
+  return true;
 }
 /**
  * Posts claimed deliveries. Each host is resolved first and refused if any address is private (SSRF,
@@ -12408,6 +12455,8 @@ var settings_default$1 = {
     ip_allowlist_empty: "Add at least one network before turning the allow-list on.",
     plan_feature_ip_allowlist:
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
+    setting_not_enforced:
+      "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
   },
   fields: {
     legalName: {
@@ -12436,15 +12485,15 @@ var settings_default$1 = {
     },
     mfaPolicy: {
       label: "Multi-factor authentication",
-      help: "Who must use a second factor to sign in.",
+      help: "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional.",
     },
     sessionHours: {
       label: "Session length in hours",
-      help: "How long a sign-in lasts before the person signs in again, from 1 to 720 hours.",
+      help: "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours.",
     },
     idleTimeout: {
       label: "Idle timeout in minutes",
-      help: "Sign out after this many minutes without activity, from 5 to 1,440.",
+      help: "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes.",
     },
     ipAllowlist: {
       label: "Enforce the IP allow-list",
@@ -28506,6 +28555,8 @@ var settings_default = {
     ip_allowlist_empty: "Agregue al menos una red antes de activar la lista de IP permitidas.",
     plan_feature_ip_allowlist:
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
+    setting_not_enforced:
+      "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
   },
   fields: {
     legalName: {
@@ -28534,15 +28585,15 @@ var settings_default = {
     },
     mfaPolicy: {
       label: "Autenticación multifactor",
-      help: "Quién debe usar un segundo factor para iniciar sesión.",
+      help: "Quién debe usar un segundo factor para iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en Opcional.",
     },
     sessionHours: {
       label: "Duración de la sesión en horas",
-      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas.",
+      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en 336 horas.",
     },
     idleTimeout: {
       label: "Tiempo de inactividad en minutos",
-      help: "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440.",
+      help: "Cerrar la sesión tras estos minutos sin actividad. Aún no disponible: XOS no lo aplica, así que sigue en 60 minutos.",
     },
     ipAllowlist: {
       label: "Aplicar la lista de IP permitidas",
@@ -36079,6 +36130,10 @@ var VALUE_PATTERNS = [
   {
     pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g,
     replace: "[api-key]",
+  },
+  {
+    pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    replace: "[token]",
   },
   {
     pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g,
