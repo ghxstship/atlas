@@ -29,8 +29,8 @@ const AUDIT = {
 const AUDIT_SET = ["created_by", "updated_by"] as const;
 
 const AudienceKind = label(
-  ["Organization", "Project", "Team", "Role", "Group"],
-  "Who the row reaches.",
+  ["Organization", "Project", "Team", "Department", "Role", "Group"],
+  "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
 );
 const AUDIENCE = {
   audience_kind: AudienceKind,
@@ -203,6 +203,7 @@ const FeedPost = defineResource({
     "team_id",
     "role_id",
     "group_id",
+    "department_code",
     "requires_acknowledgment",
   ],
   serverSet: [
@@ -221,6 +222,9 @@ const FeedPost = defineResource({
     title: orNull(fields.text("Optional headline.", "Wristband change", 200)),
     body: fields.text("Post text.", "Wristbands change color on Friday.", 10000),
     ...AUDIENCE,
+    department_code: orNull(
+      fields.code("Canon department code of a Department audience (xpms.dim_department).", "5000"),
+    ),
     author_membership_id: orNull(fields.ref("member who wrote the post")),
     pinned_at: orNull(fields.instant("When the post was pinned; null when not pinned.")),
     requires_acknowledgment: fields.bool(
@@ -255,6 +259,9 @@ const PollPostRequest = z
     team_id: fields.uuid("Team audience.").optional(),
     role_id: fields.uuid("Role audience.").optional(),
     group_id: fields.uuid("Group audience.").optional(),
+    department_code: fields
+      .code("Canon department code of a Department audience (xpms.dim_department).", "5000")
+      .optional(),
     question: z
       .string()
       .min(1)

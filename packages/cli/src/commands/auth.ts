@@ -36,8 +36,7 @@ export async function login(ctx: Context, argv: readonly string[]): Promise<numb
   const name = ctx.flags.profile ?? DEFAULT_PROFILE;
   assertProfileName(name);
   const baseUrl = ctx.flags.baseUrl ?? ctx.io.env["XOS_BASE_URL"];
-  if (!baseUrl)
-    throw new UsageError("Pass --base-url, for example https://atlas.example.com/api/v1.");
+  if (!baseUrl) throw new UsageError("Pass --base-url, for example https://api.ghxstship.tech/v1.");
   const apiKey = await readKey(ctx, values["key-stdin"]);
   // Verify the key before storing it; a bad key raises XosAuthenticationError.
   const me: Me = (await ctx.client({ baseUrl, apiKey }).me.get()).data;

@@ -92,6 +92,17 @@ export interface Components {
     offline_result?: "Granted" | "Denied" | null;
   };
   AccessScanPage: { data: Array<Components["AccessScan"]>; next_cursor: string | null };
+  AccessibilityNeed:
+    | "Step-Free Access"
+    | "Accessible Parking"
+    | "Accessible Restroom"
+    | "Seating"
+    | "Sign Language Interpreter"
+    | "Captioning"
+    | "Large Print"
+    | "Service Animal"
+    | "Quiet Space"
+    | "Assistance on Arrival";
   AccountMembership: {
     id: string;
     created_at: string;
@@ -2385,6 +2396,16 @@ export interface Components {
     reason?: string;
   };
   DeptCode: string;
+  DietaryNeed:
+    | "Vegetarian"
+    | "Vegan"
+    | "Pescatarian"
+    | "Halal"
+    | "Kosher"
+    | "Gluten Free"
+    | "Dairy Free"
+    | "Nut Free"
+    | "Shellfish Free";
   DirectConversationRequest: { other_membership_id: string };
   DirectoryEntry: {
     membership_id: string;
@@ -2570,6 +2591,35 @@ export interface Components {
     sort_order: number;
   };
   EmergencyCodePage: { data: Array<Components["EmergencyCode"]>; next_cursor: string | null };
+  EmergencyContact: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    full_name: string;
+    relationship: string | null;
+    phone_e164: string;
+    alternate_phone_e164: string | null;
+    email: string | null;
+    sort_order: number;
+  };
+  EmergencyContactCreate: {
+    full_name: string;
+    relationship?: string | null;
+    phone_e164: string;
+    alternate_phone_e164?: string | null;
+    email?: string | null;
+    sort_order?: number;
+  };
+  EmergencyContactPage: { data: Array<Components["EmergencyContact"]>; next_cursor: string | null };
+  EmergencyContactUpdate: {
+    full_name?: string;
+    relationship?: string | null;
+    phone_e164?: string;
+    alternate_phone_e164?: string | null;
+    email?: string | null;
+    sort_order?: number;
+  };
   Engagement: {
     id: string;
     org_id: string;
@@ -2801,11 +2851,12 @@ export interface Components {
     post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
     title: string | null;
     body: string;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
     group_id: string | null;
+    department_code: string | null;
     author_membership_id: string | null;
     pinned_at: string | null;
     requires_acknowledgment: boolean;
@@ -2820,11 +2871,12 @@ export interface Components {
     post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
     title?: string | null;
     body: string;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string | null;
     team_id?: string | null;
     role_id?: string | null;
     group_id?: string | null;
+    department_code?: string | null;
     requires_acknowledgment: boolean;
     reactions_enabled: boolean;
     comments_enabled: boolean;
@@ -3024,6 +3076,7 @@ export interface Components {
     source: string;
   };
   FxRatePage: { data: Array<Components["FxRate"]>; next_cursor: string | null };
+  GarmentLetterSize: "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
   GateEvidence: {
     id: string;
     org_id: string;
@@ -4063,6 +4116,30 @@ export interface Components {
     claimant_contact: string;
     proof_description: string;
   };
+  LoyaltyProgram: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    program_kind: Components["LoyaltyProgramKind"];
+    program_name: string;
+    member_number: string;
+    sort_order: number;
+  };
+  LoyaltyProgramCreate: {
+    program_kind: Components["LoyaltyProgramKind"];
+    program_name: string;
+    member_number: string;
+    sort_order?: number;
+  };
+  LoyaltyProgramKind: "Airline" | "Hotel" | "Car Rental" | "Rail";
+  LoyaltyProgramPage: { data: Array<Components["LoyaltyProgram"]>; next_cursor: string | null };
+  LoyaltyProgramUpdate: {
+    program_kind?: Components["LoyaltyProgramKind"];
+    program_name?: string;
+    member_number?: string;
+    sort_order?: number;
+  };
   MarkAllReadResult: { updated_count: number };
   MarkConversationReadRequest: { muted?: boolean };
   MarketplaceListing: {
@@ -4861,6 +4938,8 @@ export interface Components {
     min_dt_multiplier: number | null;
   };
   OvertimeRulePage: { data: Array<Components["OvertimeRule"]>; next_cursor: string | null };
+  PassportReveal: { passport_number: string };
+  PassportRevealRequest: { reason: string };
   PayPeriod: {
     id: string;
     org_id: string;
@@ -5041,7 +5120,14 @@ export interface Components {
   };
   PermitTrackRequest: { title?: string };
   PermitTransitionRequest: { expected_state: string; to_state: string; reason?: string };
-  Person: { id: string; created_at: string; updated_at: string; full_name: string | null };
+  Person: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    full_name: string | null;
+    given_name: string | null;
+    family_name: string | null;
+  };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
     id: string;
@@ -5081,7 +5167,11 @@ export interface Components {
     handle?: string;
     preferred_name?: string | null;
   };
-  PersonUpdate: { full_name?: string | null };
+  PersonUpdate: {
+    full_name?: string | null;
+    given_name?: string | null;
+    family_name?: string | null;
+  };
   PhaseCode: string;
   PhaseCoverage: {
     phase_code: Components["PhaseCode"];
@@ -5169,11 +5259,12 @@ export interface Components {
   PollPostRequest: {
     body: string;
     title?: string;
-    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string;
     team_id?: string;
     role_id?: string;
     group_id?: string;
+    department_code?: string;
     question: string;
     options: Array<string>;
     allows_multiple?: boolean;
@@ -6717,6 +6808,7 @@ export interface Components {
   };
   ScopeNodePage: { data: Array<Components["ScopeNode"]>; next_cursor: string | null };
   ScopeNodeUpdate: { scope_code?: string; name?: string; node_kind?: string };
+  SeatPreference: "Window" | "Aisle" | "No Preference";
   SeparationOfDutiesRule: { code: string; enforced_on: string; description: string };
   SeparationOfDutiesRulePage: {
     data: Array<Components["SeparationOfDutiesRule"]>;
@@ -6783,7 +6875,68 @@ export interface Components {
   SettingValuePage: { data: Array<Components["SettingValue"]>; next_cursor: string | null };
   SettingValueUpdate: { value?: string | number | boolean };
   SettleClaimRequest: { returned: boolean; note?: string };
+  SharedAccessibilityNeeds: {
+    accessibility_needs: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes: string | null;
+  };
+  SharedDietaryNeeds: {
+    dietary_needs: Array<Components["DietaryNeed"]>;
+    allergies: string | null;
+    dietary_notes: string | null;
+  };
+  SharedEmergencyContact: {
+    full_name: string;
+    relationship: string | null;
+    phone_e164: string;
+    alternate_phone_e164: string | null;
+    email: string | null;
+    sort_order: number;
+  };
+  SharedLoyaltyProgram: {
+    program_kind: Components["LoyaltyProgramKind"];
+    program_name: string;
+    member_number: string;
+  };
+  SharedPassport: {
+    passport_number: null;
+    passport_number_last4: string | null;
+    passport_number_masked: boolean;
+    passport_issuing_country: string | null;
+    passport_expires_on: string | null;
+    passport_name: string | null;
+  };
   SharedState: string;
+  SharedTravelProfile: {
+    seat_preference: Components["SeatPreference"] | null;
+    meal_preference: string | null;
+    home_airport: string | null;
+    loyalty_programs: Array<Components["SharedLoyaltyProgram"]>;
+  };
+  SharedUniformSizes: {
+    shirt_size: Components["GarmentLetterSize"] | null;
+    jacket_size: Components["GarmentLetterSize"] | null;
+    pants_size: string | null;
+    shoe_size: string | null;
+    glove_size: Components["GarmentLetterSize"] | null;
+    hat_size: string | null;
+    uniform_notes: string | null;
+  };
+  SharedWorkDetails: {
+    engagement_id: string;
+    person_id: string | null;
+    org_id: string;
+    work_detail_share_id: string | null;
+    shared_at: string | null;
+    sharing_open: boolean;
+    categories: Array<Components["WorkDetailCategory"]>;
+    readable: Array<Components["WorkDetailCategory"]>;
+    emergency_contacts: Array<Components["SharedEmergencyContact"]> | null;
+    uniform: Components["SharedUniformSizes"] | null;
+    dietary: Components["SharedDietaryNeeds"] | null;
+    accessibility: Components["SharedAccessibilityNeeds"] | null;
+    travel: Components["SharedTravelProfile"] | null;
+    passport: Components["SharedPassport"] | null;
+  };
   Shift: {
     id: string;
     org_id: string;
@@ -7425,7 +7578,7 @@ export interface Components {
     updated_by: string | null;
     title: string;
     description: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
@@ -7439,7 +7592,7 @@ export interface Components {
   SurveyDraftRequest: {
     title: string;
     description?: string;
-    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string;
     team_id?: string;
     role_id?: string;
@@ -8543,6 +8696,115 @@ export interface Components {
     data: Array<Components["WholesaleStatement"]>;
     next_cursor: string | null;
   };
+  WorkDetailCategory:
+    | "Emergency Contacts"
+    | "Uniform Sizes"
+    | "Dietary Needs"
+    | "Accessibility Needs"
+    | "Travel Profile"
+    | "Passport";
+  WorkDetailEvent: {
+    id: string;
+    person_id: string;
+    actor_person_id: string | null;
+    org_id: string | null;
+    engagement_id: string | null;
+    action: string;
+    categories: Array<Components["WorkDetailCategory"]>;
+    changed_columns: Array<string>;
+    reason: string | null;
+    created_at: string;
+  };
+  WorkDetailEventPage: { data: Array<Components["WorkDetailEvent"]>; next_cursor: string | null };
+  WorkDetailShare: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    engagement_id: string;
+    person_id: string;
+    consent_record_id: string;
+    categories: Array<Components["WorkDetailCategory"]>;
+    shared_at: string;
+    revoked_at: string | null;
+  };
+  WorkDetailShareCreate: {
+    engagement_id: string;
+    categories: Array<Components["WorkDetailCategory"]>;
+  };
+  WorkDetailSharePage: { data: Array<Components["WorkDetailShare"]>; next_cursor: string | null };
+  WorkDetailShareUpdate: { categories?: Array<Components["WorkDetailCategory"]> };
+  WorkDetails: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    shirt_size: Components["GarmentLetterSize"] | null;
+    jacket_size: Components["GarmentLetterSize"] | null;
+    pants_size: string | null;
+    shoe_size: string | null;
+    glove_size: Components["GarmentLetterSize"] | null;
+    hat_size: string | null;
+    uniform_notes: string | null;
+    dietary_needs: Array<Components["DietaryNeed"]>;
+    allergies: string | null;
+    dietary_notes: string | null;
+    accessibility_needs: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes: string | null;
+    seat_preference: Components["SeatPreference"] | null;
+    meal_preference: string | null;
+    home_airport: string | null;
+    passport_number: string | Components["Masked"] | null;
+    passport_number_last4: string | null;
+    passport_issuing_country: string | null;
+    passport_expires_on: string | null;
+    passport_name: string | null;
+  };
+  WorkDetailsCreate: {
+    shirt_size?: Components["GarmentLetterSize"] | null;
+    jacket_size?: Components["GarmentLetterSize"] | null;
+    pants_size?: string | null;
+    shoe_size?: string | null;
+    glove_size?: Components["GarmentLetterSize"] | null;
+    hat_size?: string | null;
+    uniform_notes?: string | null;
+    dietary_needs?: Array<Components["DietaryNeed"]>;
+    allergies?: string | null;
+    dietary_notes?: string | null;
+    accessibility_needs?: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes?: string | null;
+    seat_preference?: Components["SeatPreference"] | null;
+    meal_preference?: string | null;
+    home_airport?: string | null;
+    passport_number?: string | null;
+    passport_issuing_country?: string | null;
+    passport_expires_on?: string | null;
+    passport_name?: string | null;
+  };
+  WorkDetailsPage: { data: Array<Components["WorkDetails"]>; next_cursor: string | null };
+  WorkDetailsUpdate: {
+    shirt_size?: Components["GarmentLetterSize"] | null;
+    jacket_size?: Components["GarmentLetterSize"] | null;
+    pants_size?: string | null;
+    shoe_size?: string | null;
+    glove_size?: Components["GarmentLetterSize"] | null;
+    hat_size?: string | null;
+    uniform_notes?: string | null;
+    dietary_needs?: Array<Components["DietaryNeed"]>;
+    allergies?: string | null;
+    dietary_notes?: string | null;
+    accessibility_needs?: Array<Components["AccessibilityNeed"]>;
+    accessibility_notes?: string | null;
+    seat_preference?: Components["SeatPreference"] | null;
+    meal_preference?: string | null;
+    home_airport?: string | null;
+    passport_number?: string | null;
+    passport_issuing_country?: string | null;
+    passport_expires_on?: string | null;
+    passport_name?: string | null;
+  };
   WorkOrder: {
     id: string;
     org_id: string;
@@ -8623,7 +8885,7 @@ export interface Components {
     location: string | null;
     venue_id: string | null;
     space_id: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
@@ -8642,7 +8904,7 @@ export interface Components {
     location?: string | null;
     venue_id?: string | null;
     space_id?: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string | null;
     team_id?: string | null;
     role_id?: string | null;
@@ -22794,6 +23056,252 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["AiUsagePage"] };
   };
+  "workDetails.list": {
+    module: "Identity";
+    method: "get";
+    path: "/work-details";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkDetailsPage"] };
+  };
+  "workDetails.create": {
+    module: "Identity";
+    method: "post";
+    path: "/work-details";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkDetailsCreate"];
+    responses: { 201: Components["WorkDetails"] };
+  };
+  "workDetails.get": {
+    module: "Identity";
+    method: "get";
+    path: "/work-details/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkDetails"] };
+  };
+  "workDetails.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/work-details/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WorkDetailsUpdate"];
+    responses: { 200: Components["WorkDetails"] };
+  };
+  "workDetails.delete": {
+    module: "Identity";
+    method: "delete";
+    path: "/work-details/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "workDetails.revealPassport": {
+    module: "Identity";
+    method: "post";
+    path: "/work-details/{id}/reveal-passport";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PassportReveal"] };
+  };
+  "emergencyContacts.list": {
+    module: "Identity";
+    method: "get";
+    path: "/emergency-contacts";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EmergencyContactPage"] };
+  };
+  "emergencyContacts.create": {
+    module: "Identity";
+    method: "post";
+    path: "/emergency-contacts";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["EmergencyContactCreate"];
+    responses: { 201: Components["EmergencyContact"] };
+  };
+  "emergencyContacts.get": {
+    module: "Identity";
+    method: "get";
+    path: "/emergency-contacts/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EmergencyContact"] };
+  };
+  "emergencyContacts.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/emergency-contacts/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["EmergencyContactUpdate"];
+    responses: { 200: Components["EmergencyContact"] };
+  };
+  "emergencyContacts.delete": {
+    module: "Identity";
+    method: "delete";
+    path: "/emergency-contacts/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "loyaltyPrograms.list": {
+    module: "Identity";
+    method: "get";
+    path: "/loyalty-programs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["LoyaltyProgramPage"] };
+  };
+  "loyaltyPrograms.create": {
+    module: "Identity";
+    method: "post";
+    path: "/loyalty-programs";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LoyaltyProgramCreate"];
+    responses: { 201: Components["LoyaltyProgram"] };
+  };
+  "loyaltyPrograms.get": {
+    module: "Identity";
+    method: "get";
+    path: "/loyalty-programs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["LoyaltyProgram"] };
+  };
+  "loyaltyPrograms.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/loyalty-programs/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["LoyaltyProgramUpdate"];
+    responses: { 200: Components["LoyaltyProgram"] };
+  };
+  "loyaltyPrograms.delete": {
+    module: "Identity";
+    method: "delete";
+    path: "/loyalty-programs/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "workDetailShares.list": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-shares";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkDetailSharePage"] };
+  };
+  "workDetailShares.create": {
+    module: "Identity";
+    method: "post";
+    path: "/work-detail-shares";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["WorkDetailShareCreate"];
+    responses: { 201: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.get": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-shares/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.update": {
+    module: "Identity";
+    method: "patch";
+    path: "/work-detail-shares/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["WorkDetailShareUpdate"];
+    responses: { 200: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.revoke": {
+    module: "Identity";
+    method: "post";
+    path: "/work-detail-shares/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["WorkDetailShare"] };
+  };
+  "workDetailShares.details": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-shares/{id}/details";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["SharedWorkDetails"] };
+  };
+  "workDetailShares.revealPassport": {
+    module: "Identity";
+    method: "post";
+    path: "/work-detail-shares/{id}/reveal-passport";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["PassportRevealRequest"];
+    responses: { 200: Components["PassportReveal"] };
+  };
+  "workDetailEvents.list": {
+    module: "Identity";
+    method: "get";
+    path: "/work-detail-events";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["WorkDetailEventPage"] };
+  };
   "savedViewShares.list": {
     module: "Platform";
     method: "get";
@@ -26119,7 +26627,31 @@ export interface ModuleOperations {
     | "blocks.list"
     | "blocks.create"
     | "blocks.get"
-    | "blocks.delete";
+    | "blocks.delete"
+    | "workDetails.list"
+    | "workDetails.create"
+    | "workDetails.get"
+    | "workDetails.update"
+    | "workDetails.delete"
+    | "workDetails.revealPassport"
+    | "emergencyContacts.list"
+    | "emergencyContacts.create"
+    | "emergencyContacts.get"
+    | "emergencyContacts.update"
+    | "emergencyContacts.delete"
+    | "loyaltyPrograms.list"
+    | "loyaltyPrograms.create"
+    | "loyaltyPrograms.get"
+    | "loyaltyPrograms.update"
+    | "loyaltyPrograms.delete"
+    | "workDetailShares.list"
+    | "workDetailShares.create"
+    | "workDetailShares.get"
+    | "workDetailShares.update"
+    | "workDetailShares.revoke"
+    | "workDetailShares.details"
+    | "workDetailShares.revealPassport"
+    | "workDetailEvents.list";
   Platform:
     | "customObjectTypes.list"
     | "customObjectTypes.create"

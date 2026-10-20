@@ -43,6 +43,7 @@ import { chooseView, matchesSearch, param, withQuery } from "@/components/places
 import { requireNode } from "@/lib/shell/require-node";
 import type { OrgContext } from "@/lib/shell/context";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import { ResultForm, StartInspectionForm } from "./inspection-forms";
 import { DocumentActions } from "@/components/documents/document-actions";
@@ -311,11 +312,13 @@ export async function InspectionsView({
       />
     );
   } else if (views.current === "calendar") {
-    const month = param(search, "month") ?? `${new Date().toISOString().slice(0, 7)}-01`;
+    // Today and this month on the org's calendar, not UTC's (A71).
+    const today = await orgToday(ctx);
+    const month = param(search, "month") ?? `${today.slice(0, 7)}-01`;
     body = (
       <PeekCalendar
         month={month}
-        today={new Date().toISOString().slice(0, 10)}
+        today={today}
         events={rows.map((i) => ({
           id: i.id,
           date: i.inspectedAt.slice(0, 10),

@@ -51,9 +51,12 @@ function gatewayShortcuts(): {
 export function HelpPanel({
   open,
   onOpenChange,
+  docsUrl,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  /** The docs site origin (RRR-119); null hides the help center links. */
+  readonly docsUrl: string | null;
 }) {
   const t = useTranslations("help") as unknown as Translate;
   const tRoot = useTranslations() as unknown as Translate;
@@ -147,6 +150,16 @@ export function HelpPanel({
               ) : (
                 <Skeleton />
               )}
+              {docsUrl ? (
+                <a
+                  className="self-start text-text-12 font-medium text-accent-text underline"
+                  href={`${docsUrl}/${lang}/help/gateway/${article.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("docs.article")}
+                </a>
+              ) : null}
             </>
           ) : (
             <p className="m-0">{t("noArticles")}</p>
@@ -228,6 +241,16 @@ export function HelpPanel({
               ))}
             </ul>,
           )}
+          {docsUrl ? (
+            <a
+              className="self-start text-accent-text underline"
+              href={`${docsUrl}/${lang}/help`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("docs.helpCenter")}
+            </a>
+          ) : null}
           <Button icon="LifeBuoy" onClick={() => setView({ kind: "contact" })}>
             {t("contact.open")}
           </Button>

@@ -25,6 +25,7 @@ import { flatParams, getCrewContext, getMembers, withParams } from "@/lib/crew/c
 import { stateIcon } from "@/lib/crew/states";
 import { addDays, isIsoDate } from "@/lib/crew/time";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -136,7 +137,8 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
   }
 
   const members = search["create"] === "1" && canApprove ? await getMembers(crew.ctx) : [];
-  const today = new Date().toISOString().slice(0, 10);
+  // A new request starts today on the org's calendar, never UTC's (a day ahead in the evening).
+  const today = await orgToday(crew.ctx);
   const drawer =
     search["create"] === "1" && canRequest && policies.length > 0 ? (
       <DrawerForm

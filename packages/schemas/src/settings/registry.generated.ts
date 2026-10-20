@@ -1065,4 +1065,23 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.approval-policies",
     },
   },
+  {
+    key: "communication.message_translation",
+    contributor: "a80",
+    type: "boolean",
+    scopes: ["organization"],
+    capability: "org.communication.write",
+    lockable: false,
+    default: false,
+    choices: [],
+    min: null,
+    max: null,
+    maxLength: null,
+    input: "text",
+    label: "settings.fields.messageTranslation.label",
+    help: "settings.fields.messageTranslation.help",
+    pages: {
+      org: "settings.communication",
+    },
+  },
 ];

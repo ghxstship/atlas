@@ -14,6 +14,8 @@ import { myMembershipId } from "@xos/data/views";
 import { uploadSupportScreenshot } from "@xos/data/workflow";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { docsUrl } from "@/lib/docs-site";
+import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
 import { platformChannel } from "@/lib/support/terms";
 
@@ -58,6 +60,8 @@ export interface HelpPanelState {
   readonly canContactPlatform: boolean;
   /** The platform channel of the org's plan; null on the Access plan. */
   readonly platformChannel: SupportChannel | null;
+  /** The docs site origin (DOCS_SITE_URL), for help center links; null when unset. */
+  readonly docsUrl: string | null;
 }
 
 /** The person's tours, dismissed tips and support options in this org. */
@@ -80,6 +84,7 @@ export async function loadHelpStateAction(orgSlug: string): Promise<HelpResult<H
       dismissedTips: state.data.dismissedTips,
       canContactPlatform,
       platformChannel: platformChannel(subscription?.ok ? subscription.data.planCode : null),
+      docsUrl: docsUrl(env()),
     },
   };
 }

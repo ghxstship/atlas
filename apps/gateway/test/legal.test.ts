@@ -70,10 +70,11 @@ describe("Gateway legal documents", () => {
     ).toEqual([{ slug: "worker-terms", version: "1.0.0" }]);
   });
 
-  it("takes the client IP from the proxy chain", () => {
-    expect(clientIp(new Headers({ "x-forwarded-for": "203.0.113.7, 10.0.0.1" }))).toBe(
-      "203.0.113.7",
+  it("takes the client IP the trusted proxy appended, never the client-written first entry", () => {
+    expect(clientIp(new Headers({ "x-forwarded-for": "203.0.113.7, 198.51.100.9" }))).toBe(
+      "198.51.100.9",
     );
+    expect(clientIp(new Headers({ "x-forwarded-for": "198.51.100.9" }))).toBe("198.51.100.9");
     expect(clientIp(new Headers({ "x-real-ip": "198.51.100.2" }))).toBe("198.51.100.2");
     expect(clientIp(new Headers())).toBeNull();
   });

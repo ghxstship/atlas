@@ -184,7 +184,7 @@ export async function RecordsTab({
       {calendar && first !== "9999-12-31" ? (
         <Calendar
           month={`${first.slice(0, 7)}-01`}
-          today={new Date().toISOString().slice(0, 10)}
+          today={view.today}
           events={records.data.map((r) => ({
             date: recordDate(r).slice(0, 10),
             label: r.title,

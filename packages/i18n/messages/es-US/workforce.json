@@ -24,9 +24,11 @@
       "Organization": "Organización",
       "Project": "Proyecto",
       "Team": "Equipo",
+      "Department": "Departamento",
       "Role": "Rol",
       "Group": "Grupo"
-    }
+    },
+    "departmentOption": "Departamento: {name} · {code}"
   },
   "site": {
     "project": "Proyecto",

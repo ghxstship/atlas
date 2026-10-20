@@ -13,6 +13,7 @@ import { getFinanceCopy } from "@/lib/finance/copy";
 import { toInputValue, exponentOf } from "@/lib/finance/money";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { ExpenseForm } from "./forms-expense-form";
 import { EditButton } from "./kit-edit-button";
@@ -163,7 +164,7 @@ export async function ExpensesView({ page }: { page: FinancePage }) {
     value: v.id,
     label: v.name ?? t("finance.common.unnamedCounterparty"),
   }));
-  const today = new Date().toISOString().slice(0, 10);
+  const today = await orgToday(ctx);
   const sheet =
     query.create && canWrite ? (
       <FormSheet title={t("finance.expenses.create")} flag="create">

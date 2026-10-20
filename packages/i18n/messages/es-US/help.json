@@ -12,6 +12,11 @@
   "related": "Relacionado",
   "loadFailed": "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
   "bodyFailed": "No se pudo cargar este artículo. Recargue la página y vuelva a abrir la Ayuda.",
+  "docs": {
+    "home": "Centro de ayuda y documentación de la API",
+    "helpCenter": "Centro de ayuda",
+    "article": "Abrir este artículo en el centro de ayuda"
+  },
   "kinds": {
     "guide": "Guía",
     "page": "Página",

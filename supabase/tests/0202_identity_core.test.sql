@@ -51,7 +51,11 @@ select is(
        -- person-owned notification choices of external parties, keyed by person_id (A44, migration 1131)
        'person_notification_preferences',
        -- person-owned blocks keyed by person_id, readable only by the blocker (A52, migration 1206)
-       'blocks')
+       'blocks',
+       -- person-owned Work Details keyed by person_id, readable only by the person (A78, migration 1340)
+       'person_work_details', 'person_emergency_contacts', 'person_loyalty_programs',
+       -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
+       'work_detail_events')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),
