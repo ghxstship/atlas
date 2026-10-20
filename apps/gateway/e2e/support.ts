@@ -60,6 +60,26 @@ export function uniqueId(): string {
 
 /** axe-core on the current page: zero serious or critical findings (Section 18, gate 8). */
 export async function expectAccessible(page: Page): Promise<void> {
+  // axe measures the resting state, as in Atlas's helper (finding A24-008). Drawers and dialogs fade
+  // in, for 80 ms under reduced motion, and WebKit still reported the half-faded opacity when axe
+  // read the colors: journey 46 failed color-contrast on the Atlas change-order peek (text at 0.3
+  // to 0.8 opacity) while the same nodes pass at rest. The page goes quiet and paints twice, so a
+  // drawer that just mounted has started its fade, and finite animations finish first.
+  await settle(page);
+  await page.evaluate(
+    () =>
+      new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+  );
+  await page
+    .waitForFunction(
+      () =>
+        document
+          .getAnimations()
+          .every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch(() => undefined);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
