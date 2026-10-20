@@ -44,7 +44,8 @@ import {
   savePrivacyAction,
   saveProfileAction,
 } from "@/lib/actions/profile";
-import { formatDate, formatMoney, minorDigits, todayIso } from "@/lib/format";
+import { formatDate, formatMoney, minorDigits } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settings";
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -895,7 +896,8 @@ async function RepresentationSection(props: SectionProps) {
   const { ctx, t, locale } = props;
   const reps = await listRepresentations(ctx.db);
   if (!reps.ok) return <RegionError />;
-  const today = todayIso();
+  // Representation agreements are the person's own, so their standing follows the person's calendar.
+  const today = await personToday(ctx);
   const mine = reps.data.filter((r) => r.accountId === ctx.acting?.id);
   return (
     <>

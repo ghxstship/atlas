@@ -1,10 +1,12 @@
-import { expect, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, test, type Browser, type Page } from "./engine-test";
 import {
   createOrganization,
   expectAccessible,
+  NEW_PROJECT_TIME_ZONE,
   PASSWORD,
   signUp,
   testEmail,
+  todayIn,
   uniqueId,
 } from "./support";
 
@@ -19,7 +21,8 @@ import {
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
-expect.configure({ timeout: 20_000 });
+// expect.configure returns a configured expect; called on its own it changed nothing (A71).
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 /** Panels fade in; axe runs once the fade has settled so it measures final colors. */
 async function settled(page: Page) {
@@ -65,6 +68,12 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   await signUp(page, { name: "Olive Owner", email: testEmail("owner", id) });
   await createOrganization(page, { name: `Crew ${id}`, slug });
   await createProject(page, slug, "NWL", "Northwind Summer Series");
+  // A New York production: the org's time zone is the project's (journey 63's setting).
+  await page.goto(`/${slug}/settings/localization`);
+  const zone = page.locator("form").filter({ has: page.getByLabel("Time zone") });
+  await zone.getByLabel("Time zone").selectOption(NEW_PROJECT_TIME_ZONE);
+  await zone.getByRole("button", { name: "Save" }).click();
+  await expect(zone.getByText(/Set for the organization/)).toBeVisible();
   await page.goto(`/${slug}/settings/members`);
   await page.getByLabel("Email", { exact: true }).fill(fieldEmail);
   await page.locator("#invite-role").selectOption({ label: "Field" });
@@ -83,8 +92,13 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   return { slug, owner: page, field, fieldName };
 }
 
+/**
+ * Today in project NWL's zone, where the shift and time entry forms take their times (A71). The org is
+ * set to the same zone (newCrew), so its org-wide crew week is that calendar too; left on UTC, the
+ * default, its week ran a day ahead of New York in the evening and lost Sunday night's shifts.
+ */
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayIn(NEW_PROJECT_TIME_ZONE);
 }
 
 async function confirm(page: Page, button: string, confirmLabel = button) {

@@ -1,4 +1,5 @@
 import { listActivity, type ActivityEntry } from "@xos/data/activity";
+import { todayIn } from "@xos/data/calendar";
 import {
   buildAlerts,
   type Alert,
@@ -15,6 +16,7 @@ import {
   listProjects,
 } from "@xos/data/projects";
 import { must } from "@/lib/projects/loaders";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 export type { Alert, AlertKind } from "@xos/data/home";
 export { buildAlerts } from "@xos/data/home";
@@ -71,7 +73,7 @@ export async function loadAlerts(
     readiness,
     blocked: must(blocked, "blocked records"),
     overdue: must(overdue, "overdue records"),
-    today: now.toISOString().slice(0, 10),
+    today: todayIn(await getOrgTimeZone(ctx), now),
   });
 }
 

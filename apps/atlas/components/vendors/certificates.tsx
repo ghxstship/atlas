@@ -35,11 +35,11 @@ import {
   collectionState,
   formatMinor,
   toMajor,
-  today,
   withQuery,
   type SearchParams,
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "calendar"];
 const REFUSALS = "vendors.refusals";
@@ -71,7 +71,7 @@ export async function InsuranceCertificates({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, certs, vendors, currencies] = await Promise.all([
     getCopy("vendors"),
@@ -93,7 +93,7 @@ export async function InsuranceCertificates({
   const exponent = new Map(
     (currencies.ok ? currencies.data : []).map((c) => [c.code, c.minorUnits]),
   );
-  const now = today();
+  const now = await orgToday(ctx);
   const date = (d: string) => format.dateTime(new Date(`${d}T00:00:00`), { dateStyle: "medium" });
   const fields = (c?: InsuranceCertificate): FieldSpec[] => [
     {

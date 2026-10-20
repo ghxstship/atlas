@@ -11,6 +11,8 @@ const METERS = ["emails_sent", "sms_segments", "push_sent", "api_requests", "ai_
 export default async function Page({ params }: PageProps<"/partner/[partnerSlug]/usage">) {
   const ctx = await requireNode("partner-console.usage", await params);
   const { t, month } = await getFormatters(ctx);
+  // Usage rollups and wholesale statements are kept by UTC month (0510, 1060), so the current
+  // period here is the UTC month on purpose, not the partner's calendar month.
   const period = monthStart(new Date());
   const [clients, usage] = await Promise.all([
     listClientOrgs(ctx.viewer.db, ctx.org.id),
