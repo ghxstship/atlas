@@ -13,6 +13,8 @@ import {
   unsafeDomains,
 } from "../src/seed-markers.ts";
 import { batchByBucket, deleteObjects, parseObjectList } from "../src/storage.ts";
+import { DRY_RUN_REPORT, RUN_REPORT, toPlainSql } from "../src/plain-sql.ts";
+import { deleteStorageLinked, parseReport, runLinked } from "../src/linked.ts";
 
 const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const sqlPath = fileURLToPath(new URL("../remove-demo-data.sql", import.meta.url));
@@ -206,5 +208,105 @@ describe("no-seed comparison", () => {
 
   it("rejects malformed lines", () => {
     expect(() => parseCounts("app.organizations two")).toThrow(/Malformed/);
+  });
+});
+
+describe("plain SQL for supabase db query --linked", () => {
+  const script = readFileSync(sqlPath, "utf8");
+  const noMeta = (sql: string) => sql.split("\n").filter((l) => /^\s*\\/.test(l));
+
+  it("leaves no psql meta-command or variable in any mode", () => {
+    for (const mode of ["dry-run", "rehearse", "execute"] as const) {
+      const sql = toPlainSql(script, mode);
+      expect(noMeta(sql)).toEqual([]);
+      expect(sql).not.toContain(":'mode'");
+      expect(sql).not.toMatch(/\\gset/);
+      expect(sql).toContain(`set_config('xos.demo_removal_mode', '${mode}', false)`);
+    }
+  });
+
+  it("stops the dry run before any delete, with the report right before the rollback", () => {
+    const sql = toPlainSql(script, "dry-run");
+    expect(sql).not.toContain("begin_tenant_purge(array");
+    expect(sql).not.toMatch(/delete from %s/);
+    expect(sql.trimEnd().endsWith(`${DRY_RUN_REPORT}\n  rollback;`)).toBe(true);
+    expect(sql.match(/^\s*(commit|rollback)\s*;\s*$/gim)).toHaveLength(1);
+  });
+
+  it("commits only in execute, after every verification, and rolls the rehearsal back", () => {
+    const execute = toPlainSql(script, "execute");
+    const rehearse = toPlainSql(script, "rehearse");
+    expect(execute.trimEnd().endsWith(`${RUN_REPORT}\n  commit;`)).toBe(true);
+    expect(rehearse.trimEnd().endsWith(`${RUN_REPORT}\n  rollback;`)).toBe(true);
+    for (const sql of [execute, rehearse]) {
+      expect(sql.match(/^\s*(commit|rollback)\s*;\s*$/gim)).toHaveLength(1);
+      expect(sql.indexOf("Verification failed")).toBeLessThan(sql.indexOf("as report;"));
+      expect(sql.indexOf("begin_tenant_purge(array")).toBeGreaterThan(sql.indexOf("begin;"));
+    }
+    // The stop-after-report and storage-list branches never reach the plain SQL.
+    expect(execute).not.toContain("to stdout with (format csv)");
+  });
+
+  it("refuses scripts it cannot translate faithfully", () => {
+    const head = "begin;\nselect 1;\n";
+    expect(() => toPlainSql(`${head}\\copy t to 'x'\ncommit;\n`, "execute")).toThrow(
+      /unsupported psql meta-command/,
+    );
+    expect(() => toPlainSql(`${head}select :'other';\ncommit;\n`, "execute")).toThrow(
+      /untranslated psql variable/,
+    );
+    expect(() => toPlainSql(`${head}\\if :{?surprise}\n\\endif\ncommit;\n`, "execute")).toThrow(
+      /unknown \\if/,
+    );
+    expect(() => toPlainSql("begin;\nselect 1;\n", "execute")).toThrow(
+      /never ended its transaction/,
+    );
+    expect(() => toPlainSql(script, "nope" as never)).toThrow(/Unknown mode/);
+  });
+
+  it("keeps dollar-quoted bodies verbatim, colons included", () => {
+    const sql = toPlainSql(
+      "begin;\ndo $w$\nbegin perform 1::int; end;\n$w$;\ncommit;\n",
+      "execute",
+    );
+    expect(sql).toContain("begin perform 1::int; end;");
+  });
+});
+
+describe("the linked runner", () => {
+  it("reads the single report row the CLI prints", () => {
+    expect(parseReport<{ a: number }>('[{"report":{"a":1}}]')).toEqual({ a: 1 });
+    expect(parseReport<{ a: number }>('[{"report":"{\\"a\\":2}"}]')).toEqual({ a: 2 });
+    expect(() => parseReport("[]")).toThrow(/one report row/);
+    expect(() => parseReport('[{"other":1}]')).toThrow(/no report/);
+  });
+
+  it("runs the translated SQL through db query --linked as JSON", () => {
+    const calls: string[][] = [];
+    const report = runLinked<{ mode: string }>(
+      readFileSync(sqlPath, "utf8"),
+      "dry-run",
+      repoRoot,
+      (args) => {
+        calls.push(args);
+        const file = args[args.indexOf("-f") + 1] ?? "";
+        expect(readFileSync(file, "utf8")).toContain("'dry-run'");
+        return '[{"report":{"mode":"dry-run"}}]';
+      },
+    );
+    expect(report.mode).toBe("dry-run");
+    expect(calls[0]?.slice(0, 5)).toEqual(["db", "query", "--linked", "-o", "json"]);
+  });
+
+  it("deletes storage objects through storage rm --linked in batches of 50", () => {
+    const calls: string[][] = [];
+    const objects = Array.from({ length: 120 }, (_, i) => ({
+      bucket: "org-brand",
+      name: `org/${i}.png`,
+    }));
+    expect(deleteStorageLinked(objects, repoRoot, (args) => (calls.push(args), ""))).toBe(120);
+    expect(calls).toHaveLength(3);
+    expect(calls[0]?.slice(0, 4)).toEqual(["storage", "rm", "--linked", "--experimental"]);
+    expect(calls[0]).toContain("ss:///org-brand/org/0.png");
   });
 });

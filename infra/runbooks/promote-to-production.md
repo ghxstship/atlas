@@ -41,7 +41,14 @@ Vercel receives the new keys once. Step 14 can run any time after step 4.
   hosted project (`supabase db push`, as in `production.md`, "1. Migrations"). The removal script refuses to run
   without `private.begin_tenant_purge`.
 - `psql` 17 on PATH, or Docker (the wrapper then uses the `postgres:17` image), and Node 22 or later.
-- From the owner's secret store, exported in the shell only for the commands that need them:
+- Either of two ways to reach the hosted project:
+  - **Linked (preferred, no secrets in the shell):** the Supabase CLI logged in (`supabase login`) and the
+    repository linked (`supabase link --project-ref fquuqnzlpobaawucczgq`). `remove-demo-data.sh --linked` runs
+    the same SQL through `supabase db query --linked` (the Management API) and deletes storage objects through
+    `supabase storage rm --linked`. It needs neither the database password nor the service role key.
+    `src/plain-sql.ts` translates the psql script for one mode and refuses anything it cannot translate exactly;
+    the run prints one JSON report per step and keeps it in the `--log` directory.
+  - **psql:** from the owner's secret store, exported in the shell only for the commands that need them:
   - `DATABASE_URL`: the hosted project's direct connection string (Settings, Database), as the `postgres` role.
   - `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`: the hosted API URL and the current service role key, used
     only to delete demo storage objects in step 4.
@@ -52,9 +59,10 @@ Vercel receives the new keys once. Step 14 can run any time after step 4.
    Recovery). PITR is a paid add-on: the owner approved it in decision 2.
 2. Take a logical backup that does not depend on Supabase:
    - with the owner's public key committed: `XOS_BACKUP_DB_URL="$DATABASE_URL" infra/ci/backup-weekly.sh pre-promotion <dir>`;
-   - otherwise `supabase db dump --db-url "$DATABASE_URL" -f schema.sql`, then the same with `--data-only --use-copy -f data.sql`, kept encrypted on the owner's machine.
+   - otherwise `supabase db dump --linked -f schema.sql` (or `--db-url "$DATABASE_URL"`), then the same with `--data-only --use-copy -f data.sql` and `--role-only -f roles.sql`, kept encrypted on the owner's machine.
 3. Record the key-table fingerprints: run `infra/drills/key-tables.sql` in the SQL editor and keep the output.
-4. Record the full row counts: `psql "$DATABASE_URL" -X -q -tA -f infra/production/table-counts.sql > before.txt`.
+4. Record the full row counts: `supabase db query --linked --agent no -o json -f infra/production/table-counts.sql`
+   (one row per table), or `psql "$DATABASE_URL" -X -q -tA -f infra/production/table-counts.sql > before.txt`.
 
 Verify: Database, Backups shows PITR enabled with an earliest restore point, and the daily backups list today.
 The dump files are not empty.
@@ -70,8 +78,8 @@ preview deployments keep pointing at the project until step 13; nobody should us
 ## 3. Dry run and rehearsal
 
 ```sh
-DATABASE_URL=... infra/production/remove-demo-data.sh dry-run --log <dir>
-DATABASE_URL=... infra/production/remove-demo-data.sh rehearse --log <dir>
+infra/production/remove-demo-data.sh dry-run --linked --log <dir>     # or DATABASE_URL=... without --linked
+infra/production/remove-demo-data.sh rehearse --linked --log <dir>
 ```
 
 The dry run changes nothing. The rehearsal deletes inside a transaction, runs every verification and rolls
@@ -95,9 +103,14 @@ The owner confirms with the dry-run output in hand. Note the UTC time just befor
 point-in-time recovery target if anything has to be undone.
 
 ```sh
+infra/production/remove-demo-data.sh execute --linked --confirm fquuqnzlpobaawucczgq --log <dir>
+# or, with psql:
 DATABASE_URL=... SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
   infra/production/remove-demo-data.sh execute --confirm fquuqnzlpobaawucczgq --log <dir>
 ```
+
+The linked execute runs a dry run first and stops if any row of another org is reached, deletes the listed
+storage objects, runs the execute SQL, and finishes with a second dry run that must find nothing.
 
 What it does, in order:
 

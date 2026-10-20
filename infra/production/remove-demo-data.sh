@@ -10,13 +10,16 @@
 # Target, one of:
 #   --container NAME   a local Supabase stack's database container (supabase_db_xos4 or supabase_db_xos4-*);
 #                      psql runs inside it as the postgres role, the same role a hosted connection uses
+#   --linked           the hosted project `supabase link` points at, reached through the Supabase CLI's own login
+#                      (supabase db query --linked, supabase storage rm --linked): no database password and no
+#                      service role key. The SQL is this script translated per mode (src/plain-sql.ts).
 #   DATABASE_URL       (environment) a hosted connection string, used only when --container is absent; it is
 #                      never printed. psql comes from PATH, or from the postgres:17 image when PATH has none.
 # Storage (execute only, when the dry run lists objects): SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the
 # environment; objects are deleted through the Storage API because SQL deletes of storage.objects are refused.
 #
-# --confirm WORD must be the project ref in DATABASE_URL (for example fquuqnzlpobaawucczgq) or, for a container,
-# its name. --log DIR (default: current directory) receives the full output of each run.
+# --confirm WORD must be the project ref in DATABASE_URL or the linked project (for example fquuqnzlpobaawucczgq)
+# or, for a container, its name. --log DIR (default: current directory) receives the full output of each run.
 
 set -euo pipefail
 
@@ -34,16 +37,26 @@ shift
 
 container=""
 confirm=""
+linked=""
 log_dir="$PWD"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --container) container="${2:-}"; shift 2 ;;
+    --linked) linked=1; shift ;;
     --confirm) confirm="${2:-}"; shift 2 ;;
     --log) log_dir="${2:-}"; shift 2 ;;
     *) die "unknown argument $1" ;;
   esac
 done
 mkdir -p "$log_dir"
+
+if [[ -n "$linked" ]]; then
+  [[ -z "$container" ]] || die "pass --linked or --container, not both."
+  command -v supabase >/dev/null 2>&1 || die "the Supabase CLI is required for --linked."
+  command -v node >/dev/null 2>&1 || die "node is required for --linked."
+  exec node --experimental-strip-types --no-warnings "$here/src/cli.ts" linked "$mode" \
+    ${confirm:+--confirm "$confirm"} --log "$log_dir"
+fi
 
 # Target ---------------------------------------------------------------------------------------------------------
 
