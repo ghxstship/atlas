@@ -528,8 +528,11 @@ export interface LiveActivityProps extends NativeBaseProps {
   label: string;
   elapsed: string;
   place: string;
+  /** The shift being worked; empty leaves its card out. */
   nextShift: string;
   nextTime: string;
+  /** Where the shift is, under its time. */
+  nextPlace?: string;
   /** On break: the first action becomes End Break. */
   onBreak?: boolean;
   labels: { break: string; endBreak: string; clockOut: string };

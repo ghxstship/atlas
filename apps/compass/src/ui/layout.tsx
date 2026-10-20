@@ -20,10 +20,17 @@ import type {
 } from "@xos/ui-native";
 import { announce, useReducedMotion } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
-import { useEffect, type ReactElement } from "react";
+import { Stack } from "expo-router";
+import { createContext, useContext, useEffect, type ReactElement, type RefObject } from "react";
 import { Modal, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
+
+/**
+ * True inside a screen the root stack pushes with its native header (Settings, Incidents, Workforce
+ * and the rest), false on the tabs, the kiosk and the screens drawn before navigation exists.
+ */
+export const NativeHeaderContext = createContext(false);
 
 export function Screen({
   title,
@@ -33,16 +40,24 @@ export function Screen({
   footer,
   children,
   testID,
-}: ScreenProps): ReactElement {
+  scrollRef,
+}: ScreenProps & {
+  /** Compass only: the scroll view, so a screen can bring a section into view. */
+  readonly scrollRef?: RefObject<ScrollView | null>;
+}): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  // A pushed screen puts its title in the native large-title header, which already clears the status
+  // bar and collapses on scroll; drawing the title and the inset again left a band of about 120 pt
+  // under the back button (finding A59-031).
+  const nativeHeader = useContext(NativeHeaderContext);
   // Without scrolling the body fills the screen, so a flex child (the scan sheet's camera) gets the room
   // left; it collapsed to nothing before, and its Done button drew over the manual entry.
   const body = (
     <View
       style={{ padding: theme.space["16"], gap: theme.space["16"], ...(scroll ? {} : { flex: 1 }) }}
     >
-      {title ? (
+      {title && !nativeHeader ? (
         <Text variant="heading24" heading>
           {title}
         </Text>
@@ -53,10 +68,17 @@ export function Screen({
   return (
     <View
       testID={testID}
-      style={{ flex: 1, backgroundColor: theme.color.bgCanvas, paddingTop: insets.top }}
+      style={{
+        flex: 1,
+        backgroundColor: theme.color.bgCanvas,
+        paddingTop: nativeHeader ? 0 : insets.top,
+      }}
     >
+      {nativeHeader ? <Stack.Screen options={{ title: title ?? "" }} /> : null}
       {scroll ? (
         <ScrollView
+          ref={scrollRef}
+          contentInsetAdjustmentBehavior={nativeHeader ? "automatic" : "never"}
           contentContainerStyle={{ paddingBottom: theme.space["32"] }}
           refreshControl={
             onRefresh ? (
