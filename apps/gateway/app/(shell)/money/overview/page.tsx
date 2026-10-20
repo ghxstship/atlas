@@ -46,7 +46,12 @@ export default async function MoneyOverviewPage() {
       {!failed && overview.earned.length === 0 && overview.pending.length === 0 ? (
         <EmptyStateLink
           icon="Wallet"
-          sentence={t("gateway.money.overview.empty")}
+          sentence={t(
+            // Someone the org never pays (client or sponsor) has nothing to earn (finding A59-033).
+            [...(ctx.nav.conditions ?? [])].includes("paid-work")
+              ? "gateway.money.overview.empty"
+              : "gateway.money.overview.emptyUnpaid",
+          )}
           actionLabel={t("gateway.money.overview.emptyAction")}
           href="/work/engagements"
         />

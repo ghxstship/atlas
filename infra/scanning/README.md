@@ -8,8 +8,11 @@ Production deployment is in `infra/runbooks/production.md`, under "Upload scanni
 
 1. A file lands in a scanned bucket:
    - `attachments`: `app.complete_attachment_upload` queues the job `attachment.scan` (migration 0590).
-   - `field-media`, `onboarding-uploads`, `profile-media`, `org-brand`, `imports` and `support-screenshots`:
-     a trigger on `storage.objects` queues a row in `private.object_scans` (migrations 1041 and 1240).
+   - `field-media`, `onboarding-uploads`, `imports`, `support-screenshots` and `upload-staging`: a trigger
+     on `storage.objects` queues a row in `private.object_scans` (migrations 1041, 1240 and 1265).
+   - Files for the public buckets `profile-media` and `org-brand` are uploaded to the private
+     `upload-staging` bucket as `<bucket>/<name>` (migration 1265). Nobody signed in writes the public
+     buckets.
 2. The `upload-scan` Edge Function runs on a schedule with the service key and calls `runUploadScans`
    from `@xos/platform`. For each due scan it:
    - downloads the file and, for attachments, checks its SHA-256 against the one given at upload;
@@ -27,11 +30,14 @@ Production deployment is in `infra/runbooks/production.md`, under "Upload scanni
      `imports` and `support-screenshots`, only the uploader reads a file at all.
    - An import is detected only once its spreadsheet is Clean. An infected spreadsheet fails the import
      without being parsed.
-   - `profile-media` and `org-brand` are public, so no read gate is possible. The worker removes what is
-     not Clean, and A22-004 limits both to raster images.
+   - `profile-media` and `org-brand` are public, so no read gate is possible. A staged file that scans
+     Clean is published: the worker writes it to its public bucket (recorded Clean, since its staged
+     original is held by the scan), then removes it from staging. One that does not is removed and never
+     published. A22-004 limits both public buckets to passive content.
 4. The uploader is told why. An Infected or Scan Failed verdict outlives the removed file, and
    `app.my_upload_scan_status` answers the uploader only. Atlas shows a plain-language message on the
-   import and under a blocked attachment.
+   import, under a blocked attachment and under a blocked brand logo (`app.my_upload_scan_status` on
+   `upload-staging` for a staged file).
 5. When clamd or storage cannot answer, the scan is retried with backoff. After five attempts it is
    recorded as Scan Failed and the file stays closed.
 

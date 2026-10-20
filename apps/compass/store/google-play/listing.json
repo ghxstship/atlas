@@ -1,0 +1,39 @@
+{
+  "packageName": "pro.ghxstship.compass",
+  "defaultLanguage": "en-US",
+  "category": "Business",
+  "contact": {
+    "email": "OWNER_SUPPORT_EMAIL",
+    "website": "https://OWNER_DOMAIN",
+    "privacyPolicyUrl": "https://app.OWNER_DOMAIN/legal/privacy-policy",
+    "accountDeletionUrl": "https://app.OWNER_DOMAIN/legal/account-deletion"
+  },
+  "listings": {
+    "en-US": {
+      "title": "XOS Compass",
+      "shortDescription": "Clock in on site, scan, report incidents and follow the show, even offline.",
+      "fullDescription": "Compass is the field app of XOS for the crews, staff and vendors who work live events and productions. Your shift, your scans and your reports are in one place, and Compass keeps working when the venue Wi-Fi does not.\n\nCompass is for people who work with an organization that uses XOS. Your organization, or the production that booked you, sends your invitation. There is nothing to buy in the app.\n\nON SHIFT\n• Clock in, take breaks and clock out with one tap. When your organization asks for it, Compass checks that you are at the venue.\n• See today's shifts, call times and day sheet, and claim open shifts in Schedule.\n• Supervisors can turn a shared device into a clock-in kiosk.\n\nSCAN\n• Scan credentials at the gate, asset tags and barcodes, and count deliveries as they arrive.\n• Type a code when a badge will not scan, and look up anything by its code.\n\nREPORT\n• Report an incident in three steps, with its location, photos and a voice note.\n• Walk an inspection checklist and open a punch item for anything that fails.\n\nTHE SHOW\n• Follow the run of show and the next cue, with a full-screen show mode.\n• Answer approvals in your Inbox, or straight from the notification.\n\nYOUR TEAM\n• Announcements, chat, training, forms, surveys, the crew directory and the help desk, as your organization sets them up.\n• Ask Aurora, the XOS assistant, when your organization turns it on.\n\nBUILT FOR THE FIELD\n• Offline first: punches, scans and reports save on your phone and upload when you reconnect. The Offline Queue shows what is waiting.\n• Your work data on the phone is encrypted, and your fingerprint or face can lock Compass.\n• Sunlight mode for high contrast outdoors, large text and screen reader support.\n• In English and Spanish.\n\nPRIVACY\nCompass uses your location only while the app is open, to check you in on site. No ads and no tracking. You can delete your account in the app: More, Settings, Delete Account.",
+      "whatsNew": "The first release of Compass 4.0: clock in on site, scan credentials, assets and deliveries, report incidents and inspections, follow the run of show, and keep working offline.",
+      "phoneScreenshots": [
+        "store/google-play/en-US/phone/01-today.png",
+        "store/google-play/en-US/phone/02-schedule.png",
+        "store/google-play/en-US/phone/03-scan.png",
+        "store/google-play/en-US/phone/04-incident.png",
+        "store/google-play/en-US/phone/05-show.png"
+      ]
+    },
+    "es-US": {
+      "title": "XOS Compass",
+      "shortDescription": "Marca entrada en el lugar, escanea, reporta incidentes y sigue el show.",
+      "fullDescription": "Compass es la app de campo de XOS para el equipo técnico, el personal y los proveedores que trabajan en eventos en vivo y producciones. Tu turno, tus escaneos y tus reportes están en un solo lugar, y Compass sigue funcionando cuando falla el Wi-Fi del lugar.\n\nCompass es para quienes trabajan con una organización que usa XOS. Tu organización, o la producción que te contrató, te envía la invitación. No hay nada que comprar en la app.\n\nEN TURNO\n• Marca entrada, toma descansos y marca salida con un toque. Cuando tu organización lo pide, Compass confirma que estás en el lugar.\n• Consulta los turnos de hoy, los horarios de llamado y la hoja del día, y toma turnos abiertos en Horario.\n• Los supervisores pueden convertir un dispositivo compartido en un quiosco para marcar.\n\nESCANEAR\n• Escanea credenciales en el acceso, etiquetas de equipo y códigos de barras, y cuenta las entregas a medida que llegan.\n• Escribe un código cuando una credencial no se pueda escanear y busca cualquier cosa por su código.\n\nREPORTAR\n• Reporta un incidente en tres pasos, con su ubicación, fotos y una nota de voz.\n• Recorre una lista de inspección y abre un pendiente para lo que no pase.\n\nEL SHOW\n• Sigue el orden del show y el siguiente cue, con un modo show a pantalla completa.\n• Responde aprobaciones en tu Bandeja de entrada o directo desde la notificación.\n\nTU EQUIPO\n• Anuncios, chat, capacitación, formularios, encuestas, el directorio del equipo y la mesa de ayuda, según los configure tu organización.\n• Pregunta a Aurora, el asistente de XOS, cuando tu organización lo active.\n\nHECHA PARA EL CAMPO\n• Funciona sin conexión: las marcaciones, los escaneos y los reportes se guardan en tu teléfono y se suben cuando vuelves a tener conexión. La Cola sin conexión muestra lo que está pendiente.\n• Tus datos de trabajo en el teléfono están cifrados, y tu huella o tu rostro pueden bloquear Compass.\n• Modo Sol con máximo contraste para exteriores, texto grande y compatibilidad con lectores de pantalla.\n• En inglés y español.\n\nPRIVACIDAD\nCompass usa tu ubicación solo mientras la app está abierta, para registrar tu llegada al lugar. Sin anuncios ni rastreo. Puedes eliminar tu cuenta desde la app: Más, Ajustes, Eliminar cuenta.",
+      "whatsNew": "La primera versión de Compass 4.0: marca entrada en el lugar, escanea credenciales, equipo y entregas, reporta incidentes e inspecciones, sigue el orden del show y sigue trabajando sin conexión.",
+      "phoneScreenshots": [
+        "store/google-play/es-US/phone/01-today.png",
+        "store/google-play/es-US/phone/02-schedule.png",
+        "store/google-play/es-US/phone/03-scan.png",
+        "store/google-play/es-US/phone/04-incident.png",
+        "store/google-play/es-US/phone/05-show.png"
+      ]
+    }
+  }
+}

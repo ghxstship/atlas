@@ -305,7 +305,7 @@ describe("gateway account-role visibility", () => {
   });
 
   it("opens company settings by account role", () => {
-    const company = { conditions: ["company-account" as const] };
+    const company = { conditions: ["company-account" as const, "paid-work" as const] };
     expect(
       guardRoute(gateway, "/settings/company/danger-zone", { role: "account-owner", ...company })
         .status,
@@ -324,6 +324,13 @@ describe("gateway account-role visibility", () => {
       guardRoute(gateway, "/settings/company/payout-and-tax", {
         role: "account-member",
         ...company,
+      }).status,
+    ).toBe(404);
+    // A client or sponsor account is never paid, so it has no payout settings (finding A59-033).
+    expect(
+      guardRoute(gateway, "/settings/company/payout-and-tax", {
+        role: "account-owner",
+        conditions: ["company-account"],
       }).status,
     ).toBe(404);
     expect(

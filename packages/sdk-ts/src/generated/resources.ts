@@ -201,6 +201,7 @@ import type {
   CanonRegionMultiplier,
   CanonRole,
   CanonStalenessPolicy,
+  CanonStdEmergencyProtocol,
   CanonSupersession,
   CanonTag,
   CanonTeam,
@@ -267,6 +268,9 @@ import type {
   CriterionId,
   CrosswalkCoverage,
   Cue,
+  CueCall,
+  CueCallCreate,
+  CueCallUpdate,
   CueCreate,
   CueUpdate,
   CustomFieldDefinition,
@@ -323,6 +327,9 @@ import type {
   ElementEconomics,
   ElementResolution,
   EmergencyCode,
+  EmergencyContact,
+  EmergencyContactCreate,
+  EmergencyContactUpdate,
   Engagement,
   EngagementCreate,
   EngagementDocument,
@@ -484,6 +491,9 @@ import type {
   LostFoundItemCreate,
   LostFoundItemUpdate,
   LostItemClaimRequest,
+  LoyaltyProgram,
+  LoyaltyProgramCreate,
+  LoyaltyProgramUpdate,
   MarkAllReadResult,
   MarkConversationReadRequest,
   MarketplaceListingPage,
@@ -565,6 +575,8 @@ import type {
   OrganizationRelationshipUpdate,
   OrganizationUpdate,
   OvertimeRule,
+  PassportReveal,
+  PassportRevealRequest,
   PayPeriod,
   PayPeriodCreate,
   PayPeriodTransitionRequest,
@@ -635,6 +647,7 @@ import type {
   ProjectAssignmentRole,
   ProjectAssignmentRoleCreate,
   ProjectAssignmentUpdate,
+  ProjectAuthority,
   ProjectCreate,
   ProjectPhaseTransition,
   ProjectShare,
@@ -785,6 +798,7 @@ import type {
   SettingValueCreate,
   SettingValueUpdate,
   SettleClaimRequest,
+  SharedWorkDetails,
   Shift,
   ShiftCreate,
   ShiftSwap,
@@ -965,6 +979,13 @@ import type {
   WebhookEventType,
   WholesaleBillingRequest,
   WholesaleStatement,
+  WorkDetailEvent,
+  WorkDetailShare,
+  WorkDetailShareCreate,
+  WorkDetailShareUpdate,
+  WorkDetails,
+  WorkDetailsCreate,
+  WorkDetailsUpdate,
   WorkOrder,
   WorkOrderBid,
   WorkOrderBidCreate,
@@ -32932,6 +32953,157 @@ export class TemplateApplicationsResource extends $Resource {
 }
 
 /**
+ * Operations on `projectAuthorities`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectAuthoritiesResource extends $Resource {
+  /**
+   * List project authority rows
+   *
+   * An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-authorities` (operation `projectAuthorities.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectAuthority>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectAuthority>> {
+    return this.client.requestPage<ProjectAuthority>(
+      $OPERATIONS["projectAuthorities.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project authority rows
+   *
+   * An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-authorities` (operation `projectAuthorities.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectAuthority>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectAuthority, void, undefined> {
+    return this.client.paginate<ProjectAuthority>(
+      $OPERATIONS["projectAuthorities.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `cueCalls`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class CueCallsResource extends $Resource {
+  /**
+   * List cue call rows
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /cue-calls` (operation `cueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(params?: $ListParams<CueCall>, options?: $RequestOptions): Promise<$Page<CueCall>> {
+    return this.client.requestPage<CueCall>(
+      $OPERATIONS["cueCalls.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List cue call rows
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /cue-calls` (operation `cueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CueCall>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CueCall, void, undefined> {
+    return this.client.paginate<CueCall>($OPERATIONS["cueCalls.list"], { query: params }, options);
+  }
+
+  /**
+   * Create a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Creates a cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /cue-calls` (operation `cueCalls.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(body: CueCallCreate, options?: $MutationOptions): Promise<$ApiResponse<CueCall>> {
+    return this.client.request<CueCall>($OPERATIONS["cueCalls.create"], { body }, options);
+  }
+
+  /**
+   * Get a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns one cue call with its `ETag`. A cue call the caller may not see returns 404.
+   *
+   * `GET /cue-calls/{id}` (operation `cueCalls.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<CueCall>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CueCall>> {
+    return this.client.request<CueCall>(
+      $OPERATIONS["cueCalls.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /cue-calls/{id}` (operation `cueCalls.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(id: string, body: CueCallUpdate, options: $UpdateOptions): Promise<$ApiResponse<CueCall>> {
+    return this.client.request<CueCall>(
+      $OPERATIONS["cueCalls.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Soft-deletes the cue call: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /cue-calls/{id}` (operation `cueCalls.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["cueCalls.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `guestListEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -33359,6 +33531,73 @@ export class RequiredAdditionalInsuredsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["requiredAdditionalInsureds.delete"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `canonStdEmergencyProtocols`, in the Canon module.
+ *
+ * Read-only canon from `xpms`, cached by canon generation, and tenant extension proposals (Sections 4.2 and 7.2).
+ */
+export class CanonStdEmergencyProtocolsResource extends $Resource {
+  /**
+   * List emergency protocol rows
+   *
+   * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /canon/std/emergency-protocols` (operation `canonStdEmergencyProtocols.list`).
+   * Requires the capability `canon.taxonomy.read`.
+   */
+  list(
+    params?: $ListParams<CanonStdEmergencyProtocol>,
+    options?: $RequestOptions,
+  ): Promise<$Page<CanonStdEmergencyProtocol>> {
+    return this.client.requestPage<CanonStdEmergencyProtocol>(
+      $OPERATIONS["canonStdEmergencyProtocols.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List emergency protocol rows
+   *
+   * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /canon/std/emergency-protocols` (operation `canonStdEmergencyProtocols.list`).
+   * Requires the capability `canon.taxonomy.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CanonStdEmergencyProtocol>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CanonStdEmergencyProtocol, void, undefined> {
+    return this.client.paginate<CanonStdEmergencyProtocol>(
+      $OPERATIONS["canonStdEmergencyProtocols.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an emergency protocol
+   *
+   * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns one emergency protocol with its `ETag`. A emergency protocol the caller may not see returns 404.
+   *
+   * `GET /canon/std/emergency-protocols/{record_key}` (operation `canonStdEmergencyProtocols.get`).
+   * Requires the capability `canon.taxonomy.read`.
+   */
+  get(
+    recordKey: string,
+    params?: $FieldsParams<CanonStdEmergencyProtocol>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CanonStdEmergencyProtocol>> {
+    return this.client.request<CanonStdEmergencyProtocol>(
+      $OPERATIONS["canonStdEmergencyProtocols.get"],
+      { path: { record_key: recordKey }, query: params },
       options,
     );
   }
@@ -33899,6 +34138,583 @@ export class AiUsageResource extends $Resource {
     options?: $RequestOptions,
   ): AsyncGenerator<AiUsage, void, undefined> {
     return this.client.paginate<AiUsage>($OPERATIONS["aiUsage.list"], { query: params }, options);
+  }
+}
+
+/**
+ * Operations on `workDetails`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class WorkDetailsResource extends $Resource {
+  /**
+   * List work details rows
+   *
+   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /work-details` (operation `workDetails.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  list(params?: $ListParams<WorkDetails>, options?: $RequestOptions): Promise<$Page<WorkDetails>> {
+    return this.client.requestPage<WorkDetails>(
+      $OPERATIONS["workDetails.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List work details rows
+   *
+   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /work-details` (operation `workDetails.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  listAll(
+    params?: $ListAllParams<WorkDetails>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WorkDetails, void, undefined> {
+    return this.client.paginate<WorkDetails>(
+      $OPERATIONS["workDetails.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a work details
+   *
+   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /work-details` (operation `workDetails.create`).
+   * Requires the capability `me.work_details.write`.
+   */
+  create(body: WorkDetailsCreate, options?: $MutationOptions): Promise<$ApiResponse<WorkDetails>> {
+    return this.client.request<WorkDetails>($OPERATIONS["workDetails.create"], { body }, options);
+  }
+
+  /**
+   * Get a work details
+   *
+   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
+   *
+   * `GET /work-details/{id}` (operation `workDetails.get`).
+   * Requires the capability `me.work_details.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WorkDetails>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WorkDetails>> {
+    return this.client.request<WorkDetails>(
+      $OPERATIONS["workDetails.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a work details
+   *
+   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /work-details/{id}` (operation `workDetails.update`).
+   * Requires the capability `me.work_details.write`.
+   */
+  update(
+    id: string,
+    body: WorkDetailsUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<WorkDetails>> {
+    return this.client.request<WorkDetails>(
+      $OPERATIONS["workDetails.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a work details
+   *
+   * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /work-details/{id}` (operation `workDetails.delete`).
+   * Requires the capability `me.work_details.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["workDetails.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Reveal the caller's passport number
+   *
+   * Returns the caller's own passport number in plain text through `app.reveal_my_passport_number`. Every reveal is written to the person's access log. 422 passport_number_missing when none is recorded. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /work-details/{id}/reveal-passport` (operation `workDetails.revealPassport`).
+   * Requires the capability `me.work_details.write`.
+   */
+  revealPassport(id: string, options?: $MutationOptions): Promise<$ApiResponse<PassportReveal>> {
+    return this.client.request<PassportReveal>(
+      $OPERATIONS["workDetails.revealPassport"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `emergencyContacts`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class EmergencyContactsResource extends $Resource {
+  /**
+   * List emergency contact rows
+   *
+   * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns a cursor page of emergency contact rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /emergency-contacts` (operation `emergencyContacts.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  list(
+    params?: $ListParams<EmergencyContact>,
+    options?: $RequestOptions,
+  ): Promise<$Page<EmergencyContact>> {
+    return this.client.requestPage<EmergencyContact>(
+      $OPERATIONS["emergencyContacts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List emergency contact rows
+   *
+   * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns a cursor page of emergency contact rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /emergency-contacts` (operation `emergencyContacts.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  listAll(
+    params?: $ListAllParams<EmergencyContact>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EmergencyContact, void, undefined> {
+    return this.client.paginate<EmergencyContact>(
+      $OPERATIONS["emergencyContacts.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an emergency contact
+   *
+   * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Creates an emergency contact. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /emergency-contacts` (operation `emergencyContacts.create`).
+   * Requires the capability `me.work_details.write`.
+   */
+  create(
+    body: EmergencyContactCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EmergencyContact>> {
+    return this.client.request<EmergencyContact>(
+      $OPERATIONS["emergencyContacts.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an emergency contact
+   *
+   * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns one emergency contact with its `ETag`. A emergency contact the caller may not see returns 404.
+   *
+   * `GET /emergency-contacts/{id}` (operation `emergencyContacts.get`).
+   * Requires the capability `me.work_details.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<EmergencyContact>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EmergencyContact>> {
+    return this.client.request<EmergencyContact>(
+      $OPERATIONS["emergencyContacts.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an emergency contact
+   *
+   * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /emergency-contacts/{id}` (operation `emergencyContacts.update`).
+   * Requires the capability `me.work_details.write`.
+   */
+  update(
+    id: string,
+    body: EmergencyContactUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<EmergencyContact>> {
+    return this.client.request<EmergencyContact>(
+      $OPERATIONS["emergencyContacts.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an emergency contact
+   *
+   * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Soft-deletes the emergency contact: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /emergency-contacts/{id}` (operation `emergencyContacts.delete`).
+   * Requires the capability `me.work_details.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["emergencyContacts.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `loyaltyPrograms`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class LoyaltyProgramsResource extends $Resource {
+  /**
+   * List loyalty program rows
+   *
+   * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns a cursor page of loyalty program rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /loyalty-programs` (operation `loyaltyPrograms.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  list(
+    params?: $ListParams<LoyaltyProgram>,
+    options?: $RequestOptions,
+  ): Promise<$Page<LoyaltyProgram>> {
+    return this.client.requestPage<LoyaltyProgram>(
+      $OPERATIONS["loyaltyPrograms.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List loyalty program rows
+   *
+   * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns a cursor page of loyalty program rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /loyalty-programs` (operation `loyaltyPrograms.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  listAll(
+    params?: $ListAllParams<LoyaltyProgram>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<LoyaltyProgram, void, undefined> {
+    return this.client.paginate<LoyaltyProgram>(
+      $OPERATIONS["loyaltyPrograms.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a loyalty program
+   *
+   * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Creates a loyalty program. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /loyalty-programs` (operation `loyaltyPrograms.create`).
+   * Requires the capability `me.work_details.write`.
+   */
+  create(
+    body: LoyaltyProgramCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<LoyaltyProgram>> {
+    return this.client.request<LoyaltyProgram>(
+      $OPERATIONS["loyaltyPrograms.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a loyalty program
+   *
+   * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns one loyalty program with its `ETag`. A loyalty program the caller may not see returns 404.
+   *
+   * `GET /loyalty-programs/{id}` (operation `loyaltyPrograms.get`).
+   * Requires the capability `me.work_details.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<LoyaltyProgram>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<LoyaltyProgram>> {
+    return this.client.request<LoyaltyProgram>(
+      $OPERATIONS["loyaltyPrograms.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a loyalty program
+   *
+   * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /loyalty-programs/{id}` (operation `loyaltyPrograms.update`).
+   * Requires the capability `me.work_details.write`.
+   */
+  update(
+    id: string,
+    body: LoyaltyProgramUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<LoyaltyProgram>> {
+    return this.client.request<LoyaltyProgram>(
+      $OPERATIONS["loyaltyPrograms.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a loyalty program
+   *
+   * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Soft-deletes the loyalty program: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /loyalty-programs/{id}` (operation `loyaltyPrograms.delete`).
+   * Requires the capability `me.work_details.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["loyaltyPrograms.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `workDetailShares`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class WorkDetailSharesResource extends $Resource {
+  /**
+   * List work detail share rows
+   *
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /work-detail-shares` (operation `workDetailShares.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  list(
+    params?: $ListParams<WorkDetailShare>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WorkDetailShare>> {
+    return this.client.requestPage<WorkDetailShare>(
+      $OPERATIONS["workDetailShares.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List work detail share rows
+   *
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /work-detail-shares` (operation `workDetailShares.list`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  listAll(
+    params?: $ListAllParams<WorkDetailShare>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WorkDetailShare, void, undefined> {
+    return this.client.paginate<WorkDetailShare>(
+      $OPERATIONS["workDetailShares.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a work detail share
+   *
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /work-detail-shares` (operation `workDetailShares.create`).
+   * Requires the capability `me.work_details.write`.
+   */
+  create(
+    body: WorkDetailShareCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<WorkDetailShare>> {
+    return this.client.request<WorkDetailShare>(
+      $OPERATIONS["workDetailShares.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a work detail share
+   *
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
+   *
+   * `GET /work-detail-shares/{id}` (operation `workDetailShares.get`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<WorkDetailShare>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<WorkDetailShare>> {
+    return this.client.request<WorkDetailShare>(
+      $OPERATIONS["workDetailShares.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a work detail share
+   *
+   * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /work-detail-shares/{id}` (operation `workDetailShares.update`).
+   * Requires the capability `me.work_details.write`.
+   */
+  update(
+    id: string,
+    body: WorkDetailShareUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<WorkDetailShare>> {
+    return this.client.request<WorkDetailShare>(
+      $OPERATIONS["workDetailShares.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a work details share
+   *
+   * Ends the share at once through `app.revoke_work_detail_share`; the org reads nothing more, and its work_details_sharing consent is withdrawn when this was its last live share. Only the person who gave it revokes it (422 work_detail_share_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /work-detail-shares/{id}/revoke` (operation `workDetailShares.revoke`).
+   * Requires the capability `me.work_details.write`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<WorkDetailShare>> {
+    return this.client.request<WorkDetailShare>(
+      $OPERATIONS["workDetailShares.revoke"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Read what the share's person shared
+   *
+   * For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `GET /work-detail-shares/{id}/details` (operation `workDetailShares.details`).
+   * Requires the capability `opportunities.engagement.read`.
+   */
+  details(id: string, options?: $RequestOptions): Promise<$ApiResponse<SharedWorkDetails>> {
+    return this.client.request<SharedWorkDetails>(
+      $OPERATIONS["workDetailShares.details"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Reveal a shared passport number
+   *
+   * For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /work-detail-shares/{id}/reveal-passport` (operation `workDetailShares.revealPassport`).
+   * Requires the capability `data.restricted.read.government_id`.
+   */
+  revealPassport(
+    id: string,
+    body: PassportRevealRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PassportReveal>> {
+    return this.client.request<PassportReveal>(
+      $OPERATIONS["workDetailShares.revealPassport"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `workDetailEvents`, in the Identity module.
+ *
+ * People, organizations, memberships, assignments, representation and profiles (Section 4.8).
+ */
+export class WorkDetailEventsResource extends $Resource {
+  /**
+   * List work detail event rows
+   *
+   * One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org. Returns a cursor page of work detail event rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /work-detail-events` (operation `workDetailEvents.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  list(
+    params?: $ListParams<WorkDetailEvent>,
+    options?: $RequestOptions,
+  ): Promise<$Page<WorkDetailEvent>> {
+    return this.client.requestPage<WorkDetailEvent>(
+      $OPERATIONS["workDetailEvents.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List work detail event rows
+   *
+   * One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org. Returns a cursor page of work detail event rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /work-detail-events` (operation `workDetailEvents.list`).
+   * Requires the capability `me.work_details.write`.
+   */
+  listAll(
+    params?: $ListAllParams<WorkDetailEvent>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<WorkDetailEvent, void, undefined> {
+    return this.client.paginate<WorkDetailEvent>(
+      $OPERATIONS["workDetailEvents.list"],
+      { query: params },
+      options,
+    );
   }
 }
 

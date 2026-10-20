@@ -69,14 +69,15 @@ Migrations are forward-only. Apply them before you deploy apps that need them.
 
 `supabase/config.toml` is for the local stack only; do not run `supabase config push` with it. Set these in the hosted project's dashboard:
 
-| Setting                  | Value                                                                                          |
-| ------------------------ | ---------------------------------------------------------------------------------------------- |
-| Site URL                 | The Atlas origin, for example `https://atlas.example.com`                                      |
-| Redirect URLs            | The Atlas and Gateway origins, plus each custom Gateway domain                                 |
-| Custom access token hook | Postgres function `private.custom_access_token_hook` (it writes the active organization claim) |
-| Password policy          | Minimum length 12, letters and digits, leaked password protection on                           |
-| MFA                      | TOTP and WebAuthn enroll and verify on; the WebAuthn relying party is your registrable domain  |
-| SMTP                     | Your mail provider, so sign-in and invitation emails come from your domain                     |
+| Setting                  | Value                                                                                                                                                                |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL                 | The Atlas origin, for example `https://atlas.example.com`                                                                                                            |
+| Redirect URLs            | `https://<origin>/auth/callback**` for the Atlas and Gateway origins and each custom Gateway domain; the `**` lets the query string through                          |
+| Custom access token hook | Postgres function `private.custom_access_token_hook` (it writes the active organization claim)                                                                       |
+| Password policy          | Minimum length 12, letters and digits, leaked password protection on                                                                                                 |
+| MFA                      | TOTP and WebAuthn enroll and verify on; the WebAuthn relying party is your registrable domain                                                                        |
+| SMTP                     | Your mail provider, so sign-in and invitation emails come from your domain                                                                                           |
+| Google (optional)        | Google provider on, with your Google Web client ID and secret, then your iOS and Android client IDs after the Web one; "Skip nonce checks" on for native iOS sign-in |
 
 The repository's `infra/runbooks/hosted-security-settings.md` lists every setting with the reason for it.
 
@@ -91,11 +92,14 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `ATLAS_SITE_URL`              | Required |          | The public origin of Atlas, used for sign-in links and the CSRF origin check             |
 | `GATEWAY_SITE_URL`            | Optional | Required | The public origin of Gateway; Atlas uses it for advance and signing links                |
 | `GATEWAY_PLATFORM_HOSTS`      |          | Optional | Hosts that serve the platform Gateway; any other host is an organization's custom domain |
+| `XOS_API_HOST`                | Optional |          | A host name, such as `api.example.com`, on which Atlas serves only the API, at `/v1`     |
+| `DOCS_SITE_URL`               | Optional | Optional | The public origin of this docs site, for help center links                               |
 | `NEXT_PUBLIC_SENTRY_DSN`      | Optional | Optional | Error reporting; without a DSN nothing is sent to Sentry                                 |
 | `XOS_TRACES_SAMPLE_RATE`      | Optional | Optional | Trace sample rate, `0.05` by default                                                     |
 | `XOS_LOG_LEVEL`               | Optional | Optional | `info` in production                                                                     |
 | `COMPASS_APPLE_TEAM_IDS`      | Optional | Optional | Apple team ids, so Compass opens Atlas and Gateway links as universal links              |
 | `COMPASS_ANDROID_CERT_SHA256` | Optional | Optional | Compass signing certificate fingerprints, for Android App Links                          |
+| `XOS_TRUSTED_PROXY_HOPS`      | Optional |          | Trusted proxies in front of the one that appends the client address; `0` by default      |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
@@ -170,6 +174,8 @@ Create one Vercel project per app with these settings, then add the variables ab
 
 Add each custom Gateway domain to the Gateway project; organizations verify their domain in Atlas settings.
 
+To serve the API on its own host, add that host to the Atlas project too and set `XOS_API_HOST` to it. Atlas then answers `https://<that host>/v1/...` as the API at `/api/v1/...`, with the same credentials and limits, and serves no page or cookie there.
+
 ### On your own Node host
 
 ```bash
@@ -180,17 +186,22 @@ pnpm --filter @xos/gateway exec next start --port 3001
 
 Run each app under a process manager, behind a TLS-terminating reverse proxy that passes the `Host` header through, so Gateway can recognize custom domains.
 
+The proxy must append the client address to `X-Forwarded-For` (in nginx, `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). Atlas reads the last entry, the one your proxy added, because the client writes the entries before it; the IP allow-list depends on that. If another trusted proxy, such as a CDN, sits in front of yours, set `XOS_TRUSTED_PROXY_HOPS=1`. Never expose the apps without a proxy: then every forwarding header is the client's own text.
+
 ## 5. Compass
 
 Compass reads its configuration at build time:
 
-| Variable                        | Value                                                                     |
-| ------------------------------- | ------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | The Supabase API URL                                                      |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | The anon key                                                              |
-| `EXPO_PUBLIC_ATLAS_URL`         | The Atlas origin                                                          |
-| `EXPO_PUBLIC_GATEWAY_URL`       | The Gateway origin                                                        |
-| `XOS_UNIVERSAL_LINK_HOSTS`      | Optional: `atlas:<host>,gateway:<host>`, so handoff links open in Compass |
+| Variable                           | Value                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The Supabase API URL                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The anon key                                                                                                                                               |
+| `EXPO_PUBLIC_ATLAS_URL`            | The Atlas origin                                                                                                                                           |
+| `EXPO_PUBLIC_GATEWAY_URL`          | The Gateway origin                                                                                                                                         |
+| `EXPO_PUBLIC_DOCS_URL`             | Optional: the docs site origin, for the help center row in Settings                                                                                        |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<host>,gateway:<host>`, so handoff links open in Compass. Unset, a build claims the GHXSTSHIP hosts; set your own hosts, or an empty value for none |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Optional: your Google Web client ID, for Continue with Google                                                                                              |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Optional: your Google iOS client ID, for Continue with Google on iOS                                                                                       |
 
 Change the bundle identifier and Android package in `apps/compass/app.json` to your own, then build with EAS Build (add an `eas.json` with a `production` profile and run `eas build --platform all --profile production`) or locally with `expo prebuild` followed by an Xcode archive and a Gradle release build. Distribute through TestFlight and Google Play internal testing first.
 

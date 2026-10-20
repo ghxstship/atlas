@@ -1,10 +1,16 @@
 {
   "choose": "Choose an option",
-  "lock": "Lock this value so workspaces, projects and people cannot change it",
+  "lock": "Workspaces, projects and people cannot change a locked value.",
   "save": "Save",
   "saved": "Saved.",
   "inherit": "Use the inherited value",
   "reset": "Reset to the platform default",
+  "undoReset": "Keep this value",
+  "resetPending": "Resets to the platform default when you save.",
+  "inheritPending": "Uses the inherited value when you save.",
+  "lockValue": "Lock value",
+  "discard": "Discard",
+  "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
   "loadFailed": "These settings could not be loaded. Reload the page to try again.",
   "registryHeading": "Settings on this page",
   "personalSections": "Personal settings sections",
@@ -64,7 +70,8 @@
     "hostname": "Enter a host name like gateway.example.com, without https://.",
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
-    "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan."
+    "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
+    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone."
   },
   "fields": {
     "legalName": {
@@ -93,15 +100,15 @@
     },
     "mfaPolicy": {
       "label": "Multi-factor authentication",
-      "help": "Who must use a second factor to sign in."
+      "help": "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional."
     },
     "sessionHours": {
       "label": "Session length in hours",
-      "help": "How long a sign-in lasts before the person signs in again, from 1 to 720 hours."
+      "help": "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours."
     },
     "idleTimeout": {
       "label": "Idle timeout in minutes",
-      "help": "Sign out after this many minutes without activity, from 5 to 1,440."
+      "help": "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes."
     },
     "ipAllowlist": {
       "label": "Enforce the IP allow-list",
@@ -376,6 +383,7 @@
     "assetCurrent": "Current file: {name}",
     "assetNone": "No file yet. The platform mark is used.",
     "assetHelp": "PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
+    "assetScanning": "Being checked for viruses. It replaces the current mark once the check passes.",
     "upload": "Upload"
   },
   "domains": {

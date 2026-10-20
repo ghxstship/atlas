@@ -332,16 +332,24 @@ import {
   TrashItemsResource,
   TemplatesResource,
   TemplateApplicationsResource,
+  ProjectAuthoritiesResource,
+  CueCallsResource,
   GuestListEntriesResource,
   Form1099NecResource,
   InsuranceCertificateInsuredsResource,
   RequiredAdditionalInsuredsResource,
+  CanonStdEmergencyProtocolsResource,
   ReportScheduleRecipientsResource,
   ReportDeliveriesResource,
   AuroraResource,
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
+  WorkDetailsResource,
+  EmergencyContactsResource,
+  LoyaltyProgramsResource,
+  WorkDetailSharesResource,
+  WorkDetailEventsResource,
   SavedViewSharesResource,
   SavedViewDefaultsResource,
   TourProgressResource,
@@ -396,7 +404,7 @@ import {
  * OpenAPI document is a method.
  *
  * @example
- * const xos = new XosClient({ baseUrl: "https://atlas.example.com/api/v1", apiKey: process.env.XOS_API_KEY });
+ * const xos = new XosClient({ baseUrl: "https://api.ghxstship.tech/v1", apiKey: process.env.XOS_API_KEY });
  * for await (const project of xos.projects.listAll({ filter: { project_state: { eq: "Active" } } })) {
  *   console.log(project.name);
  * }
@@ -1145,6 +1153,10 @@ export class XosClient extends XosClientCore {
   readonly templateApplications: TemplateApplicationsResource = new TemplateApplicationsResource(
     this,
   );
+  /** Projects: operations on `projectAuthorities`. */
+  readonly projectAuthorities: ProjectAuthoritiesResource = new ProjectAuthoritiesResource(this);
+  /** Show: operations on `cueCalls`. */
+  readonly cueCalls: CueCallsResource = new CueCallsResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Finance: operations on `form1099Nec`. */
@@ -1155,6 +1167,9 @@ export class XosClient extends XosClientCore {
   /** Vendors: operations on `requiredAdditionalInsureds`. */
   readonly requiredAdditionalInsureds: RequiredAdditionalInsuredsResource =
     new RequiredAdditionalInsuredsResource(this);
+  /** Canon: operations on `canonStdEmergencyProtocols`. */
+  readonly canonStdEmergencyProtocols: CanonStdEmergencyProtocolsResource =
+    new CanonStdEmergencyProtocolsResource(this);
   /** Reports: operations on `reportScheduleRecipients`. */
   readonly reportScheduleRecipients: ReportScheduleRecipientsResource =
     new ReportScheduleRecipientsResource(this);
@@ -1168,6 +1183,16 @@ export class XosClient extends XosClientCore {
   readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
   /** Settings: operations on `aiUsage`. */
   readonly aiUsage: AiUsageResource = new AiUsageResource(this);
+  /** Identity: operations on `workDetails`. */
+  readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
+  /** Identity: operations on `emergencyContacts`. */
+  readonly emergencyContacts: EmergencyContactsResource = new EmergencyContactsResource(this);
+  /** Identity: operations on `loyaltyPrograms`. */
+  readonly loyaltyPrograms: LoyaltyProgramsResource = new LoyaltyProgramsResource(this);
+  /** Identity: operations on `workDetailShares`. */
+  readonly workDetailShares: WorkDetailSharesResource = new WorkDetailSharesResource(this);
+  /** Identity: operations on `workDetailEvents`. */
+  readonly workDetailEvents: WorkDetailEventsResource = new WorkDetailEventsResource(this);
   /** Platform: operations on `savedViewShares`. */
   readonly savedViewShares: SavedViewSharesResource = new SavedViewSharesResource(this);
   /** Platform: operations on `savedViewDefaults`. */

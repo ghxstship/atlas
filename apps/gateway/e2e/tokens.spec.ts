@@ -76,6 +76,8 @@ test("an advance link is answered section by section and claimed into the accoun
   await page.getByRole("link", { name: "I have an account" }).click();
   await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fauth%2Fclaim/);
   await page.locator("#signin-email").fill("crew@example.com");
+  // The password field appears on request: the sign-in link is the first choice (A59-025).
+  await page.getByRole("button", { name: "Use a password" }).click();
   await page.locator("#signin-password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Sign in with password" }).click();
   await expect(page).toHaveURL(/\/auth\/claim$/);

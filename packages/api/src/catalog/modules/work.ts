@@ -7,6 +7,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { editShape, orNull, removeActions } from "../correct.ts";
 import { workFieldHomes } from "./parts/playbook-field-homes.ts";
+import { workFieldExposure } from "./parts/playbook-field-exposure.ts";
 
 const when = (description: string) => ({ schema: orNull(fields.instant(description)) });
 
@@ -46,5 +47,6 @@ export const additions = defineAdditions("Work", {
       }),
     },
     ...workFieldHomes,
+    ...workFieldExposure,
   ],
 });

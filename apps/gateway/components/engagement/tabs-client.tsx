@@ -13,7 +13,7 @@ import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { ApprovalForm, DeliverableForm } from "./forms";
 import { SponsorAssetForm } from "./sponsor-forms";
-import { RowList, TabEmpty } from "./rows";
+import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 
@@ -161,14 +161,7 @@ export async function RecordsTab({
   calendar?: boolean;
 }) {
   if (!hasArea(view, "operational")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.operationalClosed")}
-        actionLabel={t("gateway.engagement.onboardingAction")}
-        href={tabHref(engagementKey, "engagement.overview")}
-      />
-    );
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
   const records = await listSharedRecords(view.ctx.db, {
     projectIds: [view.engagement.projectId],
@@ -221,14 +214,7 @@ export async function RecordsTab({
 
 export async function RunOfShowTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.operationalClosed")}
-        actionLabel={t("gateway.engagement.onboardingAction")}
-        href={tabHref(engagementKey, "engagement.overview")}
-      />
-    );
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
   const shows = await readView(view.ctx.db, "run_of_show", {
     eq: { project_id: view.engagement.projectId },

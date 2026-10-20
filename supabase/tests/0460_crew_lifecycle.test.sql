@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(54);
+select plan(55);
 
 -- Claims with step-up (aal2), keeping the authenticated role.
 create function pg_temp.as_user_aal2(p_key text) returns void
@@ -37,7 +37,14 @@ select throws_ok($$insert into app.shifts (project_id, starts_at, ends_at, time_
   'XR001', null, 'a shift cannot be created already published');
 select throws_ok($$update app.shifts set shift_state = 'Published' where id = (select id from world where key = 'sh1')$$,
   'XR001', null, 'the state changes only through the RPCs');
-select throws_ok($$select app.transition_shift((select id from world where key = 'sh1'), 'Draft', 'Accepted', 'Skip.')$$, 'XR001', null, 'a writer cannot accept for the crew member');
+select throws_ok($$select app.transition_shift((select id from world where key = 'sh1'), 'Draft', 'Accepted', 'Skip.')$$,
+  'XR001', 'shift_accept_rpc: A shift is accepted by its person through app.accept_shift or claimed through app.claim_open_shift.', 'a writer cannot accept for the crew member (shift_accept_rpc)');
+-- Every move to Accepted through transition_shift meets that guard, and app.accept_shift only moves a Published
+-- shift, so the Draft to Accepted rule is asserted in the transition engine every RPC calls (A54-003).
+select pg_temp.as_platform();
+select throws_ok($$select private.transition_lifecycle('shift', 'app.shifts', 'shift_state', 'app.shift_state_transitions', 'shift_id', (select id from world where key = 'sh1'), 'Draft', 'Accepted', 'Skip.')$$,
+  'XR001', 'shift_transition_not_allowed: A shift cannot move from Draft to Accepted.', 'a Draft shift cannot jump to Accepted');
+select pg_temp.as_user('carol');
 select throws_ok($$select app.accept_shift((select id from world where key = 'sh1'))$$,
   '42501', null, 'only the person assigned accepts');
 select is(app.publish_shifts(array[pg_temp.id('sh1'), pg_temp.id('open1'), pg_temp.id('open_overlap')]), 3, 'a Manager publishes drafted shifts in one call');

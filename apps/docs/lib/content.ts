@@ -1,7 +1,8 @@
 /**
  * Content loading, on the server only. Guides live in apps/docs/content/guides/<locale>/<slug>.md.
- * The help center reads A31's help content in place, apps/atlas/help (articles/<locale>/*.md and
- * whats-new.yaml), so in-app help and the public help center never diverge (Section 11.16).
+ * The help center reads each shell's help content in place (apps/atlas/help, apps/gateway/help and
+ * apps/compass/help: articles/<locale>/*.md, and Atlas's whats-new.yaml), so in-app help and the
+ * public help center never diverge (Section 11.16).
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -16,6 +17,21 @@ export const APP_DIR = process.cwd().endsWith(join("apps", "docs"))
   : join(process.cwd(), "apps", "docs");
 export const GUIDES_DIR = join(APP_DIR, "content", "guides");
 export const HELP_DIR = join(APP_DIR, "..", "atlas", "help");
+
+/** The shells whose help the help center publishes; Atlas articles keep the top-level paths. */
+export const HELP_SHELLS = ["atlas", "gateway", "compass"] as const;
+export type HelpShell = (typeof HELP_SHELLS)[number];
+
+const HELP_DIRS: Readonly<Record<HelpShell, string>> = {
+  atlas: HELP_DIR,
+  gateway: join(APP_DIR, "..", "gateway", "help"),
+  compass: join(APP_DIR, "..", "compass", "help"),
+};
+
+/** An article's path: /<locale>/help/<slug> for Atlas, /<locale>/help/<shell>/<slug> otherwise. */
+export function helpPath(locale: Locale, shell: HelpShell, slug: string): string {
+  return shell === "atlas" ? `/${locale}/help/${slug}` : `/${locale}/help/${shell}/${slug}`;
+}
 
 export interface Page {
   readonly slug: string;
@@ -87,9 +103,9 @@ export function guides(locale: Locale): Guide[] {
   );
 }
 
-export function helpArticles(locale: Locale): HelpArticle[] {
-  return cached(`help:${locale}`, () =>
-    readPages<HelpArticle>(join(HELP_DIR, "articles", locale), (meta, file) => ({
+export function helpArticles(locale: Locale, shell: HelpShell = "atlas"): HelpArticle[] {
+  return cached(`help:${shell}:${locale}`, () =>
+    readPages<HelpArticle>(join(HELP_DIRS[shell], "articles", locale), (meta, file) => ({
       kind: requireString(meta, "kind", file) as HelpArticle["kind"],
     })),
   );

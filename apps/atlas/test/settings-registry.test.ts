@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getMessages } from "@xos/i18n";
 import type { SettingDefinition } from "@xos/schemas/settings";
 import { planHasFeature } from "../lib/settings/plan";
 import {
@@ -55,6 +56,27 @@ describe("registry lookups", () => {
     expect(settingErrorKey({ kind: "conflict", message: "" })).toBe("conflict");
     expect(settingErrorKey({ kind: "invalid", message: "" })).toBe("invalid");
     expect(settingErrorKey({ kind: "unexpected", message: "" })).toBe("unexpected");
+  });
+
+  // A69-007 (migration 1299): settings nothing enforces keep their defaults, and the page says why.
+  it("explains a refused unenforced security setting in both locales", () => {
+    expect(settingErrorKey({ kind: "refusal", rule: "setting_not_enforced", message: "" })).toBe(
+      "setting_not_enforced",
+    );
+    for (const locale of ["en-US", "es-US"] as const) {
+      const catalog = (
+        getMessages(locale) as unknown as {
+          settings: {
+            errors: Record<string, string>;
+            fields: Record<string, { help: string }>;
+          };
+        }
+      ).settings;
+      expect(catalog.errors["setting_not_enforced"]).toMatch(/\S/);
+      for (const field of ["mfaPolicy", "sessionHours", "idleTimeout"] as const) {
+        expect(catalog.fields[field]?.help).toMatch(/XOS/);
+      }
+    }
   });
 });
 

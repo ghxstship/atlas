@@ -245,7 +245,7 @@
   display: grid;
   grid-template-columns:
     var(--space-20) calc(var(--space-64) + var(--space-8)) minmax(0, 1fr) auto
-    calc(var(--space-48) * 2) var(--density-control-md) calc(var(--space-40) * 3);
+    calc(var(--space-40) * 4 + var(--space-16)) var(--density-control-md) calc(var(--space-40) * 3);
   align-items: center;
   gap: var(--space-8);
   min-block-size: var(--density-row-default);

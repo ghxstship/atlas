@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { access, operationalEngagements, todayBlocks } from "../../src/domain/access";
-import { isMine } from "../../src/domain/shifts";
+import { currentShift, isMine } from "../../src/domain/shifts";
 import {
   formatElapsed,
   needsPreciseFix,
@@ -58,7 +58,21 @@ const REFUSAL_KEY: Readonly<Record<PunchRefusal, string>> = {
   "not-rostered": "compass.clock.refusal.notRostered",
 };
 
-function ClockCard(): ReactElement {
+/** The shift being worked as the On Shift card names it: role, times and place. */
+interface WorkingShift {
+  readonly title: string;
+  readonly time: string;
+  readonly place: string;
+}
+
+function ClockCard({
+  current,
+  onState,
+}: {
+  readonly current: WorkingShift | null;
+  /** Tells Today the clock state, so the worked shift's card can read On Shift. */
+  readonly onState: (state: "out" | "on" | "break") => void;
+}): ReactElement {
   const { t, i18n } = useTranslation();
   const theme = useTheme();
   const { settings, status, resolved, projectId, enqueue, engine, orgSettings } = useCompass();
@@ -75,7 +89,10 @@ function ClockCard(): ReactElement {
     }, []),
   );
   const clock = useClock(needsPreciseFix(open, clockedOut ? "out" : "on", punching));
-  useEffect(() => setClockedOut(clock.snapshot.state === "out"), [clock.snapshot.state]);
+  useEffect(() => {
+    setClockedOut(clock.snapshot.state === "out");
+    onState(clock.snapshot.state);
+  }, [clock.snapshot.state, onState]);
   // The iOS Live Activity mirrors this clock on the lock screen and in the Dynamic Island (SIM-005); punches
   // made there arrive through the drain into the same outbox.
   const projectName = resolved?.projects.find((p) => p.id === projectId)?.name ?? "";
@@ -150,14 +167,9 @@ function ClockCard(): ReactElement {
           label={label}
           elapsed={formatElapsed(workedMs(clock.snapshot, clock.now))}
           place={geofenceText}
-          nextShift={clock.shift?.job_title ?? t("compass.clock.live.shift")}
-          nextTime={
-            clock.shift
-              ? t("compass.clock.live.ends", {
-                  time: formatTime(clock.shift.ends_at, clock.shift.time_zone),
-                })
-              : ""
-          }
+          nextShift={current?.title ?? ""}
+          nextTime={current?.time ?? ""}
+          {...(current ? { nextPlace: current.place } : {})}
           onBreak={clock.snapshot.state === "break"}
           labels={{
             break: t("compass.clock.startBreak"),
@@ -258,6 +270,7 @@ export default function TodayScreen(): ReactElement {
   const router = useRouter();
   const { resolved, projectId, refresh } = useCompass();
   const [refreshing, setRefreshing] = useState(false);
+  const [clockState, setClockState] = useState<"out" | "on" | "break">("out");
   const identity = resolved?.identity;
   const { rows: shifts } = useRows<ShiftRow>("shifts", (s) => s.project_id === projectId);
   const { rows: sheets } = useRows<Row & { project_id: string; day: string; body: string }>(
@@ -280,6 +293,19 @@ export default function TodayScreen(): ReactElement {
     .filter((s) => isMine(s, me) && Date.parse(s.ends_at) >= Date.now())
     .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
   const sheet = sheets.find((s) => s.day === today);
+  // The shift being worked: named on the On Shift card, and read On Shift (not Waiting for you) below.
+  const working = currentShift(upcoming, Date.now());
+  const workingCard = working
+    ? {
+        title: roleTitle(working),
+        time: t("compass.schedule.timeRange", {
+          start: formatTime(working.starts_at, working.time_zone),
+          end: formatTime(working.ends_at, working.time_zone),
+        }),
+        place: t("compass.schedule.noPlace"),
+      }
+    : null;
+  const onShiftNow = clockState !== "out";
   const blocks = todayBlocks(identity.audience).map((b) => b.id);
   return (
     <Screen
@@ -293,18 +319,26 @@ export default function TodayScreen(): ReactElement {
     >
       <ProjectPicker />
       <SyncBanner />
-      {canClock && projectId ? <ClockCard /> : null}
+      {canClock && projectId ? <ClockCard current={workingCard} onState={setClockState} /> : null}
       {blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
         upcoming.length > 0 ? (
           upcoming.slice(0, 3).map((s) => (
             <ShiftCard
               key={s.id}
               testID={`shift-${s.id}`}
-              state={s.shift_state === "Accepted" ? "active" : "scheduled"}
+              state={
+                s.shift_state === "Accepted" || (onShiftNow && s.id === working?.id)
+                  ? "active"
+                  : "scheduled"
+              }
               stateLabel={t(
-                s.shift_state === "Accepted"
-                  ? "compass.schedule.accepted"
-                  : "compass.schedule.published",
+                onShiftNow && s.id === working?.id
+                  ? clockState === "break"
+                    ? "compass.clock.onBreak"
+                    : "compass.clock.onShift"
+                  : s.shift_state === "Accepted"
+                    ? "compass.schedule.accepted"
+                    : "compass.schedule.published",
               )}
               role={roleTitle(s)}
               date={formatDay(s.starts_at, s.time_zone)}

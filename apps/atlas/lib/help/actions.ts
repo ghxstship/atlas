@@ -14,6 +14,8 @@ import { myMembershipId } from "@xos/data/views";
 import { uploadSupportScreenshot } from "@xos/data/workflow";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { docsUrl } from "@/lib/docs-site";
+import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
 import { getShellSettings, type OrgSupport } from "@/lib/shell/org-settings";
 import { platformChannel } from "@/lib/support/terms";
@@ -61,6 +63,8 @@ export interface HelpPanelState {
   readonly platformChannel: SupportChannel | null;
   /** The org's own support contacts (help.support_email, help.support_hours, help.custom_link). */
   readonly orgSupport: OrgSupport | null;
+  /** The docs site origin (DOCS_SITE_URL), for help center links; null when unset. */
+  readonly docsUrl: string | null;
 }
 
 /** The person's tours, dismissed tips and support options in this org. */
@@ -85,6 +89,7 @@ export async function loadHelpStateAction(orgSlug: string): Promise<HelpResult<H
       canContactPlatform,
       platformChannel: platformChannel(subscription?.ok ? subscription.data.planCode : null),
       orgSupport: settings.support,
+      docsUrl: docsUrl(env()),
     },
   };
 }

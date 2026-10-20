@@ -47,6 +47,7 @@ import {
   TemplateRecord,
 } from "@/components/opportunities/ui";
 import { EmptyStateLink } from "@/components/ui";
+import { SharedWorkDetailsSection } from "@/components/work-details/shared-work-details";
 import {
   deliverableIcon,
   documentIcon,
@@ -448,6 +449,9 @@ async function EngagementRecord({ page, e }: { page: PageSetup; e: EngagementCar
           canVerify={canVerify}
         />
       </Section>
+      {e.personId ? (
+        <SharedWorkDetailsSection ctx={ctx} engagementId={e.id} partyName={e.partyName} />
+      ) : null}
       <Section id="engagement-documents" title={t("engagements.documents")}>
         {must(documents, "documents").length === 0 ? (
           <Muted>{t("engagements.noDocuments")}</Muted>

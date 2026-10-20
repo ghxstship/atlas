@@ -12,6 +12,10 @@ Las páginas **Yo** le pertenecen a usted, no a su organización.
 
 Elija qué muestra su perfil y a quién. Puede ocultar sus tarifas, mostrar su perfil solo a colaboradores anteriores o compartirlo completo con una organización al postularse.
 
+## Inicio de sesión
+
+Inicie sesión con un enlace enviado a su correo, con **Continuar con Google** o con una contraseña. Google usa la cuenta que usted elija en la pantalla de Google. Si su correo es el de su cuenta, entra a esa cuenta, con todas sus organizaciones; una cuenta de Google con otro correo crea una cuenta nueva. Compass funciona igual. En un teléfono compartido, cierre la sesión de Compass para que la próxima vez le pregunte qué cuenta de Google usar.
+
 ## Seguridad
 
 Administre sus métodos de inicio de sesión, llaves de acceso y sesiones.

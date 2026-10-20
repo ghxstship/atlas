@@ -2,7 +2,9 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { EmptyStateLink, Tag } from "@/components/ui";
+import { closedArea, tabHref } from "@/lib/engagement";
 import type { Tone } from "@/lib/states";
+import type { TabProps } from "./tab-context";
 
 /**
  * Engagement tab building blocks. Every list row answers "what now" (Section 11.10, rule 4): its
@@ -69,4 +71,24 @@ export function TabEmpty({
   href: string;
 }) {
   return <EmptyStateLink icon={icon} sentence={sentence} actionLabel={actionLabel} href={href} />;
+}
+
+/**
+ * A time-boxed section that is not open (Section 8.7): before Active it names the way there; after
+ * Complete or Canceled it says the section has closed and links to what stays open.
+ */
+export function AreaClosed({
+  view,
+  t,
+  engagementKey,
+}: Pick<TabProps, "view" | "t" | "engagementKey">) {
+  const closed = closedArea(view.engagement.state, view.tabs);
+  return (
+    <TabEmpty
+      icon="Lock"
+      sentence={t(closed.sentence)}
+      actionLabel={t(closed.action)}
+      href={tabHref(engagementKey, closed.tab)}
+    />
+  );
 }

@@ -63,14 +63,18 @@ export function RecordRow({
       <span role="gridcell" className="flex gap-4">
         {chips}
       </span>
+      {/* The next date has a column wide enough for a date and time; a longer translation ellipsizes
+          with the full text as its title instead of running under the owner (A59-008). */}
       <span
         role="gridcell"
-        className="flex items-center gap-4 text-text-12 text-text-secondary tabular-nums whitespace-nowrap"
+        className="flex items-center gap-4 min-w-0 text-text-12 text-text-secondary tabular-nums whitespace-nowrap"
       >
         {next ? (
           <>
             <Icon name="Calendar" size={14} />
-            {next}
+            <span className="truncate" title={next}>
+              {next}
+            </span>
           </>
         ) : null}
       </span>

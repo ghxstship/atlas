@@ -76,6 +76,25 @@ describe("AppShell", () => {
     render(<AppShell sidebar={sidebar}>Body</AppShell>);
     expect(screen.getByText("Body")).toBeTruthy();
   });
+
+  it("opens the drawer from the shell's own state, for the bottom bar's Menu (A59-001)", async () => {
+    const onMenuOpenChange = vi.fn();
+    const { rerender } = render(
+      <AppShell sidebar={sidebar} menuOpen={false} onMenuOpenChange={onMenuOpenChange}>
+        Body
+      </AppShell>,
+    );
+    const menu = screen.getByRole("button", { name: "Open navigation" });
+    expect(menu.getAttribute("aria-expanded")).toBe("false");
+    rerender(
+      <AppShell sidebar={sidebar} menuOpen onMenuOpenChange={onMenuOpenChange}>
+        Body
+      </AppShell>,
+    );
+    expect(menu.getAttribute("aria-expanded")).toBe("true");
+    await userEvent.click(screen.getByRole("button", { name: "Close" }));
+    expect(onMenuOpenChange).toHaveBeenLastCalledWith(false);
+  });
 });
 
 describe("ResizablePanel and ScrollRegion", () => {
@@ -140,6 +159,28 @@ describe("ResizablePanel and ScrollRegion", () => {
     width.mockReturnValue(300);
     render(<ScrollRegion label="Narrow">x</ScrollRegion>);
     expect(screen.getByRole("region", { name: "Narrow" }).hasAttribute("tabindex")).toBe(false);
+    width.mockRestore();
+    client.mockRestore();
+  });
+
+  it("fades the edge where content is cut off, and both once scrolled (A59-012)", () => {
+    const width = vi.spyOn(HTMLElement.prototype, "scrollWidth", "get").mockReturnValue(900);
+    const client = vi.spyOn(HTMLElement.prototype, "clientWidth", "get").mockReturnValue(300);
+    const { container } = render(<ScrollRegion label="Expenses">wide</ScrollRegion>);
+    expect(container.querySelector("[data-scroll-edge='end']")).toBeTruthy();
+    expect(container.querySelector("[data-scroll-edge='start']")).toBeNull();
+    const region = screen.getByRole("region", { name: "Expenses" });
+    act(() => {
+      region.scrollLeft = 200;
+      region.dispatchEvent(new Event("scroll"));
+    });
+    expect(container.querySelector("[data-scroll-edge='start']")).toBeTruthy();
+    expect(container.querySelector("[data-scroll-edge='end']")).toBeTruthy();
+    act(() => {
+      region.scrollLeft = 600;
+      region.dispatchEvent(new Event("scroll"));
+    });
+    expect(container.querySelector("[data-scroll-edge='end']")).toBeNull();
     width.mockRestore();
     client.mockRestore();
   });

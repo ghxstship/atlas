@@ -139,3 +139,47 @@ export function startsIn(startsAt: string, nowMs: number): string | null {
   const m = minutes % 60;
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
+
+const DAY_MS = 24 * 3600_000;
+
+/** A countdown as a message: its catalog key and arguments. */
+export interface Countdown {
+  readonly key: string;
+  readonly values: Readonly<Record<string, string>>;
+}
+
+/**
+ * The shift card's countdown (finding A59-028): hours and minutes within a day of the call time,
+ * whole days beyond it ("Starts in 145 days", never "Starts in 3492h 5m"), nothing once it started.
+ */
+export function shiftCountdown(startsAt: string, nowMs: number): Countdown | null {
+  const ms = Date.parse(startsAt) - nowMs;
+  if (!(ms > 0)) return null;
+  if (ms <= DAY_MS) {
+    return { key: "compass.schedule.startsIn", values: { time: startsIn(startsAt, nowMs) ?? "" } };
+  }
+  const days = Math.round(ms / DAY_MS);
+  return {
+    key: days === 1 ? "compass.schedule.startsInDaysOne" : "compass.schedule.startsInDaysOther",
+    values: { count: String(days) },
+  };
+}
+
+/**
+ * The shift being worked now (finding A59-022): one of mine whose window, opened two hours before
+ * the call time as Clock In allows, includes now. Any state but Canceled counts, so a shift clocked
+ * into before it was accepted still shows on the On Shift card; the soonest start wins.
+ */
+export function currentShift<T extends ShiftRow>(shifts: readonly T[], nowMs: number): T | null {
+  return (
+    [...shifts]
+      .filter(
+        (s) =>
+          s.shift_state !== "Canceled" &&
+          s.shift_state !== "Draft" &&
+          Date.parse(s.starts_at) - 2 * 3600_000 <= nowMs &&
+          Date.parse(s.ends_at) >= nowMs,
+      )
+      .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at))[0] ?? null
+  );
+}

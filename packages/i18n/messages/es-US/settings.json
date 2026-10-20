@@ -1,10 +1,16 @@
 {
   "choose": "Elige una opción",
-  "lock": "Bloquear este valor para que espacios de trabajo, proyectos y personas no puedan cambiarlo",
+  "lock": "Los espacios de trabajo, proyectos y personas no pueden cambiar un valor bloqueado.",
   "save": "Guardar",
   "saved": "Guardado.",
   "inherit": "Usar el valor heredado",
   "reset": "Restablecer al valor de la plataforma",
+  "undoReset": "Mantener este valor",
+  "resetPending": "Vuelve al valor de la plataforma cuando guardes.",
+  "inheritPending": "Usa el valor heredado cuando guardes.",
+  "lockValue": "Bloquear valor",
+  "discard": "Descartar",
+  "unsaved": "{count, plural, one {# cambio sin guardar} other {# cambios sin guardar}}",
   "loadFailed": "No se pudieron cargar estos ajustes. Recarga la página para intentarlo de nuevo.",
   "registryHeading": "Ajustes de esta página",
   "personalSections": "Secciones de ajustes personales",
@@ -64,7 +70,8 @@
     "hostname": "Escribe un nombre de host como gateway.example.com, sin https://.",
     "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
     "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
-    "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan."
+    "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
+    "setting_not_enforced": "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie."
   },
   "fields": {
     "legalName": {
@@ -93,15 +100,15 @@
     },
     "mfaPolicy": {
       "label": "Autenticación multifactor",
-      "help": "Quién debe usar un segundo factor para iniciar sesión."
+      "help": "Quién debe usar un segundo factor para iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en Opcional."
     },
     "sessionHours": {
       "label": "Duración de la sesión en horas",
-      "help": "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas."
+      "help": "Cuánto dura un inicio de sesión antes de volver a iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en 336 horas."
     },
     "idleTimeout": {
       "label": "Tiempo de inactividad en minutos",
-      "help": "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440."
+      "help": "Cerrar la sesión tras estos minutos sin actividad. Aún no disponible: XOS no lo aplica, así que sigue en 60 minutos."
     },
     "ipAllowlist": {
       "label": "Aplicar la lista de IP permitidas",
@@ -376,6 +383,7 @@
     "assetCurrent": "Archivo actual: {name}",
     "assetNone": "Aún no hay archivo. Se usa la marca de la plataforma.",
     "assetHelp": "PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
+    "assetScanning": "Se está revisando en busca de virus. Reemplaza la marca actual cuando pase la revisión.",
     "upload": "Subir"
   },
   "domains": {

@@ -392,6 +392,7 @@ __all__ = [
     "BudgetLine",
     "LineType",
     "ItemId",
+    "GlAccountCode",
     "BudgetLineCreate",
     "BudgetLineUpdate",
     "ExpensePage",
@@ -421,7 +422,6 @@ __all__ = [
     "JournalEntryUpdate",
     "JournalLinePage",
     "JournalLine",
-    "GlAccountCode",
     "JournalLineCreate",
     "JournalLineUpdate",
     "PostingLinePage",
@@ -1188,6 +1188,12 @@ __all__ = [
     "TemplateApplicationPage",
     "TemplateApplication",
     "TemplateApplicationCreate",
+    "ProjectAuthorityPage",
+    "ProjectAuthority",
+    "CueCallPage",
+    "CueCall",
+    "CueCallCreate",
+    "CueCallUpdate",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
@@ -1203,6 +1209,9 @@ __all__ = [
     "RequiredAdditionalInsured",
     "RequiredAdditionalInsuredCreate",
     "RequiredAdditionalInsuredUpdate",
+    "CanonStdEmergencyProtocolPage",
+    "CanonStdEmergencyProtocol",
+    "CanonEmergencyProtocolStep",
     "ReportScheduleRecipientPage",
     "ReportScheduleRecipient",
     "ReportScheduleRecipientCreate",
@@ -1232,6 +1241,40 @@ __all__ = [
     "AiRequestOutcome",
     "AiUsagePage",
     "AiUsage",
+    "WorkDetailsPage",
+    "WorkDetails",
+    "GarmentLetterSize",
+    "DietaryNeed",
+    "AccessibilityNeed",
+    "SeatPreference",
+    "WorkDetailsCreate",
+    "WorkDetailsUpdate",
+    "PassportReveal",
+    "EmergencyContactPage",
+    "EmergencyContact",
+    "EmergencyContactCreate",
+    "EmergencyContactUpdate",
+    "LoyaltyProgramPage",
+    "LoyaltyProgram",
+    "LoyaltyProgramKind",
+    "LoyaltyProgramCreate",
+    "LoyaltyProgramUpdate",
+    "WorkDetailSharePage",
+    "WorkDetailShare",
+    "WorkDetailCategory",
+    "WorkDetailShareCreate",
+    "WorkDetailShareUpdate",
+    "SharedWorkDetails",
+    "SharedEmergencyContact",
+    "SharedUniformSizes",
+    "SharedDietaryNeeds",
+    "SharedAccessibilityNeeds",
+    "SharedTravelProfile",
+    "SharedLoyaltyProgram",
+    "SharedPassport",
+    "PassportRevealRequest",
+    "WorkDetailEventPage",
+    "WorkDetailEvent",
     "SavedViewSharePage",
     "SavedViewShare",
     "SavedViewShareCreate",
@@ -1871,6 +1914,8 @@ class ActivityEvent(TypedDict):
     occurred_at: str
     #: Rendered summary key arguments.
     summary: str
+    #: Identifier of the domain event the activity row shows, as webhooks and the outbox name it.
+    domain_event_id: Optional[str]
 
 
 class ScheduleBaselinePage(TypedDict):
@@ -2198,6 +2243,14 @@ class Record(TypedDict):
     #: Identifier of the standard operating procedure that governs the work.
     sop_id: Optional[str]
     team_code: Optional[TeamId]
+    #: Memberships assigned to the record (app.record_assignments), oldest first.
+    assignee_membership_ids: List[str]
+    #: Progress of a task record, as a percentage.
+    progress_pct: Optional[float]
+    #: Permit identifier the authority issued, on a permit record.
+    permit_identifier: Optional[str]
+    #: Identifier of the Inspection Result enumeration row (Standard Library) of an inspection record.
+    inspection_result_enum_id: Optional[str]
 
 
 class _RecordCreateRequired(TypedDict):
@@ -6038,6 +6091,10 @@ class TimeEntry(TypedDict):
     auto_closed_at: Optional[str]
     #: Whether the entry was closed automatically and awaits review.
     needs_review: bool
+    #: Effective time of the entry's first Break Start punch (meal out).
+    meal_out_at: Optional[str]
+    #: Effective time of the entry's last Break End punch (meal in).
+    meal_in_at: Optional[str]
 
 
 class _TimeEntryClockInRequestRequired(TypedDict):
@@ -7586,6 +7643,9 @@ class BudgetLine(TypedDict):
     line_number: int
     phase_code: Optional[PhaseCode]
     tier_code: Optional[TierCode]
+    #: Approved and paid expenses posted to the line (app.budget_line_facts); null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    actual_minor: Optional[int]
+    account_code: Optional[GlAccountCode]
 
 
 class _BudgetLineCreateRequired(TypedDict):
@@ -7816,6 +7876,10 @@ class ChangeOrder(TypedDict):
     schedule_impact_days: Optional[int]
     #: Effect of the change on the client, as stated.
     client_impact: Optional[str]
+    #: When the change order moved to Approved, from its transition ledger.
+    approved_at: Optional[str]
+    #: Identifier of the person who moved the change order to Approved.
+    approved_by: Optional[str]
 
 
 class _ChangeOrderCreateRequired(TypedDict):
@@ -7906,6 +7970,9 @@ class ChangeOrderLine(TypedDict):
     unit_price_minor: Optional[int]
     #: Whether the line is deliberately free of charge.
     is_no_cost: bool
+    account_code: Optional[GlAccountCode]
+    #: Identifier of the cost center (dimension 1) of the budget line the change revises.
+    cost_center_id: Optional[str]
 
 
 class _ChangeOrderLineCreateRequired(TypedDict):
@@ -9112,6 +9179,12 @@ class PurchaseOrder(TypedDict):
     tax_minor: Optional[int]
     #: Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
     shipping_minor: Optional[int]
+    #: When the order moved to Sent (its issue date), from its transition ledger.
+    sent_at: Optional[str]
+    #: Subtotal of the invoices matched to the order; null when none is matched or one is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    invoiced_minor: Optional[int]
+    #: Payments applied to the invoices matched to the order; null when none is matched. Integer minor units of the resource currency; null means unpriced, never zero.
+    paid_minor: Optional[int]
 
 
 class _PurchaseOrderCreateRequired(TypedDict):
@@ -9654,6 +9727,8 @@ class Vendor(TypedDict):
     default_account_code: Optional[GlAccountCode]
     #: Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
     default_cost_center_id: Optional[str]
+    #: Last four digits of the vendor's most recent bank account; null when none is on file.
+    bank_account_last4: Optional[str]
 
 
 class _VendorCreateRequired(TypedDict):
@@ -10465,6 +10540,8 @@ class Incident(TypedDict):
     accuracy_m: Optional[float]
     #: When the reporter filed it on the device, for a report queued offline.
     device_reported_at: Optional[str]
+    #: When the incident moved to Closed, from its transition ledger.
+    closed_at: Optional[str]
 
 
 class _IncidentCreateRequired(TypedDict):
@@ -11720,6 +11797,8 @@ class Engagement(TypedDict):
     start_date: str
     #: Last day of the engagement; defaults to the offer's or the opportunity's.
     end_date: Optional[str]
+    #: Identifier of the counterparty (vendor) the holder is engaged through; null when direct.
+    counterparty_id: Optional[str]
 
 
 class _EngagementCreateRequired(TypedDict):
@@ -12890,6 +12969,12 @@ class CanonDepartment(TypedDict):
     source: str
     #: Note from the Bible.
     note: Optional[str]
+    #: Executive lead of the department.
+    executive_lead: Optional[str]
+    #: Core function of the department.
+    core_function: Optional[str]
+    #: Scope of the department.
+    scope: Optional[str]
 
 
 class CanonDisciplinePage(TypedDict):
@@ -12930,6 +13015,7 @@ class CanonCategory(TypedDict):
     category: str
     #: Canon source of the row.
     source: str
+    xyz: Optional[Xyz]
 
 
 class CanonActPage(TypedDict):
@@ -13472,6 +13558,13 @@ class CanonCounterpartyType(TypedDict):
     counterparty_type: CounterpartyType
     #: Definition, in sentence case.
     definition: str
+    #: Classification code.
+    classification_code: Optional[str]
+    #: Vendor class.
+    vendor_class: Optional[str]
+    #: Clearance tier.
+    clearance_tier: Optional[str]
+    default_account_code: Optional[GlAccountCode]
 
 
 class CanonGlAccountPage(TypedDict):
@@ -13494,6 +13587,8 @@ class CanonGlAccount(TypedDict):
     tax_type: TaxType
     #: Account description.
     description: str
+    #: Normal balance of the account's type: Debit or Credit.
+    normal_balance: Optional[Literal["Debit", "Credit"]]
 
 
 class CanonCostCenterTemplatePage(TypedDict):
@@ -13534,6 +13629,7 @@ class CanonCategoryGl(TypedDict):
     cat_urid: Urid
     #: Default cost center (dimension 1) of the category.
     default_cost_center: str
+    account_code: Optional[GlAccountCode]
 
 
 class CanonUnitAliasPage(TypedDict):
@@ -13658,6 +13754,11 @@ class CanonElement(TypedDict):
     unspsc: Optional[str]
     #: Lifecycle state from the shared vocabulary.
     lifecycle_state: str
+    purchase_account: Optional[GlAccountCode]
+    #: Default cost center (dimension 1) of the element.
+    default_cost_center: Optional[str]
+    #: External reference of the element.
+    external_ref: Optional[str]
 
 
 class ElementResolution(TypedDict):
@@ -13852,6 +13953,14 @@ class StdDocument(TypedDict):
     status: Optional[str]
     #: Notes in the sheet.
     notes: Optional[str]
+    #: Organization as the sheet names it.
+    organization: Optional[str]
+    #: Project as the sheet names it.
+    project: Optional[str]
+    #: File size as the sheet gives it.
+    file_size: Optional[str]
+    #: Where the file is stored, as the sheet gives it.
+    storage_url: Optional[str]
 
 
 class StdEmergencyCodePage(TypedDict):
@@ -14080,6 +14189,10 @@ class StdSop(TypedDict):
     status: Optional[str]
     #: Notes in the sheet.
     notes: Optional[str]
+    #: Organization as the sheet names it.
+    organization: Optional[str]
+    #: Project as the sheet names it.
+    project: Optional[str]
 
 
 class StdVendorClassPage(TypedDict):
@@ -14422,6 +14535,10 @@ class Person(TypedDict):
     updated_at: str
     #: Legal or full name.
     full_name: Optional[str]
+    #: Optional given name, as the person writes it.
+    given_name: Optional[str]
+    #: Optional family name, as the person writes it.
+    family_name: Optional[str]
 
 
 class PersonUpdate(TypedDict, total=False):
@@ -14429,6 +14546,10 @@ class PersonUpdate(TypedDict, total=False):
 
     #: Legal or full name.
     full_name: Optional[str]
+    #: Optional given name, as the person writes it.
+    given_name: Optional[str]
+    #: Optional family name, as the person writes it.
+    family_name: Optional[str]
 
 
 class OrganizationPage(TypedDict):
@@ -15165,6 +15286,8 @@ class PersonProfile(TypedDict):
     handle: str
     #: When the handle last changed; null until the first change. Set by the database.
     handle_changed_at: Optional[str]
+    #: Name the person goes by.
+    preferred_name: Optional[str]
 
 
 class _PersonProfileCreateRequired(TypedDict):
@@ -15208,6 +15331,8 @@ class PersonProfileUpdate(TypedDict, total=False):
     search_indexing: bool
     #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
     handle: str
+    #: Name the person goes by.
+    preferred_name: Optional[str]
 
 
 class OrganizationProfilePage(TypedDict):
@@ -15239,6 +15364,10 @@ class OrganizationProfile(TypedDict):
     handle: str
     #: When the handle last changed; null until the first change. Set by the database.
     handle_changed_at: Optional[str]
+    #: Website of the organization; https only.
+    website_url: Optional[str]
+    #: Contact email of the organization, stored in lowercase.
+    contact_email: Optional[str]
 
 
 class _OrganizationProfileCreateRequired(TypedDict):
@@ -15266,6 +15395,10 @@ class OrganizationProfileUpdate(TypedDict, total=False):
     search_indexing: bool
     #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
     handle: str
+    #: Website of the organization; https only.
+    website_url: Optional[str]
+    #: Contact email of the organization, stored in lowercase.
+    contact_email: Optional[str]
 
 
 class ProfileVisibilityRulePage(TypedDict):
@@ -19387,6 +19520,80 @@ class TemplateApplicationCreate(_TemplateApplicationCreateRequired, total=False)
     venue_id: str
 
 
+class ProjectAuthorityPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectAuthority]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectAuthority(TypedDict):
+    """An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Responder service the agency provides.
+    service: str
+    #: Agency having jurisdiction.
+    agency: str
+    #: How to reach the agency.
+    contact: Optional[str]
+
+
+class CueCallPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[CueCall]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class CueCall(TypedDict):
+    """A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department."""
+
+    #: Identifier of the cue call.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the cue the call belongs to.
+    cue_id: str
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class CueCallCreate(TypedDict):
+    """Fields accepted when creating a CueCall."""
+
+    #: Identifier of the cue the call belongs to.
+    cue_id: str
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class CueCallUpdate(TypedDict, total=False):
+    """Fields accepted when updating a CueCall. Omitted fields are unchanged."""
+
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
 class GuestListEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -19614,6 +19821,43 @@ class RequiredAdditionalInsuredUpdate(TypedDict, total=False):
     insured_name: str
     #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
     endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class CanonStdEmergencyProtocolPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[CanonStdEmergencyProtocol]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class CanonStdEmergencyProtocol(TypedDict):
+    """An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps."""
+
+    #: Record identifier of the protocol.
+    record_key: str
+    #: Radio code the protocol answers (xpms.emergency_code).
+    code: str
+    #: Operational domain the protocol applies to.
+    domain: str
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category as the sheet names it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: The protocol's steps (xpms.emergency_protocol_step), in order.
+    steps: List[CanonEmergencyProtocolStep]
+
+
+class CanonEmergencyProtocolStep(TypedDict):
+    """One numbered step of an emergency protocol."""
+
+    #: Step number, from 1.
+    step_no: int
+    #: What to do; responder services appear as tokens such as {fire} (ruling D15).
+    body: str
 
 
 class ReportScheduleRecipientPage(TypedDict):
@@ -20009,6 +20253,486 @@ class AiUsage(TypedDict):
     input_tokens: Optional[int]
     #: Output tokens the model reported.
     output_tokens: Optional[int]
+
+
+class WorkDetailsPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkDetails]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkDetails(TypedDict):
+    """The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."""
+
+    #: Identifier of the work details.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person the work details belong to; always the caller.
+    person_id: str
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size as the person writes it.
+    pants_size: Optional[str]
+    #: Shoe size with its system.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size as the person writes it.
+    hat_size: Optional[str]
+    #: Anything else about fit.
+    uniform_notes: Optional[str]
+    #: Dietary needs, each once, in enum order.
+    dietary_needs: List[DietaryNeed]
+    #: Allergies in the person's words, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    #: Accessibility needs, each once, in enum order.
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility needs in the person's words.
+    accessibility_notes: Optional[str]
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    passport_number: Optional[Union[str, Masked]]
+    #: Last four characters of the passport number.
+    passport_number_last4: Optional[str]
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name exactly as printed in the passport.
+    passport_name: Optional[str]
+
+
+class WorkDetailsCreate(TypedDict, total=False):
+    """Fields accepted when creating a WorkDetails."""
+
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size as the person writes it.
+    pants_size: Optional[str]
+    #: Shoe size with its system.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size as the person writes it.
+    hat_size: Optional[str]
+    #: Anything else about fit.
+    uniform_notes: Optional[str]
+    #: Dietary needs, each once, in enum order.
+    dietary_needs: List[DietaryNeed]
+    #: Allergies in the person's words, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    #: Accessibility needs, each once, in enum order.
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility needs in the person's words.
+    accessibility_notes: Optional[str]
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    #: Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+    passport_number: Optional[str]
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name exactly as printed in the passport.
+    passport_name: Optional[str]
+
+
+class WorkDetailsUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WorkDetails. Omitted fields are unchanged."""
+
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size as the person writes it.
+    pants_size: Optional[str]
+    #: Shoe size with its system.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size as the person writes it.
+    hat_size: Optional[str]
+    #: Anything else about fit.
+    uniform_notes: Optional[str]
+    #: Dietary needs, each once, in enum order.
+    dietary_needs: List[DietaryNeed]
+    #: Allergies in the person's words, with how severe.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+    #: Accessibility needs, each once, in enum order.
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility needs in the person's words.
+    accessibility_notes: Optional[str]
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    #: Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+    passport_number: Optional[str]
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name exactly as printed in the passport.
+    passport_name: Optional[str]
+
+
+class PassportReveal(TypedDict):
+    """A revealed passport number. Each reveal is written to the person's access log."""
+
+    #: The passport number in plain text.
+    passport_number: str
+
+
+class EmergencyContactPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EmergencyContact]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EmergencyContact(TypedDict):
+    """One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category."""
+
+    #: Identifier of the emergency contact.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person the contact belongs to; always the caller.
+    person_id: str
+    #: Contact's name.
+    full_name: str
+    #: How the contact relates to the person.
+    relationship: Optional[str]
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Contact's email address.
+    email: Optional[str]
+    #: Order to call in, lowest first.
+    sort_order: int
+
+
+class _EmergencyContactCreateRequired(TypedDict):
+    #: Contact's name.
+    full_name: str
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+
+
+class EmergencyContactCreate(_EmergencyContactCreateRequired, total=False):
+    """Fields accepted when creating a EmergencyContact."""
+
+    #: How the contact relates to the person.
+    relationship: Optional[str]
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Contact's email address.
+    email: Optional[str]
+    #: Order to call in, lowest first.
+    sort_order: int
+
+
+class EmergencyContactUpdate(TypedDict, total=False):
+    """Fields accepted when updating a EmergencyContact. Omitted fields are unchanged."""
+
+    #: Contact's name.
+    full_name: str
+    #: How the contact relates to the person.
+    relationship: Optional[str]
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Contact's email address.
+    email: Optional[str]
+    #: Order to call in, lowest first.
+    sort_order: int
+
+
+class LoyaltyProgramPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[LoyaltyProgram]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class LoyaltyProgram(TypedDict):
+    """A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category."""
+
+    #: Identifier of the loyalty program.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person the program belongs to; always the caller.
+    person_id: str
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+    #: Display order.
+    sort_order: int
+
+
+class _LoyaltyProgramCreateRequired(TypedDict):
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+
+
+class LoyaltyProgramCreate(_LoyaltyProgramCreateRequired, total=False):
+    """Fields accepted when creating a LoyaltyProgram."""
+
+    #: Display order.
+    sort_order: int
+
+
+class LoyaltyProgramUpdate(TypedDict, total=False):
+    """Fields accepted when updating a LoyaltyProgram. Omitted fields are unchanged."""
+
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+    #: Display order.
+    sort_order: int
+
+
+class WorkDetailSharePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkDetailShare]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkDetailShare(TypedDict):
+    """The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."""
+
+    #: Identifier of the work detail share.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the engagement the share serves; the caller must be its person.
+    engagement_id: str
+    #: Identifier of the person sharing.
+    person_id: str
+    #: Identifier of the work_details_sharing consent record for the org.
+    consent_record_id: str
+    #: Categories shared.
+    categories: List[WorkDetailCategory]
+    #: When the share was given.
+    shared_at: str
+    #: When the person revoked it; null while it stands.
+    revoked_at: Optional[str]
+
+
+class WorkDetailShareCreate(TypedDict):
+    """Fields accepted when creating a WorkDetailShare."""
+
+    #: Identifier of the engagement the share serves; the caller must be its person.
+    engagement_id: str
+    #: Categories shared.
+    categories: List[WorkDetailCategory]
+
+
+class WorkDetailShareUpdate(TypedDict, total=False):
+    """Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged."""
+
+    #: Categories shared.
+    categories: List[WorkDetailCategory]
+
+
+class SharedWorkDetails(TypedDict):
+    """What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked."""
+
+    #: Engagement.
+    engagement_id: str
+    #: Person the engagement names.
+    person_id: Optional[str]
+    #: Engaging org.
+    org_id: str
+    #: Live share; null when none stands.
+    work_detail_share_id: Optional[str]
+    #: When the share was given.
+    shared_at: Optional[str]
+    #: The engagement is Onboarding to Closing; a closed engagement reads nothing.
+    sharing_open: bool
+    #: Categories the person shared.
+    categories: List[WorkDetailCategory]
+    #: Shared categories the caller's project capabilities cover; the others come back null.
+    readable: List[WorkDetailCategory]
+    emergency_contacts: Optional[List[SharedEmergencyContact]]
+    uniform: Optional[SharedUniformSizes]
+    dietary: Optional[SharedDietaryNeeds]
+    accessibility: Optional[SharedAccessibilityNeeds]
+    travel: Optional[SharedTravelProfile]
+    passport: Optional[SharedPassport]
+
+
+class SharedEmergencyContact(TypedDict):
+    """An emergency contact as an engaging org reads it."""
+
+    #: Contact's name.
+    full_name: str
+    #: Relationship.
+    relationship: Optional[str]
+    #: Contact's phone. E.164 format.
+    phone_e164: str
+    #: A second phone. E.164 format.
+    alternate_phone_e164: Optional[str]
+    #: Email address.
+    email: Optional[str]
+    #: Calling order.
+    sort_order: int
+
+
+class SharedUniformSizes(TypedDict):
+    """Uniform sizes as an engaging org reads them."""
+
+    shirt_size: Optional[GarmentLetterSize]
+    jacket_size: Optional[GarmentLetterSize]
+    #: Pants size.
+    pants_size: Optional[str]
+    #: Shoe size.
+    shoe_size: Optional[str]
+    glove_size: Optional[GarmentLetterSize]
+    #: Hat size.
+    hat_size: Optional[str]
+    #: Fit notes.
+    uniform_notes: Optional[str]
+
+
+class SharedDietaryNeeds(TypedDict):
+    """Dietary needs as an engaging org reads them."""
+
+    dietary_needs: List[DietaryNeed]
+    #: Allergies.
+    allergies: Optional[str]
+    #: Other dietary notes.
+    dietary_notes: Optional[str]
+
+
+class SharedAccessibilityNeeds(TypedDict):
+    """Accessibility needs as an engaging org reads them."""
+
+    accessibility_needs: List[AccessibilityNeed]
+    #: Accessibility notes.
+    accessibility_notes: Optional[str]
+
+
+class SharedTravelProfile(TypedDict):
+    """The travel profile as an engaging org reads it."""
+
+    seat_preference: Optional[SeatPreference]
+    #: Preferred in-flight meal.
+    meal_preference: Optional[str]
+    #: IATA airport code.
+    home_airport: Optional[str]
+    loyalty_programs: List[SharedLoyaltyProgram]
+
+
+class SharedLoyaltyProgram(TypedDict):
+    """A loyalty program as an engaging org reads it."""
+
+    program_kind: LoyaltyProgramKind
+    #: Program.
+    program_name: str
+    #: Membership number.
+    member_number: str
+
+
+class SharedPassport(TypedDict):
+    """Passport details as an engaging org reads them, the number masked."""
+
+    #: Always null: the number is masked; reveal it through revealPassport.
+    passport_number: None
+    #: Last four characters of the number.
+    passport_number_last4: Optional[str]
+    #: A number is recorded and withheld.
+    passport_number_masked: bool
+    #: Country that issued the passport.
+    passport_issuing_country: Optional[str]
+    #: Day the passport expires.
+    passport_expires_on: Optional[str]
+    #: Name as printed in the passport.
+    passport_name: Optional[str]
+
+
+class PassportRevealRequest(TypedDict):
+    """Request to reveal a shared passport number."""
+
+    #: Why the number is needed, 10 to 500 characters. Logged with the reveal.
+    reason: str
+
+
+class WorkDetailEventPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[WorkDetailEvent]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class WorkDetailEvent(TypedDict):
+    """One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org."""
+
+    #: Identifier of the entry.
+    id: str
+    #: Identifier of the person whose work details were touched.
+    person_id: str
+    #: Identifier of the person who acted; null for the database or a service.
+    actor_person_id: Optional[str]
+    #: Identifier of the org whose member acted or whose share changed.
+    org_id: Optional[str]
+    #: Identifier of the engagement of a share, read or reveal.
+    engagement_id: Optional[str]
+    #: What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+    action: str
+    #: Categories the act covered.
+    categories: List[WorkDetailCategory]
+    #: Columns an owner change touched, never their values.
+    changed_columns: List[str]
+    #: Reason an org member gave for revealing the passport number.
+    reason: Optional[str]
+    #: When it happened.
+    created_at: str
 
 
 class SavedViewSharePage(TypedDict):
@@ -23184,11 +23908,11 @@ LineType = str
 #: Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
 ItemId = Optional[str]
 
-#: Accounting period lifecycle. A closed period refuses postings.
-AccountingPeriodState = Literal["Open", "In Period", "Closing", "Closed", "Audited", "Archived"]
-
 #: GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
 GlAccountCode = str
+
+#: Accounting period lifecycle. A closed period refuses postings.
+AccountingPeriodState = Literal["Open", "In Period", "Closing", "Closed", "Audited", "Archived"]
 
 #: Cost center identifier (GL dimension 1).
 CostCenterCode = str
@@ -23282,3 +24006,21 @@ AiSuggestionState = Literal["Proposed", "Confirmed", "Applied", "Rejected", "Exp
 
 #: How a model call ended. No Answer is the silence rule (Section 3.7).
 AiRequestOutcome = Literal["Pending", "Answered", "No Answer", "Failed"]
+
+#: Letter size for a shirt, jacket or gloves.
+GarmentLetterSize = Literal["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"]
+
+#: A dietary need hospitality caters for.
+DietaryNeed = Literal["Vegetarian", "Vegan", "Pescatarian", "Halal", "Kosher", "Gluten Free", "Dairy Free", "Nut Free", "Shellfish Free"]
+
+#: An accessibility need the person asks an engaging org to plan for.
+AccessibilityNeed = Literal["Step-Free Access", "Accessible Parking", "Accessible Restroom", "Seating", "Sign Language Interpreter", "Captioning", "Large Print", "Service Animal", "Quiet Space", "Assistance on Arrival"]
+
+#: Preferred seat when an org books travel.
+SeatPreference = Literal["Window", "Aisle", "No Preference"]
+
+#: Kind of travel loyalty program.
+LoyaltyProgramKind = Literal["Airline", "Hotel", "Car Rental", "Rail"]
+
+#: A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+WorkDetailCategory = Literal["Emergency Contacts", "Uniform Sizes", "Dietary Needs", "Accessibility Needs", "Travel Profile", "Passport"]

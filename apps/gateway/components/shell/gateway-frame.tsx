@@ -27,6 +27,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import { HelpEntry } from "@/components/help/help-entry";
 import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import {
   applyDocumentAttributes,
@@ -75,6 +76,8 @@ export interface GatewayFrameProps {
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
   readonly storedPreferences: string;
+  /** The docs site origin (DOCS_SITE_URL), on the platform brand only; null hides its links. */
+  readonly docsUrl: string | null;
   readonly children: ReactNode;
 }
 
@@ -91,8 +94,9 @@ function activeLabel(links: readonly FrameLink[], pathname: string): string {
 /**
  * The Gateway shell (Section 11.6, Gateway shell; Section 4.5.8): the org or platform brand, the five
  * destinations in the top bar on desktop and the bottom tab bar on phones, search (Cmd or Ctrl+K),
- * help, and the account panel with the avatar menu, the acting account, theme and language. Every
- * destination comes from ia/sitemap.yaml through the server-built navigation model.
+ * help (the Help button, the avatar menu's Help and the `?` key open the contextual help panel,
+ * Section 11.16), and the account panel with the avatar menu, the acting account, theme and
+ * language. Every destination comes from ia/sitemap.yaml through the server-built navigation model.
  */
 export function GatewayFrame(props: GatewayFrameProps) {
   const router = useRouter();
@@ -368,39 +372,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
         </div>
       </Drawer>
 
-      <Dialog
-        open={helpOpen}
-        onOpenChange={setHelpOpen}
-        title={t("gateway.shell.help.title")}
-        description={t("gateway.shell.help.body")}
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => setHelpOpen(false)}>
-              {t("gateway.shell.help.close")}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                setHelpOpen(false);
-                go("/messages");
-              }}
-            >
-              {t("gateway.shell.help.messages")}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-8 text-text-13 text-text-secondary">
-          <p className="m-0">{t("gateway.shell.help.account")}</p>
-          <NextLink
-            href={"/explore/how-ranking-works" as Route}
-            className="text-accent-text underline"
-            onClick={() => setHelpOpen(false)}
-          >
-            {t("gateway.shell.help.ranking")}
-          </NextLink>
-        </div>
-      </Dialog>
+      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} docsUrl={props.docsUrl} />
 
       <Dialog
         open={switchOpen}

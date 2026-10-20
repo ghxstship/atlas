@@ -165,6 +165,8 @@ export {
   ContextMenu,
   OrgSwitcher,
   orgSwitcherTriggerClass,
+  compactChevronClass,
+  compactLabelClass,
   type MenuItem,
   type DropdownMenuProps,
   type ContextMenuProps,

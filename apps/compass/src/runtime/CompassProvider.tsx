@@ -35,6 +35,7 @@ import {
   valuesFromRows,
   type ResolvedValues,
 } from "../domain/settings";
+import { forgetGoogleAccount } from "./google";
 import { fieldMediaUploader } from "./media";
 import {
   createSupabase,
@@ -344,6 +345,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     await client.auth.signOut();
     setResolved(null);
     setSyncSession(null);
+    await forgetGoogleAccount();
   }, [client, store, syncSession]);
 
   const value: CompassContextValue = {

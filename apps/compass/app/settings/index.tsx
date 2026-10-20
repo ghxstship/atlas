@@ -118,6 +118,13 @@ export default function SettingsScreen(): ReactElement {
           onPress={() => void Linking.openURL(`${config.gatewayUrl}/settings`)}
         />
         <ListRow
+          testID="settings-help"
+          icon="circle-help"
+          title={t("compass.help.entry")}
+          subtitle={t("compass.help.entryHelp")}
+          onPress={() => router.push("/help")}
+        />
+        <ListRow
           icon="ban"
           title={t("compass.settings.deleteAccount")}
           subtitle={t("compass.settings.deleteAccountHelp")}

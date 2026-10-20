@@ -2,14 +2,17 @@
  * /api/v1/*: the public API (Section 10.1, ADR 0003). Every method is served by the Hono app from
  * `@xos/api`, which mounts only operations that have handlers; the rest answer 404. Callers
  * authenticate with a Supabase session JWT, the Atlas session cookie or an API key, and every query
- * runs as the caller so RLS decides access. `/api/v1/openapi.json` keeps its own static route.
+ * runs as the caller so RLS decides access. `/api/v1/openapi.json` keeps its own static route. On
+ * the API host (XOS_API_HOST) the same route serves `/v1/*` (lib/api-host.ts).
  *
  * `observe` (ADR 0025) continues the caller's trace, opens a server span, writes one redacted
  * completion record per request and echoes `traceparent` and `x-request-id`. An error the Hono app
  * turns into a 500 problem is reported through `onError`, once, with its request id.
  */
 import { createApiApp, createSupabaseAuthenticator, handlersWithAuroraModel } from "@xos/api";
+import { trustedProxyHops } from "@xos/data/client-address";
 import { observe } from "@xos/infra/observability";
+import { API_HOST_PREFIX } from "@/lib/api-host";
 import { env } from "@/lib/env";
 import { flushErrors, observability } from "@/lib/observability";
 
@@ -41,11 +44,13 @@ async function api(): Promise<ApiApp> {
     const fixture = await handlers;
     app = createApiApp({
       ...(fixture ? { handlers: fixture } : {}),
-      basePath: "/api/v1",
+      // `/v1` is the API host's prefix: the proxy rewrites it here and the path stays as sent.
+      basePath: ["/api/v1", API_HOST_PREFIX],
       authenticate: createSupabaseAuthenticator({
         url: config.SUPABASE_URL,
         anonKey: config.SUPABASE_ANON_KEY,
         siteOrigin: config.ATLAS_SITE_URL,
+        trustedProxyHops: trustedProxyHops(config.XOS_TRUSTED_PROXY_HOPS),
       }),
       onError: (error, requestId) => {
         observability.errors.report(error, {

@@ -83,6 +83,14 @@ export function ShellFrame(props: ShellFrameProps) {
   const [commandOpen, setCommandOpen] = useState(false);
   const command = useOnDemand(commandMenu, commandOpen);
   const [focus, setFocus] = useState(false);
+  // The navigation drawer below lg: the top bar's menu button and the bottom bar's Menu tab both
+  // open it, and moving to another page closes it (A59-001): it is open on the page it opened on.
+  const [menuOpenOn, setMenuOpenOn] = useState<string | null>(null);
+  const menuOpen = menuOpenOn === pathname;
+  const setMenuOpen = useCallback(
+    (open: boolean) => setMenuOpenOn(open ? pathname : null),
+    [pathname],
+  );
   const [favoriteError, setFavoriteError] = useState<string | null>(null);
   const signOutForm = useRef<HTMLFormElement>(null);
 
@@ -306,6 +314,8 @@ export function ShellFrame(props: ShellFrameProps) {
         </p>
       ) : null}
       <AppShell
+        menuOpen={menuOpen}
+        onMenuOpenChange={setMenuOpen}
         brand={
           <ShellOrgSwitcher
             current={org.name}
@@ -329,6 +339,7 @@ export function ShellFrame(props: ShellFrameProps) {
               label={t("shell.chrome.account")}
               icon="CircleUserRound"
               items={accountItems}
+              compact
             />
           </>
         }
@@ -342,11 +353,8 @@ export function ShellFrame(props: ShellFrameProps) {
               ...(item.href ? { href: item.href } : {}),
               onSelect: () => {
                 if (item.action === "search") setCommandOpen(true);
-                else if (item.action === "menu") {
-                  document
-                    .querySelector<HTMLButtonElement>("button[aria-controls][aria-expanded]")
-                    ?.click();
-                } else if (item.href) go(item.href);
+                else if (item.action === "menu") setMenuOpen(true);
+                else if (item.href) go(item.href);
               },
             }))}
           />
@@ -355,7 +363,7 @@ export function ShellFrame(props: ShellFrameProps) {
         <div
           id="content"
           tabIndex={-1}
-          className="flex min-w-0 flex-col gap-16 outline-none [&>*]:shrink-0"
+          className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
         >
           <PreferencesProvider preferences={displayPreferences}>
             {props.children}

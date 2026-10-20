@@ -168,6 +168,34 @@ describe("components follow the provider's preferences", () => {
     expect(chosenRow?.className).toContain("h-row-comfortable");
   });
 
+  it("packs the phone cards closer under shell.density compact", () => {
+    const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("max-width"),
+          media: query,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+        }) as unknown as MediaQueryList,
+    );
+    const { unmount } = render(
+      <XOSProvider preferences={chosen}>
+        <DataTable caption="Lines" columns={columns} rows={rows} />
+      </XOSProvider>,
+    );
+    const card = within(screen.getByRole("region", { name: "Lines" })).getAllByRole("listitem")[0];
+    expect(card?.className).toContain("p-8");
+    unmount();
+    render(
+      <XOSProvider>
+        <DataTable caption="Lines" columns={columns} rows={rows} />
+      </XOSProvider>,
+    );
+    const roomy = within(screen.getByRole("region", { name: "Lines" })).getAllByRole("listitem")[0];
+    expect(roomy?.className).toContain("p-12");
+    matchMedia.mockRestore();
+  });
+
   it("shows picked dates in the person's date format", () => {
     render(
       <XOSProvider preferences={chosen}>

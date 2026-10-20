@@ -1,7 +1,11 @@
 import type { Row } from "@xos/sync";
-import { useState, type ReactElement } from "react";
+import * as Linking from "expo-linking";
+import { useRouter, type Href } from "expo-router";
+import { useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { operationalEngagements } from "../../src/domain/access";
+import type { ScrollView } from "react-native";
+import { View } from "react-native";
+import { elsewhereLink, operationalEngagements } from "../../src/domain/access";
 import {
   actionFor,
   buildShiftAction,
@@ -9,7 +13,7 @@ import {
   groupByDay,
   isMine,
   isOpenShift,
-  startsIn,
+  shiftCountdown,
   type ShiftRow,
 } from "../../src/domain/shifts";
 import { claimRuleOf } from "../../src/domain/settings";
@@ -26,7 +30,10 @@ import { Button, EmptyState, InlineAlert, Screen, ShiftCard, Text } from "../../
 export default function ScheduleScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
-  const { resolved, projectId, enqueue, refresh, orgSettings } = useCompass();
+  const router = useRouter();
+  const { resolved, projectId, enqueue, refresh, config, orgSettings } = useCompass();
+  const scrollRef = useRef<ScrollView>(null);
+  const [openY, setOpenY] = useState(0);
   // scheduling.open_shift_claiming for this project (migration 1322).
   const rule = claimRuleOf(orgSettings);
   const identity = resolved?.identity;
@@ -71,7 +78,7 @@ export default function ScheduleScreen(): ReactElement {
         : s.shift_state === "Canceled"
           ? "canceled"
           : "published";
-    const countdown = startsIn(s.starts_at, now);
+    const countdown = shiftCountdown(s.starts_at, now);
     return (
       <ShiftCard
         key={s.id}
@@ -83,8 +90,9 @@ export default function ScheduleScreen(): ReactElement {
               ? "canceled"
               : "scheduled"
         }
-        stateLabel={t(`compass.schedule.${state}`)}
-        {...(countdown ? { countdown: t("compass.schedule.startsIn", { time: countdown }) } : {})}
+        // An open shift is nobody's yet: it reads Open, never Waiting for you (finding A59-022).
+        stateLabel={t(isOpenShift(s) ? "compass.schedule.open" : `compass.schedule.${state}`)}
+        {...(countdown ? { countdown: t(countdown.key, countdown.values) } : {})}
         role={roleTitle(s)}
         date={formatDay(s.starts_at, s.time_zone)}
         time={t("compass.schedule.timeRange", {
@@ -105,8 +113,35 @@ export default function ScheduleScreen(): ReactElement {
     );
   };
   const days = groupByDay(mine, now, (iso, tz) => formatDay(iso, tz));
+  // A teaching empty state (Section 11.10 item 10, finding A59-026): the action that fills My shifts,
+  // never Refresh. Members claim an open shift or ask a teammate; external people are booked by the
+  // organization on their engagement, in Gateway.
+  const empty = !me.membershipId
+    ? {
+        sentence: "compass.schedule.emptyExternal",
+        action: "compass.common.openGateway",
+        onAction: () => {
+          if (identity) void Linking.openURL(elsewhereLink(identity.audience, config).url);
+        },
+      }
+    : open.length > 0
+      ? {
+          sentence: "compass.schedule.emptyClaim",
+          action: "compass.schedule.findOpen",
+          onAction: () => scrollRef.current?.scrollTo({ y: openY, animated: true }),
+        }
+      : {
+          sentence: "compass.schedule.emptyAsk",
+          action: "compass.schedule.messageTeammate",
+          onAction: () => router.push("/workforce/chat" as Href),
+        };
   return (
-    <Screen testID="schedule" title={t("compass.schedule.title")} onRefresh={() => void refresh()}>
+    <Screen
+      testID="schedule"
+      title={t("compass.schedule.title")}
+      onRefresh={() => void refresh()}
+      scrollRef={scrollRef}
+    >
       <ProjectPicker />
       <SyncBanner />
       {notice ? (
@@ -117,10 +152,11 @@ export default function ScheduleScreen(): ReactElement {
       </Text>
       {days.length === 0 ? (
         <EmptyState
+          testID="schedule-empty"
           icon="calendar"
-          sentence={t("compass.schedule.empty")}
-          actionLabel={t("compass.common.refresh")}
-          onAction={() => void refresh()}
+          sentence={t(empty.sentence)}
+          actionLabel={t(empty.action)}
+          onAction={empty.onAction}
         />
       ) : null}
       {days.map((d) => [
@@ -131,9 +167,11 @@ export default function ScheduleScreen(): ReactElement {
       ])}
       {me.membershipId ? (
         <>
-          <Text variant="heading20" heading>
-            {t("compass.schedule.openShifts")}
-          </Text>
+          <View onLayout={(e) => setOpenY(e.nativeEvent.layout.y)}>
+            <Text variant="heading20" heading>
+              {t("compass.schedule.openShifts")}
+            </Text>
+          </View>
           {open.length === 0 ? (
             <Text tone="secondary">{t("compass.schedule.openEmpty")}</Text>
           ) : (
