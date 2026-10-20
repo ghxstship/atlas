@@ -148,6 +148,7 @@ export function SidebarEditor({
         else handles.current.delete(id);
       }}
       aria-label={t("move", { item: label })}
+      title={t("move", { item: label })}
       aria-describedby="sidebar-editor-move-help"
       aria-pressed={held?.id === id}
       onKeyDown={(event) => onHandleKey(event, id, group)}

@@ -137,6 +137,7 @@ test("a person rebinds a shortcut, and conflicts and screen reader keys are refu
   await expect(help.getByRole("term").filter({ hasText: "Go to Projects" })).toBeVisible({
     timeout: 15_000,
   });
+  await expectAccessible(page);
   await page.keyboard.press("Escape");
 
   // Reset returns the default.
