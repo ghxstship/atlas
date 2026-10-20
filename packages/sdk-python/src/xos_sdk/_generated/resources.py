@@ -284,6 +284,8 @@ if TYPE_CHECKING:
         CanonRolePage,
         CanonStalenessPolicy,
         CanonStalenessPolicyPage,
+        CanonStdEmergencyProtocol,
+        CanonStdEmergencyProtocolPage,
         CanonSupersession,
         CanonSupersessionPage,
         CanonTag,
@@ -380,6 +382,10 @@ if TYPE_CHECKING:
         CrosswalkCoverage,
         CrosswalkCoveragePage,
         Cue,
+        CueCall,
+        CueCallCreate,
+        CueCallPage,
+        CueCallUpdate,
         CueCreate,
         CuePage,
         CueUpdate,
@@ -873,6 +879,8 @@ if TYPE_CHECKING:
         ProjectAssignmentRoleCreate,
         ProjectAssignmentRolePage,
         ProjectAssignmentUpdate,
+        ProjectAuthority,
+        ProjectAuthorityPage,
         ProjectCreate,
         ProjectPage,
         ProjectPhaseTransition,
@@ -30800,6 +30808,156 @@ class TemplateApplicationsResource(Resource):
         return self._client.request(OPERATIONS["templateApplications.get"], path={"id": id}, query={"fields": fields}, options=options)
 
 
+class ProjectAuthoritiesResource(Resource):
+    """Operations on ``projectAuthorities``, in the Projects module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectAuthority]:
+        """List project authority rows
+
+        An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-authorities`` (operation ``projectAuthorities.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectAuthorities.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectAuthority]:
+        """List project authority rows
+
+        An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-authorities`` (operation ``projectAuthorities.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectAuthorities.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class CueCallsResource(Resource):
+    """Operations on ``cueCalls``, in the Show module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[CueCall]:
+        """List cue call rows
+
+        A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /cue-calls`` (operation ``cueCalls.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request_page(OPERATIONS["cueCalls.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[CueCall]:
+        """List cue call rows
+
+        A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /cue-calls`` (operation ``cueCalls.list``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.paginate(OPERATIONS["cueCalls.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: CueCallCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CueCall]:
+        """Create a cue call
+
+        A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Creates a cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /cue-calls`` (operation ``cueCalls.create``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["cueCalls.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CueCall]:
+        """Get a cue call
+
+        A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns one cue call with its `ETag`. A cue call the caller may not see returns 404.
+
+        ``GET /cue-calls/{id}`` (operation ``cueCalls.get``).
+        Requires the capability ``show.run_of_show.read``.
+        """
+        return self._client.request(OPERATIONS["cueCalls.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: CueCallUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CueCall]:
+        """Update a cue call
+
+        A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /cue-calls/{id}`` (operation ``cueCalls.update``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["cueCalls.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a cue call
+
+        A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Soft-deletes the cue call: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /cue-calls/{id}`` (operation ``cueCalls.delete``).
+        Requires the capability ``show.run_of_show.write``.
+        """
+        return self._client.request(OPERATIONS["cueCalls.delete"], path={"id": id}, options=options)
+
+
 class GuestListEntriesResource(Resource):
     """Operations on ``guestListEntries``, in the Advancing module."""
 
@@ -31171,6 +31329,65 @@ class RequiredAdditionalInsuredsResource(Resource):
         Requires the capability ``vendors.coi.write``.
         """
         return self._client.request(OPERATIONS["requiredAdditionalInsureds.delete"], path={"id": id}, options=options)
+
+
+class CanonStdEmergencyProtocolsResource(Resource):
+    """Operations on ``canonStdEmergencyProtocols``, in the Canon module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[CanonStdEmergencyProtocol]:
+        """List emergency protocol rows
+
+        An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /canon/std/emergency-protocols`` (operation ``canonStdEmergencyProtocols.list``).
+        Requires the capability ``canon.taxonomy.read``.
+        """
+        return self._client.request_page(OPERATIONS["canonStdEmergencyProtocols.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[CanonStdEmergencyProtocol]:
+        """List emergency protocol rows
+
+        An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /canon/std/emergency-protocols`` (operation ``canonStdEmergencyProtocols.list``).
+        Requires the capability ``canon.taxonomy.read``.
+        """
+        return self._client.paginate(OPERATIONS["canonStdEmergencyProtocols.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        record_key: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CanonStdEmergencyProtocol]:
+        """Get an emergency protocol
+
+        An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns one emergency protocol with its `ETag`. A emergency protocol the caller may not see returns 404.
+
+        ``GET /canon/std/emergency-protocols/{record_key}`` (operation ``canonStdEmergencyProtocols.get``).
+        Requires the capability ``canon.taxonomy.read``.
+        """
+        return self._client.request(OPERATIONS["canonStdEmergencyProtocols.get"], path={"record_key": record_key}, query={"fields": fields}, options=options)
 
 
 class ReportScheduleRecipientsResource(Resource):

@@ -16,6 +16,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
   "/auth/mfa": "Auth template: the second factor after the first, when the person holds one (A77).",
   "/explore/how-ranking-works": "Public page: the marketplace ranking factors (Section 4.4.3).",
+  "/legal/{document}":
+    "Public page: the Worker Terms and Privacy Policy that sign-up names (Section 14.4).",
   "/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",

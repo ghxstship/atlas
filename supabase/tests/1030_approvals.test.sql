@@ -122,7 +122,13 @@ insert into app.approval_steps (approval_policy_id, step_order, name, approver_r
 select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Draft', 'Active', 'Go.')$$,
   'XR001', null, 'only one policy per document type is Active');
 select lives_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Draft', 'Retired', 'Not needed.')$$, 'Draft to Retired');
-select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_dup'), 'Retired', 'Active', 'Again.')$$, 'XR001', null, 'a Retired policy stays retired');
+-- The Retired to Active refusal must come from the rules, so the guards before them pass: the policy has a step and
+-- no other policy of its type is Active (pol_dup would meet the Active Purchase Order policy first, A54-003).
+with x as (insert into app.approval_policies (org_id, name, document_type) values (pg_temp.id('org_a'), 'Retired expenses', 'Expense') returning id) insert into world select 'pol_ret', id from x;
+insert into app.approval_steps (approval_policy_id, step_order, name, approver_role_id) values (pg_temp.id('pol_ret'), 1, 'Admin', pg_temp.system_role('admin'));
+select app.transition_approval_policy(pg_temp.id('pol_ret'), 'Draft', 'Retired', 'Not needed.');
+select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_ret'), 'Retired', 'Active', 'Again.')$$,
+  'XR001', 'approval_policy_transition_not_allowed: A approval policy cannot move from Retired to Active.', 'a Retired policy stays retired');
 select pg_temp.as_user('carol');
 select throws_ok($$select app.transition_approval_policy((select id from world where key = 'pol_empty'), 'Draft', 'Retired', 'x')$$,
   '42501', null, 'a Manager cannot move policies');

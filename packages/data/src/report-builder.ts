@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { csvField } from "./csv.ts";
 import { nullAwareSum } from "./finance.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
@@ -605,7 +606,8 @@ export function previewCsv(
   headers: readonly string[],
   groupHeader: string | null,
 ): string {
-  const escape = (v: string) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  // A69-005: report rows hold what members and external parties typed, so formulas are neutralized.
+  const escape = csvField;
   const cell = (c: PreviewCell): string => {
     if (c.kind === "value") return c.value === null ? "" : String(c.value);
     if (c.totalMinor === null) return "";

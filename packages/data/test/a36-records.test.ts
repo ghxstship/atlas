@@ -423,6 +423,8 @@ describe("org lifecycle repository", () => {
         ],
       ),
     ).toBe('a,b,c\r\n"say ""hi""","{""x"":1}",\r\n"1,2",3,\r\n');
+    // A69-005: the archive's CSV never runs a cell as a formula; its JSON keeps the value exactly.
+    expect(toCsv(["name", "n"], [{ name: "=1+1", n: -4 }])).toBe("name,n\r\n'=1+1,-4\r\n");
   });
 
   it("builds the archive from every readable table, the clean files and a manifest", async () => {

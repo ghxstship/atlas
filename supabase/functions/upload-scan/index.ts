@@ -1,7 +1,10 @@
 // Upload scan worker (A22-011, owner decision 10, ADR 0034): claims due attachment.scan jobs and object
 // scans, checks each file's bytes against its declared type, scans it with self-hosted ClamAV (clamd over
 // TCP at XOS_CLAMAV_HOST and XOS_CLAMAV_PORT) and records the verdict, so files leave quarantine only
-// once Clean. Called on a schedule with the service key, like webhook-dispatch.
+// once Clean. Files for the public buckets profile-media and org-brand wait in the private upload-staging
+// bucket; one that scans Clean is published to its public bucket and removed from staging, one that does
+// not is removed and never published (migration 1265, ADR 0034 amendment). Called on a schedule with the
+// service key, like webhook-dispatch.
 //
 // Without XOS_CLAMAV_HOST: on a local stack a logged pass-through marks files clean; anywhere else the
 // function claims nothing and answers 503, so files stay quarantined until a scanner is configured.

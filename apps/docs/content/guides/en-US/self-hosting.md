@@ -96,6 +96,7 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `XOS_LOG_LEVEL`               | Optional | Optional | `info` in production                                                                     |
 | `COMPASS_APPLE_TEAM_IDS`      | Optional | Optional | Apple team ids, so Compass opens Atlas and Gateway links as universal links              |
 | `COMPASS_ANDROID_CERT_SHA256` | Optional | Optional | Compass signing certificate fingerprints, for Android App Links                          |
+| `XOS_TRUSTED_PROXY_HOPS`      | Optional |          | Trusted proxies in front of the one that appends the client address; `0` by default      |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
@@ -179,6 +180,8 @@ pnpm --filter @xos/gateway exec next start --port 3001
 ```
 
 Run each app under a process manager, behind a TLS-terminating reverse proxy that passes the `Host` header through, so Gateway can recognize custom domains.
+
+The proxy must append the client address to `X-Forwarded-For` (in nginx, `proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;`). Atlas reads the last entry, the one your proxy added, because the client writes the entries before it; the IP allow-list depends on that. If another trusted proxy, such as a CDN, sits in front of yours, set `XOS_TRUSTED_PROXY_HOPS=1`. Never expose the apps without a proxy: then every forwarding header is the client's own text.
 
 ## 5. Compass
 

@@ -334,6 +334,7 @@ const personRow = {
   headline: "Rigger, arena tours",
   bio: null,
   pronouns: null,
+  preferred_name: "Alex",
   city: "Miami",
   country_code: "US",
   visibility: "Network",
@@ -347,6 +348,8 @@ const orgProfileRow = {
   handle: "northwind-live",
   handle_changed_at: null,
   about: null,
+  website_url: "https://northwindlive.example",
+  contact_email: null,
   visibility: "Public",
   search_indexing: false,
 };
@@ -363,7 +366,7 @@ const offRow = {
 
 describe("Identity contract: profiles and offboarding", () => {
   it("lists, reads, creates and updates person profiles", async () => {
-    const { api } = app({
+    const { api, calls } = app({
       "from:person_profiles": [
         ok([personRow]),
         ok(personRow),
@@ -377,9 +380,10 @@ describe("Identity contract: profiles and offboarding", () => {
     });
     const r21 = await api.request("/person-profiles");
     const page = (await expectContract(r21, "personProfiles.list")) as {
-      data: { locality: string }[];
+      data: { locality: string; preferred_name: string | null }[];
     };
     expect(page.data[0]?.locality).toBe("Miami");
+    expect(page.data[0]?.preferred_name).toBe("Alex");
     const r22 = await api.request(`/person-profiles/${id(40)}`);
     await expectContract(r22, "personProfiles.get");
     const r23 = await api.request(
@@ -394,13 +398,23 @@ describe("Identity contract: profiles and offboarding", () => {
     await expectContract(r23, "personProfiles.create");
     const r24 = await api.request(
       `/person-profiles/${id(40)}`,
-      patch({ handle: "alex-rigs", headline: "Head rigger", locality: "Miami", country: "US" }),
+      patch({
+        handle: "alex-rigs",
+        headline: "Head rigger",
+        preferred_name: "Al",
+        locality: "Miami",
+        country: "US",
+      }),
     );
     const changed = (await expectContract(r24, "personProfiles.update")) as {
       handle: string;
       handle_changed_at: string | null;
     };
     expect(changed).toMatchObject({ handle: "alex-rigs", handle_changed_at: T });
+    const update = calls.filter((c) => c.target === "from:person_profiles").at(-2);
+    expect(update?.steps.find(([step]) => step === "update")?.[1][0]).toMatchObject({
+      preferred_name: "Al",
+    });
   });
 
   it("refuses a profile for someone else, and a stale If-Match", async () => {
@@ -420,7 +434,7 @@ describe("Identity contract: profiles and offboarding", () => {
   });
 
   it("lists, reads, creates and updates organization profiles", async () => {
-    const { api } = app({
+    const { api, calls } = app({
       "from:organization_profiles": [
         ok([orgProfileRow]),
         ok(orgProfileRow),
@@ -443,9 +457,17 @@ describe("Identity contract: profiles and offboarding", () => {
     await expectContract(r27, "organizationProfiles.create");
     const r28 = await api.request(
       `/organization-profiles/${id(50)}`,
-      patch({ about: "Touring production." }),
+      patch({ about: "Touring production.", contact_email: "hello@northwindlive.example" }),
     );
-    await expectContract(r28, "organizationProfiles.update");
+    const updated = (await expectContract(r28, "organizationProfiles.update")) as {
+      website_url: string | null;
+    };
+    expect(updated.website_url).toBe("https://northwindlive.example");
+    const update = calls.filter((c) => c.target === "from:organization_profiles").at(-2);
+    expect(update?.steps.find(([step]) => step === "update")?.[1][0]).toEqual({
+      about: "Touring production.",
+      contact_email: "hello@northwindlive.example",
+    });
   });
 
   it("lists, reads and updates offboarding checklists", async () => {

@@ -8,6 +8,10 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, removeActions, removeVerbs } from "../correct.ts";
 import { itemAction } from "../define.ts";
 import { projectsFieldHomes } from "./parts/playbook-field-homes.ts";
+import {
+  projectAuthorityCapabilities,
+  projectAuthorityResources,
+} from "./parts/playbook-field-exposure.ts";
 
 const EVIDENCE_URI = fields.text(
   "Where the evidence lives: a document or record URI.",
@@ -16,6 +20,8 @@ const EVIDENCE_URI = fields.text(
 );
 
 export const additions = defineAdditions("Projects", {
+  resources: [...projectAuthorityResources],
+  capabilities: { ...projectAuthorityCapabilities },
   corrections: [
     {
       id: "project-create-key-and-time-zone",

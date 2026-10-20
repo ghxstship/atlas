@@ -19,10 +19,14 @@
  * Once the organization is bound, its IP allow-list applies to every credential, session or API key
  * (Section 9, migration 1201): `app.network_access` answers whether the caller's address, as the
  * proxy reports it, may reach the org. An org that never turned its allow-list on admits every
- * address; a refused address is answered 401 before any handler runs.
+ * address; a refused address is answered 401 before any handler runs. A request bound to no org
+ * reads, through RLS, the rows of every org the caller belongs to, so then every one of those
+ * orgs' allow-lists applies (A69-010). The address is the X-Forwarded-For entry the trusted proxy
+ * appended, never the first entry, which the client writes (A69-003).
  */
 import { createHash } from "node:crypto";
 import { getCurrentPerson, listMyOrganizations } from "@xos/data";
+import { clientAddress } from "@xos/data/client-address";
 import { createCallerClient } from "@xos/data/client";
 import type { XosClient } from "@xos/data";
 import { unauthorized } from "../problem.ts";
@@ -40,12 +44,13 @@ export function sessionCookieName(siteOrigin: string): string {
 }
 export const LAST_ORG_COOKIE = "xos-last-org";
 
-/** The caller's address as the proxy reports it: the first `X-Forwarded-For` hop, else `X-Real-IP`. */
-export function clientIp(headers: Headers): string | null {
-  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  if (forwarded !== undefined && forwarded !== "") return forwarded;
-  const real = headers.get("x-real-ip")?.trim();
-  return real === undefined || real === "" ? null : real;
+/**
+ * The caller's address as the trusted proxy reports it: the `X-Forwarded-For` entry it appended,
+ * counted from the right past `trustedHops` further trusted proxies, else `X-Real-IP` when no chain
+ * was sent (A69-003). The first entry is the client's own text and is never trusted.
+ */
+export function clientIp(headers: Headers, trustedHops = 0): string | null {
+  return clientAddress(headers, trustedHops);
 }
 
 /**
@@ -62,9 +67,12 @@ export function createNetworkCheck(ttlMs: number, now: () => number = Date.now) 
     entries.delete(key);
     const { data, error } = await db.rpc("network_access", { p_org_id: orgId, p_ip: ip ?? "" });
     if (error !== null) throw new Error(`Cannot check the org's IP allow-list: ${error.message}`);
-    const rows = (data ?? []) as { allowed: boolean }[];
+    const rows = (data ?? []) as { enforced?: boolean; allowed: boolean; covered?: boolean }[];
     const allowed = rows.length === 0 || rows[0]?.allowed === true;
-    if (ttlMs > 0) {
+    // Admitted from outside an enforced list means a break-glass session let the caller in. That
+    // answer is never reused, so the admission ends the moment the session does (A69-009).
+    const byBreakGlass = rows[0]?.enforced === true && allowed && rows[0]?.covered !== true;
+    if (ttlMs > 0 && !byBreakGlass) {
       if (entries.size >= 10_000) entries.clear();
       entries.set(key, { allowed, until: now() + ttlMs });
     }
@@ -99,6 +107,11 @@ export interface SupabaseAuthOptions {
    * whatever this holds, so a stale entry can only pick the org a request is bound to.
    */
   readonly identityTtlMs?: number;
+  /**
+   * Trusted proxies in front of the one that appends the client address to X-Forwarded-For
+   * (`XOS_TRUSTED_PROXY_HOPS`); 0 by default, right on Vercel and behind one proxy (A69-003).
+   */
+  readonly trustedProxyHops?: number;
 }
 
 /** Cookie header to a name-to-value map. */
@@ -356,11 +369,15 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
   });
   const identityOf = createIdentityCache(options.identityTtlMs ?? 30_000, options.now);
   const networkAllows = createNetworkCheck(options.identityTtlMs ?? 30_000, options.now);
-  const admit = async (context: RequestContext, request: Request): Promise<RequestContext> => {
-    if (context.org === null) return context;
-    const ip = clientIp(request.headers);
-    if (!(await networkAllows(context.db, context.user.id, context.org.id, ip))) {
-      throw networkRefused();
+  const admit = async (
+    context: RequestContext,
+    request: Request,
+    memberOf: readonly RequestOrg[],
+  ): Promise<RequestContext> => {
+    const ip = clientIp(request.headers, options.trustedProxyHops ?? 0);
+    // A69-010: unbound, the request reaches every org the caller belongs to, so each list applies.
+    for (const org of context.org === null ? memberOf : [context.org]) {
+      if (!(await networkAllows(context.db, context.user.id, org.id, ip))) throw networkRefused();
     }
     return context;
   };
@@ -393,6 +410,7 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
           requestId,
         },
         request,
+        identity.orgs,
       );
     }
     const db = createCallerClient({
@@ -442,6 +460,7 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
         requestId,
       },
       request,
+      identity?.orgs ?? [],
     );
   };
 }

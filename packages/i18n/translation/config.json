@@ -1,0 +1,37 @@
+{
+  "$comment": "Machine translation with Google Cloud Translation (ADR 0037). To add a locale, add one entry to targets and a matching column to glossary.csv, then run `pnpm --filter @xos/i18n translate --locale <code>`. Paths are relative to the repository root.",
+  "source": { "locale": "en-US", "google": "en" },
+  "targets": [{ "locale": "es-US", "google": "es-US" }],
+  "google": {
+    "location": "us-central1",
+    "model": "general/translation-llm",
+    "glossaryPrefix": "xos-glossary",
+    "contextualGlossary": true,
+    "batch": { "maxSegments": 100, "maxCodePoints": 5000, "concurrency": 4 }
+  },
+  "pricing": {
+    "currency": "USD",
+    "inputPerMillion": 10,
+    "outputPerMillion": 10,
+    "outputRatio": 1.2,
+    "checked": "2026-10-20: Translation LLM, USD 10 per million input characters and 10 per million output characters (NMT: 20 per million, first 500,000 a month free). https://cloud.google.com/translate/pricing"
+  },
+  "surfaces": [
+    { "id": "catalogs", "kind": "catalog", "path": "packages/i18n/messages/{locale}" },
+    {
+      "id": "help",
+      "kind": "markdown",
+      "path": "apps/atlas/help/articles/{locale}",
+      "frontMatter": ["title", "summary"]
+    },
+    {
+      "id": "guides",
+      "kind": "markdown",
+      "path": "apps/docs/content/guides/{locale}",
+      "frontMatter": ["title", "summary"]
+    }
+  ],
+  "memoryDir": "packages/i18n/translation/memory",
+  "review": { "locale": "es-US", "reportDir": "docs/i18n/review" },
+  "check": { "stale": "warning" }
+}

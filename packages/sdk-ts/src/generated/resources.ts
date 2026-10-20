@@ -201,6 +201,7 @@ import type {
   CanonRegionMultiplier,
   CanonRole,
   CanonStalenessPolicy,
+  CanonStdEmergencyProtocol,
   CanonSupersession,
   CanonTag,
   CanonTeam,
@@ -267,6 +268,9 @@ import type {
   CriterionId,
   CrosswalkCoverage,
   Cue,
+  CueCall,
+  CueCallCreate,
+  CueCallUpdate,
   CueCreate,
   CueUpdate,
   CustomFieldDefinition,
@@ -635,6 +639,7 @@ import type {
   ProjectAssignmentRole,
   ProjectAssignmentRoleCreate,
   ProjectAssignmentUpdate,
+  ProjectAuthority,
   ProjectCreate,
   ProjectPhaseTransition,
   ProjectShare,
@@ -32932,6 +32937,157 @@ export class TemplateApplicationsResource extends $Resource {
 }
 
 /**
+ * Operations on `projectAuthorities`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectAuthoritiesResource extends $Resource {
+  /**
+   * List project authority rows
+   *
+   * An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-authorities` (operation `projectAuthorities.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectAuthority>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectAuthority>> {
+    return this.client.requestPage<ProjectAuthority>(
+      $OPERATIONS["projectAuthorities.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project authority rows
+   *
+   * An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-authorities` (operation `projectAuthorities.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectAuthority>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectAuthority, void, undefined> {
+    return this.client.paginate<ProjectAuthority>(
+      $OPERATIONS["projectAuthorities.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `cueCalls`, in the Show module.
+ *
+ * Run of show, cues, day sheets and call sheets (Section 4.2).
+ */
+export class CueCallsResource extends $Resource {
+  /**
+   * List cue call rows
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /cue-calls` (operation `cueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  list(params?: $ListParams<CueCall>, options?: $RequestOptions): Promise<$Page<CueCall>> {
+    return this.client.requestPage<CueCall>(
+      $OPERATIONS["cueCalls.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List cue call rows
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /cue-calls` (operation `cueCalls.list`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CueCall>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CueCall, void, undefined> {
+    return this.client.paginate<CueCall>($OPERATIONS["cueCalls.list"], { query: params }, options);
+  }
+
+  /**
+   * Create a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Creates a cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /cue-calls` (operation `cueCalls.create`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  create(body: CueCallCreate, options?: $MutationOptions): Promise<$ApiResponse<CueCall>> {
+    return this.client.request<CueCall>($OPERATIONS["cueCalls.create"], { body }, options);
+  }
+
+  /**
+   * Get a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns one cue call with its `ETag`. A cue call the caller may not see returns 404.
+   *
+   * `GET /cue-calls/{id}` (operation `cueCalls.get`).
+   * Requires the capability `show.run_of_show.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<CueCall>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CueCall>> {
+    return this.client.request<CueCall>(
+      $OPERATIONS["cueCalls.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /cue-calls/{id}` (operation `cueCalls.update`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  update(id: string, body: CueCallUpdate, options: $UpdateOptions): Promise<$ApiResponse<CueCall>> {
+    return this.client.request<CueCall>(
+      $OPERATIONS["cueCalls.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a cue call
+   *
+   * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Soft-deletes the cue call: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /cue-calls/{id}` (operation `cueCalls.delete`).
+   * Requires the capability `show.run_of_show.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["cueCalls.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
  * Operations on `guestListEntries`, in the Advancing module.
  *
  * Advance packets, sections, recipients, submissions and riders (Section 4.2).
@@ -33359,6 +33515,73 @@ export class RequiredAdditionalInsuredsResource extends $Resource {
     return this.client.request<undefined>(
       $OPERATIONS["requiredAdditionalInsureds.delete"],
       { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `canonStdEmergencyProtocols`, in the Canon module.
+ *
+ * Read-only canon from `xpms`, cached by canon generation, and tenant extension proposals (Sections 4.2 and 7.2).
+ */
+export class CanonStdEmergencyProtocolsResource extends $Resource {
+  /**
+   * List emergency protocol rows
+   *
+   * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /canon/std/emergency-protocols` (operation `canonStdEmergencyProtocols.list`).
+   * Requires the capability `canon.taxonomy.read`.
+   */
+  list(
+    params?: $ListParams<CanonStdEmergencyProtocol>,
+    options?: $RequestOptions,
+  ): Promise<$Page<CanonStdEmergencyProtocol>> {
+    return this.client.requestPage<CanonStdEmergencyProtocol>(
+      $OPERATIONS["canonStdEmergencyProtocols.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List emergency protocol rows
+   *
+   * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /canon/std/emergency-protocols` (operation `canonStdEmergencyProtocols.list`).
+   * Requires the capability `canon.taxonomy.read`.
+   */
+  listAll(
+    params?: $ListAllParams<CanonStdEmergencyProtocol>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<CanonStdEmergencyProtocol, void, undefined> {
+    return this.client.paginate<CanonStdEmergencyProtocol>(
+      $OPERATIONS["canonStdEmergencyProtocols.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an emergency protocol
+   *
+   * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns one emergency protocol with its `ETag`. A emergency protocol the caller may not see returns 404.
+   *
+   * `GET /canon/std/emergency-protocols/{record_key}` (operation `canonStdEmergencyProtocols.get`).
+   * Requires the capability `canon.taxonomy.read`.
+   */
+  get(
+    recordKey: string,
+    params?: $FieldsParams<CanonStdEmergencyProtocol>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<CanonStdEmergencyProtocol>> {
+    return this.client.request<CanonStdEmergencyProtocol>(
+      $OPERATIONS["canonStdEmergencyProtocols.get"],
+      { path: { record_key: recordKey }, query: params },
       options,
     );
   }

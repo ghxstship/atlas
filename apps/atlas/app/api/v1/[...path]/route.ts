@@ -9,6 +9,7 @@
  * turns into a 500 problem is reported through `onError`, once, with its request id.
  */
 import { createApiApp, createSupabaseAuthenticator, handlersWithAuroraModel } from "@xos/api";
+import { trustedProxyHops } from "@xos/data/client-address";
 import { observe } from "@xos/infra/observability";
 import { env } from "@/lib/env";
 import { flushErrors, observability } from "@/lib/observability";
@@ -46,6 +47,7 @@ async function api(): Promise<ApiApp> {
         url: config.SUPABASE_URL,
         anonKey: config.SUPABASE_ANON_KEY,
         siteOrigin: config.ATLAS_SITE_URL,
+        trustedProxyHops: trustedProxyHops(config.XOS_TRUSTED_PROXY_HOPS),
       }),
       onError: (error, requestId) => {
         observability.errors.report(error, {

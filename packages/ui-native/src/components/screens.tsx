@@ -379,6 +379,7 @@ export function LiveActivity({
   place,
   nextShift,
   nextTime,
+  nextPlace,
   onBreak = false,
   labels,
   onToggleBreak,
@@ -429,23 +430,25 @@ export function LiveActivity({
           </View>
         </View>
       </View>
-      <View
-        role="summary"
-        aria-label={`${nextShift}, ${nextTime}`}
-        style={{
-          width: theme.space["40"] * 4,
-          height: theme.space["40"] * 4,
-          justifyContent: "flex-end",
-          gap: theme.space["2"],
-          padding: theme.space["16"],
-          borderRadius: theme.radius.widget,
-          backgroundColor: theme.color.bgRaised,
-          boxShadow: theme.shadow.menu,
-        }}
-      >
-        <Text variant="heading16">{nextShift}</Text>
-        <Text tone="secondary">{nextTime}</Text>
-      </View>
+      {/* The shift being worked, full width under the clock; left out when there is none to name, so the
+          card is never an empty square with a bare caption (finding A59-022). */}
+      {nextShift ? (
+        <View
+          role="summary"
+          aria-label={[nextShift, nextTime, nextPlace].filter(Boolean).join(", ")}
+          style={{
+            gap: theme.space["2"],
+            padding: theme.space["16"],
+            borderRadius: theme.radius.widget,
+            backgroundColor: theme.color.bgRaised,
+            boxShadow: theme.shadow.menu,
+          }}
+        >
+          <Text variant="heading16">{nextShift}</Text>
+          {nextTime ? <Text tone="secondary">{nextTime}</Text> : null}
+          {nextPlace ? <Text tone="secondary">{nextPlace}</Text> : null}
+        </View>
+      ) : null}
     </View>
   );
 }

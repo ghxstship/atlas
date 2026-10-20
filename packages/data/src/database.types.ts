@@ -53480,6 +53480,16 @@ export type Database = {
           valid_to: string;
         }[];
       };
+      my_account_support_requests: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          category: Database["app"]["Enums"]["support_category"];
+          created_at: string;
+          request_number: string;
+          request_state: Database["app"]["Enums"]["support_ticket_state"];
+          subject: string;
+        }[];
+      };
       my_advance_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -53589,6 +53599,15 @@ export type Database = {
       object_scan_status: {
         Args: { p_bucket_id: string; p_object_name: string };
         Returns: Database["app"]["Enums"]["scan_status"];
+      };
+      open_account_support_request: {
+        Args: {
+          p_body: string;
+          p_category: Database["app"]["Enums"]["support_category"];
+          p_diagnostics?: Json;
+          p_subject: string;
+        };
+        Returns: string;
       };
       open_help_desk_request: {
         Args: {

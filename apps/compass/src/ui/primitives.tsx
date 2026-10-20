@@ -222,7 +222,9 @@ export function Button({
       onPressOut={endHold}
       style={({ pressed }) => ({
         minHeight,
-        paddingHorizontal: theme.space["20"],
+        // A text button that is not full width lines its label up with the content edge, as on iOS
+        // (finding A59-031: "Use Password" sat 16 pt in from every other element); gloveSlop keeps its target.
+        paddingHorizontal: variant === "ghost" && !block ? 0 : theme.space["20"],
         borderRadius: theme.radius.control,
         backgroundColor: background,
         borderWidth: variant === "secondary" ? theme.controlBorderWidth : 0,

@@ -8,6 +8,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { fail, ok, toDataError, type Result } from "./result.ts";
+import { UPLOAD_STAGING_BUCKET, stagedUploadName } from "./staged-uploads.ts";
 
 export type AccountDeletionBlockerCode =
   "account_delete_legal_hold" | "account_delete_on_shift" | "account_delete_sole_owner";
@@ -92,15 +93,35 @@ export async function previewAccountDeletion(
   return ok(parsePreview((data ?? {}) as Record<string, unknown>));
 }
 
-/** Removes every object in the person's own profile media folder. Returns how many it removed. */
+/**
+ * Removes every object in the person's own profile media folder, and the uploads still staged for it
+ * (upload-staging, migration 1265). Returns how many it removed.
+ */
 export async function removeProfileMedia(
   client: SupabaseClient,
   personId: string,
 ): Promise<Result<number>> {
-  const bucket = client.storage.from(PROFILE_MEDIA_BUCKET);
+  const published = await removeFolder(client, PROFILE_MEDIA_BUCKET, personId);
+  if (!published.ok) return published;
+  const staged = await removeFolder(
+    client,
+    UPLOAD_STAGING_BUCKET,
+    stagedUploadName(PROFILE_MEDIA_BUCKET, personId),
+  );
+  if (!staged.ok) return staged;
+  return ok(published.data + staged.data);
+}
+
+/** Removes every object under a folder of a bucket, nested folders included. */
+async function removeFolder(
+  client: SupabaseClient,
+  bucketId: string,
+  root: string,
+): Promise<Result<number>> {
+  const bucket = client.storage.from(bucketId);
   // Folders list with a null id; walk them so nested media (portfolio, certificates) goes too.
   const files: string[] = [];
-  const folders = [personId];
+  const folders = [root];
   while (folders.length > 0) {
     const folder = folders.pop() as string;
     const listed = await bucket.list(folder, { limit: 1000 });

@@ -10,12 +10,12 @@ import { ActionButton } from "@/components/actions/action-button";
 import { RegionError, Section } from "@/components/page/page";
 import { Tag } from "@/components/ui";
 import { acknowledgePurchaseOrderAction } from "@/lib/actions/operations";
-import { hasArea, tabHref } from "@/lib/engagement";
+import { hasArea, isLiveEngagement, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import { AdvanceAnswerForm, TaxFormForm } from "./forms";
-import { RowList, TabEmpty } from "./rows";
+import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 
@@ -74,6 +74,8 @@ export async function PurchaseOrdersTab({ view, t, locale, engagementKey }: TabP
     order: ["po_number", "desc"],
   });
   if (!pos.ok) return <RegionError />;
+  // Acknowledging a PO is operational work: offered only while the engagement is live (Section 8.7).
+  const live = isLiveEngagement(view.engagement.state);
   const ids = pos.data.flatMap((p) => (p.id ? [p.id] : []));
   const lines = await readView(view.ctx.db, "po_lines", {
     in: ["purchase_order_id", ids],
@@ -110,13 +112,13 @@ export async function PurchaseOrdersTab({ view, t, locale, engagementKey }: TabP
         ...(po.po_state
           ? { tag: { label: t(enumLabelKey("poState", po.po_state)), tone: toneFor(po.po_state) } }
           : {}),
-        ...(po.po_state === "Sent" && !po.acknowledged_at && po.id
+        ...(po.po_state === "Sent" && !po.acknowledged_at && po.id && live
           ? {
               action: (
                 <ActionButton
                   action={acknowledgePurchaseOrderAction.bind(null, po.id)}
                   label={t("gateway.engagement.po.acknowledge")}
-                  variant="primary"
+                  variant="secondary"
                 />
               ),
             }
@@ -154,14 +156,7 @@ export async function PurchaseOrdersTab({ view, t, locale, engagementKey }: TabP
 
 export async function DeliveriesTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.operationalClosed")}
-        actionLabel={t("gateway.engagement.onboardingAction")}
-        href={tabHref(engagementKey, "engagement.overview")}
-      />
-    );
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
   const [docks, deliveries] = await Promise.all([
     readView(view.ctx.db, "dock_slots", {

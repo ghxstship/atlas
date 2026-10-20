@@ -35,7 +35,17 @@ import type { RequestContext } from "../../runtime/context.ts";
 import type { ErasedHandler } from "../../runtime/handler.ts";
 import { created, ok } from "../../runtime/handler.ts";
 import { masked } from "../../runtime/masking.ts";
-import { from, rpc, run, tableResource, unwrap, type Row } from "../support/table.ts";
+import { mergeBy } from "../support/enrich.ts";
+import {
+  from,
+  groupBy,
+  keysOf,
+  rpc,
+  run,
+  tableResource,
+  unwrap,
+  type Row,
+} from "../support/table.ts";
 
 const PAYROLL_REASON = "Requires data.restricted.read.payroll.";
 
@@ -62,7 +72,31 @@ const body = (request: { body?: unknown }) => (request.body ?? {}) as Row;
 
 const shifts = tableResource("shifts");
 const shiftSwaps = tableResource("shiftSwaps", { verbs: ["list", "get"] });
-const timeEntries = tableResource("timeEntries", { verbs: ["list", "get"] });
+const timeEntries = tableResource("timeEntries", {
+  verbs: ["list", "get"],
+  derived: ["meal_out_at", "meal_in_at"],
+  // The meal break: the entry's first Break Start and last Break End punches (A54-002).
+  enrich: async (rows, { db }) =>
+    mergeBy(
+      rows,
+      "id",
+      await groupBy(
+        from(db, "clock_punches")
+          .select("time_entry_id, punch_kind, effective_at")
+          .in("time_entry_id", keysOf(rows, "id"))
+          .in("punch_kind", ["Break Start", "Break End"])
+          .is("deleted_at", null)
+          .order("effective_at", { ascending: true }),
+        "time_entry_id",
+      ),
+      (punches) => ({
+        meal_out_at:
+          punches.find((p) => p["punch_kind"] === "Break Start")?.["effective_at"] ?? null,
+        meal_in_at:
+          punches.filter((p) => p["punch_kind"] === "Break End").pop()?.["effective_at"] ?? null,
+      }),
+    ),
+});
 const timeEntryCorrections = tableResource("timeEntryCorrections");
 const timeEntryAudit = tableResource("timeEntryAuditEntries");
 const timesheets = tableResource("timesheets");

@@ -147,7 +147,7 @@ async function systemRoleId(db: XosClient, role: OrgRole): Promise<string> {
 // Profiles -----------------------------------------------------------------------------------------
 
 const PERSON_COLUMNS =
-  "id, created_at, updated_at, person_id, handle, handle_changed_at, headline, bio, pronouns, city, country_code, visibility, search_indexing";
+  "id, created_at, updated_at, person_id, handle, handle_changed_at, headline, bio, pronouns, preferred_name, city, country_code, visibility, search_indexing";
 
 interface PersonRow {
   id: string;
@@ -159,6 +159,7 @@ interface PersonRow {
   headline: string | null;
   bio: string | null;
   pronouns: string | null;
+  preferred_name: string | null;
   city: string | null;
   country_code: string | null;
   visibility: Components["ProfileVisibility"];
@@ -180,6 +181,7 @@ function toPersonProfile(row: PersonRow): PersonProfile {
     country: row.country_code,
     visibility: row.visibility,
     search_indexing: row.search_indexing,
+    preferred_name: row.preferred_name ?? null,
   };
 }
 
@@ -196,7 +198,7 @@ async function readPersonProfile(db: XosClient, id: string): Promise<PersonRow> 
 }
 
 const ORG_PROFILE_COLUMNS =
-  "id, created_at, updated_at, org_id, handle, handle_changed_at, about, visibility, search_indexing";
+  "id, created_at, updated_at, org_id, handle, handle_changed_at, about, website_url, contact_email, visibility, search_indexing";
 
 interface OrgProfileRow {
   id: string;
@@ -206,6 +208,8 @@ interface OrgProfileRow {
   handle: string;
   handle_changed_at: string | null;
   about: string | null;
+  website_url: string | null;
+  contact_email: string | null;
   visibility: Components["ProfileVisibility"];
   search_indexing: boolean;
 }
@@ -221,6 +225,8 @@ function toOrganizationProfile(row: OrgProfileRow): OrganizationProfile {
     about: row.about,
     visibility: row.visibility,
     search_indexing: row.search_indexing,
+    website_url: row.website_url ?? null,
+    contact_email: row.contact_email ?? null,
   };
 }
 
@@ -457,6 +463,7 @@ export const handlers = defineHandlers("Identity", {
         ...(body.headline !== undefined ? { headline: body.headline } : {}),
         ...(body.bio !== undefined ? { bio: body.bio } : {}),
         ...(body.pronouns !== undefined ? { pronouns: body.pronouns } : {}),
+        ...(body.preferred_name !== undefined ? { preferred_name: body.preferred_name } : {}),
         ...(body.locality !== undefined ? { city: body.locality } : {}),
         ...(body.country !== undefined ? { country_code: body.country } : {}),
         ...(body.visibility !== undefined ? { visibility: body.visibility } : {}),
@@ -510,6 +517,8 @@ export const handlers = defineHandlers("Identity", {
       .update({
         ...(body.handle !== undefined ? { handle: body.handle } : {}),
         ...(body.about !== undefined ? { about: body.about } : {}),
+        ...(body.website_url !== undefined ? { website_url: body.website_url } : {}),
+        ...(body.contact_email !== undefined ? { contact_email: body.contact_email } : {}),
         ...(body.visibility !== undefined ? { visibility: body.visibility } : {}),
         ...(body.search_indexing !== undefined ? { search_indexing: body.search_indexing } : {}),
       })

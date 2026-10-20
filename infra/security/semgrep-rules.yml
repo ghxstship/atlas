@@ -43,3 +43,50 @@ rules:
       - pattern-either:
           - pattern: $Q.or(...)
           - pattern: $Q.filter($COL, $OP, ...)
+
+  # A69-005: CSV written by hand skipped formula neutralization, so a vendor name such as
+  # =HYPERLINK(...) ran in the spreadsheet that opened the export. Every CSV field goes through
+  # csvField() (packages/data/src/csv.ts); the CLI keeps its own neutralizing csvCell because it does
+  # not depend on @xos/data.
+  - id: xos-csv-quoting-outside-csv-field
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      CSV quoting written by hand skips formula neutralization. Write each field with csvField()
+      from @xos/data/csv, which neutralizes cells a spreadsheet would run as formulas.
+    metadata:
+      category: security
+      cwe: "CWE-1236: Improper Neutralization of Formula Elements in a CSV File"
+    paths:
+      exclude:
+        - packages/data/src/csv.ts
+        - packages/cli/src/csv.ts
+        - "**/e2e/**"
+    pattern-either:
+      - pattern: $X.replace(/"/g, '""')
+      - pattern: $X.replaceAll('"', '""')
+
+  # A69-003: the first X-Forwarded-For entry is the client's own text, because every proxy appends the
+  # address it saw. Reading it let a caller claim an allowed office address past the org IP
+  # allow-list. Read the address with clientAddress() from @xos/data/client-address.
+  - id: xos-forwarded-for-first-entry
+    languages: [typescript, javascript]
+    severity: ERROR
+    message: >-
+      The first X-Forwarded-For entry is written by the client. Use clientAddress() from
+      @xos/data/client-address, which reads the entry the trusted proxy appended.
+    metadata:
+      category: security
+      cwe: "CWE-348: Use of Less Trusted Source"
+    pattern-either:
+      - pattern: $H.get("x-forwarded-for")?.split(",")[0]
+      - pattern: $H.get("x-forwarded-for").split(",")[0]
+      - pattern: $H.get("x-forwarded-for")?.split(",").at(0)
+      - pattern: $H.get("x-forwarded-for")?.split(",").shift()
+      - patterns:
+          - pattern-inside: |
+              const $V = $H.get("x-forwarded-for");
+              ...
+          - pattern-either:
+              - pattern: $V.split(",")[0]
+              - pattern: $V?.split(",")[0]

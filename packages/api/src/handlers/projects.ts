@@ -423,4 +423,8 @@ export const handlers = defineHandlers("Projects", {
 
   // Gate evidence: attested by the database guard (who and when), withdrawn by soft delete.
   ...tableHandlers("Projects", "gateEvidence"),
+
+  // The authorities having jurisdiction over a project (app.project_authority, A54-002): a keyless view that
+  // pages by project, service and agency, under the projects read policy.
+  ...tableHandlers("Projects", "projectAuthorities", { softDelete: false, key: "agency" }),
 });

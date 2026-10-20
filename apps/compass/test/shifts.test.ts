@@ -5,6 +5,8 @@ import {
   groupByDay,
   isMine,
   isOpenShift,
+  currentShift,
+  shiftCountdown,
   startsIn,
   type ShiftRow,
 } from "../src/domain/shifts";
@@ -69,6 +71,38 @@ describe("schedule", () => {
     expect(startsIn(new Date(now + 3 * h + 20 * 60_000).toISOString(), now)).toBe("3h 20m");
     expect(startsIn(new Date(now + 15 * 60_000).toISOString(), now)).toBe("15m");
     expect(startsIn(new Date(now - 1).toISOString(), now)).toBeNull();
+  });
+
+  it("counts whole days beyond a day, never thousands of hours (A59-028)", () => {
+    const at = (offsetMs: number) => new Date(now + offsetMs).toISOString();
+    expect(shiftCountdown(at(3 * h + 20 * 60_000), now)).toEqual({
+      key: "compass.schedule.startsIn",
+      values: { time: "3h 20m" },
+    });
+    expect(shiftCountdown(at(24 * h), now)?.key).toBe("compass.schedule.startsIn");
+    expect(shiftCountdown(at(30 * h), now)).toEqual({
+      key: "compass.schedule.startsInDaysOne",
+      values: { count: "1" },
+    });
+    expect(shiftCountdown(at(3492 * h + 5 * 60_000), now)).toEqual({
+      key: "compass.schedule.startsInDaysOther",
+      values: { count: "146" },
+    });
+    expect(shiftCountdown(at(-1), now)).toBeNull();
+    expect(shiftCountdown("not a date", now)).toBeNull();
+  });
+});
+
+describe("the shift being worked (A59-022)", () => {
+  it("is the one whose window, opened two hours early, includes now, in any live state", () => {
+    const working = shift("w", -1, { shift_state: "Published" });
+    expect(currentShift([shift("later", 5), working], now)?.id).toBe("w");
+    expect(currentShift([shift("soon", 1.5)], now)?.id).toBe("soon");
+    expect(currentShift([shift("far", 3)], now)).toBeNull();
+    expect(currentShift([shift("done", -9)], now)).toBeNull();
+    expect(currentShift([shift("x", -1, { shift_state: "Canceled" })], now)).toBeNull();
+    expect(currentShift([shift("d", -1, { shift_state: "Draft" })], now)).toBeNull();
+    expect(currentShift([shift("b", 1), shift("a", -1)], now)?.id).toBe("a");
   });
 });
 

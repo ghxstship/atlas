@@ -83,6 +83,56 @@ describe("SSRF guard", () => {
     for (const ip of ["93.184.216.34", "2606:4700::1111", "::ffff:8.8.8.8"])
       expect(isPublicAddress(ip), ip).toBe(true);
   });
+
+  // A69-004: a host's AAAA record can carry IPv4 in IPv6 forms, and special-purpose blocks are not
+  // the public internet either.
+  it("refuses IPv4 written in IPv6 forms and every special-purpose block", () => {
+    for (const ip of [
+      "::ffff:7f00:1",
+      "::ffff:a9fe:a9fe",
+      "::FFFF:0A00:0001",
+      "0:0:0:0:0:ffff:7f00:1",
+      "::127.0.0.1",
+      "::7f00:1",
+      "64:ff9b::7f00:1",
+      "64:ff9b::169.254.169.254",
+      "::",
+      "0:0:0:0:0:0:0:1",
+      "fec0::1",
+      "ff02::1",
+      "100::1",
+      "2001::1",
+      "2001:db8::1",
+      "2002:7f00:1::1",
+      "3fff::1",
+      "5f00::1",
+      "fe80::1%eth0",
+      "1:2:3:4:5:6:7:8:9",
+      "1::2::3",
+      "::ffff:999.0.0.1",
+      "192.0.0.8",
+      "192.0.2.10",
+      "198.18.0.1",
+      "198.19.255.255",
+      "198.51.100.1",
+      "203.0.113.5",
+      "224.0.0.1",
+      "239.255.255.250",
+      "240.0.0.1",
+      "255.255.255.255",
+    ]) {
+      expect(isPublicAddress(ip), ip).toBe(false);
+    }
+    for (const ip of [
+      "64:ff9b::8.8.8.8",
+      "::ffff:5db8:d822",
+      "2a00:1450:4001:80b::200e",
+      "198.20.0.1",
+      "223.255.255.255",
+      "1.1.1.1",
+    ])
+      expect(isPublicAddress(ip), ip).toBe(true);
+  });
 });
 
 describe("webhook dispatch", () => {

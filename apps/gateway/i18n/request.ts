@@ -8,7 +8,8 @@ import {
 } from "@xos/i18n";
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
-import { LOCALE_COOKIE, negotiateLocale, type GatewayLocale } from "./negotiate";
+import { cache } from "react";
+import { LOCALE_COOKIE, formattingLocale, negotiateLocale, type GatewayLocale } from "./negotiate";
 import { pseudoCatalog } from "./pseudo";
 
 /** Messages for a negotiated locale: a shipped catalog, or one derived from en-US for a pseudo-locale. */
@@ -56,13 +57,25 @@ export function uiMessages(locale: GatewayLocale): Record<string, string> | unde
   return out;
 }
 
-/** next-intl request configuration: negotiates the locale once per request (i18n/negotiate.ts). */
-export default getRequestConfig(async () => {
+/**
+ * The locale negotiated for this request (i18n/negotiate.ts), pseudo-locales included. It picks the messages, the
+ * document language and direction, and the language picker's value. Read once per request.
+ */
+export const negotiatedLocale = cache(async (): Promise<GatewayLocale> => {
   const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
-  const locale = negotiateLocale({
+  return negotiateLocale({
     cookie: cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage: headerStore.get("accept-language"),
     production: process.env.NODE_ENV === "production",
   });
-  return { locale, messages: messagesFor(locale) };
+});
+
+/**
+ * next-intl request configuration. Its `locale` is the one every formatter reads (getFormatter, useFormatter, and
+ * getLocale or useLocale handed to Intl and XOSProvider), so it is the formatting locale: a pseudo-locale formats
+ * dates and numbers as en-US while its messages stay pseudo (finding A53-001).
+ */
+export default getRequestConfig(async () => {
+  const locale = await negotiatedLocale();
+  return { locale: formattingLocale(locale), messages: messagesFor(locale) };
 });

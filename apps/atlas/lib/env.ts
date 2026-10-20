@@ -36,6 +36,14 @@ const EnvSchema = z.object({
     .regex(/^[a-z0-9.-]+$/)
     .optional(),
   WEBAUTHN_RP_ORIGINS: z.string().optional(),
+  /**
+   * Trusted proxies in front of the one that appends the client address to X-Forwarded-For
+   * (A69-003). Unset (0) on Vercel and behind one proxy; 1 behind a CDN and a proxy, and so on.
+   */
+  XOS_TRUSTED_PROXY_HOPS: z
+    .string()
+    .regex(/^\d{1,2}$/)
+    .optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
