@@ -991,7 +991,10 @@
         "seat_limit_reached": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
         "seat_limit_upgrade": "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación."
       },
-      "home": "Ir a Atlas"
+      "home": "Ir a Atlas",
+      "closedTitle": "Este enlace de invitación ya no es válido",
+      "closedBody": "Es posible que haya vencido, que ya se haya usado o que una invitación más reciente lo haya reemplazado. Pida a la persona que lo invitó que le envíe una nueva. Si ya tiene una cuenta, aún puede iniciar sesión.",
+      "signIn": "Iniciar sesión"
     },
     "signOut": "Cerrar sesión",
     "session": {
