@@ -37,7 +37,9 @@ test("emergency access without a second factor offers enrolment, verifies and re
   await createOrganization(page, { name: `Step Up ${id}`, slug });
 
   await page.goto(`/${slug}/settings/security`);
-  await page.locator("#break-glass-reason").fill("Owner locked out of the venue network at load-in.");
+  await page
+    .locator("#break-glass-reason")
+    .fill("Owner locked out of the venue network at load-in.");
   await page.getByRole("button", { name: "Take emergency access" }).click();
 
   // No factor yet: the step-up offers to set one up instead of a dead end.
