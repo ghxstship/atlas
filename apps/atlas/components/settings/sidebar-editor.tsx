@@ -69,8 +69,10 @@ export function SidebarEditor({
 
   const listOf = (group: string | null) =>
     group === null ? groups : (groups.find((g) => g.id === group)?.items ?? []);
-  const labelOf = (id: string, group: string | null) =>
-    listOf(group).find((x) => x.id === id)?.label ?? id;
+  const labelOf = (id: string, group: string | null) => {
+    const label = listOf(group).find((x) => x.id === id)?.label ?? id;
+    return group === null ? t("group", { group: label }) : label;
+  };
   const place = (id: string, group: string | null, to: number) => {
     setGroups((gs) =>
       group === null

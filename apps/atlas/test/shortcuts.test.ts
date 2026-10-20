@@ -346,13 +346,13 @@ describe("shell key handler (Section 11.2)", () => {
     ]);
   });
 
-  it("cancels a sequence on another key, and after two seconds", () => {
+  it("cancels a sequence on another key, and after four seconds", () => {
     start(keys());
     press("g");
     const other = press("q");
     expect(other.defaultPrevented).toBe(false);
     press("g");
-    vi.advanceTimersByTime(2000);
+    vi.advanceTimersByTime(4000);
     press("h");
     expect(calls).toEqual(["pending:G", "pending:none", "pending:G", "pending:none"]);
   });

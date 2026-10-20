@@ -11,6 +11,8 @@ import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } fro
  * handler listens.
  */
 test.use({ reducedMotion: "reduce" });
+// Sign-up, a new org and a first visit to each page take a while under next dev.
+test.describe.configure({ timeout: 180_000 });
 
 async function newOrg(page: Page, label: string): Promise<string> {
   const id = uniqueId();
@@ -20,11 +22,22 @@ async function newOrg(page: Page, label: string): Promise<string> {
   return slug;
 }
 
-/** Opens a page and waits until the shell answers keys, with focus on the page, not a field. */
-async function openReady(page: Page, path: string) {
-  await page.goto(path);
+/** Waits until the page settles and the shell answers keys, with focus on the page, not a field. */
+async function ready(page: Page) {
+  // In development a first visit compiles the route and Fast Refresh reattaches the key handler.
+  await page.waitForLoadState("networkidle");
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   await page.locator("#content").focus();
+}
+
+async function openReady(page: Page, path: string) {
+  await page.goto(path);
+  await ready(page);
+}
+
+/** The command menu's search field. */
+function commandSearch(page: Page) {
+  return page.getByRole("dialog", { name: "Command menu" }).getByRole("combobox");
 }
 
 test("C opens the Create menu with this page's kind first, and Enter starts its create flow", async ({
@@ -60,18 +73,23 @@ test("G then a letter goes to a section with a visible hint, and typing never do
   await expect(hint).toBeVisible();
   await expect(hint).toContainText("Projects");
   await expectAccessible(page);
+  // Esc cancels the sequence; the next G starts again.
+  await page.keyboard.press("Escape");
+  await expect(hint).toBeHidden();
+  await page.keyboard.press("g");
   await page.keyboard.press("p");
   await expect(page).toHaveURL(new RegExp(`/${slug}/projects$`));
   await expect(hint).toBeHidden();
 
-  await page.locator("#content").focus();
+  await ready(page);
   await page.keyboard.press("g");
   await page.keyboard.press("i");
   await expect(page).toHaveURL(new RegExp(`/${slug}/inbox$`));
 
   // In the command menu's search field the letters are text, and the menu hints each section's keys.
+  await ready(page);
   await page.keyboard.press("ControlOrMeta+k");
-  const search = page.getByRole("combobox");
+  const search = commandSearch(page);
   await expect(search).toBeVisible({ timeout: 15_000 });
   await page.keyboard.type("gh");
   await expect(search).toHaveValue("gh");
@@ -113,7 +131,7 @@ test("a person rebinds a shortcut, and conflicts and screen reader keys are refu
   await page.keyboard.press("g");
   await page.keyboard.press("j");
   await expect(page).toHaveURL(new RegExp(`/${slug}/projects$`));
-  await page.locator("#content").focus();
+  await ready(page);
   await page.keyboard.press("?");
   const help = page.getByRole("dialog", { name: "Help" });
   await expect(help.getByRole("term").filter({ hasText: "Go to Projects" })).toBeVisible({
@@ -161,9 +179,9 @@ test("a person hides a sidebar item and moves a group by keyboard, then resets t
   const main = page.getByRole("navigation", { name: "Main" });
   await expect(main.locator("h2 button").first()).toHaveText("Commercial");
   await expect(main.locator(`a[href="/${slug}/advancing"]`)).toHaveCount(0);
-  await page.locator("#content").focus();
+  await ready(page);
   await page.keyboard.press("ControlOrMeta+k");
-  await page.getByRole("combobox").fill("Advancing");
+  await commandSearch(page).fill("Advancing");
   await expect(page.getByRole("option", { name: /Advancing/ }).first()).toBeVisible();
   await page.keyboard.press("Escape");
 

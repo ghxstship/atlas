@@ -12,7 +12,7 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  * - Single keys (no Mod, Ctrl or Alt) obey me.shortcuts_enabled and stay quiet inside dialogs and
  *   menus, so they never act behind an open panel or clash with a screen reader's dialog keys.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
- *   cancels, and the hint closes after two seconds.
+ *   cancels, Esc cancels, and the hint closes after four seconds.
  * - A key a component already handled (preventDefault) and keys pressed while composing text are
  *   left alone.
  */
@@ -31,7 +31,7 @@ export interface KeyState {
   readonly handlers: KeyHandlers;
 }
 
-const PENDING_MS = 2000;
+const PENDING_MS = 4000;
 const OVERLAY =
   '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"], [aria-modal="true"]';
 const MODIFIER = /(?:^|\+)(?:Mod|Ctrl|Alt)\+/;
