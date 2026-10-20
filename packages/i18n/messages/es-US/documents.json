@@ -23,7 +23,8 @@
     "generatedAt": "Generado",
     "qrAlt": "Código QR que abre el registro {key} para quien tenga acceso",
     "logoAlt": "Logotipo de {name}",
-    "page": "Página {page} de {total}"
+    "page": "Página {page} de {total}",
+    "watermark": "Descargado por {email} el {time}"
   },
   "common": {
     "amount": "Importe",
@@ -248,5 +249,11 @@
       "Expired": "Vencido",
       "Canceled": "Cancelado"
     }
+  },
+  "sharedImage": {
+    "title": "Archivo compartido {name}",
+    "file": "Archivo",
+    "qrAlt": "Código QR que vuelve a abrir el enlace compartido",
+    "alt": "{name}, compartido por {org}"
   }
 }

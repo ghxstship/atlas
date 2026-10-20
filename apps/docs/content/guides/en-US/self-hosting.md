@@ -112,7 +112,7 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch` and `api-token` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
+For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token` and `file-download` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
 
 | Secret                                                    | Used by                                                                                          |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |

@@ -14,6 +14,7 @@ import {
   viewsHelpSupportResources,
 } from "./parts/views-help-support.ts";
 import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
+import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
 import {
   workflowActions,
   workflowCapabilities,
@@ -66,9 +67,19 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
-  resources: [...viewsHelpSupportResources, ...workflowResources, ...a36Resources],
+  resources: [
+    ...viewsHelpSupportResources,
+    ...workflowResources,
+    ...a36Resources,
+    ...shareLinkResources,
+  ],
   actions: { ...workflowActions, ...a36Actions },
-  capabilities: { ...viewsHelpSupportCapabilities, ...workflowCapabilities, ...a36Capabilities },
+  capabilities: {
+    ...viewsHelpSupportCapabilities,
+    ...workflowCapabilities,
+    ...a36Capabilities,
+    ...shareLinkCapabilities,
+  },
   corrections: [
     ...workflowCorrections,
     ...a36Corrections,

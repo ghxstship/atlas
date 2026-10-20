@@ -6822,6 +6822,7 @@ export type Database = {
       };
       attachments: {
         Row: {
+          classification: Database["app"]["Enums"]["data_classification"];
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -6835,6 +6836,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          classification?: Database["app"]["Enums"]["data_classification"];
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -6847,6 +6849,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          classification?: Database["app"]["Enums"]["data_classification"];
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -39866,6 +39869,122 @@ export type Database = {
           },
         ];
       };
+      share_links: {
+        Row: {
+          access_code_hash: string | null;
+          access_code_required: boolean;
+          attachment_id: string;
+          attachment_version_id: string | null;
+          classification: Database["app"]["Enums"]["data_classification"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string | null;
+          failed_attempts: number;
+          id: string;
+          last_opened_at: string | null;
+          note: string | null;
+          open_count: number;
+          org_id: string;
+          recipient_email: string | null;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          token_hash: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash?: string | null;
+          access_code_required?: boolean;
+          attachment_id: string;
+          attachment_version_id?: string | null;
+          classification?: Database["app"]["Enums"]["data_classification"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          failed_attempts?: number;
+          id?: string;
+          last_opened_at?: string | null;
+          note?: string | null;
+          open_count?: number;
+          org_id: string;
+          recipient_email?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          token_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          access_code_hash?: string | null;
+          access_code_required?: boolean;
+          attachment_id?: string;
+          attachment_version_id?: string | null;
+          classification?: Database["app"]["Enums"]["data_classification"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          failed_attempts?: number;
+          id?: string;
+          last_opened_at?: string | null;
+          note?: string | null;
+          open_count?: number;
+          org_id?: string;
+          recipient_email?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          token_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "share_links_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_attachment_version_id_fkey";
+            columns: ["attachment_version_id"];
+            isOneToOne: false;
+            referencedRelation: "attachment_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shared_reports: {
         Row: {
           created_at: string;
@@ -53328,6 +53447,16 @@ export type Database = {
       complete_training: { Args: { p_answers?: Json; p_course_id: string }; Returns: string };
       complete_training_lesson: { Args: { p_lesson_id: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
+      consume_file_download_ticket: {
+        Args: { p_ticket: string };
+        Returns: {
+          bucket_id: string;
+          content_type: string;
+          filename: string;
+          object_name: string;
+          size_bytes: number;
+        }[];
+      };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
         Returns: {
@@ -53499,6 +53628,22 @@ export type Database = {
       create_service_account: {
         Args: { p_expires_at?: string; p_name: string; p_org_id: string; p_role_id: string };
         Returns: string;
+      };
+      create_share_link: {
+        Args: {
+          p_access_code_required?: boolean;
+          p_attachment_id: string;
+          p_expires_at?: string;
+          p_note?: string;
+          p_recipient_email?: string;
+        };
+        Returns: {
+          access_code: string;
+          classification: Database["app"]["Enums"]["data_classification"];
+          expires_at: string;
+          share_link_id: string;
+          token: string;
+        }[];
       };
       create_survey: {
         Args: {
@@ -54319,6 +54464,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      record_file_download: {
+        Args: { p_attachment_version_id: string };
+        Returns: {
+          classification: Database["app"]["Enums"]["data_classification"];
+          viewer_email: string;
+          watermark: boolean;
+        }[];
+      };
       record_gate_arrival: {
         Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
         Returns: string;
@@ -54787,6 +54940,7 @@ export type Database = {
       revoke_profile_share: { Args: { p_profile_share_id: string }; Returns: undefined };
       revoke_representation: { Args: { p_representation_id: string }; Returns: undefined };
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
+      revoke_share_link: { Args: { p_share_link_id: string }; Returns: string };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
       rsvp_to_event: {

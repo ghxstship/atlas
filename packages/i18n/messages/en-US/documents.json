@@ -23,7 +23,8 @@
     "generatedAt": "Generated",
     "qrAlt": "QR code that opens record {key} for anyone with access",
     "logoAlt": "{name} logo",
-    "page": "Page {page} of {total}"
+    "page": "Page {page} of {total}",
+    "watermark": "Downloaded by {email} on {time}"
   },
   "common": {
     "amount": "Amount",
@@ -248,5 +249,11 @@
       "Expired": "Expired",
       "Canceled": "Canceled"
     }
+  },
+  "sharedImage": {
+    "title": "Shared file {name}",
+    "file": "File",
+    "qrAlt": "QR code that opens the share link again",
+    "alt": "{name}, shared by {org}"
   }
 }

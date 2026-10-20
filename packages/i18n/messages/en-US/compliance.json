@@ -1,0 +1,98 @@
+{
+  "classification": {
+    "label": "Classification",
+    "help": "Decides who may download the file, whether it may be shared by link, and whether copies carry the viewer's email.",
+    "levels": {
+      "Public": "Public",
+      "Internal": "Internal",
+      "Confidential": "Confidential",
+      "Restricted": "Restricted"
+    },
+    "save": "Save classification",
+    "saved": "Classification saved.",
+    "rules": {
+      "Public": "Anyone may get a link, with or without an expiry.",
+      "Internal": "Links need an expiry date within 90 days.",
+      "Confidential": "Links need an expiry within 30 days, an access code and the recipient's email. Downloads carry the viewer's email and the time.",
+      "Restricted": "Never shared by link. Downloads need the restricted export capability and a second sign-in factor."
+    }
+  },
+  "share": {
+    "toggle": "Share",
+    "hide": "Hide sharing",
+    "title": "Share {name}",
+    "loading": "Loading links…",
+    "links": "Links",
+    "noLinks": "No links yet.",
+    "create": {
+      "heading": "New link",
+      "expiresOn": "Expires on",
+      "expiresHelp": "The link stops opening at the end of this day. Up to {days} days ahead.",
+      "noExpiry": "Leave empty for a link that never expires.",
+      "accessCode": "Ask for a 6-digit access code",
+      "accessCodeForced": "Confidential files always ask for an access code.",
+      "recipient": "Recipient's email",
+      "recipientHelp": "Their email is printed on every page they download.",
+      "note": "What is it for?",
+      "submit": "Create link",
+      "restricted": "Restricted files are never shared by link."
+    },
+    "created": {
+      "heading": "Link created",
+      "copyOnce": "Copy the link and the code now. They are shown only once.",
+      "link": "Link",
+      "code": "Access code",
+      "codeHelp": "Send the code separately from the link.",
+      "copy": "Copy",
+      "copied": "Copied"
+    },
+    "row": {
+      "expires": "Expires {date}",
+      "never": "Never expires",
+      "opened": "{count, plural, =0 {Not opened yet} one {Opened once} other {Opened # times}}",
+      "codeRequired": "Access code",
+      "for": "For {email}",
+      "revoked": "Revoked",
+      "locked": "Locked after 5 wrong codes",
+      "expired": "Expired",
+      "revoke": "Revoke"
+    },
+    "errors": {
+      "share_link_restricted": "Restricted files are never shared by link.",
+      "share_link_confidential": "Sharing a Confidential file needs the export capability for Confidential data.",
+      "share_link_recipient": "Enter the recipient's email. The watermark carries it.",
+      "share_link_recipient_format": "Enter a valid email address.",
+      "share_link_watermark_unsupported": "This Confidential file cannot carry the viewer watermark, so it cannot be shared by link. Only PNG and JPEG images can.",
+      "share_link_expiry": "Choose an expiry date.",
+      "share_link_expiry_range": "Choose a date after today and within the limit.",
+      "share_link_file": "Wait until the file has scanned clean.",
+      "attachment_classification_lower": "Only the person who added the file, or someone who may set classifications, can lower it.",
+      "org_read_only": "This organization is read-only.",
+      "notFound": "This file is no longer available.",
+      "unexpected": "Something went wrong. Try again."
+    }
+  },
+  "open": {
+    "title": "Shared file",
+    "intro": "Someone shared a file with you. Open it below.",
+    "accessCode": "Access code",
+    "accessCodeHelp": "Enter the 6-digit code if you received one with the link.",
+    "submit": "Open file",
+    "watermark": "Confidential images download as a PDF that shows your email and the time.",
+    "refusals": {
+      "share_link_invalid": "This link does not work. It may have been revoked or mistyped.",
+      "share_link_locked": "This link is locked after too many wrong codes. Ask the sender for a new one.",
+      "share_link_expired": "This link has expired. Ask the sender for a new one.",
+      "share_link_reclassified": "This file can no longer be shared this way. Ask the sender.",
+      "share_link_access_code_required": "Enter the access code that came with the link.",
+      "share_link_access_code": "That code is not right. After 5 wrong codes the link locks.",
+      "share_link_rate_limited": "Too many attempts from your network. Wait 10 minutes and try again."
+    }
+  },
+  "download": {
+    "download_confidential": "Downloading a Confidential file needs the export capability for Confidential data.",
+    "download_restricted": "Downloading a Restricted file needs the restricted export capability.",
+    "step_up_required": "Downloading a Restricted file needs a second sign-in factor. Sign in again with your second factor, then try again.",
+    "notFound": "This file is not available."
+  }
+}

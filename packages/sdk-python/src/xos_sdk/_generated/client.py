@@ -368,6 +368,7 @@ from .resources import (
     TemplateItemsResource,
     SupportSessionsResource,
     WholesaleStatementsResource,
+    ShareLinksResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -779,6 +780,7 @@ class XosClient(XosClientCore):
     template_items: TemplateItemsResource
     support_sessions: SupportSessionsResource
     wholesale_statements: WholesaleStatementsResource
+    share_links: ShareLinksResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1178,6 +1180,7 @@ class XosClient(XosClientCore):
         self.template_items = TemplateItemsResource(self)
         self.support_sessions = SupportSessionsResource(self)
         self.wholesale_statements = WholesaleStatementsResource(self)
+        self.share_links = ShareLinksResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

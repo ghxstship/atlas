@@ -3406,6 +3406,113 @@ var compass_default$1 = {
     },
   },
 };
+var compliance_default$1 = {
+  classification: {
+    label: "Classification",
+    help: "Decides who may download the file, whether it may be shared by link, and whether copies carry the viewer's email.",
+    levels: {
+      Public: "Public",
+      Internal: "Internal",
+      Confidential: "Confidential",
+      Restricted: "Restricted",
+    },
+    save: "Save classification",
+    saved: "Classification saved.",
+    rules: {
+      Public: "Anyone may get a link, with or without an expiry.",
+      Internal: "Links need an expiry date within 90 days.",
+      Confidential:
+        "Links need an expiry within 30 days, an access code and the recipient's email. Downloads carry the viewer's email and the time.",
+      Restricted:
+        "Never shared by link. Downloads need the restricted export capability and a second sign-in factor.",
+    },
+  },
+  share: {
+    toggle: "Share",
+    hide: "Hide sharing",
+    title: "Share {name}",
+    loading: "Loading links…",
+    links: "Links",
+    noLinks: "No links yet.",
+    create: {
+      heading: "New link",
+      expiresOn: "Expires on",
+      expiresHelp: "The link stops opening at the end of this day. Up to {days} days ahead.",
+      noExpiry: "Leave empty for a link that never expires.",
+      accessCode: "Ask for a 6-digit access code",
+      accessCodeForced: "Confidential files always ask for an access code.",
+      recipient: "Recipient's email",
+      recipientHelp: "Their email is printed on every page they download.",
+      note: "What is it for?",
+      submit: "Create link",
+      restricted: "Restricted files are never shared by link.",
+    },
+    created: {
+      heading: "Link created",
+      copyOnce: "Copy the link and the code now. They are shown only once.",
+      link: "Link",
+      code: "Access code",
+      codeHelp: "Send the code separately from the link.",
+      copy: "Copy",
+      copied: "Copied",
+    },
+    row: {
+      expires: "Expires {date}",
+      never: "Never expires",
+      opened: "{count, plural, =0 {Not opened yet} one {Opened once} other {Opened # times}}",
+      codeRequired: "Access code",
+      for: "For {email}",
+      revoked: "Revoked",
+      locked: "Locked after 5 wrong codes",
+      expired: "Expired",
+      revoke: "Revoke",
+    },
+    errors: {
+      share_link_restricted: "Restricted files are never shared by link.",
+      share_link_confidential:
+        "Sharing a Confidential file needs the export capability for Confidential data.",
+      share_link_recipient: "Enter the recipient's email. The watermark carries it.",
+      share_link_recipient_format: "Enter a valid email address.",
+      share_link_watermark_unsupported:
+        "This Confidential file cannot carry the viewer watermark, so it cannot be shared by link. Only PNG and JPEG images can.",
+      share_link_expiry: "Choose an expiry date.",
+      share_link_expiry_range: "Choose a date after today and within the limit.",
+      share_link_file: "Wait until the file has scanned clean.",
+      attachment_classification_lower:
+        "Only the person who added the file, or someone who may set classifications, can lower it.",
+      org_read_only: "This organization is read-only.",
+      notFound: "This file is no longer available.",
+      unexpected: "Something went wrong. Try again.",
+    },
+  },
+  open: {
+    title: "Shared file",
+    intro: "Someone shared a file with you. Open it below.",
+    accessCode: "Access code",
+    accessCodeHelp: "Enter the 6-digit code if you received one with the link.",
+    submit: "Open file",
+    watermark: "Confidential images download as a PDF that shows your email and the time.",
+    refusals: {
+      share_link_invalid: "This link does not work. It may have been revoked or mistyped.",
+      share_link_locked:
+        "This link is locked after too many wrong codes. Ask the sender for a new one.",
+      share_link_expired: "This link has expired. Ask the sender for a new one.",
+      share_link_reclassified: "This file can no longer be shared this way. Ask the sender.",
+      share_link_access_code_required: "Enter the access code that came with the link.",
+      share_link_access_code: "That code is not right. After 5 wrong codes the link locks.",
+      share_link_rate_limited:
+        "Too many attempts from your network. Wait 10 minutes and try again.",
+    },
+  },
+  download: {
+    download_confidential:
+      "Downloading a Confidential file needs the export capability for Confidential data.",
+    download_restricted: "Downloading a Restricted file needs the restricted export capability.",
+    step_up_required:
+      "Downloading a Restricted file needs a second sign-in factor. Sign in again with your second factor, then try again.",
+    notFound: "This file is not available.",
+  },
+};
 var credentials_default$1 = {
   categories: {
     active: "Live credentials",
@@ -4402,6 +4509,7 @@ var documents_default$1 = {
     qrAlt: "QR code that opens record {key} for anyone with access",
     logoAlt: "{name} logo",
     page: "Page {page} of {total}",
+    watermark: "Downloaded by {email} on {time}",
   },
   common: {
     amount: "Amount",
@@ -4630,6 +4738,12 @@ var documents_default$1 = {
       Expired: "Expired",
       Canceled: "Canceled",
     },
+  },
+  sharedImage: {
+    title: "Shared file {name}",
+    file: "File",
+    qrAlt: "QR code that opens the share link again",
+    alt: "{name}, shared by {org}",
   },
 };
 var email_default$1 = {
@@ -19821,6 +19935,120 @@ var compass_default = {
     },
   },
 };
+var compliance_default = {
+  classification: {
+    label: "Clasificación",
+    help: "Decide quién puede descargar el archivo, si se puede compartir por enlace y si las copias llevan el correo de quien lo ve.",
+    levels: {
+      Public: "Público",
+      Internal: "Interno",
+      Confidential: "Confidencial",
+      Restricted: "Restringido",
+    },
+    save: "Guardar clasificación",
+    saved: "Clasificación guardada.",
+    rules: {
+      Public: "Cualquiera puede recibir un enlace, con o sin vencimiento.",
+      Internal: "Los enlaces necesitan una fecha de vencimiento dentro de 90 días.",
+      Confidential:
+        "Los enlaces necesitan un vencimiento dentro de 30 días, un código de acceso y el correo del destinatario. Las descargas llevan el correo de quien lo ve y la hora.",
+      Restricted:
+        "Nunca se comparte por enlace. Las descargas necesitan la capacidad de exportación restringida y un segundo factor de inicio de sesión.",
+    },
+  },
+  share: {
+    toggle: "Compartir",
+    hide: "Ocultar uso compartido",
+    title: "Compartir {name}",
+    loading: "Cargando enlaces…",
+    links: "Enlaces",
+    noLinks: "Todavía no hay enlaces.",
+    create: {
+      heading: "Nuevo enlace",
+      expiresOn: "Vence el",
+      expiresHelp:
+        "El enlace deja de abrirse al final de este día. Hasta {days} días a partir de hoy.",
+      noExpiry: "Déjalo vacío para un enlace que nunca vence.",
+      accessCode: "Pedir un código de acceso de 6 dígitos",
+      accessCodeForced: "Los archivos confidenciales siempre piden un código de acceso.",
+      recipient: "Correo del destinatario",
+      recipientHelp: "Su correo se imprime en cada página que descargue.",
+      note: "¿Para qué es?",
+      submit: "Crear enlace",
+      restricted: "Los archivos restringidos nunca se comparten por enlace.",
+    },
+    created: {
+      heading: "Enlace creado",
+      copyOnce: "Copia el enlace y el código ahora. Solo se muestran una vez.",
+      link: "Enlace",
+      code: "Código de acceso",
+      codeHelp: "Envía el código por separado del enlace.",
+      copy: "Copiar",
+      copied: "Copiado",
+    },
+    row: {
+      expires: "Vence el {date}",
+      never: "Nunca vence",
+      opened:
+        "{count, plural, =0 {Aún no se ha abierto} one {Abierto una vez} other {Abierto # veces}}",
+      codeRequired: "Código de acceso",
+      for: "Para {email}",
+      revoked: "Revocado",
+      locked: "Bloqueado tras 5 códigos incorrectos",
+      expired: "Vencido",
+      revoke: "Revocar",
+    },
+    errors: {
+      share_link_restricted: "Los archivos restringidos nunca se comparten por enlace.",
+      share_link_confidential:
+        "Compartir un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
+      share_link_recipient: "Escribe el correo del destinatario. La marca de agua lo lleva.",
+      share_link_recipient_format: "Escribe un correo válido.",
+      share_link_watermark_unsupported:
+        "Este archivo confidencial no puede llevar la marca de agua, así que no se puede compartir por enlace. Solo pueden las imágenes PNG y JPEG.",
+      share_link_expiry: "Elige una fecha de vencimiento.",
+      share_link_expiry_range: "Elige una fecha posterior a hoy y dentro del límite.",
+      share_link_file: "Espera a que el análisis del archivo termine sin problemas.",
+      attachment_classification_lower:
+        "Solo quien agregó el archivo, o alguien que pueda fijar clasificaciones, puede bajarla.",
+      org_read_only: "Esta organización es de solo lectura.",
+      notFound: "Este archivo ya no está disponible.",
+      unexpected: "Algo salió mal. Inténtalo de nuevo.",
+    },
+  },
+  open: {
+    title: "Archivo compartido",
+    intro: "Alguien compartió un archivo contigo. Ábrelo abajo.",
+    accessCode: "Código de acceso",
+    accessCodeHelp: "Escribe el código de 6 dígitos si lo recibiste con el enlace.",
+    submit: "Abrir archivo",
+    watermark:
+      "Las imágenes confidenciales se descargan como un PDF que muestra tu correo y la hora.",
+    refusals: {
+      share_link_invalid:
+        "Este enlace no funciona. Puede que lo hayan revocado o que esté mal escrito.",
+      share_link_locked:
+        "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
+      share_link_expired: "Este enlace venció. Pide uno nuevo a quien lo envió.",
+      share_link_reclassified:
+        "Este archivo ya no se puede compartir así. Consulta a quien lo envió.",
+      share_link_access_code_required: "Escribe el código de acceso que llegó con el enlace.",
+      share_link_access_code:
+        "Ese código no es correcto. Tras 5 códigos incorrectos el enlace se bloquea.",
+      share_link_rate_limited:
+        "Demasiados intentos desde tu red. Espera 10 minutos e inténtalo de nuevo.",
+    },
+  },
+  download: {
+    download_confidential:
+      "Descargar un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
+    download_restricted:
+      "Descargar un archivo restringido necesita la capacidad de exportación restringida.",
+    step_up_required:
+      "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
+    notFound: "Este archivo no está disponible.",
+  },
+};
 var credentials_default = {
   categories: {
     active: "Credenciales vigentes",
@@ -20851,6 +21079,7 @@ var documents_default = {
     qrAlt: "Código QR que abre el registro {key} para quien tenga acceso",
     logoAlt: "Logotipo de {name}",
     page: "Página {page} de {total}",
+    watermark: "Descargado por {email} el {time}",
   },
   common: {
     amount: "Importe",
@@ -21080,6 +21309,12 @@ var documents_default = {
       Expired: "Vencido",
       Canceled: "Cancelado",
     },
+  },
+  sharedImage: {
+    title: "Archivo compartido {name}",
+    file: "Archivo",
+    qrAlt: "Código QR que vuelve a abrir el enlace compartido",
+    alt: "{name}, compartido por {org}",
   },
 };
 var email_default = {
@@ -34246,6 +34481,7 @@ var enUS = {
   auroraCertificates: auroraCertificates_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
+  compliance: compliance_default$1,
   credentials: credentials_default$1,
   crew: crew_default$1,
   docs: docs_default$1,
@@ -34301,6 +34537,7 @@ var esUS = {
   auroraCertificates: auroraCertificates_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
+  compliance: compliance_default,
   credentials: credentials_default,
   crew: crew_default,
   docs: docs_default,

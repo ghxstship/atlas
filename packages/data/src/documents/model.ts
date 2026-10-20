@@ -27,6 +27,57 @@ export function isDocumentKind(value: string): value is DocumentKind {
   return (DOCUMENT_KINDS as readonly string[]).includes(value);
 }
 
+/**
+ * Compliance forms and delivered files rendered through the same pipeline (Section 14.5, Section 8.6):
+ * the WH-347 certified payroll, OSHA Forms 300, 300A and 301, and a shared image delivered with the
+ * viewer watermark. They are not record documents: each has its own route and loader.
+ */
+export const COMPLIANCE_DOCUMENT_KINDS = [
+  "certified-payroll",
+  "osha-300",
+  "osha-300a",
+  "osha-301",
+  "shared-image",
+] as const;
+
+export type ComplianceDocumentKind = (typeof COMPLIANCE_DOCUMENT_KINDS)[number];
+
+/** Section 8.3 classification, least to most sensitive. */
+export type DataClassification = "Public" | "Internal" | "Confidential" | "Restricted";
+
+/**
+ * The classification of each generated document: the highest classification among the registered
+ * columns its template prints (private.column_classifications). Section 8.6 puts the viewer email
+ * and time on Confidential and Restricted PDFs. The twelve record documents print only Internal
+ * columns; the WH-347 prints Restricted pay rates; the OSHA forms print Confidential health data.
+ */
+export const DOCUMENT_CLASSIFICATION: Readonly<
+  Record<DocumentKind | ComplianceDocumentKind, DataClassification>
+> = {
+  "purchase-order": "Internal",
+  invoice: "Internal",
+  "change-order": "Internal",
+  "day-sheet": "Internal",
+  "call-sheet": "Internal",
+  "run-of-show": "Internal",
+  beo: "Internal",
+  "credential-badge": "Internal",
+  "inspection-report": "Internal",
+  "incident-report": "Internal",
+  "final-cost-report": "Internal",
+  "agreement-certificate": "Internal",
+  "certified-payroll": "Restricted",
+  "osha-300": "Confidential",
+  "osha-300a": "Confidential",
+  "osha-301": "Confidential",
+  "shared-image": "Confidential",
+};
+
+/** True when Section 8.6 asks for the viewer email and time on a document of this classification. */
+export function needsWatermark(classification: DataClassification): boolean {
+  return classification === "Confidential" || classification === "Restricted";
+}
+
 /** Every document prints on US Letter and A4 (Section 11.9). */
 export type Paper = "letter" | "a4";
 
@@ -52,6 +103,8 @@ export interface DocumentColumn {
 
 export type DocumentBlock =
   | { readonly kind: "heading"; readonly text: string }
+  /** A PNG or JPEG image, read as a Figure with its alternative text, fitted to the page. */
+  | { readonly kind: "image"; readonly bytes: Uint8Array; readonly alt: string }
   | { readonly kind: "paragraph"; readonly text: string; readonly size?: "body" | "large" }
   | { readonly kind: "fields"; readonly caption: string; readonly fields: readonly DocumentField[] }
   | {
@@ -71,8 +124,17 @@ export interface DocumentLogo {
   readonly alt: string;
 }
 
+/**
+ * The Section 8.6 watermark: who received the copy and when, already translated (for example
+ * "Downloaded by ana@example.com on Oct 20, 2026, 2:05 PM UTC"). It is printed once in the header,
+ * where a screen reader reads it, and across every page as an artifact.
+ */
+export interface DocumentWatermark {
+  readonly text: string;
+}
+
 export interface DocumentModel {
-  readonly kind: DocumentKind;
+  readonly kind: DocumentKind | ComplianceDocumentKind;
   /** BCP 47 language of every string in the model, for example en-US or es-US. */
   readonly lang: string;
   /** Document title, also the PDF title the viewer shows (for example "Purchase order PRJ-PO-12"). */
@@ -105,4 +167,6 @@ export interface DocumentModel {
     };
   };
   readonly blocks: readonly DocumentBlock[];
+  /** Set on Confidential and Restricted copies (Section 8.6). */
+  readonly watermark?: DocumentWatermark;
 }

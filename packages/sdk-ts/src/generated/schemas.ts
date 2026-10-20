@@ -39171,6 +39171,168 @@ export interface WholesaleBillingRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ShareLinkPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ShareLink>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links.
+ */
+export interface ShareLink {
+  /**
+   * Identifier of the share link.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the file the link shares.
+   * Format: `uuid`.
+   */
+  readonly attachment_id: string;
+  /**
+   * Clean version the link opens, set from the file's current version.
+   * Format: `uuid`.
+   */
+  readonly attachment_version_id: string | null;
+  readonly classification: Classification;
+  /**
+   * True when the link asks for a 6-digit access code; always true for a Confidential file.
+   */
+  readonly access_code_required: boolean;
+  /**
+   * Who the link is for, lowercased. Required for a Confidential file.
+   * Format: `email`.
+   */
+  readonly recipient_email: string | null;
+  /**
+   * What the link is for.
+   * Length: 1 to 200.
+   */
+  readonly note: string | null;
+  /**
+   * When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+  /**
+   * Wrong access codes entered; the link locks at 5.
+   * Range: 0 to unbounded.
+   */
+  readonly failed_attempts: number;
+  /**
+   * Successful opens.
+   * Range: 0 to unbounded.
+   */
+  readonly open_count: number;
+  /**
+   * When the link was last opened.
+   * Format: `date-time`.
+   */
+  readonly last_opened_at: string | null;
+  /**
+   * When the link was revoked; it never opens again.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+  /**
+   * Identifier of the person who revoked the link.
+   * Format: `uuid`.
+   */
+  readonly revoked_by: string | null;
+}
+
+/**
+ * A new share link with its token and access code, shown once.
+ */
+export interface ShareLinkToken {
+  /**
+   * The new link.
+   * Format: `uuid`.
+   */
+  readonly share_link_id: string;
+  /**
+   * The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
+   * Pattern: `^xshr_[0-9a-f]{64}$`.
+   */
+  readonly token: string;
+  /**
+   * The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+   * Pattern: `^[0-9]{6}$`.
+   */
+  readonly access_code: string | null;
+  readonly classification: Classification;
+  /**
+   * When the link stops opening.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string | null;
+}
+
+/**
+ * Fields accepted when creating a ShareLink.
+ */
+export interface ShareLinkCreate {
+  /**
+   * Identifier of the file the link shares.
+   * Format: `uuid`.
+   */
+  readonly attachment_id: string;
+  /**
+   * True when the link asks for a 6-digit access code; always true for a Confidential file.
+   */
+  readonly access_code_required?: boolean;
+  /**
+   * Who the link is for, lowercased. Required for a Confidential file.
+   * Format: `email`.
+   */
+  readonly recipient_email?: string | null;
+  /**
+   * What the link is for.
+   * Length: 1 to 200.
+   */
+  readonly note?: string | null;
+  /**
+   * When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+   * Format: `date-time`.
+   */
+  readonly expires_at?: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface WorkforceGroupPage {
   /**
    * Items on this page, in the documented default order.

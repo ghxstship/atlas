@@ -362,6 +362,7 @@ import {
   TemplateItemsResource,
   SupportSessionsResource,
   WholesaleStatementsResource,
+  ShareLinksResource,
   WorkforceGroupsResource,
   WorkforceGroupMembersResource,
   ConversationsResource,
@@ -1220,6 +1221,8 @@ export class XosClient extends XosClientCore {
   readonly supportSessions: SupportSessionsResource = new SupportSessionsResource(this);
   /** Platform: operations on `wholesaleStatements`. */
   readonly wholesaleStatements: WholesaleStatementsResource = new WholesaleStatementsResource(this);
+  /** Platform: operations on `shareLinks`. */
+  readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
   /** Workforce: operations on `workforceGroups`. */
   readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
   /** Workforce: operations on `workforceGroupMembers`. */

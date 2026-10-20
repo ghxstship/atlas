@@ -34,6 +34,12 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/share/{token}":
+    "Auth template: opens a share link with its access code; no session needed (Section 8.6, A82).",
+  "/share/{token}/file":
+    "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
+  "/files/{version}":
+    "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
