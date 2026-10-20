@@ -640,7 +640,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} por {channel}",
-    "urgent": "Urgente: llega de inmediato, incluso en horas de silencio.",
+    "urgent": "Urgente: nunca espera al resumen por correo electrónico.",
     "save": "Guardar configuración de notificaciones",
     "saved": "Configuración de notificaciones guardada.",
     "loadFailed": "No se pudo cargar la configuración de notificaciones. Vuelve a cargar la página para intentarlo de nuevo.",

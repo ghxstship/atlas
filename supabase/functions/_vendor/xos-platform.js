@@ -13220,7 +13220,7 @@ var settings_default$1 = {
       push: "Push",
     },
     cellLabel: "{category} by {channel}",
-    urgent: "Urgent: arrives at once, even in quiet hours.",
+    urgent: "Urgent: never waits for the email digest.",
     save: "Save notification settings",
     saved: "Notification settings saved.",
     loadFailed: "Notification settings could not be loaded. Reload the page to try again.",
@@ -29891,7 +29891,7 @@ var settings_default = {
       push: "Push",
     },
     cellLabel: "{category} por {channel}",
-    urgent: "Urgente: llega de inmediato, incluso en horas de silencio.",
+    urgent: "Urgente: nunca espera al resumen por correo electrónico.",
     save: "Guardar configuración de notificaciones",
     saved: "Configuración de notificaciones guardada.",
     loadFailed:

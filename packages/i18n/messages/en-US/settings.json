@@ -640,7 +640,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} by {channel}",
-    "urgent": "Urgent: arrives at once, even in quiet hours.",
+    "urgent": "Urgent: never waits for the email digest.",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",
     "loadFailed": "Notification settings could not be loaded. Reload the page to try again.",

@@ -141,7 +141,8 @@ create table app.sms_summary_queue (
 create index sms_summary_queue_delivery_idx on app.sms_summary_queue (notification_delivery_id, notification_created_at);
 
 call private.install_domain_table('app.sms_summary_queue', 'app.memberships', 'membership_id');
-create index sms_summary_queue_due_idx on app.sms_summary_queue (due_at, membership_id) where sent_at is null and deleted_at is null;
+create index sms_summary_queue_membership_due_idx on app.sms_summary_queue (membership_id, due_at) where sent_at is null and deleted_at is null;
+create index sms_summary_queue_due_idx on app.sms_summary_queue (due_at) where sent_at is null and deleted_at is null;
 create unique index sms_summary_queue_delivery_key on app.sms_summary_queue (notification_delivery_id) where deleted_at is null;
 call private.describe('app.sms_summary_queue', 'Texts held by quiet hours (ADR 0033 decision 35). When the quiet hours end, the SMS sender sends one summary per member and org, the count of held texts and the most important one, instead of a burst; push is never held here.', array[
   'notification_delivery_id', 'SMS delivery held for the summary.',
