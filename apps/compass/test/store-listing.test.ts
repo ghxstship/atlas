@@ -160,3 +160,46 @@ describe("Google Play listing (store/google-play/listing.json)", () => {
     );
   });
 });
+
+/** Width, height and alpha from a PNG's IHDR chunk. */
+function pngInfo(path: string): { width: number; height: number; alpha: boolean } {
+  const bytes = readFileSync(join(compassDir, path));
+  return {
+    width: bytes.readUInt32BE(16),
+    height: bytes.readUInt32BE(20),
+    alpha: bytes[25] === 4 || bytes[25] === 6,
+  };
+}
+
+describe("screenshots", () => {
+  const appleSizes: Record<string, { width: number; height: number }> = {
+    APP_IPHONE_67: { width: 1320, height: 2868 },
+    APP_IPHONE_65: { width: 1242, height: 2688 },
+  };
+
+  it("has five App Store screenshots per locale at the 6.9-inch and 6.5-inch sizes", () => {
+    for (const [locale, info] of Object.entries(storeConfig.apple.info)) {
+      expect(Object.keys(info.screenshots).sort(), locale).toEqual([
+        "APP_IPHONE_65",
+        "APP_IPHONE_67",
+      ]);
+      for (const [display, paths] of Object.entries(info.screenshots)) {
+        expect(paths, `${locale} ${display}`).toHaveLength(5);
+        for (const path of paths) {
+          expect(path).toContain(`store/apple/screenshot/${locale}/${display}/`);
+          expect(pngInfo(path), path).toEqual({ ...appleSizes[display], alpha: false });
+        }
+      }
+    }
+  });
+
+  it("has five 9:16 Play phone screenshots per locale at 1080 x 1920", () => {
+    for (const [locale, listing] of Object.entries(play.listings)) {
+      expect(listing.phoneScreenshots, locale).toHaveLength(5);
+      for (const path of listing.phoneScreenshots) {
+        expect(path).toContain(`store/google-play/${locale}/phone/`);
+        expect(pngInfo(path), path).toEqual({ width: 1080, height: 1920, alpha: false });
+      }
+    }
+  });
+});

@@ -46,8 +46,14 @@ export MAESTRO_CLI_NO_ANALYTICS=1
 
 prepare() { # udid language locale
   xcrun simctl boot "$1" 2> /dev/null
+  # A driver left running by an earlier session on either simulator keeps its port; remove both.
+  for u in "$UDID_69" "$UDID_65"; do
+    xcrun simctl uninstall "$u" dev.mobile.maestro-driver-iosUITests.xctrunner 2> /dev/null
+  done
   xcrun simctl spawn "$1" defaults write -g AppleLanguages -array "$2"
   xcrun simctl spawn "$1" defaults write -g AppleLocale -string "$3"
+  # Keep the keyboard from autocorrecting the text the flow types.
+  xcrun simctl spawn "$1" defaults write com.apple.Preferences KeyboardAutocorrection -bool NO
   xcrun simctl install "$1" "$APP" || exit 1
   for p in location camera microphone notifications; do
     xcrun simctl privacy "$1" grant "$p" pro.ghxstship.compass 2> /dev/null
@@ -61,6 +67,8 @@ status=0
 for run in "en-US en_US en-US en-US" "es-US es_US es-MX es-US"; do
   set -- $run
   language="$1" locale="$2" apple="$3" play="$4"
+  title="Loose cable cover at Bar 2"
+  [ "$language" = "es-US" ] && title="Tapa de cable suelta en la Barra 2"
   case " ${LANGUAGES:-en-US es-US} " in
     *" $language "*) ;;
     *) continue ;;
@@ -73,7 +81,7 @@ for run in "en-US en_US en-US en-US" "es-US es_US es-MX es-US"; do
     prepare "$udid" "$language" "$locale"
     stage || exit 1
     (cd "$out" && maestro --port "$maestro_port" --device "$udid" test -e XOS_DEMO_PASSWORD="$password" \
-      -e SUPABASE_URL="http://127.0.0.1:$port" -e SUPABASE_ANON_KEY="$anon" \
+      -e SUPABASE_URL="http://127.0.0.1:$port" -e SUPABASE_ANON_KEY="$anon" -e INCIDENT_TITLE="$title" \
       "$compass/.maestro/store/screenshots.yaml" > "$out/maestro.log" 2>&1)
     code=$?
     echo "maestro $language $display: exit $code ($out/maestro.log)"
