@@ -1,8 +1,8 @@
 "use client";
 
 import type { Route } from "next";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { IntentLink } from "@/components/shell/intent-link";
 
 export interface ProjectTabGroup {
   readonly id: string;
@@ -13,7 +13,9 @@ export interface ProjectTabGroup {
 /**
  * The project tab bar (Section 4.5.4): tabs in sitemap order, grouped by act. The current tab is
  * marked for assistive technology, and the scope filter in the query string follows the person
- * from tab to tab. The bar scrolls sideways below `lg` instead of wrapping.
+ * from tab to tab. The bar scrolls sideways below `lg` instead of wrapping. A tab prefetches when
+ * the person points at or focuses it: prefetching all of them on every project page cost about
+ * 18 KB of script and a server render per tab (gate 10).
  */
 export function ProjectTabs({
   label,
@@ -38,7 +40,7 @@ export function ProjectTabs({
                 const current = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
                 return (
                   <li key={tab.id}>
-                    <Link
+                    <IntentLink
                       href={`${tab.href}${suffix}` as Route}
                       aria-current={current ? "page" : undefined}
                       className={`flex min-h-row-default items-center whitespace-nowrap border-b-2 px-8 text-text-13 hover:text-text-primary ${
@@ -48,7 +50,7 @@ export function ProjectTabs({
                       }`}
                     >
                       {tab.label}
-                    </Link>
+                    </IntentLink>
                   </li>
                 );
               })}
