@@ -80,11 +80,13 @@ test("G then a letter goes to a section with a visible hint, and typing never do
   await page.keyboard.press("p");
   await expect(page).toHaveURL(new RegExp(`/${slug}/projects$`));
   await expect(hint).toBeHidden();
+  await expect(page.getByRole("heading", { level: 1, name: "Projects" })).toBeVisible();
 
   await ready(page);
   await page.keyboard.press("g");
   await page.keyboard.press("i");
   await expect(page).toHaveURL(new RegExp(`/${slug}/inbox$`));
+  await expect(page.getByRole("heading", { level: 1, name: "Inbox" })).toBeVisible();
 
   // In the command menu's search field the letters are text, and the menu hints each section's keys.
   await ready(page);
@@ -104,7 +106,7 @@ test("a person rebinds a shortcut, and conflicts and screen reader keys are refu
   page,
 }) => {
   const slug = await newOrg(page, "rebind");
-  await page.goto(`/${slug}/me/keyboard-shortcuts`);
+  await openReady(page, `/${slug}/me/keyboard-shortcuts`);
   const editor = page.getByRole("region", { name: "Change shortcuts", exact: true });
   const row = editor.getByRole("row", { name: /Go to Projects/ });
   await expect(row).toContainText("G");
@@ -116,10 +118,12 @@ test("a person rebinds a shortcut, and conflicts and screen reader keys are refu
   await expect(row).toContainText("G H already does Go to Home.");
 
   await row.getByRole("button", { name: "Change" }).click();
+  await expect(row.getByRole("button", { name: "Press Keys" })).toBeVisible();
   await page.keyboard.press("Insert");
   await expect(row).toContainText("Insert belongs to screen readers.");
 
   await row.getByRole("button", { name: "Change" }).click();
+  await expect(row.getByRole("button", { name: "Press Keys" })).toBeVisible();
   await page.keyboard.press("g");
   await page.keyboard.press("j");
   await expect(editor.getByRole("status")).toHaveText("Go to Projects now uses G J.");
@@ -131,6 +135,7 @@ test("a person rebinds a shortcut, and conflicts and screen reader keys are refu
   await page.keyboard.press("g");
   await page.keyboard.press("j");
   await expect(page).toHaveURL(new RegExp(`/${slug}/projects$`));
+  await expect(page.getByRole("heading", { level: 1, name: "Projects" })).toBeVisible();
   await ready(page);
   await page.keyboard.press("?");
   const help = page.getByRole("dialog", { name: "Help" });
@@ -141,7 +146,7 @@ test("a person rebinds a shortcut, and conflicts and screen reader keys are refu
   await page.keyboard.press("Escape");
 
   // Reset returns the default.
-  await page.goto(`/${slug}/me/keyboard-shortcuts`);
+  await openReady(page, `/${slug}/me/keyboard-shortcuts`);
   await editor
     .getByRole("row", { name: /Go to Projects/ })
     .getByRole("button", { name: "Reset" })

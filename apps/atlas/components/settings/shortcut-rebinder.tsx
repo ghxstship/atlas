@@ -13,7 +13,7 @@ import {
 import { Button, InlineAlert, ShortcutEditor } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { resetShortcutAction, saveShortcutAction } from "@/lib/settings/shell-preferences-actions";
 
 type Translate = (key: string, values?: Record<string, string>) => string;
@@ -115,8 +115,9 @@ export function ShortcutRebinder({
     commitRef.current = commit;
   });
 
-  // While recording, the next keys pressed belong to the editor, not to the page or the shell.
-  useEffect(() => {
+  // While recording, the next keys pressed belong to the editor, not to the page or the shell. The
+  // listener attaches as the recording state commits, so no key pressed after Change slips past.
+  useLayoutEffect(() => {
     if (recording === null) return undefined;
     const onKey = (event: KeyboardEvent) => {
       const chord = chordOf(event, platform);
