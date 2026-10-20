@@ -21,6 +21,7 @@ export async function ProviderButtons({ next }: { next: string }) {
           </Button>
         </form>
       ))}
+      <Divider />
     </div>
   );
 }

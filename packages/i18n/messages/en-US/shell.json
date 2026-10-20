@@ -959,7 +959,8 @@
       "title": "Create your Atlas account",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
-      "toSignIn": "Sign in"
+      "toSignIn": "Sign in",
+      "magicLink": "Email me a sign-up link"
     },
     "providers": {
       "continueWith": "Continue with {provider}",

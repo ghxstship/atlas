@@ -959,7 +959,8 @@
       "title": "Crea tu cuenta de Atlas",
       "submit": "Crear cuenta",
       "haveAccount": "¿Ya tienes una cuenta?",
-      "toSignIn": "Iniciar sesión"
+      "toSignIn": "Iniciar sesión",
+      "magicLink": "Envíame un enlace para registrarme"
     },
     "providers": {
       "continueWith": "Continuar con {provider}",
@@ -993,7 +994,7 @@
       },
       "home": "Ir a Atlas",
       "closedTitle": "Este enlace de invitación ya no es válido",
-      "closedBody": "Es posible que haya vencido, que ya se haya usado o que una invitación más reciente lo haya reemplazado. Pida a la persona que lo invitó que le envíe una nueva. Si ya tiene una cuenta, aún puede iniciar sesión.",
+      "closedBody": "Es posible que haya vencido, que ya se haya usado o que una invitación más reciente lo haya reemplazado. Pide a la persona que te invitó que te envíe una nueva. Si ya tienes una cuenta, aún puedes iniciar sesión.",
       "signIn": "Iniciar sesión"
     },
     "signOut": "Cerrar sesión",
@@ -1171,10 +1172,10 @@
     },
     "partnerConsole": {
       "title": "Consola de socio",
-      "lead": "{org} es una agencia socia. Cree organizaciones cliente y defina sus planes, deles una marca predeterminada y consulte el uso y la facturación mayorista en la Consola de socio.",
+      "lead": "{org} es una agencia socia. Crea organizaciones cliente y define sus planes, dales una marca predeterminada y consulta el uso y la facturación mayorista en la Consola de socio.",
       "clientOrgs": "Organizaciones cliente",
       "discount": "Descuento mayorista",
-      "createFirst": "Crear su primera organización cliente",
+      "createFirst": "Crear tu primera organización cliente",
       "open": "Abrir la Consola de socio"
     },
     "usagePanel": {
@@ -1192,8 +1193,8 @@
     },
     "templatesPanel": {
       "title": "Plantillas de proyecto",
-      "lead": "Plantillas con las que la organización inicia proyectos. Créelas, versiónelas y aplíquelas en Proyectos, Plantillas.",
-      "empty": "Aún no hay plantillas de proyecto. Guarde una a partir de un proyecto que quiera repetir.",
+      "lead": "Plantillas con las que la organización inicia proyectos. Créalas, versiónalas y aplícalas en Proyectos, Plantillas.",
+      "empty": "Aún no hay plantillas de proyecto. Guarda una a partir de un proyecto que quieras repetir.",
       "line": "Versión {version} · {items, plural, one {# elemento} other {# elementos}} · {projects, plural, =0 {aún sin proyectos} one {# proyecto} other {# proyectos}}",
       "open": "Abrir plantillas de proyecto"
     }
