@@ -20,7 +20,7 @@ import type {
   RecordState,
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
-import { useT } from "../lib/context.tsx";
+import { usePreferences, useT } from "../lib/context.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Money } from "../Forms/Forms.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
@@ -225,7 +225,7 @@ export function DataTable({
   columns: givenColumns,
   rows,
   caption,
-  density = "default",
+  density: givenDensity,
   totals,
   totalsLabel,
   label,
@@ -237,6 +237,9 @@ export function DataTable({
   onRowActivate,
 }: DataTableProps): ReactElement {
   const t = useT();
+  // shell.density: compact rows unless the table chooses its own density.
+  const preferred = usePreferences().density;
+  const density = givenDensity ?? (preferred === "compact" ? "compact" : "default");
   const dir = Direction.useDirection();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cellRefs = useRef(new Map<string, HTMLTableCellElement>());

@@ -3,6 +3,7 @@ import { Direction } from "radix-ui";
 import { currentConfig, directionOf, translate, type MessageVars, type Messages } from "./i18n.ts";
 import { formatCompact, formatCurrency, formatDate, formatList, formatNumber } from "./format.ts";
 import { applyTheme, type ThemePreference } from "./theme.ts";
+import { DEFAULT_PREFERENCES, type DisplayPreferences } from "./preferences.ts";
 
 interface LocaleState {
   locale: string;
@@ -10,6 +11,7 @@ interface LocaleState {
 }
 
 const LocaleContext = createContext<LocaleState | null>(null);
+const PreferencesContext = createContext<DisplayPreferences>(DEFAULT_PREFERENCES);
 
 export interface XOSProviderProps {
   /** BCP 47 locale for copy and Intl formatting; en-US by default. */
@@ -18,6 +20,8 @@ export interface XOSProviderProps {
   messages?: Messages;
   /** Applies a theme preference to the document root while mounted. */
   theme?: ThemePreference;
+  /** The person's display preferences (density, date format, units, week start); defaults when omitted. */
+  preferences?: DisplayPreferences;
   children: ReactNode;
 }
 
@@ -25,7 +29,7 @@ export interface XOSProviderProps {
  * Sets the locale, text direction and, optionally, the theme for every component below it. Without a
  * provider, components read the locale set by `configure`.
  */
-export function XOSProvider({ locale, messages, theme, children }: XOSProviderProps) {
+export function XOSProvider({ locale, messages, theme, preferences, children }: XOSProviderProps) {
   const fallback = currentConfig();
   const resolvedLocale = locale ?? fallback.locale;
   const value = useMemo(
@@ -35,9 +39,16 @@ export function XOSProvider({ locale, messages, theme, children }: XOSProviderPr
   useEffect(() => (theme === undefined ? undefined : applyTheme(theme)), [theme]);
   return (
     <LocaleContext.Provider value={value}>
-      <Direction.Provider dir={directionOf(resolvedLocale)}>{children}</Direction.Provider>
+      <PreferencesContext.Provider value={preferences ?? DEFAULT_PREFERENCES}>
+        <Direction.Provider dir={directionOf(resolvedLocale)}>{children}</Direction.Provider>
+      </PreferencesContext.Provider>
     </LocaleContext.Provider>
   );
+}
+
+/** The person's display preferences from the nearest provider (Section 4.5.6, A65-001). */
+export function usePreferences(): DisplayPreferences {
+  return useContext(PreferencesContext);
 }
 
 function useLocaleState(): LocaleState {
@@ -57,15 +68,16 @@ export function useT(): Translate {
   return (key, vars) => translate(locale, key, vars, messages);
 }
 
-/** Number, money, list and date formatters bound to the active locale. */
+/** Number, money, list and date formatters bound to the active locale and the person's date format. */
 export function useFormat() {
   const locale = useLocale();
+  const { dateFormat } = usePreferences();
   return {
     locale,
     number: (value: number) => formatNumber(locale, value),
     currency: (value: number, currency?: string) => formatCurrency(locale, value, currency),
     compact: (value: number, currency?: string) => formatCompact(locale, value, currency),
     list: (items: string[]) => formatList(locale, items),
-    date: (iso: string) => formatDate(locale, iso),
+    date: (iso: string) => formatDate(locale, iso, dateFormat),
   };
 }

@@ -1,6 +1,7 @@
 import { useRef, useState, type KeyboardEvent, type ReactElement } from "react";
 import { useT } from "../lib/context.tsx";
 import { rovingIndex } from "../lib/hooks.ts";
+import { singleKeyShortcutsEnabled } from "../lib/preferences.ts";
 import { type RecordListProps } from "./Views.types.ts";
 
 /**
@@ -15,7 +16,9 @@ export function RecordList({ label, children }: RecordListProps): ReactElement {
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const rows = rowsOf();
     const index = rows.findIndex((r) => r.contains(document.activeElement));
-    const key = e.key === "j" ? "ArrowDown" : e.key === "k" ? "ArrowUp" : e.key;
+    const letters = singleKeyShortcutsEnabled();
+    const key =
+      letters && e.key === "j" ? "ArrowDown" : letters && e.key === "k" ? "ArrowUp" : e.key;
     const next = rovingIndex(key, Math.max(0, index), rows.length, "vertical");
     if (next === null || rows.length === 0) return;
     if (index === -1 && key !== "Home" && key !== "End") return;

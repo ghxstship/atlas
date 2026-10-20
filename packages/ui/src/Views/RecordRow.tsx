@@ -1,5 +1,6 @@
 import { type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
+import { singleKeyShortcutsEnabled } from "../lib/preferences.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { Button } from "../Button/Button.tsx";
 import { Avatar } from "../Avatar/Avatar.tsx";
@@ -32,7 +33,7 @@ export function RecordRow({
       data-row
       onKeyDown={(e) => {
         if (e.target !== e.currentTarget) return;
-        if (e.key.toLowerCase() === "x" && onSelect) {
+        if (e.key.toLowerCase() === "x" && onSelect && singleKeyShortcutsEnabled()) {
           e.preventDefault();
           onSelect();
         } else if (e.key === "Enter" && onOpen) {

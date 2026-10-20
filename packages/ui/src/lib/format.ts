@@ -27,8 +27,12 @@ interface WeekInfoLocale {
   weekInfo?: { firstDay: number };
 }
 
-/** First day of the week for a locale, 0 for Sunday through 6 for Saturday. */
-export function weekStart(locale: string): number {
+/**
+ * First day of the week, 0 for Sunday through 6 for Saturday: the person's choice when given
+ * (payroll.week_start), otherwise the locale's.
+ */
+export function weekStart(locale: string, override: number | null = null): number {
+  if (override !== null) return override;
   try {
     const intlLocale = new Intl.Locale(locale) as Intl.Locale & WeekInfoLocale;
     const info = intlLocale.getWeekInfo ? intlLocale.getWeekInfo() : intlLocale.weekInfo;
@@ -60,18 +64,24 @@ export function monthTitle(locale: string, y: number, m: number): string {
   );
 }
 
-/** Short weekday names starting from the locale's first day of the week. */
-export function weekdayNames(locale: string): string[] {
+/** Short weekday names starting from the first day of the week. */
+export function weekdayNames(locale: string, override: number | null = null): string[] {
   const formatter = new Intl.DateTimeFormat(locale, { weekday: "short" });
-  const start = weekStart(locale);
+  const start = weekStart(locale, override);
   // 2026-02-01 is a Sunday.
   return Array.from({ length: 7 }, (_, i) =>
     formatter.format(new Date(2026, 1, 1 + ((start + i) % 7))),
   );
 }
 
-export function formatDate(locale: string, iso: string): string {
+/** A calendar date for display: by the locale, or year-month-day everywhere (locale.date_format iso). */
+export function formatDate(
+  locale: string,
+  iso: string,
+  dateFormat: "locale" | "iso" = "locale",
+): string {
   const { y, m, d } = parseIso(iso);
+  if (dateFormat === "iso") return toIso(y, m, d);
   return new Intl.DateTimeFormat(locale, {
     month: "short",
     day: "numeric",
@@ -86,8 +96,13 @@ export function formatTimeOfDay(locale: string, hours: number, minutes: number):
 }
 
 /** Month cells for a calendar grid: leading and trailing nulls pad whole weeks. */
-export function monthCells(locale: string, y: number, m: number): (number | null)[][] {
-  const first = (new Date(y, m, 1).getDay() - weekStart(locale) + 7) % 7;
+export function monthCells(
+  locale: string,
+  y: number,
+  m: number,
+  override: number | null = null,
+): (number | null)[][] {
+  const first = (new Date(y, m, 1).getDay() - weekStart(locale, override) + 7) % 7;
   const days = new Date(y, m + 1, 0).getDate();
   const cells: (number | null)[] = Array.from({ length: first }, () => null);
   for (let d = 1; d <= days; d++) cells.push(d);
@@ -103,4 +118,46 @@ export function formatClock(seconds: number): string {
   const s = Math.abs(seconds);
   const m = Math.floor(s / 60);
   return `${over ? "+" : ""}${String(m).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+}
+
+const SQUARE_METERS_PER_SQUARE_FOOT = 0.09290304;
+const METERS_PER_FOOT = 0.3048;
+const METERS_PER_MILE = 1609.344;
+
+/**
+ * An area stored in square feet in the person's units (locale.units): square feet, or square meters to one
+ * decimal. Callers label the unit from their message catalog, since Intl has no area units.
+ */
+export function convertArea(
+  squareFeet: number,
+  units: "imperial" | "metric",
+): { readonly value: number; readonly unit: "squareFoot" | "squareMeter" } {
+  return units === "metric"
+    ? {
+        value: Math.round(squareFeet * SQUARE_METERS_PER_SQUARE_FOOT * 10) / 10,
+        unit: "squareMeter",
+      }
+    : { value: squareFeet, unit: "squareFoot" };
+}
+
+/**
+ * A distance stored in meters in the person's units (locale.units): feet up to 1,000 ft and miles
+ * beyond, or meters up to 1 km and kilometers beyond, formatted by Intl for the locale.
+ */
+export function formatDistance(
+  locale: string,
+  meters: number,
+  units: "imperial" | "metric",
+): string {
+  const unit = (name: string, value: number, digits: number) =>
+    new Intl.NumberFormat(locale, {
+      style: "unit",
+      unit: name,
+      maximumFractionDigits: digits,
+    }).format(value);
+  if (units === "metric") {
+    return meters >= 1000 ? unit("kilometer", meters / 1000, 1) : unit("meter", meters, 0);
+  }
+  const feet = meters / METERS_PER_FOOT;
+  return feet >= 1000 ? unit("mile", meters / METERS_PER_MILE, 1) : unit("foot", feet, 0);
 }

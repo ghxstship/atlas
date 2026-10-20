@@ -18,9 +18,11 @@ export {
   useLocale,
   useT,
   useFormat,
+  usePreferences,
   type XOSProviderProps,
   type Translate,
 } from "./lib/context.tsx";
+export * from "./lib/preferences.ts";
 export {
   applyTheme,
   resolveTheme,

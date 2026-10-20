@@ -1,0 +1,164 @@
+/**
+ * Display preferences from the settings registry (Section 4.5.6 Preferences and Accessibility, A65-001): the
+ * person's text size, contrast, motion, density, single-key shortcuts, date format, units and first day of the
+ * week. Atlas and Gateway resolve them from the person's settings, keep them in one cookie so the server renders
+ * the document with them, and set them on the document root as data attributes the styles read.
+ */
+
+export type TextSize = "default" | "large" | "larger";
+export type Contrast = "default" | "more";
+export type Motion = "system" | "reduce" | "full";
+export type Density = "comfortable" | "compact";
+export type DateFormat = "locale" | "iso";
+export type Units = "imperial" | "metric";
+/** 0 for Sunday, 1 for Monday; null follows the locale. */
+export type WeekStart = 0 | 1 | null;
+
+export interface DisplayPreferences {
+  readonly textSize: TextSize;
+  readonly contrast: Contrast;
+  readonly motion: Motion;
+  readonly density: Density;
+  readonly shortcuts: boolean;
+  readonly dateFormat: DateFormat;
+  readonly units: Units;
+  readonly weekStart: WeekStart;
+}
+
+export const DEFAULT_PREFERENCES: DisplayPreferences = {
+  textSize: "default",
+  contrast: "default",
+  motion: "system",
+  density: "comfortable",
+  shortcuts: true,
+  dateFormat: "locale",
+  units: "imperial",
+  weekStart: null,
+};
+
+/** The cookie that carries the preferences for server rendering. */
+export const PREFERENCES_COOKIE = "xos-prefs";
+
+/** The registry key each preference reads (packages/schemas/settings). */
+export const PREFERENCE_SETTINGS = {
+  textSize: "me.text_size",
+  contrast: "me.high_contrast",
+  motion: "me.reduced_motion",
+  density: "shell.density",
+  shortcuts: "me.shortcuts_enabled",
+  dateFormat: "locale.date_format",
+  units: "locale.units",
+  weekStart: "payroll.week_start",
+} as const;
+
+type SettingLookup = (key: string) => unknown;
+
+function pick<T extends string>(value: unknown, allowed: readonly T[], fallback: T): T {
+  return typeof value === "string" && (allowed as readonly string[]).includes(value)
+    ? (value as T)
+    : fallback;
+}
+
+/** Preferences from resolved setting values, falling back to the defaults for anything unset or unknown. */
+export function preferencesFromSettings(
+  values: ReadonlyMap<string, unknown> | SettingLookup,
+): DisplayPreferences {
+  const get: SettingLookup = typeof values === "function" ? values : (key) => values.get(key);
+  const week = get(PREFERENCE_SETTINGS.weekStart);
+  return {
+    textSize: pick(get(PREFERENCE_SETTINGS.textSize), ["default", "large", "larger"], "default"),
+    contrast: get(PREFERENCE_SETTINGS.contrast) === true ? "more" : "default",
+    motion: pick(get(PREFERENCE_SETTINGS.motion), ["system", "reduce", "full"], "system"),
+    density: pick(get(PREFERENCE_SETTINGS.density), ["comfortable", "compact"], "comfortable"),
+    shortcuts: get(PREFERENCE_SETTINGS.shortcuts) !== false,
+    dateFormat: pick(get(PREFERENCE_SETTINGS.dateFormat), ["locale", "iso"], "locale"),
+    units: pick(get(PREFERENCE_SETTINGS.units), ["imperial", "metric"], "imperial"),
+    weekStart: week === "monday" ? 1 : week === "sunday" ? 0 : null,
+  };
+}
+
+const CODES: Record<keyof DisplayPreferences, string> = {
+  textSize: "t",
+  contrast: "c",
+  motion: "m",
+  density: "d",
+  shortcuts: "s",
+  dateFormat: "f",
+  units: "u",
+  weekStart: "w",
+};
+
+/** A short cookie value holding only what differs from the defaults, such as `t.large|d.compact`. */
+export function encodePreferences(prefs: DisplayPreferences): string {
+  const parts: string[] = [];
+  for (const key of Object.keys(CODES) as (keyof DisplayPreferences)[]) {
+    if (prefs[key] === DEFAULT_PREFERENCES[key]) continue;
+    const value = prefs[key];
+    const text = typeof value === "boolean" ? (value ? "1" : "0") : String(value);
+    parts.push(`${CODES[key]}.${text}`);
+  }
+  return parts.join("|");
+}
+
+/** Reads a cookie value written by encodePreferences; anything it does not recognize stays at its default. */
+export function decodePreferences(raw: string | undefined | null): DisplayPreferences {
+  if (!raw) return DEFAULT_PREFERENCES;
+  const found = new Map<string, string>();
+  for (const part of raw.split("|")) {
+    const [code, value] = part.split(".");
+    if (code && value !== undefined) found.set(code, value);
+  }
+  const week = found.get(CODES.weekStart);
+  return {
+    textSize: pick(found.get(CODES.textSize), ["default", "large", "larger"], "default"),
+    contrast: pick(found.get(CODES.contrast), ["default", "more"], "default"),
+    motion: pick(found.get(CODES.motion), ["system", "reduce", "full"], "system"),
+    density: pick(found.get(CODES.density), ["comfortable", "compact"], "comfortable"),
+    shortcuts: found.get(CODES.shortcuts) !== "0",
+    dateFormat: pick(found.get(CODES.dateFormat), ["locale", "iso"], "locale"),
+    units: pick(found.get(CODES.units), ["imperial", "metric"], "imperial"),
+    weekStart: week === "1" ? 1 : week === "0" ? 0 : null,
+  };
+}
+
+/**
+ * The document root's data attributes for the preferences the styles read: data-text-size, data-contrast,
+ * data-motion, data-density and data-shortcuts. Defaults add nothing.
+ */
+export function documentAttributes(prefs: DisplayPreferences): Record<string, string> {
+  const out: Record<string, string> = {};
+  if (prefs.textSize !== "default") out["data-text-size"] = prefs.textSize;
+  if (prefs.contrast === "more") out["data-contrast"] = "more";
+  if (prefs.motion !== "system") out["data-motion"] = prefs.motion;
+  if (prefs.density === "compact") out["data-density"] = "compact";
+  if (!prefs.shortcuts) out["data-shortcuts"] = "off";
+  return out;
+}
+
+const ATTRIBUTES = [
+  "data-text-size",
+  "data-contrast",
+  "data-motion",
+  "data-density",
+  "data-shortcuts",
+];
+
+/** Sets the preference attributes on an element (the document root), removing the ones back at default. */
+export function applyDocumentAttributes(element: HTMLElement, prefs: DisplayPreferences): void {
+  const next = documentAttributes(prefs);
+  for (const name of ATTRIBUTES) {
+    const value = next[name];
+    if (value === undefined) element.removeAttribute(name);
+    else element.setAttribute(name, value);
+  }
+}
+
+/**
+ * Whether single-key shortcuts (J, K, /, ?) are on: off while the document root carries
+ * data-shortcuts="off" (me.shortcuts_enabled). Shortcuts with Cmd or Ctrl always work.
+ */
+export function singleKeyShortcutsEnabled(
+  doc: Document | undefined = globalThis.document,
+): boolean {
+  return doc?.documentElement.dataset["shortcuts"] !== "off";
+}

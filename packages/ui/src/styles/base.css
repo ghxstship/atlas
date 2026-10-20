@@ -142,13 +142,40 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
     transition-duration: var(--motion-duration-reduced) !important;
     animation-duration: var(--motion-duration-reduced) !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* Display preferences (Section 4.5.6 Accessibility, A65-001), set on the document root from the person's
+   settings: me.reduced_motion reduce reduces motion whatever the device says (full keeps it even when the
+   device asks to reduce), me.high_contrast strengthens secondary text and borders, and me.text_size zooms the
+   page the way browser zoom does, since type sizes are fixed per token. */
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  transition-duration: var(--motion-duration-reduced) !important;
+  animation-duration: var(--motion-duration-reduced) !important;
+  animation-iteration-count: 1 !important;
+}
+
+:root[data-contrast="more"] {
+  --color-text-secondary: var(--color-text-primary);
+  --color-text-tertiary: var(--color-text-secondary);
+  --color-border-subtle: var(--color-border-strong);
+  --color-border-control: var(--color-border-strong);
+}
+
+:root[data-text-size="large"] body {
+  zoom: 1.125;
+}
+
+:root[data-text-size="larger"] body {
+  zoom: 1.25;
 }
 
 /* Forced colors: controls switch to system colors and keep borders and focus. */
