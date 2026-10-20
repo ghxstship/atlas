@@ -44,7 +44,9 @@ export function StepUpDownloadLink({
   };
   return (
     <>
-      <a href={href} download onClick={onClick} className={className}>
+      {/* No download attribute: before the page is live a click opens the route, which serves the file with
+          step-up and otherwise returns to this page, rather than saving that redirect as a file. */}
+      <a href={href} onClick={onClick} className={className}>
         {children}
       </a>
       {error ? <InlineAlert tone="danger">{errorText(t, error)}</InlineAlert> : null}

@@ -146,7 +146,8 @@ test("an org that requires a second factor sends a member without one to set it 
   await policy.getByLabel("Multi-factor authentication").selectOption("everyone");
   await policy.getByRole("button", { name: "Save" }).click();
 
-  // The next page of the org asks for a factor first, then continues.
+  // Saved, the page itself now asks the Owner for a factor; so does every other page of the org.
+  await page.waitForURL("**/auth/mfa?**");
   await page.goto(`/${slug}/home`);
   await page.waitForURL("**/auth/mfa?**");
   await expect(page.getByRole("heading", { name: "Set up a second factor" })).toBeVisible();

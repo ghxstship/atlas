@@ -6,12 +6,12 @@ import {
   type Person,
   type XosClient,
 } from "@xos/data";
-import type { OrgAuthDecision } from "@xos/data/auth-assurance";
+import { tokenAal, type OrgAuthDecision } from "@xos/data/auth-assurance";
 import type { Route } from "next";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { orgAuthRedirect, PATH_HEADER } from "@/lib/auth/assurance";
+import { orgAuthRedirect, PATH_HEADER, secondFactorRedirect } from "@/lib/auth/assurance";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
 import { applyViewAs, type ViewAsPreview } from "@/lib/access/view-as";
@@ -30,6 +30,8 @@ export interface Viewer {
   readonly emailConfirmed: boolean;
   /** Null only in the moment between sign-up and the person trigger; treated as no orgs. */
   readonly person: Person | null;
+  /** The viewer holds a verified second factor this session has not passed (A77). */
+  readonly secondFactorOwed: boolean;
 }
 
 export interface OrgContext extends Membership {
@@ -47,7 +49,11 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     throw error;
   }
   const user = data.user;
-  const person = await getCurrentPerson(db, user.id);
+  const holdsFactor = (user.factors ?? []).some((f) => f.status === "verified");
+  const [person, current] = await Promise.all([
+    getCurrentPerson(db, user.id),
+    holdsFactor ? db.auth.getSession() : null,
+  ]);
   if (!person.ok && person.error.kind !== "not-found") {
     throw new Error(`Cannot read the signed-in person: ${JSON.stringify(person.error)}`);
   }
@@ -57,6 +63,7 @@ export const getViewer = cache(async (): Promise<Viewer | null> => {
     email: user.email ?? null,
     emailConfirmed: Boolean(user.email_confirmed_at),
     person: person.ok ? person.data : null,
+    secondFactorOwed: holdsFactor && tokenAal(current?.data.session?.access_token) === "aal1",
   };
 });
 
@@ -82,6 +89,10 @@ export const getOrgContext = cache(async (slug: string): Promise<OrgContext | nu
   const viewer = await getViewer();
   if (!viewer?.person) return null;
   const requestHeaders = await headers();
+  const here = requestHeaders.get(PATH_HEADER) ?? `/${slug}/home`;
+  // A server action that signs in and redirects renders its target in the same request, past the
+  // proxy, so the second factor is asked for here too.
+  if (viewer.secondFactorOwed) redirect(secondFactorRedirect(here, "") as Route);
   const owed: { decision: OrgAuthDecision | null } = { decision: null };
   const membership = await resolveMembership(
     viewer.db,
@@ -96,7 +107,6 @@ export const getOrgContext = cache(async (slug: string): Promise<OrgContext | nu
     },
   );
   if (!membership && owed.decision !== null) {
-    const here = requestHeaders.get(PATH_HEADER) ?? `/${slug}/home`;
     const to = orgAuthRedirect(owed.decision, slug, here, "");
     if (to !== null) redirect(to as Route);
   }

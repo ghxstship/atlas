@@ -21,6 +21,8 @@ test("journey 39: cancel an org, download the full export, read-only banner", as
   const panel = page.getByRole("region", { name: "Cancel the organization" });
   await expect(panel).toBeVisible();
   await expectAccessibleInBothThemes(page);
+  // The theme check ends on a reload; the link opens the step-up dialog only once the page is live.
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
 
   // The full export: one ZIP with a manifest. It needs step-up (Section 9, A77): a new Owner sets up a
   // second factor in the step-up dialog, and the download follows.
