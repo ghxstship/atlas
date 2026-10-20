@@ -215,5 +215,11 @@
     "conflict": "You already have this loyalty program.",
     "denied": "You cannot change this.",
     "unexpected": "That did not save. Try again."
+  },
+  "compass": {
+    "edit": "Edit work details",
+    "offline": "Your work details load when you are online.",
+    "failed": "Your work details did not load. Open your profile again to retry.",
+    "noSizes": "No uniform sizes yet."
   }
 }

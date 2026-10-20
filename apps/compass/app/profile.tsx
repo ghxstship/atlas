@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { useCompass } from "../src/runtime/CompassProvider";
+import { WorkDetailsCards } from "../src/screens/WorkDetailsCards";
 import { Card, ListRow, Screen, Text } from "../src/ui";
 
 /** The person, their role in Compass and, for external users, their engagements across orgs. */
@@ -30,6 +31,7 @@ export default function ProfileScreen(): ReactElement {
           ))}
         </Card>
       ) : null}
+      <WorkDetailsCards />
       <Text tone="tertiary">{t("compass.profile.certifications")}</Text>
     </Screen>
   );

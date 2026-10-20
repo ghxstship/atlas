@@ -215,5 +215,11 @@
     "conflict": "Ya tienes este programa de lealtad.",
     "denied": "No puedes cambiar esto.",
     "unexpected": "No se guardó. Inténtalo de nuevo."
+  },
+  "compass": {
+    "edit": "Editar datos de trabajo",
+    "offline": "Tus datos de trabajo se cargan cuando tienes conexión.",
+    "failed": "Tus datos de trabajo no se cargaron. Vuelve a abrir tu perfil para reintentar.",
+    "noSizes": "Aún no hay tallas de uniforme."
   }
 }
