@@ -52,6 +52,7 @@ create index account_support_requests_person_idx on private.account_support_requ
 create index account_support_requests_open_idx on private.account_support_requests (request_state, created_at);
 
 comment on table private.account_support_requests is 'Requests to platform support about the sender''s own account (Section 11.16): sign-in, email and account deletion. Owned by a person, never an org; sent through app.open_account_support_request, read by the sender through app.my_account_support_requests and worked by the platform team with the service role. Answered by email.';
+comment on column private.account_support_requests.id is 'Request id (UUID v7).';
 comment on column private.account_support_requests.person_id is 'Person who asked for help.';
 comment on column private.account_support_requests.request_number is 'Display number, ACC-000001 upward across the platform.';
 comment on column private.account_support_requests.category is 'Account, Access (signing in), Problem or Question.';
@@ -65,6 +66,8 @@ comment on column private.account_support_requests.app_version is 'App version a
 comment on column private.account_support_requests.device is 'Browser or device and operating system.';
 comment on column private.account_support_requests.recent_errors is 'Recent client errors, newest first, without record contents.';
 comment on column private.account_support_requests.screenshot_path is 'Storage path of a screenshot in the person''s own support-screenshots folder.';
+comment on column private.account_support_requests.created_at is 'When the request was sent.';
+comment on column private.account_support_requests.updated_at is 'When the platform team last moved the request''s state.';
 
 alter table private.account_support_requests enable row level security;
 revoke all on private.account_support_requests from public, anon, authenticated;
