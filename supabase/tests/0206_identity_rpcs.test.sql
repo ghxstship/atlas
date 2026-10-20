@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(50);
+select plan(51);
 
 create temporary table tokens (key text primary key, token text);
 grant select, insert on tokens to public;
@@ -35,8 +35,10 @@ select results_eq(
 select is((select granted_by from app.membership_roles), null::uuid, 'the first Owner is granted by the platform');
 select results_eq(
   $$select plan_code, subscription_state from app.subscriptions$$,
-  $$values ('access'::text, 'active'::app.subscription_state)$$,
-  'a new org starts on the Access plan');
+  $$values ('pro'::text, 'trialing'::app.subscription_state)$$,
+  'a new org starts a Pro trial (Section 14.7)');
+select ok((select trial_ends_at between now() + interval '14 days' - interval '1 minute' and now() + interval '14 days'
+  from app.subscriptions), 'the trial lasts 14 days and needs no card');
 select is((select count(*)::integer from app.subscription_state_transitions), 1, 'the subscription creation is in the ledger');
 select is_empty('select 1 from app.workspaces', 'Home starts empty: no workspaces');
 select is_empty('select 1 from app.teams', 'Home starts empty: no teams');
