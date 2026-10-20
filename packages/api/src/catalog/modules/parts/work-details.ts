@@ -384,12 +384,10 @@ const SharedWorkDetails = z
     passport: orNull(
       z
         .object({
-          passport_number: z
-            .null()
-            .meta({
-              description: "Always null: the number is masked; reveal it through revealPassport.",
-              example: null,
-            }),
+          passport_number: z.null().meta({
+            description: "Always null: the number is masked; reveal it through revealPassport.",
+            example: null,
+          }),
           passport_number_last4: orNull(str("Last four characters of the number.", "TEST")),
           passport_number_masked: fields.bool("A number is recorded and withheld.", true),
           passport_issuing_country: orNull(fields.countryCode("Country that issued the passport.")),

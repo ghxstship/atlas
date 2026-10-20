@@ -52,7 +52,9 @@ export const WORK_DETAIL_RULES = [
  */
 export function workDetailLabelKey(label: string): string {
   return label
-    .replace(/[^A-Za-z0-9]+(.)?/g, (_, next: string | undefined) => (next ? next.toUpperCase() : ""))
+    .replace(/[^A-Za-z0-9]+(.)?/g, (_, next: string | undefined) =>
+      next ? next.toUpperCase() : "",
+    )
     .replace(/^./, (first) => first.toLowerCase());
 }
 
