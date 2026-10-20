@@ -225,9 +225,9 @@ export function displayKeys(text: string, platform: Platform): string {
 
 /** The platform of a browser, from what the navigator reports; anything not Apple is `other`. */
 export function platformOf(navigatorLike: {
-  readonly platform?: string;
-  readonly userAgent?: string;
-  readonly userAgentData?: { readonly platform?: string };
+  readonly platform?: string | undefined;
+  readonly userAgent?: string | undefined;
+  readonly userAgentData?: { readonly platform?: string | undefined } | undefined;
 }): Platform {
   const reported =
     navigatorLike.userAgentData?.platform ??

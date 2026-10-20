@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Drawer, InlineAlert, Input, Keys, Skeleton } from "@xos/ui";
+import { Button, Drawer, InlineAlert, Input, Skeleton } from "@xos/ui";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -21,19 +21,10 @@ import { dismissTipAction, recordTourAction, type HelpPanelState } from "@/lib/h
 import { ArticleBody } from "./article";
 import { ContactForm } from "./contact-form";
 import { collectDiagnostics } from "./diagnostics";
+import { ShortcutSheet } from "./shortcut-sheet";
 import type { HelpView as View } from "./help-center";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
-
-const SHORTCUTS = [
-  { keys: "Mod+K", label: "command" },
-  { keys: "?", label: "help" },
-  { keys: "Mod+.", label: "focus" },
-  { keys: "Esc", label: "close" },
-  { keys: "J K", label: "move" },
-  { keys: "Enter", label: "open" },
-  { keys: "X", label: "select" },
-] as const;
 
 const tourCopyKey = (key: string) => `tours.${key.replaceAll(".", "_")}`;
 
@@ -280,19 +271,7 @@ export function HelpPanel({
                 <p className="m-0 text-text-secondary">{t("tours.none")}</p>
               ),
             )}
-            {section(
-              t("shortcuts.title"),
-              <dl className="m-0 flex flex-col gap-4">
-                {SHORTCUTS.map((s) => (
-                  <div key={s.label} className="flex items-center justify-between gap-8">
-                    <dt>{t(`shortcuts.${s.label}`)}</dt>
-                    <dd className="m-0">
-                      <Keys keys={s.keys} />
-                    </dd>
-                  </div>
-                ))}
-              </dl>,
-            )}
+            {section(t("shortcuts.title"), <ShortcutSheet org={org} />)}
             {section(
               t("whatsNew.title"),
               <ul className="m-0 flex list-none flex-col gap-8 p-0">
