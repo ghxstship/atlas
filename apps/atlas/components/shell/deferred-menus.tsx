@@ -30,7 +30,7 @@ const OPEN_KEYS = new Set(["Enter", " ", "ArrowDown"]);
  * loads the menu module and swaps in the real menu, keeping focus on the trigger; pressing it before
  * the module arrives opens the menu as soon as it does.
  */
-function useDeferredMenu() {
+function useDeferredMenu(onOpen?: () => void) {
   const [wanted, setWanted] = useState(false);
   const [openOnLoad, setOpenOnLoad] = useState(false);
   const loaded = useOnDemand(menus, wanted);
@@ -46,6 +46,8 @@ function useDeferredMenu() {
   const press = () => {
     setWanted(true);
     setOpenOnLoad(true);
+    // The real menu then opens with defaultOpen, which reports no open change.
+    onOpen?.();
   };
   const trigger = {
     type: "button" as const,
@@ -93,12 +95,15 @@ export function DeferredDropdownMenu({
   label,
   icon,
   items,
+  onOpen,
 }: {
   label: string;
   icon?: IconName;
   items: MenuItem[];
+  /** Called each time the menu opens, including the first open that loads it. */
+  onOpen?: () => void;
 }) {
-  const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu();
+  const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu(onOpen);
   return (
     <Slot wrapper={wrapper}>
       {loaded ? (
@@ -107,6 +112,7 @@ export function DeferredDropdownMenu({
           {...(icon ? { icon } : {})}
           items={items}
           {...(openOnLoad ? { defaultOpen: true } : {})}
+          {...(onOpen ? { onOpenChange: (open: boolean) => (open ? onOpen() : undefined) } : {})}
         />
       ) : (
         <button {...trigger} className={buttonClass()}>
