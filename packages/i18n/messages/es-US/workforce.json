@@ -111,7 +111,7 @@
     "hideReason": "¿Por qué ocultas esta publicación?",
     "hiddenTitle": "Esta publicación está oculta",
     "reactions": "Reacciones",
-    "reaction": "{name} {count}",
+    "reaction": "{name}, {count}",
     "reactionNames": {
       "thumbs_up": "Me gusta",
       "heart": "Corazón",
@@ -127,7 +127,9 @@
     "pickOne": "Elige una",
     "pollResults": "Resultados de la encuesta",
     "pollLine": "{label}: {votes, plural, one {# voto} other {# votos}} ({percent} %)",
-    "yourVote": "(tu voto)"
+    "yourVote": "(tu voto)",
+    "more": "Más",
+    "moreFor": "Más acciones para {title}"
   },
   "surveys": {
     "title": "Encuestas",
