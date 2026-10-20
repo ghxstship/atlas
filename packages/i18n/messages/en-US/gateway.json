@@ -80,7 +80,14 @@
     "scheduleAction": "See schedule",
     "scopeAction": "See scope",
     "advanceAction": "Open the advance",
-    "operationalClosed": "This opens once the engagement is Active. Finish onboarding to get there.",
+    "overviewAction": "See overview",
+    "closed": {
+      "beforeActive": "This opens once the engagement is Active. Finish onboarding to get there.",
+      "beforeActiveOrg": "This opens once the engagement is Active. The organization makes it Active when the work starts.",
+      "complete": "This engagement is Complete, so this section has closed. Invoices and documents stay open for 18 months.",
+      "canceled": "This engagement was canceled, so this section has closed. Its documents stay open for 18 months.",
+      "notOpen": "This section is not open to you on this engagement. Message the organization if you expected it."
+    },
     "due": "Due {date}",
     "overview": {
       "next": "Your next steps",
@@ -95,6 +102,15 @@
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
+      "engagement": "Engagement",
+      "package": "Package",
+      "contractValue": "Contract value",
+      "billingBasis": "Billing basis",
+      "sponsorshipFee": "Sponsorship fee",
+      "approvalsWaiting": "Approvals waiting",
+      "approvalsCount": "{n, plural, =0 {None} other {#}}",
+      "entitlements": "Entitlements",
+      "entitlementsCount": "{done} of {total} delivered",
       "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days."
     },
     "documents": {
@@ -122,7 +138,6 @@
       "new": "Start a conversation"
     },
     "invoices": {
-      "closed": "Invoices open once money is open on this engagement, at Active.",
       "empty": "No invoices yet. Submit one below when your work is done.",
       "submitTitle": "Submit an invoice",
       "selfBilling": "Self-billing",
@@ -998,6 +1013,7 @@
   "money": {
     "overview": {
       "empty": "Nothing earned or pending yet. Payments for your engagements show up here.",
+      "emptyUnpaid": "No invoices yet. Invoices the organization sends you for your engagements show up here.",
       "emptyAction": "See engagements",
       "earned": "Earned",
       "pending": "Pending",
@@ -1535,7 +1551,7 @@
       "empty": "No engagements yet. When an organization engages you, it shows up here.",
       "emptyAction": "Explore opportunities",
       "current": "Current",
-      "past": "Past",
+      "closed": "Complete or canceled",
       "role": "Role",
       "org": "Organization",
       "project": "Project",

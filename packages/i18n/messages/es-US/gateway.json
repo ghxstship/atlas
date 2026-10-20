@@ -80,7 +80,14 @@
     "scheduleAction": "Ver calendario",
     "scopeAction": "Ver alcance",
     "advanceAction": "Abrir el avance",
-    "operationalClosed": "Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.",
+    "overviewAction": "Ver resumen",
+    "closed": {
+      "beforeActive": "Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.",
+      "beforeActiveOrg": "Esto se abre cuando la contratación está activa. La organización la activa cuando empieza el trabajo.",
+      "complete": "Esta contratación está completa, así que esta sección se cerró. Las facturas y los documentos siguen abiertos durante 18 meses.",
+      "canceled": "Esta contratación se canceló, así que esta sección se cerró. Sus documentos siguen abiertos durante 18 meses.",
+      "notOpen": "Esta sección no está abierta para ti en esta contratación. Escribe a la organización si la esperabas."
+    },
     "due": "Vence {date}",
     "overview": {
       "next": "Tus próximos pasos",
@@ -95,6 +102,15 @@
       "rate": "Tu tarifa",
       "rateHidden": "Se muestra mientras el área de pagos esté abierta",
       "payBasis": "Base de pago",
+      "engagement": "Contratación",
+      "package": "Paquete",
+      "contractValue": "Valor del contrato",
+      "billingBasis": "Base de facturación",
+      "sponsorshipFee": "Cuota de patrocinio",
+      "approvalsWaiting": "Aprobaciones pendientes",
+      "approvalsCount": "{n, plural, =0 {Ninguna} other {#}}",
+      "entitlements": "Beneficios",
+      "entitlementsCount": "{done} de {total} entregados",
       "rated": "Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."
     },
     "documents": {
@@ -122,7 +138,6 @@
       "new": "Iniciar una conversación"
     },
     "invoices": {
-      "closed": "Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.",
       "empty": "Aún no hay facturas. Envía una abajo cuando termines tu trabajo.",
       "submitTitle": "Enviar una factura",
       "selfBilling": "Autofacturación",
@@ -998,6 +1013,7 @@
   "money": {
     "overview": {
       "empty": "Aún no hay ingresos ni pendientes. Los pagos de tus contrataciones aparecen aquí.",
+      "emptyUnpaid": "Aún no hay facturas. Las facturas que la organización te envía por tus contrataciones aparecen aquí.",
       "emptyAction": "Ver contrataciones",
       "earned": "Cobrado",
       "pending": "Pendiente",
@@ -1535,7 +1551,7 @@
       "empty": "Aún no tienes contrataciones. Cuando una organización te contrate, aparecerá aquí.",
       "emptyAction": "Explorar oportunidades",
       "current": "Actuales",
-      "past": "Anteriores",
+      "closed": "Completadas o canceladas",
       "role": "Rol",
       "org": "Organización",
       "project": "Proyecto",

@@ -129,7 +129,7 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
                     <ActionButton
                       action={signDocumentAction.bind(null, d.id)}
                       label={t("gateway.common.sign")}
-                      variant="primary"
+                      variant="secondary"
                       done={t("gateway.common.signed")}
                     />
                   ),

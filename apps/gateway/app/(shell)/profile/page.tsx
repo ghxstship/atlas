@@ -371,7 +371,7 @@ export default async function ProfilePage() {
                       <ActionButton
                         action={acceptRepresentationAction.bind(null, r.id)}
                         label={t("gateway.profile.representation.accept")}
-                        variant="primary"
+                        variant="secondary"
                       />
                       <ActionButton
                         action={revokeRepresentationAction.bind(null, r.id)}

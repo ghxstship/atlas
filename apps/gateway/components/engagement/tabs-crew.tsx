@@ -11,7 +11,7 @@ import { hasArea, tabHref } from "@/lib/engagement";
 import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
-import { RowList, TabEmpty } from "./rows";
+import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
 
@@ -20,19 +20,9 @@ import { DocumentActions } from "@/components/documents/document-actions";
  * training and positions). Operational rows appear once the engagement is Active (Section 8.7).
  */
 
-function NotOpen({ t, engagementKey }: Pick<TabProps, "t" | "engagementKey">) {
-  return (
-    <TabEmpty
-      icon="Lock"
-      sentence={t("gateway.engagement.operationalClosed")}
-      actionLabel={t("gateway.engagement.onboardingAction")}
-      href={tabHref(engagementKey, "engagement.overview")}
-    />
-  );
-}
-
 export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
-  if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
+  if (!hasArea(view, "operational"))
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const shifts = await readView(view.ctx.db, "shifts", {
     eq: { engagement_id: view.engagement.id },
     order: ["starts_at", "asc"],
@@ -85,7 +75,8 @@ export async function ShiftsTab({ view, t, locale, engagementKey }: TabProps) {
 
 /** Staff positions: the shifts of the engagement grouped by the position (scope node) they fill. */
 export async function PositionsTab({ view, t, locale, engagementKey }: TabProps) {
-  if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
+  if (!hasArea(view, "operational"))
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const shifts = await readView(view.ctx.db, "shifts", {
     eq: { engagement_id: view.engagement.id },
     order: ["starts_at", "asc"],
@@ -137,7 +128,7 @@ export async function PositionsTab({ view, t, locale, engagementKey }: TabProps)
 
 export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational") && !hasArea(view, "money"))
-    return <NotOpen t={t} engagementKey={engagementKey} />;
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const [sheets, entries] = await Promise.all([
     readView(view.ctx.db, "timesheets", {
       eq: { engagement_id: view.engagement.id },
@@ -191,7 +182,7 @@ export async function TimesheetsTab({ view, t, locale, engagementKey }: TabProps
                     <ActionButton
                       action={submitTimesheetAction.bind(null, s.id)}
                       label={t("gateway.engagement.timesheets.submit")}
-                      variant="primary"
+                      variant="secondary"
                     />
                   ),
                 }
@@ -243,7 +234,8 @@ function TimeEntryList({
 
 /** Contractor time where hourly (Section 4.4.4): the time entries of the engagement. */
 export async function TimeTab({ view, t, locale, engagementKey }: TabProps) {
-  if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
+  if (!hasArea(view, "operational"))
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const entries = await readView(view.ctx.db, "time_entries", {
     eq: { engagement_id: view.engagement.id },
     order: ["clock_in", "desc"],
@@ -263,7 +255,8 @@ export async function TimeTab({ view, t, locale, engagementKey }: TabProps) {
 }
 
 export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
-  if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
+  if (!hasArea(view, "operational"))
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const [lodging, segments, travel] = await Promise.all([
     readView(view.ctx.db, "lodging", {
       eq: { project_id: view.engagement.projectId },
@@ -361,7 +354,8 @@ export async function TravelTab({ view, t, locale, engagementKey }: TabProps) {
 
 /** Per diem: the allowances paid through the engagement (A13 0981), then listed amenities. */
 export async function PerDiemTab({ view, t, locale, engagementKey }: TabProps) {
-  if (!hasArea(view, "operational")) return <NotOpen t={t} engagementKey={engagementKey} />;
+  if (!hasArea(view, "operational"))
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const [allowances, amenities] = await Promise.all([
     readView(view.ctx.db, "per_diems", {
       eq: { engagement_id: view.engagement.id },
