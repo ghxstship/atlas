@@ -204,18 +204,26 @@ jobs:
         run: |
           export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
           export EXPO_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          # The runner has no audio input, so the simulator could never record a voice note: this test
+          # build swaps in the silent fake recorder (src/runtime/voiceRecorder.ts; refused in EAS builds).
+          export EXPO_PUBLIC_XOS_FAKE_RECORDER=1
           pnpm exec expo prebuild --platform ios --no-install
           (cd ios && pod install)
           xcodebuild -workspace ios/*.xcworkspace -scheme Compass -configuration Release \
-            -sdk iphonesimulator -derivedDataPath build
+            -sdk iphonesimulator -derivedDataPath build CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER=
           UDID=$(xcrun simctl list devices available -j | python3 -c "import json,sys;d=json.load(sys.stdin)['devices'];print(next(x['udid'] for k,v in d.items() if 'iOS' in k for x in v if x['name'].startswith('iPhone')))")
           xcrun simctl boot "$UDID" || true
           xcrun simctl install booted build/Build/Products/Release-iphonesimulator/*.app
-      - name: Run the field flows, including airplane mode and queue drain
+          echo "UDID=$UDID" >> "$GITHUB_ENV"
+      - name: Run the field flows, including the kiosk, offline clock in and queue drain
         run: |
           curl -fsSL "https://get.maestro.mobile.dev" | bash
           export PATH="$HOME/.maestro/bin:$PATH"
-          maestro test -e XOS_DEMO_PASSWORD=xos-demo-2026 apps/compass/.maestro
+          export SUPABASE_URL=http://127.0.0.1:55421
+          export SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          export SUPABASE_PROJECT_ID=xos4
+          XOS_DEMO_PASSWORD=xos-demo-2026 apps/compass/scripts/maestro-ios.sh
 
   maestro-android:
     name: Compass Maestro on Android (gate 7)
@@ -255,4 +263,4 @@ jobs:
           script: |
             adb install apps/compass/android/app/build/outputs/apk/release/app-release.apk
             curl -fsSL "https://get.maestro.mobile.dev" | bash
-            $HOME/.maestro/bin/maestro test -e XOS_DEMO_PASSWORD=xos-demo-2026 apps/compass/.maestro
+            $HOME/.maestro/bin/maestro test -e XOS_DEMO_PASSWORD=xos-demo-2026 -e SUPABASE_URL=http://127.0.0.1:55421 -e SUPABASE_ANON_KEY=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p') apps/compass/.maestro

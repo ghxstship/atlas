@@ -1,9 +1,12 @@
 appId: pro.ghxstship.compass
-name: Journeys 16 and 54, report an incident in three steps with photos and a voice note, filed once
+# Journeys 16 and 54, report an incident in three steps with photos and a voice note, filed once.
+# Named after its file: config.yaml orders flows by name.
+name: field-incident-report
 ---
-# Offline: run with the device offline up to "incident-filed" (on an Android emulator setAirplaneMode;
-# on an iOS simulator cut the server instead, for example by stopping the local stack's API gateway),
-# then reconnect; the report and its photos replay once, keyed by their device-minted ids.
+# Offline (journey 54): the three steps, the photos, the voice notes and the submit all happen with no
+# server. Android goes into airplane mode; on iOS the network helper (scripts/maestro-network.ts, started
+# by scripts/maestro-ios.sh) stops the local stack's API gateway instead. On reconnect the report, its
+# photos and its voice note replay once, keyed by their device-minted ids.
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
@@ -15,6 +18,20 @@ name: Journeys 16 and 54, report an incident in three steps with photos and a vo
     id: "tab-more"
 - tapOn:
     id: "more-incidents"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
 - tapOn:
     id: "incident-report"
 - assertVisible: "Step 1 of 3"
@@ -66,10 +83,29 @@ name: Journeys 16 and 54, report an incident in three steps with photos and a vo
       id: "incident-filed"
     timeout: 10000
 - assertVisible: "Guest slipped near Gate A"
+# Filed on the device only: the report and its three files wait to upload.
+- extendedWaitUntil:
+    visible: ".*changes waiting to upload.*"
+    timeout: 15000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+# The retry backoff grows while the server is away, so the drain may wait for the next attempt.
 - extendedWaitUntil:
     notVisible:
-      id: "sync-queued"
-    timeout: 60000
+      id: "sync-queued|sync-offline"
+    timeout: 120000
 - runScript:
     file: ../scripts/incident-filed-once.js
     env:

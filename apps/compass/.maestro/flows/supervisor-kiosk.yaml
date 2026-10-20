@@ -1,9 +1,21 @@
 appId: pro.ghxstship.compass
-name: Kiosk mode refuses a wrong PIN without revealing anything, then clocks a worker in
+# Kiosk mode refuses a wrong PIN without revealing anything, then clocks a worker in.
+# Named after its file: config.yaml orders flows by name.
+name: supervisor-kiosk
 ---
 # Needs a kiosk registered in Atlas (app.register_kiosk_device) and a kiosk PIN for the Demo Field Tech
-# (app.set_kiosk_pin): pass the device key as KIOSK_DEVICE_KEY and the PIN's four digits as KIOSK_PIN_1
-# to KIOSK_PIN_4. The Demo Admin holds org.time_attendance.write.
+# (app.set_kiosk_pin). scripts/kiosk-device.js registers both as the Demo Admin, who holds
+# org.time_attendance.write; pass KIOSK_DEVICE_KEY and the PIN's four digits as KIOSK_PIN_1 to KIOSK_PIN_4
+# to use a kiosk registered beforehand instead.
+# The kiosk key lives in the device's settings (the iOS keychain), which outlive sign-out and even a
+# reinstall: a key left by an earlier run against a since-reset stack would open the kiosk on its roster
+# and every PIN would be refused. Clear the keychain so this run enters the key it registers.
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - stopApp
+      - clearKeychain
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
@@ -24,6 +36,10 @@ name: Kiosk mode refuses a wrong PIN without revealing anything, then clocks a w
     direction: DOWN
 - tapOn:
     id: "more-kiosk"
+# Registered and warmed here, just before the kiosk is used (scripts/kiosk-device.js).
+- runScript:
+    file: ../scripts/kiosk-device.js
+- assertTrue: ${output.kiosk.status == 200 && output.kiosk.key != null && output.kiosk.warm == 422}
 # A device that already holds its kiosk key opens straight on the roster.
 - extendedWaitUntil:
     visible:
@@ -36,7 +52,7 @@ name: Kiosk mode refuses a wrong PIN without revealing anything, then clocks a w
     commands:
       - tapOn:
           id: "kiosk-key"
-      - inputText: ${KIOSK_DEVICE_KEY}
+      - inputText: ${output.kiosk.key}
       - hideKeyboard
       - tapOn:
           id: "kiosk-start"
@@ -45,29 +61,50 @@ name: Kiosk mode refuses a wrong PIN without revealing anything, then clocks a w
 - inputText: "Tech"
 - hideKeyboard
 - tapOn: "Demo Field Tech"
-# A wrong PIN says only how many attempts are left.
+# A wrong PIN says only how many attempts are left. Keypad taps are never repeated: a loaded simulator
+# redraws the dots late, and a repeated tap would type a digit twice.
 - tapOn:
     id: "kiosk-key-0"
+    retryTapIfNoChange: false
 - tapOn:
     id: "kiosk-key-0"
+    retryTapIfNoChange: false
 - tapOn:
     id: "kiosk-key-0"
+    retryTapIfNoChange: false
 - tapOn:
     id: "kiosk-key-0"
-- tapOn:
-    id: "kiosk-submit"
-- assertVisible: "4 attempts left"
-# The right PIN clocks the worker in through the kiosk-punch Edge Function.
-- tapOn:
-    id: "kiosk-key-${KIOSK_PIN_1}"
-- tapOn:
-    id: "kiosk-key-${KIOSK_PIN_2}"
-- tapOn:
-    id: "kiosk-key-${KIOSK_PIN_3}"
-- tapOn:
-    id: "kiosk-key-${KIOSK_PIN_4}"
+    retryTapIfNoChange: false
 - tapOn:
     id: "kiosk-submit"
 - extendedWaitUntil:
-    visible: "Demo Field Tech clocked in"
-    timeout: 15000
+    visible: "4 attempts left"
+    timeout: 30000
+# The right PIN clocks the worker in through the kiosk-punch Edge Function.
+- tapOn:
+    id: "kiosk-key-${output.kiosk.pin[0]}"
+    retryTapIfNoChange: false
+- tapOn:
+    id: "kiosk-key-${output.kiosk.pin[1]}"
+    retryTapIfNoChange: false
+- tapOn:
+    id: "kiosk-key-${output.kiosk.pin[2]}"
+    retryTapIfNoChange: false
+- tapOn:
+    id: "kiosk-key-${output.kiosk.pin[3]}"
+    retryTapIfNoChange: false
+- tapOn:
+    id: "kiosk-submit"
+# The kiosk answers "clocked in" when the function confirms the punch. When the function cannot answer (a
+# local edge runtime retiring a worker under load answers 546), the kiosk keeps the punch and sends it
+# again from its queue; either way the punch must reach the server as the Field Tech's Kiosk punch.
+- extendedWaitUntil:
+    visible:
+      id: "kiosk-done"
+    timeout: 30000
+- assertVisible: "Demo Field Tech clocked in|Demo Field Tech: saved.*"
+- runScript:
+    file: ../scripts/kiosk-punch-landed.js
+    env:
+      SINCE: ${output.kiosk.since}
+- assertTrue: ${output.kioskPunch.status == 200 && output.kioskPunch.count >= 1}

@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Vendor sees purchase orders and deliveries, never internal tools
+# Vendor sees purchase orders and deliveries, never internal tools.
+# Named after its file: config.yaml orders flows by name.
+name: vendor-external-scan
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml
