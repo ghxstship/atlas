@@ -258,6 +258,10 @@
     "shortcutsEnabled": {
       "label": "Atajos de teclado",
       "help": "Atajos de una tecla como J, K y ? en el escritorio."
+    },
+    "messageTranslation": {
+      "label": "Traducir mensajes del chat",
+      "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
     }
   },
   "choices": {

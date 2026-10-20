@@ -258,6 +258,10 @@
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
       "help": "Single-key shortcuts such as J, K and ? on desktop."
+    },
+    "messageTranslation": {
+      "label": "Translate chat messages",
+      "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
     }
   },
   "choices": {
