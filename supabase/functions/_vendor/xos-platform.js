@@ -2589,7 +2589,7 @@ var authSecurity_default$1 = {
     factor_name_taken: "You already have a factor with that name. Choose another.",
     factor_label_length: "Name it in 1 to 80 characters.",
     passkey_failed: "Your device didn't confirm it. Try again.",
-    cancelled: "Cancelled. Try again when you're ready.",
+    cancelled: "Canceled. Try again when you're ready.",
     unsupported: "This browser doesn't support security keys or passkeys.",
     sso_unavailable:
       "No single sign-on is set up for that email domain. Sign in another way, or ask your Admin.",
@@ -18863,7 +18863,7 @@ var authSecurity_default = {
     back: "Otras formas de iniciar sesión",
   },
   providers: {
-    title: "Inicio de sesión único empresarial y SCIM",
+    title: "Inicio de sesión único y SCIM de Enterprise",
     description:
       "Las personas inician sesión con tu proveedor de identidad (SAML 2.0), y SCIM las agrega y las quita a medida que cambia tu directorio. El inicio de sesión único y SCIM nunca convierten a nadie en Owner.",
     notInPlan: "El inicio de sesión único y SCIM son parte del plan Enterprise.",

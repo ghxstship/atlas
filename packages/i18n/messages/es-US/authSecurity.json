@@ -98,7 +98,7 @@
     "back": "Otras formas de iniciar sesión"
   },
   "providers": {
-    "title": "Inicio de sesión único empresarial y SCIM",
+    "title": "Inicio de sesión único y SCIM de Enterprise",
     "description": "Las personas inician sesión con tu proveedor de identidad (SAML 2.0), y SCIM las agrega y las quita a medida que cambia tu directorio. El inicio de sesión único y SCIM nunca convierten a nadie en Owner.",
     "notInPlan": "El inicio de sesión único y SCIM son parte del plan Enterprise.",
     "none": "Aún no hay proveedor de identidad. El soporte de XOS conecta tu proveedor y te da su ID de proveedor.",

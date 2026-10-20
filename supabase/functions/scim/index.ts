@@ -4,11 +4,7 @@
 // only as its SHA-256 (migration 0638), so the function runs with verify_jwt = false. Joins, roles, teams and
 // offboarding run in SQL (app.scim_provision); the handler lives in @xos/integrations (identity/scim.ts).
 import { createClient } from "@supabase/supabase-js";
-import {
-  serveScim,
-  supabaseAuthAdmin,
-  supabaseScimStore,
-} from "../_vendor/xos-platform.js";
+import { serveScim, supabaseAuthAdmin, supabaseScimStore } from "../_vendor/xos-platform.js";
 import { env, serve } from "../_shared/runtime.ts";
 
 serve(async (request) => {

@@ -4,6 +4,7 @@ import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useActionState, useRef } from "react";
 import { useStepUpForm } from "@/components/auth/security/step-up";
 import { errorText, useSecurityCopy } from "@/components/auth/security/copy";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import {
   addProviderAction,
   issueScimTokenAction,
@@ -43,6 +44,7 @@ export function AddProviderForm({ org, roles }: { org: string; roles: readonly O
   return (
     <form
       action={action}
+      onSubmit={keepInputOnSubmit(action)}
       aria-label={t("providers.add")}
       className="flex max-w-layout-form flex-col gap-12"
       noValidate
@@ -117,7 +119,13 @@ export function ProviderSettingsForm({
   const t = useSecurityCopy();
   const [state, action, pending] = useActionState(updateProviderAction, INITIAL);
   return (
-    <form action={action} aria-label={name} className="flex flex-col gap-8" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      aria-label={name}
+      className="flex flex-col gap-8"
+      noValidate
+    >
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="providerId" value={providerId} />
       <Select

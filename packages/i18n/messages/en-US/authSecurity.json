@@ -133,7 +133,7 @@
     "factor_name_taken": "You already have a factor with that name. Choose another.",
     "factor_label_length": "Name it in 1 to 80 characters.",
     "passkey_failed": "Your device didn't confirm it. Try again.",
-    "cancelled": "Cancelled. Try again when you're ready.",
+    "cancelled": "Canceled. Try again when you're ready.",
     "unsupported": "This browser doesn't support security keys or passkeys.",
     "sso_unavailable": "No single sign-on is set up for that email domain. Sign in another way, or ask your Admin.",
     "rate_limited": "Too many attempts. Wait a minute, then try again.",

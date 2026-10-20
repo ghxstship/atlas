@@ -1,5 +1,6 @@
 "use client";
 
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 import { createCredential, webAuthnAvailable } from "@xos/data/webauthn-json";
 import { Button, Dialog, InlineAlert, Input } from "@xos/ui";
 import { useActionState, useRef, useState, useSyncExternalStore, useTransition } from "react";
@@ -79,7 +80,12 @@ export function RenameControl({
     );
   }
   return (
-    <form action={dispatch} className="flex flex-wrap items-end gap-8" noValidate>
+    <form
+      action={dispatch}
+      onSubmit={keepInputOnSubmit(dispatch)}
+      className="flex flex-wrap items-end gap-8"
+      noValidate
+    >
       <input type="hidden" name={kind === "factor" ? "factorId" : "passkeyId"} value={id} />
       <Input
         id={`rename-${id}`}

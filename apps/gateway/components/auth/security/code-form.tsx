@@ -2,6 +2,7 @@
 
 import { Button, InlineAlert, Input } from "@xos/ui";
 import { useActionState } from "react";
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
 import { verifyCodeAction, type SecurityState } from "@/app/auth/security-actions";
 import { errorText, useSecurityCopy } from "./copy";
 
@@ -41,7 +42,12 @@ export function CodeForm({
     {},
   );
   return (
-    <form action={action} className="flex flex-col gap-12" noValidate>
+    <form
+      action={action}
+      onSubmit={keepInputOnSubmit(action)}
+      className="flex flex-col gap-12"
+      noValidate
+    >
       <input type="hidden" name="factorId" value={factorId} />
       <input type="hidden" name="mode" value={mode} />
       {next ? <input type="hidden" name="next" value={next} /> : null}
