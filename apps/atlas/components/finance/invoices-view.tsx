@@ -31,6 +31,7 @@ import { TransitionBar } from "./kit-transition-bar";
 import { type Row } from "./kit.types";
 import { RecordActivity, RecordCollab } from "./record";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { ButtonLink } from "@/components/ui";
 
 /**
  * Finance > Invoices (Section 4.5.5): receivables the org issues and payables it receives. A
@@ -183,13 +184,11 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
               allowed={nextFor(peek)}
             />
             {editable ? <EditButton label={t("finance.common.edit")} /> : null}
+            {/* A button like its neighbours, not an underlined link (A59-029). */}
             {payable(peek) ? (
-              <Link
-                className="inline-flex items-center text-text-13 text-accent-text underline"
-                href={withQuery(page, { pay: "1" }) as Route}
-              >
+              <ButtonLink href={withQuery(page, { pay: "1" })}>
                 {t("finance.invoices.recordPayment")}
-              </Link>
+              </ButtonLink>
             ) : null}
           </div>
           <p className="m-0 text-text-12 text-text-secondary">

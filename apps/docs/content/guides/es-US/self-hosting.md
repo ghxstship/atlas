@@ -69,14 +69,15 @@ Las migraciones solo avanzan. Aplícalas antes de desplegar las aplicaciones que
 
 `supabase/config.toml` es solo para la pila local; no ejecutes `supabase config push` con él. Configura esto en el panel del proyecto alojado:
 
-| Ajuste                    | Valor                                                                                                          |
-| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| Site URL                  | El origen de Atlas, por ejemplo `https://atlas.example.com`                                                    |
-| Redirect URLs             | Los orígenes de Atlas y Gateway, más cada dominio personalizado de Gateway                                     |
-| Gancho de token de acceso | La función de Postgres `private.custom_access_token_hook` (escribe la reclamación de la organización activa)   |
-| Política de contraseñas   | Longitud mínima 12, letras y dígitos, protección contra contraseñas filtradas activada                         |
-| MFA                       | Inscripción y verificación TOTP y WebAuthn activadas; la parte confiable de WebAuthn es tu dominio registrable |
-| SMTP                      | Tu proveedor de correo, para que los correos de inicio de sesión e invitación salgan de tu dominio             |
+| Ajuste                    | Valor                                                                                                                                                                                                            |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL                  | El origen de Atlas, por ejemplo `https://atlas.example.com`                                                                                                                                                      |
+| Redirect URLs             | `https://<origen>/auth/callback**` para los orígenes de Atlas y Gateway y cada dominio personalizado de Gateway; el `**` deja pasar la cadena de consulta                                                        |
+| Gancho de token de acceso | La función de Postgres `private.custom_access_token_hook` (escribe la reclamación de la organización activa)                                                                                                     |
+| Política de contraseñas   | Longitud mínima 12, letras y dígitos, protección contra contraseñas filtradas activada                                                                                                                           |
+| MFA                       | Inscripción y verificación TOTP y WebAuthn activadas; la parte confiable de WebAuthn es tu dominio registrable                                                                                                   |
+| SMTP                      | Tu proveedor de correo, para que los correos de inicio de sesión e invitación salgan de tu dominio                                                                                                               |
+| Google (opcional)         | Proveedor de Google activado, con el ID y el secreto de tu cliente web de Google, y después de este los ID de tus clientes de iOS y Android; "Skip nonce checks" activado para el inicio de sesión nativo en iOS |
 
 El archivo `infra/runbooks/hosted-security-settings.md` del repositorio enumera cada ajuste con su motivo.
 
@@ -187,13 +188,15 @@ El proxy debe añadir la dirección del cliente a `X-Forwarded-For` (en nginx, `
 
 Compass lee su configuración al compilar:
 
-| Variable                        | Valor                                                                                   |
-| ------------------------------- | --------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | La URL de la API de Supabase                                                            |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | La clave anónima                                                                        |
-| `EXPO_PUBLIC_ATLAS_URL`         | El origen de Atlas                                                                      |
-| `EXPO_PUBLIC_GATEWAY_URL`       | El origen de Gateway                                                                    |
-| `XOS_UNIVERSAL_LINK_HOSTS`      | Opcional: `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass |
+| Variable                           | Valor                                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | La URL de la API de Supabase                                                            |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | La clave anónima                                                                        |
+| `EXPO_PUBLIC_ATLAS_URL`            | El origen de Atlas                                                                      |
+| `EXPO_PUBLIC_GATEWAY_URL`          | El origen de Gateway                                                                    |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | Opcional: `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Opcional: el ID de tu cliente web de Google, para Continuar con Google                  |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Opcional: el ID de tu cliente de iOS de Google, para Continuar con Google en iOS        |
 
 Cambia el identificador del paquete y el paquete de Android en `apps/compass/app.json` por los tuyos y compila con EAS Build (agrega un `eas.json` con un perfil `production` y ejecuta `eas build --platform all --profile production`) o localmente con `expo prebuild` seguido de un archivo de Xcode y una compilación de versión de Gradle. Distribuye primero mediante TestFlight y las pruebas internas de Google Play.
 

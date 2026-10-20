@@ -137,13 +137,15 @@ None. The site is built from the repository and the OpenAPI document.
 
 ### Compass (EAS environment `production`)
 
-| Variable                        | Value                                           |
-| ------------------------------- | ----------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | The production Supabase API URL                 |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | The production anon key (public)                |
-| `EXPO_PUBLIC_ATLAS_URL`         | `https://<atlas domain>`                        |
-| `EXPO_PUBLIC_GATEWAY_URL`       | `https://<gateway domain>`                      |
-| `XOS_UNIVERSAL_LINK_HOSTS`      | `atlas:<atlas domain>,gateway:<gateway domain>` |
+| Variable                           | Value                                                                  |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                        |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public)                                       |
+| `EXPO_PUBLIC_ATLAS_URL`            | `https://<atlas domain>`                                               |
+| `EXPO_PUBLIC_GATEWAY_URL`          | `https://<gateway domain>`                                             |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<atlas domain>,gateway:<gateway domain>`                        |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                    |
 
 ### GitHub Actions (repository secrets and variables)
 
@@ -324,6 +326,81 @@ The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the s
 - `400` about contextual translation: set `google.contextualGlossary` to `false` in `packages/i18n/translation/config.json` and run again.
 - Many strings failed with "Google's markup did not survive": the model is dropping the masking spans. Switch to NMT as above; failed strings are retried and nothing broken was written.
 - Strings listed as failed in `docs/i18n/translate-<locale>.md` kept their value (or the en-US text where they had none) and are retried on the next run.
+
+## Sign in with Google (OWNER)
+
+Atlas, Gateway and Compass offer "Continue with Google" once Google is turned on in the Supabase project (ADR 0036). The code is in place; the owner creates three Google OAuth clients and enters them in Supabase and EAS. Atlas and Gateway need nothing in Vercel: they show the button when Supabase reports Google enabled. Until then no Google button appears in production.
+
+**Every value in the table below is an example of the format; none is real.** Values are kept in the owner's secret store and entered only in the dashboards named; they are never committed, pasted in tickets or logged. Only the Web client secret is a secret; client IDs are public.
+
+| Value                     | Where it comes from                                       | Example of the format (not real)                                                                    |
+| ------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Web client ID             | Google Cloud, Clients, the Web application client         | `<12 digits>-<32 letters and digits>.apps.googleusercontent.com`                                    |
+| Web client secret         | Google Cloud, the same client (shown once; can be reset)  | `GOCSPX-` followed by 28 letters, digits, `-` or `_`                                                |
+| iOS client ID             | Google Cloud, Clients, the iOS client                     | `<12 digits>-<32 letters and digits>.apps.googleusercontent.com`                                    |
+| Android client ID         | Google Cloud, Clients, the Android client (one per SHA-1) | `<12 digits>-<32 letters and digits>.apps.googleusercontent.com`                                    |
+| Android SHA-1 fingerprint | EAS credentials, and Play Console App integrity           | 20 colon-separated hex pairs, such as `AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD` |
+| Supabase callback URL     | Supabase, Authentication, Sign In / Providers, Google     | `https://fquuqnzlpobaawucczgq.supabase.co/auth/v1/callback` (the real one)                          |
+
+### 1. OAuth consent screen (Google Auth Platform, Branding and Audience)
+
+1. In the Google Cloud project that will own sign-in (it can be the machine translation project), open Google Auth Platform at https://console.cloud.google.com/auth/overview and start the setup.
+2. App name `XOS`, the support email, and the developer contact email.
+3. Audience: **External**. Publish the app (Audience, Publish app) so it is "In production"; while it is "Testing", only listed test users can sign in.
+4. Branding: the home page and the privacy policy and terms links on the Atlas domain (`https://<atlas domain>/legal/privacy-policy`, `https://<atlas domain>/legal/terms-of-service`), and the logo if you want Google to show it (a logo needs Google's brand verification).
+5. Authorized domains: the production domain (`<domain>`) and `supabase.co`, which hosts the redirect URI.
+6. Data Access (scopes): `openid`, `.../auth/userinfo.email` and `.../auth/userinfo.profile`. They are non-sensitive, so no further verification is needed.
+
+### 2. The Web client (Atlas, Gateway, and the ID token audience for Compass)
+
+1. Google Auth Platform, Clients, Create client, application type **Web application**, name `XOS Supabase Auth`.
+2. Authorized redirect URI: `https://fquuqnzlpobaawucczgq.supabase.co/auth/v1/callback`. When staging moves to a Supabase branch (`promote-to-production.md`, step 14), add that branch's own `https://<branch ref>.supabase.co/auth/v1/callback`.
+3. No JavaScript origins are needed: the browser never talks to Google from Atlas or Gateway pages.
+4. Create, then copy the client ID and the client secret into the owner's secret store.
+
+For local development, create a separate Web client with the redirect URI `http://127.0.0.1:55421/auth/v1/callback` (the local stack's callback) and use it only on your machine; never put the production client on a laptop.
+
+### 3. The iOS client (Compass)
+
+1. Create client, application type **iOS**, name `Compass iOS`, bundle ID `pro.ghxstship.compass`. The App Store ID and Team ID are optional.
+2. Copy the client ID. Its reversed form (`com.googleusercontent.apps.<the part before .apps>`) is the URL scheme; `apps/compass/app.config.ts` adds it to the build from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, so nothing is entered by hand.
+
+### 4. The Android clients (Compass)
+
+1. Get the SHA-1 of every key that signs a Compass build: `eas credentials --platform android` (the upload key EAS holds), and Play Console, Test and release, App integrity, App signing (the key Google Play signs store installs with). A development build signed with another keystore needs its SHA-1 too.
+2. For each SHA-1, Create client, application type **Android**, name `Compass Android (<which key>)`, package name `pro.ghxstship.compass`, and the SHA-1.
+3. Copy each client ID. Android does not read it in the app; Google matches the app by package and certificate, and Supabase must accept it (step 5).
+
+### 5. Supabase (Authentication, Sign In / Providers, Google) (OWNER CONFIRMS)
+
+| Setting                    | Value                                                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Enable Sign in with Google | On                                                                                                       |
+| Client IDs                 | The Web client ID first, then the iOS client ID, then each Android client ID, comma-separated, no spaces |
+| Client Secret (for OAuth)  | The Web client secret                                                                                    |
+| Skip nonce checks          | On. Google's iOS SDK puts a nonce in the ID token that Compass cannot read (ADR 0036, decision 9)        |
+| Allow users without email  | Off                                                                                                      |
+
+The callback URL this page shows is the one entered in step 2. The redirect URLs back to Atlas and Gateway are the ones in `promote-to-production.md`, step 5; Google needs nothing more. Manual linking stays off (step 8 there).
+
+### 6. Compass (EAS) and a new build
+
+1. In EAS (expo.dev, the project, Environment variables), add to the `production` and `preview` environments, visibility Plain text (they are public):
+   - `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`: the Web client ID.
+   - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: the iOS client ID.
+2. Build Compass again (`eas build --platform all --profile production`, "Compass releases" below). The values are read at build time, and the Google SDK is a native module, so an over-the-air update is not enough.
+
+Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; without the iOS client ID it shows none on iOS.
+
+### 7. Verify
+
+1. Atlas: sign in with Google using a Google account that has no XOS account. You land on "Create your organization"; the new person has the Google account's name.
+2. Gateway: sign in with Google using another new Google account. You are asked to accept the Worker Terms, then land on Home.
+3. Sign in with Google using the email of an existing XOS account. You land in that account (same organizations), not a new one.
+4. Compass on iOS and Android: Continue with Google, pick the account, and Compass loads your work.
+5. Cancel on Google's account picker: the sign-in page says you left before it finished.
+
+Rollback: turn "Enable Sign in with Google" off. The buttons disappear within five minutes (Atlas and Gateway cache the provider list); accounts keep their google identity and can still sign in by email.
 
 ## Monitoring and alerting
 

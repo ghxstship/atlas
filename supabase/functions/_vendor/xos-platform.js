@@ -2659,6 +2659,17 @@ var compass_default$1 = {
     sendLink: "Email Me a Link",
     usePassword: "Use Password",
     useLink: "Use Email Link",
+    google: "Continue with Google",
+    or: "or",
+    googleCancelled:
+      "You left the Google sign-in before it finished. Try again, or use an email link.",
+    googleUnavailable:
+      "Google sign-in needs Google Play services on this device. Update them, or use an email link.",
+    googleFailed: "Google could not sign you in. Try again in a moment, or use an email link.",
+    emailNotVerified:
+      "The email address on that Google account is not verified yet. Open the confirmation link we sent to it, then try again.",
+    ssoRequired:
+      "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
     submit: "Sign In",
     linkSent: "Check {email} for a sign-in link. It opens Compass.",
     invalid: "That email and password do not match. Check both, or use an email link.",
@@ -6859,6 +6870,11 @@ var gateway_default$1 = {
       haveAccount: "Already have an account?",
       toSignIn: "Sign in",
     },
+    terms: {
+      title: "Accept the Worker Terms",
+      lead: "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
+      submit: "Continue",
+    },
     providers: {
       continueWith: "Continue with {provider}",
       google: "Google",
@@ -6898,6 +6914,16 @@ var gateway_default$1 = {
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
       provider_disabled: "That sign-in method is not turned on for Gateway yet. Use email instead.",
       link_invalid: "This link expired or was already used. Request a new one.",
+      oauth_cancelled:
+        "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      oauth_expired:
+        "This sign-in expired or was started in another browser. Start again on this page.",
+      provider_error:
+        "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      email_not_verified:
+        "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      sso_required:
+        "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
@@ -7550,7 +7576,7 @@ var incidents_default$1 = {
   anySeverity: "Any severity",
   anyState: "Any state",
   arrivedAt: "Arrived {time}",
-  boardEmpty: "None",
+  boardEmpty: "No incidents in this state.",
   close: "Close with sign-off",
   closeHeading: "Close",
   closeHelp:
@@ -11712,6 +11738,8 @@ var projects_default$1 = {
     scope: "Scope",
     wholeProject: "Whole project",
     archived: "Archived",
+    more: "More",
+    moreTabs: "More tabs",
   },
   states: {
     Proposed: "Proposed",
@@ -12525,11 +12553,17 @@ var schedule_default$1 = {
 };
 var settings_default$1 = {
   choose: "Choose an option",
-  lock: "Lock this value so workspaces, projects and people cannot change it",
+  lock: "Workspaces, projects and people cannot change a locked value.",
   save: "Save",
   saved: "Saved.",
   inherit: "Use the inherited value",
   reset: "Reset to the platform default",
+  undoReset: "Keep this value",
+  resetPending: "Resets to the platform default when you save.",
+  inheritPending: "Uses the inherited value when you save.",
+  lockValue: "Lock value",
+  discard: "Discard",
+  unsaved: "{count, plural, one {# unsaved change} other {# unsaved changes}}",
   loadFailed: "These settings could not be loaded. Reload the page to try again.",
   registryHeading: "Settings on this page",
   personalSections: "Personal settings sections",
@@ -13402,6 +13436,16 @@ var shell_default$1 = {
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
       provider_disabled: "That sign-in method is not turned on for Atlas yet. Use email instead.",
       link_invalid: "This link expired or was already used. Request a new one.",
+      oauth_cancelled:
+        "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      oauth_expired:
+        "This sign-in expired or was started in another browser. Start again on this page.",
+      provider_error:
+        "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      email_not_verified:
+        "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      sso_required:
+        "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
@@ -14392,6 +14436,7 @@ var ui_default$1 = {
   tabbar: { badge: "{n} new" },
   table: {
     resizeColumn: "Resize column {column}",
+    row: "Row {n}",
     total: "Total",
   },
   timeline: {
@@ -15812,7 +15857,9 @@ var workflow_default$1 = {
       label: "Items",
       none: "No items yet.",
       nodeLine: "{kind} scope node, code suffix {suffix}",
-      recordLine: "{kind} record · phase {phase} · {due}",
+      recordLine: "{kind} record · {phase} · {due}",
+      phase: "Phase",
+      phaseNone: "no phase",
       noPhase: "No phase",
       noDue: "no due date",
       dueIn:
@@ -15842,7 +15889,6 @@ var workflow_default$1 = {
         Y: "Y: process",
         Z: "Z: timeline",
       },
-      phase: "Phase",
       dueOffset: "Due, days after the start",
       dueOffsetHelp: "Leave blank for no due date; use a negative number for before the start.",
       remove: "Remove",
@@ -18770,6 +18816,18 @@ var compass_default = {
     sendLink: "Enviarme un enlace",
     usePassword: "Usar contraseña",
     useLink: "Usar enlace",
+    google: "Continuar con Google",
+    or: "o",
+    googleCancelled:
+      "Saliste del inicio de sesión con Google antes de terminar. Vuelve a intentarlo o usa un enlace por correo.",
+    googleUnavailable:
+      "Para iniciar sesión con Google, este dispositivo necesita los servicios de Google Play. Actualízalos o usa un enlace por correo.",
+    googleFailed:
+      "Google no pudo iniciar tu sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+    emailNotVerified:
+      "El correo de esa cuenta de Google aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+    ssoRequired:
+      "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
     submit: "Iniciar sesión",
     linkSent: "Revisa {email}: te enviamos un enlace que abre Compass.",
     invalid: "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace por correo.",
@@ -22934,6 +22992,11 @@ var gateway_default = {
       haveAccount: "¿Ya tienes una cuenta?",
       toSignIn: "Iniciar sesión",
     },
+    terms: {
+      title: "Acepta los Términos para trabajadores",
+      lead: "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
+      submit: "Continuar",
+    },
     providers: {
       continueWith: "Continuar con {provider}",
       google: "Google",
@@ -22975,6 +23038,16 @@ var gateway_default = {
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       provider_disabled: "Ese método de acceso aún no está activado en Gateway. Usa tu correo.",
       link_invalid: "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      oauth_cancelled:
+        "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      oauth_expired:
+        "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      provider_error:
+        "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      email_not_verified:
+        "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      sso_required:
+        "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
@@ -23639,7 +23712,7 @@ var incidents_default = {
   anySeverity: "Cualquier gravedad",
   anyState: "Cualquier estado",
   arrivedAt: "Llegó {time}",
-  boardEmpty: "Ninguno",
+  boardEmpty: "Ningún incidente en este estado.",
   close: "Cerrar con aprobación",
   closeHeading: "Cerrar",
   closeHelp:
@@ -27927,6 +28000,8 @@ var projects_default = {
     scope: "Alcance",
     wholeProject: "Todo el proyecto",
     archived: "Archivado",
+    more: "Más",
+    moreTabs: "Más pestañas",
   },
   states: {
     Proposed: "Propuesto",
@@ -28765,11 +28840,17 @@ var schedule_default = {
 };
 var settings_default = {
   choose: "Elige una opción",
-  lock: "Bloquear este valor para que espacios de trabajo, proyectos y personas no puedan cambiarlo",
+  lock: "Los espacios de trabajo, proyectos y personas no pueden cambiar un valor bloqueado.",
   save: "Guardar",
   saved: "Guardado.",
   inherit: "Usar el valor heredado",
   reset: "Restablecer al valor de la plataforma",
+  undoReset: "Mantener este valor",
+  resetPending: "Vuelve al valor de la plataforma cuando guardes.",
+  inheritPending: "Usa el valor heredado cuando guardes.",
+  lockValue: "Bloquear valor",
+  discard: "Descartar",
+  unsaved: "{count, plural, one {# cambio sin guardar} other {# cambios sin guardar}}",
   loadFailed: "No se pudieron cargar estos ajustes. Recarga la página para intentarlo de nuevo.",
   registryHeading: "Ajustes de esta página",
   personalSections: "Secciones de ajustes personales",
@@ -29657,6 +29738,16 @@ var shell_default = {
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       provider_disabled: "Ese método de acceso aún no está activado en Atlas. Usa tu correo.",
       link_invalid: "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      oauth_cancelled:
+        "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      oauth_expired:
+        "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      provider_error:
+        "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      email_not_verified:
+        "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      sso_required:
+        "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
@@ -30659,6 +30750,7 @@ var ui_default = {
   tabbar: { badge: "{n} nuevos" },
   table: {
     resizeColumn: "Cambiar el ancho de la columna {column}",
+    row: "Fila {n}",
     total: "Total",
   },
   timeline: {
@@ -32124,7 +32216,9 @@ var workflow_default = {
       label: "Elementos",
       none: "Aún no hay elementos.",
       nodeLine: "Nodo de alcance {kind}, sufijo de código {suffix}",
-      recordLine: "Registro {kind} · fase {phase} · {due}",
+      recordLine: "Registro {kind} · {phase} · {due}",
+      phase: "Fase",
+      phaseNone: "sin fase",
       noPhase: "Sin fase",
       noDue: "sin fecha de vencimiento",
       dueIn:
@@ -32154,7 +32248,6 @@ var workflow_default = {
         Y: "Y: proceso",
         Z: "Z: cronograma",
       },
-      phase: "Fase",
       dueOffset: "Vence, días después del inicio",
       dueOffsetHelp:
         "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",

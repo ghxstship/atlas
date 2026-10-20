@@ -72,8 +72,34 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
   };
 }
 
+/**
+ * Sign in with Google (ADR 0036). Google returns to an iOS app through a URL scheme made from its iOS
+ * client ID (`com.googleusercontent.apps.<id>`), which the SDK's config plugin adds to Info.plist.
+ * EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID is public; unset, the plugin is left out (without options it would
+ * expect Firebase files) and Compass does not offer Google on iOS. Android needs no plugin.
+ */
+export function googleIosUrlScheme(iosClientId: string | undefined): string | null {
+  const id = /^(\d+-[a-z0-9]+)\.apps\.googleusercontent\.com$/.exec(iosClientId?.trim() ?? "");
+  return id ? `com.googleusercontent.apps.${id[1]}` : null;
+}
+
+export function withGoogleSignIn(config: ExpoConfig, iosClientId: string | undefined): ExpoConfig {
+  const iosUrlScheme = googleIosUrlScheme(iosClientId);
+  if (!iosUrlScheme) return config;
+  return {
+    ...config,
+    plugins: [
+      ...(config.plugins ?? []),
+      ["@react-native-google-signin/google-signin", { iosUrlScheme }],
+    ],
+  };
+}
+
 export default ({ config }: ConfigContext): ExpoConfig =>
-  withUniversalLinks(
-    config as ExpoConfig,
-    universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"]),
+  withGoogleSignIn(
+    withUniversalLinks(
+      config as ExpoConfig,
+      universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"]),
+    ),
+    process.env["EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID"],
   );

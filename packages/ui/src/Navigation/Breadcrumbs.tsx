@@ -1,4 +1,5 @@
 import { type ReactElement } from "react";
+import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
 import { Icon } from "../Icon/Icon.tsx";
 import { type BreadcrumbsProps } from "./Navigation.types.ts";
@@ -10,7 +11,8 @@ const LABEL = "block truncate";
  * Org, workspace, project, scope node, module and record; the last is the current page. The trail
  * stays on one line: in a narrow header (a phone's top bar) or under a longer translation each crumb
  * shrinks with an ellipsis and keeps its whole label as a title, instead of wrapping out of the
- * header's height (Section 15, gate 16).
+ * header's height (Section 15, gate 16). Below md only the parent and the current page show, so a
+ * phone's top bar keeps two readable crumbs instead of five cut to a letter each (A59-004).
  */
 export function Breadcrumbs({ items }: BreadcrumbsProps): ReactElement {
   const t = useT();
@@ -19,8 +21,12 @@ export function Breadcrumbs({ items }: BreadcrumbsProps): ReactElement {
       <ol className="flex items-center gap-4 m-0 p-0 list-none text-text-13 text-text-secondary max-w-full min-w-0">
         {items.map((it, i) => {
           const last = i === items.length - 1;
+          const early = i < items.length - 2;
           return (
-            <li key={`${it.label}-${i}`} className="inline-flex items-center gap-4 min-w-0">
+            <li
+              key={`${it.label}-${i}`}
+              className={cx("inline-flex items-center gap-4 min-w-0", early && "max-md:hidden")}
+            >
               {last ? (
                 <span aria-current="page" className={`${LABEL} text-text-primary`} title={it.label}>
                   {it.label}
