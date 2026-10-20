@@ -183,7 +183,14 @@ export async function GuestCheckInSection({
           <StatTile label={t("guests.peopleIn")} value={totals.people} />
         </div>
       }
-      empty={<EmptyRefresh icon="Ticket" sentence={t("guests.empty")} />}
+      empty={
+        <EmptyStateLink
+          icon="Ticket"
+          sentence={t("guests.empty")}
+          actionLabel={t("guests.emptyAction")}
+          href={`/${ctx.org.slug}/p/${project.key}/advancing?section=guests`}
+        />
+      }
     >
       {drawer}
     </CollectionView>

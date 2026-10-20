@@ -480,7 +480,7 @@
     "title": "Chat",
     "what": "your conversations",
     "conversations": "Conversations",
-    "empty": "No conversations yet. Find someone in the directory to message.",
+    "empty": "No conversations yet. Message a teammate to start one.",
     "untitled": "Conversation",
     "unread": "{count} new",
     "noMessages": "No messages yet",
@@ -511,7 +511,8 @@
       "Photo": "Photo",
       "File": "File",
       "Voice": "Voice note"
-    }
+    },
+    "emptyAction": "Message a teammate"
   },
   "recognition": {
     "title": "Recognition",
@@ -716,7 +717,8 @@
     "credentialHelp": "Scan or type the badge number when the guest has one.",
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
-    "peopleIn": "People in"
+    "peopleIn": "People in",
+    "emptyAction": "Open the guest list"
   },
   "lostFound": {
     "title": "Lost and Found",
