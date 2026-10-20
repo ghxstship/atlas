@@ -169,3 +169,9 @@ comment on function private.audit_expired_break_glass() is 'Writes break_glass_s
 revoke all on function private.audit_expired_break_glass() from public, anon, authenticated;
 
 select cron.schedule('xos_audit_expired_break_glass', '*/5 * * * *', $$select private.audit_expired_break_glass()$$);
+
+-- A52 project shares (found by 9909_security_a69_new_resources) ---------------------------------------------------------
+-- private.visible_project_share_ids is the read policy helper of app.project_share_scope_nodes, but 1205 revoked it from
+-- authenticated, so every signed-in read of that table failed with 42501 (closed, never open). Policy helpers run as the
+-- caller, so it is granted like every other one; it answers only shares the caller may read.
+grant execute on function private.visible_project_share_ids() to authenticated;
