@@ -8329,6 +8329,7 @@ export type Database = {
           org_id: string;
           project_id: string | null;
           revoked_at: string | null;
+          rotated_at: string | null;
           token_hash: string;
           token_hint: string;
           updated_at: string;
@@ -8345,6 +8346,7 @@ export type Database = {
           org_id: string;
           project_id?: string | null;
           revoked_at?: string | null;
+          rotated_at?: string | null;
           token_hash: string;
           token_hint: string;
           updated_at?: string;
@@ -8360,6 +8362,7 @@ export type Database = {
           org_id?: string;
           project_id?: string | null;
           revoked_at?: string | null;
+          rotated_at?: string | null;
           token_hash?: string;
           token_hint?: string;
           updated_at?: string;
@@ -19020,8 +19023,14 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          discard_reason: string | null;
+          discarded_at: string | null;
+          discarded_by: string | null;
           dkim_verified: boolean;
+          filed_at: string | null;
+          filed_by: string | null;
           filed_document_id: string | null;
+          filed_record_id: string | null;
           from_address: string;
           id: string;
           inbound_address_id: string | null;
@@ -19046,8 +19055,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          discard_reason?: string | null;
+          discarded_at?: string | null;
+          discarded_by?: string | null;
           dkim_verified: boolean;
+          filed_at?: string | null;
+          filed_by?: string | null;
           filed_document_id?: string | null;
+          filed_record_id?: string | null;
           from_address: string;
           id?: string;
           inbound_address_id?: string | null;
@@ -19071,8 +19086,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          discard_reason?: string | null;
+          discarded_at?: string | null;
+          discarded_by?: string | null;
           dkim_verified?: boolean;
+          filed_at?: string | null;
+          filed_by?: string | null;
           filed_document_id?: string | null;
+          filed_record_id?: string | null;
           from_address?: string;
           id?: string;
           inbound_address_id?: string | null;
@@ -19100,10 +19121,38 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "inbound_messages_discarded_by_fkey";
+            columns: ["discarded_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_by_fkey";
+            columns: ["filed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "inbound_messages_filed_document_id_fkey";
             columns: ["filed_document_id"];
             isOneToOne: false;
             referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
+            referencedRelation: "offboarding_open_records";
+            referencedColumns: ["record_id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
             referencedColumns: ["id"];
           },
           {
@@ -28480,6 +28529,74 @@ export type Database = {
           },
           {
             foreignKeyName: "permit_requirements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      person_calendar_feeds: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          last_accessed_at: string | null;
+          person_id: string;
+          revoked_at: string | null;
+          rotated_at: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          person_id: string;
+          revoked_at?: string | null;
+          rotated_at?: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          person_id?: string;
+          revoked_at?: string | null;
+          rotated_at?: string | null;
+          token_hash?: string;
+          token_hint?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_calendar_feeds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_calendar_feeds_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_calendar_feeds_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -53465,6 +53582,13 @@ export type Database = {
         Returns: string;
       };
       create_organization: { Args: { p_name: string; p_slug: string }; Returns: string };
+      create_person_calendar_feed: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
       create_project: {
         Args: {
           p_currency_code?: string;
@@ -53616,6 +53740,11 @@ export type Database = {
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
+      disable_project_inbox: { Args: { p_project_id: string }; Returns: undefined };
+      discard_inbound_message: {
+        Args: { p_inbound_message_id: string; p_reason?: string };
+        Returns: undefined;
+      };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;
@@ -53755,6 +53884,10 @@ export type Database = {
           membership_id: string;
           person_id: string;
         }[];
+      };
+      file_inbound_message: {
+        Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
+        Returns: string;
       };
       find_chat_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
@@ -54594,6 +54727,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
@@ -54789,6 +54923,20 @@ export type Database = {
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      rotate_calendar_feed: {
+        Args: { p_calendar_feed_id: string };
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
+      rotate_person_calendar_feed: {
+        Args: { p_calendar_feed_id: string };
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
       rsvp_to_event: {
         Args: { p_event_id: string; p_response: Database["app"]["Enums"]["rsvp_response"] };
         Returns: string;
