@@ -16,6 +16,7 @@ import {
 } from "../../src/domain/clock";
 import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
 import { punchAnnouncementKey } from "../../src/domain/announce";
+import { formatDistance } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useClockLiveActivity, useLockScreenPunchDrain } from "../../src/runtime/liveActivity";
 import {
@@ -58,9 +59,9 @@ const REFUSAL_KEY: Readonly<Record<PunchRefusal, string>> = {
 };
 
 function ClockCard(): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
-  const { settings, status, resolved, projectId, enqueue, engine } = useCompass();
+  const { settings, status, resolved, projectId, enqueue, engine, orgSettings } = useCompass();
   const [punching, setPunching] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   // Today is the clock: while it is in front and the person is clocked out, sample precisely so Clock In
@@ -113,7 +114,10 @@ function ClockCard(): ReactElement {
     if (g.kind === "inside") return t("compass.clock.inside", { name: g.geofence.name });
     if (g.kind === "outside")
       return g.nearest && g.distanceM !== null && g.distanceM < 5000
-        ? t("compass.clock.outside", { distance: Math.round(g.distanceM), name: g.nearest.name })
+        ? t("compass.clock.outside", {
+            distance: formatDistance(i18n.language, g.distanceM, orgSettings),
+            name: g.nearest.name,
+          })
         : t("compass.clock.outsideFar");
     if (g.kind === "unknown")
       return t(g.reason === "coarse" ? "compass.clock.locationCoarse" : "compass.clock.locating");

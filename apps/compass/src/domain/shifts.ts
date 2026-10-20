@@ -103,6 +103,7 @@ export function buildShiftAction(
   action: "accept" | "claim",
   external: boolean,
   membershipId: string | null = null,
+  rule: "first-come" | "approval" | "seniority" = "first-come",
 ): MutationInput {
   const target =
     action === "claim"
@@ -117,10 +118,14 @@ export function buildShiftAction(
     rowId: s.id,
     payload: { p_shift_id: s.id },
     policy: "cas",
-    // A claimed shift becomes the person's own at once, so it moves to My shifts while queued.
+    // Under first-come a claimed shift becomes the person's own at once, so it moves to My shifts while
+    // queued; under approval or seniority (scheduling.open_shift_claiming) it stays open until a
+    // supervisor decides.
     optimistic:
-      action === "claim" && membershipId
-        ? { ...s, membership_id: membershipId, shift_state: "Accepted" }
+      action === "claim"
+        ? rule === "first-come" && membershipId
+          ? { ...s, membership_id: membershipId, shift_state: "Accepted" }
+          : { ...s }
         : { ...s, shift_state: "Accepted" },
   };
 }

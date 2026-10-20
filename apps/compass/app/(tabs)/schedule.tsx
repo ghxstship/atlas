@@ -12,6 +12,7 @@ import {
   startsIn,
   type ShiftRow,
 } from "../../src/domain/shifts";
+import { claimRuleOf } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import {
   formatDay,
@@ -25,7 +26,9 @@ import { Button, EmptyState, InlineAlert, Screen, ShiftCard, Text } from "../../
 export default function ScheduleScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
-  const { resolved, projectId, enqueue, refresh } = useCompass();
+  const { resolved, projectId, enqueue, refresh, orgSettings } = useCompass();
+  // scheduling.open_shift_claiming for this project (migration 1322).
+  const rule = claimRuleOf(orgSettings);
   const identity = resolved?.identity;
   const { rows } = useRows<ShiftRow & Row>("shifts", (s) => s.project_id === projectId);
   const now = Date.now();
@@ -49,9 +52,16 @@ export default function ScheduleScreen(): ReactElement {
         });
         return;
       }
-      setNotice({ tone: "success", text: t("compass.schedule.claimQueued") });
+      setNotice({
+        tone: "success",
+        text: t(
+          rule === "first-come" ? "compass.schedule.claimQueued" : "compass.schedule.claimSent",
+        ),
+      });
     }
-    void enqueue(buildShiftAction(s, action, identity?.membershipId === null, me.membershipId));
+    void enqueue(
+      buildShiftAction(s, action, identity?.membershipId === null, me.membershipId, rule),
+    );
   };
   const card = (s: ShiftRow) => {
     const action = actionFor(s, me);
