@@ -228,6 +228,25 @@ describe("help center", () => {
         expect(th(`kinds.${kind}`)).not.toBe("");
     }
   });
+
+  it("ships its articles with the request-time index page on a host such as Vercel", async () => {
+    // The index reads its search query, so it renders on request, from files the tracer cannot
+    // find alone; next.config.ts lists them (RRR-119).
+    const { default: config } = await import("../next.config.ts");
+    const includes = config.outputFileTracingIncludes ?? {};
+    expect(Object.keys(includes)).toEqual(["/\\[locale\\]/help"]);
+    expect(existsSync(join(APP, "app", "[locale]", "help", "page.tsx"))).toBe(true);
+    const patterns = includes["/\\[locale\\]/help"] ?? [];
+    expect(patterns).toContain("../atlas/help/whats-new.yaml");
+    expect(existsSync(join(APP, "../atlas/help/whats-new.yaml"))).toBe(true);
+    for (const locale of LOCALES) {
+      for (const article of helpArticles(locale))
+        expect(existsSync(join(APP, "../atlas/help/articles", locale, `${article.slug}.md`))).toBe(
+          true,
+        );
+    }
+    expect(patterns).toContain("../atlas/help/articles/**/*.md");
+  });
 });
 
 describe("copy", () => {
