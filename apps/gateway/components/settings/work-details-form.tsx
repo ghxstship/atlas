@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { Accordion, Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef } from "react";
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
@@ -117,28 +117,32 @@ export function WorkDetailsForm({
         );
       case "choices":
         return (
-          <details
-            key={f.name}
-            open={f.open}
-            className="w-full rounded-card border border-border-subtle"
-          >
-            <summary className="cursor-pointer px-12 py-8 text-text-13">
-              <span className="font-medium">{f.label}</span>{" "}
-              <span className="text-text-secondary">{f.summary}</span>
-            </summary>
-            <fieldset className="m-0 flex flex-wrap gap-x-16 gap-y-8 border-0 px-12 pb-12 pt-4">
-              <legend className="sr-only">{f.label}</legend>
-              {f.options.map((o) => (
-                <Checkbox
-                  key={o.value}
-                  name={f.name}
-                  value={o.value}
-                  label={o.label}
-                  defaultChecked={o.checked}
-                />
-              ))}
-            </fieldset>
-          </details>
+          <div key={f.name} className="w-full">
+            <Accordion
+              keepMounted
+              items={[
+                {
+                  title: f.label,
+                  meta: f.summary,
+                  open: f.open ?? false,
+                  content: (
+                    <fieldset className="m-0 flex flex-wrap gap-x-16 gap-y-8 border-0 p-0 text-text-primary">
+                      <legend className="sr-only">{f.label}</legend>
+                      {f.options.map((o) => (
+                        <Checkbox
+                          key={o.value}
+                          name={f.name}
+                          value={o.value}
+                          label={o.label}
+                          defaultChecked={o.checked}
+                        />
+                      ))}
+                    </fieldset>
+                  ),
+                },
+              ]}
+            />
+          </div>
         );
       default:
         return (

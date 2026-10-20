@@ -67,7 +67,8 @@ function rejected(parsed: Extract<Parsed<unknown>, { ok: false }>): State {
 function done(form: FormData, result: Result<unknown>): State {
   if (!result.ok) return { error: workDetailErrorKey(result.error) };
   const slug = form.get("org");
-  revalidatePath(typeof slug === "string" ? `/${slug}` : "/", "layout");
+  // Work Details and name parts render under Settings (/{org}/me/...); nothing else reads them.
+  if (typeof slug === "string") revalidatePath(`/${slug}/me`, "layout");
   return { ok: true };
 }
 
