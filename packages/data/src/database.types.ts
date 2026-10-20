@@ -53493,6 +53493,13 @@ export type Database = {
           submitted_at: string;
         }[];
       };
+      my_auth_factor_labels: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          factor_id: string;
+          label: string;
+        }[];
+      };
       my_blocks: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -53530,12 +53537,32 @@ export type Database = {
           version: number;
         }[];
       };
+      my_org_auth_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          idle_timeout_minutes: number;
+          mfa_required: boolean;
+          mfa_verified: boolean;
+          session_expired: boolean;
+          session_expires_at: string;
+          session_hours: number;
+          signed_in_at: string;
+        }[];
+      };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
           capability_code: string;
           project_id: string;
           project_role: Database["app"]["Enums"]["project_role"];
+        }[];
+      };
+      my_step_up_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          expires_at: string;
+          second_factor_at: string;
+          stepped_up: boolean;
         }[];
       };
       my_subscribable_accounts: {
@@ -54364,6 +54391,7 @@ export type Database = {
         Returns: string;
       };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
+      set_auth_factor_label: { Args: { p_factor_id: string; p_label: string }; Returns: undefined };
       set_deliverable_fee: {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;
