@@ -53382,6 +53382,16 @@ export type Database = {
         }[];
       };
       claim_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
+      claim_platform_emails: {
+        Args: { p_limit?: number };
+        Returns: {
+          args: Json;
+          id: string;
+          locale: string;
+          template: string;
+          to_email: string;
+        }[];
+      };
       claim_token_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -53915,6 +53925,10 @@ export type Database = {
         Args: { p_error?: string; p_job_id: string; p_succeeded: boolean };
         Returns: Database["app"]["Enums"]["job_status"];
       };
+      finish_platform_email: {
+        Args: { p_error?: string; p_id: string; p_provider_message_id?: string; p_sent: boolean };
+        Returns: string;
+      };
       finish_report_delivery: {
         Args: {
           p_delivery_id: string;
@@ -54384,6 +54398,10 @@ export type Database = {
         Returns: string;
       };
       queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
+      queue_subprocessor_notice: {
+        Args: { p_effective_on: string; p_list_version: string; p_summary: string };
+        Returns: number;
+      };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
         Returns: boolean;
@@ -55062,6 +55080,7 @@ export type Database = {
         };
         Returns: string;
       };
+      set_subprocessor_notice_subscription: { Args: { p_subscribed: boolean }; Returns: boolean };
       set_tax_form_address: {
         Args: {
           p_legal_name: string;
@@ -55279,6 +55298,13 @@ export type Database = {
         Returns: string;
       };
       submit_timesheet: { Args: { p_reason?: string; p_timesheet_id: string }; Returns: string };
+      subprocessor_notice_subscription: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          eligible: boolean;
+          subscribed: boolean;
+        }[];
+      };
       subscribe_external_account: { Args: { p_account_id: string }; Returns: string };
       survey_results: { Args: { p_survey_id: string }; Returns: Json };
       sync_subscription_from_stripe: {

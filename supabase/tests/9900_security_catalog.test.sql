@@ -71,11 +71,12 @@ select set_eq($$
   where p.prosecdef and n.nspname in ('app', 'private', 'xpms', 'api_public', 'api_external', 'public')
     and has_function_privilege('anon', p.oid, 'EXECUTE')
     and has_schema_privilege('anon', n.oid, 'USAGE')
-$$, $$values ('calendar_feed_events'), ('client_minimum_version'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
+$$, $$values ('calendar_feed_events'), ('client_minimum_version'), ('confirm_subprocessor_notices'), ('org_brand_for_host'), ('org_brand_for_slug'), ('open_share_link'),
   ('organization_profile'), ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
-  ('submit_advance'), ('token_document'), ('token_sign_document'), ('verify_certification')$$,
+  ('submit_advance'), ('subscribe_subprocessor_notices'), ('token_document'), ('token_sign_document'),
+  ('unsubscribe_subprocessor_notices'), ('verify_certification')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');
 
 select is_empty($$
