@@ -3,6 +3,8 @@
 import {
   BrandMark,
   buttonClass,
+  compactChevronClass,
+  compactLabelClass,
   Icon,
   orgSwitcherTriggerClass,
   type IconName,
@@ -90,19 +92,25 @@ function Slot({
   );
 }
 
-/** The @xos/ui DropdownMenu, deferred: the shell's account menu and the saved-views menu. */
+/**
+ * The @xos/ui DropdownMenu, deferred: the shell's account menu and the saved-views menu. A compact
+ * menu shows only its icon below md (the account menu in a phone's top bar, A59-004).
+ */
 export function DeferredDropdownMenu({
   label,
   icon,
   items,
+  compact = false,
   onOpen,
 }: {
   label: string;
   icon?: IconName;
   items: MenuItem[];
+  compact?: boolean;
   /** Called each time the menu opens, including the first open that loads it. */
   onOpen?: () => void;
 }) {
+  const short = compact && icon !== undefined;
   const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu(onOpen);
   return (
     <Slot wrapper={wrapper}>
@@ -111,14 +119,21 @@ export function DeferredDropdownMenu({
           label={label}
           {...(icon ? { icon } : {})}
           items={items}
+          compact={compact}
           {...(openOnLoad ? { defaultOpen: true } : {})}
           {...(onOpen ? { onOpenChange: (open: boolean) => (open ? onOpen() : undefined) } : {})}
         />
       ) : (
         <button {...trigger} className={buttonClass()}>
           {icon ? <Icon name={icon} size={14} /> : null}
-          {label}
-          <Icon name="ChevronDown" size={14} />
+          {short ? <span className={compactLabelClass}>{label}</span> : label}
+          {short ? (
+            <span className={compactChevronClass}>
+              <Icon name="ChevronDown" size={14} />
+            </span>
+          ) : (
+            <Icon name="ChevronDown" size={14} />
+          )}
         </button>
       )}
     </Slot>

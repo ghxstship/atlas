@@ -155,6 +155,16 @@ export function HelpDrawer({
               ) : (
                 <Skeleton />
               )}
+              {state?.docsUrl ? (
+                <a
+                  className="self-start text-text-12 font-medium text-accent-text underline"
+                  href={`${state.docsUrl}/${lang}/help/${article.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("docs.article")}
+                </a>
+              ) : null}
             </>
           ) : (
             <p className="m-0">{t("noArticles")}</p>
@@ -261,6 +271,16 @@ export function HelpDrawer({
               ))}
             </ul>,
           )}
+          {state?.docsUrl ? (
+            <a
+              className="self-start text-accent-text underline"
+              href={`${state.docsUrl}/${lang}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("docs.home")}
+            </a>
+          ) : null}
           <Button
             icon="LifeBuoy"
             onClick={() =>

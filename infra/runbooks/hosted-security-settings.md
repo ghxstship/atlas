@@ -15,8 +15,9 @@ and then to production, and record the date and who applied it in the release no
 | Secure password change     | Authentication > Providers > Email                     | On: a password change needs a recent sign-in (V6.2.3)                      |
 | TOTP MFA                   | Authentication > Multi-Factor                          | Enroll and verify on. Optional per person; orgs enforce it per role        |
 | WebAuthn MFA and passkeys  | Authentication > Multi-Factor, and Passkeys            | Enroll and verify on                                                       |
-| WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | The production registrable domain, for example the Atlas apex domain       |
-| WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | The https origins of Atlas and Gateway, including custom Gateway domains   |
+| WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | `ghxstship.tech`, the registrable domain (ADR 0033, decision 5)            |
+| WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | `https://atlas.ghxstship.tech` and `https://gateway.ghxstship.tech`        |
+| WebAuthn display name      | Authentication > Passkeys (WebAuthn)                   | `XOS`, as `rp_display_name` in `config.toml`                               |
 | Google provider            | Authentication > Sign In / Providers > Google          | On, with the clients from `production.md`, "Sign in with Google (OWNER)"   |
 | Google skip nonce checks   | Authentication > Sign In / Providers > Google          | On: native iOS sign-in cannot send the nonce (ADR 0036, decision 9)        |
 | Manual identity linking    | Authentication > Sign In / Providers (User Signups)    | Off: Google links only to an account with the same verified email          |
@@ -33,6 +34,31 @@ Notes:
 - Skipping the nonce check affects only ID token sign-in (Compass). It still checks Google's signature,
   the issuer, the expiry and that the audience is one of the configured client IDs; a captured ID
   token could be replayed within its hour. The web flow exchanges the code with Google itself.
+
+### Passkeys across Atlas and Gateway (RRR-119)
+
+- The relying party id is the registrable domain `ghxstship.tech`, not a subdomain. A passkey made on
+  `atlas.ghxstship.tech` then also works on `gateway.ghxstship.tech`, because a browser accepts a passkey on
+  any origin whose host is the relying party id or a subdomain of it.
+- Custom Gateway domains, an org's own domain, are not subdomains of `ghxstship.tech`, so these passkeys do
+  not work there, and listing such a domain under origins does not change that. People sign in on a custom domain with
+  a password, a magic link or OAuth.
+- No code names a passkey host. The WebAuthn ceremonies run in Supabase Auth with the settings above; Atlas,
+  Gateway and Compass contain no WebAuthn code of their own. Locally, `config.toml` uses `rp_id = "localhost"`.
+- Compass does not offer passkeys. Native passkeys would need the associated domain
+  `webcredentials:ghxstship.tech` and an apple-app-site-association file served by `https://ghxstship.tech`
+  itself, which nothing serves today.
+
+## Supabase Data API (RRR-119)
+
+| Setting         | Where in the dashboard | Value                                                                                          |
+| --------------- | ---------------------- | ---------------------------------------------------------------------------------------------- |
+| Exposed schemas | Data API settings      | Exactly `[api] schemas` in `supabase/config.toml`: `app`, `xpms`, `api_public`, `api_external` |
+
+Check it after every release whose migrations change `[api] schemas`, and in the post-promotion checks
+(`promote-to-production.md`, step 15). A schema missing from the hosted list fails every read of it with
+`PGRST106`. Until 2026-10-20 the hosted project exposed only `public`, and Gateway's brand lookup failed that
+way.
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 

@@ -11,7 +11,7 @@ xos --version
 
 ```sh
 export XOS_API_KEY="xos_live_..."
-xos auth login --base-url https://atlas.example.com/api/v1 --profile northwind
+xos auth login --base-url https://api.ghxstship.tech/v1 --profile northwind
 xos projects list --filter project_state.eq=Active --sort -created_at --limit 20
 xos projects update <id> --data '{"name":"Fall Series"}' --if-match auto
 xos call purchaseOrders.approve <id> --data @approval.json

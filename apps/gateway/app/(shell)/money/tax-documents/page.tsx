@@ -1,5 +1,6 @@
 import { listW9Addresses } from "@xos/data/form-1099";
 import { listPayoutAccounts, listTaxForms } from "@xos/data/gateway";
+import { formatPostalAddress } from "@xos/i18n/formats";
 import { getNode } from "@xos/ia";
 import type { Metadata } from "next";
 import { getLocale } from "next-intl/server";
@@ -122,8 +123,18 @@ export default async function TaxDocumentsPage({
                   {t("payouts.w9.formFor", { org: w.orgName, last4: w.tinLast4 })}
                 </strong>
                 {w.complete ? (
-                  <p className="m-0 text-text-13 text-text-secondary">
-                    {[w.streetAddress, w.locality, w.regionCode, w.postalCode].join(", ")}
+                  // A W-9 address is a US address, in the US postal format (Section 15).
+                  <p className="m-0 whitespace-pre-line text-text-13 text-text-secondary">
+                    {formatPostalAddress(
+                      {
+                        country: "US",
+                        addressLines: [w.streetAddress],
+                        locality: w.locality,
+                        administrativeArea: w.regionCode,
+                        postalCode: w.postalCode,
+                      },
+                      { locale },
+                    ).join("\n")}
                   </p>
                 ) : (
                   <p className="m-0 text-text-13 text-warning-text">{t("payouts.w9.missing")}</p>

@@ -1,8 +1,13 @@
 import { readFileSync } from "node:fs";
 import { compassPathForIncoming, HANDOFF_PATHS } from "@xos/ia/handoff";
 import { describe, expect, it } from "vitest";
-import type { ExpoConfig } from "expo/config";
-import { LINK_PATHS, universalLinkHosts, withUniversalLinks } from "../app.config";
+import type { ConfigContext, ExpoConfig } from "expo/config";
+import appConfig, {
+  LINK_PATHS,
+  PRODUCTION_LINK_HOSTS,
+  universalLinkHosts,
+  withUniversalLinks,
+} from "../app.config";
 import {
   nativeScreenFor,
   NATIVE_RECORD_SCREENS,
@@ -88,9 +93,34 @@ describe("universal links in the app config", () => {
     expect(LINK_PATHS).toEqual(HANDOFF_PATHS);
   });
 
-  it("adds nothing until the owner names the production hosts", () => {
+  it("adds nothing for an empty host list", () => {
     expect(universalLinkHosts(undefined)).toEqual([]);
+    expect(universalLinkHosts("")).toEqual([]);
     expect(withUniversalLinks(base, [])).toBe(base);
+  });
+
+  it("claims the production hosts by default, and none when the variable is empty", () => {
+    const previous = process.env["XOS_UNIVERSAL_LINK_HOSTS"];
+    try {
+      delete process.env["XOS_UNIVERSAL_LINK_HOSTS"];
+      const out = appConfig({ config: base, projectRoot: process.cwd() } as ConfigContext);
+      expect(out.ios?.associatedDomains).toEqual([
+        "applinks:atlas.ghxstship.tech",
+        "applinks:gateway.ghxstship.tech",
+      ]);
+      expect(out.android?.intentFilters?.map((f) => f.data)).toEqual([
+        [{ scheme: "https", host: "atlas.ghxstship.tech", pathPattern: "/.*/r/.*" }],
+        [{ scheme: "https", host: "gateway.ghxstship.tech", pathPattern: "/work/engagements/.*" }],
+      ]);
+      expect(universalLinkHosts(PRODUCTION_LINK_HOSTS)).toHaveLength(2);
+      process.env["XOS_UNIVERSAL_LINK_HOSTS"] = "";
+      const none = appConfig({ config: base, projectRoot: process.cwd() } as ConfigContext);
+      expect(none.ios?.associatedDomains ?? []).toEqual([]);
+      expect(none.android?.intentFilters ?? []).toEqual([]);
+    } finally {
+      if (previous === undefined) delete process.env["XOS_UNIVERSAL_LINK_HOSTS"];
+      else process.env["XOS_UNIVERSAL_LINK_HOSTS"] = previous;
+    }
   });
 
   it("adds associated domains and verified App Links for each named host", () => {
