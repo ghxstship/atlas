@@ -86,6 +86,58 @@ export function networkRefused() {
     "This organization accepts requests only from its allowed networks. Connect from an allowed network, or ask an Admin to add yours.",
   );
 }
+
+/** What an org's security settings say about a session (A77, migration 1330). */
+export type SessionRule = "ok" | "mfa" | "session-expired";
+
+/**
+ * Whether a session meets an org's security settings (A77, migration 1330, `app.my_org_auth_status`): a second
+ * factor its MFA policy asks of the caller's roles, and a sign-in no older than its session lifetime. The answer is
+ * reused for `ttlMs` per token and org, never past the moment the session's lifetime ends. API keys are exempt (the
+ * database says so too), so callers ask only for sessions.
+ */
+export function createSessionRulesCheck(ttlMs: number, now: () => number = Date.now) {
+  const entries = new Map<string, { rule: SessionRule; until: number }>();
+  return async (db: XosClient, token: string, orgId: string): Promise<SessionRule> => {
+    const key = `${createHash("sha256").update(token).digest("hex")} ${orgId}`;
+    const hit = entries.get(key);
+    if (hit !== undefined && hit.until > now()) return hit.rule;
+    entries.delete(key);
+    const { data, error } = await db.rpc("my_org_auth_status", { p_org_id: orgId });
+    if (error !== null) throw new Error(`Cannot read the org's session rules: ${error.message}`);
+    const row = (
+      (data ?? []) as {
+        mfa_required?: boolean;
+        mfa_verified?: boolean;
+        session_expired?: boolean;
+        session_expires_at?: string | null;
+      }[]
+    )[0];
+    const rule: SessionRule =
+      row === undefined
+        ? "ok"
+        : row.session_expired === true
+          ? "session-expired"
+          : row.mfa_required === true && row.mfa_verified !== true
+            ? "mfa"
+            : "ok";
+    if (ttlMs > 0) {
+      const ends = row?.session_expires_at ? Date.parse(row.session_expires_at) : Infinity;
+      if (entries.size >= 10_000) entries.clear();
+      entries.set(key, { rule, until: Math.min(now() + ttlMs, ends) });
+    }
+    return rule;
+  };
+}
+
+/** The 401 for a session an org's security settings no longer accept. */
+export function sessionRuleRefused(rule: Exclude<SessionRule, "ok">) {
+  return unauthorized(
+    rule === "mfa"
+      ? "This organization requires a second factor for your role. Verify one in Atlas or Gateway, then send a token from that session."
+      : "Your session has run longer than this organization allows. Sign in again, then send the new token.",
+  );
+}
 export const API_KEY_PREFIX = "xos_live_";
 export const SUPPORTED_LOCALES = ["en-US", "es-US"] as const;
 
@@ -369,15 +421,22 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
   });
   const identityOf = createIdentityCache(options.identityTtlMs ?? 30_000, options.now);
   const networkAllows = createNetworkCheck(options.identityTtlMs ?? 30_000, options.now);
+  const sessionRule = createSessionRulesCheck(options.identityTtlMs ?? 30_000, options.now);
   const admit = async (
     context: RequestContext,
     request: Request,
     memberOf: readonly RequestOrg[],
+    sessionToken?: string,
   ): Promise<RequestContext> => {
     const ip = clientIp(request.headers, options.trustedProxyHops ?? 0);
     // A69-010: unbound, the request reaches every org the caller belongs to, so each list applies.
     for (const org of context.org === null ? memberOf : [context.org]) {
       if (!(await networkAllows(context.db, context.user.id, org.id, ip))) throw networkRefused();
+      // A77: a session also meets each org's MFA policy and session lifetime (API keys are exempt).
+      if (sessionToken !== undefined && context.credential === "session") {
+        const rule = await sessionRule(context.db, sessionToken, org.id);
+        if (rule !== "ok") throw sessionRuleRefused(rule);
+      }
     }
     return context;
   };
@@ -461,6 +520,7 @@ export function createSupabaseAuthenticator(options: SupabaseAuthOptions): Authe
       },
       request,
       identity?.orgs ?? [],
+      credential.token,
     );
   };
 }

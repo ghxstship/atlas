@@ -1,36 +1,27 @@
--- pgTAP: migration 1299, finding A69-007 (RRR-114). The org MFA policy, session length and idle timeout are not
--- enforced anywhere, so they keep their defaults: any other value is refused, the defaults may still be saved, and no
--- org holds a value that would claim protection.
+-- pgTAP: migration 1299, finding A69-007 (RRR-114). 1299 pinned the org MFA policy, session length and idle timeout to
+-- their defaults while nothing enforced them. A77 enforces all three (migration 1330: the Atlas proxy and org contexts,
+-- the API runtime and Compass read app.my_org_auth_status) and lifts the pin, so the guard is gone and every registered
+-- value saves again; 1330_auth_assurance.test.sql shows each value enforced.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(7);
+select plan(6);
+
+select hasnt_trigger('app', 'setting_values', 't43_guard_unenforced_security_settings',
+  'the 1299 guard trigger is lifted now that the settings are enforced');
+select hasnt_function('private', 'guard_unenforced_security_settings', 'and its function is gone');
 
 select pg_temp.as_user('alice');
-select throws_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.mfa_policy', 'Organization', null, 'everyone')$$,
-  'XR001', 'setting_not_enforced: XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.',
-  'requiring a second factor for everyone is refused while nothing enforces it');
-select throws_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.mfa_policy', 'Organization', null, 'admins')$$,
-  'XR001', null, 'requiring it for admins is refused too');
-select throws_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.session_hours', 'Organization', null, null, null, 8)$$,
-  'XR001', null, 'a shorter session length is refused');
-select throws_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.idle_timeout_minutes', 'Organization', null, null, null, 15)$$,
-  'XR001', null, 'a shorter idle timeout is refused');
-select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.mfa_policy', 'Organization', null, 'optional')$$,
-  'the default MFA policy can still be saved');
-select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.session_hours', 'Organization', null, null, null, 336)$$,
-  'the default session length can still be saved');
-
-select pg_temp.as_platform();
-select is_empty($$
-  select v.org_id::text || ' ' || v.setting_key from app.setting_values v
-  where v.deleted_at is null and (
-       (v.setting_key = 'security.mfa_policy' and coalesce(v.value_text, 'optional') <> 'optional')
-    or (v.setting_key = 'security.session_hours' and coalesce(v.value_integer, 336) <> 336)
-    or (v.setting_key = 'security.idle_timeout_minutes' and coalesce(v.value_integer, 60) <> 60))
-$$, 'no org holds an unenforced security value');
+select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.mfa_policy', 'Organization', null, 'everyone')$$,
+  'requiring a second factor for everyone saves');
+select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.mfa_policy', 'Organization', null, 'admins')$$,
+  'requiring it for admins saves');
+select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.session_hours', 'Organization', null, null, null, 8)$$,
+  'a shorter session length saves');
+select lives_ok($$select app.set_setting((select id from world where key = 'org_a'), 'security.idle_timeout_minutes', 'Organization', null, null, null, 15)$$,
+  'a shorter idle timeout saves');
 
 select * from finish();
 rollback;

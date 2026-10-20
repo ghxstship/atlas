@@ -47,7 +47,6 @@ export const KNOWN_SETTING_ERRORS = new Set([
   "auto_join_role_band",
   "ip_allowlist_empty",
   "plan_feature_ip_allowlist",
-  "setting_not_enforced",
 ]);
 
 /** The `settings.errors.*` key for a repository error. */

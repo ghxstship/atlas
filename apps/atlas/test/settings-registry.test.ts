@@ -57,10 +57,11 @@ describe("registry lookups", () => {
     expect(settingErrorKey({ kind: "unexpected", message: "" })).toBe("unexpected");
   });
 
-  // A69-007 (migration 1299): settings nothing enforces keep their defaults, and the page says why.
-  it("explains a refused unenforced security setting in both locales", () => {
+  // A69-007 pinned these settings while nothing enforced them (1299); A77 enforces them (1330), so
+  // they save again and their help says what each one does, never that it is unavailable.
+  it("describes the enforced security settings in both locales", () => {
     expect(settingErrorKey({ kind: "refusal", rule: "setting_not_enforced", message: "" })).toBe(
-      "setting_not_enforced",
+      "unexpected",
     );
     for (const locale of ["en-US", "es-US"] as const) {
       const catalog = (
@@ -71,9 +72,10 @@ describe("registry lookups", () => {
           };
         }
       ).settings;
-      expect(catalog.errors["setting_not_enforced"]).toMatch(/\S/);
+      expect(catalog.errors["setting_not_enforced"]).toBeUndefined();
       for (const field of ["mfaPolicy", "sessionHours", "idleTimeout"] as const) {
-        expect(catalog.fields[field]?.help).toMatch(/XOS/);
+        expect(catalog.fields[field]?.help).toMatch(/\S/);
+        expect(catalog.fields[field]?.help).not.toMatch(/Not available yet|Aún no disponible/);
       }
     }
   });
