@@ -5,6 +5,7 @@
  */
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, setOrder } from "../correct.ts";
+import { activityFieldExposure } from "./parts/playbook-field-exposure.ts";
 
 export const additions = defineAdditions("Activity", {
   corrections: [
@@ -21,5 +22,6 @@ export const additions = defineAdditions("Activity", {
         setOrder({ by: ["occurred_at"], numeric: false, descending: true }),
       ),
     },
+    ...activityFieldExposure,
   ],
 });

@@ -16,6 +16,7 @@ import {
   setCapabilities,
 } from "../correct.ts";
 import { itemAction } from "../define.ts";
+import { opportunitiesFieldExposure } from "./parts/playbook-field-exposure.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -515,5 +516,6 @@ export const additions = defineAdditions("Opportunities", {
         ),
       ),
     },
+    ...opportunitiesFieldExposure,
   ],
 });

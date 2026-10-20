@@ -16,42 +16,13 @@ import type { OpenApiDocument } from "../src/playbook/targets.ts";
  *   example `xpms.rate_card` through the resolved rate cards, `due_at` for `scheduled_ends_at`);
  * - "Not exposed: <reason>": deliberately kept out, because it is Restricted, internal, or the template store.
  *
- * What is left has no API field yet. NOT_YET_EXPOSED holds those per table (finding legal/qa/findings/A54-002.md),
- * and the count only goes down: exposing a column, or recording why it stays out, lowers it.
+ * What is left has no API field yet. NOT_YET_EXPOSED held those per table (finding legal/qa/findings/A54-002.md);
+ * A63 exposed the last 56, so it is empty and stays empty: a new field target needs its API field, or its reason,
+ * in the same change.
  */
 const repo = (path: string) => fileURLToPath(new URL(`../../../${path}`, import.meta.url));
 
-const NOT_YET_EXPOSED: Readonly<Record<string, number>> = {
-  "app.activity_events": 1,
-  "app.budget_line_amounts": 1,
-  "app.budget_line_facts": 2,
-  "app.change_order_line_facts": 2,
-  "app.change_order_state_transitions": 2,
-  "app.clock_punches": 2,
-  "app.cue_calls": 5,
-  "app.engagements": 1,
-  "app.incident_state_transitions": 1,
-  "app.invoice_totals": 2,
-  "app.organization_profiles": 2,
-  "app.person_profiles": 1,
-  "app.project_authority": 1,
-  "app.purchase_order_state_transitions": 1,
-  "app.record_assignments": 2,
-  "app.record_inspection": 1,
-  "app.record_permit": 1,
-  "app.record_task": 2,
-  "app.vendor_bank_accounts": 1,
-  "xpms.dim_category": 1,
-  "xpms.dim_counterparty_type": 4,
-  "xpms.dim_department": 3,
-  "xpms.dim_gl_account_type": 1,
-  "xpms.elements": 3,
-  "xpms.emergency_protocol": 5,
-  "xpms.emergency_protocol_step": 1,
-  "xpms.std_document_library": 4,
-  "xpms.std_sop": 2,
-  "xpms.v_category_gl": 1,
-};
+const NOT_YET_EXPOSED: Readonly<Record<string, number>> = {};
 
 const EXPOSED_AS = "Exposed as ";
 const NOT_EXPOSED = "Not exposed: ";

@@ -927,6 +927,11 @@ export interface ActivityEvent {
    * Length: 1 to 300.
    */
   readonly summary: string;
+  /**
+   * Identifier of the domain event the activity row shows, as webhooks and the outbox name it.
+   * Format: `uuid`.
+   */
+  readonly domain_event_id: string | null;
 }
 
 /**
@@ -1567,6 +1572,25 @@ export interface Record {
    */
   readonly sop_id: string | null;
   readonly team_code: TeamId | null;
+  /**
+   * Memberships assigned to the record (app.record_assignments), oldest first.
+   */
+  readonly assignee_membership_ids: ReadonlyArray<string>;
+  /**
+   * Progress of a task record, as a percentage.
+   * Range: 0 to 100.
+   */
+  readonly progress_pct: number | null;
+  /**
+   * Permit identifier the authority issued, on a permit record.
+   * Length: 1 to 200.
+   */
+  readonly permit_identifier: string | null;
+  /**
+   * Identifier of the Inspection Result enumeration row (Standard Library) of an inspection record.
+   * Format: `uuid`.
+   */
+  readonly inspection_result_enum_id: string | null;
 }
 
 /**
@@ -9272,6 +9296,16 @@ export interface TimeEntry {
    * Whether the entry was closed automatically and awaits review.
    */
   readonly needs_review: boolean;
+  /**
+   * Effective time of the entry's first Break Start punch (meal out).
+   * Format: `date-time`.
+   */
+  readonly meal_out_at: string | null;
+  /**
+   * Effective time of the entry's last Break End punch (meal in).
+   * Format: `date-time`.
+   */
+  readonly meal_in_at: string | null;
 }
 
 /**
@@ -12265,6 +12299,12 @@ export interface BudgetLine {
   readonly line_number: number;
   readonly phase_code: PhaseCode | null;
   readonly tier_code: TierCode | null;
+  /**
+   * Approved and paid expenses posted to the line (app.budget_line_facts); null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly actual_minor: number | null;
+  readonly account_code: GlAccountCode | null;
 }
 
 /**
@@ -12276,6 +12316,11 @@ export type LineType = string;
  * Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
  */
 export type ItemId = string | null;
+
+/**
+ * GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
+ */
+export type GlAccountCode = string;
 
 /**
  * Fields accepted when creating a BudgetLine.
@@ -12731,6 +12776,16 @@ export interface ChangeOrder {
    * Length: 1 to 500.
    */
   readonly client_impact: string | null;
+  /**
+   * When the change order moved to Approved, from its transition ledger.
+   * Format: `date-time`.
+   */
+  readonly approved_at: string | null;
+  /**
+   * Identifier of the person who moved the change order to Approved.
+   * Format: `uuid`.
+   */
+  readonly approved_by: string | null;
 }
 
 /**
@@ -12901,6 +12956,12 @@ export interface ChangeOrderLine {
    * Whether the line is deliberately free of charge.
    */
   readonly is_no_cost: boolean;
+  readonly account_code: GlAccountCode | null;
+  /**
+   * Identifier of the cost center (dimension 1) of the budget line the change revises.
+   * Format: `uuid`.
+   */
+  readonly cost_center_id: string | null;
 }
 
 /**
@@ -13318,11 +13379,6 @@ export interface JournalLine {
   readonly quantity: number | null;
   readonly unit_basis: UnitCode | null;
 }
-
-/**
- * GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
- */
-export type GlAccountCode = string;
 
 /**
  * Fields accepted when creating a JournalLine.
@@ -15234,6 +15290,21 @@ export interface PurchaseOrder {
    * Format: `int64`.
    */
   readonly shipping_minor: number | null;
+  /**
+   * When the order moved to Sent (its issue date), from its transition ledger.
+   * Format: `date-time`.
+   */
+  readonly sent_at: string | null;
+  /**
+   * Subtotal of the invoices matched to the order; null when none is matched or one is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly invoiced_minor: number | null;
+  /**
+   * Payments applied to the invoices matched to the order; null when none is matched. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly paid_minor: number | null;
 }
 
 /**
@@ -16272,6 +16343,11 @@ export interface Vendor {
    * Format: `uuid`.
    */
   readonly default_cost_center_id: string | null;
+  /**
+   * Last four digits of the vendor's most recent bank account; null when none is on file.
+   * Pattern: `^[0-9]{4}$`. Length: 1 to 4.
+   */
+  readonly bank_account_last4: string | null;
 }
 
 /**
@@ -17842,6 +17918,11 @@ export interface Incident {
    * Format: `date-time`.
    */
   readonly device_reported_at: string | null;
+  /**
+   * When the incident moved to Closed, from its transition ledger.
+   * Format: `date-time`.
+   */
+  readonly closed_at: string | null;
 }
 
 /**
@@ -20296,6 +20377,11 @@ export interface Engagement {
    * Format: `date`.
    */
   readonly end_date: string | null;
+  /**
+   * Identifier of the counterparty (vendor) the holder is engaged through; null when direct.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
 }
 
 /**
@@ -22592,6 +22678,21 @@ export interface CanonDepartment {
    * Length: 1 to 20000.
    */
   readonly note: string | null;
+  /**
+   * Executive lead of the department.
+   * Length: 1 to 200.
+   */
+  readonly executive_lead: string | null;
+  /**
+   * Core function of the department.
+   * Length: 1 to 2000.
+   */
+  readonly core_function: string | null;
+  /**
+   * Scope of the department.
+   * Length: 1 to 2000.
+   */
+  readonly scope: string | null;
 }
 
 /**
@@ -22666,6 +22767,7 @@ export interface CanonCategory {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly source: string;
+  readonly xyz: Xyz | null;
 }
 
 /**
@@ -23643,6 +23745,22 @@ export interface CanonCounterpartyType {
    * Length: 1 to 20000.
    */
   readonly definition: string;
+  /**
+   * Classification code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly classification_code: string | null;
+  /**
+   * Vendor class.
+   * Length: 1 to 100.
+   */
+  readonly vendor_class: string | null;
+  /**
+   * Clearance tier.
+   * Length: 1 to 200.
+   */
+  readonly clearance_tier: string | null;
+  readonly default_account_code: GlAccountCode | null;
 }
 
 /**
@@ -23680,6 +23798,10 @@ export interface CanonGlAccount {
    * Length: 1 to 20000.
    */
   readonly description: string;
+  /**
+   * Normal balance of the account's type: Debit or Credit.
+   */
+  readonly normal_balance: "Debit" | "Credit" | null;
 }
 
 /**
@@ -23747,6 +23869,7 @@ export interface CanonCategoryGl {
    * Length: 1 to 300.
    */
   readonly default_cost_center: string;
+  readonly account_code: GlAccountCode | null;
 }
 
 /**
@@ -23973,6 +24096,17 @@ export interface CanonElement {
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly lifecycle_state: string;
+  readonly purchase_account: GlAccountCode | null;
+  /**
+   * Default cost center (dimension 1) of the element.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_cost_center: string | null;
+  /**
+   * External reference of the element.
+   * Length: 1 to 200.
+   */
+  readonly external_ref: string | null;
 }
 
 /**
@@ -24294,6 +24428,26 @@ export interface StdDocument {
    * Length: 1 to 20000.
    */
   readonly notes: string | null;
+  /**
+   * Organization as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly organization: string | null;
+  /**
+   * Project as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly project: string | null;
+  /**
+   * File size as the sheet gives it.
+   * Length: 1 to 100.
+   */
+  readonly file_size: string | null;
+  /**
+   * Where the file is stored, as the sheet gives it.
+   * Length: 1 to 2000.
+   */
+  readonly storage_url: string | null;
 }
 
 /**
@@ -24761,6 +24915,16 @@ export interface StdSop {
    * Length: 1 to 20000.
    */
   readonly notes: string | null;
+  /**
+   * Organization as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly organization: string | null;
+  /**
+   * Project as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly project: string | null;
 }
 
 /**
@@ -26836,6 +27000,11 @@ export interface PersonProfile {
    * Format: `date-time`.
    */
   readonly handle_changed_at: string | null;
+  /**
+   * Name the person goes by.
+   * Length: 1 to 100.
+   */
+  readonly preferred_name: string | null;
 }
 
 /**
@@ -26923,6 +27092,11 @@ export interface PersonProfileUpdate {
    * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
    */
   readonly handle?: string;
+  /**
+   * Name the person goes by.
+   * Length: 1 to 100.
+   */
+  readonly preferred_name?: string | null;
 }
 
 /**
@@ -26983,6 +27157,16 @@ export interface OrganizationProfile {
    * Format: `date-time`.
    */
   readonly handle_changed_at: string | null;
+  /**
+   * Website of the organization; https only.
+   * Format: `uri`.
+   */
+  readonly website_url: string | null;
+  /**
+   * Contact email of the organization, stored in lowercase.
+   * Format: `email`.
+   */
+  readonly contact_email: string | null;
 }
 
 /**
@@ -27025,6 +27209,16 @@ export interface OrganizationProfileUpdate {
    * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
    */
   readonly handle?: string;
+  /**
+   * Website of the organization; https only.
+   * Format: `uri`.
+   */
+  readonly website_url?: string | null;
+  /**
+   * Contact email of the organization, stored in lowercase.
+   * Format: `email`.
+   */
+  readonly contact_email?: string | null;
 }
 
 /**
@@ -35148,6 +35342,145 @@ export interface TemplateApplicationCreate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ProjectAuthorityPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectAuthority>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none.
+ */
+export interface ProjectAuthority {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Responder service the agency provides.
+   * Length: 1 to 100.
+   */
+  readonly service: string;
+  /**
+   * Agency having jurisdiction.
+   * Length: 1 to 300.
+   */
+  readonly agency: string;
+  /**
+   * How to reach the agency.
+   * Length: 1 to 300.
+   */
+  readonly contact: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface CueCallPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<CueCall>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department.
+ */
+export interface CueCall {
+  /**
+   * Identifier of the cue call.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the cue the call belongs to.
+   * Format: `uuid`.
+   */
+  readonly cue_id: string;
+  /**
+   * Department making the call.
+   */
+  readonly call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string;
+}
+
+/**
+ * Fields accepted when creating a CueCall.
+ */
+export interface CueCallCreate {
+  /**
+   * Identifier of the cue the call belongs to.
+   * Format: `uuid`.
+   */
+  readonly cue_id: string;
+  /**
+   * Department making the call.
+   */
+  readonly call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string;
+}
+
+/**
+ * Fields accepted when updating a CueCall. Omitted fields are unchanged.
+ */
+export interface CueCallUpdate {
+  /**
+   * Department making the call.
+   */
+  readonly call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface GuestListEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -35591,6 +35924,76 @@ export interface RequiredAdditionalInsuredUpdate {
    */
   readonly endorsement_kind?:
     "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface CanonStdEmergencyProtocolPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<CanonStdEmergencyProtocol>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps.
+ */
+export interface CanonStdEmergencyProtocol {
+  /**
+   * Record identifier of the protocol.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly record_key: string;
+  /**
+   * Radio code the protocol answers (xpms.emergency_code).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly code: string;
+  /**
+   * Operational domain the protocol applies to.
+   * Length: 1 to 200.
+   */
+  readonly domain: string;
+  /**
+   * Department as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly department: string | null;
+  /**
+   * Category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * The protocol's steps (xpms.emergency_protocol_step), in order.
+   */
+  readonly steps: ReadonlyArray<CanonEmergencyProtocolStep>;
+}
+
+/**
+ * One numbered step of an emergency protocol.
+ */
+export interface CanonEmergencyProtocolStep {
+  /**
+   * Step number, from 1.
+   * Range: 1 to unbounded.
+   */
+  readonly step_no: number;
+  /**
+   * What to do; responder services appear as tokens such as {fire} (ruling D15).
+   * Length: 1 to 2000.
+   */
+  readonly body: string;
 }
 
 /**

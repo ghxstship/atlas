@@ -332,10 +332,13 @@ import {
   TrashItemsResource,
   TemplatesResource,
   TemplateApplicationsResource,
+  ProjectAuthoritiesResource,
+  CueCallsResource,
   GuestListEntriesResource,
   Form1099NecResource,
   InsuranceCertificateInsuredsResource,
   RequiredAdditionalInsuredsResource,
+  CanonStdEmergencyProtocolsResource,
   ReportScheduleRecipientsResource,
   ReportDeliveriesResource,
   AuroraResource,
@@ -1145,6 +1148,10 @@ export class XosClient extends XosClientCore {
   readonly templateApplications: TemplateApplicationsResource = new TemplateApplicationsResource(
     this,
   );
+  /** Projects: operations on `projectAuthorities`. */
+  readonly projectAuthorities: ProjectAuthoritiesResource = new ProjectAuthoritiesResource(this);
+  /** Show: operations on `cueCalls`. */
+  readonly cueCalls: CueCallsResource = new CueCallsResource(this);
   /** Advancing: operations on `guestListEntries`. */
   readonly guestListEntries: GuestListEntriesResource = new GuestListEntriesResource(this);
   /** Finance: operations on `form1099Nec`. */
@@ -1155,6 +1162,9 @@ export class XosClient extends XosClientCore {
   /** Vendors: operations on `requiredAdditionalInsureds`. */
   readonly requiredAdditionalInsureds: RequiredAdditionalInsuredsResource =
     new RequiredAdditionalInsuredsResource(this);
+  /** Canon: operations on `canonStdEmergencyProtocols`. */
+  readonly canonStdEmergencyProtocols: CanonStdEmergencyProtocolsResource =
+    new CanonStdEmergencyProtocolsResource(this);
   /** Reports: operations on `reportScheduleRecipients`. */
   readonly reportScheduleRecipients: ReportScheduleRecipientsResource =
     new ReportScheduleRecipientsResource(this);

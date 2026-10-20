@@ -21,9 +21,20 @@ import type { RequestContext } from "../../runtime/context.ts";
 import { requireOrg } from "../../runtime/context.ts";
 import { created, ok, type ErasedHandler } from "../../runtime/handler.ts";
 import type { ListQuery } from "../../runtime/listing.ts";
+import { withTransition } from "../support/enrich.ts";
 import { from, run, tableResource, unwrap, type Row } from "../support/table.ts";
 
-const incidents = tableResource("incidents");
+const incidents = tableResource("incidents", {
+  derived: ["closed_at"],
+  // When the incident moved to Closed, from its transition ledger (A54-002).
+  enrich: (rows, { db }) =>
+    withTransition(db, rows, {
+      table: "incident_state_transitions",
+      fk: "incident_id",
+      toState: "Closed",
+      at: "closed_at",
+    }),
+});
 const parties = tableResource("incidentParties");
 const media = tableResource("incidentMediaItems");
 const dispatch = tableResource("dispatchAssignments");

@@ -8,6 +8,7 @@ import { fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { editShape, orNull } from "../correct.ts";
 import { showFieldHomes } from "./parts/playbook-field-homes.ts";
+import { cueCallCapabilities, cueCallResources } from "./parts/playbook-field-exposure.ts";
 
 const projectId = (what: string) => ({
   schema: fields.ref(`project of the ${what}`),
@@ -29,6 +30,8 @@ const publishedAt = (what: string) => ({
 });
 
 export const additions = defineAdditions("Show", {
+  resources: [...cueCallResources],
+  capabilities: { ...cueCallCapabilities },
   corrections: [
     {
       id: "run-of-show-columns",

@@ -392,6 +392,7 @@ __all__ = [
     "BudgetLine",
     "LineType",
     "ItemId",
+    "GlAccountCode",
     "BudgetLineCreate",
     "BudgetLineUpdate",
     "ExpensePage",
@@ -421,7 +422,6 @@ __all__ = [
     "JournalEntryUpdate",
     "JournalLinePage",
     "JournalLine",
-    "GlAccountCode",
     "JournalLineCreate",
     "JournalLineUpdate",
     "PostingLinePage",
@@ -1188,6 +1188,12 @@ __all__ = [
     "TemplateApplicationPage",
     "TemplateApplication",
     "TemplateApplicationCreate",
+    "ProjectAuthorityPage",
+    "ProjectAuthority",
+    "CueCallPage",
+    "CueCall",
+    "CueCallCreate",
+    "CueCallUpdate",
     "GuestListEntryPage",
     "GuestListEntry",
     "GuestListEntryCreate",
@@ -1203,6 +1209,9 @@ __all__ = [
     "RequiredAdditionalInsured",
     "RequiredAdditionalInsuredCreate",
     "RequiredAdditionalInsuredUpdate",
+    "CanonStdEmergencyProtocolPage",
+    "CanonStdEmergencyProtocol",
+    "CanonEmergencyProtocolStep",
     "ReportScheduleRecipientPage",
     "ReportScheduleRecipient",
     "ReportScheduleRecipientCreate",
@@ -1871,6 +1880,8 @@ class ActivityEvent(TypedDict):
     occurred_at: str
     #: Rendered summary key arguments.
     summary: str
+    #: Identifier of the domain event the activity row shows, as webhooks and the outbox name it.
+    domain_event_id: Optional[str]
 
 
 class ScheduleBaselinePage(TypedDict):
@@ -2198,6 +2209,14 @@ class Record(TypedDict):
     #: Identifier of the standard operating procedure that governs the work.
     sop_id: Optional[str]
     team_code: Optional[TeamId]
+    #: Memberships assigned to the record (app.record_assignments), oldest first.
+    assignee_membership_ids: List[str]
+    #: Progress of a task record, as a percentage.
+    progress_pct: Optional[float]
+    #: Permit identifier the authority issued, on a permit record.
+    permit_identifier: Optional[str]
+    #: Identifier of the Inspection Result enumeration row (Standard Library) of an inspection record.
+    inspection_result_enum_id: Optional[str]
 
 
 class _RecordCreateRequired(TypedDict):
@@ -6038,6 +6057,10 @@ class TimeEntry(TypedDict):
     auto_closed_at: Optional[str]
     #: Whether the entry was closed automatically and awaits review.
     needs_review: bool
+    #: Effective time of the entry's first Break Start punch (meal out).
+    meal_out_at: Optional[str]
+    #: Effective time of the entry's last Break End punch (meal in).
+    meal_in_at: Optional[str]
 
 
 class _TimeEntryClockInRequestRequired(TypedDict):
@@ -7586,6 +7609,9 @@ class BudgetLine(TypedDict):
     line_number: int
     phase_code: Optional[PhaseCode]
     tier_code: Optional[TierCode]
+    #: Approved and paid expenses posted to the line (app.budget_line_facts); null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    actual_minor: Optional[int]
+    account_code: Optional[GlAccountCode]
 
 
 class _BudgetLineCreateRequired(TypedDict):
@@ -7816,6 +7842,10 @@ class ChangeOrder(TypedDict):
     schedule_impact_days: Optional[int]
     #: Effect of the change on the client, as stated.
     client_impact: Optional[str]
+    #: When the change order moved to Approved, from its transition ledger.
+    approved_at: Optional[str]
+    #: Identifier of the person who moved the change order to Approved.
+    approved_by: Optional[str]
 
 
 class _ChangeOrderCreateRequired(TypedDict):
@@ -7906,6 +7936,9 @@ class ChangeOrderLine(TypedDict):
     unit_price_minor: Optional[int]
     #: Whether the line is deliberately free of charge.
     is_no_cost: bool
+    account_code: Optional[GlAccountCode]
+    #: Identifier of the cost center (dimension 1) of the budget line the change revises.
+    cost_center_id: Optional[str]
 
 
 class _ChangeOrderLineCreateRequired(TypedDict):
@@ -9112,6 +9145,12 @@ class PurchaseOrder(TypedDict):
     tax_minor: Optional[int]
     #: Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.
     shipping_minor: Optional[int]
+    #: When the order moved to Sent (its issue date), from its transition ledger.
+    sent_at: Optional[str]
+    #: Subtotal of the invoices matched to the order; null when none is matched or one is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+    invoiced_minor: Optional[int]
+    #: Payments applied to the invoices matched to the order; null when none is matched. Integer minor units of the resource currency; null means unpriced, never zero.
+    paid_minor: Optional[int]
 
 
 class _PurchaseOrderCreateRequired(TypedDict):
@@ -9654,6 +9693,8 @@ class Vendor(TypedDict):
     default_account_code: Optional[GlAccountCode]
     #: Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.
     default_cost_center_id: Optional[str]
+    #: Last four digits of the vendor's most recent bank account; null when none is on file.
+    bank_account_last4: Optional[str]
 
 
 class _VendorCreateRequired(TypedDict):
@@ -10465,6 +10506,8 @@ class Incident(TypedDict):
     accuracy_m: Optional[float]
     #: When the reporter filed it on the device, for a report queued offline.
     device_reported_at: Optional[str]
+    #: When the incident moved to Closed, from its transition ledger.
+    closed_at: Optional[str]
 
 
 class _IncidentCreateRequired(TypedDict):
@@ -11720,6 +11763,8 @@ class Engagement(TypedDict):
     start_date: str
     #: Last day of the engagement; defaults to the offer's or the opportunity's.
     end_date: Optional[str]
+    #: Identifier of the counterparty (vendor) the holder is engaged through; null when direct.
+    counterparty_id: Optional[str]
 
 
 class _EngagementCreateRequired(TypedDict):
@@ -12890,6 +12935,12 @@ class CanonDepartment(TypedDict):
     source: str
     #: Note from the Bible.
     note: Optional[str]
+    #: Executive lead of the department.
+    executive_lead: Optional[str]
+    #: Core function of the department.
+    core_function: Optional[str]
+    #: Scope of the department.
+    scope: Optional[str]
 
 
 class CanonDisciplinePage(TypedDict):
@@ -12930,6 +12981,7 @@ class CanonCategory(TypedDict):
     category: str
     #: Canon source of the row.
     source: str
+    xyz: Optional[Xyz]
 
 
 class CanonActPage(TypedDict):
@@ -13472,6 +13524,13 @@ class CanonCounterpartyType(TypedDict):
     counterparty_type: CounterpartyType
     #: Definition, in sentence case.
     definition: str
+    #: Classification code.
+    classification_code: Optional[str]
+    #: Vendor class.
+    vendor_class: Optional[str]
+    #: Clearance tier.
+    clearance_tier: Optional[str]
+    default_account_code: Optional[GlAccountCode]
 
 
 class CanonGlAccountPage(TypedDict):
@@ -13494,6 +13553,8 @@ class CanonGlAccount(TypedDict):
     tax_type: TaxType
     #: Account description.
     description: str
+    #: Normal balance of the account's type: Debit or Credit.
+    normal_balance: Optional[Literal["Debit", "Credit"]]
 
 
 class CanonCostCenterTemplatePage(TypedDict):
@@ -13534,6 +13595,7 @@ class CanonCategoryGl(TypedDict):
     cat_urid: Urid
     #: Default cost center (dimension 1) of the category.
     default_cost_center: str
+    account_code: Optional[GlAccountCode]
 
 
 class CanonUnitAliasPage(TypedDict):
@@ -13658,6 +13720,11 @@ class CanonElement(TypedDict):
     unspsc: Optional[str]
     #: Lifecycle state from the shared vocabulary.
     lifecycle_state: str
+    purchase_account: Optional[GlAccountCode]
+    #: Default cost center (dimension 1) of the element.
+    default_cost_center: Optional[str]
+    #: External reference of the element.
+    external_ref: Optional[str]
 
 
 class ElementResolution(TypedDict):
@@ -13852,6 +13919,14 @@ class StdDocument(TypedDict):
     status: Optional[str]
     #: Notes in the sheet.
     notes: Optional[str]
+    #: Organization as the sheet names it.
+    organization: Optional[str]
+    #: Project as the sheet names it.
+    project: Optional[str]
+    #: File size as the sheet gives it.
+    file_size: Optional[str]
+    #: Where the file is stored, as the sheet gives it.
+    storage_url: Optional[str]
 
 
 class StdEmergencyCodePage(TypedDict):
@@ -14080,6 +14155,10 @@ class StdSop(TypedDict):
     status: Optional[str]
     #: Notes in the sheet.
     notes: Optional[str]
+    #: Organization as the sheet names it.
+    organization: Optional[str]
+    #: Project as the sheet names it.
+    project: Optional[str]
 
 
 class StdVendorClassPage(TypedDict):
@@ -15165,6 +15244,8 @@ class PersonProfile(TypedDict):
     handle: str
     #: When the handle last changed; null until the first change. Set by the database.
     handle_changed_at: Optional[str]
+    #: Name the person goes by.
+    preferred_name: Optional[str]
 
 
 class _PersonProfileCreateRequired(TypedDict):
@@ -15208,6 +15289,8 @@ class PersonProfileUpdate(TypedDict, total=False):
     search_indexing: bool
     #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
     handle: str
+    #: Name the person goes by.
+    preferred_name: Optional[str]
 
 
 class OrganizationProfilePage(TypedDict):
@@ -15239,6 +15322,10 @@ class OrganizationProfile(TypedDict):
     handle: str
     #: When the handle last changed; null until the first change. Set by the database.
     handle_changed_at: Optional[str]
+    #: Website of the organization; https only.
+    website_url: Optional[str]
+    #: Contact email of the organization, stored in lowercase.
+    contact_email: Optional[str]
 
 
 class _OrganizationProfileCreateRequired(TypedDict):
@@ -15266,6 +15353,10 @@ class OrganizationProfileUpdate(TypedDict, total=False):
     search_indexing: bool
     #: Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.
     handle: str
+    #: Website of the organization; https only.
+    website_url: Optional[str]
+    #: Contact email of the organization, stored in lowercase.
+    contact_email: Optional[str]
 
 
 class ProfileVisibilityRulePage(TypedDict):
@@ -19387,6 +19478,80 @@ class TemplateApplicationCreate(_TemplateApplicationCreateRequired, total=False)
     venue_id: str
 
 
+class ProjectAuthorityPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectAuthority]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectAuthority(TypedDict):
+    """An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Responder service the agency provides.
+    service: str
+    #: Agency having jurisdiction.
+    agency: str
+    #: How to reach the agency.
+    contact: Optional[str]
+
+
+class CueCallPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[CueCall]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class CueCall(TypedDict):
+    """A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department."""
+
+    #: Identifier of the cue call.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the cue the call belongs to.
+    cue_id: str
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class CueCallCreate(TypedDict):
+    """Fields accepted when creating a CueCall."""
+
+    #: Identifier of the cue the call belongs to.
+    cue_id: str
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
+class CueCallUpdate(TypedDict, total=False):
+    """Fields accepted when updating a CueCall. Omitted fields are unchanged."""
+
+    #: Department making the call.
+    call_kind: Literal["Audio", "Lighting", "Video", "Special Effects", "Stage"]
+    #: What the department does on the cue.
+    instruction: str
+
+
 class GuestListEntryPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -19614,6 +19779,43 @@ class RequiredAdditionalInsuredUpdate(TypedDict, total=False):
     insured_name: str
     #: Endorsement: Additional Insured, Primary and Noncontributory, or Waiver of Subrogation.
     endorsement_kind: Literal["Additional Insured", "Primary and Noncontributory", "Waiver of Subrogation"]
+
+
+class CanonStdEmergencyProtocolPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[CanonStdEmergencyProtocol]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class CanonStdEmergencyProtocol(TypedDict):
+    """An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps."""
+
+    #: Record identifier of the protocol.
+    record_key: str
+    #: Radio code the protocol answers (xpms.emergency_code).
+    code: str
+    #: Operational domain the protocol applies to.
+    domain: str
+    #: Department as the sheet names it.
+    department: Optional[str]
+    #: Category as the sheet names it.
+    category: Optional[str]
+    #: Sub-category as the sheet names it.
+    sub_category: Optional[str]
+    #: The protocol's steps (xpms.emergency_protocol_step), in order.
+    steps: List[CanonEmergencyProtocolStep]
+
+
+class CanonEmergencyProtocolStep(TypedDict):
+    """One numbered step of an emergency protocol."""
+
+    #: Step number, from 1.
+    step_no: int
+    #: What to do; responder services appear as tokens such as {fire} (ruling D15).
+    body: str
 
 
 class ReportScheduleRecipientPage(TypedDict):
@@ -23184,11 +23386,11 @@ LineType = str
 #: Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
 ItemId = Optional[str]
 
-#: Accounting period lifecycle. A closed period refuses postings.
-AccountingPeriodState = Literal["Open", "In Period", "Closing", "Closed", "Audited", "Archived"]
-
 #: GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
 GlAccountCode = str
+
+#: Accounting period lifecycle. A closed period refuses postings.
+AccountingPeriodState = Literal["Open", "In Period", "Closing", "Closed", "Audited", "Archived"]
 
 #: Cost center identifier (GL dimension 1).
 CostCenterCode = str
