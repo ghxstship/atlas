@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Button, InlineAlert } from "@xos/ui";
+import { Button, InlineAlert } from "@/components/ui";
 import { saveCookieChoice } from "@/lib/privacy/actions";
 import { consentState } from "@/lib/privacy/consent";
 

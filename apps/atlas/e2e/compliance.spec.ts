@@ -11,6 +11,9 @@ import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } f
  * stays out of other journeys; these tests open their own contexts without it.
  */
 
+/** Server actions on a development server can take seconds on first compile. */
+const slow = expect.configure({ timeout: 30_000 });
+
 /** A browser context that sends no Global Privacy Control signal. */
 async function plainContext(browser: Browser) {
   return browser.newContext({ extraHTTPHeaders: {} });
@@ -86,11 +89,11 @@ test.describe("16 or older", () => {
     // Typed input is kept; ticking the box creates the account.
     await expect(page.locator("#signup-email")).toHaveValue(testEmail("age", id));
     await page.locator("#signup-password").fill(PASSWORD);
-    await page.getByRole("checkbox", { name: /16 or older/ }).check();
+    await page.locator("#signup-age").check();
     await page.getByRole("button", { name: "Create account" }).click();
     // The sign-up recorded the age, so creating the org asks only for the terms.
     await page.waitForURL("**/auth/organization");
-    await expect(page.getByRole("checkbox", { name: /16 or older/ })).toHaveCount(0);
+    await expect(page.locator("#org-age")).toHaveCount(0);
     await createOrganization(page, { name: `Age ${id}`, slug: `age-${id}` });
     await context.close();
   });
@@ -145,7 +148,7 @@ async function upload(page: Page, name: string, mimeType: string, buffer: Buffer
   });
   await files.locator('input[type="file"]').setInputFiles({ name, mimeType, buffer });
   await files.getByRole("button", { name: "Upload" }).click();
-  await expect(files.getByText(name).first()).toBeVisible();
+  await slow(files.getByText(name).first()).toBeVisible();
   await passAttachmentScans();
   await page.reload();
   await page.locator("html[data-shell-ready]").waitFor();
@@ -157,6 +160,8 @@ test.describe("share links", () => {
     page,
     browser,
   }) => {
+    // Uploads, scans and two renders on a development server: more than the default minute.
+    test.setTimeout(480_000);
     const id = uniqueId();
     await signIn(page);
     await openDocument(page);
@@ -170,27 +175,27 @@ test.describe("share links", () => {
     );
     await plan.getByRole("button", { name: "Share" }).click();
     const panel = page.getByRole("region", { name: `Share plan-${id}.pdf` });
-    await expect(panel).toBeVisible();
+    await slow(panel).toBeVisible();
     await expectAccessible(page);
     await panel.getByRole("button", { name: "Create link" }).click();
     const linkField = panel.getByRole("textbox", { name: "Link" });
-    await expect(linkField).toHaveValue(/\/share\/xshr_[0-9a-f]{64}$/);
+    await slow(linkField).toHaveValue(/\/share\/xshr_[0-9a-f]{64}$/);
     const internalUrl = new URL(await linkField.inputValue());
 
     const visitor = await (await plainContext(browser)).newPage();
     await visitor.goto(internalUrl.pathname);
-    await expect(visitor.getByRole("heading", { level: 1, name: "Shared file" })).toBeVisible();
+    await slow(visitor.getByRole("heading", { level: 1, name: "Shared file" })).toBeVisible();
     await expectAccessible(visitor);
-    const download = visitor.waitForEvent("download");
-    await visitor.getByRole("button", { name: "Open file" }).click();
+    const download = visitor.waitForEvent("download", { timeout: 120_000 });
+    await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
     expect((await download).suggestedFilename()).toBe(`plan-${id}.pdf`);
 
     // Revoked links stop opening.
     await panel.getByRole("button", { name: "Revoke" }).click();
-    await expect(panel.getByText("Revoked")).toBeVisible();
+    await slow(panel.getByText("Revoked")).toBeVisible();
     await visitor.goto(internalUrl.pathname);
-    await visitor.getByRole("button", { name: "Open file" }).click();
-    await expect(visitor.getByText("This link does not work.", { exact: false })).toBeVisible();
+    await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
+    await slow(visitor.getByText("This link does not work.", { exact: false })).toBeVisible();
 
     // Confidential: classify the image, then a link for one recipient with an access code.
     const stage = await upload(page, `stage-${id}.png`, "image/png", PNG);
@@ -198,31 +203,33 @@ test.describe("share links", () => {
     const imagePanel = page.getByRole("region", { name: `Share stage-${id}.png` });
     await imagePanel.getByLabel("Classification").selectOption("Confidential");
     await imagePanel.getByRole("button", { name: "Save classification" }).click();
-    await expect(imagePanel.getByText("Classification saved.")).toBeVisible();
-    await expect(
+    await slow(imagePanel.getByText("Classification saved.")).toBeVisible();
+    await slow(
       imagePanel.getByText("Confidential files always ask for an access code."),
     ).toBeVisible();
     await imagePanel.getByRole("button", { name: "Create link" }).click();
-    await expect(
+    await slow(
       imagePanel.getByText("Enter the recipient's email. The watermark carries it."),
     ).toBeVisible();
     await imagePanel.getByLabel("Recipient's email").fill(`ana-${id}@venue.test`);
     await imagePanel.getByRole("button", { name: "Create link" }).click();
-    const code = await imagePanel.getByRole("textbox", { name: "Access code" }).inputValue();
+    const codeField = imagePanel.getByRole("textbox", { name: "Access code" });
+    await slow(codeField).toHaveValue(/^[0-9]{6}$/);
+    const code = await codeField.inputValue();
     expect(code).toMatch(/^[0-9]{6}$/);
     const confidentialUrl = new URL(
       await imagePanel.getByRole("textbox", { name: "Link" }).inputValue(),
     );
 
     await visitor.goto(confidentialUrl.pathname);
-    await visitor.getByRole("button", { name: "Open file" }).click();
-    await expect(visitor.getByText("Enter the access code that came with the link.")).toBeVisible();
+    await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
+    await slow(visitor.getByText("Enter the access code that came with the link.")).toBeVisible();
     await visitor.getByLabel("Access code").fill(code === "000000" ? "111111" : "000000");
-    await visitor.getByRole("button", { name: "Open file" }).click();
-    await expect(visitor.getByText("That code is not right.", { exact: false })).toBeVisible();
+    await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
+    await slow(visitor.getByText("That code is not right.", { exact: false })).toBeVisible();
     await visitor.getByLabel("Access code").fill(code);
-    const marked = visitor.waitForEvent("download");
-    await visitor.getByRole("button", { name: "Open file" }).click();
+    const marked = visitor.waitForEvent("download", { timeout: 120_000 });
+    await visitor.getByRole("button", { name: "Open file" }).click({ timeout: 120_000 });
     const file = await marked;
     expect(file.suggestedFilename()).toBe(`stage-${id}-watermarked.pdf`);
     const pdf = readFileSync((await file.path()) as string).toString("latin1");
@@ -232,6 +239,6 @@ test.describe("share links", () => {
     // Restricted files are never shared.
     await imagePanel.getByLabel("Classification").selectOption("Restricted");
     await imagePanel.getByRole("button", { name: "Save classification" }).click();
-    await expect(imagePanel.getByText("Restricted files are never shared by link.")).toBeVisible();
+    await slow(imagePanel.getByText("Restricted files are never shared by link.")).toBeVisible();
   });
 });

@@ -2,12 +2,13 @@ import { SHARE_LINK_REFUSALS, SHARE_TOKEN } from "@xos/data/share-links";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { Button, InlineAlert, Input } from "@xos/ui";
+import { Button, InlineAlert, Input } from "@/components/ui";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("compliance.open");
-  // The address carries the link's token: no search engine indexes it and no referrer repeats it.
-  return { title: t("title"), robots: { index: false, follow: false }, referrer: "no-referrer" };
+  // The address carries the link's token: no search engine indexes it, and no other site receives it
+  // as a referrer. Same-origin, not no-referrer, so the form's POST keeps its Origin for the CSRF check.
+  return { title: t("title"), robots: { index: false, follow: false }, referrer: "same-origin" };
 }
 
 /**

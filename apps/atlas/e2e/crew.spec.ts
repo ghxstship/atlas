@@ -77,7 +77,7 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   await field.getByLabel(/^Full name$/).fill(fieldName);
   await field.locator("#signup-email").fill(fieldEmail);
   await field.locator("#signup-password").fill(PASSWORD);
-  await field.getByRole("checkbox", { name: /16 or older/ }).check();
+  await field.locator("#signup-age").check();
   await field.getByRole("button", { name: "Create account" }).click();
   await field.getByRole("button", { name: "Accept invitation" }).click();
   await field.waitForURL(`**/${slug}/home`);

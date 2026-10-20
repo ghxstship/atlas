@@ -45,7 +45,7 @@ test("journey 26: client org, inherited brand, wholesale billing and support ses
   await owner.getByLabel(/^Full name$/).fill("Cleo Client");
   await owner.locator("#signup-email").fill(ownerEmail);
   await owner.locator("#signup-password").fill(PASSWORD);
-  await owner.getByRole("checkbox", { name: /16 or older/ }).check();
+  await owner.locator("#signup-age").check();
   await owner.getByRole("button", { name: "Create account" }).click();
   await owner.getByRole("button", { name: "Accept invitation" }).click();
   await owner.waitForURL(`**/${clientSlug}/home`);
