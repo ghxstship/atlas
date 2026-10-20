@@ -5,6 +5,7 @@ import { untyped } from "@xos/data/untyped";
 import { listTemplates } from "@xos/data/workflow";
 import { getFormatter } from "next-intl/server";
 import type { ReactNode } from "react";
+import { SecondFactor } from "@/components/auth/second-factor";
 import { ButtonLink } from "@/components/ui";
 import { PLANS } from "@/lib/plans.generated";
 import { getTranslate } from "@/lib/shell/translate";
@@ -13,7 +14,8 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
 /**
  * A61's settings panels (RRR-106): the Partner console entry on Settings > Partner for partner
  * agencies (A59-020), the org's real usage against its plan on Settings > Usage, and the org's
- * project templates on Settings > Templates (A59-032). Each reads with the viewer's client, so row
+ * project templates on Settings > Templates (A59-032), and the second factor on Personal settings >
+ * Security (A59-019). Each reads with the viewer's client, so row
  * level security decides what appears.
  */
 
@@ -231,8 +233,23 @@ async function TemplatesPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
+/** Personal settings > Security: the person's authenticator apps, and adding one (A59-019). */
+async function SecondFactorPanel() {
+  const t = await getTranslate();
+  return (
+    <Section
+      id="settings-second-factor"
+      title={t("shell.secondFactor.title")}
+      description={t("shell.secondFactor.lead")}
+    >
+      <SecondFactor mode="manage" />
+    </Section>
+  );
+}
+
 export const contributions: readonly SettingsContribution[] = [
   { node: "settings.partner", order: 10, Panel: PartnerPanel },
   { node: "settings.usage", order: 10, Panel: UsagePanel },
   { node: "settings.templates", order: 10, Panel: TemplatesPanel },
+  { node: "me.security", order: 10, Panel: SecondFactorPanel },
 ];

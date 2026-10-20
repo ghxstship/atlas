@@ -1203,5 +1203,29 @@
     "REFUSE": "Refused",
     "NO_ANSWER": "No answer",
     "UNRATIFIED": "Not ratified"
+  },
+  "secondFactor": {
+    "loading": "Checking your second factor…",
+    "code": "Six-digit code",
+    "codeHelp": "From your authenticator app.",
+    "verify": "Verify",
+    "verified": "Your authenticator app is set up. You can now verify with it.",
+    "verifiedRetry": "Verified. Trying again…",
+    "authenticator": "Authenticator app",
+    "scan": "Scan this code with an authenticator app (1Password, Google Authenticator, Authy), then enter the six-digit code it shows.",
+    "qrAlt": "QR code for your authenticator app",
+    "secret": "Can't scan? Enter this key:",
+    "stepUp": "This needs a second factor. Enter the code from your authenticator app.",
+    "noneStepUp": "This needs a second factor, and you have not set one up yet. Set up an authenticator app now; it takes a minute.",
+    "none": "No second factor yet. Add an authenticator app to protect your account and to take actions that need step-up.",
+    "enrol": "Set up an authenticator app",
+    "enrolAnother": "Add another authenticator app",
+    "title": "Second factor",
+    "lead": "Verify sign-ins and sensitive actions with a code from an authenticator app.",
+    "errors": {
+      "code": "That code did not match. Enter the current six-digit code from the app.",
+      "expired": "That code expired. Enter the new code from the app.",
+      "unexpected": "The second factor could not be checked. Try again."
+    }
   }
 }

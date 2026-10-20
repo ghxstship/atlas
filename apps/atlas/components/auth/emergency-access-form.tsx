@@ -8,6 +8,7 @@ import {
   type EmergencyAccessState,
 } from "@/app/auth/network-restricted/actions";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { SecondFactor } from "./second-factor";
 
 type Translate = (key: string) => string;
 
@@ -19,30 +20,47 @@ export function EmergencyAccessForm({ org }: { org: string }) {
     takeEmergencyAccessAction,
     {},
   );
+  // Without a second factor, verify (or set one up) in place, then retry (A59-019).
+  const stepUp = state.error === "step_up_required";
   return (
-    <form
-      action={action}
-      onSubmit={keepInputOnSubmit(action)}
-      aria-label={t("ownerTitle")}
-      className="flex w-full flex-col gap-12 text-start"
-      noValidate
-    >
-      <input type="hidden" name="org" value={org} />
-      {state.error ? <InlineAlert tone="danger">{tErr(state.error)}</InlineAlert> : null}
-      <Textarea
-        id="emergency-reason"
-        name="reason"
-        label={t("reason")}
-        help={t("reasonHelp")}
-        rows={3}
-        width="100%"
-        maxLength={2000}
-      />
-      <div>
-        <Button type="submit" variant="danger" loading={pending}>
-          {t("start")}
-        </Button>
-      </div>
-    </form>
+    <div className="flex w-full flex-col gap-12 text-start">
+      {stepUp ? (
+        <SecondFactor
+          mode="step-up"
+          onVerified={() =>
+            (
+              document.getElementById("emergency-access-form") as HTMLFormElement | null
+            )?.requestSubmit()
+          }
+        />
+      ) : null}
+      <form
+        id="emergency-access-form"
+        action={action}
+        onSubmit={keepInputOnSubmit(action)}
+        aria-label={t("ownerTitle")}
+        className="flex w-full flex-col gap-12 text-start"
+        noValidate
+      >
+        <input type="hidden" name="org" value={org} />
+        {state.error && !stepUp ? (
+          <InlineAlert tone="danger">{tErr(state.error)}</InlineAlert>
+        ) : null}
+        <Textarea
+          id="emergency-reason"
+          name="reason"
+          label={t("reason")}
+          help={t("reasonHelp")}
+          rows={3}
+          width="100%"
+          maxLength={2000}
+        />
+        <div>
+          <Button type="submit" variant="danger" loading={pending}>
+            {t("start")}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
