@@ -519,6 +519,40 @@ export async function getSubscription(db: XosClient, orgId: string): Promise<Res
   return ok({ planCode: data.plan_code, state: data.subscription_state });
 }
 
+/** Seats of an org (ADR 0035): members above Field against the seat limit in force. */
+export interface SeatUsage {
+  readonly used: number;
+  /** The limit in force, extra seats included; null when unlimited. */
+  readonly limit: number | null;
+  /** The plan's own allowance; null when the plan has unlimited seats. */
+  readonly planSeats: number | null;
+  readonly extraSeats: number;
+  readonly sellsExtraSeats: boolean;
+  /** True for a subscription that keeps unlimited seats from before seat limits. */
+  readonly grandfathered: boolean;
+}
+
+/** The org's seat usage through app.seat_usage (migration 1250). Members only. */
+export async function getSeatUsage(db: XosClient, orgId: string): Promise<Result<SeatUsage>> {
+  const { data, error } = await db.rpc("seat_usage", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  const row = data[0];
+  if (row === undefined) return fail({ kind: "not-found" });
+  return ok({
+    used: Number(row.seats_used),
+    limit: optionalCount(row.seat_limit),
+    planSeats: optionalCount(row.plan_seats),
+    extraSeats: row.extra_seats,
+    sellsExtraSeats: row.sells_extra_seats,
+    grandfathered: row.grandfathered,
+  });
+}
+
+/** A count the database returns as null for unlimited (the generated types cannot say so). */
+function optionalCount(value: unknown): number | null {
+  return value === null || value === undefined ? null : Number(value);
+}
+
 /**
  * Whether an org is a partner (Section 4.6.1): it has at least one client org. Partner staff with
  * org.partner.manage can read their client orgs (policy organizations_read).

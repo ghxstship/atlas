@@ -5,6 +5,7 @@ import {
   endMembership,
   getCurrentPerson,
   getMyOrganization,
+  getSeatUsage,
   getSubscription,
   hasClientOrganizations,
   inviteMember,
@@ -446,5 +447,51 @@ describe("workspaces and subscriptions", () => {
     });
     expect(await getSubscription(db, "o1")).toEqual({ ok: false, error: { kind: "not-found" } });
     expect((await getSubscription(db, "o1")).ok).toBe(false);
+  });
+
+  it("reads the seat usage, with null for unlimited", async () => {
+    const { db } = fakeClient({
+      "rpc:seat_usage": [
+        okResponse([
+          {
+            seats_used: 6,
+            seat_limit: 8,
+            plan_seats: 5,
+            extra_seats: 3,
+            sells_extra_seats: true,
+            grandfathered: false,
+          },
+        ]),
+        okResponse([
+          {
+            seats_used: 12,
+            seat_limit: null,
+            plan_seats: null,
+            extra_seats: 0,
+            sells_extra_seats: false,
+            grandfathered: false,
+          },
+        ]),
+        okResponse([]),
+        errorResponse("42501", "Seat usage needs an active membership in the org"),
+      ],
+    });
+    expect(await getSeatUsage(db, "o1")).toEqual({
+      ok: true,
+      data: {
+        used: 6,
+        limit: 8,
+        planSeats: 5,
+        extraSeats: 3,
+        sellsExtraSeats: true,
+        grandfathered: false,
+      },
+    });
+    expect(await getSeatUsage(db, "o1")).toMatchObject({
+      ok: true,
+      data: { used: 12, limit: null, planSeats: null },
+    });
+    expect(await getSeatUsage(db, "o1")).toEqual({ ok: false, error: { kind: "not-found" } });
+    expect((await getSeatUsage(db, "o1")).ok).toBe(false);
   });
 });

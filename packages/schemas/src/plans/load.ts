@@ -2,7 +2,14 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import { z } from "zod";
-import type { PlanDefinition, PlanPrice, PlanRegistry, PriceBookCurrency } from "./model.ts";
+import type {
+  AddonDefinition,
+  OfferDefinition,
+  PlanDefinition,
+  PlanPrice,
+  PlanRegistry,
+  PriceBookCurrency,
+} from "./model.ts";
 import { PRICE_BOOK_CURRENCIES } from "./model.ts";
 
 /** Default location of the plan registry: the package root. */
@@ -13,15 +20,23 @@ const minor = z.int().min(0).nullable();
 
 const priceSchema = z.strictObject({ monthly_minor: minor, annual_minor: minor });
 
-/** Stripe lookup keys: lowercase letters, digits and underscores. */
+/** Stripe lookup keys and coupon ids: lowercase letters, digits and underscores. */
 const LOOKUP_KEY = /^[a-z0-9_]+$/;
+const lookupKey = z.string().regex(LOOKUP_KEY);
 
 const stripeSchema = z.strictObject({
-  product_lookup_key: z.string().regex(LOOKUP_KEY),
-  prices: z.strictObject({
-    monthly: z.string().regex(LOOKUP_KEY),
-    annual: z.string().regex(LOOKUP_KEY),
-  }),
+  product_lookup_key: lookupKey,
+  prices: z.strictObject({ monthly: lookupKey, annual: lookupKey }),
+});
+
+const extraSeatSchema = z.strictObject({
+  prices: z.record(z.string(), priceSchema),
+  stripe: z.strictObject({ monthly: lookupKey, annual: lookupKey }),
+});
+
+const quoteSchema = z.strictObject({
+  contract: z.literal("annual"),
+  from_monthly_minor: z.record(z.string(), minor),
 });
 
 const planSchema = z.strictObject({
@@ -31,7 +46,29 @@ const planSchema = z.strictObject({
   limits: z.record(z.string(), z.int().min(0).nullable()),
   features: z.array(z.string()),
   prices: z.record(z.string(), priceSchema),
+  extra_seat: extraSeatSchema.optional(),
+  quote: quoteSchema.optional(),
   stripe: stripeSchema.optional(),
+});
+
+const addonSchema = z.strictObject({
+  code: z.string().regex(CODE),
+  adds: z.strictObject({ limit: z.string().regex(CODE), amount: z.int().min(1) }),
+  plans: z.array(z.string()).min(1),
+  prices: z.record(z.string(), z.int().min(1)),
+  stripe: z.strictObject({ product_lookup_key: lookupKey, price: lookupKey }),
+});
+
+const offerSchema = z.strictObject({
+  code: z.string().regex(CODE),
+  percent_off: z.int().min(1).max(100),
+  duration_months: z.int().min(1).max(36),
+  max_redemptions: z.int().min(1),
+  plans: z.array(z.string()).min(1),
+  stripe: z.strictObject({
+    coupon_id: lookupKey,
+    promotion_code: z.string().regex(/^[A-Z0-9]{3,20}$/),
+  }),
 });
 
 const registrySchema = z.strictObject({
@@ -39,7 +76,12 @@ const registrySchema = z.strictObject({
   limits: z.array(z.string().regex(CODE)).min(1),
   features: z.array(z.string().regex(CODE)).min(1),
   currencies: z.array(z.enum(PRICE_BOOK_CURRENCIES)),
+  annual_multiplier: z.int().min(1).max(12),
+  extra_seat_product_lookup_key: lookupKey,
+  partner_wholesale_discount_bps: z.int().min(0).max(9000),
   plans: z.array(planSchema).min(1),
+  addons: z.array(addonSchema).default([]),
+  offers: z.array(offerSchema).default([]),
 });
 
 /** Raised when the plan registry text is malformed or breaks a registry rule. */
@@ -53,13 +95,53 @@ export class PlanRegistryError extends Error {
 }
 
 type RawRegistry = z.infer<typeof registrySchema>;
+type RawPrice = z.infer<typeof priceSchema>;
 
 function sameList(actual: readonly string[], expected: readonly string[]): boolean {
   return actual.length === expected.length && actual.every((v, i) => v === expected[i]);
 }
 
+function sameSet(actual: readonly string[], expected: readonly string[]): boolean {
+  return sameList([...actual].sort(), [...expected].sort());
+}
+
 function duplicates(values: readonly string[]): string[] {
   return values.filter((v, i) => values.indexOf(v) !== i);
+}
+
+const EVERY_CURRENCY = PRICE_BOOK_CURRENCIES.join(", ");
+
+/** Checks a price book: every currency, annual at the multiplier, zero only where allowed. */
+function checkPriceBook(
+  issues: string[],
+  at: string,
+  book: Record<string, RawPrice>,
+  multiplier: number,
+  free: boolean,
+): void {
+  if (!sameSet(Object.keys(book), PRICE_BOOK_CURRENCIES)) {
+    issues.push(`${at} must price every currency ${EVERY_CURRENCY}`);
+  }
+  for (const [cur, price] of Object.entries(book)) {
+    const amounts = [price.monthly_minor, price.annual_minor];
+    if (free && amounts.some((a) => a !== 0)) {
+      issues.push(`${at} is free, so its ${cur} prices must be 0`);
+    }
+    if (!free && amounts.some((a) => a === 0)) {
+      issues.push(
+        `${at} is not free, so a ${cur} price is a claim and cannot be 0; leave it null until set`,
+      );
+    }
+    if ((price.monthly_minor === null) !== (price.annual_minor === null)) {
+      issues.push(`${at} prices ${cur} monthly and annual together, or neither`);
+    } else if (
+      price.monthly_minor !== null &&
+      price.annual_minor !== null &&
+      price.annual_minor !== price.monthly_minor * multiplier
+    ) {
+      issues.push(`${at} must price ${cur} annually at ${String(multiplier)} times monthly`);
+    }
+  }
 }
 
 /** Checks every rule documented at the top of plans.yaml. Returns the issues found. */
@@ -69,18 +151,21 @@ export function validatePlans(raw: RawRegistry): string[] {
     ["limit", raw.limits],
     ["feature", raw.features],
     ["plan", raw.plans.map((p) => p.code)],
+    ["add-on", raw.addons.map((a) => a.code)],
+    ["offer", raw.offers.map((o) => o.code)],
   ] as const) {
     for (const d of duplicates(list)) issues.push(`${label} ${d} is listed twice`);
   }
   if (!sameList(raw.currencies, PRICE_BOOK_CURRENCIES)) {
-    issues.push(`currencies must be ${PRICE_BOOK_CURRENCIES.join(", ")}`);
+    issues.push(`currencies must be ${EVERY_CURRENCY}`);
   }
 
   const resolved = new Map<string, Set<string>>();
   raw.plans.forEach((plan, index) => {
     const at = `plan ${plan.code}`;
-    const limitKeys = Object.keys(plan.limits);
-    if (!sameList([...limitKeys].sort(), [...raw.limits].sort())) {
+    const free = plan.free === true;
+    const quoted = plan.quote !== undefined;
+    if (!sameSet(Object.keys(plan.limits), raw.limits)) {
       issues.push(`${at} must state exactly the limits ${raw.limits.join(", ")}`);
     }
     for (const f of plan.features) {
@@ -88,34 +173,51 @@ export function validatePlans(raw: RawRegistry): string[] {
     }
     for (const d of duplicates(plan.features)) issues.push(`${at} lists feature ${d} twice`);
 
-    const priceKeys = Object.keys(plan.prices);
-    if (!sameList([...priceKeys].sort(), [...PRICE_BOOK_CURRENCIES].sort())) {
-      issues.push(`${at} must price every currency ${PRICE_BOOK_CURRENCIES.join(", ")}`);
-    }
-    for (const [cur, price] of Object.entries(plan.prices)) {
-      const amounts = [price.monthly_minor, price.annual_minor];
-      if (plan.free === true && amounts.some((a) => a !== 0)) {
-        issues.push(`${at} is free, so its ${cur} prices must be 0`);
-      }
-      if (plan.free !== true && amounts.some((a) => a === 0)) {
-        issues.push(
-          `${at} is not free, so a ${cur} price is a claim and cannot be 0; leave it null until set`,
-        );
-      }
-    }
+    checkPriceBook(issues, at, plan.prices, raw.annual_multiplier, free);
 
-    if (plan.free === true && plan.stripe !== undefined) {
+    if (free && plan.stripe !== undefined) {
       issues.push(`${at} is free, so it has no Stripe price`);
     }
-    if (plan.free !== true && plan.stripe === undefined) {
+    if (quoted) {
+      if (free) issues.push(`${at} is free, so it has no quote`);
+      if (plan.stripe !== undefined) {
+        issues.push(`${at} is sold by quote, so it has no Stripe price`);
+      }
+      if (Object.values(plan.prices).some((p) => p.monthly_minor !== null)) {
+        issues.push(`${at} is sold by quote, so its list prices stay null`);
+      }
+      const from = plan.quote?.from_monthly_minor ?? {};
+      if (!sameSet(Object.keys(from), PRICE_BOOK_CURRENCIES)) {
+        issues.push(`${at} must state a quote from-price for every currency ${EVERY_CURRENCY}`);
+      }
+      if (Object.values(from).some((v) => v === 0)) {
+        issues.push(`${at} cannot quote from 0; leave it null until set`);
+      }
+    } else if (!free && plan.stripe === undefined) {
       issues.push(`${at} is paid, so it must name its Stripe product and price lookup keys`);
+    }
+
+    const seats = plan.limits["seats"];
+    const seatsLimited = seats !== null && seats !== undefined;
+    if (plan.extra_seat !== undefined) {
+      if (free || quoted) issues.push(`${at} is not self-serve, so it sells no extra seats`);
+      if (!seatsLimited) issues.push(`${at} has unlimited seats, so it sells no extra seats`);
+      checkPriceBook(
+        issues,
+        `${at} extra seat`,
+        plan.extra_seat.prices,
+        raw.annual_multiplier,
+        false,
+      );
+    } else if (!free && !quoted && seatsLimited) {
+      issues.push(`${at} limits seats, so it must sell extra seats`);
     }
 
     const previous = index === 0 ? undefined : raw.plans[index - 1];
     if (index === 0) {
       if (plan.extends !== undefined)
         issues.push(`${at} is the first plan and cannot extend another`);
-      if (plan.free !== true) issues.push(`${at} is the first plan and must be free`);
+      if (!free) issues.push(`${at} is the first plan and must be free`);
     } else if (plan.extends !== previous?.code) {
       issues.push(`${at} must extend the plan before it, ${previous?.code ?? ""}`);
     }
@@ -140,17 +242,73 @@ export function validatePlans(raw: RawRegistry): string[] {
       }
     }
   });
-  const lookupKeys = raw.plans.flatMap((p) =>
-    p.stripe === undefined
-      ? []
-      : [p.stripe.product_lookup_key, p.stripe.prices.monthly, p.stripe.prices.annual],
-  );
-  for (const d of duplicates(lookupKeys)) issues.push(`Stripe lookup key ${d} is used twice`);
+
+  for (const addon of raw.addons) {
+    const at = `add-on ${addon.code}`;
+    if (!raw.limits.includes(addon.adds.limit)) {
+      issues.push(`${at} adds to unknown limit ${addon.adds.limit}`);
+    }
+    if (!sameSet(Object.keys(addon.prices), PRICE_BOOK_CURRENCIES)) {
+      issues.push(`${at} must price every currency ${EVERY_CURRENCY}`);
+    }
+    for (const code of addon.plans) {
+      const plan = raw.plans.find((p) => p.code === code);
+      if (plan === undefined) issues.push(`${at} names unknown plan ${code}`);
+      else if (plan.stripe === undefined) {
+        issues.push(`${at} is sold only to self-serve paid plans, not ${code}`);
+      } else if (plan.limits[addon.adds.limit] === null) {
+        issues.push(`${at} cannot raise ${addon.adds.limit} on ${code}, which is unlimited`);
+      }
+    }
+  }
+  for (const offer of raw.offers) {
+    for (const code of offer.plans) {
+      const plan = raw.plans.find((p) => p.code === code);
+      if (plan === undefined) issues.push(`offer ${offer.code} names unknown plan ${code}`);
+      else if (plan.stripe === undefined) {
+        issues.push(`offer ${offer.code} applies only to self-serve paid plans, not ${code}`);
+      }
+    }
+  }
+
+  const productKeys = [
+    raw.extra_seat_product_lookup_key,
+    ...raw.plans.flatMap((p) => (p.stripe === undefined ? [] : [p.stripe.product_lookup_key])),
+    ...raw.addons.map((a) => a.stripe.product_lookup_key),
+  ];
+  const priceKeys = [
+    ...raw.plans.flatMap((p) =>
+      p.stripe === undefined ? [] : [p.stripe.prices.monthly, p.stripe.prices.annual],
+    ),
+    ...raw.plans.flatMap((p) =>
+      p.extra_seat === undefined ? [] : [p.extra_seat.stripe.monthly, p.extra_seat.stripe.annual],
+    ),
+    ...raw.addons.map((a) => a.stripe.price),
+  ];
+  for (const d of duplicates([...productKeys, ...priceKeys])) {
+    issues.push(`Stripe lookup key ${d} is used twice`);
+  }
+  for (const d of duplicates(raw.offers.map((o) => o.stripe.coupon_id))) {
+    issues.push(`Stripe coupon ${d} is used twice`);
+  }
+  for (const d of duplicates(raw.offers.map((o) => o.stripe.promotion_code))) {
+    issues.push(`Stripe promotion code ${d} is used twice`);
+  }
   return issues;
 }
 
-function toPrice(p: { monthly_minor: number | null; annual_minor: number | null }): PlanPrice {
+function toPrice(p: RawPrice): PlanPrice {
   return { monthlyMinor: p.monthly_minor, annualMinor: p.annual_minor };
+}
+
+function byCurrency<T, U>(
+  book: Readonly<Record<string, T>>,
+  map: (value: T) => U,
+): Record<PriceBookCurrency, U> {
+  return Object.fromEntries(PRICE_BOOK_CURRENCIES.map((c) => [c, map(book[c] as T)])) as Record<
+    PriceBookCurrency,
+    U
+  >;
 }
 
 function toRegistry(raw: RawRegistry): PlanRegistry {
@@ -168,12 +326,7 @@ function toRegistry(raw: RawRegistry): PlanRegistry {
       extends: p.extends ?? null,
       limits: Object.fromEntries(raw.limits.map((l) => [l, p.limits[l] ?? null])),
       features: raw.features.filter((f) => own.has(f)),
-      prices: Object.fromEntries(
-        PRICE_BOOK_CURRENCIES.map((c) => [
-          c,
-          toPrice(p.prices[c] as RawRegistry["plans"][number]["prices"][string]),
-        ]),
-      ) as Record<PriceBookCurrency, PlanPrice>,
+      prices: byCurrency(p.prices, toPrice),
       stripe:
         p.stripe === undefined
           ? null
@@ -182,14 +335,53 @@ function toRegistry(raw: RawRegistry): PlanRegistry {
               monthlyPriceLookupKey: p.stripe.prices.monthly,
               annualPriceLookupKey: p.stripe.prices.annual,
             },
+      extraSeat:
+        p.extra_seat === undefined
+          ? null
+          : {
+              prices: byCurrency(p.extra_seat.prices, toPrice),
+              monthlyPriceLookupKey: p.extra_seat.stripe.monthly,
+              annualPriceLookupKey: p.extra_seat.stripe.annual,
+            },
+      quote:
+        p.quote === undefined
+          ? null
+          : {
+              contract: p.quote.contract,
+              fromMonthlyMinor: byCurrency(p.quote.from_monthly_minor, (v) => v ?? null),
+            },
+      selfServe: p.stripe !== undefined,
     };
   });
+  const addons: AddonDefinition[] = raw.addons.map((a) => ({
+    code: a.code,
+    limit: a.adds.limit,
+    amount: a.adds.amount,
+    plans: a.plans,
+    prices: byCurrency(a.prices, (v) => v),
+    productLookupKey: a.stripe.product_lookup_key,
+    priceLookupKey: a.stripe.price,
+  }));
+  const offers: OfferDefinition[] = raw.offers.map((o) => ({
+    code: o.code,
+    percentOff: o.percent_off,
+    durationMonths: o.duration_months,
+    maxRedemptions: o.max_redemptions,
+    plans: o.plans,
+    couponId: o.stripe.coupon_id,
+    promotionCode: o.stripe.promotion_code,
+  }));
   return {
     version: 1,
     limits: raw.limits,
     features: raw.features,
     currencies: raw.currencies,
+    annualMultiplier: raw.annual_multiplier,
+    extraSeatProductLookupKey: raw.extra_seat_product_lookup_key,
+    partnerWholesaleDiscountBps: raw.partner_wholesale_discount_bps,
     plans,
+    addons,
+    offers,
   };
 }
 

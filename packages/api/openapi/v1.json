@@ -36522,6 +36522,17 @@
             "enum": ["trialing", "active", "past_due", "read_only", "canceled"],
             "description": "Subscription status as Stripe reports it; read_only after the grace period.",
             "example": "trialing"
+          },
+          "extra_seats": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Seats bought above the plan's seat allowance.",
+            "example": 3
+          },
+          "seats_grandfathered": {
+            "type": "boolean",
+            "description": "True when the subscription keeps unlimited seats from before plans had seat limits, until its plan changes.",
+            "example": false
           }
         },
         "required": [
@@ -36532,7 +36543,9 @@
           "updated_at",
           "updated_by",
           "plan_code",
-          "subscription_state"
+          "subscription_state",
+          "extra_seats",
+          "seats_grandfathered"
         ],
         "description": "Present only when an organization uses Atlas: plan, billing and tenant settings."
       },
@@ -50509,8 +50522,8 @@
           "wholesale_discount_bps": {
             "type": "integer",
             "minimum": 0,
-            "description": "Discount in basis points when the statement ran.",
-            "example": 2000
+            "description": "Discount in basis points when the statement ran; agreements default to 3000, the 30 percent of ADR 0035.",
+            "example": 3000
           },
           "client_count": {
             "type": "integer",
@@ -50522,13 +50535,13 @@
             "type": ["integer", "null"],
             "minimum": 0,
             "description": "Sum of priced list prices in minor units; null only while a statement has no priced line.",
-            "example": 14700
+            "example": 44700
           },
           "wholesale_total_minor": {
             "type": ["integer", "null"],
             "minimum": 0,
             "description": "What the partner owes, in minor units; null only while a statement has no priced line.",
-            "example": 11760
+            "example": 31290
           },
           "unpriced_count": {
             "type": "integer",
@@ -114382,7 +114395,9 @@
                       "updated_at": "2026-10-08T14:30:00Z",
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "plan_code": "pro",
-                      "subscription_state": "trialing"
+                      "subscription_state": "trialing",
+                      "extra_seats": 3,
+                      "seats_grandfathered": false
                     }
                   ],
                   "next_cursor": null
@@ -114440,7 +114455,9 @@
                   "updated_at": "2026-10-08T14:30:00Z",
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "plan_code": "pro",
-                  "subscription_state": "trialing"
+                  "subscription_state": "trialing",
+                  "extra_seats": 3,
+                  "seats_grandfathered": false
                 },
                 "schema": { "$ref": "#/components/schemas/Subscription" }
               }
@@ -135646,10 +135663,10 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "period_start": "2026-10-08",
                       "currency_code": "USD",
-                      "wholesale_discount_bps": 2000,
+                      "wholesale_discount_bps": 3000,
                       "client_count": 3,
-                      "list_total_minor": 14700,
-                      "wholesale_total_minor": 11760,
+                      "list_total_minor": 44700,
+                      "wholesale_total_minor": 31290,
                       "unpriced_count": 0
                     }
                   ],
@@ -135709,10 +135726,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "period_start": "2026-10-08",
                   "currency_code": "USD",
-                  "wholesale_discount_bps": 2000,
+                  "wholesale_discount_bps": 3000,
                   "client_count": 3,
-                  "list_total_minor": 14700,
-                  "wholesale_total_minor": 11760,
+                  "list_total_minor": 44700,
+                  "wholesale_total_minor": 31290,
                   "unpriced_count": 0
                 },
                 "schema": { "$ref": "#/components/schemas/WholesaleStatement" }
@@ -135766,10 +135783,10 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "period_start": "2026-10-08",
                   "currency_code": "USD",
-                  "wholesale_discount_bps": 2000,
+                  "wholesale_discount_bps": 3000,
                   "client_count": 3,
-                  "list_total_minor": 14700,
-                  "wholesale_total_minor": 11760,
+                  "list_total_minor": 44700,
+                  "wholesale_total_minor": 31290,
                   "unpriced_count": 0
                 },
                 "schema": { "$ref": "#/components/schemas/WholesaleStatement" }

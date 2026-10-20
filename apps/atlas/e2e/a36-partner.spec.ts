@@ -63,7 +63,7 @@ test("journey 26: client org, inherited brand, wholesale billing and support ses
     drawer.getByText(/No support session is open\. You cannot read this client's records/),
   ).toBeVisible();
   await expect(drawer.getByText(venueName)).toHaveCount(0);
-  await drawer.getByLabel("Monthly price").fill("65.00");
+  await drawer.getByLabel("Monthly price").fill("179.00");
   await drawer.getByRole("button", { name: "Save the price" }).click();
   await expect(drawer.getByText("Price saved.")).toBeVisible();
   await expectAccessibleInBothThemes(page);
@@ -88,20 +88,21 @@ test("journey 26: client org, inherited brand, wholesale billing and support ses
   await expect(open.getByText(/No support session is open/)).toBeVisible();
   await expect(open.getByText(venueName)).toHaveCount(0);
 
-  // Wholesale billing (Owner only): the Core client bills $49.00 at list, $39.20 at wholesale.
+  // Wholesale billing (Owner only): the Core client bills $149.00 at list, $104.30 at the 30 percent
+  // wholesale discount (ADR 0035).
   await page.goto(`/partner/${PARTNER_ORG}/wholesale-billing`);
   await expect(
-    page.getByText("The platform bills you each client's list price less 20 percent, in USD."),
+    page.getByText("The platform bills you each client's list price less 30 percent, in USD."),
   ).toBeVisible();
   const run = page.getByRole("button", { name: /Run wholesale billing for/ });
   if (await run.isEnabled()) {
     await run.click();
     await expect(page.getByText("Statement recorded.")).toBeVisible();
     const line = page.getByRole("row").filter({ hasText: clientName });
-    await expect(line).toContainText("$49.00");
-    await expect(line).toContainText("$39.20");
-    await expect(line).toContainText("$65.00");
-    await expect(line).toContainText("$25.80");
+    await expect(line).toContainText("$149.00");
+    await expect(line).toContainText("$104.30");
+    await expect(line).toContainText("$179.00");
+    await expect(line).toContainText("$74.70");
   } else {
     await expect(page.getByText(/is billed\./)).toBeVisible();
   }

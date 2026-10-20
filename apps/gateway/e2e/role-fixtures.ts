@@ -624,9 +624,13 @@ export async function workedShift(
     );
   }
   // The punches land today, so the timesheet covers today: its approved day is what pay bills.
+  // "Today" is the project's local date, as billing counts days in the project time zone; the
+  // database's current_date is UTC and runs a day ahead in the evening.
   const [ts] = await sql<{ id: string }>(
     `insert into app.timesheets (project_id, engagement_id, period_start, period_end)
-     values ($1, $2, current_date, current_date) returning id`,
+     select $1, $2, d, d
+       from (select (now() at time zone p.time_zone)::date as d from app.projects p where p.id = $1) local
+     returning id`,
     [PROJECT, engagementId],
     PEOPLE.owner,
   );

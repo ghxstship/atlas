@@ -1,6 +1,6 @@
 # ADR 0018: Pricing: Paid Plans, First Project Free, Plan Seed Numbering
 
-- Status: Accepted (amends Section 16 for the Access plan)
+- Status: Accepted (amends Section 16 for the Access plan; prices and seats superseded by ADR 0035)
 - Date: 2026-10-14
 - Decider: Owner
 

@@ -24,6 +24,7 @@ test("the shell navigates from the sitemap: sidebar, command menu, breadcrumbs, 
   await expectAccessible(page);
 
   // Command menu: Cmd or Ctrl+K, search, Enter.
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   await page.keyboard.press("ControlOrMeta+k");
   // The menu loads on first use; typing before it opens would be lost.
   await expect(page.getByRole("dialog").filter({ has: page.getByRole("combobox") })).toBeVisible();

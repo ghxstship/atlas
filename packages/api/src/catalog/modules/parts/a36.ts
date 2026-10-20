@@ -46,22 +46,22 @@ const WholesaleStatement = audited(
       period_start: fields.date("First day of the month billed."),
       currency_code: fields.currency("Currency of the partner agreement."),
       wholesale_discount_bps: fields.int(
-        "Discount in basis points when the statement ran.",
-        2000,
+        "Discount in basis points when the statement ran; agreements default to 3000, the 30 percent of ADR 0035.",
+        3000,
         0,
       ),
       client_count: fields.int("Client orgs on the statement.", 3, 0),
       list_total_minor: fields
         .int(
           "Sum of priced list prices in minor units; null only while a statement has no priced line.",
-          14700,
+          44700,
           0,
         )
         .nullable(),
       wholesale_total_minor: fields
         .int(
           "What the partner owes, in minor units; null only while a statement has no priced line.",
-          11760,
+          31290,
           0,
         )
         .nullable(),

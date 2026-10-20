@@ -24,11 +24,11 @@ import {
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
 //#region ../schemas/plans.yaml?raw
 var plans_default =
-  "# XOS plans, limits, features and price books (Section 16, Section 3.15, ADR 0008).\n#\n# This file is the single source of every plan. The generator in src/plans emits the plan\n# current plan seed migration (see PLAN_SEED_MIGRATION in src/plans/sql.ts) from it; the pricing\n# page, Stripe products and private.org_plan_limits read the same data.\n#\n# Rules the validator enforces:\n#   - limits and features list exactly the values of the Postgres enums\n#     app.plan_limit_code and app.plan_feature_code, in enum order.\n#   - plans are listed from the free plan upward; that order is the sort order.\n#   - every plan states every limit. A null limit means unlimited.\n#   - a plan lists only the features it adds; it includes every feature of the plan it extends,\n#     so features only accumulate upward, and no plan allows less of a limit than the plan below.\n#   - every plan prices every currency. A null amount is unpriced (Section 3.7), never zero;\n#     only a free plan carries a price of 0.\n#   - every paid plan names its Stripe product and its monthly and annual price by lookup key;\n#     the free plan has none. Lookup keys, not ids, so test and live mode share this file.\n#     A price lookup key is the Stripe price's lookup_key; a product key is the product's\n#     metadata.lookup_key, because Stripe products have no native lookup key.\n#\n# Prices come from the existing ATLVS catalogue v3 in Stripe (read 2026-10-14): USD only,\n# annual at ten times monthly. Other currencies stay unpriced until Stripe carries prices for\n# them. Per-project pricing is dropped by owner decision (ADR 0018): the first project is free\n# on the Access plan, and paid plans have unlimited projects.\n#\n# Packaging (ADR 0020): every plan includes Atlas and Compass, and Gateway for the parties an org\n# engages. Access is Atlas Lite (1 seat, 1 project). Tiers differ by Gateway reach (public\n# marketplace and white label from Pro), by the monthly Aurora AI allowance, and by Legend, which\n# Enterprise receives as early access. Workers and other external users are free on every plan.\n\nversion: 1\n\nlimits:\n  - seats\n  - active_projects\n  - field_members\n  - active_external_engagements_per_month\n  - aurora_requests_per_month\n\nfeatures:\n  - approvals\n  - advancing\n  - procurement\n  - upl_export\n  - white_label\n  - custom_domain\n  - automations\n  - api_keys\n  - webhooks\n  - public_marketplace_listings\n  - custom_roles\n  - ip_allowlist\n  - audit_export\n  - payroll_export\n  - priority_support\n  - saml_sso\n  - scim\n  - eu_data_residency\n  - branded_compass_build\n  - sla_credits\n  - support_session_controls\n  - aurora_ai\n  - legend_early_access\n\ncurrencies: [USD, EUR, GBP, CAD, AUD]\n\nplans:\n  - code: access\n    free: true\n    limits:\n      seats: 1\n      active_projects: 1\n      field_members: 10\n      active_external_engagements_per_month: 25\n      aurora_requests_per_month: 0\n    features: []\n    prices:\n      USD: { monthly_minor: 0, annual_minor: 0 }\n      EUR: { monthly_minor: 0, annual_minor: 0 }\n      GBP: { monthly_minor: 0, annual_minor: 0 }\n      CAD: { monthly_minor: 0, annual_minor: 0 }\n      AUD: { monthly_minor: 0, annual_minor: 0 }\n\n  - code: core\n    extends: access\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 4900, annual_minor: 49000 }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    stripe:\n      product_lookup_key: atlvs_plan_core_v3\n      prices:\n        monthly: atlvs_plan_core_unlimited_monthly_v3\n        annual: atlvs_plan_core_unlimited_annual_v3\n\n  - code: pro\n    extends: core\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 2500\n      aurora_requests_per_month: 2000\n    features:\n      [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]\n    prices:\n      USD: { monthly_minor: 7900, annual_minor: 79000 }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    stripe:\n      product_lookup_key: atlvs_plan_pro_v3\n      prices:\n        monthly: atlvs_plan_pro_unlimited_monthly_v3\n        annual: atlvs_plan_pro_unlimited_annual_v3\n\n  - code: team\n    extends: pro\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: 10000\n    features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]\n    prices:\n      USD: { monthly_minor: 34900, annual_minor: 349000 }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    stripe:\n      product_lookup_key: atlvs_plan_team_v3\n      prices:\n        monthly: atlvs_plan_team_unlimited_monthly_v3\n        annual: atlvs_plan_team_unlimited_annual_v3\n\n  - code: enterprise\n    extends: team\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: null\n    features:\n      [\n        saml_sso,\n        scim,\n        eu_data_residency,\n        branded_compass_build,\n        sla_credits,\n        support_session_controls,\n        legend_early_access,\n      ]\n    prices:\n      USD: { monthly_minor: 89900, annual_minor: 899000 }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    stripe:\n      product_lookup_key: atlvs_plan_enterprise_v3\n      prices:\n        monthly: atlvs_plan_enterprise_unlimited_monthly_v3\n        annual: atlvs_plan_enterprise_unlimited_annual_v3\n";
+  "# XOS plans, limits, features and price books (Section 16, Section 3.15, ADR 0008).\n#\n# This file is the single source of every plan. The generator in src/plans emits the plan\n# current plan seed migration (see PLAN_SEED_MIGRATION in src/plans/sql.ts) from it; the pricing\n# page, Stripe products and private.org_plan_limits read the same data.\n#\n# Rules the validator enforces:\n#   - limits and features list exactly the values of the Postgres enums\n#     app.plan_limit_code and app.plan_feature_code, in enum order.\n#   - plans are listed from the free plan upward; that order is the sort order.\n#   - every plan states every limit. A null limit means unlimited.\n#   - a plan lists only the features it adds; it includes every feature of the plan it extends,\n#     so features only accumulate upward, and no plan allows less of a limit than the plan below.\n#   - every plan prices every currency. A null amount is unpriced (Section 3.7), never zero;\n#     only a free plan carries a price of 0.\n#   - every paid plan names its Stripe product and its monthly and annual price by lookup key;\n#     the free plan has none. Lookup keys, not ids, so test and live mode share this file.\n#     A price lookup key is the Stripe price's lookup_key; a product key is the product's\n#     metadata.lookup_key, because Stripe products have no native lookup key.\n#\n#   - a plan with a quote is sold by contract only (Enterprise): its list prices are null, it has no\n#     Stripe prices and no extra seats, and quote.from_monthly_minor is a display price only.\n#   - annual prices are annual_multiplier times monthly, for plans, extra seats and nothing else.\n#   - a plan with a seat limit above the free plan sells extra seats (extra_seat), priced per seat in\n#     every currency with its own Stripe price lookup keys on the shared extra-seat product.\n#   - an add-on is a one-time purchase that raises one limit for the calendar month it is bought in,\n#     on the plans it lists, which must have a finite limit for it.\n#   - every Stripe lookup key, coupon id and promotion code is unique.\n#\n# Pricing v4 (owner, 2026-10-19; ADR 0035): seat-based plans with a seat allowance, extra seats per\n# month, unlimited projects and field crew on paid plans, local-currency price books, Aurora request\n# packs, a founding-customer coupon and a 30 percent partner wholesale discount. Stripe lookup keys\n# are the v4 catalogue that `pnpm --filter @xos/platform stripe:setup` creates in test mode. The v3\n# catalogue (atlvs_*) stays in Stripe as history. Per-project pricing stays dropped (ADR 0018).\n#\n# Packaging (ADR 0020): every plan includes Atlas and Compass, and Gateway for the parties an org\n# engages. Access is Atlas Lite (1 seat, 1 project). Tiers differ by Gateway reach (public\n# marketplace and white label from Pro), by the monthly Aurora AI allowance, and by Legend, which\n# Enterprise receives as early access. Workers and other external users are free on every plan.\n\nversion: 1\n\nlimits:\n  - seats\n  - active_projects\n  - field_members\n  - active_external_engagements_per_month\n  - aurora_requests_per_month\n\nfeatures:\n  - approvals\n  - advancing\n  - procurement\n  - upl_export\n  - white_label\n  - custom_domain\n  - automations\n  - api_keys\n  - webhooks\n  - public_marketplace_listings\n  - custom_roles\n  - ip_allowlist\n  - audit_export\n  - payroll_export\n  - priority_support\n  - saml_sso\n  - scim\n  - eu_data_residency\n  - branded_compass_build\n  - sla_credits\n  - support_session_controls\n  - aurora_ai\n  - legend_early_access\n\ncurrencies: [USD, EUR, GBP, CAD, AUD]\n\n# Annual billing gives two months free.\nannual_multiplier: 10\n\n# The Stripe product every extra-seat price belongs to.\nextra_seat_product_lookup_key: xos_extra_seat_v4\n\n# Partner wholesale (Section 4.6.1): client orgs billed to a partner cost the partner list price less\n# this discount. It is the default of app.partner_agreements.wholesale_discount_bps.\npartner_wholesale_discount_bps: 3000\n\nplans:\n  - code: access\n    free: true\n    limits:\n      seats: 1\n      active_projects: 1\n      field_members: 10\n      active_external_engagements_per_month: 25\n      aurora_requests_per_month: 0\n    features: []\n    prices:\n      USD: { monthly_minor: 0, annual_minor: 0 }\n      EUR: { monthly_minor: 0, annual_minor: 0 }\n      GBP: { monthly_minor: 0, annual_minor: 0 }\n      CAD: { monthly_minor: 0, annual_minor: 0 }\n      AUD: { monthly_minor: 0, annual_minor: 0 }\n\n  - code: core\n    extends: access\n    limits:\n      seats: 5\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 14900, annual_minor: 149000 }\n      EUR: { monthly_minor: 13900, annual_minor: 139000 }\n      GBP: { monthly_minor: 11900, annual_minor: 119000 }\n      CAD: { monthly_minor: 19900, annual_minor: 199000 }\n      AUD: { monthly_minor: 22900, annual_minor: 229000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1900, annual_minor: 19000 }\n        EUR: { monthly_minor: 1800, annual_minor: 18000 }\n        GBP: { monthly_minor: 1500, annual_minor: 15000 }\n        CAD: { monthly_minor: 2600, annual_minor: 26000 }\n        AUD: { monthly_minor: 2900, annual_minor: 29000 }\n      stripe:\n        monthly: xos_seat_core_monthly_v4\n        annual: xos_seat_core_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_core_v4\n      prices:\n        monthly: xos_plan_core_monthly_v4\n        annual: xos_plan_core_annual_v4\n\n  - code: pro\n    extends: core\n    limits:\n      seats: 15\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 2500\n      aurora_requests_per_month: 2000\n    features:\n      [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]\n    prices:\n      USD: { monthly_minor: 39900, annual_minor: 399000 }\n      EUR: { monthly_minor: 36900, annual_minor: 369000 }\n      GBP: { monthly_minor: 31900, annual_minor: 319000 }\n      CAD: { monthly_minor: 54900, annual_minor: 549000 }\n      AUD: { monthly_minor: 60900, annual_minor: 609000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1900, annual_minor: 19000 }\n        EUR: { monthly_minor: 1800, annual_minor: 18000 }\n        GBP: { monthly_minor: 1500, annual_minor: 15000 }\n        CAD: { monthly_minor: 2600, annual_minor: 26000 }\n        AUD: { monthly_minor: 2900, annual_minor: 29000 }\n      stripe:\n        monthly: xos_seat_pro_monthly_v4\n        annual: xos_seat_pro_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_pro_v4\n      prices:\n        monthly: xos_plan_pro_monthly_v4\n        annual: xos_plan_pro_annual_v4\n\n  - code: team\n    extends: pro\n    limits:\n      seats: 40\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: 10000\n    features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]\n    prices:\n      USD: { monthly_minor: 89900, annual_minor: 899000 }\n      EUR: { monthly_minor: 82900, annual_minor: 829000 }\n      GBP: { monthly_minor: 71900, annual_minor: 719000 }\n      CAD: { monthly_minor: 122900, annual_minor: 1229000 }\n      AUD: { monthly_minor: 136900, annual_minor: 1369000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1500, annual_minor: 15000 }\n        EUR: { monthly_minor: 1400, annual_minor: 14000 }\n        GBP: { monthly_minor: 1200, annual_minor: 12000 }\n        CAD: { monthly_minor: 2100, annual_minor: 21000 }\n        AUD: { monthly_minor: 2300, annual_minor: 23000 }\n      stripe:\n        monthly: xos_seat_team_monthly_v4\n        annual: xos_seat_team_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_team_v4\n      prices:\n        monthly: xos_plan_team_monthly_v4\n        annual: xos_plan_team_annual_v4\n\n  - code: enterprise\n    extends: team\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: null\n    features:\n      [\n        saml_sso,\n        scim,\n        eu_data_residency,\n        branded_compass_build,\n        sla_credits,\n        support_session_controls,\n        legend_early_access,\n      ]\n    prices:\n      USD: { monthly_minor: null, annual_minor: null }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    quote:\n      contract: annual\n      from_monthly_minor: { USD: 250000, EUR: null, GBP: null, CAD: null, AUD: null }\n\naddons:\n  - code: aurora_requests_1000\n    adds: { limit: aurora_requests_per_month, amount: 1000 }\n    plans: [core, pro, team]\n    prices: { USD: 4900, EUR: 4500, GBP: 3900, CAD: 6700, AUD: 7500 }\n    stripe:\n      product_lookup_key: xos_addon_aurora_requests_1000_v4\n      price: xos_addon_aurora_requests_1000_once_v4\n\noffers:\n  - code: founding_customer\n    percent_off: 30\n    duration_months: 12\n    max_redemptions: 50\n    plans: [core, pro, team]\n    stripe:\n      coupon_id: xos_founding_customer_v4\n      promotion_code: FOUNDING30\n";
 //#endregion
 //#region ../schemas/src/plans/model.ts
 /**
- * Shapes of the plan registry (Section 16, ADR 0008). Closed lists come from `plans.yaml`
+ * Shapes of the plan registry (Section 16, ADR 0008, ADR 0035). Closed lists come from `plans.yaml`
  * itself and are checked against the Postgres enums `app.plan_limit_code` and
  * `app.plan_feature_code` by a unit test.
  */
@@ -42,14 +42,24 @@ var priceSchema = z.strictObject({
   monthly_minor: minor,
   annual_minor: minor,
 });
-/** Stripe lookup keys: lowercase letters, digits and underscores. */
-var LOOKUP_KEY = /^[a-z0-9_]+$/;
+var lookupKey = z.string().regex(/^[a-z0-9_]+$/);
 var stripeSchema = z.strictObject({
-  product_lookup_key: z.string().regex(LOOKUP_KEY),
+  product_lookup_key: lookupKey,
   prices: z.strictObject({
-    monthly: z.string().regex(LOOKUP_KEY),
-    annual: z.string().regex(LOOKUP_KEY),
+    monthly: lookupKey,
+    annual: lookupKey,
   }),
+});
+var extraSeatSchema = z.strictObject({
+  prices: z.record(z.string(), priceSchema),
+  stripe: z.strictObject({
+    monthly: lookupKey,
+    annual: lookupKey,
+  }),
+});
+var quoteSchema = z.strictObject({
+  contract: z.literal("annual"),
+  from_monthly_minor: z.record(z.string(), minor),
 });
 var planSchema = z.strictObject({
   code: z.string().regex(CODE),
@@ -58,14 +68,45 @@ var planSchema = z.strictObject({
   limits: z.record(z.string(), z.int().min(0).nullable()),
   features: z.array(z.string()),
   prices: z.record(z.string(), priceSchema),
+  extra_seat: extraSeatSchema.optional(),
+  quote: quoteSchema.optional(),
   stripe: stripeSchema.optional(),
+});
+var addonSchema = z.strictObject({
+  code: z.string().regex(CODE),
+  adds: z.strictObject({
+    limit: z.string().regex(CODE),
+    amount: z.int().min(1),
+  }),
+  plans: z.array(z.string()).min(1),
+  prices: z.record(z.string(), z.int().min(1)),
+  stripe: z.strictObject({
+    product_lookup_key: lookupKey,
+    price: lookupKey,
+  }),
+});
+var offerSchema = z.strictObject({
+  code: z.string().regex(CODE),
+  percent_off: z.int().min(1).max(100),
+  duration_months: z.int().min(1).max(36),
+  max_redemptions: z.int().min(1),
+  plans: z.array(z.string()).min(1),
+  stripe: z.strictObject({
+    coupon_id: lookupKey,
+    promotion_code: z.string().regex(/^[A-Z0-9]{3,20}$/),
+  }),
 });
 var registrySchema = z.strictObject({
   version: z.literal(1),
   limits: z.array(z.string().regex(CODE)).min(1),
   features: z.array(z.string().regex(CODE)).min(1),
   currencies: z.array(z.enum(PRICE_BOOK_CURRENCIES)),
+  annual_multiplier: z.int().min(1).max(12),
+  extra_seat_product_lookup_key: lookupKey,
+  partner_wholesale_discount_bps: z.int().min(0).max(9e3),
   plans: z.array(planSchema).min(1),
+  addons: z.array(addonSchema).default([]),
+  offers: z.array(offerSchema).default([]),
 });
 /** Raised when the plan registry text is malformed or breaks a registry rule. */
 var PlanRegistryError = class extends Error {
@@ -79,8 +120,34 @@ var PlanRegistryError = class extends Error {
 function sameList(actual, expected) {
   return actual.length === expected.length && actual.every((v, i) => v === expected[i]);
 }
+function sameSet(actual, expected) {
+  return sameList([...actual].sort(), [...expected].sort());
+}
 function duplicates(values) {
   return values.filter((v, i) => values.indexOf(v) !== i);
+}
+var EVERY_CURRENCY = PRICE_BOOK_CURRENCIES.join(", ");
+/** Checks a price book: every currency, annual at the multiplier, zero only where allowed. */
+function checkPriceBook(issues, at, book, multiplier, free) {
+  if (!sameSet(Object.keys(book), PRICE_BOOK_CURRENCIES))
+    issues.push(`${at} must price every currency ${EVERY_CURRENCY}`);
+  for (const [cur, price] of Object.entries(book)) {
+    const amounts = [price.monthly_minor, price.annual_minor];
+    if (free && amounts.some((a) => a !== 0))
+      issues.push(`${at} is free, so its ${cur} prices must be 0`);
+    if (!free && amounts.some((a) => a === 0))
+      issues.push(
+        `${at} is not free, so a ${cur} price is a claim and cannot be 0; leave it null until set`,
+      );
+    if ((price.monthly_minor === null) !== (price.annual_minor === null))
+      issues.push(`${at} prices ${cur} monthly and annual together, or neither`);
+    else if (
+      price.monthly_minor !== null &&
+      price.annual_minor !== null &&
+      price.annual_minor !== price.monthly_minor * multiplier
+    )
+      issues.push(`${at} must price ${cur} annually at ${String(multiplier)} times monthly`);
+  }
 }
 /** Checks every rule documented at the top of plans.yaml. Returns the issues found. */
 function validatePlans(raw) {
@@ -89,37 +156,54 @@ function validatePlans(raw) {
     ["limit", raw.limits],
     ["feature", raw.features],
     ["plan", raw.plans.map((p) => p.code)],
+    ["add-on", raw.addons.map((a) => a.code)],
+    ["offer", raw.offers.map((o) => o.code)],
   ])
     for (const d of duplicates(list)) issues.push(`${label} ${d} is listed twice`);
   if (!sameList(raw.currencies, PRICE_BOOK_CURRENCIES))
-    issues.push(`currencies must be ${PRICE_BOOK_CURRENCIES.join(", ")}`);
+    issues.push(`currencies must be ${EVERY_CURRENCY}`);
   const resolved = /* @__PURE__ */ new Map();
   raw.plans.forEach((plan, index) => {
     const at = `plan ${plan.code}`;
-    if (!sameList([...Object.keys(plan.limits)].sort(), [...raw.limits].sort()))
+    const free = plan.free === true;
+    const quoted = plan.quote !== void 0;
+    if (!sameSet(Object.keys(plan.limits), raw.limits))
       issues.push(`${at} must state exactly the limits ${raw.limits.join(", ")}`);
     for (const f of plan.features)
       if (!raw.features.includes(f)) issues.push(`${at} names unknown feature ${f}`);
     for (const d of duplicates(plan.features)) issues.push(`${at} lists feature ${d} twice`);
-    if (!sameList([...Object.keys(plan.prices)].sort(), [...PRICE_BOOK_CURRENCIES].sort()))
-      issues.push(`${at} must price every currency ${PRICE_BOOK_CURRENCIES.join(", ")}`);
-    for (const [cur, price] of Object.entries(plan.prices)) {
-      const amounts = [price.monthly_minor, price.annual_minor];
-      if (plan.free === true && amounts.some((a) => a !== 0))
-        issues.push(`${at} is free, so its ${cur} prices must be 0`);
-      if (plan.free !== true && amounts.some((a) => a === 0))
-        issues.push(
-          `${at} is not free, so a ${cur} price is a claim and cannot be 0; leave it null until set`,
-        );
-    }
-    if (plan.free === true && plan.stripe !== void 0)
-      issues.push(`${at} is free, so it has no Stripe price`);
-    if (plan.free !== true && plan.stripe === void 0)
+    checkPriceBook(issues, at, plan.prices, raw.annual_multiplier, free);
+    if (free && plan.stripe !== void 0) issues.push(`${at} is free, so it has no Stripe price`);
+    if (quoted) {
+      if (free) issues.push(`${at} is free, so it has no quote`);
+      if (plan.stripe !== void 0) issues.push(`${at} is sold by quote, so it has no Stripe price`);
+      if (Object.values(plan.prices).some((p) => p.monthly_minor !== null))
+        issues.push(`${at} is sold by quote, so its list prices stay null`);
+      const from = plan.quote?.from_monthly_minor ?? {};
+      if (!sameSet(Object.keys(from), PRICE_BOOK_CURRENCIES))
+        issues.push(`${at} must state a quote from-price for every currency ${EVERY_CURRENCY}`);
+      if (Object.values(from).some((v) => v === 0))
+        issues.push(`${at} cannot quote from 0; leave it null until set`);
+    } else if (!free && plan.stripe === void 0)
       issues.push(`${at} is paid, so it must name its Stripe product and price lookup keys`);
+    const seats = plan.limits["seats"];
+    const seatsLimited = seats !== null && seats !== void 0;
+    if (plan.extra_seat !== void 0) {
+      if (free || quoted) issues.push(`${at} is not self-serve, so it sells no extra seats`);
+      if (!seatsLimited) issues.push(`${at} has unlimited seats, so it sells no extra seats`);
+      checkPriceBook(
+        issues,
+        `${at} extra seat`,
+        plan.extra_seat.prices,
+        raw.annual_multiplier,
+        false,
+      );
+    } else if (!free && !quoted && seatsLimited)
+      issues.push(`${at} limits seats, so it must sell extra seats`);
     const previous = index === 0 ? void 0 : raw.plans[index - 1];
     if (index === 0) {
       if (plan.extends !== void 0) issues.push(`${at} is the first plan and cannot extend another`);
-      if (plan.free !== true) issues.push(`${at} is the first plan and must be free`);
+      if (!free) issues.push(`${at} is the first plan and must be free`);
     } else if (plan.extends !== previous?.code)
       issues.push(`${at} must extend the plan before it, ${previous?.code ?? ""}`);
     const inherited =
@@ -140,12 +224,48 @@ function validatePlans(raw) {
           issues.push(`${at} allows fewer ${limit} than ${previous.code}`);
       }
   });
-  const lookupKeys = raw.plans.flatMap((p) =>
-    p.stripe === void 0
-      ? []
-      : [p.stripe.product_lookup_key, p.stripe.prices.monthly, p.stripe.prices.annual],
-  );
-  for (const d of duplicates(lookupKeys)) issues.push(`Stripe lookup key ${d} is used twice`);
+  for (const addon of raw.addons) {
+    const at = `add-on ${addon.code}`;
+    if (!raw.limits.includes(addon.adds.limit))
+      issues.push(`${at} adds to unknown limit ${addon.adds.limit}`);
+    if (!sameSet(Object.keys(addon.prices), PRICE_BOOK_CURRENCIES))
+      issues.push(`${at} must price every currency ${EVERY_CURRENCY}`);
+    for (const code of addon.plans) {
+      const plan = raw.plans.find((p) => p.code === code);
+      if (plan === void 0) issues.push(`${at} names unknown plan ${code}`);
+      else if (plan.stripe === void 0)
+        issues.push(`${at} is sold only to self-serve paid plans, not ${code}`);
+      else if (plan.limits[addon.adds.limit] === null)
+        issues.push(`${at} cannot raise ${addon.adds.limit} on ${code}, which is unlimited`);
+    }
+  }
+  for (const offer of raw.offers)
+    for (const code of offer.plans) {
+      const plan = raw.plans.find((p) => p.code === code);
+      if (plan === void 0) issues.push(`offer ${offer.code} names unknown plan ${code}`);
+      else if (plan.stripe === void 0)
+        issues.push(`offer ${offer.code} applies only to self-serve paid plans, not ${code}`);
+    }
+  const productKeys = [
+    raw.extra_seat_product_lookup_key,
+    ...raw.plans.flatMap((p) => (p.stripe === void 0 ? [] : [p.stripe.product_lookup_key])),
+    ...raw.addons.map((a) => a.stripe.product_lookup_key),
+  ];
+  const priceKeys = [
+    ...raw.plans.flatMap((p) =>
+      p.stripe === void 0 ? [] : [p.stripe.prices.monthly, p.stripe.prices.annual],
+    ),
+    ...raw.plans.flatMap((p) =>
+      p.extra_seat === void 0 ? [] : [p.extra_seat.stripe.monthly, p.extra_seat.stripe.annual],
+    ),
+    ...raw.addons.map((a) => a.stripe.price),
+  ];
+  for (const d of duplicates([...productKeys, ...priceKeys]))
+    issues.push(`Stripe lookup key ${d} is used twice`);
+  for (const d of duplicates(raw.offers.map((o) => o.stripe.coupon_id)))
+    issues.push(`Stripe coupon ${d} is used twice`);
+  for (const d of duplicates(raw.offers.map((o) => o.stripe.promotion_code)))
+    issues.push(`Stripe promotion code ${d} is used twice`);
   return issues;
 }
 function toPrice(p) {
@@ -153,6 +273,9 @@ function toPrice(p) {
     monthlyMinor: p.monthly_minor,
     annualMinor: p.annual_minor,
   };
+}
+function byCurrency(book, map) {
+  return Object.fromEntries(PRICE_BOOK_CURRENCIES.map((c) => [c, map(book[c])]));
 }
 function toRegistry(raw) {
   const included = /* @__PURE__ */ new Map();
@@ -169,7 +292,7 @@ function toRegistry(raw) {
       extends: p.extends ?? null,
       limits: Object.fromEntries(raw.limits.map((l) => [l, p.limits[l] ?? null])),
       features: raw.features.filter((f) => own.has(f)),
-      prices: Object.fromEntries(PRICE_BOOK_CURRENCIES.map((c) => [c, toPrice(p.prices[c])])),
+      prices: byCurrency(p.prices, toPrice),
       stripe:
         p.stripe === void 0
           ? null
@@ -178,14 +301,53 @@ function toRegistry(raw) {
               monthlyPriceLookupKey: p.stripe.prices.monthly,
               annualPriceLookupKey: p.stripe.prices.annual,
             },
+      extraSeat:
+        p.extra_seat === void 0
+          ? null
+          : {
+              prices: byCurrency(p.extra_seat.prices, toPrice),
+              monthlyPriceLookupKey: p.extra_seat.stripe.monthly,
+              annualPriceLookupKey: p.extra_seat.stripe.annual,
+            },
+      quote:
+        p.quote === void 0
+          ? null
+          : {
+              contract: p.quote.contract,
+              fromMonthlyMinor: byCurrency(p.quote.from_monthly_minor, (v) => v ?? null),
+            },
+      selfServe: p.stripe !== void 0,
     };
   });
+  const addons = raw.addons.map((a) => ({
+    code: a.code,
+    limit: a.adds.limit,
+    amount: a.adds.amount,
+    plans: a.plans,
+    prices: byCurrency(a.prices, (v) => v),
+    productLookupKey: a.stripe.product_lookup_key,
+    priceLookupKey: a.stripe.price,
+  }));
+  const offers = raw.offers.map((o) => ({
+    code: o.code,
+    percentOff: o.percent_off,
+    durationMonths: o.duration_months,
+    maxRedemptions: o.max_redemptions,
+    plans: o.plans,
+    couponId: o.stripe.coupon_id,
+    promotionCode: o.stripe.promotion_code,
+  }));
   return {
     version: 1,
     limits: raw.limits,
     features: raw.features,
     currencies: raw.currencies,
+    annualMultiplier: raw.annual_multiplier,
+    extraSeatProductLookupKey: raw.extra_seat_product_lookup_key,
+    partnerWholesaleDiscountBps: raw.partner_wholesale_discount_bps,
     plans,
+    addons,
+    offers,
   };
 }
 /** Parses and validates plan registry text. */
@@ -204,10 +366,10 @@ function parsePlanRegistry(text) {
 /**
  * Repository-relative path of the current generated plan seed migration (ADR 0018).
  * Applied migrations are never edited (ADR 0004), so when plans.yaml changes after a seed has
- * shipped, this moves to the next number in the orchestrator range and the earlier seeds stay
- * as history. Each seed is a complete idempotent upsert, so the latest one decides the state.
+ * shipped, this moves to the next number in the range of the agent changing it and the earlier seeds
+ * stay as history. Each seed is a complete idempotent upsert, so the latest one decides the state.
  */
-var PLAN_SEED_MIGRATION = "supabase/migrations/0902_plan_seed.sql";
+var PLAN_SEED_MIGRATION = "supabase/migrations/1251_plan_seed.sql";
 PLAN_SEED_MIGRATION.slice(PLAN_SEED_MIGRATION.lastIndexOf("/") + 1);
 //#endregion
 //#region src/billing/env.ts
@@ -274,7 +436,7 @@ function createStripeClient(
 //#region src/billing/plans.ts
 /**
  * The plan and term a Stripe price lookup key sells, read from packages/schemas/plans.yaml (ADR 0018).
- * Null when no plan uses the key, for example a per-project price the platform does not sell.
+ * Null when no plan uses the key, for example a v3 price the platform no longer sells.
  */
 function planForLookupKey(registry, lookupKey) {
   if (lookupKey === null || lookupKey === void 0) return null;
@@ -293,14 +455,63 @@ function planForLookupKey(registry, lookupKey) {
   }
   return null;
 }
-/** The price lookup key of a paid plan and term. Throws for the free plan or an unknown plan. */
-function lookupKeyFor(registry, planCode, interval) {
+/** The plan and term an extra-seat price lookup key belongs to (ADR 0035), or null. */
+function extraSeatForLookupKey(registry, lookupKey) {
+  if (lookupKey === null || lookupKey === void 0) return null;
+  for (const plan of registry.plans) {
+    if (plan.extraSeat === null) continue;
+    if (plan.extraSeat.monthlyPriceLookupKey === lookupKey)
+      return {
+        planCode: plan.code,
+        interval: "Monthly",
+      };
+    if (plan.extraSeat.annualPriceLookupKey === lookupKey)
+      return {
+        planCode: plan.code,
+        interval: "Annual",
+      };
+  }
+  return null;
+}
+/** The one-time add-on a price lookup key sells (ADR 0035), or null. */
+function addonForLookupKey(registry, lookupKey) {
+  if (lookupKey === null || lookupKey === void 0) return null;
+  return registry.addons.find((a) => a.priceLookupKey === lookupKey) ?? null;
+}
+/** A plan that cannot be bought through Stripe Checkout: the free plan or a plan sold by quote. */
+var NotSelfServeError = class extends Error {
+  planCode;
+  constructor(planCode, reason) {
+    super(
+      reason === "free"
+        ? `The ${planCode} plan is free and has no Stripe price`
+        : `The ${planCode} plan is sold by quote on an annual contract, never through checkout`,
+    );
+    this.name = "NotSelfServeError";
+    this.planCode = planCode;
+  }
+};
+function selfServePlan(registry, planCode) {
   const plan = registry.plans.find((p) => p.code === planCode);
   if (plan === void 0) throw new Error(`Unknown plan ${planCode}`);
-  if (plan.stripe === null) throw new Error(`The ${planCode} plan is free and has no Stripe price`);
+  if (plan.stripe === null) throw new NotSelfServeError(planCode, plan.free ? "free" : "quote");
+  return {
+    plan,
+    stripe: plan.stripe,
+  };
+}
+/** The price lookup key of a self-serve plan and term. Throws for the free plan, a quoted plan or an unknown plan. */
+function lookupKeyFor(registry, planCode, interval) {
+  const { stripe } = selfServePlan(registry, planCode);
+  return interval === "Monthly" ? stripe.monthlyPriceLookupKey : stripe.annualPriceLookupKey;
+}
+/** The extra-seat price lookup key of a plan and term. Throws when the plan sells no extra seats. */
+function extraSeatLookupKeyFor(registry, planCode, interval) {
+  const { plan } = selfServePlan(registry, planCode);
+  if (plan.extraSeat === null) throw new Error(`The ${planCode} plan sells no extra seats`);
   return interval === "Monthly"
-    ? plan.stripe.monthlyPriceLookupKey
-    : plan.stripe.annualPriceLookupKey;
+    ? plan.extraSeat.monthlyPriceLookupKey
+    : plan.extraSeat.annualPriceLookupKey;
 }
 //#endregion
 //#region src/billing/checkout.ts
@@ -313,6 +524,14 @@ var PriceNotFoundError = class extends Error {
     this.lookupKey = lookupKey;
   }
 };
+/** Most extra seats one subscription carries, matching app.subscriptions.extra_seats. */
+var MAX_EXTRA_SEATS = 1e4;
+/** Most units of an add-on in one purchase, matching app.addon_purchases.quantity. */
+var MAX_ADDON_QUANTITY = 100;
+function assertCount(value, min, max, what) {
+  if (!Number.isInteger(value) || value < min || value > max)
+    throw new RangeError(`${what} must be a whole number from ${String(min)} to ${String(max)}`);
+}
 /**
  * Resolves a price by lookup key at runtime (ADR 0018), so the same code works in test and live mode.
  * Never creates, edits or archives products or prices.
@@ -328,42 +547,137 @@ async function resolvePriceId(stripe, lookupKey) {
   if (price === void 0) throw new PriceNotFoundError(lookupKey);
   return price.id;
 }
+function customerFields(request) {
+  if (request.customerId !== void 0) return { customer: request.customerId };
+  if (request.customerEmail !== void 0) return { customer_email: request.customerEmail };
+  return {};
+}
 /**
- * Starts Stripe Checkout for a paid plan. The org id travels in the session and subscription metadata,
- * which is how the webhook ties the subscription back to the org. Stripe Tax computes tax and collects
- * VAT and GST ids (Section 16).
+ * Starts Stripe Checkout for a self-serve plan, with extra seats when asked. The org id travels in the
+ * session and subscription metadata, which is how the webhook ties the subscription back to the org.
+ * Promotion codes are accepted, so the founding-customer code applies at checkout (ADR 0035). Stripe
+ * Tax computes tax and collects VAT and GST ids (Section 16). A quoted plan (Enterprise) refuses.
  */
 async function createCheckoutSession(stripe, registry, request) {
-  const price = await resolvePriceId(
-    stripe,
-    lookupKeyFor(registry, request.planCode, request.interval),
-  );
+  const extraSeats = request.extraSeats ?? 0;
+  assertCount(extraSeats, 0, MAX_EXTRA_SEATS, "Extra seats");
+  const lineItems = [
+    {
+      price: await resolvePriceId(
+        stripe,
+        lookupKeyFor(registry, request.planCode, request.interval),
+      ),
+      quantity: 1,
+    },
+  ];
+  if (extraSeats > 0) {
+    const seatPrice = await resolvePriceId(
+      stripe,
+      extraSeatLookupKeyFor(registry, request.planCode, request.interval),
+    );
+    lineItems.push({
+      price: seatPrice,
+      quantity: extraSeats,
+    });
+  }
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
-    line_items: [
-      {
-        price,
-        quantity: 1,
-      },
-    ],
+    line_items: lineItems,
     client_reference_id: request.orgId,
     metadata: { org_id: request.orgId },
     subscription_data: { metadata: { org_id: request.orgId } },
+    allow_promotion_codes: true,
     automatic_tax: { enabled: true },
     tax_id_collection: { enabled: true },
     success_url: request.successUrl,
     cancel_url: request.cancelUrl,
-    ...(request.customerId !== void 0
-      ? { customer: request.customerId }
-      : request.customerEmail !== void 0
-        ? { customer_email: request.customerEmail }
-        : {}),
+    ...customerFields(request),
   });
   if (session.url === null) throw new Error("Stripe returned a checkout session without a URL");
   return {
     sessionId: session.id,
     url: session.url,
   };
+}
+/**
+ * Starts Stripe Checkout for a one-time add-on such as an Aurora request pack (ADR 0035). The org,
+ * add-on and quantity travel in the session metadata; the webhook records the purchase once the
+ * session completes and is paid.
+ */
+async function createAddonCheckoutSession(stripe, registry, request) {
+  const quantity = request.quantity ?? 1;
+  assertCount(quantity, 1, 100, "Quantity");
+  const addon = registry.addons.find((a) => a.code === request.addonCode);
+  if (addon === void 0) throw new Error(`Unknown add-on ${request.addonCode}`);
+  if (!addon.plans.includes(request.planCode))
+    throw new Error(`The ${request.planCode} plan cannot buy ${request.addonCode}`);
+  const price = await resolvePriceId(stripe, addon.priceLookupKey);
+  const metadata = {
+    org_id: request.orgId,
+    addon_code: addon.code,
+    quantity: String(quantity),
+  };
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: [
+      {
+        price,
+        quantity,
+      },
+    ],
+    client_reference_id: request.orgId,
+    metadata,
+    payment_intent_data: { metadata },
+    automatic_tax: { enabled: true },
+    tax_id_collection: { enabled: true },
+    success_url: request.successUrl,
+    cancel_url: request.cancelUrl,
+    ...customerFields(request),
+  });
+  if (session.url === null) throw new Error("Stripe returned a checkout session without a URL");
+  return {
+    sessionId: session.id,
+    url: session.url,
+  };
+}
+/**
+ * Sets the extra seats of an existing subscription (ADR 0035): adds, changes or removes the item of
+ * the plan's extra-seat price, prorated. The webhook then syncs the new quantity to the database, which
+ * raises the seat limit. Returns the quantity Stripe now carries.
+ */
+async function setExtraSeats(stripe, registry, subscriptionId, extraSeats) {
+  assertCount(extraSeats, 0, MAX_EXTRA_SEATS, "Extra seats");
+  const items = (await stripe.subscriptions.retrieve(subscriptionId)).items.data;
+  const plan = planForLookupKey(
+    registry,
+    items.find((i) => planForLookupKey(registry, i.price.lookup_key) !== null)?.price.lookup_key,
+  );
+  if (plan === null) throw new Error(`Subscription ${subscriptionId} carries no plan price`);
+  const seatItem = items.find((i) => extraSeatForLookupKey(registry, i.price.lookup_key) !== null);
+  if (seatItem === void 0 && extraSeats === 0) return 0;
+  const itemUpdate =
+    seatItem === void 0
+      ? {
+          price: await resolvePriceId(
+            stripe,
+            extraSeatLookupKeyFor(registry, plan.planCode, plan.interval),
+          ),
+          quantity: extraSeats,
+        }
+      : extraSeats === 0
+        ? {
+            id: seatItem.id,
+            deleted: true,
+          }
+        : {
+            id: seatItem.id,
+            quantity: extraSeats,
+          };
+  await stripe.subscriptions.update(subscriptionId, {
+    items: [itemUpdate],
+    proration_behavior: "create_prorations",
+  });
+  return extraSeats;
 }
 /** Opens the Stripe Customer Portal for an org's customer (Section 5: Stripe Customer Portal). */
 async function createPortalSession(stripe, customerId, returnUrl) {
@@ -390,15 +704,44 @@ var SUBSCRIPTION_EVENTS = /* @__PURE__ */ new Set([
   "customer.subscription.paused",
   "customer.subscription.resumed",
 ]);
+/** Checkout events that can complete a one-time add-on payment. */
+var PAYMENT_EVENTS = /* @__PURE__ */ new Set([
+  "checkout.session.completed",
+  "checkout.session.async_payment_succeeded",
+]);
 function customerIdOf(customer) {
   if (customer === null) return null;
   return typeof customer === "string" ? customer : customer.id;
 }
+/** The plan, term and extra seats a subscription's items carry, or why it is not a plan subscription. */
+function readSubscriptionItems(registry, subscription) {
+  const items = subscription.items.data;
+  const planItem = items.find((i) => planForLookupKey(registry, i.price.lookup_key) !== null);
+  const match = planForLookupKey(registry, planItem?.price.lookup_key);
+  if (planItem === void 0 || match === null)
+    return { ignore: "The subscription's price is not a plan price" };
+  let extraSeats = 0;
+  for (const item of items) {
+    const seat = extraSeatForLookupKey(registry, item.price.lookup_key);
+    if (seat === null) continue;
+    if (seat.planCode !== match.planCode || seat.interval !== match.interval)
+      return { ignore: "The subscription's extra-seat price belongs to another plan or term" };
+    extraSeats += item.quantity ?? 0;
+  }
+  return {
+    ...match,
+    extraSeats,
+    periodEnd: planItem.current_period_end || null,
+  };
+}
 /**
  * Verifies a Stripe webhook with the SubtleCrypto provider (works in Node and Deno, needs no API key),
- * stores the event once (idempotent ingestion), and applies subscription events through
- * app.sync_subscription_from_stripe. A redelivered event that was applied is a duplicate; one that
- * failed is applied again.
+ * stores the event once (idempotent ingestion), and applies:
+ *   - subscription events through app.sync_subscription_from_stripe, with the plan from the plan
+ *     price's lookup key and the extra seats from the quantity of the plan's extra-seat price
+ *   - completed, paid Checkout sessions for a one-time add-on through
+ *     app.record_addon_purchase_from_stripe (ADR 0035)
+ * A redelivered event that was applied is a duplicate; one that failed is applied again.
  */
 async function handleStripeWebhook(request) {
   if (request.signature === null || request.signature.length === 0)
@@ -417,9 +760,15 @@ async function handleStripeWebhook(request) {
     throw new StripeSignatureError(error instanceof Error ? error.message : String(error));
   }
   const subscription = SUBSCRIPTION_EVENTS.has(event.type) ? event.data.object : null;
-  const customerId = subscription === null ? null : customerIdOf(subscription.customer);
+  const session = PAYMENT_EVENTS.has(event.type) ? event.data.object : null;
+  const customerId =
+    subscription !== null
+      ? customerIdOf(subscription.customer)
+      : session !== null
+        ? customerIdOf(session.customer)
+        : null;
   const orgId =
-    subscription?.metadata["org_id"] ??
+    (subscription ?? session)?.metadata?.["org_id"] ??
     null ??
     (customerId === null ? null : await request.store.orgForCustomer(customerId));
   const recorded = await request.store.recordStripeEvent({
@@ -445,25 +794,54 @@ async function handleStripeWebhook(request) {
   };
   if (event.livemode !== request.livemode)
     return ignore("Event mode does not match the configured key");
-  if (subscription === null || customerId === null) return ignore(`No action for ${event.type}`);
-  if (orgId === null) return ignore("The subscription names no org");
-  const item = subscription.items.data[0];
-  const match = planForLookupKey(request.registry, item?.price.lookup_key);
-  if (item === void 0 || match === null)
-    return ignore("The subscription's price is not a plan price");
+  if (subscription === null && session === null) return ignore(`No action for ${event.type}`);
+  if (orgId === null)
+    return ignore(`The ${subscription ? "subscription" : "payment"} names no org`);
+  let apply;
+  if (subscription !== null) {
+    if (customerId === null) return ignore("The subscription names no customer");
+    const read = readSubscriptionItems(request.registry, subscription);
+    if ("ignore" in read) return ignore(read.ignore);
+    apply = () =>
+      request.store.syncSubscription({
+        orgId,
+        customerId,
+        subscriptionId: subscription.id,
+        planCode: read.planCode,
+        interval: read.interval,
+        status: event.type === "customer.subscription.deleted" ? "canceled" : subscription.status,
+        currentPeriodEnd:
+          read.periodEnd === null ? null : /* @__PURE__ */ new Date(read.periodEnd * 1e3),
+        livemode: event.livemode,
+        extraSeats: read.extraSeats,
+      });
+  } else {
+    const paid = session;
+    if (paid.mode !== "payment")
+      return ignore("Subscription checkouts apply through subscription events");
+    if (paid.payment_status !== "paid") return ignore("The checkout is not paid yet");
+    const addonCode = paid.metadata?.["addon_code"];
+    const addon = request.registry.addons.find((a) => a.code === addonCode) ?? null;
+    if (addon === null) return ignore("The checkout sold no add-on");
+    const quantity = Number(paid.metadata?.["quantity"] ?? "1");
+    if (!Number.isInteger(quantity) || quantity < 1)
+      return ignore("The checkout names no quantity");
+    apply = async () => {
+      await request.store.recordAddonPurchase({
+        orgId,
+        addonCode: addon.code,
+        quantity,
+        checkoutSessionId: paid.id,
+        currency: (paid.currency ?? "usd").toUpperCase(),
+        amountTotalMinor: paid.amount_subtotal ?? paid.amount_total ?? 0,
+        livemode: event.livemode,
+        paidAt: /* @__PURE__ */ new Date(event.created * 1e3),
+      });
+      return "recorded";
+    };
+  }
   try {
-    const state = await request.store.syncSubscription({
-      orgId,
-      customerId,
-      subscriptionId: subscription.id,
-      planCode: match.planCode,
-      interval: match.interval,
-      status: event.type === "customer.subscription.deleted" ? "canceled" : subscription.status,
-      currentPeriodEnd: item.current_period_end
-        ? /* @__PURE__ */ new Date(item.current_period_end * 1e3)
-        : null,
-      livemode: event.livemode,
-    });
+    const state = await apply();
     await request.store.finishStripeEvent(recorded.rowId, null);
     return {
       outcome: "applied",
@@ -9856,6 +10234,10 @@ var platform_default$1 = {
     plan_unknown: "That plan does not exist.",
     plan_limit_exceeded:
       "Your plan's limit is reached. Upgrade the plan or remove something first.",
+    seat_limit_reached:
+      "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    seat_limit_upgrade:
+      "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     plan_feature_required: "Your plan does not include this. Upgrade the plan to use it.",
     import_file_type: "Upload a .csv or .xlsx spreadsheet.",
     import_xls_unsupported:
@@ -10908,6 +11290,10 @@ var profiles_default$1 = {
     sod_self_grant: "You cannot approve your own request or change your own role.",
     plan_limit_exceeded:
       "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+    seat_limit_reached:
+      "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+    seat_limit_upgrade:
+      "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
     not_member: "Choose someone who still belongs to the organization.",
     offboarding_open_records: "Reassign every open record before completing the offboarding.",
     offboarding_completed: "This offboarding is already complete.",
@@ -12664,6 +13050,13 @@ var shell_default$1 = {
     current: "Current plan",
     unlimited: "Unlimited",
     includesPrevious: "Everything in {plan}, plus:",
+    perYear: "{price} a year",
+    seatsIncluded: "{count, plural, one {# seat included} other {# seats included}}",
+    seatsUnlimited: "Unlimited seats",
+    extraSeat: "Extra seats {price} each a month",
+    noExtraSeats: "No extra seats; upgrade to add seats",
+    quoteFrom: "From {price} a month, annual contract",
+    fieldCrewUnlimited: "Unlimited field crew",
     limits: {
       seats: "Seats",
       active_projects: "Active projects",
@@ -12753,6 +13146,10 @@ var shell_default$1 = {
           "Too many attempts. Wait 15 minutes, then open the invitation link again.",
         invite_inviter_inactive:
           "The person who invited you can no longer add members. Ask an admin of the organization for a new invitation.",
+        seat_limit_reached:
+          "This organization has no seat left for your role. Ask its Owner to buy extra seats or upgrade the plan, then open the invitation again.",
+        seat_limit_upgrade:
+          "This organization has no seat left for your role. Ask its Owner to upgrade the plan, then open the invitation again.",
       },
       home: "Go to Atlas",
     },
@@ -12879,6 +13276,10 @@ var shell_default$1 = {
         sole_owner: "An organization keeps at least one Owner. Make someone else Owner first.",
         plan_limit_exceeded:
           "Your plan has no seat left for that role. Choose Viewer or Field, or compare plans.",
+        seat_limit_reached:
+          "All seats on your plan are in use. Buy extra seats in Billing and Plan, or upgrade the plan. Viewer and Field roles never take a seat.",
+        seat_limit_upgrade:
+          "All seats on your plan are in use, and it sells no extra seats. Upgrade the plan in Billing and Plan. Viewer and Field roles never take a seat.",
         not_member: "That membership has already ended.",
         "not-found": "That member or invitation is no longer here. Reload the page.",
         unexpected: "Something went wrong on our side. Try again in a moment.",
@@ -12911,6 +13312,30 @@ var shell_default$1 = {
       choose: "Choose {plan}",
       notAvailable:
         "Paid plans open when billing is connected. Until then every organization stays on Access.",
+      perYear: "{price} a year, two months free",
+      seats: "Seats",
+      seatUsage: "{used} of {limit} seats in use.",
+      seatUsageUnlimited:
+        "{used, plural, one {# seat} other {# seats}} in use. Your plan has unlimited seats.",
+      extraSeats:
+        "{count, plural, one {Includes # extra seat} other {Includes # extra seats}} bought on top of the plan.",
+      grandfathered:
+        "Your subscription started before plans had seat limits, so it keeps unlimited seats. Changing plan applies the new seat limits.",
+      seatsFull:
+        "Every seat is in use. Buy extra seats or upgrade the plan to add members above Field.",
+      seatsFullUpgrade:
+        "Every seat is in use, and your plan sells no extra seats. Upgrade the plan to add members above Field.",
+      buySeats: "Buy extra seats",
+      contactSales: "Talk to sales",
+      auroraPack: {
+        title: "Aurora request packs",
+        body: "{amount} extra Aurora requests for {price}, added to this month's allowance. Packs are for Core, Pro and Team.",
+        buy: "Buy a pack",
+      },
+      foundingOffer:
+        "Founding customers: the first {count} paying organizations get {percent} percent off their first {months} months with code {code}.",
+      pricesInUsd:
+        "Prices in US dollars before tax. EUR, GBP, CAD and AUD prices apply at checkout.",
     },
     organizations: {
       leave: "Leave",
@@ -25793,6 +26218,10 @@ var platform_default = {
     slug_reserved: "Esa dirección web está reservada por la plataforma. Elija otra.",
     plan_unknown: "Ese plan no existe.",
     plan_limit_exceeded: "Se alcanzó el límite de su plan. Mejore el plan o quite algo primero.",
+    seat_limit_reached:
+      "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+    seat_limit_upgrade:
+      "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     plan_feature_required: "Su plan no incluye esto. Mejore el plan para usarlo.",
     import_file_type: "Suba una hoja de cálculo .csv o .xlsx.",
     import_xls_unsupported:
@@ -26886,6 +27315,10 @@ var profiles_default = {
     sod_self_grant: "No puedes aprobar tu propia solicitud ni cambiar tu propio rol.",
     plan_limit_exceeded:
       "Tu plan no tiene plazas para ese rol. Elige lector o campo, o compara planes.",
+    seat_limit_reached:
+      "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+    seat_limit_upgrade:
+      "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     not_member: "Elige a alguien que siga perteneciendo a la organización.",
     offboarding_open_records: "Reasigna todos los registros abiertos antes de completar la salida.",
     offboarding_completed: "Esta salida ya está completa.",
@@ -28683,6 +29116,13 @@ var shell_default = {
     current: "Plan actual",
     unlimited: "Ilimitado",
     includesPrevious: "Todo lo de {plan}, más:",
+    perYear: "{price} al año",
+    seatsIncluded: "{count, plural, one {# asiento incluido} other {# asientos incluidos}}",
+    seatsUnlimited: "Asientos ilimitados",
+    extraSeat: "Asientos adicionales a {price} cada uno al mes",
+    noExtraSeats: "Sin asientos adicionales; mejora el plan para agregar asientos",
+    quoteFrom: "Desde {price} al mes, con contrato anual",
+    fieldCrewUnlimited: "Personal de campo ilimitado",
     limits: {
       seats: "Asientos",
       active_projects: "Proyectos activos",
@@ -28772,6 +29212,10 @@ var shell_default = {
           "Demasiados intentos. Espera 15 minutos y vuelve a abrir el enlace de la invitación.",
         invite_inviter_inactive:
           "La persona que te invitó ya no puede agregar miembros. Pide una nueva invitación a un administrador de la organización.",
+        seat_limit_reached:
+          "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que compre asientos adicionales o mejore el plan, y vuelve a abrir la invitación.",
+        seat_limit_upgrade:
+          "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación.",
       },
       home: "Ir a Atlas",
     },
@@ -28903,6 +29347,10 @@ var shell_default = {
           "Una organización conserva al menos un propietario. Primero nombra a otra persona propietaria.",
         plan_limit_exceeded:
           "Tu plan no tiene asientos libres para ese rol. Elige Observador o Campo, o compara planes.",
+        seat_limit_reached:
+          "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+        seat_limit_upgrade:
+          "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
         not_member: "Esa membresía ya terminó.",
         "not-found": "Ese miembro o invitación ya no está aquí. Recarga la página.",
         unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
@@ -28935,6 +29383,30 @@ var shell_default = {
       choose: "Elegir {plan}",
       notAvailable:
         "Los planes de pago se abren cuando se conecte la facturación. Hasta entonces, todas las organizaciones siguen en Access.",
+      perYear: "{price} al año, dos meses gratis",
+      seats: "Asientos",
+      seatUsage: "{used} de {limit} asientos en uso.",
+      seatUsageUnlimited:
+        "{used, plural, one {# asiento} other {# asientos}} en uso. Tu plan tiene asientos ilimitados.",
+      extraSeats:
+        "{count, plural, one {Incluye # asiento adicional comprado} other {Incluye # asientos adicionales comprados}} además del plan.",
+      grandfathered:
+        "Tu suscripción empezó antes de que los planes tuvieran límite de asientos, así que conserva asientos ilimitados. Cambiar de plan aplica los nuevos límites.",
+      seatsFull:
+        "Todos los asientos están en uso. Compra asientos adicionales o mejora el plan para agregar miembros por encima de Campo.",
+      seatsFullUpgrade:
+        "Todos los asientos están en uso y tu plan no vende asientos adicionales. Mejora el plan para agregar miembros por encima de Campo.",
+      buySeats: "Comprar asientos adicionales",
+      contactSales: "Hablar con ventas",
+      auroraPack: {
+        title: "Paquetes de solicitudes de Aurora",
+        body: "{amount} solicitudes adicionales de Aurora por {price}, sumadas a la asignación de este mes. Los paquetes son para Core, Pro y Team.",
+        buy: "Comprar un paquete",
+      },
+      foundingOffer:
+        "Clientes fundadores: las primeras {count} organizaciones de pago obtienen un {percent} por ciento de descuento durante sus primeros {months} meses con el código {code}.",
+      pricesInUsd:
+        "Precios en dólares estadounidenses antes de impuestos. Los precios en EUR, GBP, CAD y AUD se aplican al pagar.",
     },
     organizations: {
       leave: "Salir",
@@ -34385,8 +34857,22 @@ function billingStore(db) {
         p_stripe_status: input.status,
         p_current_period_end: input.currentPeriodEnd?.toISOString() ?? null,
         p_livemode: input.livemode,
+        p_extra_seats: input.extraSeats,
       });
       return String(state);
+    },
+    async recordAddonPurchase(input) {
+      const id = await db.rpc("record_addon_purchase_from_stripe", {
+        p_org_id: input.orgId,
+        p_addon_code: input.addonCode,
+        p_quantity: input.quantity,
+        p_stripe_checkout_session_id: input.checkoutSessionId,
+        p_currency_code: input.currency,
+        p_amount_total_minor: input.amountTotalMinor,
+        p_livemode: input.livemode,
+        p_paid_at: input.paidAt.toISOString(),
+      });
+      return String(id);
     },
   };
 }
@@ -37596,7 +38082,10 @@ export {
   ATTACHMENT_SCAN_JOB,
   BillingNotConfiguredError,
   CLAMAV_DEFAULT_PORT,
+  MAX_ADDON_QUANTITY,
+  MAX_EXTRA_SEATS,
   MAX_SCAN_ATTEMPTS,
+  NotSelfServeError,
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
@@ -37607,11 +38096,13 @@ export {
   StorageUnavailableError,
   StripeSignatureError,
   ZIP_LIMITS,
+  addonForLookupKey,
   billingEnvSchema,
   billingStore,
   checkContent,
   checkZip,
   clamavScanner,
+  createAddonCheckoutSession,
   createCheckoutSession,
   createLogger,
   createObservability,
@@ -37621,6 +38112,8 @@ export {
   dispatchEmail,
   dispatchWebhooks,
   edgeFunctionName,
+  extraSeatForLookupKey,
+  extraSeatLookupKeyFor,
   gatewayLink,
   handleStripeWebhook,
   identityFromEnv,
@@ -37657,6 +38150,7 @@ export {
   scanStore,
   scannerChoice,
   selectVirusScanner,
+  setExtraSeats,
   signWebhook,
   sniffFamilies,
   stripQuotedText,

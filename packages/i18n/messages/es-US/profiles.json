@@ -24,6 +24,8 @@
     "join_request_decided": "Esta solicitud ya se resolvió o se retiró. Recarga la página.",
     "sod_self_grant": "No puedes aprobar tu propia solicitud ni cambiar tu propio rol.",
     "plan_limit_exceeded": "Tu plan no tiene plazas para ese rol. Elige lector o campo, o compara planes.",
+    "seat_limit_reached": "Todos los asientos de tu plan están en uso. Compra asientos adicionales en Facturación y plan, o mejora el plan. Los roles Observador y Campo nunca ocupan asiento.",
+    "seat_limit_upgrade": "Todos los asientos de tu plan están en uso y el plan no vende asientos adicionales. Mejora el plan en Facturación y plan. Los roles Observador y Campo nunca ocupan asiento.",
     "not_member": "Elige a alguien que siga perteneciendo a la organización.",
     "offboarding_open_records": "Reasigna todos los registros abiertos antes de completar la salida.",
     "offboarding_completed": "Esta salida ya está completa.",

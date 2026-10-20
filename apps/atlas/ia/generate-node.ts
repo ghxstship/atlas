@@ -7,7 +7,9 @@ import {
   GENERATED_PREFIX,
   GENERATED_STAMP,
   generateFiles,
+  parseAddons,
   parseLegalRegistry,
+  parseOffers,
   parsePlanRegistry,
 } from "./generate";
 
@@ -20,10 +22,11 @@ export async function renderGeneratedFiles(): Promise<Map<string, string>> {
   const sitemap = loadSitemapFile(join(appRoot, "ia/sitemap.yaml"));
   const legal = parseLegalRegistry(readFileSync(join(repoRoot, "legal/index.yaml"), "utf8"));
   const out = new Map<string, string>();
-  const plans = parsePlanRegistry(
-    readFileSync(join(repoRoot, "packages/schemas/plans.yaml"), "utf8"),
-  );
-  for (const [path, source] of generateFiles(sitemap, legal, plans)) {
+  const plansYaml = readFileSync(join(repoRoot, "packages/schemas/plans.yaml"), "utf8");
+  const plans = parsePlanRegistry(plansYaml);
+  const addons = parseAddons(plansYaml);
+  const offers = parseOffers(plansYaml);
+  for (const [path, source] of generateFiles(sitemap, legal, plans, addons, offers)) {
     const filepath = join(appRoot, path);
     const options = (await resolveConfig(filepath)) ?? {};
     out.set(path, await format(source, { ...options, filepath }));

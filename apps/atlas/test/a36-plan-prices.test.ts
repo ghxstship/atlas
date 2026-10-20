@@ -1,16 +1,17 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { loadPlanRegistry } from "@xos/schemas/plans";
+import { PLAN_SEED_MIGRATION, loadPlanRegistry } from "@xos/schemas/plans";
 import { describe, expect, it } from "vitest";
 
 /**
- * private.plan_list_prices (migration 1060) mirrors the monthly prices of packages/schemas/plans.yaml,
- * the single source of every plan, so wholesale statements are priced in the database. This test keeps
- * the two identical (the ADR 0026 mirrored-source pattern): a price change in plans.yaml needs a new
- * migration that updates the mirror.
+ * private.plan_list_prices (created in migration 1060) mirrors the monthly prices of
+ * packages/schemas/plans.yaml, the single source of every plan, so wholesale statements are priced in
+ * the database. Since pricing v4 (ADR 0035) the generated plan seed writes the mirror, so a price
+ * change in plans.yaml reaches the database with the next generated seed. This test keeps the two
+ * identical (the ADR 0026 mirrored-source pattern).
  */
 const migration = readFileSync(
-  fileURLToPath(new URL("../../../supabase/migrations/1060_partner_console.sql", import.meta.url)),
+  fileURLToPath(new URL(`../../../${PLAN_SEED_MIGRATION}`, import.meta.url)),
   "utf8",
 );
 
@@ -34,5 +35,12 @@ describe("wholesale list prices", () => {
       }
     }
     expect(mirrored()).toEqual(expected);
+  });
+
+  it("are written by the generated plan seed, after the table exists", () => {
+    expect(PLAN_SEED_MIGRATION > "supabase/migrations/1060_partner_console.sql").toBe(true);
+    expect(migration).toContain(
+      "on conflict (plan_code, currency_code) do update set monthly_minor = excluded.monthly_minor;",
+    );
   });
 });

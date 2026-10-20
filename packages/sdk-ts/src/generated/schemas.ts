@@ -27304,6 +27304,15 @@ export interface Subscription {
    * Subscription status as Stripe reports it; read_only after the grace period.
    */
   readonly subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+  /**
+   * Seats bought above the plan's seat allowance.
+   * Range: 0 to unbounded.
+   */
+  readonly extra_seats: number;
+  /**
+   * True when the subscription keeps unlimited seats from before plans had seat limits, until its plan changes.
+   */
+  readonly seats_grandfathered: boolean;
 }
 
 /**
@@ -37728,7 +37737,7 @@ export interface WholesaleStatement {
    */
   readonly currency_code: string;
   /**
-   * Discount in basis points when the statement ran.
+   * Discount in basis points when the statement ran; agreements default to 3000, the 30 percent of ADR 0035.
    * Range: 0 to unbounded.
    */
   readonly wholesale_discount_bps: number;

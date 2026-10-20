@@ -278,6 +278,7 @@ describe("stores", () => {
         record_stripe_event: () => [{ stripe_event_row_id: "row-1", is_new: true }],
         finish_stripe_event: () => null,
         sync_subscription_from_stripe: () => "active",
+        record_addon_purchase_from_stripe: () => "purchase-1",
       },
       { stripe_events: { processed_at: null }, stripe_subscription_links: { org_id: "org-7" } },
     );
@@ -304,14 +305,34 @@ describe("stores", () => {
         status: "active",
         currentPeriodEnd: null,
         livemode: false,
+        extraSeats: 3,
       }),
     ).resolves.toBe("active");
+    await expect(
+      store.recordAddonPurchase({
+        orgId: "org-7",
+        addonCode: "aurora_requests_1000",
+        quantity: 2,
+        checkoutSessionId: "cs_test_1",
+        currency: "USD",
+        amountTotalMinor: 9800,
+        livemode: false,
+        paidAt: new Date(0),
+      }),
+    ).resolves.toBe("purchase-1");
     expect(calls.map((c) => c.fn)).toEqual([
       "record_stripe_event",
       "finish_stripe_event",
       "sync_subscription_from_stripe",
+      "record_addon_purchase_from_stripe",
     ]);
     expect(calls[2]?.args["p_current_period_end"]).toBeNull();
+    expect(calls[2]?.args["p_extra_seats"]).toBe(3);
+    expect(calls[3]?.args).toMatchObject({
+      p_addon_code: "aurora_requests_1000",
+      p_quantity: 2,
+      p_paid_at: "1970-01-01T00:00:00.000Z",
+    });
   });
 
   it("notification store builds sender links, reply addresses and records outcomes", async () => {

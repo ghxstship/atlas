@@ -17,6 +17,7 @@ test("journey 24: Atlas by keyboard only, through the command menu, J and K, and
   await page.waitForLoadState("networkidle");
 
   // Command menu: one search reaches the records list.
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   await page.keyboard.press("ControlOrMeta+k");
   const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
   await expect(menu).toBeVisible();

@@ -37,6 +37,8 @@ test("journey 51: Hospitality turned off leaves the sidebar and the command menu
 }) => {
   await signIn(page, "admin@example.com");
   const commandFinds = async () => {
+    // The shortcut works once the shell has hydrated and attached it.
+    await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
     await page.keyboard.press("ControlOrMeta+k");
     const dialog = page.getByRole("dialog", { name: "Command menu" });
     await dialog.getByRole("combobox").fill(PAGE);

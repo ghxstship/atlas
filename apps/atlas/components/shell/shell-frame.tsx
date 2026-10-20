@@ -118,7 +118,12 @@ export function ShellFrame(props: ShellFrameProps) {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Marks the document once the shell's shortcuts (command menu, focus mode) work, from hydration on.
+    document.documentElement.dataset["shellReady"] = "";
+    return () => {
+      delete document.documentElement.dataset["shellReady"];
+      window.removeEventListener("keydown", onKey);
+    };
   }, []);
 
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;

@@ -3561,6 +3561,90 @@ export type Database = {
           },
         ];
       };
+      addon_purchases: {
+        Row: {
+          addon_code: string;
+          amount_total_minor: number;
+          applies_month: string;
+          created_at: string;
+          created_by: string | null;
+          currency_code: string;
+          deleted_at: string | null;
+          id: string;
+          livemode: boolean;
+          org_id: string;
+          paid_at: string;
+          quantity: number;
+          stripe_checkout_session_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          addon_code: string;
+          amount_total_minor: number;
+          applies_month: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code: string;
+          deleted_at?: string | null;
+          id?: string;
+          livemode: boolean;
+          org_id: string;
+          paid_at: string;
+          quantity: number;
+          stripe_checkout_session_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          addon_code?: string;
+          amount_total_minor?: number;
+          applies_month?: string;
+          created_at?: string;
+          created_by?: string | null;
+          currency_code?: string;
+          deleted_at?: string | null;
+          id?: string;
+          livemode?: boolean;
+          org_id?: string;
+          paid_at?: string;
+          quantity?: number;
+          stripe_checkout_session_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "addon_purchases_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "addon_purchases_currency_code_fkey";
+            columns: ["currency_code"];
+            isOneToOne: false;
+            referencedRelation: "currencies";
+            referencedColumns: ["currency_code"];
+          },
+          {
+            foreignKeyName: "addon_purchases_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "addon_purchases_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       advance_packets: {
         Row: {
           created_at: string;
@@ -26859,7 +26943,7 @@ export type Database = {
           signed_on: string;
           updated_at?: string;
           updated_by?: string | null;
-          wholesale_discount_bps: number;
+          wholesale_discount_bps?: number;
         };
         Update: {
           created_at?: string;
@@ -41996,9 +42080,11 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          extra_seats: number;
           id: string;
           org_id: string;
           plan_code: string;
+          seats_grandfathered: boolean;
           subscription_state: Database["app"]["Enums"]["subscription_state"];
           updated_at: string;
           updated_by: string | null;
@@ -42008,9 +42094,11 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          extra_seats?: number;
           id?: string;
           org_id: string;
           plan_code: string;
+          seats_grandfathered?: boolean;
           subscription_state: Database["app"]["Enums"]["subscription_state"];
           updated_at?: string;
           updated_by?: string | null;
@@ -42019,9 +42107,11 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          extra_seats?: number;
           id?: string;
           org_id?: string;
           plan_code?: string;
+          seats_grandfathered?: boolean;
           subscription_state?: Database["app"]["Enums"]["subscription_state"];
           updated_at?: string;
           updated_by?: string | null;
@@ -53683,6 +53773,19 @@ export type Database = {
         Returns: string;
       };
       reconcile_project: { Args: { p_note?: string; p_project_id: string }; Returns: string };
+      record_addon_purchase_from_stripe: {
+        Args: {
+          p_addon_code: string;
+          p_amount_total_minor: number;
+          p_currency_code: string;
+          p_livemode: boolean;
+          p_org_id: string;
+          p_paid_at: string;
+          p_quantity: number;
+          p_stripe_checkout_session_id: string;
+        };
+        Returns: string;
+      };
       record_attachment_scan: {
         Args: { p_attachment_version_id: string; p_clean: boolean; p_detail?: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -54219,6 +54322,17 @@ export type Database = {
         };
         Returns: string;
       };
+      seat_usage: {
+        Args: { p_org_id: string };
+        Returns: {
+          extra_seats: number;
+          grandfathered: boolean;
+          plan_seats: number;
+          seat_limit: number;
+          seats_used: number;
+          sells_extra_seats: boolean;
+        }[];
+      };
       send_advance_packet: { Args: { p_packet_id: string }; Returns: string };
       send_agreement: {
         Args: { p_agreement_id: string; p_reason: string; p_valid_for?: string };
@@ -54501,6 +54615,7 @@ export type Database = {
         Args: {
           p_billing_interval: Database["app"]["Enums"]["billing_interval"];
           p_current_period_end: string;
+          p_extra_seats?: number;
           p_livemode: boolean;
           p_org_id: string;
           p_plan_code: string;

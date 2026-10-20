@@ -38,6 +38,8 @@ const KNOWN = new Set([
   "join_request_decided",
   "sod_self_grant",
   "plan_limit_exceeded",
+  "seat_limit_reached",
+  "seat_limit_upgrade",
   "not_member",
   "offboarding_open_records",
   "offboarding_completed",
