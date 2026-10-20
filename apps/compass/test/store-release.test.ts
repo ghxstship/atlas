@@ -488,6 +488,28 @@ describe("purpose strings", () => {
     }
   });
 
+  it("declares Spanish in the iOS bundle and asks for every permission in Spanish too", () => {
+    // Without a Spanish localization in the bundle, iOS reports the app's locale as English and Compass
+    // (which reads the locale through Intl) stays in English on a Spanish iPhone.
+    expect((expo as { locales?: Record<string, string> }).locales).toEqual({
+      es: "./locales/es.json",
+    });
+    expect(infoPlist["CFBundleAllowMixedLocalizations"]).toBe(true);
+    const es = (readJson("locales/es.json") as { ios: Record<string, string> }).ios;
+    for (const key of [
+      "NSCameraUsageDescription",
+      "NSMicrophoneUsageDescription",
+      "NSLocationWhenInUseUsageDescription",
+      "NSLocationAlwaysAndWhenInUseUsageDescription",
+      "NSLocationAlwaysUsageDescription",
+      "NSMotionUsageDescription",
+      "NSFaceIDUsageDescription",
+    ]) {
+      expect(es[key], key).toMatch(/^Compass /);
+    }
+    expect(es["CFBundleDisplayName"]).toBe(expo.name);
+  });
+
   it("asks for no photo library access, because photos come only from the camera", () => {
     const deps = readJson("package.json")["dependencies"] as Record<string, string>;
     expect(deps["expo-image-picker"]).toBeUndefined();

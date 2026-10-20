@@ -6,6 +6,9 @@
     "version": "4.0.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
+    "locales": {
+      "es": "./locales/es.json"
+    },
     "newArchEnabled": true,
     "ios": {
       "bundleIdentifier": "pro.ghxstship.compass",
@@ -15,7 +18,8 @@
         "NSLocationWhenInUseUsageDescription": "Compass checks that you are at the venue when you clock in and pins incident reports to where they happened.",
         "NSFaceIDUsageDescription": "Compass uses Face ID to unlock your work data on this device.",
         "NSMicrophoneUsageDescription": "Compass records voice notes for incident reports when you hold the microphone button.",
-        "NSSupportsLiveActivities": true
+        "NSSupportsLiveActivities": true,
+        "CFBundleAllowMixedLocalizations": true
       },
       "entitlements": {
         "com.apple.security.application-groups": ["group.pro.ghxstship.compass"]

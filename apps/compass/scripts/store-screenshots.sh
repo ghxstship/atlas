@@ -15,11 +15,12 @@
 #      and pass their UDIDs as UDID_69 and UDID_65. Delete them afterwards.
 #   4. Maestro, a JDK 17 (JAVA_HOME) and Pillow for python3.
 #
-#   APP=... UDID_69=... UDID_65=... SUPABASE_PORT=55421 apps/compass/scripts/store-screenshots.sh
+#   APP=... UDID_69=... UDID_65=... SUPABASE_PORT=55421 [LANGUAGES="en-US es-US"] apps/compass/scripts/store-screenshots.sh
 #
 # Maestro's iOS driver listens on a port of the host, which every simulator shares, and it defaults to
-# 7001 for every session. Two sessions on 7001 send each other's taps to the wrong simulator, so this
-# script gives its driver its own port (Maestro's hidden --port option; MAESTRO_PORT, default 7268).
+# 7001 for every session. Two sessions on one port send each other's taps to the wrong simulator, so
+# this script gives each of its simulators a driver port of its own (Maestro's hidden --port option):
+# MAESTRO_PORT (default 7268) for the 6.9-inch simulator and the next port for the 6.5-inch one.
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 compass="$(cd "$here/.." && pwd)"
@@ -60,13 +61,18 @@ status=0
 for run in "en-US en_US en-US en-US" "es-US es_US es-MX es-US"; do
   set -- $run
   language="$1" locale="$2" apple="$3" play="$4"
-  for device in "$UDID_69 APP_IPHONE_67" "$UDID_65 APP_IPHONE_65"; do
-    udid="${device% *}" display="${device#* }"
+  case " ${LANGUAGES:-en-US es-US} " in
+    *" $language "*) ;;
+    *) continue ;;
+  esac
+  for device in "$UDID_69 APP_IPHONE_67 $driver_port" "$UDID_65 APP_IPHONE_65 $((driver_port + 1))"; do
+    set -- $device
+    udid="$1" display="$2" maestro_port="$3"
     out="$work/$language-$display"
     mkdir -p "$out"
     prepare "$udid" "$language" "$locale"
     stage || exit 1
-    (cd "$out" && maestro --port "$driver_port" --device "$udid" test -e XOS_DEMO_PASSWORD="$password" \
+    (cd "$out" && maestro --port "$maestro_port" --device "$udid" test -e XOS_DEMO_PASSWORD="$password" \
       -e SUPABASE_URL="http://127.0.0.1:$port" -e SUPABASE_ANON_KEY="$anon" \
       "$compass/.maestro/store/screenshots.yaml" > "$out/maestro.log" 2>&1)
     code=$?

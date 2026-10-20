@@ -13,11 +13,44 @@ name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
     visible:
       id: "sign-in|tab-bar"
     timeout: 120000
+# A session left by an earlier run signs out through Settings, which wipes the device's data. The second
+# Sign Out confirms when changes still wait to upload; it is optional because sign-out often needs none.
 - runFlow:
     when:
       visible:
         id: "tab-bar"
-    file: ../subflows/sign-out.yaml
+    commands:
+      - repeat:
+          times: 4
+          while:
+            notVisible:
+              id: "more"
+          commands:
+            - tapOn:
+                id: "tab-more"
+            - waitForAnimationToEnd:
+                timeout: 3000
+      - scrollUntilVisible:
+          element:
+            id: "more-settings"
+          direction: DOWN
+          centerElement: true
+      - tapOn:
+          id: "more-settings"
+      - scrollUntilVisible:
+          element:
+            id: "settings-sign-out"
+          direction: DOWN
+      - tapOn:
+          id: "settings-sign-out"
+      - extendedWaitUntil:
+          visible:
+            id: "sign-in"
+          timeout: 5000
+          optional: true
+      - tapOn:
+          id: "settings-sign-out"
+          optional: true
 - extendedWaitUntil:
     visible:
       id: "sign-in"
@@ -102,7 +135,7 @@ name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
 - waitForAnimationToEnd:
     timeout: 3000
 - tapOn:
-    text: "Level 4 - Minor"
+    text: "(Level|Nivel) 4.*"
 - tapOn:
     id: "incident-next"
 - waitForAnimationToEnd:
