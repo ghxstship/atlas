@@ -5,7 +5,7 @@ import { InlineAlert } from "@/components/ui";
 import { choiceLabelKey, formText, pageSettings } from "@/lib/settings/registry";
 import type { OrgContext } from "@/lib/shell/context";
 import { getTranslate } from "@/lib/shell/translate";
-import { SettingField, type SettingFieldProps } from "./setting-field";
+import { SettingsForm, type SettingFieldProps } from "./setting-field";
 
 type Translate = Awaited<ReturnType<typeof getTranslate>>;
 
@@ -63,8 +63,9 @@ function defaultText(def: SettingDefinition): string {
 
 /**
  * The registered settings of one settings page (Section 4.5.6), each showing where its value
- * comes from. On org pages it edits the org value and its lock; on personal pages it edits the
- * person's own value, and a value the org locked shows as locked.
+ * comes from, as one form with one save bar (A59-018). On org pages it edits the org value and its
+ * lock; on personal pages it edits the person's own value, and a value the org locked shows as
+ * locked.
  */
 export async function RegistrySection({
   ctx,
@@ -94,8 +95,6 @@ export async function RegistrySection({
     const own = orgValue.get(def.key);
     const r = resolved.data.get(def.key);
     const common = {
-      org: ctx.org.slug,
-      group,
       def,
       label: t(def.label),
       help: def.help ? t(def.help) : null,
@@ -134,15 +133,12 @@ export async function RegistrySection({
 
   return (
     <section aria-label={t("settings.registryHeading")} className="flex max-w-layout-form flex-col">
-      <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-        {fields.map((f) => (
-          <li key={f.def.key}>
-            {/* Keyed by the saved value: React resets a form after its action, so the
-                controls remount with the new value as their default. */}
-            <SettingField key={`${f.initial}:${String(f.locked)}`} {...f} />
-          </li>
-        ))}
-      </ul>
+      <SettingsForm
+        org={ctx.org.slug}
+        group={group}
+        label={t("settings.registryHeading")}
+        fields={fields}
+      />
     </section>
   );
 }
