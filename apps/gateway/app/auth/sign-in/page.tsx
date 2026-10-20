@@ -5,7 +5,7 @@ import { SignInForm } from "@/components/auth/forms";
 import { ProviderButtons } from "@/components/auth/providers";
 import { PasskeySignInButton } from "@/components/auth/security/passkey-sign-in";
 import { InlineAlert } from "@/components/ui";
-import { authErrorKey } from "@/lib/auth/errors";
+import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,7 +30,9 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
         <p className="m-0 text-text-13 text-text-secondary">{t("signIn.lead")}</p>
       </div>
       {query["signedOut"] === undefined && error ? (
-        <InlineAlert tone="danger">{t(`errors.${error}`)}</InlineAlert>
+        <InlineAlert tone={isAuthNotice(error) ? "info" : "danger"}>
+          {t(`errors.${error}`)}
+        </InlineAlert>
       ) : null}
       <ProviderButtons next={next} />
       <PasskeySignInButton next={next} />

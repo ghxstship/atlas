@@ -20,7 +20,9 @@ describe("content security policy", () => {
     expect(production).toContain("style-src 'self' 'nonce-abc123'");
     expect(production).toContain("object-src 'none'");
     expect(production).toContain("frame-ancestors 'none'");
-    expect(production).toContain("form-action 'self' https://db.example.test");
+    expect(production).toContain(
+      "form-action 'self' https://db.example.test https://accounts.google.com;",
+    );
     expect(production).toContain("upgrade-insecure-requests");
   });
 

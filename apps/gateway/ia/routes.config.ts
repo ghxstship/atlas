@@ -15,6 +15,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
   "/auth/mfa": "Auth template: the second factor after the first, when the person holds one (A77).",
+  "/auth/terms": "Auth template: the Worker Terms for an account a sign-in provider created.",
   "/explore/how-ranking-works": "Public page: the marketplace ranking factors (Section 4.4.3).",
   "/legal/{document}":
     "Public page: the Worker Terms and Privacy Policy that sign-up names (Section 14.4).",
