@@ -106,7 +106,8 @@ test("step-up on a Restricted export: the full org export asks for a second fact
   await expect(dialog).toBeVisible();
   await expectAccessible(page);
   const [download] = await Promise.all([
-    page.waitForEvent("download"),
+    // Setting up the factor, verifying it and building the archive come before the file.
+    page.waitForEvent("download", { timeout: 60_000 }),
     enrollAuthenticator(dialog),
   ]);
   expect(download.suggestedFilename()).toMatch(new RegExp(`^${slug}-export-.*\\.zip$`));

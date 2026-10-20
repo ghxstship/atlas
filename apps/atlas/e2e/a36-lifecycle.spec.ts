@@ -28,7 +28,8 @@ test("journey 39: cancel an org, download the full export, read-only banner", as
   // second factor in the step-up dialog, and the download follows.
   await panel.getByRole("link", { name: "Download the full export" }).click();
   const [download] = await Promise.all([
-    page.waitForEvent("download"),
+    // Setting up the factor, verifying it and building the archive come before the file.
+    page.waitForEvent("download", { timeout: 60_000 }),
     enrollAuthenticator(page.getByRole("dialog", { name: "Set up a second factor" })),
   ]);
   expect(download.suggestedFilename()).toMatch(
