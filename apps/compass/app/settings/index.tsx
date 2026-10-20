@@ -116,6 +116,7 @@ export default function SettingsScreen(): ReactElement {
       </Card>
       {confirmSignOut && queued > 0 ? (
         <InlineAlert
+          testID="settings-sign-out-queued"
           tone="warning"
           message={t("compass.settings.signOutQueued", { count: queued })}
         />
