@@ -67,9 +67,12 @@ export function createNetworkCheck(ttlMs: number, now: () => number = Date.now) 
     entries.delete(key);
     const { data, error } = await db.rpc("network_access", { p_org_id: orgId, p_ip: ip ?? "" });
     if (error !== null) throw new Error(`Cannot check the org's IP allow-list: ${error.message}`);
-    const rows = (data ?? []) as { allowed: boolean }[];
+    const rows = (data ?? []) as { enforced?: boolean; allowed: boolean; covered?: boolean }[];
     const allowed = rows.length === 0 || rows[0]?.allowed === true;
-    if (ttlMs > 0) {
+    // Admitted from outside an enforced list means a break-glass session let the caller in. That
+    // answer is never reused, so the admission ends the moment the session does (A69-009).
+    const byBreakGlass = rows[0]?.enforced === true && allowed && rows[0]?.covered !== true;
+    if (ttlMs > 0 && !byBreakGlass) {
       if (entries.size >= 10_000) entries.clear();
       entries.set(key, { allowed, until: now() + ttlMs });
     }
