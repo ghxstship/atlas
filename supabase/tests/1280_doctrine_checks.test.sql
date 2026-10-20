@@ -54,6 +54,11 @@ select is(
 --   app.scim_identities.groups: group display names as the identity provider sent them (provider payload, ADR 0024)
 --   app.survey_questions.choices, app.training_quiz_questions.options: the ordered answer texts of one question,
 --     reviewed in gate 29 (1042: the quiz key follows its option)
+--   app.person_work_details.dietary_needs and .accessibility_needs, app.work_detail_events.categories and
+--     app.work_detail_shares.categories: sets of enum values, each once in enum order (1340), never identifiers;
+--     app.work_detail_events.changed_columns: the column names an edit changed, for the person's own access log
+--     (1340), never values. Added by A71 when 1340 and this check first met on batch-c; A78 and the owner of this
+--     check confirm or replace these with junction tables.
 select is(
   (select coalesce(string_agg(n.nspname || '.' || c.relname || '.' || a.attname, ', ' order by n.nspname, c.relname, a.attnum), '')
    from pg_attribute a
@@ -66,9 +71,14 @@ select is(
      and (n.nspname || '.' || c.relname || '.' || a.attname) not in (
        'app.api_keys.scopes',
        'app.oauth_grants.scopes',
+       'app.person_work_details.dietary_needs',
+       'app.person_work_details.accessibility_needs',
        'app.scim_identities.groups',
        'app.survey_questions.choices',
-       'app.training_quiz_questions.options')),
+       'app.training_quiz_questions.options',
+       'app.work_detail_events.categories',
+       'app.work_detail_events.changed_columns',
+       'app.work_detail_shares.categories')),
   '', 'every array column in a table is a reviewed exception (Section 3.15 schema lint)');
 
 select * from finish();
