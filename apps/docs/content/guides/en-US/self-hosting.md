@@ -72,7 +72,7 @@ Migrations are forward-only. Apply them before you deploy apps that need them.
 | Setting                  | Value                                                                                                                                                                |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Site URL                 | The Atlas origin, for example `https://atlas.example.com`                                                                                                            |
-| Redirect URLs            | The Atlas and Gateway origins, plus each custom Gateway domain                                                                                                       |
+| Redirect URLs            | `https://<origin>/auth/callback**` for the Atlas and Gateway origins and each custom Gateway domain; the `**` lets the query string through                          |
 | Custom access token hook | Postgres function `private.custom_access_token_hook` (it writes the active organization claim)                                                                       |
 | Password policy          | Minimum length 12, letters and digits, leaked password protection on                                                                                                 |
 | MFA                      | TOTP and WebAuthn enroll and verify on; the WebAuthn relying party is your registrable domain                                                                        |

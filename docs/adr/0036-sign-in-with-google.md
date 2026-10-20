@@ -18,6 +18,7 @@ The owner's remaining work should be creating the Google OAuth clients and enter
    - The provider button posts to the `signInWithProvider` server action. It refuses a provider that Supabase Auth does not report as enabled, then calls `signInWithOAuth({ provider: "google" })` on the server client from `@supabase/ssr`. That client uses PKCE: the code verifier is kept in an httpOnly, SameSite=Lax cookie, and only its SHA-256 goes to `/auth/v1/authorize`.
    - Google is asked for its account chooser (`prompt=select_account`), so a person with several Google accounts picks the one an invitation was sent to.
    - The return address is `<site>/auth/callback?next=<path>&provider=google`. `next` is the existing allow-list: `safeNext` keeps only same-site relative paths, so there is no open redirect. Invitation tokens (`/auth/invite/<token>`), the Gateway claim step and org pages travel in `next` and survive the round trip, including a failed one.
+   - Supabase Auth accepts that address only when it matches the redirect allow-list as a whole, query string included (checked on a local Supabase Auth v2.197.0). The hosted entries are therefore `https://<origin>/auth/callback**`; an exact `.../auth/callback` entry sends a Gateway sign-in to the Site URL instead (`promote-to-production.md`, step 5, now says so). The second check, on our side, is `safeNext`.
    - `/auth/callback` exchanges the code (with `sb_flow_id` when auth-js adds it) and sets the session cookies. Its redirects use a relative Location: Next names a loopback host `localhost` in `request.url`, and an absolute redirect moved a person signed in on 127.0.0.1 to localhost without their new cookie.
    - Atlas's root page forwards a code or an error that fell back to Supabase Auth's Site URL to `/auth/callback`.
    - The CSP's `form-action` allows `https://accounts.google.com`. Without JavaScript the form posts natively, and browsers check `form-action` on every redirect of that navigation. Apple and Microsoft need their own origin there when they are turned on.
@@ -44,6 +45,7 @@ The owner's remaining work should be creating the Google OAuth clients and enter
    - `supabase/tests/1310_google_sign_in.test.sql` writes the rows Supabase Auth writes for a Google sign-up and for a link, and checks the outcome described here.
 
 6. **The bootstrap is the email sign-up's.** A first Google sign-in inserts into `auth.users`, so `private.handle_new_auth_user` creates the person, taking `full_name` from Google's claims. Without `next`, `/` sends a person with no organization to `/auth/organization`, where the Owner creates the org and accepts the Terms of Service and the DPA. Invitations, verified-domain joins and the custom access token hook (the active `org_id` claim) work the same, since none of them looks at the sign-in method. No migration was needed.
+   - **Gateway's Worker Terms.** A person creating a Gateway account accepts the Worker Terms before the account exists (finding A59-025): the sign-up form keeps the acceptance in the new user's metadata and the first session writes it to `app.legal_acceptances`. Google creates the account before any form, so `/auth/callback` sends an account that comes back from a provider without an accepted Worker Terms (and none waiting in its metadata) to `/auth/terms`, which shows the same box, writes the acceptance through `app.record_legal_acceptances` and continues to `next`. An existing account without an acceptance is asked the same way the first time it uses Google on Gateway.
 
 7. **Org sign-in policy: there is none to enforce today.** Orgs can register a SAML or OIDC identity provider for just-in-time joins and SCIM (`app.identity_providers`, migration 0638), but no setting lets an org require single sign-on or restrict sign-in methods, and no app offers SSO sign-in yet. Google sign-in is therefore allowed for every org. The `sso_required` message exists so that an enforcement, when it is built, reports through the same path; `sso_session_required` from `app.join_by_sso` maps to it.
 
@@ -62,11 +64,14 @@ The owner's remaining work should be creating the Google OAuth clients and enter
 ## Consequences
 
 - People can sign in to Atlas, Gateway and Compass with Google once the owner creates the clients. Until then nothing changes in production: the provider is off in the hosted project, so no button appears.
-- Every local stack and CI shows the Google button on sign-in and sign-up. Gate 6 journeys (`google-sign-in.spec.ts` in Atlas and Gateway) check the authorize request, the error states and axe. They stop the browser at `/auth/v1/authorize` with `page.route`. `page.route` does not see the hops of a redirect, so the no-JavaScript journey sends the form's POST itself and never lets the browser follow the redirect.
+- Every local stack and CI shows the Google button on sign-in and sign-up. Gate 6 journeys (`google-sign-in.spec.ts` in Atlas and Gateway) check the authorize request, the error states, Gateway's Worker Terms step and axe. They stop the browser at `/auth/v1/authorize` with `page.route`. `page.route` does not see the hops of a redirect, so the no-JavaScript journey sends the form's POST itself and never lets the browser follow the redirect.
 - Unit tests run the real `@supabase/ssr` client against an in-memory cookie jar: the challenge is the SHA-256 of the stored verifier, and the callback exchanges with it and sets the session cookie.
 - The privacy policy draft names "You" as the source of account data; Google becomes a source when a person signs in with it. That text is the owner's and the legal track's to update.
 
 ## Follow-ups
+
+- The Worker Terms step is a page, not a gate: a person who leaves it stays signed in without an acceptance and is asked again at their next Google sign-in on Gateway. Holding every Gateway page until the acceptance exists would close that.
+- Compass creates accounts without the Worker Terms, by email link as before and now by Google; Compass has no acceptance step yet.
 
 - Magic links started on an org's custom Gateway domain have the same return-host problem as OAuth (decision 2) and are not changed here.
 - Apple and Microsoft: the same buttons, callback and messages apply; each needs its brand mark, its CSP origin and its own owner setup.
