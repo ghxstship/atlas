@@ -40,7 +40,16 @@
     "emailInvalid": "Escribe un correo como nombre@example.com.",
     "network": "Compass no llega al servidor. Conéctate a una red e inicia sesión.",
     "identityTitle": "Tu acceso no cargó",
-    "identity": "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación."
+    "identity": "Compass no pudo leer {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+    "identitySteps": {
+      "person": "tu perfil",
+      "memberships": "tus membresías",
+      "roles": "tus roles",
+      "capabilities": "tus permisos",
+      "projects": "tus proyectos",
+      "engagements": "tus contrataciones",
+      "access": "tu acceso"
+    }
   },
   "denial": {
     "roleTitle": "No es parte de tu rol",

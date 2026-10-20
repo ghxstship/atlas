@@ -40,7 +40,16 @@
     "emailInvalid": "Enter an email address such as name@example.com.",
     "network": "Compass cannot reach the server. Connect to a network, then sign in.",
     "identityTitle": "Your access did not load",
-    "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation."
+    "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
+    "identitySteps": {
+      "person": "profile",
+      "memberships": "memberships",
+      "roles": "roles",
+      "capabilities": "permissions",
+      "projects": "projects",
+      "engagements": "engagements",
+      "access": "access"
+    }
   },
   "denial": {
     "roleTitle": "Not part of your role",

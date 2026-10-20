@@ -21,6 +21,7 @@ import {
   ContinuousScan,
   custodyBlocked,
   decideGate,
+  gateScanTitle,
   resolveAsset,
   type AccessGridRow,
   type AssetIdentifierRow,
@@ -295,8 +296,8 @@ function LiveScan({
         ok: decision.result === "Granted",
         title:
           decision.result === "Granted"
-            ? `${t("compass.scan.granted")} · ${decision.credential.holder_name ?? ""}`
-            : `${t("compass.scan.denied")} · ${t(DENY_KEY[decision.reason])}`,
+            ? gateScanTitle(t("compass.scan.granted"), decision.credential.holder_name)
+            : gateScanTitle(t("compass.scan.denied"), t(DENY_KEY[decision.reason])),
         code: code.credentialNumber,
       });
       if (decision.credential)

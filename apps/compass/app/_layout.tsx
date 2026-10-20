@@ -72,7 +72,12 @@ function Gatekeeper(): ReactElement {
       <Screen testID="identity-failed">
         <ErrorState
           title={t("compass.signIn.identityTitle")}
-          sentence={t("compass.signIn.identity", { step: phase.step })}
+          sentence={t("compass.signIn.identity", {
+            // The step is named in the person's language, never as the code's word for it (A68: "tu person").
+            step: t(`compass.signIn.identitySteps.${phase.step}`, {
+              defaultValue: t("compass.signIn.identitySteps.access"),
+            }),
+          })}
           reference={phase.message}
           actionLabel={t("compass.common.retry")}
           onRetry={retryIdentity}
