@@ -243,7 +243,8 @@ export async function labelActivity(
   }
   for (const a of approvals) {
     const reference = text(a["subject_reference"]);
-    if (reference) labels.set(String(a["id"]), reference);
+    const kind = text(a["document_type"]);
+    if (reference) labels.set(String(a["id"]), kind ? `${kind} ${reference}` : reference);
   }
   return entries.map((e) => {
     if (e.recordKey) return e;

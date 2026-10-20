@@ -172,7 +172,7 @@ describe("labelActivity (A59-030)", () => {
       ["NWS-17", "Stagehand · Load-in", null],
       [null, null, "CR-000003 · Demo Field Tech"],
       [null, null, "Demo Crew Member"],
-      [null, null, "PO-44"],
+      [null, null, "Purchase Order PO-44"],
       [null, null, "atlas.example.com"],
       ["NWS-1", "Kickoff", null],
       [null, null, "Stagehand"],
