@@ -127,7 +127,12 @@ export async function TemplatesView({
               <h2 id="create-template-title" className="m-0 text-heading-16 font-semibold">
                 {t("templates.create.title")}
               </h2>
-              <CreateTemplateForm org={org} zones={zones} currencies={currencyCodes} />
+              <CreateTemplateForm
+                org={org}
+                zones={zones}
+                currencies={currencyCodes}
+                primary={current === null}
+              />
             </section>
           ) : null}
           {canEdit && projects.data.length > 0 ? (
@@ -204,7 +209,9 @@ function ItemList({
                   })
                 : t("templates.items.recordLine", {
                     kind: i.recordKind ?? "",
-                    phase: i.phaseCode ?? t("templates.items.noPhase"),
+                    phase: i.phaseCode
+                      ? t("templates.items.phase", { code: i.phaseCode })
+                      : t("templates.items.phaseNone"),
                     due:
                       i.dueOffsetDays === null
                         ? t("templates.items.noDue")
@@ -335,7 +342,11 @@ function TemplateDetail({
                 recordKinds={recordKinds}
                 phases={phases}
               />
-              <PublishButton org={org} versionId={draft.id} />
+              <PublishButton
+                org={org}
+                versionId={draft.id}
+                primary={!(published && canCreateProject)}
+              />
             </>
           ) : (
             <>

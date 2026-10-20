@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ScrollRegion } from "@/components/ui";
+import { Button, ScrollRegion, Select } from "@/components/ui";
 import { CollectionViews } from "@/components/views/collection-views";
 
 /**
@@ -64,28 +64,18 @@ export function FilterBar({
       {Object.entries(keep).map(([name, value]) =>
         value === undefined ? null : <input key={name} type="hidden" name={name} value={value} />,
       )}
+      {/* The same Select and Button as every other filter bar (A59-029). */}
       {fields.map((f) => (
-        <label key={f.name} className="flex flex-col gap-4 text-text-12 text-text-secondary">
-          {f.label}
-          <select
+        <div key={f.name} className="w-(--ui-field) max-w-full">
+          <Select
             name={f.name}
-            defaultValue={f.value}
-            className="min-h-control-sm rounded-control border border-border-control bg-bg-surface px-8 text-text-13 text-text-primary"
-          >
-            {f.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            label={f.label}
+            value={f.value}
+            options={f.options.map((o) => ({ value: o.value, label: o.label }))}
+          />
+        </div>
       ))}
-      <button
-        type="submit"
-        className="min-h-control-sm rounded-control border border-border-control bg-bg-surface px-12 text-label-13 text-text-primary hover:bg-bg-hover"
-      >
-        {submitLabel}
-      </button>
+      <Button type="submit">{submitLabel}</Button>
     </form>
   );
 }
