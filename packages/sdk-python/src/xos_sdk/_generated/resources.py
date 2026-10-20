@@ -461,6 +461,10 @@ if TYPE_CHECKING:
         ElementResolution,
         EmergencyCode,
         EmergencyCodePage,
+        EmergencyContact,
+        EmergencyContactCreate,
+        EmergencyContactPage,
+        EmergencyContactUpdate,
         Engagement,
         EngagementCreate,
         EngagementDocument,
@@ -674,6 +678,10 @@ if TYPE_CHECKING:
         LostFoundItemPage,
         LostFoundItemUpdate,
         LostItemClaimRequest,
+        LoyaltyProgram,
+        LoyaltyProgramCreate,
+        LoyaltyProgramPage,
+        LoyaltyProgramUpdate,
         MarkAllReadResult,
         MarkConversationReadRequest,
         MarketplaceListingPage,
@@ -785,6 +793,8 @@ if TYPE_CHECKING:
         OrganizationUpdate,
         OvertimeRule,
         OvertimeRulePage,
+        PassportReveal,
+        PassportRevealRequest,
         PayPeriod,
         PayPeriodCreate,
         PayPeriodPage,
@@ -1085,6 +1095,7 @@ if TYPE_CHECKING:
         SettingValuePage,
         SettingValueUpdate,
         SettleClaimRequest,
+        SharedWorkDetails,
         Shift,
         ShiftCreate,
         ShiftPage,
@@ -1340,6 +1351,16 @@ if TYPE_CHECKING:
         WholesaleBillingRequest,
         WholesaleStatement,
         WholesaleStatementPage,
+        WorkDetailEvent,
+        WorkDetailEventPage,
+        WorkDetailShare,
+        WorkDetailShareCreate,
+        WorkDetailSharePage,
+        WorkDetailShareUpdate,
+        WorkDetails,
+        WorkDetailsCreate,
+        WorkDetailsPage,
+        WorkDetailsUpdate,
         WorkOrder,
         WorkOrderBid,
         WorkOrderBidCreate,
@@ -31896,6 +31917,526 @@ class AiUsageResource(Resource):
         Requires the capability ``org.usage.read``.
         """
         return self._client.paginate(OPERATIONS["aiUsage.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+
+class WorkDetailsResource(Resource):
+    """Operations on ``workDetails``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WorkDetails]:
+        """List work details rows
+
+        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /work-details`` (operation ``workDetails.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request_page(OPERATIONS["workDetails.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WorkDetails]:
+        """List work details rows
+
+        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /work-details`` (operation ``workDetails.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.paginate(OPERATIONS["workDetails.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WorkDetailsCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetails]:
+        """Create a work details
+
+        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /work-details`` (operation ``workDetails.create``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetails.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetails]:
+        """Get a work details
+
+        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.
+
+        ``GET /work-details/{id}`` (operation ``workDetails.get``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetails.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: WorkDetailsUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetails]:
+        """Update a work details
+
+        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /work-details/{id}`` (operation ``workDetails.update``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetails.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a work details
+
+        The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /work-details/{id}`` (operation ``workDetails.delete``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetails.delete"], path={"id": id}, options=options)
+
+    def reveal_passport(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PassportReveal]:
+        """Reveal the caller's passport number
+
+        Returns the caller's own passport number in plain text through `app.reveal_my_passport_number`. Every reveal is written to the person's access log. 422 passport_number_missing when none is recorded. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /work-details/{id}/reveal-passport`` (operation ``workDetails.revealPassport``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetails.revealPassport"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class EmergencyContactsResource(Resource):
+    """Operations on ``emergencyContacts``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[EmergencyContact]:
+        """List emergency contact rows
+
+        One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns a cursor page of emergency contact rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /emergency-contacts`` (operation ``emergencyContacts.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request_page(OPERATIONS["emergencyContacts.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[EmergencyContact]:
+        """List emergency contact rows
+
+        One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns a cursor page of emergency contact rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /emergency-contacts`` (operation ``emergencyContacts.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.paginate(OPERATIONS["emergencyContacts.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: EmergencyContactCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EmergencyContact]:
+        """Create an emergency contact
+
+        One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Creates an emergency contact. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /emergency-contacts`` (operation ``emergencyContacts.create``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["emergencyContacts.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EmergencyContact]:
+        """Get an emergency contact
+
+        One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns one emergency contact with its `ETag`. A emergency contact the caller may not see returns 404.
+
+        ``GET /emergency-contacts/{id}`` (operation ``emergencyContacts.get``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["emergencyContacts.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: EmergencyContactUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[EmergencyContact]:
+        """Update an emergency contact
+
+        One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /emergency-contacts/{id}`` (operation ``emergencyContacts.update``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["emergencyContacts.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete an emergency contact
+
+        One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Soft-deletes the emergency contact: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /emergency-contacts/{id}`` (operation ``emergencyContacts.delete``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["emergencyContacts.delete"], path={"id": id}, options=options)
+
+
+class LoyaltyProgramsResource(Resource):
+    """Operations on ``loyaltyPrograms``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[LoyaltyProgram]:
+        """List loyalty program rows
+
+        A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns a cursor page of loyalty program rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /loyalty-programs`` (operation ``loyaltyPrograms.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request_page(OPERATIONS["loyaltyPrograms.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[LoyaltyProgram]:
+        """List loyalty program rows
+
+        A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns a cursor page of loyalty program rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /loyalty-programs`` (operation ``loyaltyPrograms.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.paginate(OPERATIONS["loyaltyPrograms.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: LoyaltyProgramCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LoyaltyProgram]:
+        """Create a loyalty program
+
+        A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Creates a loyalty program. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /loyalty-programs`` (operation ``loyaltyPrograms.create``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["loyaltyPrograms.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LoyaltyProgram]:
+        """Get a loyalty program
+
+        A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns one loyalty program with its `ETag`. A loyalty program the caller may not see returns 404.
+
+        ``GET /loyalty-programs/{id}`` (operation ``loyaltyPrograms.get``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["loyaltyPrograms.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: LoyaltyProgramUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[LoyaltyProgram]:
+        """Update a loyalty program
+
+        A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /loyalty-programs/{id}`` (operation ``loyaltyPrograms.update``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["loyaltyPrograms.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a loyalty program
+
+        A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Soft-deletes the loyalty program: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /loyalty-programs/{id}`` (operation ``loyaltyPrograms.delete``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["loyaltyPrograms.delete"], path={"id": id}, options=options)
+
+
+class WorkDetailSharesResource(Resource):
+    """Operations on ``workDetailShares``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WorkDetailShare]:
+        """List work detail share rows
+
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /work-detail-shares`` (operation ``workDetailShares.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request_page(OPERATIONS["workDetailShares.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WorkDetailShare]:
+        """List work detail share rows
+
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /work-detail-shares`` (operation ``workDetailShares.list``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.paginate(OPERATIONS["workDetailShares.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: WorkDetailShareCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetailShare]:
+        """Create a work detail share
+
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+
+        ``POST /work-detail-shares`` (operation ``workDetailShares.create``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetailShares.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetailShare]:
+        """Get a work detail share
+
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.
+
+        ``GET /work-detail-shares/{id}`` (operation ``workDetailShares.get``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["workDetailShares.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def update(
+        self,
+        id: str,
+        body: WorkDetailShareUpdate,
+        *,
+        if_match: str,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetailShare]:
+        """Update a work detail share
+
+        The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+
+        ``PATCH /work-detail-shares/{id}`` (operation ``workDetailShares.update``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetailShares.update"], path={"id": id}, body=body, if_match=if_match, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[WorkDetailShare]:
+        """Revoke a work details share
+
+        Ends the share at once through `app.revoke_work_detail_share`; the org reads nothing more, and its work_details_sharing consent is withdrawn when this was its last live share. Only the person who gave it revokes it (422 work_detail_share_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /work-detail-shares/{id}/revoke`` (operation ``workDetailShares.revoke``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request(OPERATIONS["workDetailShares.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def details(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[SharedWorkDetails]:
+        """Read what the share's person shared
+
+        For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``GET /work-detail-shares/{id}/details`` (operation ``workDetailShares.details``).
+        Requires the capability ``opportunities.engagement.read``.
+        """
+        return self._client.request(OPERATIONS["workDetailShares.details"], path={"id": id}, options=options)
+
+    def reveal_passport(
+        self,
+        id: str,
+        body: PassportRevealRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PassportReveal]:
+        """Reveal a shared passport number
+
+        For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /work-detail-shares/{id}/reveal-passport`` (operation ``workDetailShares.revealPassport``).
+        Requires the capability ``data.restricted.read.government_id``.
+        """
+        return self._client.request(OPERATIONS["workDetailShares.revealPassport"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+
+class WorkDetailEventsResource(Resource):
+    """Operations on ``workDetailEvents``, in the Identity module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[WorkDetailEvent]:
+        """List work detail event rows
+
+        One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org. Returns a cursor page of work detail event rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /work-detail-events`` (operation ``workDetailEvents.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.request_page(OPERATIONS["workDetailEvents.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[WorkDetailEvent]:
+        """List work detail event rows
+
+        One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org. Returns a cursor page of work detail event rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /work-detail-events`` (operation ``workDetailEvents.list``).
+        Requires the capability ``me.work_details.write``.
+        """
+        return self._client.paginate(OPERATIONS["workDetailEvents.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
 
 
 class SavedViewSharesResource(Resource):
