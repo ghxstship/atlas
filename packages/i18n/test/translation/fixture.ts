@@ -1,10 +1,11 @@
 /**
- * A throwaway repository for pipeline tests, and a fake transport that "translates" without any
+ * A throwaway repository for pipeline tests (removed when the test finishes), and a fake transport that "translates" without any
  * network: text outside frozen spans goes through a word list, and every call is recorded.
  */
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { onTestFinished } from "vitest";
 import { loadSetup, type Setup } from "../../src/translation/config.ts";
 import type { Context } from "../../src/translation/pipeline.ts";
 import type { TranslateBatch, Transport } from "../../src/translation/transport.ts";
@@ -169,6 +170,7 @@ export interface Repo {
 
 export function makeRepo(files: Record<string, string | object> = {}): Repo {
   const root = mkdtempSync(join(tmpdir(), "xos-i18n-"));
+  onTestFinished(() => rmSync(root, { recursive: true, force: true }));
   const write = (path: string, content: string | object) => {
     const full = join(root, path);
     mkdirSync(dirname(full), { recursive: true });
