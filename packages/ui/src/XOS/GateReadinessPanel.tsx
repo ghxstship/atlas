@@ -78,13 +78,20 @@ export function GateReadinessPanel({
           ))}
         </ul>
       </div>
-      <footer className={cx(cardFootClass, "justify-between")}>
+      {/* On a narrow card the action takes its own full-width line under the count (A59-023). */}
+      <footer className={cx(cardFootClass, "justify-between flex-wrap")}>
         <span className="text-text-secondary" aria-live="polite">
           {blockers
             ? t(blockers === 1 ? "gate.openOne" : "gate.openMany", { n: blockers })
             : t("gate.allMet")}
         </span>
-        <Button variant="primary" disabled={blockers > 0} shortcut="⌘↵" onClick={onAdvance}>
+        <Button
+          variant="primary"
+          disabled={blockers > 0}
+          shortcut="⌘↵"
+          onClick={onAdvance}
+          className="max-sm:w-full"
+        >
           {nextLabel}
         </Button>
       </footer>

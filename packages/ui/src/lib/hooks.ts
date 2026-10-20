@@ -1,4 +1,39 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+
+/**
+ * Whether a media query matches. Server rendering and hydration see false, so a layout that switches
+ * on it renders the wide markup first and swaps after hydration.
+ */
+export function useMediaQuery(query: string): boolean {
+  const subscribe = useCallback(
+    (onChange: () => void) => {
+      if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return () => undefined;
+      }
+      const list = window.matchMedia(query);
+      list.addEventListener("change", onChange);
+      return () => list.removeEventListener("change", onChange);
+    },
+    [query],
+  );
+  const matches = useCallback(
+    () => typeof window.matchMedia === "function" && window.matchMedia(query).matches,
+    [query],
+  );
+  return useSyncExternalStore(subscribe, matches, () => false);
+}
+
+/** True below md (48rem, a phone). */
+export function useNarrow(): boolean {
+  return useMediaQuery("(max-width: 47.999rem)");
+}
 
 /** State that a parent may control (`value` given) or leave to the component (`defaultValue`). */
 export function useControllable<T>(

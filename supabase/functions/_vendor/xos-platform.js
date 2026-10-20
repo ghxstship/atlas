@@ -7576,7 +7576,7 @@ var incidents_default$1 = {
   anySeverity: "Any severity",
   anyState: "Any state",
   arrivedAt: "Arrived {time}",
-  boardEmpty: "None",
+  boardEmpty: "No incidents in this state.",
   close: "Close with sign-off",
   closeHeading: "Close",
   closeHelp:
@@ -11738,6 +11738,8 @@ var projects_default$1 = {
     scope: "Scope",
     wholeProject: "Whole project",
     archived: "Archived",
+    more: "More",
+    moreTabs: "More tabs",
   },
   states: {
     Proposed: "Proposed",
@@ -12551,11 +12553,17 @@ var schedule_default$1 = {
 };
 var settings_default$1 = {
   choose: "Choose an option",
-  lock: "Lock this value so workspaces, projects and people cannot change it",
+  lock: "Workspaces, projects and people cannot change a locked value.",
   save: "Save",
   saved: "Saved.",
   inherit: "Use the inherited value",
   reset: "Reset to the platform default",
+  undoReset: "Keep this value",
+  resetPending: "Resets to the platform default when you save.",
+  inheritPending: "Uses the inherited value when you save.",
+  lockValue: "Lock value",
+  discard: "Discard",
+  unsaved: "{count, plural, one {# unsaved change} other {# unsaved changes}}",
   loadFailed: "These settings could not be loaded. Reload the page to try again.",
   registryHeading: "Settings on this page",
   personalSections: "Personal settings sections",
@@ -14428,6 +14436,7 @@ var ui_default$1 = {
   tabbar: { badge: "{n} new" },
   table: {
     resizeColumn: "Resize column {column}",
+    row: "Row {n}",
     total: "Total",
   },
   timeline: {
@@ -15848,7 +15857,9 @@ var workflow_default$1 = {
       label: "Items",
       none: "No items yet.",
       nodeLine: "{kind} scope node, code suffix {suffix}",
-      recordLine: "{kind} record · phase {phase} · {due}",
+      recordLine: "{kind} record · {phase} · {due}",
+      phase: "Phase",
+      phaseNone: "no phase",
       noPhase: "No phase",
       noDue: "no due date",
       dueIn:
@@ -15878,7 +15889,6 @@ var workflow_default$1 = {
         Y: "Y: process",
         Z: "Z: timeline",
       },
-      phase: "Phase",
       dueOffset: "Due, days after the start",
       dueOffsetHelp: "Leave blank for no due date; use a negative number for before the start.",
       remove: "Remove",
@@ -23702,7 +23712,7 @@ var incidents_default = {
   anySeverity: "Cualquier gravedad",
   anyState: "Cualquier estado",
   arrivedAt: "Llegó {time}",
-  boardEmpty: "Ninguno",
+  boardEmpty: "Ningún incidente en este estado.",
   close: "Cerrar con aprobación",
   closeHeading: "Cerrar",
   closeHelp:
@@ -27990,6 +28000,8 @@ var projects_default = {
     scope: "Alcance",
     wholeProject: "Todo el proyecto",
     archived: "Archivado",
+    more: "Más",
+    moreTabs: "Más pestañas",
   },
   states: {
     Proposed: "Propuesto",
@@ -28828,11 +28840,17 @@ var schedule_default = {
 };
 var settings_default = {
   choose: "Elige una opción",
-  lock: "Bloquear este valor para que espacios de trabajo, proyectos y personas no puedan cambiarlo",
+  lock: "Los espacios de trabajo, proyectos y personas no pueden cambiar un valor bloqueado.",
   save: "Guardar",
   saved: "Guardado.",
   inherit: "Usar el valor heredado",
   reset: "Restablecer al valor de la plataforma",
+  undoReset: "Mantener este valor",
+  resetPending: "Vuelve al valor de la plataforma cuando guardes.",
+  inheritPending: "Usa el valor heredado cuando guardes.",
+  lockValue: "Bloquear valor",
+  discard: "Descartar",
+  unsaved: "{count, plural, one {# cambio sin guardar} other {# cambios sin guardar}}",
   loadFailed: "No se pudieron cargar estos ajustes. Recarga la página para intentarlo de nuevo.",
   registryHeading: "Ajustes de esta página",
   personalSections: "Secciones de ajustes personales",
@@ -30732,6 +30750,7 @@ var ui_default = {
   tabbar: { badge: "{n} nuevos" },
   table: {
     resizeColumn: "Cambiar el ancho de la columna {column}",
+    row: "Fila {n}",
     total: "Total",
   },
   timeline: {
@@ -32197,7 +32216,9 @@ var workflow_default = {
       label: "Elementos",
       none: "Aún no hay elementos.",
       nodeLine: "Nodo de alcance {kind}, sufijo de código {suffix}",
-      recordLine: "Registro {kind} · fase {phase} · {due}",
+      recordLine: "Registro {kind} · {phase} · {due}",
+      phase: "Fase",
+      phaseNone: "sin fase",
       noPhase: "Sin fase",
       noDue: "sin fecha de vencimiento",
       dueIn:
@@ -32227,7 +32248,6 @@ var workflow_default = {
         Y: "Y: proceso",
         Z: "Z: cronograma",
       },
-      phase: "Fase",
       dueOffset: "Vence, días después del inicio",
       dueOffsetHelp:
         "Déjelo en blanco para no tener vencimiento; use un número negativo para antes del inicio.",
