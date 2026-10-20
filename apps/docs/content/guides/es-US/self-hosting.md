@@ -187,13 +187,13 @@ El proxy debe añadir la dirección del cliente a `X-Forwarded-For` (en nginx, `
 
 Compass lee su configuración al compilar:
 
-| Variable                        | Valor                                                                                   |
-| ------------------------------- | --------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | La URL de la API de Supabase                                                            |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | La clave anónima                                                                        |
-| `EXPO_PUBLIC_ATLAS_URL`         | El origen de Atlas                                                                      |
-| `EXPO_PUBLIC_GATEWAY_URL`       | El origen de Gateway                                                                    |
-| `XOS_UNIVERSAL_LINK_HOSTS`      | Opcional: `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass |
+| Variable                        | Valor                                                                                                                                                                                              |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`      | La URL de la API de Supabase                                                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | La clave anónima                                                                                                                                                                                   |
+| `EXPO_PUBLIC_ATLAS_URL`         | El origen de Atlas                                                                                                                                                                                 |
+| `EXPO_PUBLIC_GATEWAY_URL`       | El origen de Gateway                                                                                                                                                                               |
+| `XOS_UNIVERSAL_LINK_HOSTS`      | `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass. Sin definir, la compilación reclama los hosts de GHXSTSHIP; define tus propios hosts, o un valor vacío para ninguno |
 
 Cambia el identificador del paquete y el paquete de Android en `apps/compass/app.json` por los tuyos y compila con EAS Build (agrega un `eas.json` con un perfil `production` y ejecuta `eas build --platform all --profile production`) o localmente con `expo prebuild` seguido de un archivo de Xcode y una compilación de versión de Gradle. Distribuye primero mediante TestFlight y las pruebas internas de Google Play.
 

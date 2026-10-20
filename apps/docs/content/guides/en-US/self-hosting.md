@@ -187,13 +187,13 @@ The proxy must append the client address to `X-Forwarded-For` (in nginx, `proxy_
 
 Compass reads its configuration at build time:
 
-| Variable                        | Value                                                                     |
-| ------------------------------- | ------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | The Supabase API URL                                                      |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | The anon key                                                              |
-| `EXPO_PUBLIC_ATLAS_URL`         | The Atlas origin                                                          |
-| `EXPO_PUBLIC_GATEWAY_URL`       | The Gateway origin                                                        |
-| `XOS_UNIVERSAL_LINK_HOSTS`      | Optional: `atlas:<host>,gateway:<host>`, so handoff links open in Compass |
+| Variable                        | Value                                                                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`      | The Supabase API URL                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | The anon key                                                                                                                                               |
+| `EXPO_PUBLIC_ATLAS_URL`         | The Atlas origin                                                                                                                                           |
+| `EXPO_PUBLIC_GATEWAY_URL`       | The Gateway origin                                                                                                                                         |
+| `XOS_UNIVERSAL_LINK_HOSTS`      | `atlas:<host>,gateway:<host>`, so handoff links open in Compass. Unset, a build claims the GHXSTSHIP hosts; set your own hosts, or an empty value for none |
 
 Change the bundle identifier and Android package in `apps/compass/app.json` to your own, then build with EAS Build (add an `eas.json` with a `production` profile and run `eas build --platform all --profile production`) or locally with `expo prebuild` followed by an Xcode archive and a Gradle release build. Distribute through TestFlight and Google Play internal testing first.
 
