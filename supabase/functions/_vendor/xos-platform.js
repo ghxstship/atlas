@@ -35505,16 +35505,39 @@ function checkContent(input) {
  *
  * - Attachments: the A18 job `attachment.scan` (migration 0590), claimed from the job queue; the
  *   verdict goes to `app.record_attachment_scan`, so a Clean version becomes downloadable.
- * - The field-media, onboarding-uploads, profile-media and org-brand buckets: `app.claim_object_scans`
- *   and `app.record_object_scan` (migration 1041).
+ * - The field-media, onboarding-uploads, imports, support-screenshots and upload-staging buckets (and
+ *   any service-role write to profile-media or org-brand): `app.claim_object_scans` and
+ *   `app.record_object_scan` (migrations 1041, 1240, 1265).
+ * - Files for the public buckets profile-media and org-brand are uploaded to the private upload-staging
+ *   bucket as `<bucket>/<name>` (1265). A staged file that scans Clean is published: written to its
+ *   public bucket, recorded Clean, and removed from staging. Nothing reaches a public bucket unscanned.
  *
- * An infected or refused file is removed from storage after its verdict is recorded. When the scanner
+ * An infected or refused file is removed from storage after its verdict is recorded; a staged one is
+ * never published, and its verdict stays for the uploader (app.my_upload_scan_status). When the scanner
  * or storage cannot answer, the scan is retried with backoff and recorded as Scan Failed after
  * `MAX_SCAN_ATTEMPTS`, so a file never stays in Scanning for ever and is never served unscanned.
  */
 var ATTACHMENT_SCAN_JOB = "attachment.scan";
 /** Matches private.job_kinds.max_attempts for attachment.scan and app.release_object_scan. */
 var MAX_SCAN_ATTEMPTS = 5;
+/** The private bucket files for the public buckets are uploaded to first (migration 1265). */
+var UPLOAD_STAGING_BUCKET = "upload-staging";
+/** The public buckets a staged upload may be published to. */
+var PUBLIC_UPLOAD_BUCKETS = ["org-brand", "profile-media"];
+/**
+ * Where a staged upload is published: `org-brand/<org id>/logo.png` goes to org-brand as
+ * `<org id>/logo.png`. Null for a name that names no public bucket.
+ */
+function stagedUploadTarget(stagedName) {
+  const slash = stagedName.indexOf("/");
+  if (slash <= 0 || slash === stagedName.length - 1) return null;
+  const bucket = stagedName.slice(0, slash);
+  if (!PUBLIC_UPLOAD_BUCKETS.includes(bucket)) return null;
+  return {
+    bucket,
+    name: stagedName.slice(slash + 1),
+  };
+}
 /** Storage could not return or delete an object; the scan is retried. */
 var StorageUnavailableError = class extends Error {
   constructor(message, options) {
@@ -35558,7 +35581,10 @@ async function judge(options, file) {
     };
   const verdict = await options.scanner.scan(bytes);
   return verdict.clean
-    ? { result: "clean" }
+    ? {
+        result: "clean",
+        bytes,
+      }
     : {
         result: "infected",
         detail: verdict.signature,
@@ -35666,12 +35692,45 @@ async function scanObject(options, scan) {
       detail,
     };
   }
+  const staged = scan.bucketId === UPLOAD_STAGING_BUCKET;
+  const target = staged ? stagedUploadTarget(scan.objectName) : null;
+  if (staged && target === null && verdict.result === "clean")
+    verdict = {
+      result: "refused",
+      detail: "A staged upload must name the public bucket it is for.",
+    };
   if (verdict.result === "clean") {
+    if (target !== null)
+      try {
+        await options.storage.upload(target.bucket, target.name, verdict.bytes, scan.contentType);
+      } catch (error) {
+        const detail = describe(
+          new StorageUnavailableError(`could not publish to ${target.bucket}`, { cause: error }),
+        );
+        return {
+          kind: "object",
+          id,
+          result:
+            (await options.store.releaseObjectScan(id, detail)) === "Scan Failed"
+              ? "failed"
+              : "retrying",
+          detail,
+        };
+      }
     await options.store.recordObjectScan(id, true, null);
+    if (target === null)
+      return {
+        kind: "object",
+        id,
+        result: "clean",
+      };
     return {
       kind: "object",
       id,
-      result: "clean",
+      result: "published",
+      detail:
+        (await removeQuietly(options, scan.bucketId, scan.objectName)) ??
+        `Published to ${target.bucket}.`,
     };
   }
   await options.store.recordObjectScan(
@@ -35827,6 +35886,13 @@ function supabaseStorage(client) {
       const { data, error } = await client.storage.from(bucket).download(name);
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
       return new Uint8Array(await data.arrayBuffer());
+    },
+    async upload(bucket, name, bytes, contentType) {
+      const { error } = await client.storage.from(bucket).upload(name, bytes, {
+        upsert: true,
+        ...(contentType === null ? {} : { contentType }),
+      });
+      if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
     },
     async remove(bucket, name) {
       const { error } = await client.storage.from(bucket).remove([name]);
@@ -38164,6 +38230,7 @@ export {
   MAX_EXTRA_SEATS,
   MAX_SCAN_ATTEMPTS,
   NotSelfServeError,
+  PUBLIC_UPLOAD_BUCKETS,
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
@@ -38173,6 +38240,7 @@ export {
   ScannerUnavailableError,
   StorageUnavailableError,
   StripeSignatureError,
+  UPLOAD_STAGING_BUCKET,
   ZIP_LIMITS,
   addonForLookupKey,
   billingEnvSchema,
@@ -38231,6 +38299,7 @@ export {
   setExtraSeats,
   signWebhook,
   sniffFamilies,
+  stagedUploadTarget,
   stripQuotedText,
   supabaseDb,
   supabaseReportDeliveryStore,

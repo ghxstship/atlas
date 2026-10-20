@@ -107,8 +107,11 @@ export {
 export {
   ATTACHMENT_SCAN_JOB,
   MAX_SCAN_ATTEMPTS,
+  PUBLIC_UPLOAD_BUCKETS,
   StorageUnavailableError,
+  UPLOAD_STAGING_BUCKET,
   runUploadScans,
+  stagedUploadTarget,
   type AttachmentVersionToScan,
   type ClaimedAttachmentScan,
   type ClaimedObjectScan,
