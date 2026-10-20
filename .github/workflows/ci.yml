@@ -48,6 +48,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Pull the stack images from GHCR (infra/ci/README.md)
+        run: infra/ci/supabase-images.sh db
       - name: Apply migrations from empty
         run: supabase db start
       - name: Run pgTAP suites
@@ -166,7 +168,8 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/${{ matrix.app }}
       # The full stack (Auth, PostgREST, Storage, Mailpit) with migrations and the demo seed.
-      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environment from the stack
         run: |
@@ -231,6 +234,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environments from the stack
         run: |
@@ -355,6 +360,8 @@ jobs:
           version: 2.120.0
       - run: pnpm install --frozen-lockfile
       - run: docker pull --platform linux/amd64 mcr.microsoft.com/playwright:v1.64.0-noble
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environment from the stack
         run: |
