@@ -667,6 +667,24 @@ export function cancelImport(db: XosClient, importId: string): Promise<Result<st
   );
 }
 
+/** The import wizard's feature flags for an org (0540): Google Sheets links and the assistant's mapping step. */
+export async function importFlags(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<{ googleSheets: boolean; aiMapping: boolean }>> {
+  return rpc(db, "org_feature_flags", { p_org_id: orgId }, (d) => {
+    const on = new Set(
+      ((d as Raw[] | null) ?? [])
+        .filter((r) => r["enabled"] === true)
+        .map((r) => str(r["flag_key"])),
+    );
+    return {
+      googleSheets: on.has("imports.google_sheets"),
+      aiMapping: on.has("imports.ai_mapping"),
+    };
+  });
+}
+
 /** Rounds a similarity of 0.85 to 1 to a whole percentage for display. */
 export function similarityPercent(similarity: number | null): number | null {
   const value = numOrNull(similarity);

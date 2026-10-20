@@ -19,7 +19,7 @@ Hoy funcionan S3 y cualquier servicio compatible con S3: Amazon S3, Cloudflare R
 La credencial es un JSON con una clave de acceso que solo pueda escribir en el bucket y la carpeta:
 
 ```json
-{ "access_key_id": "<id de la clave de acceso>", "secret_access_key": "<clave de acceso secreta>" }
+{ "access_key_id": "<access key id>", "secret_access_key": "<secret access key>" }
 ```
 
 Agregue `"session_token"` para credenciales temporales.

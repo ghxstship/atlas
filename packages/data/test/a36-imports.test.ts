@@ -18,6 +18,7 @@ import {
   createSheetsImport,
   googleSheetsLinkId,
   importDetectedSheet,
+  importFlags,
 } from "../src/imports.ts";
 import {
   dataRows,
@@ -454,6 +455,21 @@ describe("sheets and Google Sheets links (A83)", () => {
       ["Asset Inventory", "j2", "asset_units"],
       ["Notes", null, null],
     ]);
+  });
+
+  it("reads the wizard's feature flags", async () => {
+    const { db } = moduleClient({
+      "rpc:org_feature_flags": [
+        ok([
+          { flag_key: "imports.google_sheets", enabled: true },
+          { flag_key: "imports.ai_mapping", enabled: false },
+        ]),
+      ],
+    });
+    expect(await importFlags(db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: true, aiMapping: false },
+    });
   });
 
   it("creates a Google Sheets import and imports a detected sheet", async () => {

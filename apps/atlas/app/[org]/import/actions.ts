@@ -5,7 +5,10 @@ import {
   checkImportUpload,
   confirmMapping,
   createImport,
+  createSheetsImport,
   decideMergeReview,
+  googleSheetsLinkId,
+  importDetectedSheet,
   importObjectPath,
   requestImportCommit,
   undoImportBatch,
@@ -47,6 +50,47 @@ export async function createImportAction(
     source: upload.source,
     body: new Uint8Array(await file.arrayBuffer()),
     contentType: upload.contentType,
+  });
+  if (!result.ok) return fromDataError(result.error);
+  revalidatePath(`/${ctx.org.slug}/import`);
+  return done(result.data);
+}
+
+/** A Google Sheets link (A83): the worker reads it through the org's Google Drive connection. */
+export async function createSheetsImportAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const link = field(form, "link");
+  const target = field(form, "target");
+  const person = ctx.viewer.person;
+  if (!person || !target || !link) return inputError();
+  if (googleSheetsLinkId(link) === null) return { rule: "import_link_invalid", at: Date.now() };
+  const result = await createSheetsImport(ctx.viewer.db, {
+    orgId: ctx.org.id,
+    targetCode: target,
+    link,
+    objectPath: importObjectPath(person.id, crypto.randomUUID(), "xlsx"),
+  });
+  if (!result.ok) return fromDataError(result.error);
+  revalidatePath(`/${ctx.org.slug}/import`);
+  return done(result.data);
+}
+
+/** Starts the import of another detected sheet of the workbook (A83). */
+export async function importSheetAction(
+  _: PlatformActionState,
+  form: FormData,
+): Promise<PlatformActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ sheet: z.uuid(), target: z.string().regex(/^[a-z][a-z0-9_]{1,60}$/) })
+    .safeParse({ sheet: field(form, "sheet"), target: field(form, "target") });
+  if (!parsed.success) return inputError();
+  const result = await importDetectedSheet(ctx.viewer.db, {
+    sheetId: parsed.data.sheet,
+    targetCode: parsed.data.target,
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);
