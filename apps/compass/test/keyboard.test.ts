@@ -15,6 +15,17 @@ describe("A66: the keyboard never covers the scan tab's code entry", () => {
     expect(live.indexOf("<ManualEntry")).toBeLessThan(live.indexOf("<ScanSheet"));
   });
 
+  it("lets Delete Account take its hold straight after the email is typed (A68, journey 38)", () => {
+    const layout = read("../src/ui/layout.tsx");
+    expect(layout).toContain(
+      "{...(keyboardShouldPersistTaps ? { keyboardShouldPersistTaps } : {})}",
+    );
+    const deleteAccount = read("../src/screens/DeleteAccount.tsx");
+    expect(deleteAccount).toMatch(
+      /<Screen\s+testID="account"\s+title=\{t\("compass\.account\.title"\)\}\s+keyboardShouldPersistTaps="handled"/,
+    );
+  });
+
   it("keeps Screen free of keyboard avoidance, which lost typed characters in multiline fields", () => {
     // A66 tried a KeyboardAvoidingView around every screen (and keyboard insets on its ScrollView): on the
     // simulator an inspection's multiline fail note then kept only the first character typed.

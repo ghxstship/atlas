@@ -33,7 +33,14 @@ export function Screen({
   footer,
   children,
   testID,
-}: ScreenProps): ReactElement {
+  keyboardShouldPersistTaps,
+}: ScreenProps & {
+  /**
+   * "handled" on a form whose button is pressed straight after typing (Delete Account's hold): by default
+   * the first touch while the keyboard is up only closes it (A68, A66).
+   */
+  readonly keyboardShouldPersistTaps?: "handled";
+}): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   // Without scrolling the body fills the screen, so a flex child (the scan sheet's camera) gets the room
@@ -57,6 +64,7 @@ export function Screen({
     >
       {scroll ? (
         <ScrollView
+          {...(keyboardShouldPersistTaps ? { keyboardShouldPersistTaps } : {})}
           contentContainerStyle={{ paddingBottom: theme.space["32"] }}
           refreshControl={
             onRefresh ? (
