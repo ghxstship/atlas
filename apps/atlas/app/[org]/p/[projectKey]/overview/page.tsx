@@ -1,4 +1,4 @@
-import { listActivity } from "@xos/data/activity";
+import { labelActivity, listActivity } from "@xos/data/activity";
 import { listProductionStateHistory, listProjectStateHistory } from "@xos/data/projects";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -216,7 +216,7 @@ export default async function OverviewPage({
             </h2>
             <ActivityFeed
               label={a("projectLabel", { key: project.key })}
-              entries={feed.entries}
+              entries={await labelActivity(db, feed.entries)}
               views={["feed"]}
               view="feed"
               next={null}

@@ -295,7 +295,8 @@
     "noHistory": "Aún no se ha pasado ninguna compuerta. La compuerta 1 cierra Alcance.",
     "historyEntry": "Compuerta {gate}: {from} a {to}",
     "historyEntryLast": "Compuerta {gate}: {from} cerrada",
-    "readOnly": "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta."
+    "readOnly": "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta.",
+    "criterionCode": "Criterio {code}"
   },
   "settings": {
     "title": "Configuración del proyecto",

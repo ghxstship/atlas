@@ -295,7 +295,8 @@
     "noHistory": "No gate has been passed yet. Gate 1 closes Scope.",
     "historyEntry": "Gate {gate}: {from} to {to}",
     "historyEntryLast": "Gate {gate}: {from} closed",
-    "readOnly": "You can read the gates. Ask a project manager to attest evidence or pass a gate."
+    "readOnly": "You can read the gates. Ask a project manager to attest evidence or pass a gate.",
+    "criterionCode": "Criterion {code}"
   },
   "settings": {
     "title": "Project settings",

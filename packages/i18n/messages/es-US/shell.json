@@ -1166,5 +1166,10 @@
         "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
       }
     }
+  },
+  "refusalOutcome": {
+    "REFUSE": "Rechazado",
+    "NO_ANSWER": "Sin respuesta",
+    "UNRATIFIED": "Sin ratificar"
   }
 }

@@ -18,7 +18,13 @@ export type EmptyStateProps = ReferenceEmptyStateProps & {
 
 export type ErrorStateProps = ReferenceErrorStateProps;
 
-export type RefusalNoticeProps = ReferenceRefusalNoticeProps;
+export type RefusalNoticeProps = ReferenceRefusalNoticeProps & {
+  /**
+   * The outcome in words ("Refused"), shown instead of the outcome code, so the code never stands
+   * alone in product copy (Section 11.10 item 2). Without it the chip shows the code.
+   */
+  outcomeLabel?: string;
+};
 
 export type InlineAlertProps = ReferenceInlineAlertProps;
 

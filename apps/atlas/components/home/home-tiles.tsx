@@ -1,11 +1,12 @@
 "use client";
 
-import { ActivityFeedItem, StatTile } from "@xos/ui";
+import { StatTile } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import { useFormatter, useTranslations } from "next-intl";
 import type { HomeTilesData } from "@/lib/home/data";
-import { useDescribe } from "@/components/activity/describe";
+import { ActivityLine } from "@/components/activity/activity-line";
+import { collapseRepeats, useDescribe } from "@/components/activity/describe";
 import { useAlertText } from "./alert-text";
 
 function Tile({
@@ -115,19 +116,15 @@ export function HomeTiles({
             <p className="m-0 text-text-13 text-text-secondary">{t("noActivity")}</p>
           ) : (
             <ol className="m-0 flex list-none flex-col gap-4 p-0">
-              {tiles.activity.map((e) => {
-                const d = describe(e);
-                return (
-                  <li key={e.id}>
-                    <ActivityFeedItem
-                      actor={d.actor}
-                      action={d.action}
-                      target={d.target}
-                      time={format.relativeTime(new Date(e.at), new Date(now))}
-                    />
-                  </li>
-                );
-              })}
+              {collapseRepeats(tiles.activity, describe).map(({ entry: e, description, count }) => (
+                <li key={e.id}>
+                  <ActivityLine
+                    description={description}
+                    count={count}
+                    time={format.relativeTime(new Date(e.at), new Date(now))}
+                  />
+                </li>
+              ))}
             </ol>
           )}
         </Tile>

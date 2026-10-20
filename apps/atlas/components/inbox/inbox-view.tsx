@@ -199,9 +199,9 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
     const active = document.activeElement;
     const lost = active === null || active === document.body;
     if (lost && selectedId !== null && current && current.id !== selectedId) {
-      focusRow(current.id);
+      refs.current.get(current.id)?.focus();
     }
-  }, [items, current, selectedId, focusRow]);
+  }, [items, current, selectedId]);
 
   if (items.length === 0) {
     return (

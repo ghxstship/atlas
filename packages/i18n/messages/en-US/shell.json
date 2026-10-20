@@ -1166,5 +1166,10 @@
         "unexpected": "Something went wrong on our side. Try again in a moment."
       }
     }
+  },
+  "refusalOutcome": {
+    "REFUSE": "Refused",
+    "NO_ANSWER": "No answer",
+    "UNRATIFIED": "Not ratified"
   }
 }
