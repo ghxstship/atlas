@@ -1251,7 +1251,7 @@
       "accessibility": "Preferencias de movimiento, contraste y lectura.",
       "notifications": "Cómo te contactan las organizaciones.",
       "outOfOffice": "Cuándo no estás y qué ven las organizaciones en ese tiempo.",
-      "workDetails": "Datos sobre cómo trabajas.",
+      "workDetails": "Contactos de emergencia, tallas, necesidades y datos de viaje, y qué contrataciones los ven.",
       "payoutAndTax": "Dónde te pagan las organizaciones y los formularios fiscales que les diste.",
       "calendarFeeds": "Tu trabajo en tu propio calendario.",
       "connectedApps": "Aplicaciones conectadas a tu cuenta.",
@@ -1362,8 +1362,6 @@
       "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."
     },
     "notes": {
-      "workDetails": "Tus datos de trabajo salen de tu perfil: habilidades, certificaciones, tarifas y disponibilidad.",
-      "toProfile": "Editar perfil",
       "calendarFeeds": "Agrega cada turno, horario y fecha límite a tu calendario desde Próximos.",
       "toUpcoming": "Abrir Próximos",
       "connectedApps": "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",

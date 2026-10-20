@@ -16,7 +16,115 @@ Related runbooks: `progressive-delivery.md` (rollout stages and flags), `backup-
 
 Decision 1 of ADR 0033 replaces the production row: `xos-atlas-staging` itself becomes production once its demo data is removed, and staging moves to a Supabase branch. The steps, with their checks and rollbacks, are in `promote-to-production.md`.
 
-The Vercel project `atlas` exists. **OWNER** creates `gateway` and `docs` (no cost on the current plan) and chooses the production domains; buying a domain is a stop point.
+The Vercel projects `atlas` and `gateway` exist. The orchestrator creates `docs` with the settings in Domains below. The production domain is `ghxstship.tech` (ADR 0033, decision 5).
+
+## Domains
+
+Owner decision 5 (ADR 0033, amended 2026-10-20): `ghxstship.tech`, one subdomain per app.
+
+| Host                     | Serves                                      | Vercel project | State on 2026-10-20                                                                  |
+| ------------------------ | ------------------------------------------- | -------------- | ------------------------------------------------------------------------------------ |
+| `atlas.ghxstship.tech`   | Atlas                                       | `atlas`        | Serving, with a certificate                                                          |
+| `gateway.ghxstship.tech` | Gateway on the platform brand               | `gateway`      | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too |
+| `api.ghxstship.tech`     | The public API, served by Atlas at `/v1`    | `atlas`        | The orchestrator attaches it                                                         |
+| `docs.ghxstship.tech`    | The docs site                               | `docs`         | The orchestrator creates the project                                                 |
+| `mail.ghxstship.tech`    | The sending domain for email through Resend | None           | DNS records to add                                                                   |
+
+Each org's custom Gateway domain is added to the `gateway` project when the org verifies it in Atlas.
+
+### api.ghxstship.tech (project `atlas`)
+
+1. Settings, Domains: add `api.ghxstship.tech` to Production. Do not redirect it to `atlas.ghxstship.tech`; it
+   serves the same deployment.
+2. DNS: the record Vercel shows for the subdomain (a CNAME), unless the zone already uses Vercel's nameservers.
+3. Settings, Environment Variables, Production: `XOS_API_HOST=api.ghxstship.tech`. Leave it out of Preview.
+   Redeploy production, because Vercel applies variables to new deployments only.
+4. Supabase Auth needs nothing: no one signs in on the API host.
+5. Verify:
+   - `curl -s https://api.ghxstship.tech/` answers the JSON pointer, with `base_url`
+     `https://api.ghxstship.tech/v1` and the OpenAPI document's URL.
+   - `https://api.ghxstship.tech/v1/canon/departments` answers 401 without a key and 200 with
+     `Authorization: Bearer xos_live_...`.
+   - `curl -si https://api.ghxstship.tech/auth/sign-in` answers 404 as `application/problem+json`, with no
+     `Set-Cookie`.
+   - `https://atlas.ghxstship.tech/api/v1/openapi.json` still answers.
+
+On the API host Atlas serves only the API (`apps/atlas/lib/api-host.ts`): `/v1/...` is the API at `/api/v1/...`,
+`/` describes it, and every other path is a 404. API keys, sessions, rate limits and the IP allow-list apply per
+caller, the same on both hosts. The API sends no CORS headers on either host.
+
+### docs.ghxstship.tech (project `docs`)
+
+| Setting                                                    | Value                                                                                                                     |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Team and name                                              | `ghxstship`, `docs`                                                                                                       |
+| Git repository and production branch                       | `ghxstship/atlas`, `main`                                                                                                 |
+| Framework preset                                           | Next.js                                                                                                                   |
+| Root Directory                                             | `apps/docs`                                                                                                               |
+| Include files outside the Root Directory in the Build Step | On (the default). The build reads `packages/api/openapi/v1.json`, `apps/atlas/help` and the workspace packages            |
+| Install Command                                            | `pnpm install --frozen-lockfile`                                                                                          |
+| Build Command                                              | `pnpm turbo run build --filter=@xos/docs` (it builds `@xos/tokens`, `@xos/ui` and the other workspace dependencies first) |
+| Output Directory                                           | The default, `.next`                                                                                                      |
+| Node.js version                                            | 22.x (`.nvmrc` is 22.14.0)                                                                                                |
+| Environment variables                                      | None. The site reads no variable at build or run time and holds no secret                                                 |
+| Domains                                                    | `docs.ghxstship.tech` on Production                                                                                       |
+| Skip deployments with no changes to the Root Directory     | Optional. On, a commit that changes nothing the docs build depends on skips the build                                     |
+
+- The build prerenders about 3,900 pages (1.5 minutes on a laptop). Two pages render on request: the help center
+  index, which reads its search query, and the 404 page. `next.config.ts` lists the help articles in
+  `outputFileTracingIncludes`, so that function carries them.
+- Nothing assumes localhost. `allowedDevOrigins` applies to `next dev` only.
+- Once it serves, set `DOCS_SITE_URL=https://docs.ghxstship.tech` in `atlas` and `gateway` (Production) and
+  `EXPO_PUBLIC_DOCS_URL` in EAS, then redeploy. Until then the apps show no docs links.
+
+### Email from mail.ghxstship.tech (Resend, decision 6)
+
+1. In Resend, Domains, add `mail.ghxstship.tech`. Resend then lists the records to add. Copy each name, type and
+   value from that page; never retype the DKIM key.
+2. Add them at the DNS host of `ghxstship.tech`:
+
+   | Purpose     | Type | Name and value                                                                                                                                                                                                                                                   |
+   | ----------- | ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+   | SPF         | TXT  | As Resend lists it, on its return-path subdomain under `mail.ghxstship.tech`                                                                                                                                                                                     |
+   | Return path | MX   | As Resend lists it, on the same subdomain, so bounces come back to Resend                                                                                                                                                                                        |
+   | DKIM        | TXT  | As Resend lists it, on a `_domainkey` name under `mail.ghxstship.tech`                                                                                                                                                                                           |
+   | DMARC       | TXT  | `_dmarc.mail.ghxstship.tech`. The policy is the owner's; use Resend's suggestion if its page shows one. Otherwise start with `v=DMARC1; p=none; rua=mailto:` and a mailbox the owner reads, and move to `p=quarantine` once the reports show only Resend sending |
+
+   A policy at `_dmarc.ghxstship.tech` instead covers every subdomain unless its `sp=` says otherwise.
+
+3. Verify the domain in Resend. Then set Supabase SMTP (`promote-to-production.md`, step 6) and the function
+   secrets `RESEND_API_KEY` and `XOS_EMAIL_FROM`.
+
+Reply by email (`XOS_INBOUND_DOMAIN`) needs its own domain and MX records pointing at the provider that posts
+to `inbound-email`. That domain is not chosen yet.
+
+### Universal links to Compass
+
+- Compass builds claim `atlas.ghxstship.tech` and `gateway.ghxstship.tech` (`apps/compass/app.config.ts`, ADR
+  0030).
+- Atlas and Gateway serve `/.well-known/apple-app-site-association` and `/.well-known/assetlinks.json` once
+  these are set in `atlas` and `gateway` (Production), followed by a redeploy:
+  - `COMPASS_APPLE_TEAM_IDS`: the 10-character Apple Developer team id;
+  - `COMPASS_ANDROID_CERT_SHA256`: the SHA-256 fingerprint of the Play app signing certificate (Play Console,
+    App integrity), plus the EAS upload key's fingerprint for builds installed outside Play, comma-separated.
+- Unset, both files answer 404 and QR codes carry `compass://` links.
+- Verify: `curl -si https://atlas.ghxstship.tech/.well-known/apple-app-site-association` answers 200 as
+  `application/json` with no redirect, and lists `<team id>.pro.ghxstship.compass`; the same for Gateway and for
+  `assetlinks.json`. Apple's CDN copy is at `https://app-site-association.cdn-apple.com/a/v1/atlas.ghxstship.tech`.
+- iOS needs the Associated Domains capability on the App ID `pro.ghxstship.compass`. EAS Build turns it on when it
+  manages the credentials; with your own credentials, turn it on in the Apple Developer portal.
+
+### DNS records still needed
+
+| Name                          | Type    | For                            | Value from                                |
+| ----------------------------- | ------- | ------------------------------ | ----------------------------------------- |
+| `api`                         | CNAME   | Vercel project `atlas`         | Vercel, when the domain is added          |
+| `docs`                        | CNAME   | Vercel project `docs`          | Vercel, when the domain is added          |
+| Resend's records under `mail` | TXT, MX | SPF, return path, DKIM         | Resend, Domains, `mail.ghxstship.tech`    |
+| `_dmarc.mail`                 | TXT     | DMARC                          | The owner's policy (above)                |
+| `status` (optional)           | CNAME   | The status page (GitHub Pages) | `infra/ci/README.md`, Repository settings |
+
+`atlas` and `gateway` resolve already. Passkeys on the web need nothing at the apex `ghxstship.tech`.
 
 ## Deploy order
 
@@ -69,7 +177,7 @@ See Compass releases below. Compass ships on its own cadence; a web release neve
 
 ### 6. Close
 
-1. Smoke test as a real user: sign in to Atlas, open a project, open Gateway as an external party, call `GET /api/v1/openapi.json` and `xos auth status`.
+1. Smoke test as a real user: sign in to Atlas, open a project, open Gateway as an external party, call `GET https://api.ghxstship.tech/v1/openapi.json` and `xos auth status`.
 2. Post the release notes and record the evidence in `docs/release-checklist.md`.
 
 ## Rollback
@@ -94,8 +202,10 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | ----------------------------- | ----------------------------------------------------------------- |
 | `SUPABASE_URL`                | The production Supabase API URL                                   |
 | `SUPABASE_ANON_KEY`           | The production anon key (public; RLS guards every row)            |
-| `ATLAS_SITE_URL`              | `https://<atlas domain>`                                          |
-| `GATEWAY_SITE_URL`            | `https://<gateway domain>`                                        |
+| `ATLAS_SITE_URL`              | `https://atlas.ghxstship.tech` (set 2026-10-20)                   |
+| `GATEWAY_SITE_URL`            | `https://gateway.ghxstship.tech` (set 2026-10-20)                 |
+| `XOS_API_HOST`                | `api.ghxstship.tech`, Production only, once `api.` is attached    |
+| `DOCS_SITE_URL`               | `https://docs.ghxstship.tech`, once `docs.` serves                |
 | `NEXT_PUBLIC_SENTRY_DSN`      | DSN of the Sentry project `xos-atlas` (public)                    |
 | `XOS_TRACES_SAMPLE_RATE`      | `0.05` (`1` on Preview)                                           |
 | `XOS_LOG_LEVEL`               | `info` (`debug` on Preview)                                       |
@@ -104,48 +214,56 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 
 ### Gateway (Vercel project `gateway`)
 
-| Variable                      | Production value                                                |
-| ----------------------------- | --------------------------------------------------------------- |
-| `SUPABASE_URL`                | As Atlas                                                        |
-| `SUPABASE_ANON_KEY`           | As Atlas                                                        |
-| `GATEWAY_SITE_URL`            | `https://<gateway domain>`                                      |
-| `GATEWAY_PLATFORM_HOSTS`      | The platform Gateway hosts; every other host is a custom domain |
-| `NEXT_PUBLIC_SENTRY_DSN`      | DSN of the Sentry project `xos-gateway` (public)                |
-| `XOS_TRACES_SAMPLE_RATE`      | `0.05`                                                          |
-| `XOS_LOG_LEVEL`               | `info`                                                          |
-| `COMPASS_APPLE_TEAM_IDS`      | As Atlas                                                        |
-| `COMPASS_ANDROID_CERT_SHA256` | As Atlas                                                        |
+| Variable                      | Production value                                                                                              |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `SUPABASE_URL`                | As Atlas                                                                                                      |
+| `SUPABASE_ANON_KEY`           | As Atlas                                                                                                      |
+| `GATEWAY_SITE_URL`            | `https://gateway.ghxstship.tech` (set 2026-10-20)                                                             |
+| `GATEWAY_PLATFORM_HOSTS`      | `gateway.ghxstship.tech,gateway-umber-omega.vercel.app` (set 2026-10-20); every other host is a custom domain |
+| `DOCS_SITE_URL`               | `https://docs.ghxstship.tech`, once `docs.` serves                                                            |
+| `NEXT_PUBLIC_SENTRY_DSN`      | DSN of the Sentry project `xos-gateway` (public)                                                              |
+| `XOS_TRACES_SAMPLE_RATE`      | `0.05`                                                                                                        |
+| `XOS_LOG_LEVEL`               | `info`                                                                                                        |
+| `COMPASS_APPLE_TEAM_IDS`      | As Atlas                                                                                                      |
+| `COMPASS_ANDROID_CERT_SHA256` | As Atlas                                                                                                      |
 
 ### Docs (Vercel project `docs`)
 
-None. The site is built from the repository and the OpenAPI document.
+None. The site is built from the repository and the OpenAPI document. Project settings: Domains, "docs.ghxstship.tech".
 
 ### Edge Functions (production Supabase project secrets)
 
-| Secret                                                    | Notes                                                                                               |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                           |
-| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Links and the postal address in email (CAN-SPAM)                                                    |
-| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; the verified sending address; the Resend key                                              |
-| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email   |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email                                                                                      |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                      |
-| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310 |
-| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                |
+| Secret                                                    | Notes                                                                                                          |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `XOS_API_JWT_SIGNING_KEY`                                 | The project's JWT secret, for `api-token`                                                                      |
+| `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`; the postal address in email (CAN-SPAM)       |
+| `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | `resend`; an address on the verified domain, such as `XOS <notifications@mail.ghxstship.tech>`; the Resend key |
+| `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | `XOS_EMAIL_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient email              |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email                                                                                                 |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                                 |
+| `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310            |
+| `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                           |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
-### Compass (EAS environment `production`)
+### Compass (EAS environment `production`; `preview` holds the staging values)
 
-| Variable                           | Value                                                                  |
-| ---------------------------------- | ---------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                        |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public)                                       |
-| `EXPO_PUBLIC_ATLAS_URL`            | `https://<atlas domain>`                                               |
-| `EXPO_PUBLIC_GATEWAY_URL`          | `https://<gateway domain>`                                             |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<atlas domain>,gateway:<gateway domain>`                        |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                    |
+Set in the EAS dashboard (project, Environment variables, `production`). Every value is public by design.
+
+| Variable                           | Value                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                                                                                            |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public), the new one after the key rotation                                                                       |
+| `EXPO_PUBLIC_ATLAS_URL`            | `https://atlas.ghxstship.tech`                                                                                                             |
+| `EXPO_PUBLIC_GATEWAY_URL`          | `https://gateway.ghxstship.tech`                                                                                                           |
+| `EXPO_PUBLIC_DOCS_URL`             | `https://docs.ghxstship.tech`, for the help center row in Settings                                                                         |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                     |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                                                                                        |
+| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                      |
+| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                       |
+
+A preview or production build on EAS stops in `apps/compass/app.config.ts` when a server URL is missing, not https or local, or when the app icon `apps/compass/assets/icon.png` is missing.
 
 ### GitHub Actions (repository secrets and variables)
 
@@ -446,52 +564,110 @@ Follow `incident-response.md`: confirm impact, set the severity, contain first, 
 
 Compass's version is in `apps/compass/app.json` (`4.0.0`); the bundle identifier and Android package are `pro.ghxstship.compass`.
 
-### Prerequisites (OWNER)
+### Compass store release
 
-1. An Apple Developer Program membership and an App Store Connect app record for `pro.ghxstship.compass`, with the App Group `group.pro.ghxstship.compass` and the Live Activity capability.
-2. A Google Play Console developer account and an app for `pro.ghxstship.compass`, with Play App Signing on.
-3. An Expo account for EAS Build and Submit, with `EXPO_TOKEN` stored as a secret if builds run in CI. EAS's free tier covers a few builds a month; more is a paid plan and a stop point.
-4. App Store Connect API key and a Google Play service account for submission, stored in EAS (never in the repository).
+Everything that does not need an account is in the repository (A68, RRR-113): `apps/compass/eas.json` (build profiles development, preview and production; submit profiles for TestFlight and the Play internal track), the privacy manifest and purpose strings, the store listings and screenshots, and the privacy, data safety, age rating and App Review answers under `apps/compass/store/` (start with its `README.md`). Every value that waits on an account is an `OWNER_` token; `git grep OWNER_ apps/compass` lists them. Run every command below from `apps/compass`, where `npx eas` is the repository's eas-cli (24.12.0).
 
-### Build profiles
+#### One-time setup (OWNER)
 
-Add `apps/compass/eas.json` once the accounts exist:
+The accounts (ADR 0033, decisions 11 and 12): an Apple Developer Program organization membership (needs the D-U-N-S number), a Google Play Console organization account, and an Expo account that belongs to the `ghxstship` organization (`app.json` `owner`; project id `7a96bb1f-c266-4df1-a072-b03bbc3d567e`). EAS's free tier covers a few builds a month; a paid plan is a stop point.
 
-```json
-{
-  "cli": { "version": ">= 25.0.0", "appVersionSource": "remote" },
-  "build": {
-    "production": {
-      "environment": "production",
-      "autoIncrement": true,
-      "ios": { "resourceClass": "default" },
-      "android": { "buildType": "app-bundle" }
-    }
-  },
-  "submit": {
-    "production": {
-      "ios": { "ascAppId": "<App Store Connect app id>" },
-      "android": { "track": "internal", "releaseStatus": "draft" }
-    }
-  }
-}
+1. **Sign in to EAS and check the project.**
+
+   ```sh
+   cd apps/compass
+   npx eas login
+   npx eas whoami
+   npx eas project:info            # ghxstship/xos-compass, id 7a96bb1f-c266-4df1-a072-b03bbc3d567e
+   ```
+
+2. **The app icon.** Put the brand icon at `apps/compass/assets/icon.png`: 1024 x 1024 PNG, no transparency. There is no Compass icon in the repository yet, and release builds stop without it.
+
+3. **EAS environment variables**, once per environment (`production` below; repeat with `preview` and the staging values). Values are typed here, never committed:
+
+   ```sh
+   npx eas env:set production --name EXPO_PUBLIC_SUPABASE_URL --value https://<project-ref>.supabase.co --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <anon key> --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_ATLAS_URL --value https://app.<domain> --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_GATEWAY_URL --value https://gateway.<domain> --visibility plaintext
+   npx eas env:set production --name XOS_UNIVERSAL_LINK_HOSTS --value atlas:app.<domain>,gateway:gateway.<domain> --visibility plaintext
+   npx eas env:set production --name XOS_APPLE_TEAM_ID --value <team id> --visibility plaintext
+   npx eas env:set production --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret
+   npx eas env:list production
+   ```
+
+   Delete the local `google-services.json` afterwards; EAS keeps it. Set `COMPASS_APPLE_TEAM_IDS` and `COMPASS_ANDROID_CERT_SHA256` on the Atlas and Gateway Vercel projects too (Environment variables), so universal links verify.
+
+4. **App Store Connect.** In Certificates, Identifiers and Profiles, register the bundle ids `pro.ghxstship.compass` and `pro.ghxstship.compass.clock-activity` (the widget and Live Activity) with the App Group `group.pro.ghxstship.compass`, or let step 6 create them. In App Store Connect, My Apps, create the app: name "XOS Compass" (`store.config.json` `apple.info.en-US.title`; pick another if Apple says it is taken, and change it there), primary language English (U.S.), bundle id `pro.ghxstship.compass`, SKU `xos-compass`. Create an App Store Connect API key with the App Manager role (Users and Access, Integrations).
+
+5. **Fill the iOS values and commit them** (`eas.json` has `requireCommit`; none of these is a secret): in `apps/compass/eas.json`, `submit.production.ios.ascAppId` becomes the app's numeric Apple ID (App Information, General) and `appleTeamId` the team id. In TestFlight, create an internal group (for example "Compass internal") with automatic distribution on and add the testers.
+
+6. **iOS credentials, interactively once.** Signs in to Apple through EAS and stores everything on EAS:
+
+   ```sh
+   npx eas credentials --platform ios
+   ```
+
+   Choose the production profile, then: let EAS create the distribution certificate and the provisioning profiles for `pro.ghxstship.compass` and `pro.ghxstship.compass.clock-activity` (the first build turns on App Groups and Push Notifications for both from the entitlements); add the App Store Connect API key from step 4 for submissions; set up a push notification key (Expo sends push through APNs with it).
+
+7. **Google Play Console.** Create the app: name "XOS Compass", default language English (United States), App, Free. Keep Play App Signing on. Fill App content from `apps/compass/store/google-play/data-safety.md` and `apps/compass/store/age-rating.md`, App access from `apps/compass/store/review-notes.md`, and the store listing from `apps/compass/store/google-play/listing.json` with the screenshots in `apps/compass/store/google-play/<locale>/phone/`. Add the internal testers' list.
+
+8. **Google service account for submissions.** In Google Cloud, create a service account and a JSON key; in Play Console, Users and permissions, invite its email with release permissions for this app. Then either upload the key to EAS (preferred) and delete `serviceAccountKeyPath` from `submit.production.android` in `eas.json`:
+
+   ```sh
+   npx eas credentials --platform android      # production, Google Service Account, upload the key for submissions
+   ```
+
+   or keep the key file outside the repository and put its path in `serviceAccountKeyPath`. Commit `eas.json`.
+
+9. **Firebase for Android push.** Create a Firebase project with an Android app `pro.ghxstship.compass` (its `google-services.json` is step 3's file variable), and upload an FCM V1 service account key: `npx eas credentials --platform android`, production, Push Notifications.
+
+10. **The first Android upload is manual** (the Google Play API cannot create an app's first release):
+
+    ```sh
+    npx eas build --platform android --profile production
+    ```
+
+    Download the `.aab` from the build page, then in Play Console, Test and release, Testing, Internal testing, create a release, upload it and roll it out. Check its permissions against `apps/compass/store/permissions.md` (App bundle explorer, Permissions). Note the app signing certificate's SHA-256 (Test and release, App integrity) for `COMPASS_ANDROID_CERT_SHA256`.
+
+11. **Check that nothing is missing:**
+
+    ```sh
+    pnpm --filter @xos/compass store:preflight ios
+    pnpm --filter @xos/compass store:preflight android
+    pnpm --filter @xos/compass store:preflight metadata
+    ```
+
+#### Each release: one command per store
+
+From the tagged commit:
+
+```sh
+pnpm --filter @xos/compass release:ios        # build on EAS, next build number, submit to TestFlight
+pnpm --filter @xos/compass release:android    # build the .aab on EAS, submit to the Play internal track
 ```
 
-### TestFlight (iOS)
+Each runs the preflight, then `eas build --platform <ios|android> --profile production --auto-submit`. The first iOS build may ask to confirm credentials; later builds run unattended.
 
-1. From the tagged commit: `cd apps/compass && eas build --platform ios --profile production`.
-2. `eas submit --platform ios --profile production --latest` uploads the build to App Store Connect.
-3. In App Store Connect, TestFlight: answer export compliance, add the build to the internal testing group (up to 100 team members; no review needed).
-4. Testers install through the TestFlight app. Run the Maestro field flows on a tester device, including airplane mode and queue drain.
-5. External TestFlight groups need Beta App Review. Adding one is fine; it is not a public release.
+- **TestFlight:** when App Store Connect finishes processing (minutes), the internal group with automatic distribution gets the build; no review is needed for internal testers. App Store Connect asks the export compliance question for each build until counsel confirms the answers in `apps/compass/store/ios/privacy-manifest.md` and `ios.config.usesNonExemptEncryption` is set in `app.json`. External TestFlight groups need Beta App Review; adding one is not a public release.
+- **Play internal testing:** the release reaches internal testers once Play processes it, without review. If Play answers that only draft releases are allowed (the app has not finished its first setup), submit the same build as a draft and roll it out in Play Console:
 
-### Play internal testing (Android)
+  ```sh
+  npx eas submit --platform android --profile internal-draft --latest
+  ```
 
-1. `eas build --platform android --profile production` (an `.aab`).
-2. `eas submit --platform android --profile production --latest` uploads to the internal testing track as a draft.
-3. In Play Console, Testing, Internal testing: add the tester list, review the release and roll it out to internal testers (up to 100; no review).
-4. Testers join through the opt-in link and install from Play.
+- **App Store listing:** after the listing, review contact and domain values are filled in `apps/compass/store/store.config.json`, push the text, screenshots, categories, age rating and review notes in one step (it creates the version's draft; it never submits it):
+
+  ```sh
+  pnpm --filter @xos/compass store:metadata
+  ```
+
+  Then type the demo password into App Store Connect, App Review Information, and enter the App Privacy answers from `apps/compass/store/ios/app-privacy.md` (App Privacy is not part of `eas metadata:push`).
+
+- **Smoke test:** testers install from TestFlight and from the Play opt-in link. Run the Maestro field flows on a tester device, including airplane mode and queue drain, and send one approval push (journey 57) to each platform.
+
+Retaking the store screenshots after a UI change: `apps/compass/scripts/store-screenshots.sh` (local stack and simulator only; its header lists what it needs).
 
 ### OWNER stop: public store submission
 
-Submitting to the public App Store (App Review for release) or promoting to the Play production track (or closed and open tracks that reach the public) is a Section 19.8 stop condition. The release owner prepares the listing, screenshots, privacy labels (App Privacy and the Play Data safety form, from `legal/`), age rating and review notes with a demo account, then stops and asks the owner. Only the owner presses Submit for Review or promotes to production.
+Submitting to the public App Store (App Review for release) or promoting to the Play production track (or closed and open tracks that reach the public) is a Section 19.8 stop condition. The listing, screenshots, privacy labels (App Privacy and the Play Data safety form), age rating and review notes are ready in `apps/compass/store/`; the release owner sets up the review accounts (`apps/compass/store/review-notes.md`), checks the open questions in `apps/compass/store/README.md` and `docs/release-checklist.md` (Compass store release), then stops and asks the owner. Only the owner presses Submit for Review or promotes to production. `store.config.json` keeps `automaticRelease` false, so even an approved version waits for the owner to release it.

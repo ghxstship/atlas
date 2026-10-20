@@ -16,7 +16,11 @@
     "test": "vitest run --coverage",
     "generate:navigation": "XOS_WRITE_GENERATED=1 vitest run test/navigation.test.ts",
     "generate:help": "XOS_WRITE_GENERATED=1 vitest run test/help.test.ts",
-    "e2e": "maestro test .maestro"
+    "e2e": "maestro test .maestro",
+    "store:preflight": "node --experimental-strip-types --no-warnings scripts/store-preflight.ts",
+    "release:ios": "node --experimental-strip-types --no-warnings scripts/store-preflight.ts ios && eas build --platform ios --profile production --auto-submit",
+    "release:android": "node --experimental-strip-types --no-warnings scripts/store-preflight.ts android && eas build --platform android --profile production --auto-submit",
+    "store:metadata": "node --experimental-strip-types --no-warnings scripts/store-preflight.ts metadata && eas metadata:push --profile production"
   },
   "dependencies": {
     "@bacons/apple-targets": "5.0.0",

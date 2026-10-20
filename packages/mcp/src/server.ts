@@ -8,7 +8,7 @@ import { McpSession } from "./protocol.ts";
 export const SERVER_VERSION = "0.0.0";
 
 export interface McpServerOptions {
-  /** API base URL including the version, for example https://atlas.example.com/api/v1. */
+  /** API base URL including the version, for example https://api.ghxstship.tech/v1. */
   readonly baseUrl: string;
   /** Org-scoped `xos_live_` API key. The server acts with exactly its permissions. */
   readonly apiKey: string;
@@ -98,7 +98,7 @@ export function optionsFromEnv(
   const baseUrl = env["XOS_BASE_URL"];
   if (!apiKey || !baseUrl) {
     throw new Error(
-      "Set XOS_API_KEY to an org-scoped API key and XOS_BASE_URL to the API base URL, for example https://atlas.example.com/api/v1.",
+      "Set XOS_API_KEY to an org-scoped API key and XOS_BASE_URL to the API base URL, for example https://api.ghxstship.tech/v1.",
     );
   }
   const allowDelete = args.allowDelete ?? env["XOS_MCP_ALLOW_DELETE"] === "true";
