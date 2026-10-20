@@ -73,7 +73,7 @@ export function ReactionBar({
               : "border-border-subtle text-text-secondary"
           }`}
         >
-          <Icon name={REACTION_GLYPHS[c.code] ?? "Smile"} size={14} />
+          <Icon name={REACTION_GLYPHS[c.code] ?? "ThumbsUp"} size={14} />
           {c.count > 0 ? <span>{c.count}</span> : null}
         </button>
       ))}
