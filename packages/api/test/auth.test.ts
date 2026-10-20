@@ -172,7 +172,7 @@ describe("org IP allow-list (migration 1201)", () => {
     const { authenticate, calls } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
     const inside = await resolve(authenticate, {
       authorization: `Bearer ${VALID}`,
-      "x-forwarded-for": "203.0.113.40, 10.0.0.1",
+      "x-forwarded-for": "10.0.0.1, 203.0.113.40",
     });
     expect(inside?.org?.id).toBe(ORG_A.id);
     expect(calls.some((c) => c.startsWith("/rest/v1/rpc/network_access"))).toBe(true);
@@ -201,12 +201,48 @@ describe("org IP allow-list (migration 1201)", () => {
     expect(context?.org?.id).toBe(ORG_A.id);
   });
 
-  it("reads the caller's address from the proxy headers", () => {
-    expect(clientIp(new Headers({ "x-forwarded-for": " 203.0.113.40 , 10.0.0.1" }))).toBe(
-      "203.0.113.40",
+  it("reads the address the trusted proxy appended, never the client's first entry (A69-003)", () => {
+    expect(clientIp(new Headers({ "x-forwarded-for": " 203.0.113.40 , 198.51.100.9" }))).toBe(
+      "198.51.100.9",
     );
+    expect(clientIp(new Headers({ "x-forwarded-for": "203.0.113.41" }))).toBe("203.0.113.41");
     expect(clientIp(new Headers({ "x-real-ip": "198.51.100.7" }))).toBe("198.51.100.7");
     expect(clientIp(new Headers())).toBeNull();
+    const chain = new Headers({ "x-forwarded-for": "203.0.113.40, 198.51.100.10, 10.0.0.3" });
+    expect(clientIp(chain, 1)).toBe("198.51.100.10");
+    expect(clientIp(new Headers({ "x-forwarded-for": "198.51.100.11" }), 1)).toBeNull();
+  });
+
+  it("refuses an outside address that names an allowed one first (A69-003)", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
+    await expect(
+      resolve(authenticate, {
+        authorization: `Bearer ${VALID}`,
+        "x-forwarded-for": "203.0.113.40, 198.51.100.7",
+      }),
+    ).rejects.toMatchObject({ body: { status: 401 } });
+    await expect(
+      resolve(authenticate, {
+        authorization: "Bearer xos_live_valid",
+        "x-forwarded-for": "203.0.113.40, 198.51.100.7",
+      }),
+    ).rejects.toMatchObject({ body: { status: 401 } });
+  });
+
+  it("checks every org's list when the request is bound to none (A69-010)", async () => {
+    const { authenticate, calls } = fakeSupabase([ORG_A, ORG_B], { allowedIps: ["203.0.113.40"] });
+    const unbound = resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-forwarded-for": "198.51.100.7",
+    });
+    await expect(unbound).rejects.toMatchObject({ body: { status: 401 } });
+    const inside = await resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-forwarded-for": "203.0.113.40",
+    });
+    expect(inside?.org).toBeNull();
+    const checks = calls.filter((c) => c.startsWith("/rest/v1/rpc/network_access"));
+    expect(checks.length).toBeGreaterThanOrEqual(2);
   });
 });
 
