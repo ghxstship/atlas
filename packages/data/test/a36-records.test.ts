@@ -19,6 +19,7 @@ import {
   actOnInboxItem,
   isActionableApproval,
   listInbox,
+  sortInbox,
   snoozeInboxItem,
   snoozeUntil,
 } from "../src/inbox.ts";
@@ -281,6 +282,32 @@ describe("custom objects repository", () => {
 });
 
 describe("inbox repository", () => {
+  it("orders items that share a timestamp by id, newest first, whatever order they arrive in", () => {
+    const item = (id: string, section: "Needs You" | "For Your Information") => ({
+      id,
+      createdAt: "2026-10-20T17:21:33Z",
+      kind: "message.received",
+      section,
+      read: false,
+      subjectTable: null,
+      subjectId: null,
+      projectId: null,
+      args: {},
+      approval: null,
+    });
+    const items = [
+      item("01a1-a", "For Your Information"),
+      item("01a1-c", "Needs You"),
+      item("01a1-b", "For Your Information"),
+    ];
+    expect(sortInbox(items).map((i) => i.id)).toEqual(["01a1-c", "01a1-b", "01a1-a"]);
+    expect(sortInbox([...items].reverse()).map((i) => i.id)).toEqual([
+      "01a1-c",
+      "01a1-b",
+      "01a1-a",
+    ]);
+  });
+
   it("lists Needs You first with the approval, and acts and snoozes", async () => {
     const { db, calls } = moduleClient({
       "from:inbox_items": [
@@ -339,6 +366,11 @@ describe("inbox repository", () => {
     });
     const inbox = await listInbox(db, "o");
     expect(inbox.ok && inbox.data.map((i) => i.id)).toEqual(["n3", "n1", "n2"]);
+    // Items written together share created_at; the id settles their order (A71).
+    expect(stepsOf(calls[0], "order")).toEqual([
+      ["created_at", { ascending: false }],
+      ["id", { ascending: false }],
+    ]);
     if (!inbox.ok) return;
     expect(inbox.data[1]?.approval).toMatchObject({
       instanceId: "a1",
