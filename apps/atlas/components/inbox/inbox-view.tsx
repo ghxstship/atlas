@@ -44,6 +44,34 @@ const KEY_HINTS: readonly (readonly [readonly string[], string])[] = [
 ];
 
 /**
+ * Sends one quick act. Approve and Done go straight to the public API's notification action (the
+ * same app.act_on_notification a push notification calls), one request per key press, so a run of A
+ * presses is decided in parallel and each request is on its way the moment the key is pressed:
+ * server actions run one after another, so twenty queued approvals could still be waiting, and be
+ * lost with the tab, long after the list looked clear. Snooze stays a server action.
+ */
+async function sendAct(org: string, id: string, action: Quick): Promise<PlatformActionState> {
+  if (action === "snooze") return quickInboxAction({ org, id, action });
+  try {
+    const response = await fetch(`/api/v1/notifications/${encodeURIComponent(id)}/act`, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      body: JSON.stringify({ action }),
+    });
+    if (response.ok) return { ok: true, id, at: Date.now() };
+    const body = (await response.json().catch(() => null)) as { rule?: unknown } | null;
+    if (typeof body?.rule === "string") return { rule: body.rule, at: Date.now() };
+    return { error: response.status === 404 ? "notFound" : "unexpected", at: Date.now() };
+  } catch {
+    return { error: "unexpected", at: Date.now() };
+  }
+}
+
+/**
  * The Inbox list (Section 11.10 rule 5). Keyboard: J or Down and K or Up move between items, A approves,
  * R rejects with a reason, E marks Done, H snoozes until tomorrow and Enter opens the item. Acting removes
  * the item at once and moves to the next, so a queue is cleared without waiting; a refusal puts the item
@@ -107,13 +135,17 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
     [items, focusRow],
   );
 
+  /** Acts sent and not yet answered; the page refreshes from the server once none is left. */
+  const inFlight = useRef(0);
+
   const act = useCallback(
     (row: InboxRow, action: Quick) => {
       if (action === "approve" && !row.approvable) return;
       handOff(row.id);
       setHidden((prev) => new Set(prev).add(row.id));
       setHandled((n) => n + 1);
-      void quickInboxAction({ org, id: row.id, action }).then((result) => {
+      inFlight.current += 1;
+      void sendAct(org, row.id, action).then((result) => {
         setOutcome(result);
         if (!result.ok) {
           setHidden((prev) => {
@@ -123,9 +155,11 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
           });
           setHandled((n) => n - 1);
         }
+        inFlight.current -= 1;
+        if (inFlight.current === 0) router.refresh();
       });
     },
-    [org, handOff],
+    [org, handOff, router],
   );
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
