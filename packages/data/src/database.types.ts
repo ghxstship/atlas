@@ -53420,6 +53420,14 @@ export type Database = {
       issue_scim_token: { Args: { p_identity_provider_id: string }; Returns: string };
       issue_training_certification: { Args: { p_completion_id: string }; Returns: string };
       join_by_sso: { Args: { p_org_id: string }; Returns: string };
+      join_by_sso_session: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          joined: boolean;
+          org_id: string;
+          slug: string;
+        }[];
+      };
       join_by_verified_domain: { Args: { p_org_id: string }; Returns: string };
       kiosk_punch: {
         Args: {
@@ -54369,6 +54377,7 @@ export type Database = {
         };
         Returns: string;
       };
+      scim_user_for_email: { Args: { p_email: string }; Returns: string };
       seat_usage: {
         Args: { p_org_id: string };
         Returns: {
