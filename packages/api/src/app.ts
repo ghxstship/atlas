@@ -116,7 +116,13 @@ export const DOCUMENT_INFO = {
       'Versioned REST API for XOS 4.0 (Section 10.1, ADR 0003). Cursor pagination with `limit` and `cursor`; sparse fieldsets with `fields`; filters with `filter[field][op]=value`; `Idempotency-Key` on every POST; `ETag` and `If-Match` on updates; RFC 9457 problem details; refusals as 422 with `refusal` set to NO_ANSWER, UNRATIFIED or REFUSE. Money is integer minor units with a currency; null is unpriced, never zero. Restricted fields the caller may not read stay present as `{ "masked": true, "reason": "..." }`. The active organization is bound to the credential.',
     license: { name: "AGPL-3.0-only", identifier: "AGPL-3.0-only" },
   },
-  servers: [{ url: "/api/v1", description: "This deployment." }],
+  // `servers` is document metadata, outside the frozen operations and components (ADR 0023), so
+  // adding a server is not a contract correction. The relative entry stays first: every deployment,
+  // self-hosted ones included, serves the API at its own /api/v1.
+  servers: [
+    { url: "/api/v1", description: "This deployment." },
+    { url: "https://api.ghxstship.tech/v1", description: "GHXSTSHIP hosted production." },
+  ],
   security: SECURITY_REQUIREMENT,
   tags: MODULES.map((name) => ({ name, description: TAG_DESCRIPTIONS[name] })),
 } as const;

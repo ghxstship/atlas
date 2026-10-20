@@ -399,7 +399,7 @@ import {
  * OpenAPI document is a method.
  *
  * @example
- * const xos = new XosClient({ baseUrl: "https://atlas.example.com/api/v1", apiKey: process.env.XOS_API_KEY });
+ * const xos = new XosClient({ baseUrl: "https://api.ghxstship.tech/v1", apiKey: process.env.XOS_API_KEY });
  * for await (const project of xos.projects.listAll({ filter: { project_state: { eq: "Active" } } })) {
  *   console.log(project.name);
  * }

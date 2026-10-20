@@ -17,7 +17,7 @@ import type {
 } from "./types.ts";
 
 export interface XosClientOptions {
-  /** API base URL including the version, for example `https://atlas.example.com/api/v1`. */
+  /** API base URL including the version, for example `https://api.ghxstship.tech/v1`. */
   readonly baseUrl: string;
   /** Org-scoped API key (`xos_live_...`) for servers. */
   readonly apiKey?: string;
@@ -80,7 +80,7 @@ export class XosClientCore {
 
   constructor(options: XosClientOptions) {
     if (!options.baseUrl)
-      throw new TypeError("XosClient needs a baseUrl such as https://atlas.example.com/api/v1.");
+      throw new TypeError("XosClient needs a baseUrl such as https://api.ghxstship.tech/v1.");
     const credentials = [options.apiKey, options.accessToken, options.getToken].filter(
       (c) => c !== undefined,
     );
