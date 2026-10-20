@@ -1474,6 +1474,8 @@
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
     },
     "or": "or",
+    "usePassword": "Use a password",
+    "useLink": "Use a link",
     "signIn": {
       "title": "Sign in to Gateway",
       "lead": "Find work, get onboarded and get paid with one account for every organization.",
@@ -1486,6 +1488,7 @@
       "title": "Create your Gateway account",
       "lead": "One account works in Gateway, Atlas and Compass. Your profile stays yours.",
       "submit": "Create account",
+      "terms": "I agree to the <terms>Worker Terms</terms> and have read the <privacy>Privacy Policy</privacy>.",
       "haveAccount": "Already have an account?",
       "toSignIn": "Sign in"
     },
@@ -1528,7 +1531,8 @@
       "fullName": "Enter your full name.",
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
-      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway."
+      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
+      "terms": "Accept the Worker Terms to create your account: tick the box above the button."
     }
   },
   "work": {
@@ -1598,5 +1602,9 @@
         }
       }
     }
+  },
+  "legal": {
+    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "back": "Go to Gateway"
   }
 }

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { clientIp, recordPendingAcceptances } from "@/lib/auth/legal";
 import { safeNext } from "@/lib/auth/redirect";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -10,5 +11,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const db = await createServerSupabase();
   const { error } = await db.auth.exchangeCodeForSession(code);
   if (error) return NextResponse.redirect(new URL("/auth/sign-in?error=link_invalid", request.url));
+  // A new account accepted the Worker Terms at sign-up; the first session writes them to the log.
+  await recordPendingAcceptances(db, clientIp(request.headers));
   return NextResponse.redirect(new URL(next, request.url));
 }

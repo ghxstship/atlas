@@ -1,14 +1,22 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, type ReactNode } from "react";
+import { useActionState, useEffect, useState, type ReactNode } from "react";
 import { sendMagicLink, signInWithPassword, signUp, type FormState } from "@/app/auth/actions";
-import { Button, InlineAlert, Input } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
 
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
-/** Auth forms (Auth template). Each keeps typed input after a failed submit (Section 11.7). */
+
+/**
+ * Auth forms (Auth template). Each card has one Email field and one primary action: the sign-in
+ * link first, a password on request (Section 11.10, rule 12; finding A59-025, which found a second
+ * Email field for the password). The Email field stays mounted when the method changes, so what was
+ * typed carries over, and every form keeps typed input after a failed submit (Section 11.7).
+ */
 
 type Translate = (key: string, values?: Record<string, string>) => string;
+
+export type AuthMethod = "link" | "password";
 
 function useAuthCopy(): Translate {
   const t = useTranslations("gateway.auth");
@@ -28,19 +36,11 @@ function fieldError(t: Translate, state: FormState, field: string): string {
 
 const INITIAL: FormState = {};
 
-function Submit({
-  pending,
-  children,
-  variant = "primary",
-}: {
-  pending: boolean;
-  children: ReactNode;
-  variant?: "primary" | "secondary";
-}) {
+function Submit({ pending, children }: { pending: boolean; children: ReactNode }) {
   return (
     <Button
       type="submit"
-      variant={variant}
+      variant="primary"
       disabled={pending}
       aria-busy={pending}
       className="w-full"
@@ -50,9 +50,47 @@ function Submit({
   );
 }
 
-export function PasswordSignInForm({ next }: { next: string }) {
+/** Switches between the sign-in link and a password; not a submit, so Enter keeps the primary. */
+function MethodSwitch({ label, onSwitch }: { label: string; onSwitch: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onSwitch}
+      className="inline-flex min-h-touch-min items-center self-start text-text-13 font-medium text-accent-text underline"
+    >
+      {label}
+    </button>
+  );
+}
+
+/** One method at a time, with the action state of each and focus moved to the password field. */
+function useMethod(initial: AuthMethod, passwordId: string) {
+  const [method, setMethod] = useState<AuthMethod>(initial);
+  const [switched, setSwitched] = useState(false);
+  useEffect(() => {
+    if (switched && method === "password") document.getElementById(passwordId)?.focus();
+  }, [method, switched, passwordId]);
+  return {
+    method,
+    toggle: () => {
+      setSwitched(true);
+      setMethod((m) => (m === "link" ? "password" : "link"));
+    },
+  };
+}
+
+/** Sign in: Email, then the link (primary) or, on request, a password. */
+export function SignInForm({ next, initial = "link" }: { next: string; initial?: AuthMethod }) {
   const t = useAuthCopy();
-  const [state, action, pending] = useActionState(signInWithPassword, INITIAL);
+  const { method, toggle } = useMethod(initial, "signin-password");
+  const [linkState, linkAction, linkPending] = useActionState(sendMagicLink, INITIAL);
+  const [passwordState, passwordAction, passwordPending] = useActionState(
+    signInWithPassword,
+    INITIAL,
+  );
+  const password = method === "password";
+  const state = password ? passwordState : linkState;
+  const action = password ? passwordAction : linkAction;
   return (
     <form
       action={action}
@@ -62,6 +100,7 @@ export function PasswordSignInForm({ next }: { next: string }) {
     >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="intent" value="sign-in" />
       <Input
         width="100%"
         id="signin-email"
@@ -73,26 +112,47 @@ export function PasswordSignInForm({ next }: { next: string }) {
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
-      <Input
-        width="100%"
-        id="signin-password"
-        name="password"
-        type="password"
-        autoComplete="current-password"
-        required
-        label={t("fields.password")}
-        error={fieldError(t, state, "password")}
-      />
-      <Submit pending={pending} variant="secondary">
-        {t("signIn.password")}
+      {password ? (
+        <Input
+          width="100%"
+          id="signin-password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          label={t("fields.password")}
+          error={fieldError(t, state, "password")}
+        />
+      ) : null}
+      <Submit pending={password ? passwordPending : linkPending}>
+        {t(password ? "signIn.password" : "signIn.magicLink")}
       </Submit>
+      <MethodSwitch label={t(password ? "useLink" : "usePassword")} onSwitch={toggle} />
     </form>
   );
 }
 
-export function MagicLinkForm({ next, intent }: { next: string; intent: "sign-in" | "sign-up" }) {
+/**
+ * Create an account: name, Email, the Worker Terms (accepted) and the Privacy Policy (read), then
+ * the link (primary) or, on request, a password. Nothing is created until the terms box is ticked.
+ */
+export function SignUpForm({
+  next,
+  termsLabel,
+  initial = "link",
+}: {
+  next: string;
+  termsLabel: ReactNode;
+  initial?: AuthMethod;
+}) {
   const t = useAuthCopy();
-  const [state, action, pending] = useActionState(sendMagicLink, INITIAL);
+  const { method, toggle } = useMethod(initial, "signup-password");
+  const [linkState, linkAction, linkPending] = useActionState(sendMagicLink, INITIAL);
+  const [passwordState, passwordAction, passwordPending] = useActionState(signUp, INITIAL);
+  const password = method === "password";
+  const state = password ? passwordState : linkState;
+  const action = password ? passwordAction : linkAction;
+  const termsError = fieldError(t, state, "acceptTerms");
   return (
     <form
       action={action}
@@ -102,35 +162,7 @@ export function MagicLinkForm({ next, intent }: { next: string; intent: "sign-in
     >
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="next" value={next} />
-      <input type="hidden" name="intent" value={intent} />
-      <Input
-        width="100%"
-        id="magic-email"
-        name="email"
-        type="email"
-        autoComplete="email"
-        required
-        label={t("fields.email")}
-        defaultValue={state.values?.["email"] ?? ""}
-        error={fieldError(t, state, "email")}
-      />
-      <Submit pending={pending}>{t("signIn.magicLink")}</Submit>
-    </form>
-  );
-}
-
-export function SignUpForm({ next }: { next: string }) {
-  const t = useAuthCopy();
-  const [state, action, pending] = useActionState(signUp, INITIAL);
-  return (
-    <form
-      action={action}
-      onSubmit={keepInputOnSubmit(action)}
-      className="flex flex-col gap-12"
-      noValidate
-    >
-      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
-      <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="intent" value="sign-up" />
       <Input
         width="100%"
         id="signup-name"
@@ -152,21 +184,41 @@ export function SignUpForm({ next }: { next: string }) {
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
-      <Input
-        width="100%"
-        id="signup-password"
-        name="password"
-        type="password"
-        autoComplete="new-password"
-        minLength={12}
-        required
-        label={t("fields.password")}
-        help={t("fields.passwordHelp")}
-        error={fieldError(t, state, "password")}
-      />
-      <Submit pending={pending} variant="secondary">
-        {t("signUp.submit")}
+      {password ? (
+        <Input
+          width="100%"
+          id="signup-password"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          minLength={12}
+          required
+          label={t("fields.password")}
+          help={t("fields.passwordHelp")}
+          error={fieldError(t, state, "password")}
+        />
+      ) : null}
+      <div className="flex flex-col gap-4">
+        <Checkbox
+          id="signup-terms"
+          name="acceptTerms"
+          value="yes"
+          required
+          defaultChecked={state.values?.["acceptTerms"] === "yes"}
+          aria-invalid={termsError ? true : undefined}
+          aria-describedby={termsError ? "signup-terms-error" : undefined}
+          label={<span className="text-text-13">{termsLabel}</span>}
+        />
+        {termsError ? (
+          <p id="signup-terms-error" className="m-0 text-text-13 text-danger-text">
+            {termsError}
+          </p>
+        ) : null}
+      </div>
+      <Submit pending={password ? passwordPending : linkPending}>
+        {t(password ? "signUp.submit" : "signIn.magicLink")}
       </Submit>
+      <MethodSwitch label={t(password ? "useLink" : "usePassword")} onSwitch={toggle} />
     </form>
   );
 }
