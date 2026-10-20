@@ -142,6 +142,20 @@ function CellValue({
   return String(value);
 }
 
+/**
+ * The full text of a cell that may be cut off with an ellipsis, as its title (Section 15: a longer
+ * translation never hides text). Wrapping columns and numbers never clip.
+ */
+function cellTitle(
+  column: ReferenceDataTableColumn | undefined,
+  value: unknown,
+): string | undefined {
+  if (!column || column.wrap || column.type === "money" || column.type === "number")
+    return undefined;
+  if (column.type === "state") return isStateValue(value) ? value.label : undefined;
+  return typeof value === "string" && value !== "" ? value : undefined;
+}
+
 function defaultWidth(column: DataTableColumn): number {
   return column.width ?? (column.wrap ? 280 : DEFAULT_WIDTH[column.type ?? "text"]);
 }
@@ -509,6 +523,7 @@ export function DataTable({
                         pinnedClass(cell),
                       )}
                       style={pinStyle(cell)}
+                      title={cellTitle(column, column ? row[column.key] : undefined)}
                     >
                       {column ? <CellValue column={column} value={row[column.key]} /> : null}
                     </td>

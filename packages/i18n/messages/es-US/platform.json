@@ -457,6 +457,81 @@
     "aRecord": "un registro",
     "someone": "Alguien",
     "generic": "Actualización",
+    "otherKind": "Notificación",
+    "kinds": {
+      "access": {
+        "break_glass_started": "Acceso de emergencia tomado"
+      },
+      "account": {
+        "security_changed": "Cambió la seguridad de la cuenta"
+      },
+      "announcement": {
+        "posted": "Anuncio publicado"
+      },
+      "approval": {
+        "requested": "Aprobación solicitada",
+        "decided": "Aprobación resuelta"
+      },
+      "assignment": {
+        "created": "Nueva asignación"
+      },
+      "billing": {
+        "payment_failed": "Pago fallido",
+        "read_only": "La organización está en modo de solo lectura"
+      },
+      "comment": {
+        "created": "Nuevo comentario"
+      },
+      "event": {
+        "invited": "Invitación a un evento"
+      },
+      "export": {
+        "ready": "Exportación lista"
+      },
+      "help_request": {
+        "assigned": "Solicitud de ayuda asignada"
+      },
+      "import": {
+        "finished": "Importación terminada"
+      },
+      "incident": {
+        "reported": "Incidente reportado"
+      },
+      "invoice": {
+        "approved": "Factura aprobada",
+        "submitted": "Factura enviada",
+        "scheduled": "Pago de factura programado",
+        "paid": "Factura pagada"
+      },
+      "mention": {
+        "created": "Te mencionaron"
+      },
+      "message": {
+        "received": "Nuevo mensaje"
+      },
+      "occupancy": {
+        "threshold": "Se alcanzó el umbral de ocupación"
+      },
+      "recognition": {
+        "received": "Reconocimiento recibido"
+      },
+      "report": {
+        "delivered": "Informe entregado"
+      },
+      "shift": {
+        "assigned": "Turno asignado",
+        "changed": "Turno modificado"
+      },
+      "survey": {
+        "opened": "Encuesta abierta"
+      },
+      "training": {
+        "assigned": "Capacitación asignada"
+      },
+      "weather": {
+        "alert": "Alerta meteorológica"
+      }
+    },
     "approvalSummary": "Aprobar {document} {reference} por {amount}",
     "approvalDetail": "Solicitado por {actor}, paso {step}",
     "documents": {

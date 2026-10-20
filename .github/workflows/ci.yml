@@ -232,11 +232,14 @@ jobs:
             /tmp/*.log
           if-no-files-found: ignore
 
-  # Gate 16. Pseudo-locales exist only on next dev, which the Atlas config starts itself.
+  # Gate 16: pseudo-locales exist only on next dev, which the configs start themselves. Atlas runs the
+  # ar-XB journey, and both apps check en-XA strings and truncation (A53).
   e2e-pseudo-locales:
     name: Pseudo-locale journeys on next dev (gate 16)
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
+    env:
+      E2E_ENGINES: chromium
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
@@ -250,18 +253,29 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
-      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
-      - name: Write the Atlas environment from the stack
+      - name: Write the app environments from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\n' "$ANON" > apps/atlas/.env.local
-      - run: pnpm turbo run build --filter=@xos/atlas^...
-      - run: pnpm exec playwright test views-help.spec.ts -g "right to left"
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
+          echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
+          echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
+      - run: pnpm turbo run build --filter=@xos/atlas^... --filter=@xos/gateway^...
+      - name: Atlas (ar-XB journey, en-XA strings, truncation)
+        run: pnpm exec playwright test views-help.spec.ts pseudo-locales.spec.ts -g "right to left|en-XA|ar-XB"
         working-directory: apps/atlas
         env:
-          E2E_ENGINES: chromium
           E2E_SKIP_AURORA: "1"
+      - name: Gateway (en-XA strings, truncation)
+        run: pnpm exec playwright test pseudo-locales.spec.ts
+        working-directory: apps/gateway
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-pseudo-locales
+          path: apps/*/node_modules/.cache/playwright
+          if-no-files-found: ignore
 
   # Gate 19: every Section 11.9 template, both paper sizes and both locales, passes PDF/UA-1.
   verapdf:
@@ -341,3 +355,48 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm audit --prod
+
+  # Gate 9, core screens: the browser runs in the pinned image; the stack and next dev run beside it.
+  core-screen-visual:
+    name: Core-screen visual baselines (${{ matrix.app }}) (gate 9)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [atlas, gateway]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.120.0
+      - run: pnpm install --frozen-lockfile
+      - run: docker pull --platform linux/amd64 mcr.microsoft.com/playwright:v1.64.0-noble
+      - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+      - name: Write the app environment from the stack
+        run: |
+          ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\n' "$ANON" > apps/atlas/.env.local
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
+      - run: pnpm turbo run build --filter=@xos/${{ matrix.app }}^...
+      - name: Start next dev
+        run: |
+          PORT=$([ "${{ matrix.app }}" = atlas ] && echo 3006 || echo 3127)
+          (cd apps/${{ matrix.app }} && nohup pnpm exec next dev --port "$PORT" > /tmp/app.log 2>&1 &)
+          for i in $(seq 90); do curl -fs -o /dev/null "http://127.0.0.1:$PORT/auth/sign-in" && break; sleep 2; done
+          echo "E2E_BASE_URL=http://127.0.0.1:$PORT" >> "$GITHUB_ENV"
+      - name: Core screens in the pinned Playwright image
+        run: packages/testing/ci/visual-in-container.sh ${{ matrix.app }}
+      - if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: core-screen-visual-${{ matrix.app }}
+          path: |
+            apps/${{ matrix.app }}/node_modules/.cache/playwright-visual
+            /tmp/app.log
+          if-no-files-found: ignore
