@@ -22,6 +22,8 @@ import {
   render,
 } from "@react-email/components";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
+import "@supabase/supabase-js";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 //#region ../schemas/plans.yaml?raw
 var plans_default =
   "# XOS plans, limits, features and price books (Section 16, Section 3.15, ADR 0008).\n#\n# This file is the single source of every plan. The generator in src/plans emits the plan\n# current plan seed migration (see PLAN_SEED_MIGRATION in src/plans/sql.ts) from it; the pricing\n# page, Stripe products and private.org_plan_limits read the same data.\n#\n# Rules the validator enforces:\n#   - limits and features list exactly the values of the Postgres enums\n#     app.plan_limit_code and app.plan_feature_code, in enum order.\n#   - plans are listed from the free plan upward; that order is the sort order.\n#   - every plan states every limit. A null limit means unlimited.\n#   - a plan lists only the features it adds; it includes every feature of the plan it extends,\n#     so features only accumulate upward, and no plan allows less of a limit than the plan below.\n#   - every plan prices every currency. A null amount is unpriced (Section 3.7), never zero;\n#     only a free plan carries a price of 0.\n#   - every paid plan names its Stripe product and its monthly and annual price by lookup key;\n#     the free plan has none. Lookup keys, not ids, so test and live mode share this file.\n#     A price lookup key is the Stripe price's lookup_key; a product key is the product's\n#     metadata.lookup_key, because Stripe products have no native lookup key.\n#\n#   - a plan with a quote is sold by contract only (Enterprise): its list prices are null, it has no\n#     Stripe prices and no extra seats, and quote.from_monthly_minor is a display price only.\n#   - annual prices are annual_multiplier times monthly, for plans, extra seats and nothing else.\n#   - a plan with a seat limit above the free plan sells extra seats (extra_seat), priced per seat in\n#     every currency with its own Stripe price lookup keys on the shared extra-seat product.\n#   - an add-on is a one-time purchase that raises one limit for the calendar month it is bought in,\n#     on the plans it lists, which must have a finite limit for it.\n#   - every Stripe lookup key, coupon id and promotion code is unique.\n#\n# Pricing v4 (owner, 2026-10-19; ADR 0035): seat-based plans with a seat allowance, extra seats per\n# month, unlimited projects and field crew on paid plans, local-currency price books, Aurora request\n# packs, a founding-customer coupon and a 30 percent partner wholesale discount. Stripe lookup keys\n# are the v4 catalogue that `pnpm --filter @xos/platform stripe:setup` creates in test mode. The v3\n# catalogue (atlvs_*) stays in Stripe as history. Per-project pricing stays dropped (ADR 0018).\n#\n# Packaging (ADR 0020): every plan includes Atlas and Compass, and Gateway for the parties an org\n# engages. Access is Atlas Lite (1 seat, 1 project). Tiers differ by Gateway reach (public\n# marketplace and white label from Pro), by the monthly Aurora AI allowance, and by Legend, which\n# Enterprise receives as early access. Workers and other external users are free on every plan.\n\nversion: 1\n\nlimits:\n  - seats\n  - active_projects\n  - field_members\n  - active_external_engagements_per_month\n  - aurora_requests_per_month\n\nfeatures:\n  - approvals\n  - advancing\n  - procurement\n  - upl_export\n  - white_label\n  - custom_domain\n  - automations\n  - api_keys\n  - webhooks\n  - public_marketplace_listings\n  - custom_roles\n  - ip_allowlist\n  - audit_export\n  - payroll_export\n  - priority_support\n  - saml_sso\n  - scim\n  - eu_data_residency\n  - branded_compass_build\n  - sla_credits\n  - support_session_controls\n  - aurora_ai\n  - legend_early_access\n\ncurrencies: [USD, EUR, GBP, CAD, AUD]\n\n# Annual billing gives two months free.\nannual_multiplier: 10\n\n# The Stripe product every extra-seat price belongs to.\nextra_seat_product_lookup_key: xos_extra_seat_v4\n\n# Partner wholesale (Section 4.6.1): client orgs billed to a partner cost the partner list price less\n# this discount. It is the default of app.partner_agreements.wholesale_discount_bps.\npartner_wholesale_discount_bps: 3000\n\nplans:\n  - code: access\n    free: true\n    limits:\n      seats: 1\n      active_projects: 1\n      field_members: 10\n      active_external_engagements_per_month: 25\n      aurora_requests_per_month: 0\n    features: []\n    prices:\n      USD: { monthly_minor: 0, annual_minor: 0 }\n      EUR: { monthly_minor: 0, annual_minor: 0 }\n      GBP: { monthly_minor: 0, annual_minor: 0 }\n      CAD: { monthly_minor: 0, annual_minor: 0 }\n      AUD: { monthly_minor: 0, annual_minor: 0 }\n\n  - code: core\n    extends: access\n    limits:\n      seats: 5\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 14900, annual_minor: 149000 }\n      EUR: { monthly_minor: 13900, annual_minor: 139000 }\n      GBP: { monthly_minor: 11900, annual_minor: 119000 }\n      CAD: { monthly_minor: 19900, annual_minor: 199000 }\n      AUD: { monthly_minor: 22900, annual_minor: 229000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1900, annual_minor: 19000 }\n        EUR: { monthly_minor: 1800, annual_minor: 18000 }\n        GBP: { monthly_minor: 1500, annual_minor: 15000 }\n        CAD: { monthly_minor: 2600, annual_minor: 26000 }\n        AUD: { monthly_minor: 2900, annual_minor: 29000 }\n      stripe:\n        monthly: xos_seat_core_monthly_v4\n        annual: xos_seat_core_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_core_v4\n      prices:\n        monthly: xos_plan_core_monthly_v4\n        annual: xos_plan_core_annual_v4\n\n  - code: pro\n    extends: core\n    limits:\n      seats: 15\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 2500\n      aurora_requests_per_month: 2000\n    features:\n      [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]\n    prices:\n      USD: { monthly_minor: 39900, annual_minor: 399000 }\n      EUR: { monthly_minor: 36900, annual_minor: 369000 }\n      GBP: { monthly_minor: 31900, annual_minor: 319000 }\n      CAD: { monthly_minor: 54900, annual_minor: 549000 }\n      AUD: { monthly_minor: 60900, annual_minor: 609000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1900, annual_minor: 19000 }\n        EUR: { monthly_minor: 1800, annual_minor: 18000 }\n        GBP: { monthly_minor: 1500, annual_minor: 15000 }\n        CAD: { monthly_minor: 2600, annual_minor: 26000 }\n        AUD: { monthly_minor: 2900, annual_minor: 29000 }\n      stripe:\n        monthly: xos_seat_pro_monthly_v4\n        annual: xos_seat_pro_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_pro_v4\n      prices:\n        monthly: xos_plan_pro_monthly_v4\n        annual: xos_plan_pro_annual_v4\n\n  - code: team\n    extends: pro\n    limits:\n      seats: 40\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: 10000\n    features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]\n    prices:\n      USD: { monthly_minor: 89900, annual_minor: 899000 }\n      EUR: { monthly_minor: 82900, annual_minor: 829000 }\n      GBP: { monthly_minor: 71900, annual_minor: 719000 }\n      CAD: { monthly_minor: 122900, annual_minor: 1229000 }\n      AUD: { monthly_minor: 136900, annual_minor: 1369000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1500, annual_minor: 15000 }\n        EUR: { monthly_minor: 1400, annual_minor: 14000 }\n        GBP: { monthly_minor: 1200, annual_minor: 12000 }\n        CAD: { monthly_minor: 2100, annual_minor: 21000 }\n        AUD: { monthly_minor: 2300, annual_minor: 23000 }\n      stripe:\n        monthly: xos_seat_team_monthly_v4\n        annual: xos_seat_team_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_team_v4\n      prices:\n        monthly: xos_plan_team_monthly_v4\n        annual: xos_plan_team_annual_v4\n\n  - code: enterprise\n    extends: team\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: null\n    features:\n      [\n        saml_sso,\n        scim,\n        eu_data_residency,\n        branded_compass_build,\n        sla_credits,\n        support_session_controls,\n        legend_early_access,\n      ]\n    prices:\n      USD: { monthly_minor: null, annual_minor: null }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    quote:\n      contract: annual\n      from_monthly_minor: { USD: 250000, EUR: null, GBP: null, CAD: null, AUD: null }\n\naddons:\n  - code: aurora_requests_1000\n    adds: { limit: aurora_requests_per_month, amount: 1000 }\n    plans: [core, pro, team]\n    prices: { USD: 4900, EUR: 4500, GBP: 3900, CAD: 6700, AUD: 7500 }\n    stripe:\n      product_lookup_key: xos_addon_aurora_requests_1000_v4\n      price: xos_addon_aurora_requests_1000_once_v4\n\noffers:\n  - code: founding_customer\n    percent_off: 30\n    duration_months: 12\n    max_redemptions: 50\n    plans: [core, pro, team]\n    stripe:\n      coupon_id: xos_founding_customer_v4\n      promotion_code: FOUNDING30\n";
@@ -35135,7 +35137,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$4(name) {
+function text$6(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -35164,12 +35166,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$4("heading-20"),
+    ...text$6("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$4("label-13"),
+    ...text$6("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -35181,7 +35183,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$4("text-12"),
+    ...text$6("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -35191,7 +35193,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$4("text-14"),
+      ...text$6("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -35357,7 +35359,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$4("text-14"),
+                          ...text$6("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -35795,7 +35797,7 @@ function supabaseDb(client) {
 function rows$2(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$3(row, key) {
+function text$5(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -35819,7 +35821,7 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text$3(row, "stripe_event_row_id");
+      const rowId = text$5(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
@@ -35875,11 +35877,11 @@ function webhookStore(db) {
   return {
     async claim(limit) {
       return rows$2(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$3(row, "delivery_id"),
-        url: text$3(row, "url"),
-        eventType: text$3(row, "event_type"),
-        body: text$3(row, "body"),
-        signature: text$3(row, "signature"),
+        deliveryId: text$5(row, "delivery_id"),
+        url: text$5(row, "url"),
+        eventType: text$5(row, "event_type"),
+        body: text$5(row, "body"),
+        signature: text$5(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -35902,7 +35904,7 @@ function gatewayLink(claim, gatewayUrl) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text$3((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$5((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
       return rows$2(
@@ -35911,12 +35913,12 @@ function notificationStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$3(row, "delivery_id"),
-        orgId: text$3(row, "org_id"),
-        recipientPersonId: text$3(row, "recipient_person_id"),
-        address: text$3(row, "address"),
-        kind: text$3(row, "kind"),
-        emailTemplateCode: text$3(row, "email_template_code"),
+        deliveryId: text$5(row, "delivery_id"),
+        orgId: text$5(row, "org_id"),
+        recipientPersonId: text$5(row, "recipient_person_id"),
+        address: text$5(row, "address"),
+        kind: text$5(row, "kind"),
+        emailTemplateCode: text$5(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
@@ -35924,8 +35926,8 @@ function notificationStore(db, options) {
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$3(org, "slug");
-      const name = text$3(org, "name");
+      const slug = text$5(org, "slug");
+      const name = text$5(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -36157,7 +36159,7 @@ var ZIP_LIMITS = {
   maxRatio: 100,
 };
 /** Every type an upload bucket accepts, with the byte signature families and extensions it may have. */
-var TYPES = {
+var TYPES$1 = {
   "application/pdf": {
     families: ["pdf"],
     extensions: ["pdf"],
@@ -36388,7 +36390,7 @@ function checkZip(bytes, allowNested) {
 /** Checks the bytes against the declared type, the file name's extension and, for zips, the limits. */
 function checkContent(input) {
   const type = (input.contentType ?? "").toLowerCase().split(";")[0]?.trim() ?? "";
-  const rule = TYPES[type];
+  const rule = TYPES$1[type];
   if (rule === void 0)
     return {
       ok: false,
@@ -36461,7 +36463,7 @@ var StorageUnavailableError = class extends Error {
     this.name = "StorageUnavailableError";
   }
 };
-async function sha256Hex(bytes) {
+async function sha256Hex$1(bytes) {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -36479,7 +36481,7 @@ async function judge(options, file) {
   if (
     file.checksum !== void 0 &&
     file.checksum !== null &&
-    (await sha256Hex(bytes)) !== file.checksum
+    (await sha256Hex$1(bytes)) !== file.checksum
   )
     return {
       result: "refused",
@@ -36699,7 +36701,7 @@ async function runUploadScans(options) {
 function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$2(row, key) {
+function text$4(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -36724,8 +36726,8 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        jobId: text$2(row, "id"),
-        attachmentVersionId: text$2(row, "subject_id"),
+        jobId: text$4(row, "id"),
+        attachmentVersionId: text$4(row, "subject_id"),
         attempts: count(row, "attempts"),
       }));
     },
@@ -36737,11 +36739,11 @@ function scanStore(db) {
       );
       if (row === null) return null;
       return {
-        objectName: text$2(row, "object_name"),
-        filename: text$2(row, "filename"),
-        contentType: text$2(row, "content_type"),
+        objectName: text$4(row, "object_name"),
+        filename: text$4(row, "filename"),
+        contentType: text$4(row, "content_type"),
         checksumSha256: optionalText(row, "checksum_sha256"),
-        scanStatus: text$2(row, "scan_status"),
+        scanStatus: text$4(row, "scan_status"),
       };
     },
     async recordAttachmentScan(attachmentVersionId, clean, detail) {
@@ -36769,9 +36771,9 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        objectScanId: text$2(row, "object_scan_id"),
-        bucketId: text$2(row, "bucket_id"),
-        objectName: text$2(row, "object_name"),
+        objectScanId: text$4(row, "object_scan_id"),
+        bucketId: text$4(row, "bucket_id"),
+        objectName: text$4(row, "object_name"),
         contentType: optionalText(row, "content_type"),
         attempts: count(row, "attempts"),
       }));
@@ -37107,11 +37109,11 @@ var VALUE_PATTERNS = [
     replace: "[ip]",
   },
 ];
-var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var UUID$2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 var DEFAULT_MAX_DEPTH = 8;
 var DEFAULT_MAX_STRING = 4096;
 function redactString(input, maxLength = DEFAULT_MAX_STRING) {
-  if (UUID.test(input)) return input;
+  if (UUID$2.test(input)) return input;
   let out = input;
   for (const { pattern, replace } of VALUE_PATTERNS) {
     pattern.lastIndex = 0;
@@ -38174,7 +38176,7 @@ async function rows(query) {
   if (error) return fail(toDataError(error));
   return ok(data ?? []);
 }
-var str = (v) => (typeof v === "string" ? v : String(v ?? ""));
+var str$1 = (v) => (typeof v === "string" ? v : String(v ?? ""));
 var strOrNull = (v) => (typeof v === "string" ? v : null);
 /** A saved definition with its fields and filters, or not-found when the viewer cannot read it. */
 async function getReportDefinition(db, input) {
@@ -38211,21 +38213,21 @@ async function getReportDefinition(db, input) {
   const d = defs.data[0];
   if (!d) return fail({ kind: "not-found" });
   return ok({
-    id: str(d["id"]),
-    name: str(d["name"]),
-    sourceCode: str(d["source_code"]),
+    id: str$1(d["id"]),
+    name: str$1(d["name"]),
+    sourceCode: str$1(d["source_code"]),
     customObjectTypeId: strOrNull(d["custom_object_type_id"]),
-    chart: str(d["chart"]),
+    chart: str$1(d["chart"]),
     groupBy: strOrNull(d["group_by_field"]),
     shared: d["shared"] === true,
-    mine: str(d["membership_id"]) === input.membershipId,
+    mine: str$1(d["membership_id"]) === input.membershipId,
     fields: fields.data.map((f) => ({
-      field: str(f["field"]),
-      aggregate: str(f["aggregate"]),
+      field: str$1(f["field"]),
+      aggregate: str$1(f["aggregate"]),
     })),
     filters: filters.data.map((f) => ({
-      field: str(f["field"]),
-      operator: str(f["operator"]),
+      field: str$1(f["field"]),
+      operator: str$1(f["operator"]),
       value: strOrNull(f["value_text"]),
     })),
   });
@@ -38288,7 +38290,7 @@ function summarizeReport(plan, data, truncated) {
   const { source, columns, group } = plan;
   const hasMoney = columns.some((c) => c.type === "money");
   const aggregating = group !== null || columns.some((c) => c.aggregate !== "None");
-  const currencyOf = (r) => (source.currencyColumn ? str(r[source.currencyColumn]).trim() : "");
+  const currencyOf = (r) => (source.currencyColumn ? str$1(r[source.currencyColumn]).trim() : "");
   const cellsFor = (members) =>
     columns.map((c) => {
       const values = members.map((m) => m[c.field] ?? null);
@@ -38333,7 +38335,11 @@ function summarizeReport(plan, data, truncated) {
     };
   const groups = /* @__PURE__ */ new Map();
   for (const r of data) {
-    const label = group ? (r[group] === null || r[group] === void 0 ? null : str(r[group])) : null;
+    const label = group
+      ? r[group] === null || r[group] === void 0
+        ? null
+        : str$1(r[group])
+      : null;
     const key = `${label ?? ""}|${hasMoney ? currencyOf(r) : ""}`;
     const g = groups.get(key) ?? {
       label,
@@ -38676,7 +38682,7 @@ async function runReportJobs(options) {
   }
   return results;
 }
-function text$1(row, key) {
+function text$3(row, key) {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
@@ -38699,8 +38705,8 @@ function supabaseReportRunStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text$1(r, "id"),
-        runId: text$1(r, "subject_id"),
+        jobId: text$3(r, "id"),
+        runId: text$3(r, "subject_id"),
       }));
     },
     async run(runId) {
@@ -38714,11 +38720,11 @@ function supabaseReportRunStore(client) {
       if (!data) return null;
       const row = data;
       return {
-        orgId: text$1(row, "org_id"),
-        reportDefinitionId: text$1(row, "report_definition_id"),
-        membershipId: text$1(row, "run_for_membership_id"),
-        exportFormat: text$1(row, "export_format"),
-        runStatus: text$1(row, "run_status"),
+        orgId: text$3(row, "org_id"),
+        reportDefinitionId: text$3(row, "report_definition_id"),
+        membershipId: text$3(row, "run_for_membership_id"),
+        exportFormat: text$3(row, "export_format"),
+        runStatus: text$3(row, "run_status"),
       };
     },
     async definition(id, membershipId) {
@@ -38808,7 +38814,7 @@ var CONTENT_TYPES = {
   XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   PDF: "application/pdf",
 };
-var escapeHtml = (s) =>
+var escapeHtml$1 = (s) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /** The attachment's file name: the report name in safe characters, then the format's extension. */
 function attachmentName(report, format) {
@@ -38854,7 +38860,7 @@ async function runReportDeliveries(options) {
         toName: d.recipientName,
         subject: copy.subject(words),
         text: body,
-        html: `<p>${escapeHtml(body)}</p>`,
+        html: `<p>${escapeHtml$1(body)}</p>`,
         attachment: {
           filename: attachmentName(d.reportName, d.exportFormat),
           contentType: CONTENT_TYPES[d.exportFormat],
@@ -38999,7 +39005,7 @@ function resendMailer(client, from, allowed) {
     },
   };
 }
-var text = (row, key) => {
+var text$2 = (row, key) => {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
@@ -39033,25 +39039,25 @@ function supabaseReportDeliveryStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text(r, "id"),
-        deliveryId: text(r, "subject_id"),
+        jobId: text$2(r, "id"),
+        deliveryId: text$2(r, "subject_id"),
       }));
     },
     async delivery(id) {
       const r = (await call("report_delivery", { p_delivery_id: id }))?.[0];
       if (!r) return null;
       return {
-        deliveryId: text(r, "delivery_id"),
-        orgName: text(r, "org_name"),
-        reportName: text(r, "report_name"),
-        exportFormat: text(r, "export_format"),
+        deliveryId: text$2(r, "delivery_id"),
+        orgName: text$2(r, "org_name"),
+        reportName: text$2(r, "report_name"),
+        exportFormat: text$2(r, "export_format"),
         storagePath: textOrNull(r, "storage_object_path"),
         rowCount: numberOrNull(r, "row_count"),
         unpricedCount: numberOrNull(r, "unpriced_count"),
         recipientEmail: textOrNull(r, "recipient_email"),
         recipientName: textOrNull(r, "recipient_name"),
-        status: text(r, "delivery_status"),
-        scheduledFor: text(r, "scheduled_for"),
+        status: text$2(r, "delivery_status"),
+        scheduledFor: text$2(r, "scheduled_for"),
       };
     },
     async finish(id, outcome) {
@@ -39152,6 +39158,6686 @@ function reportDeliveryCopy(locale) {
   };
 }
 //#endregion
+//#region ../integrations/src/framework/catalog.ts
+var PROVIDERS = [
+  {
+    code: "xero",
+    category: "Accounting",
+    sortOrder: 10,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "quickbooks_online",
+    category: "Accounting",
+    sortOrder: 11,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "netsuite",
+    category: "Accounting",
+    sortOrder: 12,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "ramp",
+    category: "Accounting",
+    sortOrder: 13,
+    requiredFeature: "upl_export",
+    needsCredential: true,
+  },
+  {
+    code: "google_calendar",
+    category: "Calendar",
+    sortOrder: 20,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "microsoft_365",
+    category: "Calendar",
+    sortOrder: 21,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "google_drive",
+    category: "Storage",
+    sortOrder: 30,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "onedrive_sharepoint",
+    category: "Storage",
+    sortOrder: 31,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "dropbox",
+    category: "Storage",
+    sortOrder: 32,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "slack",
+    category: "Communication",
+    sortOrder: 40,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "microsoft_teams",
+    category: "Communication",
+    sortOrder: 41,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "gusto",
+    category: "Payroll",
+    sortOrder: 50,
+    requiredFeature: "payroll_export",
+    needsCredential: true,
+  },
+  {
+    code: "adp",
+    category: "Payroll",
+    sortOrder: 51,
+    requiredFeature: "payroll_export",
+    needsCredential: true,
+  },
+  {
+    code: "rippling",
+    category: "Payroll",
+    sortOrder: 52,
+    requiredFeature: "payroll_export",
+    needsCredential: true,
+  },
+  {
+    code: "ups",
+    category: "Shipping",
+    sortOrder: 60,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "fedex",
+    category: "Shipping",
+    sortOrder: 61,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "dhl",
+    category: "Shipping",
+    sortOrder: 62,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+  {
+    code: "ticketing_csv",
+    category: "Ticketing",
+    sortOrder: 70,
+    requiredFeature: null,
+    needsCredential: false,
+  },
+  {
+    code: "ticketing_api",
+    category: "Ticketing",
+    sortOrder: 71,
+    requiredFeature: null,
+    needsCredential: true,
+  },
+];
+var SYNC_SCOPES = [
+  "Ledger Export",
+  "Payment Sync",
+  "Calendar Sync",
+  "File Import",
+  "Notification Delivery",
+  "Payroll Export",
+  "Tracking Refresh",
+  "Attendance Import",
+];
+/** The category a sync scope belongs to (mirrors `private.integration_scope_category`). */
+var SCOPE_CATEGORY = {
+  "Ledger Export": "Accounting",
+  "Payment Sync": "Accounting",
+  "Calendar Sync": "Calendar",
+  "File Import": "Storage",
+  "Notification Delivery": "Communication",
+  "Payroll Export": "Payroll",
+  "Tracking Refresh": "Shipping",
+  "Attendance Import": "Ticketing",
+};
+function providerEntry(code) {
+  return PROVIDERS.find((p) => p.code === code);
+}
+function isProviderCode(code) {
+  return providerEntry(code) !== void 0;
+}
+/** Scopes a provider can run, by its category. */
+function scopesFor(code) {
+  const entry = providerEntry(code);
+  return SYNC_SCOPES.filter((scope) => SCOPE_CATEGORY[scope] === entry?.category);
+}
+//#endregion
+//#region ../integrations/src/framework/connector.ts
+/**
+ * Counts items as a connector works and records each item failure on the run, so one bad row never
+ * hides the rest and none is silently dropped.
+ */
+var ItemTally = class {
+  context;
+  read = 0;
+  written = 0;
+  skipped = 0;
+  failed = 0;
+  constructor(context) {
+    this.context = context;
+  }
+  async fail(code, message, ref) {
+    this.failed += 1;
+    await this.context.store.recordItemError(this.context.run.id, code, message, ref);
+  }
+  counts() {
+    return {
+      read: this.read,
+      written: this.written,
+      skipped: this.skipped,
+      failed: this.failed,
+    };
+  }
+};
+function connectorRegistry(connectors) {
+  const map = /* @__PURE__ */ new Map();
+  for (const connector of connectors) {
+    if (map.has(connector.provider))
+      throw new Error(`Two connectors registered for ${connector.provider}.`);
+    map.set(connector.provider, connector);
+  }
+  return map;
+}
+//#endregion
+//#region ../integrations/src/framework/db.ts
+/** Adapts a Supabase client (any schema typing) to the structural client the stores use. */
+function asDbClient(client) {
+  return client;
+}
+/** A database outcome the store could not turn into data: a refusal, a missing row or an unexpected error. */
+var StoreError = class extends Error {
+  error;
+  constructor(error) {
+    super(error.kind === "not-found" ? "The row does not exist or is not visible." : error.message);
+    this.name = "StoreError";
+    this.error = error;
+  }
+};
+/** Returns the data of a response or throws a StoreError naming the database outcome. */
+async function unwrap(response) {
+  const { data, error } = await response;
+  if (error) throw new StoreError(toDataError(error));
+  return data;
+}
+//#endregion
+//#region ../integrations/src/framework/errors.ts
+/**
+ * Every connector failure is an IntegrationError carrying a rule code (lowercase snake case, stored in
+ * `integration_sync_runs.error_code`) and how the runner treats it:
+ *   - retryable: the attempt may succeed later (rate limits, provider outages, timeouts)
+ *   - connectionError: the provider refused the credential, so the connection moves to Error and the
+ *     run fails for good until an admin reauthorizes
+ * Anything else fails the run without retry. No failure is swallowed (Section 19.7).
+ */
+var IntegrationError = class extends Error {
+  code;
+  retryable;
+  connectionError;
+  status;
+  constructor(code, message, options = {}) {
+    super(message);
+    this.name = "IntegrationError";
+    this.code = /^[a-z][a-z0-9_]*$/.test(code) ? code : "provider_error";
+    this.retryable = options.retryable ?? false;
+    this.connectionError = options.connectionError ?? false;
+    this.status = options.status ?? null;
+  }
+};
+/** Classifies a provider HTTP status into an IntegrationError, or null for success. */
+function errorForStatus(provider, status, detail) {
+  if (status >= 200 && status < 300) return null;
+  const message = `${provider} returned ${status}${detail ? `: ${detail.slice(0, 500)}` : ""}`;
+  if (status === 401 || status === 403)
+    return new IntegrationError("credential_refused", message, {
+      connectionError: true,
+      status,
+    });
+  if (status === 429)
+    return new IntegrationError("provider_rate_limited", message, {
+      retryable: true,
+      status,
+    });
+  if (status === 408 || status >= 500)
+    return new IntegrationError("provider_unavailable", message, {
+      retryable: true,
+      status,
+    });
+  if (status === 404) return new IntegrationError("provider_not_found", message, { status });
+  if (status === 409 || status === 412)
+    return new IntegrationError("provider_conflict", message, { status });
+  return new IntegrationError("provider_rejected", message, { status });
+}
+/** Wraps an unknown thrown value so the runner can always record a code and a message. */
+function asIntegrationError(error) {
+  if (error instanceof IntegrationError) return error;
+  if (error instanceof Error) {
+    const network = error.name === "AbortError" || error.name === "TypeError";
+    return new IntegrationError(
+      network ? "provider_unreachable" : "unexpected_error",
+      error.message,
+      { retryable: network },
+    );
+  }
+  return new IntegrationError("unexpected_error", String(error));
+}
+//#endregion
+//#region ../integrations/src/framework/http.ts
+/** Adapts fetch: no redirects followed, a timeout per request, header names lowercased. */
+function httpFromFetch(fetchImpl, timeoutMs = 2e4) {
+  return async (request) => {
+    const init = {
+      method: request.method,
+      redirect: "manual",
+      signal: AbortSignal.timeout(timeoutMs),
+    };
+    if (request.headers) init.headers = { ...request.headers };
+    if (request.body !== void 0) init.body = request.body;
+    const response = await fetchImpl(request.url, init);
+    const headers = {};
+    response.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+    if (request.responseType === "bytes" && response.status >= 200 && response.status < 300)
+      return {
+        status: response.status,
+        headers,
+        body: "",
+        bytes: new Uint8Array(await response.arrayBuffer()),
+      };
+    return {
+      status: response.status,
+      headers,
+      body: await response.text(),
+    };
+  };
+}
+/** Sends a JSON request and returns the parsed body, raising an IntegrationError for any failure. */
+async function callJson(http, provider, call) {
+  const headers = {
+    accept: "application/json",
+    ...call.headers,
+  };
+  if (call.token !== void 0) headers["authorization"] = `Bearer ${call.token}`;
+  const request = {
+    method: call.method,
+    url: call.url,
+    headers,
+  };
+  if (call.json !== void 0) {
+    headers["content-type"] = "application/json";
+    request.body = JSON.stringify(call.json);
+  }
+  const response = await http(request);
+  const failure = errorForStatus(provider, response.status, response.body);
+  if (failure) throw failure;
+  if (response.body.length === 0) return void 0;
+  try {
+    return JSON.parse(response.body);
+  } catch (error) {
+    throw new IntegrationError(
+      "provider_malformed_response",
+      `${provider} sent a body that is not JSON: ${String(error)}`,
+      { retryable: true },
+    );
+  }
+}
+/** Sends a non-JSON request (file uploads, downloads) and returns the raw response after the status check. */
+async function callRaw(http, provider, request) {
+  const response = await http(request);
+  const failure = errorForStatus(provider, response.status, response.body);
+  if (failure) throw failure;
+  return response;
+}
+//#endregion
+//#region ../integrations/src/framework/support.ts
+function parseCredential(secret) {
+  if (secret === null || secret.length === 0)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  const trimmed = secret.trim();
+  if (!trimmed.startsWith("{"))
+    return {
+      token: trimmed,
+      fields: {},
+    };
+  let parsed;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch (error) {
+    throw new IntegrationError(
+      "credential_malformed",
+      `The stored credential is not valid JSON: ${String(error)}`,
+      { connectionError: true },
+    );
+  }
+  const fields = {};
+  for (const [key, value] of Object.entries(parsed))
+    if (typeof value === "string") fields[key] = value;
+  const token = fields["access_token"] ?? fields["api_key"] ?? fields["token"];
+  if (token === void 0)
+    throw new IntegrationError(
+      "credential_malformed",
+      "The stored credential has no access token or key.",
+      { connectionError: true },
+    );
+  return {
+    token,
+    fields,
+  };
+}
+/** Reads a required credential field, failing the connection when it is missing. */
+function credentialField(credential, name) {
+  const value = credential.fields[name];
+  if (value === void 0 || value.length === 0)
+    throw new IntegrationError(
+      "credential_incomplete",
+      `The stored credential is missing ${name}.`,
+      { connectionError: true },
+    );
+  return value;
+}
+/** Stable SHA-256 of a JSON value with sorted keys, lowercase hex, for `integration_external_ids.content_hash`. */
+function contentHash(value) {
+  return createHash("sha256").update(stableJson(value)).digest("hex");
+}
+function sha256Hex(data) {
+  return createHash("sha256").update(data).digest("hex");
+}
+function stableJson(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value) ?? "null";
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  return `{${Object.entries(value)
+    .filter(([, v]) => v !== void 0)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([k, v]) => `${JSON.stringify(k)}:${stableJson(v)}`)
+    .join(",")}}`;
+}
+/** Formats integer minor units as a decimal string with the currency's exponent (no floating point). */
+function minorToDecimal(minor, exponent) {
+  const value = BigInt(minor);
+  const negative = value < 0n;
+  const digits = (negative ? -value : value).toString().padStart(exponent + 1, "0");
+  const whole = exponent === 0 ? digits : digits.slice(0, -exponent);
+  const fraction = exponent === 0 ? "" : `.${digits.slice(-exponent)}`;
+  return `${negative ? "-" : ""}${whole}${fraction}`;
+}
+/** Parses a decimal amount into integer minor units; refuses more precision than the currency has. */
+function decimalToMinor(amount, exponent) {
+  const text = typeof amount === "number" ? amount.toFixed(exponent) : amount.trim();
+  const match = /^(-)?(\d+)(?:\.(\d+))?$/.exec(text);
+  if (match === null)
+    throw new IntegrationError("amount_malformed", `${text} is not a decimal amount.`);
+  const fraction = (match[3] ?? "").replace(/0+$/, "");
+  if (fraction.length > exponent)
+    throw new IntegrationError(
+      "amount_precision",
+      `${text} has more decimal places than the currency allows.`,
+    );
+  const minor = BigInt((match[2] ?? "0") + fraction.padEnd(exponent, "0"));
+  return match[1] === "-" ? -minor : minor;
+}
+//#endregion
+//#region ../integrations/src/framework/runner.ts
+/** The job kind migration 0600 registers on the A18 job queue. */
+var INTEGRATION_SYNC_JOB = "integration.sync";
+function supabaseJobQueue(db) {
+  return {
+    async claim(worker, kind, limit) {
+      return (
+        await unwrap(
+          db.rpc("claim_jobs", {
+            p_worker: worker,
+            p_job_kind: kind,
+            p_limit: limit,
+          }),
+        )
+      ).map((r) => ({
+        id: r.id,
+        subjectId: r.subject_id,
+        attempts: r.attempts,
+      }));
+    },
+    async finish(jobId, succeeded, error) {
+      return unwrap(
+        db.rpc("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error,
+        }),
+      );
+    },
+  };
+}
+/**
+ * Claims ready integration.sync jobs and runs one attempt of each job's sync run. The sync run owns
+ * attempts and backoff (migration 0600), so the job itself always finishes as succeeded once the
+ * attempt's outcome is recorded; it finishes as failed only when recording the outcome failed, which
+ * leaves the evidence on the job queue.
+ */
+async function runIntegrationJobs(options) {
+  const jobs = await options.queue.claim(options.worker, INTEGRATION_SYNC_JOB, options.limit ?? 10);
+  const outcomes = [];
+  for (const job of jobs)
+    try {
+      const outcome = await runOne$1(options, job);
+      await options.queue.finish(job.id, true, null);
+      outcomes.push(outcome);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await options.queue.finish(job.id, false, message);
+      outcomes.push({
+        jobId: job.id,
+        runId: job.subjectId,
+        result: "failed",
+        code: "runner_error",
+      });
+    }
+  return outcomes;
+}
+async function runOne$1(options, job) {
+  const runId = job.subjectId;
+  let run;
+  try {
+    run = await options.store.claimRun(runId, job.id);
+  } catch (error) {
+    if (error instanceof StoreError && error.error.kind === "refusal")
+      return {
+        jobId: job.id,
+        runId,
+        result: "skipped",
+        reason: error.error.rule,
+      };
+    throw error;
+  }
+  let outcome;
+  try {
+    const connection = await options.store.connection(run.connectionId);
+    const connector = options.connectors.get(connection.providerCode);
+    if (connector === void 0)
+      throw new IntegrationError(
+        "connector_missing",
+        `No connector is registered for ${connection.providerCode}.`,
+      );
+    if (!connector.scopes.includes(run.scope))
+      throw new IntegrationError(
+        "scope_unsupported",
+        `${connection.providerCode} does not run ${run.scope}.`,
+      );
+    const credential =
+      (providerEntry(connection.providerCode)?.needsCredential ?? true)
+        ? parseCredential(await options.store.credential(connection.id))
+        : null;
+    outcome = await connector.sync({
+      run,
+      connection,
+      credential,
+      http: options.http,
+      store: options.store,
+      cursor: run.cursorBefore ?? (await options.store.lastCursor(connection.id, run.scope)),
+      now: options.now ?? (() => /* @__PURE__ */ new Date()),
+    });
+  } catch (error) {
+    const failure = asIntegrationError(error);
+    const state = await options.store.failRun(run.id, failure);
+    return {
+      jobId: job.id,
+      runId,
+      result: state === "Retrying" ? "retrying" : "failed",
+      code: failure.code,
+    };
+  }
+  await options.store.completeRun(run.id, outcome.counts, outcome.cursorAfter);
+  return {
+    jobId: job.id,
+    runId,
+    result: "succeeded",
+  };
+}
+//#endregion
+//#region ../integrations/src/framework/store.ts
+function toRun(row) {
+  return {
+    id: row.id,
+    orgId: row.org_id,
+    connectionId: row.integration_connection_id,
+    projectId: row.project_id,
+    scope: row.sync_scope,
+    direction: row.direction,
+    state: row.sync_run_state,
+    attempt: row.attempt,
+    maxAttempts: row.max_attempts,
+    cursorBefore: row.cursor_before,
+    subjectEntity: row.subject_entity,
+    subjectId: row.subject_id,
+    sourceUri: row.source_uri,
+  };
+}
+/** The store over the framework RPCs, for a service-role client (the runner RPCs are service role only). */
+function supabaseIntegrationStore(db) {
+  return {
+    async claimRun(runId, jobId) {
+      return toRun(
+        await unwrap(
+          db.rpc("claim_integration_sync", {
+            p_run_id: runId,
+            p_job_id: jobId,
+          }),
+        ),
+      );
+    },
+    async connection(connectionId) {
+      const row = await unwrap(
+        db
+          .from("integration_connections")
+          .select(
+            "id, org_id, provider_code, display_name, external_account_id, provider_settings, connection_state",
+          )
+          .eq("id", connectionId)
+          .single(),
+      );
+      return {
+        id: row.id,
+        orgId: row.org_id,
+        providerCode: row.provider_code,
+        displayName: row.display_name,
+        externalAccountId: row.external_account_id,
+        settings: row.provider_settings ?? {},
+        state: row.connection_state,
+      };
+    },
+    async credential(connectionId) {
+      return unwrap(db.rpc("read_integration_credential", { p_connection_id: connectionId }));
+    },
+    async lastCursor(connectionId, scope) {
+      return (
+        (
+          await unwrap(
+            db
+              .from("integration_sync_runs")
+              .select("cursor_after")
+              .eq("integration_connection_id", connectionId)
+              .eq("sync_scope", scope)
+              .eq("sync_run_state", "Succeeded")
+              .order("finished_at", { ascending: false })
+              .limit(1),
+          )
+        )[0]?.cursor_after ?? null
+      );
+    },
+    async completeRun(runId, counts, cursorAfter) {
+      await unwrap(
+        db.rpc("complete_integration_sync", {
+          p_run_id: runId,
+          p_items_read: counts.read,
+          p_items_written: counts.written,
+          p_items_skipped: counts.skipped,
+          p_items_failed: counts.failed,
+          p_cursor_after: cursorAfter,
+        }),
+      );
+    },
+    async failRun(runId, error) {
+      return unwrap(
+        db.rpc("fail_integration_sync", {
+          p_run_id: runId,
+          p_error_code: error.code,
+          p_error_message: error.message,
+          p_retryable: error.retryable,
+          p_connection_error: error.connectionError,
+        }),
+      );
+    },
+    async recordItemError(runId, code, message, ref = {}) {
+      await unwrap(
+        db.rpc("record_integration_sync_error", {
+          p_run_id: runId,
+          p_error_code: code,
+          p_error_message: message,
+          p_entity: ref.entity ?? null,
+          p_local_id: ref.localId ?? null,
+          p_external_id: ref.externalId ?? null,
+        }),
+      );
+    },
+    async externalIds(connectionId, entity) {
+      return (
+        await unwrap(
+          db
+            .from("integration_external_ids")
+            .select("entity, local_id, external_id, external_version, content_hash")
+            .eq("integration_connection_id", connectionId)
+            .eq("entity", entity)
+            .is("deleted_at", null),
+        )
+      ).map((r) => ({
+        entity: r.entity,
+        localId: r.local_id,
+        externalId: r.external_id,
+        externalVersion: r.external_version,
+        contentHash: r.content_hash,
+      }));
+    },
+    async upsertExternalId(connectionId, pair) {
+      await unwrap(
+        db.rpc("upsert_integration_external_id", {
+          p_connection_id: connectionId,
+          p_entity: pair.entity,
+          p_local_id: pair.localId,
+          p_external_id: pair.externalId,
+          p_external_version: pair.externalVersion,
+          p_content_hash: pair.contentHash,
+        }),
+      );
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/accounting/connector.ts
+var QUEUE_LIMIT = 2e3;
+/** Groups queued lines into journals and checks each one: balanced, one currency, every account mapped. */
+function groupJournals(lines, mappings) {
+  const byEntry = /* @__PURE__ */ new Map();
+  for (const line of lines) {
+    const group = byEntry.get(line.journalEntryId) ?? [];
+    group.push(line);
+    byEntry.set(line.journalEntryId, group);
+  }
+  const results = [];
+  for (const [journalEntryId, group] of byEntry) {
+    const sorted = [...group].sort((a, b) => a.lineNumber - b.lineNumber);
+    const first = sorted[0];
+    const currencies = new Set(sorted.map((l) => l.currencyCode));
+    if (currencies.size > 1) {
+      results.push({
+        journalEntryId,
+        code: "journal_mixed_currency",
+        message: `Journal ${journalEntryId} mixes ${[...currencies].join(" and ")}.`,
+      });
+      continue;
+    }
+    const total = sorted.reduce((sum, l) => sum + l.amountMinor, 0n);
+    if (total !== 0n) {
+      results.push({
+        journalEntryId,
+        code: "journal_unbalanced",
+        message: `Journal ${journalEntryId} is off by ${total} minor units.`,
+      });
+      continue;
+    }
+    const unmapped = [
+      ...new Set(sorted.filter((l) => !mappings.has(l.accountCode)).map((l) => l.accountCode)),
+    ];
+    if (unmapped.length > 0) {
+      results.push({
+        journalEntryId,
+        code: "account_unmapped",
+        message: `GL ${unmapped.join(", ")} has no provider account mapped.`,
+      });
+      continue;
+    }
+    results.push({
+      journal: {
+        journalEntryId,
+        memo: first.memo,
+        date: first.date,
+        currencyCode: first.currencyCode,
+        exponent: first.exponent,
+        lines: sorted.map((l) => ({
+          ...l,
+          mapping: mappings.get(l.accountCode),
+        })),
+      },
+    });
+  }
+  return results;
+}
+async function exportLedger(provider, source, context) {
+  const tally = new ItemTally(context);
+  const connectionId = context.connection.id;
+  const mappings = await source.accountMappings(connectionId);
+  if (provider.pushChart) {
+    const chart = await source.chartAccounts();
+    const mapped = chart.flatMap((a) => {
+      const mapping = mappings.get(a.code);
+      return mapping
+        ? [
+            {
+              ...a,
+              mapping,
+            },
+          ]
+        : [];
+    });
+    tally.read = chart.length;
+    tally.skipped = chart.length - mapped.length;
+    tally.written = mapped.length === 0 ? 0 : await provider.pushChart(context, mapped);
+    return {
+      counts: tally.counts(),
+      cursorAfter: context.cursor,
+    };
+  }
+  if (!provider.pushJournal)
+    throw new IntegrationError(
+      "scope_unsupported",
+      `${provider.label} does not take ledger exports.`,
+    );
+  const lines = await source.ledgerQueue(connectionId, QUEUE_LIMIT);
+  for (const result of groupJournals(lines, mappings)) {
+    tally.read += 1;
+    if (!("journal" in result)) {
+      await tally.fail(result.code, result.message, {
+        entity: "Journal Entry",
+        localId: result.journalEntryId,
+      });
+      continue;
+    }
+    const pushed = await provider.pushJournal(context, result.journal);
+    await context.store.upsertExternalId(connectionId, {
+      entity: "Journal Entry",
+      localId: result.journal.journalEntryId,
+      externalId: pushed.externalId,
+      externalVersion: pushed.version ?? null,
+      contentHash: null,
+    });
+    tally.written += 1;
+  }
+  return {
+    counts: tally.counts(),
+    cursorAfter: context.cursor,
+  };
+}
+async function pushPayments(provider, source, context, tally) {
+  if (!provider.pushPayment)
+    throw new IntegrationError(
+      "direction_unsupported",
+      `${provider.label} does not take payments from XOS.`,
+    );
+  const connectionId = context.connection.id;
+  const queue = await source.paymentQueue(connectionId, QUEUE_LIMIT);
+  const applications = await source.paymentApplications(queue.map((p) => p.paymentId));
+  const invoiceIds = new Map(
+    (await context.store.externalIds(connectionId, "Invoice")).map((x) => [
+      x.localId,
+      x.externalId,
+    ]),
+  );
+  for (const payment of queue) {
+    tally.read += 1;
+    if (payment.counterpartyExternalId === null) {
+      await tally.fail(
+        "counterparty_unmapped",
+        "The payment's counterparty has no provider contact mapped.",
+        {
+          entity: "Payment",
+          localId: payment.paymentId,
+        },
+      );
+      continue;
+    }
+    const own = applications.filter((a) => a.paymentId === payment.paymentId);
+    const unmappedInvoice = own.find((a) => !invoiceIds.has(a.invoiceId));
+    if (unmappedInvoice) {
+      await tally.fail(
+        "invoice_unmapped",
+        "An invoice the payment applies to has not been exported to the provider.",
+        {
+          entity: "Invoice",
+          localId: unmappedInvoice.invoiceId,
+        },
+      );
+      continue;
+    }
+    const pushed = await provider.pushPayment(context, {
+      payment,
+      applications: own.map((a) => ({
+        invoiceExternalId: invoiceIds.get(a.invoiceId),
+        amountMinor: a.amountMinor,
+      })),
+    });
+    await context.store.upsertExternalId(connectionId, {
+      entity: "Payment",
+      localId: payment.paymentId,
+      externalId: pushed.externalId,
+      externalVersion: pushed.version ?? null,
+      contentHash: null,
+    });
+    tally.written += 1;
+  }
+}
+async function pullPayments(provider, source, context, tally) {
+  if (!provider.listPayments)
+    throw new IntegrationError(
+      "direction_unsupported",
+      `${provider.label} does not send payments to XOS.`,
+    );
+  const page = await provider.listPayments(context, context.cursor);
+  const known = new Set(
+    (await context.store.externalIds(context.connection.id, "Payment")).map((x) => x.externalId),
+  );
+  for (const payment of page.payments) {
+    tally.read += 1;
+    if (known.has(payment.externalId)) {
+      tally.skipped += 1;
+      continue;
+    }
+    try {
+      await source.recordProviderPayment(context.connection.id, payment);
+      tally.written += 1;
+    } catch (error) {
+      if (error instanceof StoreError && error.error.kind !== "unexpected") {
+        const message = error.error.kind === "refusal" ? error.error.message : error.message;
+        const code =
+          error.error.kind === "refusal"
+            ? error.error.rule
+            : `payment_${error.error.kind.replace("-", "_")}`;
+        await tally.fail(code, message, {
+          entity: "Payment",
+          externalId: payment.externalId,
+        });
+        continue;
+      }
+      throw error;
+    }
+  }
+  return page.cursor;
+}
+/** Builds the Connector for one accounting provider over the shared ledger and payment logic. */
+function accountingConnector(provider, source) {
+  return {
+    provider: provider.provider,
+    scopes: ["Ledger Export", "Payment Sync"],
+    async sync(context) {
+      if (context.run.scope === "Ledger Export") return exportLedger(provider, source, context);
+      const tally = new ItemTally(context);
+      let cursor = context.cursor;
+      if (context.run.direction !== "Inbound") await pushPayments(provider, source, context, tally);
+      if (context.run.direction !== "Outbound")
+        cursor = await pullPayments(provider, source, context, tally);
+      return {
+        counts: tally.counts(),
+        cursorAfter: cursor,
+      };
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/accounting/providers.ts
+/**
+ * Provider clients for the four accounting connectors. Each talks to its provider only through the
+ * injected HttpClient on the sync context, takes its token from the Vault credential, and turns
+ * minor units into decimal strings (never floating point) on the way out and back on the way in.
+ */
+function token$4(context) {
+  if (context.credential === null)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  return context.credential.token;
+}
+function setting(context, name) {
+  const value = context.connection.settings[name];
+  if (typeof value !== "string" || value.length === 0)
+    throw new IntegrationError("setting_missing", `The connection needs the ${name} setting.`);
+  return value;
+}
+function accountField(context, name) {
+  if (context.credential?.fields[name] !== void 0) return credentialField(context.credential, name);
+  if (context.connection.externalAccountId !== null) return context.connection.externalAccountId;
+  throw new IntegrationError("credential_incomplete", `The stored credential is missing ${name}.`, {
+    connectionError: true,
+  });
+}
+var abs = (value) => (value < 0n ? -value : value);
+var XERO = "https://api.xero.com/api.xro/2.0";
+function xeroProvider(source) {
+  const headers = (context) => ({ "xero-tenant-id": accountField(context, "tenant_id") });
+  return {
+    provider: "xero",
+    label: "Xero",
+    async pushJournal(context, journal) {
+      const body = {
+        ManualJournals: [
+          {
+            Narration: journal.memo,
+            Date: journal.date,
+            Status: "POSTED",
+            LineAmountTypes: "NoTax",
+            JournalLines: journal.lines.map((l) => ({
+              LineAmount: minorToDecimal(l.amountMinor, l.exponent),
+              AccountCode: l.mapping.externalAccountId,
+              Description: l.description,
+              ...(l.mapping.taxCode ? { TaxType: l.mapping.taxCode } : {}),
+              ...(l.costCenterCode
+                ? {
+                    Tracking: [
+                      {
+                        Name: "Cost Center",
+                        Option: l.costCenterCode,
+                      },
+                    ],
+                  }
+                : {}),
+            })),
+          },
+        ],
+      };
+      const id = (
+        await callJson(context.http, "Xero", {
+          method: "PUT",
+          url: `${XERO}/ManualJournals`,
+          token: token$4(context),
+          headers: headers(context),
+          json: body,
+        })
+      ).ManualJournals[0]?.ManualJournalID;
+      if (!id)
+        throw new IntegrationError(
+          "provider_malformed_response",
+          "Xero did not return the manual journal id.",
+        );
+      return { externalId: id };
+    },
+    async pushPayment(context, push) {
+      if (push.applications.length === 0)
+        throw new IntegrationError(
+          "payment_unapplied",
+          "Xero records a payment only against an invoice or bill.",
+        );
+      const ids = (
+        await callJson(context.http, "Xero", {
+          method: "PUT",
+          url: `${XERO}/Payments`,
+          token: token$4(context),
+          headers: headers(context),
+          json: {
+            Payments: push.applications.map((a) => ({
+              Invoice: { InvoiceID: a.invoiceExternalId },
+              Account: { Code: setting(context, "bank_account_code") },
+              Amount: minorToDecimal(a.amountMinor, push.payment.exponent),
+              Date: push.payment.paidOn,
+              ...(push.payment.reference ? { Reference: push.payment.reference } : {}),
+            })),
+          },
+        })
+      ).Payments.map((p) => p.PaymentID);
+      if (ids.length === 0)
+        throw new IntegrationError(
+          "provider_malformed_response",
+          "Xero did not return payment ids.",
+        );
+      return {
+        externalId: ids[0],
+        version: ids.join(","),
+      };
+    },
+    async listPayments(context, cursor) {
+      const since = cursor ?? "1970-01-01T00:00:00";
+      const response = await callJson(context.http, "Xero", {
+        method: "GET",
+        url: `${XERO}/Payments?where=${encodeURIComponent('Status=="AUTHORISED"')}`,
+        token: token$4(context),
+        headers: {
+          ...headers(context),
+          "if-modified-since": since,
+        },
+      });
+      const payments = [];
+      let latest = since;
+      for (const p of response.Payments) {
+        const exponent = await source.exponentOf(p.Invoice.CurrencyCode);
+        payments.push({
+          externalId: p.PaymentID,
+          counterpartyExternalId: p.Invoice.Contact.ContactID,
+          direction: p.PaymentType.startsWith("ACCPAY") ? "Payable" : "Receivable",
+          amountMinor: abs(decimalToMinor(String(p.Amount), exponent)),
+          currencyCode: p.Invoice.CurrencyCode,
+          paidOn: p.Date.slice(0, 10),
+          reference: p.Reference ?? null,
+        });
+        if (p.UpdatedDateUTC > latest) latest = p.UpdatedDateUTC;
+      }
+      return {
+        payments,
+        cursor: latest,
+      };
+    },
+  };
+}
+var QBO = "https://quickbooks.api.intuit.com/v3/company";
+function quickBooksProvider(source) {
+  const base = (context) => `${QBO}/${accountField(context, "realm_id")}`;
+  const query = async (context, statement) =>
+    callJson(context.http, "QuickBooks Online", {
+      method: "GET",
+      url: `${base(context)}/query?minorversion=75&query=${encodeURIComponent(statement)}`,
+      token: token$4(context),
+    });
+  return {
+    provider: "quickbooks_online",
+    label: "QuickBooks Online",
+    async pushJournal(context, journal) {
+      const response = await callJson(context.http, "QuickBooks Online", {
+        method: "POST",
+        url: `${base(context)}/journalentry?minorversion=75`,
+        token: token$4(context),
+        json: {
+          TxnDate: journal.date,
+          PrivateNote: journal.memo,
+          CurrencyRef: { value: journal.currencyCode },
+          Line: journal.lines.map((l) => ({
+            Amount: minorToDecimal(abs(l.amountMinor), l.exponent),
+            Description: l.description,
+            DetailType: "JournalEntryLineDetail",
+            JournalEntryLineDetail: {
+              PostingType: l.amountMinor >= 0n ? "Debit" : "Credit",
+              AccountRef: { value: l.mapping.externalAccountId },
+              ...(l.mapping.taxCode ? { TaxCodeRef: { value: l.mapping.taxCode } } : {}),
+            },
+          })),
+        },
+      });
+      return {
+        externalId: response.JournalEntry.Id,
+        version: response.JournalEntry.SyncToken,
+      };
+    },
+    async pushPayment(context, push) {
+      const payment = push.payment;
+      const amount = minorToDecimal(payment.amountMinor, payment.exponent);
+      const lines = push.applications.map((a) => ({
+        Amount: minorToDecimal(a.amountMinor, payment.exponent),
+        LinkedTxn: [
+          {
+            TxnId: a.invoiceExternalId,
+            TxnType: payment.direction === "Receivable" ? "Invoice" : "Bill",
+          },
+        ],
+      }));
+      if (payment.direction === "Receivable") {
+        const response = await callJson(context.http, "QuickBooks Online", {
+          method: "POST",
+          url: `${base(context)}/payment?minorversion=75`,
+          token: token$4(context),
+          json: {
+            CustomerRef: { value: payment.counterpartyExternalId },
+            TotalAmt: amount,
+            TxnDate: payment.paidOn,
+            CurrencyRef: { value: payment.currencyCode },
+            ...(payment.reference ? { PaymentRefNum: payment.reference } : {}),
+            Line: lines,
+          },
+        });
+        return {
+          externalId: response.Payment.Id,
+          version: response.Payment.SyncToken,
+        };
+      }
+      const response = await callJson(context.http, "QuickBooks Online", {
+        method: "POST",
+        url: `${base(context)}/billpayment?minorversion=75`,
+        token: token$4(context),
+        json: {
+          VendorRef: { value: payment.counterpartyExternalId },
+          PayType: "Check",
+          CheckPayment: { BankAccountRef: { value: setting(context, "bank_account_id") } },
+          TotalAmt: amount,
+          TxnDate: payment.paidOn,
+          CurrencyRef: { value: payment.currencyCode },
+          Line: lines,
+        },
+      });
+      return {
+        externalId: response.BillPayment.Id,
+        version: response.BillPayment.SyncToken,
+      };
+    },
+    async listPayments(context, cursor) {
+      const since = cursor ?? "1970-01-01T00:00:00Z";
+      const received = await query(
+        context,
+        `select * from Payment where MetaData.LastUpdatedTime > '${since}'`,
+      );
+      const paid = await query(
+        context,
+        `select * from BillPayment where MetaData.LastUpdatedTime > '${since}'`,
+      );
+      const payments = [];
+      let latest = since;
+      const add = async (rows, direction) => {
+        for (const p of rows ?? []) {
+          const counterparty =
+            direction === "Receivable" ? p.CustomerRef?.value : p.VendorRef?.value;
+          if (counterparty === void 0) continue;
+          const currency = p.CurrencyRef?.value ?? setting(context, "home_currency");
+          payments.push({
+            externalId: `${direction === "Receivable" ? "payment" : "billpayment"}:${p.Id}`,
+            counterpartyExternalId: counterparty,
+            direction,
+            amountMinor: decimalToMinor(String(p.TotalAmt), await source.exponentOf(currency)),
+            currencyCode: currency,
+            paidOn: p.TxnDate,
+            reference: p.PaymentRefNum ?? null,
+          });
+          if (p.MetaData.LastUpdatedTime > latest) latest = p.MetaData.LastUpdatedTime;
+        }
+      };
+      await add(received.QueryResponse["Payment"], "Receivable");
+      await add(paid.QueryResponse["BillPayment"], "Payable");
+      return {
+        payments,
+        cursor: latest,
+      };
+    },
+  };
+}
+function netSuiteProvider(source) {
+  const host = (context) => {
+    const account = accountField(context, "account_id").toLowerCase().replace(/_/g, "-");
+    if (!/^[a-z0-9-]+$/.test(account))
+      throw new IntegrationError("credential_incomplete", "The NetSuite account id is not valid.", {
+        connectionError: true,
+      });
+    return `https://${account}.suitetalk.api.netsuite.com/services/rest`;
+  };
+  const created = async (context, record, body) => {
+    const response = await callRaw(context.http, "NetSuite", {
+      method: "POST",
+      url: `${host(context)}/record/v1/${record}`,
+      headers: {
+        authorization: `Bearer ${token$4(context)}`,
+        "content-type": "application/json",
+        accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    const id = /\/(\d+)$/.exec(response.headers["location"] ?? "")?.[1];
+    if (id === void 0)
+      throw new IntegrationError(
+        "provider_malformed_response",
+        `NetSuite did not return the new ${record} id.`,
+      );
+    return { externalId: id };
+  };
+  return {
+    provider: "netsuite",
+    label: "NetSuite",
+    async pushJournal(context, journal) {
+      return created(context, "journalEntry", {
+        tranDate: journal.date,
+        memo: journal.memo,
+        subsidiary: { id: setting(context, "subsidiary_id") },
+        currency: { refName: journal.currencyCode },
+        line: {
+          items: journal.lines.map((l) => ({
+            account: { id: l.mapping.externalAccountId },
+            ...(l.amountMinor >= 0n
+              ? { debit: minorToDecimal(l.amountMinor, l.exponent) }
+              : { credit: minorToDecimal(-l.amountMinor, l.exponent) }),
+            memo: l.description,
+            ...(l.costCenterCode ? { department: { refName: l.costCenterCode } } : {}),
+          })),
+        },
+      });
+    },
+    async pushPayment(context, push) {
+      const payment = push.payment;
+      const apply = {
+        items: push.applications.map((a) => ({
+          doc: { id: a.invoiceExternalId },
+          apply: true,
+          amount: minorToDecimal(a.amountMinor, payment.exponent),
+        })),
+      };
+      if (payment.direction === "Payable")
+        return created(context, "vendorPayment", {
+          entity: { id: payment.counterpartyExternalId },
+          account: { id: setting(context, "bank_account_id") },
+          tranDate: payment.paidOn,
+          currency: { refName: payment.currencyCode },
+          apply,
+        });
+      return created(context, "customerPayment", {
+        customer: { id: payment.counterpartyExternalId },
+        payment: minorToDecimal(payment.amountMinor, payment.exponent),
+        tranDate: payment.paidOn,
+        currency: { refName: payment.currencyCode },
+        apply,
+      });
+    },
+    async listPayments(context, cursor) {
+      const since = cursor ?? "1970-01-01 00:00:00";
+      if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(since))
+        throw new IntegrationError("cursor_malformed", "The NetSuite cursor is not a timestamp.");
+      const response = await callJson(context.http, "NetSuite", {
+        method: "POST",
+        url: `${host(context)}/query/v1/suiteql`,
+        token: token$4(context),
+        headers: { prefer: "transient" },
+        json: {
+          q: `SELECT t.id, t.entity, t.trandate, t.foreigntotal, c.symbol, t.type, t.tranid, TO_CHAR(t.lastmodifieddate, 'YYYY-MM-DD HH24:MI:SS') AS lastmodified FROM transaction t JOIN currency c ON c.id = t.currency WHERE t.type IN ('VendPymt', 'CustPymt') AND t.lastmodifieddate > TO_TIMESTAMP('${since}', 'YYYY-MM-DD HH24:MI:SS') ORDER BY t.lastmodifieddate`,
+        },
+      });
+      const payments = [];
+      let latest = since;
+      for (const row of response.items) {
+        payments.push({
+          externalId: row.id,
+          counterpartyExternalId: row.entity,
+          direction: row.type === "VendPymt" ? "Payable" : "Receivable",
+          amountMinor: abs(decimalToMinor(row.foreigntotal, await source.exponentOf(row.symbol))),
+          currencyCode: row.symbol,
+          paidOn: row.trandate,
+          reference: row.tranid ?? null,
+        });
+        if (row.lastmodified > latest) latest = row.lastmodified;
+      }
+      return {
+        payments,
+        cursor: latest,
+      };
+    },
+  };
+}
+var RAMP = "https://api.ramp.com/developer/v1";
+/**
+ * Ramp is a spend platform, not a general ledger. Its Ledger Export projects the UPL account
+ * dimension into Ramp (the mapped GL accounts of the fixed chart become Ramp's coding options), and
+ * its Payment Sync brings paid Ramp bills in as Proposed payments. Ramp does not take payments from XOS.
+ */
+function rampProvider(source) {
+  return {
+    provider: "ramp",
+    label: "Ramp",
+    async pushChart(context, accounts) {
+      await callJson(context.http, "Ramp", {
+        method: "POST",
+        url: `${RAMP}/accounting/accounts`,
+        token: token$4(context),
+        json: {
+          gl_accounts: accounts.map((a) => ({
+            id: a.mapping.externalAccountId,
+            code: a.code,
+            name: a.name,
+            classification: a.type.toUpperCase(),
+          })),
+        },
+      });
+      return accounts.length;
+    },
+    async listPayments(context, cursor) {
+      let url = `${RAMP}/bills?payment_status=PAID&page_size=100${cursor ? `&from_paid_at=${encodeURIComponent(cursor)}` : ""}`;
+      const payments = [];
+      let latest = cursor;
+      while (url !== null) {
+        const page = await callJson(context.http, "Ramp", {
+          method: "GET",
+          url,
+          token: token$4(context),
+        });
+        for (const bill of page.data) {
+          await source.exponentOf(bill.amount.currency_code);
+          payments.push({
+            externalId: bill.id,
+            counterpartyExternalId: bill.vendor.remote_id ?? bill.vendor.id,
+            direction: "Payable",
+            amountMinor: BigInt(bill.amount.amount),
+            currencyCode: bill.amount.currency_code,
+            paidOn: bill.paid_at.slice(0, 10),
+            reference: bill.invoice_number ?? null,
+          });
+          if (latest === null || bill.paid_at > latest) latest = bill.paid_at;
+        }
+        url = page.page.next;
+        if (url !== null && !url.startsWith(`${RAMP}/`))
+          throw new IntegrationError(
+            "provider_malformed_response",
+            "Ramp sent a next page outside its API.",
+          );
+      }
+      return {
+        payments,
+        cursor: latest,
+      };
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/accounting/source.ts
+/**
+ * The accounting source over the service-role client (schema `app`) and a canon client (schema
+ * `xpms`) for the fixed chart. Amounts arrive as numbers or strings and become bigint, so no
+ * floating point ever touches money.
+ */
+function supabaseAccountingSource(db, canon) {
+  return {
+    async ledgerQueue(connectionId, limit) {
+      return (
+        await unwrap(
+          db
+            .from("integration_ledger_queue")
+            .select("*")
+            .eq("integration_connection_id", connectionId)
+            .order("journal_entry_id")
+            .order("line_number")
+            .limit(limit),
+        )
+      ).map((r) => ({
+        journalEntryId: r.journal_entry_id,
+        memo: r.memo,
+        postingLineId: r.posting_line_id,
+        lineNumber: r.line_number,
+        date: r.date,
+        projectId: r.project_id,
+        accountCode: r.account_code,
+        costCenterCode: r.cost_center_code,
+        urid: r.urid,
+        counterpartyId: r.counterparty_id,
+        description: r.description,
+        quantity: r.quantity,
+        amountMinor: BigInt(r.amount_minor),
+        currencyCode: r.currency_code,
+        exponent: r.minor_unit_exponent,
+      }));
+    },
+    async accountMappings(connectionId) {
+      const rows = await unwrap(
+        db
+          .from("integration_account_mappings")
+          .select("account_code, external_account_id, external_tax_code")
+          .eq("integration_connection_id", connectionId)
+          .is("deleted_at", null),
+      );
+      return new Map(
+        rows.map((r) => [
+          r.account_code,
+          {
+            externalAccountId: r.external_account_id,
+            taxCode: r.external_tax_code,
+          },
+        ]),
+      );
+    },
+    async paymentQueue(connectionId, limit) {
+      return (
+        await unwrap(
+          db
+            .from("integration_payment_queue")
+            .select("*")
+            .eq("integration_connection_id", connectionId)
+            .order("paid_on")
+            .limit(limit),
+        )
+      ).map((r) => ({
+        paymentId: r.payment_id,
+        counterpartyId: r.counterparty_id,
+        counterpartyExternalId: r.counterparty_external_id,
+        direction: r.direction,
+        amountMinor: BigInt(r.amount_minor),
+        currencyCode: r.currency_code,
+        exponent: r.minor_unit_exponent,
+        paidOn: r.paid_on,
+        reference: r.reference_identifier,
+      }));
+    },
+    async paymentApplications(paymentIds) {
+      if (paymentIds.length === 0) return [];
+      return (
+        await unwrap(
+          db
+            .from("payment_applications")
+            .select("payment_id, invoice_id, amount_minor")
+            .in("payment_id", paymentIds)
+            .is("deleted_at", null),
+        )
+      ).map((r) => ({
+        paymentId: r.payment_id,
+        invoiceId: r.invoice_id,
+        amountMinor: BigInt(r.amount_minor),
+      }));
+    },
+    async recordProviderPayment(connectionId, payment) {
+      return unwrap(
+        db.rpc("record_provider_payment", {
+          p_connection_id: connectionId,
+          p_external_id: payment.externalId,
+          p_counterparty_external_id: payment.counterpartyExternalId,
+          p_direction: payment.direction,
+          p_amount_minor: payment.amountMinor.toString(),
+          p_currency_code: payment.currencyCode,
+          p_paid_on: payment.paidOn,
+          p_reference: payment.reference,
+        }),
+      );
+    },
+    async chartAccounts() {
+      return (
+        await unwrap(
+          canon
+            .from("dim_gl_account")
+            .select("account_code, account_name, account_type")
+            .order("account_code"),
+        )
+      ).map((r) => ({
+        code: r.account_code,
+        name: r.account_name,
+        type: r.account_type,
+      }));
+    },
+    async exponentOf(currencyCode) {
+      const row = await unwrap(
+        db
+          .from("currencies")
+          .select("minor_unit_exponent")
+          .eq("currency_code", currencyCode)
+          .maybeSingle(),
+      );
+      if (row === null)
+        throw new IntegrationError(
+          "currency_unknown",
+          `${currencyCode} is not an ISO 4217 currency the database knows.`,
+        );
+      return row.minor_unit_exponent;
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/accounting/index.ts
+/** The Xero, QuickBooks Online, NetSuite and Ramp connectors over one accounting source. */
+function accountingConnectors(source) {
+  return [
+    xeroProvider(source),
+    quickBooksProvider(source),
+    netSuiteProvider(source),
+    rampProvider(source),
+  ].map((p) => accountingConnector(p, source));
+}
+//#endregion
+//#region ../integrations/src/connectors/calendar/connector.ts
+/** Normalizes an instant to ISO 8601 UTC with milliseconds, so hashes and comparisons agree across providers. */
+function utc(instant) {
+  const parsed = new Date(instant);
+  if (Number.isNaN(parsed.getTime()))
+    throw new IntegrationError("instant_malformed", `${instant} is not a date and time.`);
+  return parsed.toISOString();
+}
+function eventFor(item) {
+  return {
+    title: item.title,
+    startsAt: utc(item.startsAt),
+    endsAt: utc(item.endsAt),
+    timeZone: item.timeZone,
+    location: item.location,
+    conferencingUri: item.conferencingUri,
+    localId: item.localId,
+  };
+}
+/** Hash of what was last written for an item, so unchanged items are skipped and local edits are detected. */
+function itemHash(item, startsAt = item.startsAt, endsAt = item.endsAt) {
+  return contentHash({
+    ...eventFor({
+      ...item,
+      startsAt,
+      endsAt,
+    }),
+    canceled: item.canceled,
+  });
+}
+function parseCursors(cursor) {
+  if (cursor === null) return /* @__PURE__ */ new Map();
+  try {
+    const parsed = JSON.parse(cursor);
+    if (parsed === null || typeof parsed !== "object") return /* @__PURE__ */ new Map();
+    return new Map(Object.entries(parsed).filter((e) => typeof e[1] === "string"));
+  } catch {
+    return /* @__PURE__ */ new Map();
+  }
+}
+var inbound = (run, target) => run.direction !== "Outbound" && target.direction !== "Outbound";
+var outbound = (run, target) => run.direction !== "Inbound" && target.direction !== "Inbound";
+async function pullTarget(provider, source, context, target, items, pairs, cursor, tally) {
+  const page = await provider.changes(context, target.externalCalendarId, cursor);
+  const byExternal = new Map([...pairs.values()].map((p) => [p.externalId, p]));
+  for (const change of page.events) {
+    const pair = byExternal.get(change.externalId);
+    const item = pair ? items.get(pair.localId) : void 0;
+    if (!pair || !item) continue;
+    tally.read += 1;
+    if (
+      change.removed ||
+      change.startsAt === null ||
+      change.endsAt === null ||
+      (change.version !== null && change.version === pair.externalVersion)
+    ) {
+      tally.skipped += 1;
+      continue;
+    }
+    const startsAt = utc(change.startsAt);
+    const endsAt = utc(change.endsAt);
+    if (startsAt === utc(item.startsAt) && endsAt === utc(item.endsAt)) {
+      tally.skipped += 1;
+      continue;
+    }
+    const localChanged = pair.contentHash !== null && pair.contentHash !== itemHash(item);
+    if (!(
+      !localChanged ||
+      target.conflictPolicy === "Provider Wins" ||
+      (target.conflictPolicy === "Latest Wins" &&
+        new Date(change.updatedAt).getTime() > new Date(item.updatedAt).getTime())
+    )) {
+      tally.skipped += 1;
+      continue;
+    }
+    try {
+      await source.applyChange(
+        context.connection.id,
+        item.entity,
+        item.localId,
+        startsAt,
+        endsAt,
+        change.version,
+      );
+    } catch (error) {
+      if (!(error instanceof StoreError && error.error.kind === "refusal")) throw error;
+      await tally.fail(error.error.rule, error.error.message, {
+        entity: item.entity,
+        localId: item.localId,
+        externalId: change.externalId,
+      });
+      continue;
+    }
+    const moved = {
+      ...item,
+      startsAt,
+      endsAt,
+    };
+    items.set(item.localId, moved);
+    const updated = {
+      ...pair,
+      externalVersion: change.version,
+      contentHash: localChanged ? pair.contentHash : itemHash(moved),
+    };
+    pairs.set(item.localId, updated);
+    await context.store.upsertExternalId(context.connection.id, updated);
+    tally.written += 1;
+  }
+  return page.cursor;
+}
+async function pushTarget(provider, context, target, items, pairs, tally) {
+  for (const item of items.values()) {
+    tally.read += 1;
+    const pair = pairs.get(item.localId);
+    const hash = itemHash(item);
+    if (pair?.contentHash === hash || (!pair && item.canceled)) {
+      tally.skipped += 1;
+      continue;
+    }
+    if (item.canceled && pair) {
+      await provider.removeEvent(context, target.externalCalendarId, pair.externalId);
+      const removed = {
+        ...pair,
+        contentHash: hash,
+      };
+      pairs.set(item.localId, removed);
+      await context.store.upsertExternalId(context.connection.id, removed);
+      tally.written += 1;
+      continue;
+    }
+    let written;
+    try {
+      written = await provider.writeEvent(
+        context,
+        target.externalCalendarId,
+        pair?.externalId ?? null,
+        eventFor(item),
+      );
+    } catch (error) {
+      if (!(error instanceof IntegrationError && error.code === "provider_not_found" && pair))
+        throw error;
+      written = await provider.writeEvent(context, target.externalCalendarId, null, eventFor(item));
+    }
+    const next = {
+      entity: item.entity,
+      localId: item.localId,
+      externalId: written.externalId,
+      externalVersion: written.version,
+      contentHash: hash,
+    };
+    pairs.set(item.localId, next);
+    await context.store.upsertExternalId(context.connection.id, next);
+    tally.written += 1;
+  }
+}
+/** Two-way calendar sync for Meeting, Event and Shift items through one provider. */
+function calendarConnector(provider, source) {
+  return {
+    provider: provider.provider,
+    scopes: ["Calendar Sync"],
+    async sync(context) {
+      const tally = new ItemTally(context);
+      const cursors = parseCursors(context.cursor);
+      const pairs = /* @__PURE__ */ new Map();
+      for (const entity of ["Record", "Shift"])
+        for (const pair of await context.store.externalIds(context.connection.id, entity))
+          pairs.set(pair.localId, pair);
+      for (const target of await source.targets(context.connection.id)) {
+        const items = new Map((await source.items(target.id)).map((i) => [i.localId, i]));
+        const targetPairs = new Map([...pairs].filter(([localId]) => items.has(localId)));
+        if (inbound(context.run, target)) {
+          const next = await pullTarget(
+            provider,
+            source,
+            context,
+            target,
+            items,
+            targetPairs,
+            cursors.get(target.id) ?? null,
+            tally,
+          );
+          if (next === null) cursors.delete(target.id);
+          else cursors.set(target.id, next);
+        }
+        if (outbound(context.run, target))
+          await pushTarget(provider, context, target, items, targetPairs, tally);
+      }
+      return {
+        counts: tally.counts(),
+        cursorAfter: JSON.stringify(Object.fromEntries(cursors)),
+      };
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/calendar/providers.ts
+function token$3(context) {
+  if (context.credential === null)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  return context.credential.token;
+}
+function description(event) {
+  return event.conferencingUri ?? void 0;
+}
+var GOOGLE = "https://www.googleapis.com/calendar/v3";
+var googleCalendarProvider = {
+  provider: "google_calendar",
+  label: "Google Calendar",
+  async writeEvent(context, calendarId, externalId, event) {
+    const base = `${GOOGLE}/calendars/${encodeURIComponent(calendarId)}/events`;
+    const body = {
+      summary: event.title,
+      ...(event.location ? { location: event.location } : {}),
+      ...(description(event) ? { description: description(event) } : {}),
+      start: {
+        dateTime: event.startsAt,
+        ...(event.timeZone ? { timeZone: event.timeZone } : {}),
+      },
+      end: {
+        dateTime: event.endsAt,
+        ...(event.timeZone ? { timeZone: event.timeZone } : {}),
+      },
+      extendedProperties: { private: { xos_local_id: event.localId } },
+    };
+    const written = await callJson(context.http, "Google Calendar", {
+      method: externalId === null ? "POST" : "PUT",
+      url: externalId === null ? base : `${base}/${encodeURIComponent(externalId)}`,
+      token: token$3(context),
+      json: body,
+    });
+    return {
+      externalId: written.id,
+      version: written.etag ?? null,
+    };
+  },
+  async removeEvent(context, calendarId, externalId) {
+    try {
+      await callRaw(context.http, "Google Calendar", {
+        method: "DELETE",
+        url: `${GOOGLE}/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(externalId)}`,
+        headers: { authorization: `Bearer ${token$3(context)}` },
+      });
+    } catch (error) {
+      if (error instanceof IntegrationError && (error.status === 404 || error.status === 410))
+        return;
+      throw error;
+    }
+  },
+  async changes(context, calendarId, cursor) {
+    const base = `${GOOGLE}/calendars/${encodeURIComponent(calendarId)}/events`;
+    const events = [];
+    let pageToken = null;
+    let syncToken = cursor;
+    for (;;) {
+      const params = new URLSearchParams({
+        showDeleted: "true",
+        singleEvents: "true",
+        maxResults: "250",
+      });
+      if (syncToken) params.set("syncToken", syncToken);
+      else params.set("timeMin", context.now().toISOString());
+      if (pageToken) params.set("pageToken", pageToken);
+      let page;
+      try {
+        page = await callJson(context.http, "Google Calendar", {
+          method: "GET",
+          url: `${base}?${params.toString()}`,
+          token: token$3(context),
+        });
+      } catch (error) {
+        if (error instanceof IntegrationError && error.status === 410 && syncToken) {
+          syncToken = null;
+          pageToken = null;
+          events.length = 0;
+          continue;
+        }
+        throw error;
+      }
+      for (const item of page.items ?? [])
+        events.push({
+          externalId: item.id,
+          version: item.etag ?? null,
+          startsAt: item.start?.dateTime ?? null,
+          endsAt: item.end?.dateTime ?? null,
+          updatedAt: item.updated ?? context.now().toISOString(),
+          removed: item.status === "cancelled",
+        });
+      if (page.nextPageToken) {
+        pageToken = page.nextPageToken;
+        continue;
+      }
+      return {
+        events,
+        cursor: page.nextSyncToken ?? syncToken,
+      };
+    }
+  },
+};
+var GRAPH$1 = "https://graph.microsoft.com/v1.0";
+/** Graph returns local date-times without an offset; XOS asks for UTC, so "Z" makes them absolute. */
+function graphInstant(value) {
+  if (value === void 0) return null;
+  if (value.timeZone !== "UTC")
+    throw new IntegrationError(
+      "provider_malformed_response",
+      `Microsoft 365 returned ${value.timeZone} times instead of UTC.`,
+    );
+  return /[zZ]|[+-]\d\d:\d\d$/.test(value.dateTime) ? value.dateTime : `${value.dateTime}Z`;
+}
+var microsoftCalendarProvider = {
+  provider: "microsoft_365",
+  label: "Microsoft 365",
+  async writeEvent(context, calendarId, externalId, event) {
+    const body = {
+      subject: event.title,
+      body: {
+        contentType: "text",
+        content: description(event) ?? "",
+      },
+      start: {
+        dateTime: event.startsAt.replace(/Z$/, ""),
+        timeZone: "UTC",
+      },
+      end: {
+        dateTime: event.endsAt.replace(/Z$/, ""),
+        timeZone: "UTC",
+      },
+      ...(event.location ? { location: { displayName: event.location } } : {}),
+      ...(event.timeZone
+        ? {
+            originalStartTimeZone: event.timeZone,
+            originalEndTimeZone: event.timeZone,
+          }
+        : {}),
+      transactionId: event.localId,
+    };
+    const written = await callJson(context.http, "Microsoft 365", {
+      method: externalId === null ? "POST" : "PATCH",
+      url:
+        externalId === null
+          ? `${GRAPH$1}/me/calendars/${encodeURIComponent(calendarId)}/events`
+          : `${GRAPH$1}/me/events/${encodeURIComponent(externalId)}`,
+      token: token$3(context),
+      json: body,
+    });
+    return {
+      externalId: written.id,
+      version: written.changeKey ?? null,
+    };
+  },
+  async removeEvent(context, _calendarId, externalId) {
+    try {
+      await callRaw(context.http, "Microsoft 365", {
+        method: "DELETE",
+        url: `${GRAPH$1}/me/events/${encodeURIComponent(externalId)}`,
+        headers: { authorization: `Bearer ${token$3(context)}` },
+      });
+    } catch (error) {
+      if (error instanceof IntegrationError && error.status === 404) return;
+      throw error;
+    }
+  },
+  async changes(context, calendarId, cursor) {
+    const now = context.now();
+    const start = /* @__PURE__ */ new Date(now.getTime() - 2592e6).toISOString();
+    const end = new Date(now.getTime() + 31536e6).toISOString();
+    let url =
+      cursor ??
+      `${GRAPH$1}/me/calendars/${encodeURIComponent(calendarId)}/calendarView/delta?startDateTime=${start}&endDateTime=${end}`;
+    if (!url.startsWith(`${GRAPH$1}/`))
+      throw new IntegrationError(
+        "cursor_malformed",
+        "The Microsoft 365 delta link is not a Graph URL.",
+      );
+    const events = [];
+    for (;;) {
+      const page = await callJson(context.http, "Microsoft 365", {
+        method: "GET",
+        url,
+        token: token$3(context),
+        headers: { prefer: 'outlook.timezone="UTC", odata.maxpagesize=200' },
+      });
+      for (const item of page.value)
+        events.push({
+          externalId: item.id,
+          version: item.changeKey ?? null,
+          startsAt: graphInstant(item.start),
+          endsAt: graphInstant(item.end),
+          updatedAt: item.lastModifiedDateTime ?? now.toISOString(),
+          removed: item["@removed"] !== void 0,
+        });
+      const next = page["@odata.nextLink"];
+      if (next !== void 0) {
+        if (!next.startsWith(`${GRAPH$1}/`))
+          throw new IntegrationError(
+            "provider_malformed_response",
+            "Microsoft 365 sent a next link outside Graph.",
+          );
+        url = next;
+        continue;
+      }
+      return {
+        events,
+        cursor: page["@odata.deltaLink"] ?? null,
+      };
+    }
+  },
+};
+//#endregion
+//#region ../integrations/src/connectors/calendar/source.ts
+function supabaseCalendarSource(db) {
+  return {
+    async targets(connectionId) {
+      return (
+        await unwrap(
+          db
+            .from("integration_calendar_targets")
+            .select("id, project_id, sync_kind, external_calendar_id, direction, conflict_policy")
+            .eq("integration_connection_id", connectionId)
+            .is("deleted_at", null)
+            .order("created_at"),
+        )
+      ).map((r) => ({
+        id: r.id,
+        projectId: r.project_id,
+        kind: r.sync_kind,
+        externalCalendarId: r.external_calendar_id,
+        direction: r.direction,
+        conflictPolicy: r.conflict_policy,
+      }));
+    },
+    async items(targetId) {
+      return (
+        await unwrap(
+          db
+            .from("integration_calendar_items")
+            .select("*")
+            .eq("integration_calendar_target_id", targetId)
+            .order("starts_at"),
+        )
+      ).map((r) => ({
+        entity: r.entity,
+        localId: r.local_id,
+        title: r.title,
+        startsAt: r.starts_at,
+        endsAt: r.ends_at,
+        timeZone: r.time_zone,
+        location: r.location_text,
+        conferencingUri: r.conferencing_uri,
+        canceled: r.canceled,
+        updatedAt: r.updated_at,
+      }));
+    },
+    async applyChange(connectionId, entity, localId, startsAt, endsAt, version) {
+      return unwrap(
+        db.rpc("apply_calendar_change", {
+          p_connection_id: connectionId,
+          p_entity: entity,
+          p_local_id: localId,
+          p_starts_at: startsAt,
+          p_ends_at: endsAt,
+          p_external_version: version,
+        }),
+      );
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/calendar/index.ts
+/** The Google Calendar and Microsoft 365 connectors over one calendar source. */
+function calendarConnectors(source) {
+  return [googleCalendarProvider, microsoftCalendarProvider].map((p) =>
+    calendarConnector(p, source),
+  );
+}
+function token$2(context) {
+  if (context.credential === null)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  return context.credential.token;
+}
+var TYPES = {
+  pdf: "application/pdf",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  heic: "image/heic",
+  webp: "image/webp",
+  gif: "image/gif",
+  txt: "text/plain",
+  csv: "text/csv",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  mp4: "video/mp4",
+  mov: "video/quicktime",
+  mp3: "audio/mpeg",
+  zip: "application/zip",
+  svg: "image/svg+xml",
+};
+/** MIME type from a file name's extension, for providers that do not report one. */
+function mimeFromName(name) {
+  const extension = /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase();
+  return (extension && TYPES[extension]) ?? "application/octet-stream";
+}
+async function bytesOf(context, provider, request) {
+  const response = await context.http({
+    ...request,
+    responseType: "bytes",
+  });
+  if (response.status === 302 || response.status === 301 || response.status === 307) {
+    const location = response.headers["location"];
+    if (location === void 0 || !location.startsWith("https://"))
+      throw new IntegrationError(
+        "provider_malformed_response",
+        `${provider} redirected the download somewhere other than HTTPS.`,
+      );
+    return bytesOf(context, provider, {
+      method: "GET",
+      url: location,
+    });
+  }
+  const failure = errorForStatus(provider, response.status, response.body);
+  if (failure) throw failure;
+  if (response.bytes === void 0)
+    throw new IntegrationError("provider_malformed_response", `${provider} sent no file content.`);
+  return response.bytes;
+}
+var DRIVE = "https://www.googleapis.com/drive/v3";
+var DRIVE_FIELDS = "id,name,mimeType,size,webViewLink,version,modifiedTime,trashed";
+/** Google-native documents have no bytes of their own; they are exported to these types. */
+var DRIVE_EXPORTS = {
+  "application/vnd.google-apps.document": "application/pdf",
+  "application/vnd.google-apps.spreadsheet":
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.google-apps.presentation": "application/pdf",
+  "application/vnd.google-apps.drawing": "application/pdf",
+};
+function driveMeta(file) {
+  const exported = DRIVE_EXPORTS[file.mimeType];
+  return {
+    externalFileId: file.id,
+    name:
+      exported === "application/pdf" && !file.name.endsWith(".pdf")
+        ? `${file.name}.pdf`
+        : file.name,
+    mimeType: exported ?? file.mimeType,
+    sizeBytes: file.size === void 0 ? null : Number(file.size),
+    webUrl: file.webViewLink ?? null,
+    version: file.version ?? file.modifiedTime ?? file.id,
+    modifiedAt: file.modifiedTime ?? null,
+    folder: file.mimeType === "application/vnd.google-apps.folder",
+    ...(exported ? { exportedFrom: file.mimeType } : {}),
+  };
+}
+var googleDriveProvider = {
+  provider: "google_drive",
+  label: "Google Drive",
+  async metadata(context, externalFileId) {
+    try {
+      const file = await callJson(context.http, "Google Drive", {
+        method: "GET",
+        url: `${DRIVE}/files/${encodeURIComponent(externalFileId)}?fields=${DRIVE_FIELDS}&supportsAllDrives=true`,
+        token: token$2(context),
+      });
+      return file.trashed ? null : driveMeta(file);
+    } catch (error) {
+      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
+      throw error;
+    }
+  },
+  async download(context, file) {
+    return bytesOf(context, "Google Drive", {
+      method: "GET",
+      url:
+        file.exportedFrom !== void 0
+          ? `${DRIVE}/files/${encodeURIComponent(file.externalFileId)}/export?mimeType=${encodeURIComponent(file.mimeType)}`
+          : `${DRIVE}/files/${encodeURIComponent(file.externalFileId)}?alt=media&supportsAllDrives=true`,
+      headers: { authorization: `Bearer ${token$2(context)}` },
+    });
+  },
+  async listFolder(context, folderId) {
+    const q = `'${(folderId ?? "root").replace(/'/g, "\\'")}' in parents and trashed = false`;
+    return (
+      await callJson(context.http, "Google Drive", {
+        method: "GET",
+        url: `${DRIVE}/files?q=${encodeURIComponent(q)}&fields=${encodeURIComponent(`files(${DRIVE_FIELDS})`)}&pageSize=200&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+        token: token$2(context),
+      })
+    ).files.map(driveMeta);
+  },
+};
+var GRAPH = "https://graph.microsoft.com/v1.0";
+/** OneDrive and SharePoint files are addressed as "<drive id>/<item id>". */
+function splitItem(externalFileId) {
+  const [drive, item] = externalFileId.split("/");
+  if (!drive || !item)
+    throw new IntegrationError(
+      "file_id_malformed",
+      `${externalFileId} is not a <drive>/<item> id.`,
+    );
+  return {
+    drive,
+    item,
+  };
+}
+function graphMeta(item, drive) {
+  return {
+    externalFileId: `${item.parentReference?.driveId ?? drive}/${item.id}`,
+    name: item.name,
+    mimeType: item.file?.mimeType ?? mimeFromName(item.name),
+    sizeBytes: item.size ?? null,
+    webUrl: item.webUrl ?? null,
+    version: item.cTag ?? item.eTag ?? item.lastModifiedDateTime ?? item.id,
+    modifiedAt: item.lastModifiedDateTime ?? null,
+    folder: item.folder !== void 0,
+  };
+}
+var oneDriveProvider = {
+  provider: "onedrive_sharepoint",
+  label: "OneDrive and SharePoint",
+  async metadata(context, externalFileId) {
+    const { drive, item } = splitItem(externalFileId);
+    try {
+      const found = await callJson(context.http, "Microsoft OneDrive", {
+        method: "GET",
+        url: `${GRAPH}/drives/${encodeURIComponent(drive)}/items/${encodeURIComponent(item)}`,
+        token: token$2(context),
+      });
+      return found.deleted !== void 0 ? null : graphMeta(found, drive);
+    } catch (error) {
+      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
+      throw error;
+    }
+  },
+  async download(context, file) {
+    const { drive, item } = splitItem(file.externalFileId);
+    return bytesOf(context, "Microsoft OneDrive", {
+      method: "GET",
+      url: `${GRAPH}/drives/${encodeURIComponent(drive)}/items/${encodeURIComponent(item)}/content`,
+      headers: { authorization: `Bearer ${token$2(context)}` },
+    });
+  },
+  async listFolder(context, folderId) {
+    const drive = context.connection.settings["drive_id"];
+    if (typeof drive !== "string" || drive.length === 0)
+      throw new IntegrationError("setting_missing", "The connection needs the drive_id setting.");
+    const path =
+      folderId === null ? "root" : `items/${encodeURIComponent(splitItem(folderId).item)}`;
+    return (
+      await callJson(context.http, "Microsoft OneDrive", {
+        method: "GET",
+        url: `${GRAPH}/drives/${encodeURIComponent(drive)}/${path}/children?$top=200`,
+        token: token$2(context),
+      })
+    ).value.map((i) => graphMeta(i, drive));
+  },
+};
+function dropboxMeta(entry) {
+  return {
+    externalFileId: entry.id ?? entry.path_display ?? entry.name,
+    name: entry.name,
+    mimeType: mimeFromName(entry.name),
+    sizeBytes: entry.size ?? null,
+    webUrl: entry.path_display
+      ? `https://www.dropbox.com/home${entry.path_display.split("/").slice(0, -1).map(encodeURIComponent).join("/")}?preview=${encodeURIComponent(entry.name)}`
+      : null,
+    version: entry.content_hash ?? entry.rev ?? entry.name,
+    modifiedAt: entry.server_modified ?? null,
+    folder: entry[".tag"] === "folder",
+  };
+}
+var dropboxProvider = {
+  provider: "dropbox",
+  label: "Dropbox",
+  async metadata(context, externalFileId) {
+    try {
+      const entry = await callJson(context.http, "Dropbox", {
+        method: "POST",
+        url: "https://api.dropboxapi.com/2/files/get_metadata",
+        token: token$2(context),
+        json: {
+          path: externalFileId,
+          include_deleted: true,
+        },
+      });
+      return entry[".tag"] === "deleted" ? null : dropboxMeta(entry);
+    } catch (error) {
+      if (
+        error instanceof IntegrationError &&
+        error.status === 409 &&
+        error.message.includes("not_found")
+      )
+        return null;
+      throw error;
+    }
+  },
+  async download(context, file) {
+    return bytesOf(context, "Dropbox", {
+      method: "POST",
+      url: "https://content.dropboxapi.com/2/files/download",
+      headers: {
+        authorization: `Bearer ${token$2(context)}`,
+        "dropbox-api-arg": JSON.stringify({ path: file.externalFileId }),
+      },
+    });
+  },
+  async listFolder(context, folderId) {
+    return (
+      await callJson(context.http, "Dropbox", {
+        method: "POST",
+        url: "https://api.dropboxapi.com/2/files/list_folder",
+        token: token$2(context),
+        json: {
+          path: folderId ?? "",
+          limit: 200,
+        },
+      })
+    ).entries
+      .filter((e) => e[".tag"] !== "deleted")
+      .map(dropboxMeta);
+  },
+};
+/** Keeps linked files current and imports new revisions of Import links through the scanned attachment pipeline. */
+function storageConnector(provider, source, blobs) {
+  return {
+    provider: provider.provider,
+    scopes: ["File Import"],
+    async sync(context) {
+      const tally = new ItemTally(context);
+      for (const link of await source.links(context.connection.id)) {
+        tally.read += 1;
+        const ref = {
+          entity: "Document",
+          localId: link.documentId,
+          externalId: link.externalFileId,
+        };
+        const meta = await provider.metadata(context, link.externalFileId);
+        if (meta === null) {
+          await tally.fail(
+            "provider_file_missing",
+            `${provider.label} no longer has this file.`,
+            ref,
+          );
+          continue;
+        }
+        const needsImport = link.mode === "Import" && link.importedVersion !== meta.version;
+        if (meta.version === link.externalVersion && !needsImport) {
+          tally.skipped += 1;
+          continue;
+        }
+        await source.refresh(link.id, meta);
+        if (needsImport) {
+          if (meta.folder) {
+            await tally.fail(
+              "file_is_folder",
+              "A folder cannot be imported as a document version.",
+              ref,
+            );
+            continue;
+          }
+          if (meta.sizeBytes !== null && meta.sizeBytes > 52428800) {
+            await tally.fail(
+              "file_too_large",
+              "The file is larger than the 50 MiB attachment limit.",
+              ref,
+            );
+            continue;
+          }
+          let objectName;
+          try {
+            ({ objectName } = await source.beginImport(link.id));
+          } catch (error) {
+            if (!(error instanceof StoreError && error.error.kind === "refusal")) throw error;
+            await tally.fail(error.error.rule, error.error.message, ref);
+            continue;
+          }
+          const bytes = await provider.download(context, meta);
+          if (bytes.byteLength > 52428800) {
+            await tally.fail(
+              "file_too_large",
+              "The file is larger than the 50 MiB attachment limit.",
+              ref,
+            );
+            continue;
+          }
+          await blobs.put("attachments", objectName, bytes, meta.mimeType);
+          await source.finishImport(link.id, sha256Hex(bytes), meta.version);
+        }
+        tally.written += 1;
+      }
+      return {
+        counts: tally.counts(),
+        cursorAfter: null,
+      };
+    },
+  };
+}
+function storageConnectors(source, blobs) {
+  return [googleDriveProvider, oneDriveProvider, dropboxProvider].map((p) =>
+    storageConnector(p, source, blobs),
+  );
+}
+function supabaseStorageSource(db) {
+  return {
+    async links(connectionId) {
+      return (
+        await unwrap(
+          db
+            .from("integration_file_links")
+            .select(
+              "id, document_id, link_mode, external_file_id, external_version, imported_version",
+            )
+            .eq("integration_connection_id", connectionId)
+            .is("deleted_at", null)
+            .order("created_at"),
+        )
+      ).map((r) => ({
+        id: r.id,
+        documentId: r.document_id,
+        mode: r.link_mode,
+        externalFileId: r.external_file_id,
+        externalVersion: r.external_version,
+        importedVersion: r.imported_version,
+      }));
+    },
+    async refresh(linkId, meta) {
+      await unwrap(
+        db.rpc("refresh_file_link", {
+          p_link_id: linkId,
+          p_file_name: meta.name,
+          p_mime_type: meta.mimeType,
+          p_size_bytes: meta.sizeBytes,
+          p_web_url: meta.webUrl,
+          p_external_version: meta.version,
+          p_external_modified_at: meta.modifiedAt,
+        }),
+      );
+    },
+    async beginImport(linkId) {
+      const row = (await unwrap(db.rpc("begin_file_import", { p_link_id: linkId })))[0];
+      if (row === void 0)
+        throw new IntegrationError(
+          "file_import_not_started",
+          "The import did not return an object name.",
+        );
+      return { objectName: row.object_name };
+    },
+    async finishImport(linkId, checksum, version) {
+      return unwrap(
+        db.rpc("finish_file_import", {
+          p_link_id: linkId,
+          p_checksum_sha256: checksum,
+          p_imported_version: version,
+        }),
+      );
+    },
+  };
+}
+/** Stores imported bytes through a Supabase Storage client (service role, so the issued object name is writable). */
+function supabaseBlobStore(storage) {
+  return {
+    async put(bucket, objectName, bytes, contentType) {
+      const { error } = await storage.from(bucket).upload(objectName, bytes, {
+        contentType,
+        upsert: false,
+      });
+      if (error)
+        throw new IntegrationError(
+          "blob_store_failed",
+          `Storing the file failed: ${error.message}`,
+          { retryable: true },
+        );
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/framework/messages.ts
+/**
+ * A translator over the `integrations` namespace. Messages use simple `{name}` arguments only. A
+ * missing key or argument throws, so a raw key or a stray brace never reaches a channel.
+ */
+function integrationsTranslator(locale) {
+  const catalog = getMessages(locale)["integrations"];
+  if (typeof catalog !== "object")
+    throw new Error(`The ${locale} catalog has no integrations namespace.`);
+  return (key, args = {}) => {
+    let node = catalog;
+    for (const segment of key.split(".")) node = typeof node === "object" ? node[segment] : void 0;
+    if (typeof node !== "string")
+      throw new Error(`Missing integrations message ${key} in ${locale}.`);
+    return node.replace(/\{(\w+)\}/g, (_match, name) => {
+      const value = args[name];
+      if (value === void 0)
+        throw new Error(`Message integrations.${key} needs the ${name} argument.`);
+      return String(value);
+    });
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/communication/index.ts
+function token$1(context) {
+  if (context.credential === null)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  return context.credential.token;
+}
+var text$1 = (value, fallback) =>
+  typeof value === "string" && value.length > 0 ? value : fallback;
+/** The message for one routed event, in the org's locale. Unknown event types get the generic line. */
+function notificationText(event, t) {
+  const project = event.projectName ?? "";
+  switch (event.eventType) {
+    case "record.created":
+      return t("chat.event.recordCreated", {
+        kind: text$1(event.data["record_kind"], "record"),
+        project,
+        title: text$1(event.data["title"], ""),
+      });
+    case "record.state_changed":
+      return t("chat.event.recordStateChanged", {
+        project,
+        from: text$1(event.data["from_state"], ""),
+        to: text$1(event.data["to_state"], ""),
+      });
+    case "project.created":
+      return t("chat.event.projectCreated", { name: text$1(event.data["name"], project) });
+    case "invoice.issued":
+      return t("chat.event.invoiceIssued", { project });
+    case "incident.reported":
+      return t("chat.event.incidentReported", { project });
+    default:
+      return event.projectName === null
+        ? t("chat.event.withoutProject", { event: event.eventType })
+        : t("chat.event.withProject", {
+            event: event.eventType,
+            project,
+          });
+  }
+}
+var SLACK_CONNECTION_ERRORS = /* @__PURE__ */ new Set([
+  "invalid_auth",
+  "token_revoked",
+  "token_expired",
+  "account_inactive",
+  "not_authed",
+  "missing_scope",
+]);
+var SLACK_ITEM_ERRORS = /* @__PURE__ */ new Set([
+  "channel_not_found",
+  "not_in_channel",
+  "is_archived",
+  "msg_too_long",
+]);
+/** Slack answers 200 with ok:false; this turns its error codes into the framework's failures. */
+function slackFailure(error) {
+  if (SLACK_CONNECTION_ERRORS.has(error))
+    return new IntegrationError("credential_refused", `Slack refused the token: ${error}.`, {
+      connectionError: true,
+    });
+  if (error === "ratelimited")
+    return new IntegrationError("provider_rate_limited", "Slack rate limited the request.", {
+      retryable: true,
+    });
+  if (SLACK_ITEM_ERRORS.has(error))
+    return new IntegrationError(`slack_${error}`, `Slack could not post: ${error}.`);
+  return new IntegrationError("provider_rejected", `Slack returned ${error}.`);
+}
+var slackProvider = {
+  provider: "slack",
+  label: "Slack",
+  async post(context, channelId, message) {
+    const response = await callJson(context.http, "Slack", {
+      method: "POST",
+      url: "https://slack.com/api/chat.postMessage",
+      token: token$1(context),
+      json: {
+        channel: channelId,
+        text: message,
+        unfurl_links: false,
+        unfurl_media: false,
+      },
+    });
+    if (!response.ok) throw slackFailure(response.error ?? "unknown_error");
+  },
+};
+function escapeHtml(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+var teamsProvider = {
+  provider: "microsoft_teams",
+  label: "Microsoft Teams",
+  async post(context, channelId, message) {
+    const [team, channel] = channelId.split("/");
+    if (!team || !channel)
+      throw new IntegrationError(
+        "teams_channel_malformed",
+        `${channelId} is not a <team>/<channel> id.`,
+      );
+    await callJson(context.http, "Microsoft Teams", {
+      method: "POST",
+      url: `https://graph.microsoft.com/v1.0/teams/${encodeURIComponent(team)}/channels/${encodeURIComponent(channel)}/messages`,
+      token: token$1(context),
+      json: {
+        body: {
+          contentType: "html",
+          content: escapeHtml(message),
+        },
+      },
+    });
+  },
+};
+var BATCH = 200;
+/** Posts routed domain events after the cursor, once each, and moves the cursor past every event handled. */
+function chatConnector(provider, source, translate) {
+  return {
+    provider: provider.provider,
+    scopes: ["Notification Delivery"],
+    async sync(context) {
+      const tally = new ItemTally(context);
+      const events = await source.routedEvents(context.connection.id, context.cursor, BATCH);
+      let cursor = context.cursor;
+      for (const event of events) {
+        tally.read += 1;
+        try {
+          await provider.post(context, event.channelId, notificationText(event, translate));
+          tally.written += 1;
+        } catch (error) {
+          if (!(error instanceof IntegrationError) || error.retryable || error.connectionError)
+            throw error;
+          await tally.fail(error.code, error.message, { externalId: event.channelId });
+        }
+        cursor = event.eventId;
+      }
+      return {
+        counts: tally.counts(),
+        cursorAfter: cursor,
+      };
+    },
+  };
+}
+function chatConnectors(source, translate) {
+  return [slackProvider, teamsProvider].map((p) => chatConnector(p, source, translate));
+}
+function safeEqual$1(a, b) {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+/** Verifies Slack's v0 request signature and refuses requests older than five minutes (replay protection). */
+function verifySlackRequest(signingSecret, timestamp, signature, body, now) {
+  const seconds = Number(timestamp);
+  if (!Number.isInteger(seconds) || Math.abs(now.getTime() / 1e3 - seconds) > 300) return false;
+  return safeEqual$1(
+    `v0=${createHmac("sha256", signingSecret).update(`v0:${timestamp}:${body}`).digest("hex")}`,
+    signature,
+  );
+}
+/** Verifies a Teams outgoing webhook: `Authorization: HMAC <base64 HMAC-SHA256 of the body under the base64 secret>`. */
+function verifyTeamsRequest(secretBase64, authorization, body) {
+  const match = /^HMAC (.+)$/.exec(authorization);
+  if (match?.[1] === void 0) return false;
+  return safeEqual$1(
+    createHmac("sha256", Buffer.from(secretBase64, "base64")).update(body).digest("base64"),
+    match[1],
+  );
+}
+/** Looks a record up by display key as the signed-in chat user: row level security decides what they see. */
+async function findRecordAs(db, key) {
+  const match = /^([A-Z0-9]{2,10})-(\d{1,9})$/.exec(key.trim().toUpperCase());
+  if (match === null) return null;
+  const project = await unwrap(
+    db.from("projects").select("id").eq("project_key", match[1]).maybeSingle(),
+  );
+  if (project === null) return null;
+  const record = await unwrap(
+    db
+      .from("records")
+      .select("title, record_kind, record_state")
+      .eq("project_id", project.id)
+      .eq("record_number", Number(match[2]))
+      .is("deleted_at", null)
+      .maybeSingle(),
+  );
+  return record === null
+    ? null
+    : {
+        key: `${match[1]}-${match[2]}`,
+        title: record.title,
+        kind: record.record_kind,
+        state: record.record_state,
+      };
+}
+/** Answers a slash command as the person linked to the chat user. Every reply is finished copy. */
+async function handleSlashCommand(command, deps) {
+  const t = deps.translate;
+  const [verb = "help", ...rest] = command.text
+    .trim()
+    .split(/\s+/)
+    .filter((part) => part.length > 0);
+  if (verb === "help") return t("chat.slash.help");
+  if (verb !== "record") return t("chat.slash.unknown");
+  const key = rest[0];
+  if (key === void 0) return t("chat.slash.keyMissing");
+  const connectionId = await deps.source.findConnection(
+    command.provider,
+    command.externalAccountId,
+  );
+  const member =
+    connectionId === null
+      ? null
+      : await deps.source.resolveMember(connectionId, command.externalUserId);
+  if (member === null) return t("chat.slash.unlinked");
+  const card = await findRecordAs(await deps.clientFor(member.userId), key);
+  if (card === null) return t("chat.slash.notFound", { key: key.toUpperCase() });
+  return t("chat.slash.record", {
+    key: card.key,
+    title: card.title,
+    kind: card.kind,
+    state: card.state,
+  });
+}
+/** Record keys named by Atlas links in a message (`?peek=NWL-12`), for unfurls. */
+function recordKeysIn(urls, atlasOrigin) {
+  const keys = [];
+  for (const raw of urls) {
+    let url;
+    try {
+      url = new URL(raw);
+    } catch {
+      continue;
+    }
+    const peek = url.searchParams.get("peek");
+    if (url.origin === atlasOrigin && peek !== null && !keys.includes(peek)) keys.push(peek);
+  }
+  return keys;
+}
+/** Builds unfurl text for each Atlas record link, as the person linked to the chat user; unseen records are left alone. */
+async function unfurlLinks(request, atlasOrigin, deps) {
+  if (recordKeysIn(request.urls, atlasOrigin).length === 0) return {};
+  const connectionId = await deps.source.findConnection(
+    request.provider,
+    request.externalAccountId,
+  );
+  const member =
+    connectionId === null
+      ? null
+      : await deps.source.resolveMember(connectionId, request.externalUserId);
+  if (member === null) return {};
+  const db = await deps.clientFor(member.userId);
+  const unfurls = {};
+  for (const url of request.urls) {
+    const key = recordKeysIn([url], atlasOrigin)[0];
+    if (key === void 0) continue;
+    const card = await findRecordAs(db, key);
+    if (card !== null)
+      unfurls[url] = deps.translate("chat.slash.record", {
+        key: card.key,
+        title: card.title,
+        kind: card.kind,
+        state: card.state,
+      });
+  }
+  return unfurls;
+}
+function supabaseCommunicationSource(db) {
+  return {
+    async routedEvents(connectionId, afterEventId, limit) {
+      let query = db
+        .from("integration_route_events")
+        .select("domain_event_id, external_channel_id, event_type, project_name, data")
+        .eq("integration_connection_id", connectionId);
+      if (afterEventId !== null) query = query.gt("domain_event_id", afterEventId);
+      return (await unwrap(query.order("domain_event_id").limit(limit))).map((r) => ({
+        eventId: r.domain_event_id,
+        channelId: r.external_channel_id,
+        eventType: r.event_type,
+        projectName: r.project_name,
+        data: r.data ?? {},
+      }));
+    },
+    async findConnection(provider, externalAccountId) {
+      return unwrap(
+        db.rpc("find_chat_connection", {
+          p_provider_code: provider,
+          p_external_account_id: externalAccountId,
+        }),
+      );
+    },
+    async resolveMember(connectionId, externalUserId) {
+      const row = (
+        await unwrap(
+          db.rpc("resolve_chat_member", {
+            p_connection_id: connectionId,
+            p_external_user_id: externalUserId,
+          }),
+        )
+      )[0];
+      return row === void 0
+        ? null
+        : {
+            personId: row.person_id,
+            userId: row.user_id,
+            orgId: row.org_id,
+          };
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/payroll/index.ts
+var HEADER =
+  "payroll_run_id,pay_period_start,pay_period_end,person_id,membership_id,earning_code,hours,rate_minor,amount_minor,currency_code";
+/** Parses A13's Universal payroll CSV. Any deviation from its shape refuses the file rather than guessing. */
+function parsePayrollCsv(content) {
+  const rows = content.split("\n").filter((row) => row.length > 0);
+  if (rows[0] !== HEADER)
+    throw new IntegrationError(
+      "payroll_file_malformed",
+      "The payroll export does not have the Universal CSV header.",
+    );
+  return rows.slice(1).map((row, index) => {
+    const cells = row.split(",");
+    const [, , , personId, membershipId, earningCode, hours, rate, amount, currency] = cells;
+    if (
+      cells.length !== 10 ||
+      !personId ||
+      !membershipId ||
+      !earningCode ||
+      !hours ||
+      !rate ||
+      !amount ||
+      !currency
+    )
+      throw new IntegrationError(
+        "payroll_file_malformed",
+        `Payroll export row ${index + 2} does not have ten filled columns.`,
+      );
+    if (!/^\d+(\.\d+)?$/.test(hours) || !/^-?\d+$/.test(rate) || !/^-?\d+$/.test(amount))
+      throw new IntegrationError(
+        "payroll_file_malformed",
+        `Payroll export row ${index + 2} has a malformed number.`,
+      );
+    return {
+      personId,
+      membershipId,
+      earningCode,
+      hours,
+      rateMinor: BigInt(rate),
+      amountMinor: BigInt(amount),
+      currencyCode: currency,
+    };
+  });
+}
+function token(context) {
+  if (context.credential === null)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  return context.credential.token;
+}
+function companyId(context, field) {
+  if (context.credential?.fields[field] !== void 0)
+    return credentialField(context.credential, field);
+  if (context.connection.externalAccountId !== null) return context.connection.externalAccountId;
+  throw new IntegrationError(
+    "credential_incomplete",
+    `The stored credential is missing ${field}.`,
+    { connectionError: true },
+  );
+}
+function byEmployee(lines) {
+  const groups = /* @__PURE__ */ new Map();
+  for (const line of lines)
+    groups.set(line.employeeId, [...(groups.get(line.employeeId) ?? []), line]);
+  return groups;
+}
+var GUSTO = "https://api.gusto.com/v1";
+var gustoProvider = {
+  provider: "gusto",
+  label: "Gusto",
+  async handoff(context, handoff) {
+    const company = companyId(context, "company_uuid");
+    const payroll = (
+      await callJson(context.http, "Gusto", {
+        method: "GET",
+        url: `${GUSTO}/companies/${encodeURIComponent(company)}/payrolls?processing_statuses=unprocessed&start_date=${handoff.periodStart}&end_date=${handoff.periodEnd}`,
+        token: token(context),
+      })
+    ).find(
+      (p) =>
+        p.pay_period.start_date === handoff.periodStart &&
+        p.pay_period.end_date === handoff.periodEnd,
+    );
+    if (payroll === void 0)
+      throw new IntegrationError(
+        "provider_payroll_missing",
+        `Gusto has no unprocessed payroll for ${handoff.periodStart} to ${handoff.periodEnd}.`,
+      );
+    const updated = await callJson(context.http, "Gusto", {
+      method: "PUT",
+      url: `${GUSTO}/companies/${encodeURIComponent(company)}/payrolls/${encodeURIComponent(payroll.payroll_uuid)}`,
+      token: token(context),
+      json: {
+        version: payroll.version,
+        employee_compensations: [...byEmployee(handoff.lines)].map(([employee, lines]) => ({
+          employee_uuid: employee,
+          hourly_compensations: lines.map((l) => ({
+            name: l.providerEarning,
+            hours: l.hours,
+          })),
+        })),
+      },
+    });
+    return {
+      reference: updated.payroll_uuid,
+      version: updated.version,
+    };
+  },
+};
+var adpProvider = {
+  provider: "adp",
+  label: "ADP",
+  async handoff(context, handoff) {
+    const group = context.connection.settings["payroll_group_code"];
+    if (typeof group !== "string" || group.length === 0)
+      throw new IntegrationError(
+        "setting_missing",
+        "The connection needs the payroll_group_code setting.",
+      );
+    const id = (
+      await callJson(context.http, "ADP", {
+        method: "POST",
+        url: "https://api.adp.com/events/payroll/v1/pay-data-input.modify",
+        token: token(context),
+        json: {
+          events: [
+            {
+              data: {
+                transform: {
+                  payDataInput: {
+                    payeePayInputs: [...byEmployee(handoff.lines)].map(([employee, lines]) => ({
+                      associateOID: employee,
+                      payrollGroupCode: { codeValue: group },
+                      payInputs: [
+                        {
+                          earningInputs: lines.map((l) => ({
+                            earningCode: { codeValue: l.providerEarning },
+                            numberOfHours: l.hours,
+                            rate: {
+                              rateValue: minorToDecimal(l.rateMinor, handoff.exponent),
+                              currencyCode: l.currencyCode,
+                            },
+                          })),
+                        },
+                      ],
+                    })),
+                  },
+                },
+              },
+            },
+          ],
+        },
+      })
+    ).events?.[0]?.eventID;
+    if (id === void 0)
+      throw new IntegrationError("provider_malformed_response", "ADP did not return the event id.");
+    return {
+      reference: id,
+      version: null,
+    };
+  },
+};
+var ripplingProvider = {
+  provider: "rippling",
+  label: "Rippling",
+  async handoff(context, handoff) {
+    return {
+      reference: (
+        await callJson(context.http, "Rippling", {
+          method: "POST",
+          url: "https://api.rippling.com/platform/api/payroll/earning_imports",
+          token: token(context),
+          json: {
+            pay_period: {
+              start_date: handoff.periodStart,
+              end_date: handoff.periodEnd,
+            },
+            earnings: handoff.lines.map((l) => ({
+              employee_id: l.employeeId,
+              earning_type: l.providerEarning,
+              hours: l.hours,
+              rate: minorToDecimal(l.rateMinor, handoff.exponent),
+              amount: minorToDecimal(l.amountMinor, handoff.exponent),
+              currency: l.currencyCode,
+            })),
+          },
+        })
+      ).id,
+      version: null,
+    };
+  },
+};
+/**
+ * Hands one exported payroll run to the provider. Every employee and earning code must be mapped:
+ * payroll is never sent partially, so any gap fails the run with an item error per gap.
+ */
+function payrollConnector(provider, source) {
+  return {
+    provider: provider.provider,
+    scopes: ["Payroll Export"],
+    async sync(context) {
+      const { run, connection, store } = context;
+      if (run.subjectEntity !== "Payroll Run" || run.subjectId === null)
+        throw new IntegrationError(
+          "payroll_subject_missing",
+          "A payroll handoff names the payroll run it hands off.",
+        );
+      const tally = new ItemTally(context);
+      const file = await source.handoffFile(connection.id, run.subjectId);
+      if (
+        (await store.externalIds(connection.id, "Payroll Run")).find(
+          (x) => x.localId === run.subjectId,
+        )?.contentHash === file.checksum
+      ) {
+        tally.read = 1;
+        tally.skipped = 1;
+        return {
+          counts: tally.counts(),
+          cursorAfter: context.cursor,
+        };
+      }
+      const lines = parsePayrollCsv(file.content);
+      const employees = new Map(
+        (await store.externalIds(connection.id, "Membership")).map((x) => [
+          x.localId,
+          x.externalId,
+        ]),
+      );
+      const earningIds = await source.earningCodeIds(connection.orgId);
+      const earnings = new Map(
+        (await store.externalIds(connection.id, "Earning Code")).map((x) => [
+          x.localId,
+          x.externalId,
+        ]),
+      );
+      const mapped = [];
+      for (const line of lines) {
+        tally.read += 1;
+        const employeeId = employees.get(line.membershipId);
+        const earningId = earningIds.get(line.earningCode);
+        const providerEarning = earningId === void 0 ? void 0 : earnings.get(earningId);
+        if (employeeId === void 0)
+          await tally.fail(
+            "employee_unmapped",
+            `No ${provider.label} employee is mapped for this crew member.`,
+            {
+              entity: "Membership",
+              localId: line.membershipId,
+            },
+          );
+        else if (providerEarning === void 0)
+          await tally.fail(
+            "earning_code_unmapped",
+            `Earning code ${line.earningCode} has no ${provider.label} earning mapped.`,
+            {
+              entity: "Earning Code",
+              ...(earningId === void 0 ? {} : { localId: earningId }),
+            },
+          );
+        else
+          mapped.push({
+            ...line,
+            employeeId,
+            providerEarning,
+          });
+      }
+      if (tally.failed > 0)
+        throw new IntegrationError(
+          "payroll_mapping_incomplete",
+          `${tally.failed} payroll lines are not mapped; nothing was sent to ${provider.label}.`,
+        );
+      const currency = mapped[0]?.currencyCode ?? lines[0]?.currencyCode;
+      const exponent = currency === void 0 ? 2 : await source.exponentOf(currency);
+      const result = await provider.handoff(context, {
+        lines: mapped,
+        periodStart: file.periodStart,
+        periodEnd: file.periodEnd,
+        exponent,
+      });
+      await store.upsertExternalId(connection.id, {
+        entity: "Payroll Run",
+        localId: run.subjectId,
+        externalId: result.reference,
+        externalVersion: result.version,
+        contentHash: file.checksum,
+      });
+      tally.written = mapped.length;
+      return {
+        counts: tally.counts(),
+        cursorAfter: context.cursor,
+      };
+    },
+  };
+}
+function payrollConnectors(source) {
+  return [gustoProvider, adpProvider, ripplingProvider].map((p) => payrollConnector(p, source));
+}
+function supabasePayrollSource(db) {
+  return {
+    async handoffFile(connectionId, payrollRunId) {
+      const row = (
+        await unwrap(
+          db.rpc("payroll_export_for_handoff", {
+            p_connection_id: connectionId,
+            p_payroll_run_id: payrollRunId,
+          }),
+        )
+      )[0];
+      if (row === void 0)
+        throw new IntegrationError(
+          "payroll_export_missing",
+          "No export of this run was produced for this provider.",
+        );
+      return {
+        exportId: row.payroll_export_id,
+        checksum: row.checksum_sha256,
+        content: row.content,
+        periodStart: row.pay_period_start,
+        periodEnd: row.pay_period_end,
+      };
+    },
+    async earningCodeIds(orgId) {
+      const rows = await unwrap(
+        db.from("earning_codes").select("id, code").eq("org_id", orgId).is("deleted_at", null),
+      );
+      return new Map(rows.map((r) => [r.code, r.id]));
+    },
+    async exponentOf(currencyCode) {
+      const row = await unwrap(
+        db
+          .from("currencies")
+          .select("minor_unit_exponent")
+          .eq("currency_code", currencyCode)
+          .maybeSingle(),
+      );
+      if (row === null)
+        throw new IntegrationError(
+          "currency_unknown",
+          `${currencyCode} is not an ISO 4217 currency the database knows.`,
+        );
+      return row.minor_unit_exponent;
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/shipping/index.ts
+function key(context) {
+  if (context.credential === null)
+    throw new IntegrationError("credential_required", "The connection has no stored credential.", {
+      connectionError: true,
+    });
+  return context.credential.token;
+}
+var place = (...parts) => {
+  const text = parts.filter((p) => typeof p === "string" && p.length > 0).join(", ");
+  return text.length > 0 ? text : null;
+};
+/** The latest status wins; with no scans the carrier's summary status stands. */
+function latest(scans) {
+  return [...scans].sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1))[0];
+}
+var UPS_TYPES = {
+  M: "Label Created",
+  P: "In Transit",
+  I: "In Transit",
+  O: "Out for Delivery",
+  D: "Delivered",
+  X: "Exception",
+  RS: "Returned",
+};
+/** UPS dates are YYYYMMDD and times HHMMSS in the scan's local time; without a zone they are stored as UTC. */
+function upsInstant(date, time) {
+  if (date === void 0 || !/^\d{8}$/.test(date)) return null;
+  const t = time !== void 0 && /^\d{6}$/.test(time) ? time : "000000";
+  return `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${t.slice(0, 2)}:${t.slice(2, 4)}:${t.slice(4, 6)}Z`;
+}
+var upsCarrier = {
+  provider: "ups",
+  label: "UPS",
+  async track(context, trackingNumber) {
+    let body;
+    try {
+      body = await callJson(context.http, "UPS", {
+        method: "GET",
+        url: `https://onlinetools.ups.com/api/track/v1/details/${encodeURIComponent(trackingNumber)}?locale=en_US`,
+        token: key(context),
+        headers: {
+          transid: context.run.id,
+          transactionsrc: "xos",
+        },
+      });
+    } catch (error) {
+      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
+      throw error;
+    }
+    const pkg = body.trackResponse?.shipment?.[0]?.package?.[0];
+    if (pkg === void 0) return null;
+    const scans = [];
+    for (const a of pkg.activity ?? []) {
+      const occurredAt = upsInstant(a.date, a.time);
+      if (occurredAt === null) continue;
+      scans.push({
+        status: UPS_TYPES[a.status?.type ?? ""] ?? "Unknown",
+        code: a.status?.code ?? a.status?.type ?? "UNKNOWN",
+        description: a.status?.description ?? "",
+        location: place(
+          a.location?.address?.city,
+          a.location?.address?.stateProvince,
+          a.location?.address?.countryCode,
+        ),
+        occurredAt,
+      });
+    }
+    const top = latest(scans);
+    const status = UPS_TYPES[pkg.currentStatus?.type ?? ""] ?? top?.status ?? "Unknown";
+    const estimate = pkg.deliveryDate?.find((d) => d.type !== "DEL");
+    const delivered = pkg.deliveryDate?.find((d) => d.type === "DEL");
+    return {
+      status,
+      statusText: pkg.currentStatus?.description ?? top?.description ?? null,
+      estimatedDeliveryAt: estimate ? upsInstant(estimate.date, void 0) : null,
+      deliveredAt:
+        status === "Delivered"
+          ? delivered
+            ? upsInstant(delivered.date, void 0)
+            : (top?.occurredAt ?? null)
+          : null,
+      scans,
+    };
+  },
+};
+var FEDEX_CODES = {
+  OC: "Label Created",
+  PU: "In Transit",
+  IT: "In Transit",
+  AR: "In Transit",
+  DP: "In Transit",
+  OD: "Out for Delivery",
+  DL: "Delivered",
+  DE: "Exception",
+  SE: "Exception",
+  CA: "Exception",
+  RS: "Returned",
+};
+var fedexCarrier = {
+  provider: "fedex",
+  label: "FedEx",
+  async track(context, trackingNumber) {
+    const result = (
+      await callJson(context.http, "FedEx", {
+        method: "POST",
+        url: "https://apis.fedex.com/track/v1/trackingnumbers",
+        token: key(context),
+        json: {
+          includeDetailedScans: true,
+          trackingInfo: [{ trackingNumberInfo: { trackingNumber } }],
+        },
+      })
+    ).output?.completeTrackResults?.[0]?.trackResults?.[0];
+    if (result === void 0 || result.error?.code === "TRACKING.TRACKINGNUMBER.NOTFOUND") return null;
+    const scans = (result.scanEvents ?? [])
+      .filter((e) => typeof e.date === "string")
+      .map((e) => ({
+        status: FEDEX_CODES[e.derivedStatusCode ?? e.eventType ?? ""] ?? "Unknown",
+        code: e.eventType ?? e.derivedStatusCode ?? "UNKNOWN",
+        description: e.eventDescription ?? "",
+        location: place(
+          e.scanLocation?.city,
+          e.scanLocation?.stateOrProvinceCode,
+          e.scanLocation?.countryCode,
+        ),
+        occurredAt: new Date(e.date).toISOString(),
+      }));
+    const status =
+      FEDEX_CODES[result.latestStatusDetail?.code ?? ""] ?? latest(scans)?.status ?? "Unknown";
+    const delivered = result.dateAndTimes?.find((d) => d.type === "ACTUAL_DELIVERY")?.dateTime;
+    return {
+      status,
+      statusText: result.latestStatusDetail?.description ?? null,
+      estimatedDeliveryAt: result.estimatedDeliveryTimeWindow?.window?.ends ?? null,
+      deliveredAt: status === "Delivered" ? (delivered ?? latest(scans)?.occurredAt ?? null) : null,
+      scans,
+    };
+  },
+};
+var DHL_CODES = {
+  "pre-transit": "Label Created",
+  transit: "In Transit",
+  delivered: "Delivered",
+  failure: "Exception",
+  unknown: "Unknown",
+};
+var dhlCarrier = {
+  provider: "dhl",
+  label: "DHL",
+  async track(context, trackingNumber) {
+    let body;
+    try {
+      body = await callJson(context.http, "DHL", {
+        method: "GET",
+        url: `https://api-eu.dhl.com/track/shipments?trackingNumber=${encodeURIComponent(trackingNumber)}`,
+        headers: { "dhl-api-key": key(context) },
+      });
+    } catch (error) {
+      if (error instanceof IntegrationError && error.code === "provider_not_found") return null;
+      throw error;
+    }
+    const shipment = body.shipments?.[0];
+    if (shipment === void 0) return null;
+    const scans = (shipment.events ?? [])
+      .filter((e) => typeof e.timestamp === "string")
+      .map((e) => ({
+        status: DHL_CODES[e.statusCode ?? ""] ?? "Unknown",
+        code: e.statusCode ?? "unknown",
+        description: e.description ?? e.status ?? "",
+        location: place(e.location?.address?.addressLocality),
+        occurredAt: new Date(e.timestamp).toISOString(),
+      }));
+    const status = DHL_CODES[shipment.status?.statusCode ?? ""] ?? "Unknown";
+    return {
+      status,
+      statusText: shipment.status?.description ?? shipment.status?.status ?? null,
+      estimatedDeliveryAt: shipment.estimatedTimeOfDelivery ?? null,
+      deliveredAt:
+        status === "Delivered"
+          ? (shipment.status?.timestamp ?? latest(scans)?.occurredAt ?? null)
+          : null,
+      scans,
+    };
+  },
+};
+/** Asks the carrier about every open tracker and records new scans and the latest status. */
+function trackingConnector(carrier, source) {
+  return {
+    provider: carrier.provider,
+    scopes: ["Tracking Refresh"],
+    async sync(context) {
+      const tally = new ItemTally(context);
+      for (const tracker of await source.openTrackers(context.connection.id)) {
+        tally.read += 1;
+        const update = await carrier.track(context, tracker.trackingNumber);
+        if (update === null) {
+          await tally.fail(
+            "tracking_number_unknown",
+            `${carrier.label} does not know this tracking number yet.`,
+            {
+              entity: "Shipment",
+              localId: tracker.shipmentId,
+              externalId: tracker.trackingNumber,
+            },
+          );
+          continue;
+        }
+        if ((await source.record(tracker.id, update)) > 0) tally.written += 1;
+        else tally.skipped += 1;
+      }
+      return {
+        counts: tally.counts(),
+        cursorAfter: null,
+      };
+    },
+  };
+}
+function trackingConnectors(source) {
+  return [upsCarrier, fedexCarrier, dhlCarrier].map((c) => trackingConnector(c, source));
+}
+function supabaseTrackingSource(db) {
+  return {
+    async openTrackers(connectionId) {
+      return (
+        await unwrap(
+          db
+            .from("shipment_trackers")
+            .select("id, shipment_id, tracking_number")
+            .eq("integration_connection_id", connectionId)
+            .is("deleted_at", null)
+            .not("tracking_status", "in", "(Delivered,Returned)")
+            .order("created_at"),
+        )
+      ).map((r) => ({
+        id: r.id,
+        shipmentId: r.shipment_id,
+        trackingNumber: r.tracking_number,
+      }));
+    },
+    async record(trackerId, update) {
+      return unwrap(
+        db.rpc("record_tracking_update", {
+          p_tracker_id: trackerId,
+          p_status: update.status,
+          p_status_text: update.statusText,
+          p_estimated_delivery_at: update.estimatedDeliveryAt,
+          p_delivered_at: update.deliveredAt,
+          p_events: update.scans.map((s) => ({
+            status: s.status,
+            code: s.code,
+            description: s.description,
+            location: s.location,
+            occurred_at: s.occurredAt,
+          })),
+        }),
+      );
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/connectors/ticketing/index.ts
+/** Parses RFC 4180 CSV: quoted fields, doubled quotes, commas and line breaks inside quotes. */
+function parseCsv$1(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let quoted = false;
+  const input = text.replace(/^\uFEFF/, "");
+  for (let i = 0; i < input.length; i += 1) {
+    const char = input[i];
+    if (quoted) {
+      if (char === '"' && input[i + 1] === '"') {
+        field += '"';
+        i += 1;
+      } else if (char === '"') quoted = false;
+      else field += char;
+    } else if (char === '"' && field.length === 0) quoted = true;
+    else if (char === ",") {
+      row.push(field);
+      field = "";
+    } else if (char === "\n" || char === "\r") {
+      if (char === "\r" && input[i + 1] === "\n") i += 1;
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = "";
+    } else field += char;
+  }
+  if (quoted) throw new IntegrationError("csv_malformed", "The file ends inside a quoted field.");
+  if (field.length > 0 || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+  return rows.filter((r) => r.some((cell) => cell.trim().length > 0));
+}
+var HEADERS = {
+  date: "date",
+  counted_on: "date",
+  event_date: "date",
+  ticket_class: "ticketClass",
+  ticket_type: "ticketClass",
+  class: "ticketClass",
+  sold: "sold",
+  tickets_sold: "sold",
+  scanned: "scanned",
+  tickets_scanned: "scanned",
+  scans: "scanned",
+  comps: "comps",
+  complimentary: "comps",
+  gross: "gross",
+  revenue: "gross",
+  currency: "currency",
+  currency_code: "currency",
+  show: "showCode",
+  show_code: "showCode",
+  scope_code: "showCode",
+};
+/** Reads a box office CSV by its header names (common aliases accepted); date, class and sold are required. */
+function attendanceFromCsv(text) {
+  const [header, ...rows] = parseCsv$1(text);
+  if (header === void 0) return [];
+  const columns = header.map(
+    (h) =>
+      HEADERS[
+        h
+          .trim()
+          .toLowerCase()
+          .replace(/[\s-]+/g, "_")
+      ],
+  );
+  for (const required of ["date", "ticketClass", "sold"])
+    if (!columns.includes(required))
+      throw new IntegrationError(
+        "csv_header_missing",
+        `The file needs a ${required === "ticketClass" ? "ticket class" : required} column.`,
+      );
+  return rows.map((cells) => {
+    const raw = {};
+    columns.forEach((column, index) => {
+      const cell = cells[index]?.trim();
+      if (column !== void 0 && cell !== void 0 && cell.length > 0) raw[column] = cell;
+    });
+    return raw;
+  });
+}
+var COUNT = /^\d{1,9}$/;
+/** Validates one figure. Returns the row, or the reason it is refused. */
+async function validateAttendance(raw, scopes, exponentOf) {
+  if (
+    raw.date === void 0 ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(raw.date) ||
+    Number.isNaN(Date.parse(raw.date))
+  )
+    return {
+      code: "attendance_date_invalid",
+      message: "The date must be YYYY-MM-DD.",
+    };
+  if (raw.ticketClass === void 0 || raw.ticketClass.length > 100)
+    return {
+      code: "attendance_class_invalid",
+      message: "Name the ticket class in at most 100 characters.",
+    };
+  for (const [name, value] of [
+    ["sold", raw.sold],
+    ["scanned", raw.scanned],
+    ["comps", raw.comps],
+  ])
+    if (value !== void 0 && !COUNT.test(value))
+      return {
+        code: "attendance_count_invalid",
+        message: `${name} must be a whole number of tickets.`,
+      };
+  if (raw.sold === void 0)
+    return {
+      code: "attendance_count_invalid",
+      message: "sold must be a whole number of tickets.",
+    };
+  let scopeNodeId = null;
+  if (raw.showCode !== void 0) {
+    scopeNodeId = scopes.get(raw.showCode.toUpperCase()) ?? null;
+    if (scopeNodeId === null)
+      return {
+        code: "attendance_show_unknown",
+        message: `The project has no show ${raw.showCode}.`,
+      };
+  }
+  let gross = null;
+  let currency = null;
+  if (raw.gross !== void 0) {
+    currency = raw.currency?.toUpperCase() ?? null;
+    if (currency === null || !/^[A-Z]{3}$/.test(currency))
+      return {
+        code: "attendance_currency_missing",
+        message: "A gross amount needs its ISO 4217 currency.",
+      };
+    try {
+      gross = decimalToMinor(raw.gross.replace(/,/g, ""), await exponentOf(currency)).toString();
+    } catch (error) {
+      if (!(error instanceof IntegrationError)) throw error;
+      return {
+        code: error.code,
+        message: error.message,
+      };
+    }
+    if (gross.startsWith("-"))
+      return {
+        code: "attendance_gross_negative",
+        message: "Gross revenue cannot be negative.",
+      };
+  }
+  return {
+    row: {
+      counted_on: raw.date,
+      ticket_class: raw.ticketClass,
+      tickets_sold: Number(raw.sold),
+      tickets_scanned: raw.scanned === void 0 ? null : Number(raw.scanned),
+      comps: raw.comps === void 0 ? null : Number(raw.comps),
+      gross_minor: gross,
+      currency_code: currency,
+      scope_node_id: scopeNodeId,
+    },
+  };
+}
+function csvFeed(source) {
+  return {
+    provider: "ticketing_csv",
+    async fetch(context) {
+      if (context.run.sourceUri === null)
+        throw new IntegrationError(
+          "attendance_source_missing",
+          "A CSV import names the uploaded file.",
+        );
+      return {
+        figures: attendanceFromCsv(
+          new TextDecoder("utf-8", { fatal: true }).decode(
+            await source.readFile(context.run.sourceUri),
+          ),
+        ),
+        cursor: context.cursor,
+      };
+    },
+  };
+}
+/**
+ * The ticketing API feed: GET <base_url>/attendance returns figures in the RawAttendance shape. The
+ * base URL is the org's own setting, so its host must resolve only to public addresses (SSRF, Section 9).
+ */
+function apiFeed(resolve) {
+  return {
+    provider: "ticketing_api",
+    async fetch(context) {
+      const base = context.connection.settings["base_url"];
+      if (typeof base !== "string")
+        throw new IntegrationError("setting_missing", "The connection needs the base_url setting.");
+      let url;
+      try {
+        url = new URL(base);
+      } catch {
+        throw new IntegrationError("setting_invalid", "The base_url setting is not a URL.");
+      }
+      if (url.protocol !== "https:")
+        throw new IntegrationError("setting_invalid", "The base_url must use HTTPS.");
+      const addresses = await resolve(url.hostname);
+      if (addresses.length === 0 || !addresses.every(isPublicAddress))
+        throw new IntegrationError(
+          "setting_invalid",
+          "The base_url must resolve to public addresses only.",
+        );
+      if (context.credential === null)
+        throw new IntegrationError(
+          "credential_required",
+          "The connection has no stored credential.",
+          { connectionError: true },
+        );
+      const query = new URLSearchParams();
+      if (context.cursor) query.set("since", context.cursor);
+      const external =
+        context.run.projectId === null
+          ? void 0
+          : context.connection.settings[`project:${context.run.projectId}`];
+      if (typeof external === "string") query.set("event", external);
+      const body = await callJson(context.http, "Ticketing API", {
+        method: "GET",
+        url: `${url.origin}${url.pathname.replace(/\/$/, "")}/attendance${query.size > 0 ? `?${query.toString()}` : ""}`,
+        token: context.credential.token,
+      });
+      if (!Array.isArray(body.figures))
+        throw new IntegrationError(
+          "provider_malformed_response",
+          "The ticketing API returned no figures list.",
+        );
+      return {
+        figures: body.figures,
+        cursor: body.cursor ?? context.cursor,
+      };
+    },
+  };
+}
+/** Imports attendance for the run's project: every figure validated, bad rows reported by number, good rows recorded. */
+function ticketingConnector(feed, source) {
+  return {
+    provider: feed.provider,
+    scopes: ["Attendance Import"],
+    async sync(context) {
+      if (context.run.projectId === null)
+        throw new IntegrationError(
+          "attendance_project_missing",
+          "An attendance import names its project.",
+        );
+      const tally = new ItemTally(context);
+      const { figures, cursor } = await feed.fetch(context);
+      const scopes = await source.scopeCodes(context.run.projectId);
+      const rows = [];
+      for (const [index, raw] of figures.entries()) {
+        tally.read += 1;
+        const result = await validateAttendance(raw, scopes, (c) => source.exponentOf(c));
+        if ("row" in result) rows.push(result.row);
+        else await tally.fail(result.code, `Row ${index + 1}: ${result.message}`);
+      }
+      tally.written = rows.length === 0 ? 0 : await source.record(context.run.id, rows);
+      return {
+        counts: tally.counts(),
+        cursorAfter: cursor,
+      };
+    },
+  };
+}
+function ticketingConnectors(source, resolve) {
+  return [
+    ticketingConnector(csvFeed(source), source),
+    ticketingConnector(apiFeed(resolve), source),
+  ];
+}
+var IMPORTS_BUCKET = "imports";
+/** imports/<person id>/<upload id>.csv or .xlsx; the capture is the object name inside the bucket. */
+var IMPORT_UPLOAD = /^imports\/([0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:csv|xlsx))$/;
+function supabaseTicketingSource(db, storage) {
+  return {
+    async readFile(sourceUri) {
+      const match = IMPORT_UPLOAD.exec(sourceUri);
+      if (match === null)
+        throw new IntegrationError(
+          "attendance_source_invalid",
+          "A CSV import reads a spreadsheet uploaded to the imports bucket.",
+        );
+      const path = match[1];
+      const status = await unwrap(
+        db.rpc("object_scan_status", {
+          p_bucket_id: IMPORTS_BUCKET,
+          p_object_name: path,
+        }),
+      );
+      if (status === null || status === "Scanning")
+        throw new IntegrationError(
+          "attendance_source_scanning",
+          "The uploaded file is still being checked for viruses.",
+          { retryable: true },
+        );
+      if (status !== "Clean")
+        throw new IntegrationError(
+          "attendance_source_refused",
+          "The uploaded file did not pass its virus scan, so it was not read.",
+        );
+      const { data, error } = await storage.from(IMPORTS_BUCKET).download(path);
+      if (error || data === null)
+        throw new IntegrationError(
+          "attendance_source_unreadable",
+          `The uploaded file could not be read: ${error?.message ?? "no content"}.`,
+        );
+      return new Uint8Array(await data.arrayBuffer());
+    },
+    async scopeCodes(projectId) {
+      const rows = await unwrap(
+        db
+          .from("scope_nodes")
+          .select("id, scope_code")
+          .eq("project_id", projectId)
+          .is("deleted_at", null),
+      );
+      return new Map(rows.map((r) => [r.scope_code.toUpperCase(), r.id]));
+    },
+    async exponentOf(currencyCode) {
+      const row = await unwrap(
+        db
+          .from("currencies")
+          .select("minor_unit_exponent")
+          .eq("currency_code", currencyCode)
+          .maybeSingle(),
+      );
+      if (row === null)
+        throw new IntegrationError(
+          "currency_unknown",
+          `${currencyCode} is not an ISO 4217 currency the database knows.`,
+        );
+      return row.minor_unit_exponent;
+    },
+    async record(runId, rows) {
+      return unwrap(
+        db.rpc("record_attendance", {
+          p_run_id: runId,
+          p_rows: rows,
+        }),
+      );
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/worker.ts
+/** Every Section 17 connector over the Supabase sources, one per provider of the catalog. */
+function allConnectors(deps) {
+  return [
+    ...accountingConnectors(supabaseAccountingSource(deps.db, deps.canon)),
+    ...calendarConnectors(supabaseCalendarSource(deps.db)),
+    ...storageConnectors(supabaseStorageSource(deps.db), supabaseBlobStore(deps.storage)),
+    ...chatConnectors(supabaseCommunicationSource(deps.db), deps.translate),
+    ...payrollConnectors(supabasePayrollSource(deps.db)),
+    ...trackingConnectors(supabaseTrackingSource(deps.db)),
+    ...ticketingConnectors(supabaseTicketingSource(deps.db, deps.storage), deps.resolve),
+  ];
+}
+/**
+ * One pass of the integration worker (an Edge Function on a schedule): claims ready integration.sync
+ * jobs from the A18 job queue and runs one attempt of each.
+ */
+function runIntegrationWorker(deps, worker, limit = 10) {
+  return runIntegrationJobs({
+    queue: supabaseJobQueue(deps.db),
+    store: supabaseIntegrationStore(deps.db),
+    connectors: connectorRegistry(allConnectors(deps)),
+    http: deps.http,
+    worker,
+    limit,
+  });
+}
+//#endregion
+//#region ../integrations/src/inbound/verify.ts
+/**
+ * Webhook signature checks for the providers that push to XOS (A83, finding A65-013). Each runs over the raw
+ * body before anything is parsed or recorded, compares in constant time, and returns false for anything it
+ * cannot verify. Slack and Teams live with the communication connector (verifySlackRequest,
+ * verifyTeamsRequest); these cover the accounting and calendar change notices.
+ */
+/** Constant-time comparison of two strings; false when the lengths differ. */
+function safeEqual(a, b) {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+function hmacBase64(key, body) {
+  return createHmac("sha256", key).update(body).digest("base64");
+}
+/** Xero: `x-xero-signature` is the base64 HMAC-SHA256 of the body under the app's webhook key. */
+function verifyXeroSignature(webhookKey, signature, body) {
+  if (webhookKey.length === 0 || signature.length === 0) return false;
+  return safeEqual(hmacBase64(webhookKey, body), signature);
+}
+/** QuickBooks Online: `intuit-signature` is the base64 HMAC-SHA256 of the body under the app's verifier token. */
+function verifyQuickBooksSignature(verifierToken, signature, body) {
+  if (verifierToken.length === 0 || signature.length === 0) return false;
+  return safeEqual(hmacBase64(verifierToken, body), signature);
+}
+/**
+ * Google Calendar push notifications carry the token XOS set when it opened the channel in
+ * `X-Goog-Channel-Token`; Microsoft Graph change notifications carry the subscription's `clientState`.
+ * Both are compared with the connection's inbound secret.
+ */
+function verifySharedToken(expected, received) {
+  if (expected === null || received === null || expected.length < 16) return false;
+  return safeEqual(expected, received);
+}
+var MAX_LINKS = 20;
+var MAX_CHANGES = 50;
+var UUID$1 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function problem(status, title) {
+  return new Response(
+    JSON.stringify({
+      type: "about:blank",
+      title,
+      status,
+    }),
+    {
+      status,
+      headers: { "Content-Type": "application/problem+json" },
+    },
+  );
+}
+function json(status, body) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+var accepted = (status = 200) => new Response(null, { status });
+/** The path after the function name, for example ["slack", "events"]. */
+function inboundRoute(url) {
+  const parts = new URL(url).pathname.split("/").filter((p) => p.length > 0);
+  const at = parts.indexOf("integration-inbound");
+  return at < 0 ? [] : parts.slice(at + 1);
+}
+async function readBody(request) {
+  const declared = Number(request.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declared) && declared > 262144) return null;
+  const body = await request.text();
+  return new TextEncoder().encode(body).byteLength > 262144 ? null : body;
+}
+function parseJson(body) {
+  try {
+    const value = JSON.parse(body);
+    return typeof value === "object" && value !== null && !Array.isArray(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+var str = (value) => (typeof value === "string" && value.length > 0 ? value : null);
+var list = (value) => (Array.isArray(value) ? value : []);
+/** Answers one inbound request. Never throws for a bad request; a store failure becomes a 503 so the provider retries. */
+async function handleInboundRequest(request, deps) {
+  const [provider, segment, ...rest] = inboundRoute(request.url);
+  if (provider === void 0 || rest.length > 0) return problem(404, "Not Found");
+  const isValidation =
+    provider === "microsoft_365" && new URL(request.url).searchParams.has("validationToken");
+  if (request.method !== "POST" && !isValidation) return problem(405, "Method Not Allowed");
+  const body = await readBody(request);
+  if (body === null) return problem(413, "Payload Too Large");
+  try {
+    switch (provider) {
+      case "slack":
+        if (segment === "events") return await slackEvents(request, body, deps);
+        if (segment === "commands") return await slackCommand(request, body, deps);
+        return problem(404, "Not Found");
+      case "microsoft_teams":
+        return await teamsMessage(request, body, segment, deps);
+      case "xero":
+        return segment === void 0
+          ? await xeroNotice(request, body, deps)
+          : problem(404, "Not Found");
+      case "quickbooks_online":
+        return segment === void 0
+          ? await quickBooksNotice(request, body, deps)
+          : problem(404, "Not Found");
+      case "google_calendar":
+        return await googleCalendarNotice(request, segment, deps);
+      case "microsoft_365":
+        return await graphNotice(request, body, segment, deps);
+      default:
+        return problem(404, "Not Found");
+    }
+  } catch {
+    return problem(503, "Service Unavailable");
+  }
+}
+function slackVerified(request, body, deps) {
+  const secret = deps.secrets.slackSigningSecret;
+  if (!secret) return null;
+  return verifySlackRequest(
+    secret,
+    request.headers.get("x-slack-request-timestamp") ?? "",
+    request.headers.get("x-slack-signature") ?? "",
+    body,
+    (deps.now ?? (() => /* @__PURE__ */ new Date()))(),
+  );
+}
+async function slackEvents(request, body, deps) {
+  const verified = slackVerified(request, body, deps);
+  if (verified === null) return problem(503, "Service Unavailable");
+  if (!verified) return problem(401, "Unauthorized");
+  const envelope = parseJson(body);
+  if (envelope === null) return problem(400, "Bad Request");
+  if (envelope["type"] === "url_verification")
+    return json(200, { challenge: str(envelope["challenge"]) ?? "" });
+  const event = envelope["event"];
+  const eventId = str(envelope["event_id"]);
+  const teamId = str(envelope["team_id"]);
+  if (
+    envelope["type"] !== "event_callback" ||
+    event?.["type"] !== "link_shared" ||
+    !eventId ||
+    !teamId
+  )
+    return accepted();
+  const connectionId = await deps.store.findConnection("slack", teamId);
+  if (connectionId === null) return accepted();
+  const links = list(event["links"])
+    .map((l) => str(l?.["url"]))
+    .filter((u) => u !== null && u.length <= 2e3)
+    .slice(0, MAX_LINKS);
+  await deps.store.record(connectionId, "Link Unfurl", eventId.slice(0, 200), {
+    team_id: teamId,
+    user: str(event["user"]),
+    channel: str(event["channel"]),
+    message_ts: str(event["message_ts"]),
+    unfurl_id: str(event["unfurl_id"]),
+    source: str(event["source"]),
+    links,
+  });
+  return accepted();
+}
+async function slackCommand(request, body, deps) {
+  const verified = slackVerified(request, body, deps);
+  if (verified === null) return problem(503, "Service Unavailable");
+  if (!verified) return problem(401, "Unauthorized");
+  const form = new URLSearchParams(body);
+  const teamId = form.get("team_id");
+  const userId = form.get("user_id");
+  if (!teamId || !userId) return problem(400, "Bad Request");
+  return json(200, {
+    response_type: "ephemeral",
+    text: await handleSlashCommand(
+      {
+        provider: "slack",
+        externalAccountId: teamId,
+        externalUserId: userId,
+        text: form.get("text") ?? "",
+      },
+      deps.chat,
+    ),
+  });
+}
+/** A connection of the named provider, by the id in the endpoint path, that is not disconnected. */
+async function pathConnection(segment, provider, deps) {
+  if (segment === void 0 || !UUID$1.test(segment)) return null;
+  const connection = await deps.store.connection(segment);
+  return connection !== null &&
+    connection.providerCode === provider &&
+    connection.state !== "Disconnected"
+    ? connection
+    : null;
+}
+/** The message text with the bot's @mention removed. */
+function teamsCommandText(html) {
+  return html
+    .replace(/<at>[^<]*<\/at>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+async function teamsMessage(request, body, segment, deps) {
+  const connection = await pathConnection(segment, "microsoft_teams", deps);
+  if (connection === null) return problem(404, "Not Found");
+  const secret = await deps.store.inboundSecret(connection.id);
+  if (secret === null) return problem(503, "Service Unavailable");
+  if (!verifyTeamsRequest(secret, request.headers.get("authorization") ?? "", body))
+    return problem(401, "Unauthorized");
+  const activity = parseJson(body);
+  const from = activity?.["from"];
+  const userId = str(from?.["aadObjectId"]) ?? str(from?.["id"]);
+  if (activity === null || userId === null || connection.externalAccountId === null)
+    return problem(400, "Bad Request");
+  return json(200, {
+    type: "message",
+    text: await handleSlashCommand(
+      {
+        provider: "microsoft_teams",
+        externalAccountId: connection.externalAccountId,
+        externalUserId: userId,
+        text: teamsCommandText(str(activity["text"]) ?? ""),
+      },
+      deps.chat,
+    ),
+  });
+}
+/** The sync scope a provider's change notice queues. */
+var NOTICE_SCOPE = {
+  xero: "Payment Sync",
+  quickbooks_online: "Payment Sync",
+  google_calendar: "Calendar Sync",
+  microsoft_365: "Calendar Sync",
+};
+async function xeroNotice(request, body, deps) {
+  const key = deps.secrets.xeroWebhookKey;
+  if (!key) return problem(503, "Service Unavailable");
+  if (!verifyXeroSignature(key, request.headers.get("x-xero-signature") ?? "", body))
+    return accepted(401);
+  const payload = parseJson(body);
+  if (payload === null) return problem(400, "Bad Request");
+  const byTenant = /* @__PURE__ */ new Map();
+  for (const raw of list(payload["events"])) {
+    const event = raw;
+    const tenant = str(event?.["tenantId"]);
+    if (event && tenant) byTenant.set(tenant, [...(byTenant.get(tenant) ?? []), event]);
+  }
+  const digest = sha256Hex(body);
+  for (const [tenant, events] of byTenant) {
+    const connectionId = await deps.store.findConnection("xero", tenant);
+    if (connectionId === null) continue;
+    await deps.store.record(connectionId, "Change Notice", `xero:${digest}`, {
+      scope: NOTICE_SCOPE.xero,
+      changes: events.slice(0, MAX_CHANGES).map((e) => ({
+        category: str(e["eventCategory"]),
+        type: str(e["eventType"]),
+        resource_id: str(e["resourceId"]),
+      })),
+    });
+  }
+  return accepted();
+}
+async function quickBooksNotice(request, body, deps) {
+  const token = deps.secrets.quickbooksVerifierToken;
+  if (!token) return problem(503, "Service Unavailable");
+  if (!verifyQuickBooksSignature(token, request.headers.get("intuit-signature") ?? "", body))
+    return problem(401, "Unauthorized");
+  const payload = parseJson(body);
+  if (payload === null) return problem(400, "Bad Request");
+  const digest = sha256Hex(body);
+  for (const raw of list(payload["eventNotifications"])) {
+    const notice = raw;
+    const realm = str(notice?.["realmId"]);
+    if (!notice || !realm) continue;
+    const connectionId = await deps.store.findConnection("quickbooks_online", realm);
+    if (connectionId === null) continue;
+    const entities = list(notice["dataChangeEvent"]?.["entities"]);
+    await deps.store.record(connectionId, "Change Notice", `qbo:${realm}:${digest}`.slice(0, 200), {
+      scope: NOTICE_SCOPE.quickbooks_online,
+      changes: entities.slice(0, MAX_CHANGES).map((raw) => {
+        const e = raw;
+        return {
+          category: str(e["name"]),
+          type: str(e["operation"]),
+          resource_id: str(e["id"]),
+        };
+      }),
+    });
+  }
+  return accepted();
+}
+async function googleCalendarNotice(request, segment, deps) {
+  const connection = await pathConnection(segment, "google_calendar", deps);
+  if (connection === null) return problem(404, "Not Found");
+  if (
+    !verifySharedToken(
+      await deps.store.inboundSecret(connection.id),
+      request.headers.get("x-goog-channel-token"),
+    )
+  )
+    return problem(401, "Unauthorized");
+  const state = request.headers.get("x-goog-resource-state");
+  const channel = request.headers.get("x-goog-channel-id");
+  const message = request.headers.get("x-goog-message-number");
+  if (state === "sync" || !channel || !message) return accepted();
+  await deps.store.record(
+    connection.id,
+    "Change Notice",
+    `gcal:${channel}:${message}`.slice(0, 200),
+    {
+      scope: NOTICE_SCOPE.google_calendar,
+      changes: [
+        {
+          category: "calendar",
+          type: state,
+          resource_id: request.headers.get("x-goog-resource-id"),
+        },
+      ],
+    },
+  );
+  return accepted();
+}
+async function graphNotice(request, body, segment, deps) {
+  const connection = await pathConnection(segment, "microsoft_365", deps);
+  if (connection === null) return problem(404, "Not Found");
+  const validation = new URL(request.url).searchParams.get("validationToken");
+  if (validation !== null) {
+    if (validation.length === 0 || validation.length > 1024) return problem(400, "Bad Request");
+    return new Response(validation, {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+  const secret = await deps.store.inboundSecret(connection.id);
+  const payload = parseJson(body);
+  if (payload === null) return problem(400, "Bad Request");
+  const notices = list(payload["value"]).map((v) => v);
+  if (notices.length === 0) return problem(400, "Bad Request");
+  if (!notices.every((n) => verifySharedToken(secret, str(n["clientState"]))))
+    return problem(401, "Unauthorized");
+  await deps.store.record(connection.id, "Change Notice", `graph:${sha256Hex(body)}`, {
+    scope: NOTICE_SCOPE.microsoft_365,
+    changes: notices.slice(0, MAX_CHANGES).map((n) => ({
+      category: "calendar",
+      type: str(n["changeType"]),
+      resource_id: str(n["resourceData"]?.["id"]),
+    })),
+  });
+  return accepted(202);
+}
+/** The inbound store over the service-role client (the RPCs of migration 1400). */
+function supabaseInboundStore(db) {
+  return {
+    async findConnection(provider, externalAccountId) {
+      return unwrap(
+        db.rpc("find_integration_connection", {
+          p_provider_code: provider,
+          p_external_account_id: externalAccountId,
+        }),
+      );
+    },
+    async connection(connectionId) {
+      const row = await unwrap(
+        db
+          .from("integration_connections")
+          .select("id, provider_code, external_account_id, connection_state")
+          .eq("id", connectionId)
+          .is("deleted_at", null)
+          .maybeSingle(),
+      );
+      return row === null
+        ? null
+        : {
+            id: row.id,
+            providerCode: row.provider_code,
+            externalAccountId: row.external_account_id,
+            state: row.connection_state,
+          };
+    },
+    async inboundSecret(connectionId) {
+      return unwrap(db.rpc("read_integration_inbound_secret", { p_connection_id: connectionId }));
+    },
+    async record(connectionId, kind, idempotencyKey, payload) {
+      const row = (
+        await unwrap(
+          db.rpc("record_integration_inbound_event", {
+            p_connection_id: connectionId,
+            p_kind: kind,
+            p_idempotency_key: idempotencyKey,
+            p_payload: payload,
+          }),
+        )
+      )[0];
+      if (row === void 0) throw new Error("record_integration_inbound_event returned nothing.");
+      return {
+        eventId: row.event_id,
+        duplicate: row.duplicate,
+      };
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/inbound/worker.ts
+/**
+ * The inbound half of the integration worker (A83, finding A65-013): claims integration.inbound jobs and
+ * processes one attempt of each recorded webhook. The event owns its attempts and backoff (migration 1400):
+ * a retryable failure comes back after private.integration_backoff, and an event that fails for good goes to
+ * Dead Letter for an admin. The job itself finishes as succeeded once the outcome is recorded.
+ *   * Change Notice: queues a sync run of the scope the provider's notice names, with an idempotency key per
+ *     event, so a notice queued twice still syncs once. A run of that scope already on its way is enough.
+ *   * Link Unfurl: unfurls the Atlas record links a Slack message named, as the person linked to the Slack
+ *     user (row level security decides what they see), through chat.unfurl with the connection's token.
+ */
+var INTEGRATION_INBOUND_JOB = "integration.inbound";
+/** Direction of the sync a change notice queues. */
+function directionOf(scope) {
+  return scope === "Calendar Sync" ? "Two Way" : "Inbound";
+}
+async function changeNotice(event, options) {
+  const scope = event.payload["scope"];
+  if (
+    typeof scope !== "string" ||
+    !SYNC_SCOPES.includes(scope) ||
+    !isProviderCode(event.providerCode) ||
+    !scopesFor(event.providerCode).includes(scope)
+  )
+    throw new IntegrationError(
+      "inbound_scope_unknown",
+      `The notice names no sync scope ${event.providerCode} runs.`,
+    );
+  const result = await options.events.enqueueSync(event.connectionId, scope, `inbound:${event.id}`);
+  if ("runId" in result) return `Queued ${scope} run ${result.runId}.`;
+  if (result.refused === "integration_sync_in_progress")
+    return `A ${scope} run was already on its way; it picks up this change.`;
+  if (result.refused === "integration_not_connected")
+    return "The connection is not Connected, so no sync was queued.";
+  throw new IntegrationError(result.refused, result.message);
+}
+async function linkUnfurl(event, options) {
+  const p = event.payload;
+  const text = (key) => (typeof p[key] === "string" ? p[key] : null);
+  const urls = Array.isArray(p["links"]) ? p["links"].filter((u) => typeof u === "string") : [];
+  const team = text("team_id");
+  const user = text("user");
+  if (team === null || user === null || urls.length === 0) return "No record links to unfurl.";
+  const unfurls = await unfurlLinks(
+    {
+      provider: "slack",
+      externalAccountId: team,
+      externalUserId: user,
+      urls,
+    },
+    options.atlasOrigin,
+    options.chat,
+  );
+  const entries = Object.entries(unfurls);
+  if (entries.length === 0) return "No link named a record the person can see.";
+  const credential = parseCredential(await options.events.credential(event.connectionId));
+  const target =
+    text("unfurl_id") !== null && text("source") !== null
+      ? {
+          unfurl_id: text("unfurl_id"),
+          source: text("source"),
+        }
+      : {
+          channel: text("channel"),
+          ts: text("message_ts"),
+        };
+  const response = await callJson(options.http, "Slack", {
+    method: "POST",
+    url: "https://slack.com/api/chat.unfurl",
+    token: credential.token,
+    json: {
+      ...target,
+      unfurls: Object.fromEntries(entries.map(([url, t]) => [url, { text: t }])),
+    },
+  });
+  if (!response.ok) throw slackFailure(response.error ?? "unknown_error");
+  return `Unfurled ${entries.length} record link${entries.length === 1 ? "" : "s"}.`;
+}
+async function processOne(eventId, options) {
+  let event;
+  try {
+    event = await options.events.claim(eventId);
+  } catch (error) {
+    if (error instanceof StoreError && error.error.kind === "refusal")
+      return {
+        eventId,
+        result: "skipped",
+        reason: error.error.rule,
+      };
+    throw error;
+  }
+  let outcome;
+  try {
+    outcome =
+      event.kind === "Change Notice"
+        ? await changeNotice(event, options)
+        : await linkUnfurl(event, options);
+  } catch (error) {
+    const failure = asIntegrationError(error);
+    return {
+      eventId,
+      result:
+        (await options.events.fail(event.id, failure.code, failure.message, failure.retryable)) ===
+        "Retrying"
+          ? "retrying"
+          : "dead letter",
+      code: failure.code,
+    };
+  }
+  await options.events.complete(event.id, outcome);
+  return {
+    eventId,
+    result: "processed",
+    outcome,
+  };
+}
+/** One pass: claims ready integration.inbound jobs and processes one attempt of each event. */
+async function runInboundEvents(options) {
+  const jobs = await options.queue.claim(
+    options.worker,
+    INTEGRATION_INBOUND_JOB,
+    options.limit ?? 25,
+  );
+  const outcomes = [];
+  for (const job of jobs)
+    try {
+      outcomes.push(await processOne(job.subjectId, options));
+      await options.queue.finish(job.id, true, null);
+    } catch (error) {
+      await options.queue.finish(
+        job.id,
+        false,
+        error instanceof Error ? error.message : String(error),
+      );
+      outcomes.push({
+        eventId: job.subjectId,
+        result: "skipped",
+        reason: "runner_error",
+      });
+    }
+  return outcomes;
+}
+/** The event store over the service-role client (migration 1400 and the enqueue RPC of 0600). */
+function supabaseInboundEventStore(db) {
+  return {
+    async claim(eventId) {
+      const row = await unwrap(db.rpc("claim_integration_inbound_event", { p_event_id: eventId }));
+      return {
+        id: row.id,
+        connectionId: row.integration_connection_id,
+        providerCode: row.provider_code,
+        kind: row.inbound_kind,
+        payload: row.payload ?? {},
+        attempt: row.attempt,
+      };
+    },
+    async complete(eventId, outcome) {
+      await unwrap(
+        db.rpc("complete_integration_inbound_event", {
+          p_event_id: eventId,
+          p_outcome: outcome,
+        }),
+      );
+    },
+    async fail(eventId, code, message, retryable) {
+      return unwrap(
+        db.rpc("fail_integration_inbound_event", {
+          p_event_id: eventId,
+          p_error_code: code,
+          p_error_message: message,
+          p_retryable: retryable,
+        }),
+      );
+    },
+    async enqueueSync(connectionId, scope, idempotencyKey) {
+      try {
+        return {
+          runId: await unwrap(
+            db.rpc("enqueue_integration_sync", {
+              p_connection_id: connectionId,
+              p_scope: scope,
+              p_direction: directionOf(scope),
+              p_idempotency_key: idempotencyKey,
+            }),
+          ),
+        };
+      } catch (error) {
+        if (error instanceof StoreError && error.error.kind === "refusal")
+          return {
+            refused: error.error.rule,
+            message: error.error.message,
+          };
+        throw error;
+      }
+    },
+    async credential(connectionId) {
+      return unwrap(db.rpc("read_integration_credential", { p_connection_id: connectionId }));
+    },
+  };
+}
+function base64url(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+var encode = (value) => base64url(new TextEncoder().encode(JSON.stringify(value)));
+/** An HS256 JWT acting as `userId` for CHAT_SESSION_SECONDS, marked as a chat session in `amr`. */
+async function mintChatSession(
+  userId,
+  signingKey,
+  issuer,
+  nowSeconds = Math.floor(Date.now() / 1e3),
+) {
+  if (signingKey.length < 32) throw new Error("The JWT signing key is too short.");
+  const head = `${encode({
+    alg: "HS256",
+    typ: "JWT",
+  })}.${encode({
+    iss: issuer,
+    sub: userId,
+    aud: "authenticated",
+    role: "authenticated",
+    iat: nowSeconds,
+    exp: nowSeconds + 60,
+    is_anonymous: false,
+    amr: [
+      {
+        method: "xos_chat",
+        timestamp: nowSeconds,
+      },
+    ],
+  })}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(signingKey),
+    {
+      name: "HMAC",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
+  return `${head}.${base64url(new Uint8Array(signature))}`;
+}
+//#endregion
+//#region ../integrations/src/warehouse/parquet.ts
+var MAGIC = new TextEncoder().encode("PAR1");
+var T_TRUE = 1;
+var T_FALSE = 2;
+var T_I32 = 5;
+var T_I64 = 6;
+var T_BINARY = 8;
+var T_LIST = 9;
+var T_STRUCT = 12;
+var Bytes = class {
+  chunks = [];
+  length = 0;
+  push(bytes) {
+    this.chunks.push(bytes);
+    this.length += bytes.byteLength;
+  }
+  byte(value) {
+    this.push(Uint8Array.of(value & 255));
+  }
+  varint(value) {
+    let v = value;
+    const out = [];
+    do {
+      let b = Number(v & 127n);
+      v >>= 7n;
+      if (v !== 0n) b |= 128;
+      out.push(b);
+    } while (v !== 0n);
+    this.push(Uint8Array.from(out));
+  }
+  bytes() {
+    const out = new Uint8Array(this.length);
+    let at = 0;
+    for (const chunk of this.chunks) {
+      out.set(chunk, at);
+      at += chunk.byteLength;
+    }
+    return out;
+  }
+};
+var zigzag = (n) => (n << 1n) ^ (n >> 63n);
+function writeStruct(out, fields) {
+  let last = 0;
+  const header = (id, type) => {
+    const delta = id - last;
+    if (delta > 0 && delta <= 15) out.byte((delta << 4) | type);
+    else {
+      out.byte(type);
+      out.varint(zigzag(BigInt(id)));
+    }
+    last = id;
+  };
+  const listHeader = (size, type) => {
+    if (size < 15) out.byte((size << 4) | type);
+    else {
+      out.byte(240 | type);
+      out.varint(BigInt(size));
+    }
+  };
+  const writeString = (value) => {
+    const bytes = new TextEncoder().encode(value);
+    out.varint(BigInt(bytes.byteLength));
+    out.push(bytes);
+  };
+  for (const field of [...fields].sort((a, b) => a.id - b.id))
+    if ("i32" in field) {
+      header(field.id, T_I32);
+      out.varint(zigzag(BigInt(field.i32)));
+    } else if ("i64" in field) {
+      header(field.id, T_I64);
+      out.varint(zigzag(BigInt(field.i64)));
+    } else if ("str" in field) {
+      header(field.id, T_BINARY);
+      writeString(field.str);
+    } else if ("bool" in field) header(field.id, field.bool ? T_TRUE : T_FALSE);
+    else if ("struct" in field) {
+      header(field.id, T_STRUCT);
+      writeStruct(out, field.struct);
+    } else if ("structs" in field) {
+      header(field.id, T_LIST);
+      listHeader(field.structs.length, T_STRUCT);
+      for (const s of field.structs) writeStruct(out, s);
+    } else if ("strs" in field) {
+      header(field.id, T_LIST);
+      listHeader(field.strs.length, T_BINARY);
+      for (const s of field.strs) writeString(s);
+    } else {
+      header(field.id, T_LIST);
+      listHeader(field.i32s.length, T_I32);
+      for (const v of field.i32s) out.varint(zigzag(BigInt(v)));
+    }
+  out.byte(0);
+}
+function thriftCompact(fields) {
+  const out = new Bytes();
+  writeStruct(out, fields);
+  return out.bytes();
+}
+var PHYSICAL = {
+  boolean: 0,
+  int32: 1,
+  int64: 2,
+  double: 5,
+  string: 6,
+  date: 1,
+  timestamp: 2,
+};
+var OPTIONAL = 1;
+var ENCODING_PLAIN = 0;
+var ENCODING_RLE = 3;
+var CONVERTED_UTF8 = 0;
+var CONVERTED_DATE = 6;
+var CONVERTED_TIMESTAMP_MICROS = 10;
+function schemaElement(column) {
+  const fields = [
+    {
+      id: 1,
+      i32: PHYSICAL[column.type],
+    },
+    {
+      id: 3,
+      i32: OPTIONAL,
+    },
+    {
+      id: 4,
+      str: column.name,
+    },
+  ];
+  if (column.type === "string")
+    fields.push(
+      {
+        id: 6,
+        i32: CONVERTED_UTF8,
+      },
+      {
+        id: 10,
+        struct: [
+          {
+            id: 1,
+            struct: [],
+          },
+        ],
+      },
+    );
+  else if (column.type === "date")
+    fields.push(
+      {
+        id: 6,
+        i32: CONVERTED_DATE,
+      },
+      {
+        id: 10,
+        struct: [
+          {
+            id: 6,
+            struct: [],
+          },
+        ],
+      },
+    );
+  else if (column.type === "timestamp")
+    fields.push(
+      {
+        id: 6,
+        i32: CONVERTED_TIMESTAMP_MICROS,
+      },
+      {
+        id: 10,
+        struct: [
+          {
+            id: 8,
+            struct: [
+              {
+                id: 1,
+                bool: true,
+              },
+              {
+                id: 2,
+                struct: [
+                  {
+                    id: 2,
+                    struct: [],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    );
+  return fields;
+}
+/** Days since 1970-01-01 for a `YYYY-MM-DD` date. */
+function epochDays(value) {
+  const ms = Date.parse(`${value.slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(ms)) throw new RangeError(`${value} is not a date.`);
+  return Math.round(ms / 864e5);
+}
+/** Microseconds since the epoch for an ISO timestamp, keeping the microseconds Postgres sends. */
+function epochMicros(value) {
+  const match = /^(.*?)(?:\.(\d+))?(Z|[+-]\d\d:?\d\d)?$/.exec(value.trim());
+  const base = Date.parse(`${match?.[1] ?? value}${match?.[3] ?? "Z"}`);
+  if (Number.isNaN(base)) throw new RangeError(`${value} is not a timestamp.`);
+  const fraction = (match?.[2] ?? "").padEnd(6, "0").slice(0, 6);
+  return BigInt(base) * 1000n + BigInt(fraction || "0");
+}
+function plainValues(type, values) {
+  const out = new Bytes();
+  if (type === "boolean") {
+    const packed = new Uint8Array(Math.ceil(values.length / 8));
+    values.forEach((v, i) => {
+      if (v === true) packed[i >> 3] = (packed[i >> 3] ?? 0) | (1 << (i & 7));
+    });
+    out.push(packed);
+    return out.bytes();
+  }
+  for (const v of values)
+    if (type === "string") {
+      const bytes = new TextEncoder().encode(String(v));
+      const len = /* @__PURE__ */ new Uint8Array(4);
+      new DataView(len.buffer).setUint32(0, bytes.byteLength, true);
+      out.push(len);
+      out.push(bytes);
+    } else if (type === "int32" || type === "date") {
+      const b = /* @__PURE__ */ new Uint8Array(4);
+      const n = type === "date" ? epochDays(String(v)) : Number(v);
+      if (!Number.isInteger(n)) throw new RangeError(`${String(v)} is not an int32.`);
+      new DataView(b.buffer).setInt32(0, n, true);
+      out.push(b);
+    } else if (type === "int64" || type === "timestamp") {
+      const b = /* @__PURE__ */ new Uint8Array(8);
+      const n = type === "timestamp" ? epochMicros(String(v)) : BigInt(v);
+      new DataView(b.buffer).setBigInt64(0, n, true);
+      out.push(b);
+    } else {
+      const b = /* @__PURE__ */ new Uint8Array(8);
+      new DataView(b.buffer).setFloat64(0, Number(v), true);
+      out.push(b);
+    }
+  return out.bytes();
+}
+/** Definition levels (1 present, 0 NULL) in the RLE/bit-packing hybrid with bit width 1, length-prefixed. */
+function definitionLevels(values) {
+  const runs = new Bytes();
+  let i = 0;
+  while (i < values.length) {
+    const present = values[i] !== null;
+    let j = i + 1;
+    while (j < values.length && (values[j] !== null) === present) j += 1;
+    runs.varint(BigInt(j - i) << 1n);
+    runs.byte(present ? 1 : 0);
+    i = j;
+  }
+  const body = runs.bytes();
+  const out = new Uint8Array(4 + body.byteLength);
+  new DataView(out.buffer).setUint32(0, body.byteLength, true);
+  out.set(body, 4);
+  return out;
+}
+/** Normalizes a JSON value from the database into the column's type, or null. Objects become JSON text. */
+function toParquetValue(type, value) {
+  if (value === null || value === void 0) return null;
+  switch (type) {
+    case "string":
+      return typeof value === "string" ? value : JSON.stringify(value);
+    case "boolean":
+      return value === true || value === "true";
+    case "int32":
+    case "int64":
+    case "double":
+      return typeof value === "number" ? value : Number(value);
+    default:
+      return String(value);
+  }
+}
+/** Writes rows (one array of values per row, in column order) as a complete Parquet file. */
+function writeParquet(columns, rows, createdBy = "XOS warehouse delivery") {
+  if (columns.length === 0) throw new RangeError("A Parquet file needs at least one column.");
+  const file = new Bytes();
+  file.push(MAGIC);
+  const chunks = [];
+  let totalBytes = 0;
+  columns.forEach((column, c) => {
+    const all = rows.map((r) => r[c] ?? null);
+    const present = all.filter((v) => v !== null);
+    const levels = definitionLevels(all);
+    const data = plainValues(column.type, present);
+    const pageBody = new Uint8Array(levels.byteLength + data.byteLength);
+    pageBody.set(levels, 0);
+    pageBody.set(data, levels.byteLength);
+    const pageHeader = thriftCompact([
+      {
+        id: 1,
+        i32: 0,
+      },
+      {
+        id: 2,
+        i32: pageBody.byteLength,
+      },
+      {
+        id: 3,
+        i32: pageBody.byteLength,
+      },
+      {
+        id: 5,
+        struct: [
+          {
+            id: 1,
+            i32: all.length,
+          },
+          {
+            id: 2,
+            i32: ENCODING_PLAIN,
+          },
+          {
+            id: 3,
+            i32: ENCODING_RLE,
+          },
+          {
+            id: 4,
+            i32: ENCODING_RLE,
+          },
+        ],
+      },
+    ]);
+    const offset = file.length;
+    file.push(pageHeader);
+    file.push(pageBody);
+    const size = pageHeader.byteLength + pageBody.byteLength;
+    totalBytes += size;
+    chunks.push([
+      {
+        id: 2,
+        i64: offset,
+      },
+      {
+        id: 3,
+        struct: [
+          {
+            id: 1,
+            i32: PHYSICAL[column.type],
+          },
+          {
+            id: 2,
+            i32s: [ENCODING_PLAIN, ENCODING_RLE],
+          },
+          {
+            id: 3,
+            strs: [column.name],
+          },
+          {
+            id: 4,
+            i32: 0,
+          },
+          {
+            id: 5,
+            i64: all.length,
+          },
+          {
+            id: 6,
+            i64: size,
+          },
+          {
+            id: 7,
+            i64: size,
+          },
+          {
+            id: 9,
+            i64: offset,
+          },
+        ],
+      },
+    ]);
+  });
+  const footer = thriftCompact([
+    {
+      id: 1,
+      i32: 1,
+    },
+    {
+      id: 2,
+      structs: [
+        [
+          {
+            id: 4,
+            str: "schema",
+          },
+          {
+            id: 5,
+            i32: columns.length,
+          },
+        ],
+        ...columns.map(schemaElement),
+      ],
+    },
+    {
+      id: 3,
+      i64: rows.length,
+    },
+    {
+      id: 4,
+      structs: [
+        [
+          {
+            id: 1,
+            structs: chunks,
+          },
+          {
+            id: 2,
+            i64: totalBytes,
+          },
+          {
+            id: 3,
+            i64: rows.length,
+          },
+        ],
+      ],
+    },
+    {
+      id: 6,
+      str: createdBy,
+    },
+  ]);
+  file.push(footer);
+  const length = /* @__PURE__ */ new Uint8Array(4);
+  new DataView(length.buffer).setUint32(0, footer.byteLength, true);
+  file.push(length);
+  file.push(MAGIC);
+  return file.bytes();
+}
+//#endregion
+//#region ../integrations/src/warehouse/provider.ts
+var WAREHOUSE_PROVIDERS = ["S3", "Google Cloud Storage", "Azure Blob", "BigQuery", "Snowflake"];
+/** A provider that is named but not built: it refuses every delivery with a permanent failure. */
+function unavailableProvider(provider) {
+  return {
+    provider,
+    available: false,
+    put() {
+      return Promise.reject(
+        new IntegrationError(
+          "warehouse_provider_unavailable",
+          `Delivery to ${provider} is not available yet. Use S3 or an S3-compatible bucket.`,
+        ),
+      );
+    },
+  };
+}
+/** Every provider by name: the given built ones, and the rest as unavailable. */
+function warehouseProviders(built) {
+  const map = /* @__PURE__ */ new Map();
+  for (const name of WAREHOUSE_PROVIDERS)
+    map.set(name, built.find((p) => p.provider === name) ?? unavailableProvider(name));
+  return map;
+}
+//#endregion
+//#region ../integrations/src/warehouse/s3.ts
+/** Reads the stored credential; anything malformed is a permanent, credential-level failure. */
+function parseS3Credential(secret) {
+  let parsed;
+  try {
+    parsed = JSON.parse(secret);
+  } catch {
+    parsed = null;
+  }
+  const fields = typeof parsed === "object" && parsed !== null ? parsed : {};
+  const accessKeyId = fields["access_key_id"];
+  const secretAccessKey = fields["secret_access_key"];
+  const sessionToken = fields["session_token"];
+  if (
+    typeof accessKeyId !== "string" ||
+    typeof secretAccessKey !== "string" ||
+    !accessKeyId ||
+    !secretAccessKey
+  )
+    throw new IntegrationError(
+      "warehouse_credential_malformed",
+      "The bucket credential must be JSON with access_key_id and secret_access_key.",
+    );
+  return {
+    accessKeyId,
+    secretAccessKey,
+    sessionToken: typeof sessionToken === "string" && sessionToken ? sessionToken : null,
+  };
+}
+var sha256 = (data) => createHash("sha256").update(data).digest("hex");
+var hmac = (key, data) => createHmac("sha256", key).update(data).digest();
+/** RFC 3986 encoding of each path segment, as SigV4 canonical URIs require. */
+function encodeKey(key) {
+  return key
+    .split("/")
+    .map((segment) =>
+      encodeURIComponent(segment).replace(
+        /[!'()*]/g,
+        (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`,
+      ),
+    )
+    .join("/");
+}
+/** The URL of an object: virtual-hosted on AWS, path-style on any other endpoint. */
+function objectUrl(target, key) {
+  const region = target.region ?? "us-east-1";
+  if (target.endpointUrl === null)
+    return new URL(`https://${target.bucket}.s3.${region}.amazonaws.com/${encodeKey(key)}`);
+  const base = target.endpointUrl.replace(/\/+$/, "");
+  return new URL(`${base}/${encodeURIComponent(target.bucket)}/${encodeKey(key)}`);
+}
+/** Signs a PUT of `body` to `key` (AWS Signature Version 4, service s3, unsigned query). */
+function signPut(target, credential, key, body, contentType, now) {
+  const url = objectUrl(target, key);
+  const region = target.region ?? "us-east-1";
+  const amzDate = now
+    .toISOString()
+    .replace(/[-:]/g, "")
+    .replace(/\.\d{3}/, "");
+  const day = amzDate.slice(0, 8);
+  const payloadHash = sha256(body);
+  const headers = {
+    "content-type": contentType,
+    host: url.host,
+    "x-amz-content-sha256": payloadHash,
+    "x-amz-date": amzDate,
+  };
+  if (credential.sessionToken !== null) headers["x-amz-security-token"] = credential.sessionToken;
+  const names = Object.keys(headers).sort();
+  const canonical = [
+    "PUT",
+    url.pathname,
+    "",
+    ...names.map((n) => `${n}:${String(headers[n]).trim()}`),
+    "",
+    names.join(";"),
+    payloadHash,
+  ].join("\n");
+  const scope = `${day}/${region}/s3/aws4_request`;
+  const toSign = ["AWS4-HMAC-SHA256", amzDate, scope, sha256(canonical)].join("\n");
+  const signingKey = hmac(
+    hmac(hmac(hmac(`AWS4${credential.secretAccessKey}`, day), region), "s3"),
+    "aws4_request",
+  );
+  const signature = createHmac("sha256", signingKey).update(toSign).digest("hex");
+  headers["authorization"] =
+    `AWS4-HMAC-SHA256 Credential=${credential.accessKeyId}/${scope}, SignedHeaders=${names.join(";")}, Signature=${signature}`;
+  delete headers["host"];
+  return {
+    url: url.toString(),
+    headers,
+  };
+}
+/** Turns an S3 error response into a delivery failure: access and bucket errors are permanent. */
+function s3Failure(status, body) {
+  const code = /<Code>([^<]+)<\/Code>/.exec(body)?.[1] ?? "";
+  const message = `The bucket answered ${status}${code ? ` ${code}` : ""}.`;
+  if (status === 403 || status === 401)
+    return new IntegrationError("warehouse_access_denied", message, { status });
+  if (status === 404 || code === "NoSuchBucket")
+    return new IntegrationError("warehouse_bucket_missing", message, { status });
+  if (status === 429 || status === 503 || status >= 500 || code === "SlowDown")
+    return new IntegrationError("warehouse_unavailable", message, {
+      retryable: true,
+      status,
+    });
+  return new IntegrationError("warehouse_rejected", message, { status });
+}
+/** The S3 provider over an injected HTTP client (fake in tests; fetch behind the SSRF guard in production). */
+function s3Provider(http, now = () => /* @__PURE__ */ new Date()) {
+  return {
+    provider: "S3",
+    available: true,
+    async put(target, secret, object) {
+      const signed = signPut(
+        target,
+        parseS3Credential(secret),
+        object.key,
+        object.body,
+        object.contentType,
+        now(),
+      );
+      const response = await http({
+        method: "PUT",
+        url: signed.url,
+        headers: signed.headers,
+        body: object.body,
+      });
+      if (response.status < 200 || response.status > 299)
+        throw s3Failure(response.status, response.body);
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/warehouse/worker.ts
+/**
+ * The warehouse delivery worker (A83, finding A65-029; Section 4.6.4). It claims warehouse.deliver jobs and
+ * runs one attempt of each delivery (migration 1401):
+ *   1. app.claim_warehouse_delivery fixes the snapshot time and says where the files go;
+ *   2. app.warehouse_delivery_columns says which columns are delivered: never a Restricted or encrypted column,
+ *      a Confidential one only when the destination includes them (the column registry, Section 8.3);
+ *   3. each table is read a page at a time through app.warehouse_table_rows (the org's own live rows created
+ *      by the snapshot, delivered columns only) and written as Parquet or CSV, in parts of PART_ROWS rows;
+ *   4. every file is put in the customer's bucket and recorded with its SHA-256, rows and bytes;
+ *   5. `_schema.json` (the published schema of this delivery) and, last, `_manifest.json` are written, so a
+ *      loader that waits for the manifest never reads a half-written delivery;
+ *   6. the delivery is completed (audited, warehouse_delivery.finished), or failed with a retry and backoff.
+ * A retried attempt writes the same object keys again, so nothing is left half-delivered under another name.
+ */
+var WAREHOUSE_DELIVER_JOB = "warehouse.deliver";
+var PAGE_ROWS = 2e3;
+function csvFile(columns, rows) {
+  const cell = (value) =>
+    value === null || value === void 0
+      ? ""
+      : csvField(typeof value === "object" ? JSON.stringify(value) : String(value));
+  const lines = [
+    columns.map((c) => csvField(c.name)).join(","),
+    ...rows.map((r) => r.map(cell).join(",")),
+  ];
+  return new TextEncoder().encode(`${lines.join("\r\n")}\r\n`);
+}
+function encodeFile(format, columns, rows) {
+  if (format === "CSV")
+    return {
+      body: csvFile(
+        columns,
+        rows.map((r) => columns.map((c) => r[c.name])),
+      ),
+      contentType: "text/csv",
+    };
+  return {
+    body: writeParquet(
+      columns,
+      rows.map((r) => columns.map((c) => toParquetValue(c.type, r[c.name]))),
+    ),
+    contentType: "application/vnd.apache.parquet",
+  };
+}
+/** `<prefix>/<snapshot date>/<delivery id>`: one folder per delivery, sorted by date. */
+function deliveryPrefix(delivery) {
+  return `${delivery.pathPrefix}/${delivery.snapshotAt.slice(0, 10)}/${delivery.id}`;
+}
+async function deliver(delivery, options) {
+  const provider = options.providers.get(delivery.target.provider);
+  if (provider === void 0 || !provider.available)
+    throw new IntegrationError(
+      "warehouse_provider_unavailable",
+      `Delivery to ${delivery.target.provider} is not available yet. Use S3 or an S3-compatible bucket.`,
+    );
+  const secret = await options.store.credential(delivery.destinationId);
+  const columns = await options.store.columns(delivery.id);
+  const prefix = deliveryPrefix(delivery);
+  const extension = delivery.format === "CSV" ? "csv" : "parquet";
+  const partRows = options.partRows ?? 5e4;
+  const tables = [...new Set(columns.map((c) => c.tableKey))];
+  const files = [];
+  for (const table of tables) {
+    const tableColumns = columns.filter((c) => c.tableKey === table);
+    const delivered = tableColumns
+      .filter((c) => c.delivered && c.dataType !== "binary")
+      .map((c) => ({
+        name: c.columnName,
+        type: c.dataType,
+      }));
+    const withheld = tableColumns.length - delivered.length;
+    let after = null;
+    let part = 0;
+    let exhausted = false;
+    while (!exhausted) {
+      const rows = [];
+      while (rows.length < partRows) {
+        const want = Math.min(PAGE_ROWS, partRows - rows.length);
+        const page = await options.store.rows(delivery.id, table, after, want);
+        rows.push(...page);
+        const last = page[page.length - 1];
+        if (last !== void 0) after = String(last["id"]);
+        if (page.length < want) {
+          exhausted = true;
+          break;
+        }
+      }
+      if (rows.length === 0 && part > 0) break;
+      part += 1;
+      const name =
+        exhausted && part === 1
+          ? `${table}.${extension}`
+          : `${table}.part-${String(part).padStart(4, "0")}.${extension}`;
+      const file = encodeFile(delivery.format, delivered, rows);
+      const objectKey = `${prefix}/${name}`;
+      await provider.put(delivery.target, secret, {
+        key: objectKey,
+        body: file.body,
+        contentType: file.contentType,
+      });
+      const record = {
+        tableKey: table,
+        objectKey,
+        rowCount: rows.length,
+        byteCount: file.body.byteLength,
+        sha256: sha256Hex(file.body),
+        columnsDelivered: delivered.length,
+        columnsWithheld: withheld,
+      };
+      await options.store.recordFile(delivery.id, record);
+      files.push(record);
+    }
+  }
+  const schema = publishedSchema(columns);
+  const encoder = new TextEncoder();
+  await provider.put(delivery.target, secret, {
+    key: `${prefix}/_schema.json`,
+    body: encoder.encode(JSON.stringify(schema, null, 2)),
+    contentType: "application/json",
+  });
+  await provider.put(delivery.target, secret, {
+    key: `${prefix}/_manifest.json`,
+    body: encoder.encode(
+      JSON.stringify(
+        {
+          delivery_id: delivery.id,
+          org_id: delivery.orgId,
+          snapshot_at: delivery.snapshotAt,
+          format: delivery.format,
+          schema_version: "1",
+          files: files.map((f) => ({
+            table: f.tableKey,
+            key: f.objectKey,
+            rows: f.rowCount,
+            bytes: f.byteCount,
+            sha256: f.sha256,
+          })),
+        },
+        null,
+        2,
+      ),
+    ),
+    contentType: "application/json",
+  });
+  await options.store.complete(delivery.id, prefix, "1");
+  return {
+    files: files.length,
+    rows: files.reduce((n, f) => n + f.rowCount, 0),
+  };
+}
+/** The schema of one delivery: every table with its delivered columns and the columns withheld, with why. */
+function publishedSchema(columns) {
+  return {
+    schema_version: "1",
+    tables: [...new Set(columns.map((c) => c.tableKey))].map((table) => ({
+      name: table,
+      columns: columns
+        .filter((c) => c.tableKey === table && c.delivered && c.dataType !== "binary")
+        .map((c) => ({
+          name: c.columnName,
+          type: c.dataType,
+          nullable: true,
+          classification: c.classification,
+        })),
+      withheld: columns
+        .filter((c) => c.tableKey === table && !(c.delivered && c.dataType !== "binary"))
+        .map((c) => ({
+          name: c.columnName,
+          reason: c.withheldReason ?? "encrypted",
+        })),
+    })),
+  };
+}
+async function runOne(deliveryId, options) {
+  let delivery;
+  try {
+    delivery = await options.store.claim(deliveryId);
+  } catch (error) {
+    if (error instanceof StoreError && error.error.kind === "refusal")
+      return {
+        deliveryId,
+        result: "skipped",
+        reason: error.error.rule,
+      };
+    throw error;
+  }
+  if (delivery === null)
+    return {
+      deliveryId,
+      result: "skipped",
+      reason: "warehouse_destination_unavailable",
+    };
+  try {
+    const { files, rows } = await deliver(delivery, options);
+    return {
+      deliveryId,
+      result: "delivered",
+      files,
+      rows,
+    };
+  } catch (error) {
+    const failure = asIntegrationError(error);
+    return {
+      deliveryId,
+      result:
+        (await options.store.fail(
+          delivery.id,
+          failure.code,
+          failure.message,
+          failure.retryable,
+        )) === "Retrying"
+          ? "retrying"
+          : "failed",
+      code: failure.code,
+    };
+  }
+}
+/** One pass: queues the due nightly deliveries, then claims ready warehouse.deliver jobs and runs each once. */
+async function runWarehouseDeliveries(options) {
+  const queued = await options.store.queueDue();
+  const jobs = await options.queue.claim(options.worker, WAREHOUSE_DELIVER_JOB, options.limit ?? 2);
+  const outcomes = [];
+  for (const job of jobs)
+    try {
+      outcomes.push(await runOne(job.subjectId, options));
+      await options.queue.finish(job.id, true, null);
+    } catch (error) {
+      await options.queue.finish(
+        job.id,
+        false,
+        error instanceof Error ? error.message : String(error),
+      );
+      outcomes.push({
+        deliveryId: job.subjectId,
+        result: "skipped",
+        reason: "runner_error",
+      });
+    }
+  return {
+    queued,
+    outcomes,
+  };
+}
+/**
+ * An HTTP client that refuses hosts resolving to private addresses: a customer names the bucket endpoint, so
+ * the worker repeats the webhook SSRF guard (A69) after DNS resolution, as the webhook dispatcher does.
+ */
+function publicHostHttp(http, resolve) {
+  return async (request) => {
+    const host = new URL(request.url).hostname.replace(/^\[|\]$/g, "");
+    const addresses = /^[\d.]+$|:/.test(host) ? [host] : await resolve(host);
+    if (addresses.length === 0 || !addresses.every(isPublicAddress))
+      throw new IntegrationError(
+        "warehouse_private_endpoint",
+        "The bucket endpoint resolves to a private address.",
+      );
+    return http(request);
+  };
+}
+/** The delivery store over the service-role client (the RPCs of migration 1401). */
+function supabaseWarehouseStore(db) {
+  return {
+    async queueDue() {
+      return unwrap(db.rpc("queue_due_warehouse_deliveries"));
+    },
+    async claim(deliveryId) {
+      const row = (
+        await unwrap(db.rpc("claim_warehouse_delivery", { p_delivery_id: deliveryId }))
+      )[0];
+      if (row === void 0) return null;
+      return {
+        id: row.delivery_id,
+        orgId: row.org_id,
+        destinationId: row.destination_id,
+        target: {
+          provider: row.provider,
+          bucket: row.bucket_name,
+          region: row.region,
+          endpointUrl: row.endpoint_url,
+        },
+        pathPrefix: row.path_prefix,
+        format: row.file_format,
+        includeConfidential: row.include_confidential,
+        attempt: row.attempt,
+        snapshotAt: row.snapshot_at,
+      };
+    },
+    async columns(deliveryId) {
+      return (
+        await unwrap(db.rpc("warehouse_delivery_columns", { p_delivery_id: deliveryId }))
+      ).map((r) => ({
+        tableKey: r.table_key,
+        columnName: r.column_name,
+        ordinal: r.ordinal,
+        dataType: r.data_type,
+        classification: r.classification,
+        delivered: r.delivered,
+        withheldReason: r.withheld_reason,
+      }));
+    },
+    async rows(deliveryId, tableKey, after, limit) {
+      return unwrap(
+        db.rpc("warehouse_table_rows", {
+          p_delivery_id: deliveryId,
+          p_table_key: tableKey,
+          p_after: after,
+          p_limit: limit,
+        }),
+      );
+    },
+    async credential(destinationId) {
+      return unwrap(db.rpc("read_warehouse_credential", { p_destination_id: destinationId }));
+    },
+    async recordFile(deliveryId, file) {
+      await unwrap(
+        db.rpc("record_warehouse_delivery_file", {
+          p_delivery_id: deliveryId,
+          p_table_key: file.tableKey,
+          p_object_key: file.objectKey,
+          p_row_count: file.rowCount,
+          p_byte_count: file.byteCount,
+          p_sha256: file.sha256,
+          p_columns_delivered: file.columnsDelivered,
+          p_columns_withheld: file.columnsWithheld,
+        }),
+      );
+    },
+    async complete(deliveryId, objectPrefix, schemaVersion) {
+      await unwrap(
+        db.rpc("complete_warehouse_delivery", {
+          p_delivery_id: deliveryId,
+          p_object_prefix: objectPrefix,
+          p_schema_version: schemaVersion,
+        }),
+      );
+    },
+    async fail(deliveryId, code, message, retryable) {
+      return unwrap(
+        db.rpc("fail_warehouse_delivery", {
+          p_delivery_id: deliveryId,
+          p_error_code: code,
+          p_error_message: message,
+          p_retryable: retryable,
+        }),
+      );
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/runtime.ts
+async function runIntegrationRuntime(deps, worker) {
+  const errors = [];
+  const attempt = async (part, run, empty) => {
+    try {
+      return await run();
+    } catch (error) {
+      errors.push({
+        part,
+        message: error instanceof Error ? error.message : String(error),
+      });
+      return empty;
+    }
+  };
+  const queue = supabaseJobQueue(deps.db);
+  return {
+    sync: await attempt("sync", () => runIntegrationWorker(deps, worker), []),
+    inbound: await attempt(
+      "inbound",
+      () =>
+        runInboundEvents({
+          queue,
+          events: supabaseInboundEventStore(deps.db),
+          chat: deps.chat,
+          http: deps.http,
+          atlasOrigin: deps.atlasOrigin,
+          worker,
+        }),
+      [],
+    ),
+    warehouse: await attempt(
+      "warehouse",
+      () =>
+        runWarehouseDeliveries({
+          queue,
+          store: supabaseWarehouseStore(deps.db),
+          providers: warehouseProviders([s3Provider(publicHostHttp(deps.http, deps.resolve))]),
+          worker,
+        }),
+      {
+        queued: 0,
+        outcomes: [],
+      },
+    ),
+    errors,
+  };
+}
+//#endregion
+//#region ../data/src/import-parse.ts
+/** Reads CSV text into rows of cells; a leading byte order mark is dropped. */
+function parseCsv(text) {
+  const input = text.charCodeAt(0) === 65279 ? text.slice(1) : text;
+  const rows = [];
+  let row = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < input.length; i += 1) {
+    const ch = input[i];
+    if (quoted) {
+      if (ch === '"') {
+        if (input[i + 1] === '"') {
+          cell += '"';
+          i += 1;
+        } else quoted = false;
+      } else cell += ch;
+      continue;
+    }
+    if (ch === '"' && cell === "") quoted = true;
+    else if (ch === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (ch === "\n" || ch === "\r") {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+      if (ch === "\r" && input[i + 1] === "\n") i += 1;
+    } else cell += ch;
+  }
+  if (cell !== "" || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+  return rows;
+}
+var isBlank = (row) => row.every((c) => c.trim() === "");
+/** The header row: the first row with any text. Its one-based row number, or null for an empty sheet. */
+function headerRowNumber(sheet) {
+  const index = sheet.rows.findIndex((r) => !isBlank(r));
+  return index < 0 ? null : index + 1;
+}
+/** Rows below the header row, skipping blank rows. */
+function dataRows(sheet) {
+  const header = headerRowNumber(sheet);
+  if (header === null) return [];
+  const out = [];
+  for (let i = header; i < sheet.rows.length; i += 1) {
+    const cells = sheet.rows[i] ?? [];
+    if (!isBlank(cells))
+      out.push({
+        rowNumber: i + 1,
+        cells: cells.map((c) => c.trim()),
+      });
+  }
+  return out;
+}
+function headers(sheet) {
+  const header = headerRowNumber(sheet);
+  return header === null ? [] : (sheet.rows[header - 1] ?? []).map((h) => h.trim());
+}
+var normalize = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+/** Other header words that mean a field, beyond the field's own name (header similarity, step 3). */
+var FIELD_SYNONYMS = {
+  name: [
+    "company",
+    "companyname",
+    "customer",
+    "customername",
+    "organization",
+    "organisation",
+    "client",
+    "venue",
+    "venuename",
+    "account",
+  ],
+  street_address: ["address", "street", "streetaddress", "address1", "addressline1"],
+  locality: ["city", "town", "locality"],
+  postal_code: ["zip", "zipcode", "postcode", "postalcode"],
+  jurisdiction_id: ["jurisdiction", "jurisdictioncode"],
+  time_zone: ["timezone", "tz", "zone"],
+  counterparty_type: ["type", "category", "vendortype", "counterpartytype"],
+  vendor_sku: ["sku", "partnumber", "itemnumber", "vendorsku"],
+  vendor_name: ["vendor", "supplier", "vendorname"],
+  element_id: ["element", "elementid", "item", "itemid"],
+  unit_price_minor: ["unitprice", "price", "unitpricecents", "pricecents"],
+  currency_code: ["currency", "currencycode"],
+  lead_time_days: ["leadtime", "leadtimedays", "lead"],
+  asset_tag: ["tag", "assettag", "barcode"],
+  asset_class_id: ["assetclass", "class", "category"],
+  home_venue_id: ["homevenue", "venue", "location"],
+};
+/** Header row, data range and size of a sheet (Section 4.6.2 step 2). */
+function sheetLayout(sheet) {
+  const rows = dataRows(sheet);
+  let last = 0;
+  sheet.rows.forEach((r, i) => {
+    if (!isBlank(r)) last = i + 1;
+  });
+  return {
+    headerRow: headerRowNumber(sheet),
+    firstDataRow: rows[0]?.rowNumber ?? null,
+    lastRow: last,
+    columnCount: headers(sheet).length,
+    dataRowCount: rows.length,
+  };
+}
+/** The table each import target writes, as the Playbook map names tables. */
+var IMPORT_TARGET_TABLES = {
+  venues: "app.venues",
+  counterparties: "app.counterparties",
+  vendor_products: "app.vendor_products",
+  asset_units: "app.asset_units",
+};
+/** Playbook targets that land in an import field of another table: a counterparty's name is its organization's. */
+var PLAYBOOK_ALIASES = { counterparties: { "app.organizations.name": "name" } };
+/** Playbook entities whose sheet is imported into a target: Asset Inventory into asset units, Vendor Directory into counterparties. */
+var PLAYBOOK_ENTITY_TARGETS = {
+  "app.asset_units": "asset_units",
+  "app.vendors": "counterparties",
+  "app.counterparties": "counterparties",
+  "app.venues": "venues",
+  "app.vendor_products": "vendor_products",
+};
+/**
+ * Header-to-field pairs the Playbook column map gives one target: a Playbook column whose target is a field of
+ * the target's table (or an alias of one). A header the map sends to two different fields is left out, so the
+ * map never guesses.
+ */
+function playbookFieldMap(columns, targetCode, fields) {
+  const table = IMPORT_TARGET_TABLES[targetCode];
+  const aliases = PLAYBOOK_ALIASES[targetCode] ?? {};
+  const found = /* @__PURE__ */ new Map();
+  for (const c of columns) {
+    const field =
+      aliases[c.target] ??
+      (table !== void 0 && c.target.startsWith(`${table}.`)
+        ? c.target.slice(table.length + 1)
+        : void 0);
+    if (field === void 0 || !fields.includes(field) || c.header.trim() === "") continue;
+    const key = normalize(c.header);
+    found.set(key, (found.get(key) ?? /* @__PURE__ */ new Set()).add(field));
+  }
+  const map = /* @__PURE__ */ new Map();
+  for (const [header, set] of found) {
+    const [only] = [...set];
+    if (set.size === 1 && only !== void 0) map.set(header, only);
+  }
+  return map;
+}
+/**
+ * Suggests a field for each header and says where it came from (Section 4.6.2 step 3): a saved profile first,
+ * then the Playbook column map, then header similarity (the field's own name, then a synonym). Each field is
+ * suggested once; the person confirms every one. The assistant's suggestions come later, in the wizard.
+ */
+function suggestWithSources(
+  headerTexts,
+  fields,
+  profile = /* @__PURE__ */ new Map(),
+  playbook = /* @__PURE__ */ new Map(),
+) {
+  const used = /* @__PURE__ */ new Set();
+  return headerTexts.map((header) => {
+    const n = normalize(header);
+    const fromProfile = profile.get(header.toLowerCase());
+    const similar =
+      fields.find((f) => normalize(f) === n) ??
+      fields.find((f) => (FIELD_SYNONYMS[f] ?? []).includes(n));
+    const hit = [
+      [fromProfile && fields.includes(fromProfile) ? fromProfile : void 0, "Profile"],
+      [playbook.get(n), "Playbook"],
+      [similar, "Header"],
+    ].find(([field]) => field !== void 0 && !used.has(field));
+    if (hit?.[0] === void 0)
+      return {
+        field: null,
+        source: null,
+      };
+    used.add(hit[0]);
+    return {
+      field: hit[0],
+      source: hit[1],
+    };
+  });
+}
+/**
+ * The target proposed for a sheet (Section 4.6.2 step 2): the target of the Playbook sheet of the same name when
+ * there is one, otherwise the target whose fields the headers match best, provided at least two headers match
+ * or every required field does. Null when nothing fits; the person chooses.
+ */
+function proposeTarget(sheet, targets, playbookSheets, playbookColumns) {
+  const named = playbookSheets.find((p) => normalize(p.sheet) === normalize(sheet.name));
+  const fromPlaybook = named ? PLAYBOOK_ENTITY_TARGETS[named.entity] : void 0;
+  if (fromPlaybook !== void 0 && targets.some((t) => t.code === fromPlaybook))
+    return {
+      targetCode: fromPlaybook,
+      fromPlaybook: true,
+    };
+  const heads = headers(sheet);
+  let best = null;
+  for (const t of targets) {
+    const playbook = playbookFieldMap(playbookColumns, t.code, t.fields);
+    const matched = suggestWithSources(heads, t.fields, /* @__PURE__ */ new Map(), playbook)
+      .map((s) => s.field)
+      .filter((f) => f !== null);
+    const allRequired = t.required.length > 0 && t.required.every((r) => matched.includes(r));
+    const score = matched.length + (allRequired ? 1 : 0);
+    if ((matched.length >= 2 || allRequired) && (best === null || score > best.score))
+      best = {
+        code: t.code,
+        score,
+      };
+  }
+  return {
+    targetCode: best?.code ?? null,
+    fromPlaybook: false,
+  };
+}
+//#endregion
+//#region ../data/src/import-sheets.ts
+/**
+ * Google Sheets links for the import wizard (A83, finding A65-025; Section 4.6.2 step 1: "a Google Sheets link
+ * through the Google Drive integration"). The import worker reads the spreadsheet with the org's Google Drive
+ * connection: its OAuth token (Vault, read by the service role) calls the Sheets API v4 for the sheet list and
+ * every grid sheet's formatted values, and the worker saves the result to the imports bucket to be scanned and
+ * read like an upload. Fetch is injected, so tests never reach Google.
+ *
+ * The token needs read access to the spreadsheet: the scope spreadsheets.readonly or drive.readonly, and the
+ * sheet shared with the Google account that connected Drive. infra/runbooks/integrations.md has the setup.
+ */
+var SHEETS_API = "https://sheets.googleapis.com/v4/spreadsheets";
+var MAX_CELLS = 5e5;
+/** Why a link could not be read; the worker records the code on the import and Atlas explains it. */
+var GoogleSheetError = class extends Error {
+  code;
+  retryable;
+  constructor(code, message, retryable = false) {
+    super(message);
+    this.name = "GoogleSheetError";
+    this.code = code;
+    this.retryable = retryable;
+  }
+};
+/** The spreadsheet id of a docs.google.com spreadsheet link, or null for anything else. */
+function spreadsheetId(link) {
+  let url;
+  try {
+    url = new URL(link);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:" || url.hostname !== "docs.google.com") return null;
+  return /^\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})(?:\/|$)/.exec(url.pathname)?.[1] ?? null;
+}
+/** The access token of a stored Drive credential: JSON with access_token (or token), or the token alone. */
+function driveAccessToken(secret) {
+  const trimmed = secret.trim();
+  if (!trimmed.startsWith("{")) return trimmed;
+  try {
+    const parsed = JSON.parse(trimmed);
+    const token = parsed["access_token"] ?? parsed["token"];
+    if (typeof token === "string" && token.length > 0) return token;
+  } catch {}
+  throw new GoogleSheetError(
+    "google_drive_credential_malformed",
+    "The Google Drive credential has no access token.",
+  );
+}
+function failureFor(status) {
+  if (status === 404)
+    return new GoogleSheetError(
+      "google_sheet_not_found",
+      "The Google Sheets link points to no spreadsheet.",
+    );
+  if (status === 403)
+    return new GoogleSheetError(
+      "google_sheet_not_shared",
+      "The spreadsheet is not shared with the Google account that connected Drive.",
+    );
+  if (status === 401)
+    return new GoogleSheetError(
+      "google_drive_credential_refused",
+      "Google refused the Drive connection's token; reconnect Google Drive.",
+    );
+  return new GoogleSheetError(
+    "google_sheet_unavailable",
+    `Google answered ${status}.`,
+    status === 429 || status >= 500,
+  );
+}
+/** A1 sheet reference: the title in single quotes, any quote doubled. */
+var quoted = (title) => `'${title.replace(/'/g, "''")}'`;
+/** Reads every grid sheet of a linked spreadsheet as rows of formatted cell text. */
+async function readGoogleSheet(fetchImpl, token, link) {
+  const id = spreadsheetId(link);
+  if (id === null)
+    throw new GoogleSheetError(
+      "google_sheet_link_invalid",
+      "The link is not a Google Sheets spreadsheet link.",
+    );
+  const headers = {
+    authorization: `Bearer ${token}`,
+    accept: "application/json",
+  };
+  const meta = await fetchImpl(
+    `${SHEETS_API}/${id}?fields=${encodeURIComponent("properties.title,sheets.properties(title,index,sheetType)")}`,
+    { headers },
+  );
+  if (meta.status !== 200) throw failureFor(meta.status);
+  const body = await meta.json();
+  const titles = (body.sheets ?? [])
+    .map((s) => s.properties)
+    .filter((p) => typeof p?.title === "string")
+    .filter((p) => p.sheetType === void 0 || p.sheetType === "GRID")
+    .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+    .map((p) => p.title);
+  if (titles.length > 50)
+    throw new GoogleSheetError(
+      "google_sheet_too_large",
+      `The spreadsheet has more than 50 sheets.`,
+    );
+  if (titles.length === 0)
+    return {
+      title: body.properties?.title ?? "Google Sheet",
+      sheets: [],
+    };
+  const query = new URLSearchParams({
+    valueRenderOption: "FORMATTED_VALUE",
+    majorDimension: "ROWS",
+  });
+  for (const title of titles) query.append("ranges", quoted(title));
+  const values = await fetchImpl(`${SHEETS_API}/${id}/values:batchGet?${query.toString()}`, {
+    headers,
+  });
+  if (values.status !== 200) throw failureFor(values.status);
+  const ranges = (await values.json()).valueRanges ?? [];
+  let cells = 0;
+  const sheets = titles.map((name, i) => {
+    const rows = (ranges[i]?.values ?? []).map((row) =>
+      (Array.isArray(row) ? row : []).map((cell) =>
+        cell === null || cell === void 0 ? "" : String(cell),
+      ),
+    );
+    cells += rows.reduce((n, r) => n + r.length, 0);
+    return {
+      name,
+      rows,
+    };
+  });
+  if (cells > 5e5)
+    throw new GoogleSheetError(
+      "google_sheet_too_large",
+      `The spreadsheet has more than ${MAX_CELLS} cells.`,
+    );
+  return {
+    title: body.properties?.title ?? "Google Sheet",
+    sheets,
+  };
+}
+//#endregion
+//#region ../data/src/import-worker.ts
+/**
+ * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
+ * report.run worker: it claims import.detect, import.validate and import.commit jobs from A18's queue.
+ *   * detect: reads the uploaded spreadsheet, records its columns with a suggested field each, and marks
+ *     the import Mapped for the person to confirm
+ *   * validate: checks every row against the target (required fields, canon values, references by name),
+ *     records the row states with per-cell issues, matches strong keys exactly and sends name plus address
+ *     to the fuzzy match (0.85, merge review), and marks the import Validated
+ *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
+ *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
+ *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
+ *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
+ * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
+ * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
+ * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
+ * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
+ * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
+ * database queues detection on the Clean verdict, and every step checks again before reading.
+ * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
+ */
+var IMPORT_JOB_KINDS = ["import.fetch", "import.detect", "import.validate", "import.commit"];
+/**
+ * Every sheet of an upload, in workbook order: CSV as one sheet named after the file, .xlsx (and a saved Google
+ * Sheets link, which the fetch step stores as .xlsx) through exceljs, loaded only here.
+ */
+async function readWorkbook(source, filename, bytes) {
+  if (source === "CSV")
+    return [
+      {
+        name: filename,
+        rows: parseCsv(new TextDecoder().decode(bytes)),
+      },
+    ];
+  if (source === "XLSX" || source === "Google Sheets") {
+    const { default: ExcelJS } = await import("exceljs");
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(
+      bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
+    );
+    return workbook.worksheets.map((sheet) => {
+      const rows = [];
+      sheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+        const cells = [];
+        row.eachCell({ includeEmpty: true }, (cell, col) => {
+          cells[col - 1] = cell.text ?? "";
+        });
+        rows[rowNumber - 1] = Array.from(cells, (c) => c ?? "");
+      });
+      return {
+        name: sheet.name,
+        rows: Array.from(rows, (r) => r ?? []),
+      };
+    });
+  }
+  throw new UnreadableUploadError(source);
+}
+/** The sheet an import reads: the named one, else the first with data rows, else the first. */
+function pickSheet(sheets, name) {
+  if (name) return sheets.find((s) => s.name === name) ?? null;
+  return sheets.find((s) => dataRows(s).length > 0) ?? sheets[0] ?? null;
+}
+/** Writes a fetched Google Sheet as .xlsx, one worksheet per sheet, every cell as text. */
+async function writeWorkbook(workbook) {
+  const { default: ExcelJS } = await import("exceljs");
+  const book = new ExcelJS.Workbook();
+  const used = /* @__PURE__ */ new Set();
+  for (const sheet of workbook.sheets) {
+    const base =
+      sheet.name
+        .replace(/[[\]:*?/\\]/g, " ")
+        .slice(0, 31)
+        .trim() || "Sheet";
+    let name = base;
+    for (let n = 2; used.has(name.toLowerCase()); n += 1) name = `${base.slice(0, 27)} (${n})`;
+    used.add(name.toLowerCase());
+    const target = book.addWorksheet(name);
+    for (const row of sheet.rows) target.addRow([...row]);
+  }
+  return new Uint8Array(await book.xlsx.writeBuffer());
+}
+var UnreadableUploadError = class extends Error {
+  constructor(source) {
+    super(`${source} files are not read by the import worker; upload .csv or .xlsx.`);
+    this.name = "UnreadableUploadError";
+  }
+};
+var INTEGER = /^-?\d+$/;
+var CURRENCY = /^[A-Z]{3}$/;
+var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isTimeZone(zone) {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: zone });
+    return true;
+  } catch (error) {
+    if (error instanceof RangeError) return false;
+    throw error;
+  }
+}
+/** Checks one row against its target; cell issues name the column and an issue code from the catalogs. */
+async function validateRow(orgId, targetCode, fields, columns, row, lookups) {
+  const issues = [];
+  const raw = {};
+  for (const c of columns)
+    if (c.fieldName)
+      raw[c.fieldName] = {
+        value: row.cells[c.index] ?? "",
+        column: c.index,
+      };
+  const columnOf = (field) =>
+    raw[field]?.column ?? columns.find((c) => c.fieldName === field)?.index ?? 0;
+  for (const f of fields)
+    if (f.required && !(raw[f.name]?.value ?? ""))
+      issues.push({
+        columnIndex: columnOf(f.name),
+        issue: "required",
+      });
+  const values = {};
+  const text = (field) => raw[field]?.value ?? "";
+  const set = async (field, check, issue, column = field) => {
+    const v = text(field);
+    if (!v) return;
+    const out = await check(v);
+    if (out === null || out === false || out === void 0)
+      issues.push({
+        columnIndex: columnOf(field),
+        issue,
+      });
+    else values[column] = out === true ? v : out;
+  };
+  switch (targetCode) {
+    case "counterparties":
+      if (text("name")) values["name"] = text("name");
+      await set(
+        "counterparty_type",
+        (v) => lookups.counterpartyTypeExists(v),
+        "unknown_counterparty_type",
+      );
+      break;
+    case "venues":
+      for (const f of ["name", "street_address", "locality", "postal_code"])
+        if (text(f)) values[f] = text(f);
+      await set("jurisdiction_id", (v) => lookups.jurisdictionExists(v), "unknown_jurisdiction");
+      await set("time_zone", (v) => isTimeZone(v), "unknown_time_zone");
+      break;
+    case "vendor_products":
+      if (text("vendor_sku")) values["vendor_sku"] = text("vendor_sku");
+      await set(
+        "vendor_name",
+        (v) => lookups.vendorIdByName(orgId, v),
+        "unknown_vendor",
+        "vendor_id",
+      );
+      await set("element_id", (v) => lookups.elementExists(v), "unknown_element");
+      await set(
+        "unit_price_minor",
+        (v) => (INTEGER.test(v) && Number(v) >= 0 ? Number(v) : null),
+        "invalid_amount",
+      );
+      await set(
+        "currency_code",
+        (v) => (CURRENCY.test(v.toUpperCase()) ? v.toUpperCase() : null),
+        "invalid_currency",
+      );
+      await set(
+        "lead_time_days",
+        (v) => (INTEGER.test(v) && Number(v) >= 0 ? Number(v) : null),
+        "invalid_number",
+      );
+      if (values["unit_price_minor"] !== void 0 && values["currency_code"] === void 0)
+        issues.push({
+          columnIndex: columnOf("unit_price_minor"),
+          issue: "currency_required",
+        });
+      break;
+    case "asset_units":
+      if (text("asset_tag")) values["asset_tag"] = text("asset_tag");
+      await set("asset_class_id", (v) => lookups.assetClassId(orgId, v), "unknown_asset_class");
+      await set("home_venue_id", (v) => lookups.venueId(orgId, v), "unknown_venue");
+      break;
+    default:
+      issues.push({
+        columnIndex: 0,
+        issue: "target_not_importable",
+      });
+  }
+  const strongKeys = {};
+  for (const f of fields) if (f.strongKey && text(f.name)) strongKeys[f.name] = text(f.name);
+  if (targetCode === "vendor_products" && typeof values["vendor_id"] === "string")
+    strongKeys["vendor_id"] = values["vendor_id"];
+  const fuzzy = targetCode === "venues" || targetCode === "counterparties";
+  return {
+    state: issues.length === 0 ? "Valid" : "Invalid",
+    issues,
+    values,
+    strongKeys,
+    matchName: fuzzy && text("name") ? text("name") : null,
+    matchAddress:
+      targetCode === "venues"
+        ? [text("street_address"), text("locality"), text("postal_code")]
+            .filter(Boolean)
+            .join(" ") || null
+        : null,
+  };
+}
+/** The upload has not scanned Clean yet; the job goes back to the queue. */
+var UploadNotScannedError = class extends Error {
+  constructor(status) {
+    super(
+      `The spreadsheet is not scanned yet (${status ?? "no scan"}); it is read once it scans Clean.`,
+    );
+    this.name = "UploadNotScannedError";
+  }
+};
+/** The upload was Infected or refused by the scanner: it is never read. */
+var UploadRejectedError = class extends Error {
+  constructor(status) {
+    super(`The spreadsheet was not read: its virus scan is ${status}.`);
+    this.name = "UploadRejectedError";
+  }
+};
+/** Downloads the upload only once its scan is Clean. */
+/** Downloads the upload only once its scan is Clean, and reads every sheet. */
+async function readUploadWorkbook(store, job) {
+  const status = await store.scanStatus(job.path);
+  if (status === "Infected" || status === "Scan Failed") throw new UploadRejectedError(status);
+  if (status !== "Clean") throw new UploadNotScannedError(status);
+  return readWorkbook(job.source, job.filename, await store.download(job.path));
+}
+/** The sheet the import reads, once its upload is Clean. */
+async function readUpload(store, job) {
+  const sheet = pickSheet(await readUploadWorkbook(store, job), job.sheetName);
+  if (sheet === null) throw new Error(`The sheet ${job.sheetName ?? ""} is no longer in the file.`);
+  return sheet;
+}
+async function detect(store, jobId) {
+  const job = await store.job(jobId);
+  if (!job || job.status !== "Uploaded") return;
+  let sheets;
+  try {
+    sheets = await readUploadWorkbook(store, job);
+  } catch (error) {
+    if (!(error instanceof UploadRejectedError)) throw error;
+    await store.setStatus(job.id, "Failed");
+    return;
+  }
+  const sheet = pickSheet(sheets, job.sheetName) ?? {
+    name: job.filename,
+    rows: [],
+  };
+  const [targets, playbook] = await Promise.all([store.importTargets(), store.playbook()]);
+  const fields = (await store.targetFields(job.targetCode)).map((f) => f.name);
+  const profile = job.profileId
+    ? await store.profileMapping(job.profileId)
+    : /* @__PURE__ */ new Map();
+  const heads = headers(sheet);
+  const suggested = suggestWithSources(
+    heads,
+    fields,
+    profile,
+    playbookFieldMap(playbook.columns, job.targetCode, fields),
+  );
+  await store.setStatus(job.id, "Detected");
+  if (job.sheetName === null || job.sheetName === void 0) {
+    await store.insertSheets(
+      job.id,
+      sheets.slice(0, 1e3).map((s, index) => {
+        const proposal = proposeTarget(s, targets, playbook.sheets, playbook.columns);
+        return {
+          name: s.name.slice(0, 200) || `Sheet ${index + 1}`,
+          index,
+          ...sheetLayout(s),
+          proposedTarget: proposal.targetCode,
+          proposedFromPlaybook: proposal.fromPlaybook,
+        };
+      }),
+    );
+    await store.setSheet(job.id, sheet.name.slice(0, 200) || "Sheet 1");
+  }
+  await store.insertColumns(
+    job.id,
+    sheet.name,
+    heads.map((header, i) => ({
+      header: header.slice(0, 200),
+      suggested: suggested[i]?.field ?? null,
+      source: suggested[i]?.source ?? null,
+    })),
+  );
+  await store.setStatus(job.id, "Mapped");
+}
+/** import.fetch: reads a Google Sheets link through the org's Drive connection and saves it for scanning. */
+async function fetchSheet(store, jobId, options) {
+  const job = await store.job(jobId);
+  if (!job || job.status !== "Uploaded" || job.source !== "Google Sheets" || !job.sourceUrl) return;
+  if ((await store.scanStatus(job.path)) !== null) return;
+  if (!options.sheetsFetch) throw new Error("The import worker has no Google Sheets reader.");
+  const credential = await store.driveCredential(job.orgId);
+  if (credential === null) {
+    await store.failImport(job.id, "google_drive_not_connected");
+    return;
+  }
+  let workbook;
+  try {
+    workbook = await readGoogleSheet(
+      options.sheetsFetch,
+      driveAccessToken(credential),
+      job.sourceUrl,
+    );
+  } catch (error) {
+    if (error instanceof GoogleSheetError && !error.retryable) {
+      await store.failImport(job.id, error.code);
+      return;
+    }
+    throw error;
+  }
+  if (workbook.sheets.length === 0) {
+    await store.failImport(job.id, "google_sheet_empty");
+    return;
+  }
+  await store.saveUpload(job.path, await writeWorkbook(workbook));
+}
+async function validate(store, jobId) {
+  const job = await store.job(jobId);
+  if (!job || job.status !== "Mapped") return;
+  const sheet = await readUpload(store, job);
+  const fields = await store.targetFields(job.targetCode);
+  const columns = await store.mappedColumns(job.id);
+  for (const row of dataRows(sheet)) {
+    const checked = await validateRow(
+      job.orgId,
+      job.targetCode,
+      fields,
+      columns,
+      row,
+      store.lookups,
+    );
+    const rowId = await store.recordRow({
+      jobId: job.id,
+      sheet: sheet.name,
+      rowNumber: row.rowNumber,
+      state: checked.state,
+      reason: checked.state === "Invalid" ? checked.issues.map((i) => i.issue).join(", ") : null,
+      matchName: checked.state === "Valid" ? checked.matchName : null,
+      matchAddress: checked.state === "Valid" ? checked.matchAddress : null,
+    });
+    if (checked.issues.length > 0) await store.recordCellIssues(rowId, checked.issues);
+    if (checked.state === "Valid" && Object.keys(checked.strongKeys).length > 0) {
+      const match = await store.lookups.strongKeyMatch(
+        job.orgId,
+        job.targetCode,
+        checked.strongKeys,
+      );
+      if (match) await store.recordMatch(rowId, match);
+    }
+  }
+  await store.setStatus(job.id, "Validated");
+}
+async function commit(store, batchId) {
+  const jobId = await store.batchJob(batchId);
+  const job = jobId ? await store.job(jobId) : null;
+  if (!job || job.status !== "Committing") return;
+  const sheet = await readUpload(store, job);
+  const fields = await store.targetFields(job.targetCode);
+  const columns = await store.mappedColumns(job.id);
+  const byNumber = new Map(dataRows(sheet).map((r) => [r.rowNumber, r]));
+  for (const valid of await store.validRows(job.id)) {
+    const row = byNumber.get(valid.rowNumber);
+    if (!row) {
+      await store.refuseRow(valid.id, "The row is no longer in the uploaded file.");
+      continue;
+    }
+    const checked = await validateRow(
+      job.orgId,
+      job.targetCode,
+      fields,
+      columns,
+      row,
+      store.lookups,
+    );
+    if (checked.state !== "Valid") {
+      await store.refuseRow(valid.id, checked.issues.map((i) => i.issue).join(", "));
+      continue;
+    }
+    try {
+      const target = valid.mergeInto?.id ?? valid.matchedId;
+      if (target) {
+        const changes = { ...checked.values };
+        if (job.targetCode === "counterparties") delete changes["name"];
+        const before = await store.lookups.update(job.targetCode, target, changes);
+        await store.commitWrite({
+          rowId: valid.id,
+          batchId,
+          targetId: target,
+          action: valid.mergeInto ? "Merged" : "Updated",
+          before,
+        });
+      } else {
+        const id = await store.lookups.create(job.orgId, job.targetCode, checked.values);
+        await store.commitWrite({
+          rowId: valid.id,
+          batchId,
+          targetId: id,
+          action: "Created",
+          before: null,
+        });
+      }
+    } catch (error) {
+      if (!(error instanceof ImportWriteError)) throw error;
+      await store.refuseRow(valid.id, error.message.slice(0, 1e3));
+    }
+  }
+  await store.finishBatch(batchId);
+}
+/** A row the database refused to write; the row is marked Refused with the reason and the batch goes on. */
+var ImportWriteError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "ImportWriteError";
+  }
+};
+var STEPS = {
+  "import.fetch": fetchSheet,
+  "import.detect": detect,
+  "import.validate": validate,
+  "import.commit": commit,
+};
+/** One pass of the worker over every import job kind. */
+async function runImportJobs(store, worker, limit = 10, options = {}) {
+  const results = [];
+  for (const kind of IMPORT_JOB_KINDS)
+    for (const claimed of await store.claim(kind, worker, limit))
+      try {
+        await STEPS[kind](store, claimed.subjectId, options);
+        await store.finishJob(claimed.jobId, true, null);
+        results.push({
+          kind,
+          jobId: claimed.jobId,
+          subjectId: claimed.subjectId,
+          status: "Succeeded",
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const status = await store.finishJob(claimed.jobId, false, message);
+        if (status === "Failed") {
+          const jobId =
+            kind === "import.commit" ? await store.batchJob(claimed.subjectId) : claimed.subjectId;
+          if (jobId && kind === "import.fetch")
+            await store.failImport(jobId, "google_sheet_unavailable");
+          else if (jobId) await store.setStatus(jobId, "Failed");
+        }
+        results.push({
+          kind,
+          jobId: claimed.jobId,
+          subjectId: claimed.subjectId,
+          status: status === "Failed" ? "Failed" : "Queued",
+          error: message,
+        });
+      }
+  return results;
+}
+var TABLES = {
+  venues: "venues",
+  counterparties: "counterparties",
+  vendor_products: "vendor_products",
+  asset_units: "asset_units",
+};
+function text(row, key) {
+  const v = row?.[key];
+  if (typeof v !== "string") throw new Error(`Expected text in ${key} of the database response.`);
+  return v;
+}
+/** ImportStore over a service-role Supabase client: A18's worker RPCs, the import tables and Storage. */
+function supabaseImportStore(client) {
+  const app = client.schema("app");
+  const canon = client.schema("xpms");
+  const call = async (fn, args) => {
+    const { data, error } = await app.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data;
+  };
+  const one = async (query, what) => {
+    const { data, error } = await query;
+    if (error) throw new Error(`${what}: ${error.message}`);
+    return (Array.isArray(data) ? data : data ? [data] : [])[0] ?? null;
+  };
+  const exec = async (query, what) => {
+    const { error } = await query;
+    if (error) throw new Error(`${what}: ${error.message}`);
+  };
+  return {
+    lookups: {
+      async counterpartyTypeExists(type) {
+        return (
+          (await one(
+            canon
+              .from("dim_counterparty_type")
+              .select("counterparty_type")
+              .eq("counterparty_type", type)
+              .limit(1),
+            "counterparty types",
+          )) !== null
+        );
+      },
+      async jurisdictionExists(id) {
+        return (
+          (await one(
+            canon.from("jurisdiction").select("jurisdiction_id").eq("jurisdiction_id", id).limit(1),
+            "jurisdictions",
+          )) !== null
+        );
+      },
+      async vendorIdByName(orgId, name) {
+        const { data, error } = await app
+          .from("vendors")
+          .select("id, counterparties!inner (counterparty_name)")
+          .eq("org_id", orgId)
+          .is("deleted_at", null);
+        if (error) throw new Error(`vendors: ${error.message}`);
+        const match = (data ?? []).find((v) => {
+          const cp = v["counterparties"];
+          return (
+            typeof cp?.["counterparty_name"] === "string" &&
+            cp["counterparty_name"].toLowerCase() === name.toLowerCase()
+          );
+        });
+        return match ? text(match, "id") : null;
+      },
+      async elementExists(id) {
+        return (
+          (await one(
+            canon.from("elements").select("element_id").eq("element_id", id).limit(1),
+            "elements",
+          )) !== null
+        );
+      },
+      async assetClassId(orgId, idOrName) {
+        const query = app
+          .from("asset_classes")
+          .select("id")
+          .eq("org_id", orgId)
+          .is("deleted_at", null)
+          .limit(1);
+        const row = await one(
+          UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
+          "asset classes",
+        );
+        return row ? text(row, "id") : null;
+      },
+      async venueId(orgId, idOrName) {
+        const query = app
+          .from("venues")
+          .select("id")
+          .eq("org_id", orgId)
+          .is("deleted_at", null)
+          .limit(1);
+        const row = await one(
+          UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
+          "venues",
+        );
+        return row ? text(row, "id") : null;
+      },
+      async strongKeyMatch(orgId, targetCode, values) {
+        const table = TABLES[targetCode];
+        if (!table || Object.keys(values).length === 0) return null;
+        let query = app
+          .from(table)
+          .select("id")
+          .eq("org_id", orgId)
+          .is("deleted_at", null)
+          .limit(1);
+        for (const [k, v] of Object.entries(values)) query = query.eq(k, v);
+        const row = await one(query, table);
+        return row ? text(row, "id") : null;
+      },
+      async create(orgId, targetCode, values) {
+        if (targetCode === "counterparties") {
+          const name = String(values["name"]);
+          const base =
+            name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-+|-+$/g, "")
+              .slice(0, 36) || "org";
+          const suffix = Array.from(
+            crypto.getRandomValues(/* @__PURE__ */ new Uint8Array(4)),
+            (b) => b.toString(16).padStart(2, "0"),
+          ).join("");
+          const org = await one(
+            app
+              .from("organizations")
+              .insert({
+                name,
+                slug: `${base.length < 2 ? "org" : base}-${suffix}`,
+              })
+              .select("id"),
+            "organizations",
+          );
+          const { data, error } = await app
+            .from("counterparties")
+            .insert({
+              org_id: orgId,
+              organization_id: text(org, "id"),
+              counterparty_type: values["counterparty_type"] ?? null,
+            })
+            .select("id");
+          if (error) throw new ImportWriteError(error.message);
+          return text(data[0], "id");
+        }
+        const table = TABLES[targetCode];
+        if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
+        const { data, error } = await app
+          .from(table)
+          .insert({
+            org_id: orgId,
+            ...values,
+          })
+          .select("id");
+        if (error) throw new ImportWriteError(error.message);
+        return text(data[0], "id");
+      },
+      async update(targetCode, id, values) {
+        const table = TABLES[targetCode];
+        if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
+        const columns = Object.keys(values);
+        const before = await one(
+          app
+            .from(table)
+            .select(columns.length > 0 ? columns.join(",") : "id")
+            .eq("id", id),
+          table,
+        );
+        if (!before) throw new ImportWriteError("The row to update no longer exists.");
+        if (columns.length > 0) {
+          const { error } = await app.from(table).update(values).eq("id", id);
+          if (error) throw new ImportWriteError(error.message);
+        }
+        return before;
+      },
+    },
+    async claim(kind, worker, limit) {
+      return (
+        (await call("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: kind,
+          p_limit: limit,
+        })) ?? []
+      ).map((r) => ({
+        jobId: text(r, "id"),
+        subjectId: text(r, "subject_id"),
+      }));
+    },
+    async finishJob(jobId, succeeded, error) {
+      return String(
+        await call("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error,
+        }),
+      );
+    },
+    async job(id) {
+      const row = await one(
+        app
+          .from("import_jobs")
+          .select(
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url",
+          )
+          .eq("id", id)
+          .is("deleted_at", null),
+        "import_jobs",
+      );
+      const optional = (key) => (typeof row?.[key] === "string" ? row[key] : null);
+      return row
+        ? {
+            id: text(row, "id"),
+            orgId: text(row, "org_id"),
+            targetCode: text(row, "target_code"),
+            source: text(row, "source"),
+            path: text(row, "storage_object_path"),
+            filename: text(row, "original_filename"),
+            status: text(row, "import_status"),
+            profileId: optional("import_mapping_profile_id"),
+            sheetName: optional("sheet_name"),
+            sourceUrl: optional("source_url"),
+          }
+        : null;
+    },
+    async insertSheets(jobId, sheets) {
+      if (sheets.length === 0) return;
+      await exec(
+        app.from("import_job_sheets").insert(
+          sheets.map((s) => ({
+            import_job_id: jobId,
+            sheet_name: s.name,
+            sheet_index: s.index,
+            header_row: s.headerRow,
+            first_data_row: s.firstDataRow,
+            last_row: s.lastRow,
+            column_count: s.columnCount,
+            data_row_count: s.dataRowCount,
+            proposed_target_code: s.proposedTarget,
+            proposed_from_playbook: s.proposedFromPlaybook,
+          })),
+        ),
+        "import_job_sheets",
+      );
+    },
+    async setSheet(jobId, sheetName) {
+      await exec(
+        app.from("import_jobs").update({ sheet_name: sheetName }).eq("id", jobId),
+        "import_jobs",
+      );
+    },
+    async playbook() {
+      const [columns, sheets] = await Promise.all([
+        canon
+          .from("playbook_column")
+          .select("sheet_name, header, target")
+          .eq("disposition", "field")
+          .not("header", "is", null),
+        canon.from("playbook_sheet").select("sheet_name, entity"),
+      ]);
+      if (columns.error) throw new Error(`playbook_column: ${columns.error.message}`);
+      if (sheets.error) throw new Error(`playbook_sheet: ${sheets.error.message}`);
+      return {
+        columns: (columns.data ?? [])
+          .filter((c) => typeof c["header"] === "string" && typeof c["target"] === "string")
+          .map((c) => ({
+            sheet: text(c, "sheet_name"),
+            header: text(c, "header"),
+            target: text(c, "target"),
+          })),
+        sheets: (sheets.data ?? [])
+          .filter((s) => typeof s["entity"] === "string")
+          .map((s) => ({
+            sheet: text(s, "sheet_name"),
+            entity: text(s, "entity"),
+          })),
+      };
+    },
+    async importTargets() {
+      const { data, error } = await app
+        .from("import_target_fields")
+        .select("target_code, field_name, required");
+      if (error) throw new Error(`import_target_fields: ${error.message}`);
+      const byTarget = /* @__PURE__ */ new Map();
+      for (const f of data ?? []) {
+        const code = text(f, "target_code");
+        const entry = byTarget.get(code) ?? {
+          code,
+          fields: [],
+          required: [],
+        };
+        entry.fields.push(text(f, "field_name"));
+        if (f["required"] === true) entry.required.push(text(f, "field_name"));
+        byTarget.set(code, entry);
+      }
+      return [...byTarget.values()].sort((a, b) => a.code.localeCompare(b.code));
+    },
+    async driveCredential(orgId) {
+      const connection = await one(
+        app
+          .from("integration_connections")
+          .select("id")
+          .eq("org_id", orgId)
+          .eq("provider_code", "google_drive")
+          .eq("connection_state", "Connected")
+          .is("deleted_at", null)
+          .order("created_at")
+          .limit(1),
+        "integration_connections",
+      );
+      if (!connection) return null;
+      const secret = await call("read_integration_credential", {
+        p_connection_id: text(connection, "id"),
+      });
+      return typeof secret === "string" ? secret : null;
+    },
+    async saveUpload(path, bytes) {
+      const { error } = await client.storage.from("imports").upload(path, bytes, {
+        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        upsert: false,
+      });
+      if (error) throw new Error(`imports ${path}: ${error.message}`);
+    },
+    async failImport(jobId, code) {
+      await exec(
+        app
+          .from("import_jobs")
+          .update({
+            import_status: "Failed",
+            failure_code: code,
+          })
+          .eq("id", jobId),
+        "import_jobs",
+      );
+    },
+    async batchJob(batchId) {
+      const row = await one(
+        app.from("import_batches").select("import_job_id").eq("id", batchId),
+        "import_batches",
+      );
+      return row ? text(row, "import_job_id") : null;
+    },
+    async scanStatus(path) {
+      const status = await call("object_scan_status", {
+        p_bucket_id: "imports",
+        p_object_name: path,
+      });
+      return typeof status === "string" ? status : null;
+    },
+    async download(path) {
+      const { data, error } = await client.storage.from("imports").download(path);
+      if (error || !data) throw new Error(`imports ${path}: ${error?.message ?? "no file"}`);
+      return new Uint8Array(await data.arrayBuffer());
+    },
+    async targetFields(targetCode) {
+      const { data, error } = await app
+        .from("import_target_fields")
+        .select("field_name, required, strong_key")
+        .eq("target_code", targetCode);
+      if (error) throw new Error(`import_target_fields: ${error.message}`);
+      return (data ?? []).map((f) => ({
+        name: text(f, "field_name"),
+        required: f["required"] === true,
+        strongKey: f["strong_key"] === true,
+      }));
+    },
+    async profileMapping(profileId) {
+      const { data, error } = await app
+        .from("import_mapping_profile_fields")
+        .select("source_header, field_name")
+        .eq("import_mapping_profile_id", profileId)
+        .is("deleted_at", null);
+      if (error) throw new Error(`import_mapping_profile_fields: ${error.message}`);
+      return new Map(
+        (data ?? []).map((r) => [text(r, "source_header").toLowerCase(), text(r, "field_name")]),
+      );
+    },
+    async setStatus(jobId, status) {
+      await exec(
+        app.from("import_jobs").update({ import_status: status }).eq("id", jobId),
+        "import_jobs",
+      );
+    },
+    async insertColumns(jobId, sheet, columns) {
+      if (columns.length === 0) return;
+      await exec(
+        app.from("import_job_columns").insert(
+          columns.map((c, i) => ({
+            import_job_id: jobId,
+            sheet_name: sheet,
+            column_index: i,
+            header: c.header,
+            suggested_field_name: c.suggested,
+            suggestion_source: c.suggested === null ? null : (c.source ?? null),
+          })),
+        ),
+        "import_job_columns",
+      );
+    },
+    async mappedColumns(jobId) {
+      const { data, error } = await app
+        .from("import_job_columns")
+        .select("column_index, field_name")
+        .eq("import_job_id", jobId)
+        .is("deleted_at", null)
+        .order("column_index");
+      if (error) throw new Error(`import_job_columns: ${error.message}`);
+      return (data ?? []).map((c) => ({
+        index: Number(c["column_index"]),
+        fieldName: typeof c["field_name"] === "string" ? c["field_name"] : null,
+      }));
+    },
+    async recordRow(input) {
+      return String(
+        await call("record_import_row", {
+          p_import_job_id: input.jobId,
+          p_sheet_name: input.sheet,
+          p_row_number: input.rowNumber,
+          p_row_state: input.state,
+          p_reason: input.reason,
+          p_match_name: input.matchName,
+          p_match_address: input.matchAddress,
+        }),
+      );
+    },
+    async recordCellIssues(rowId, issues) {
+      await exec(
+        app.from("import_cell_issues").insert(
+          issues.map((i) => ({
+            import_row_result_id: rowId,
+            column_index: i.columnIndex,
+            issue_code: i.issue,
+          })),
+        ),
+        "import_cell_issues",
+      );
+    },
+    async recordMatch(rowId, targetId) {
+      await exec(
+        app.from("import_row_matches").insert({
+          import_row_result_id: rowId,
+          target_id: targetId,
+        }),
+        "import_row_matches",
+      );
+    },
+    async validRows(jobId) {
+      const { data, error } = await app
+        .from("import_row_results")
+        .select(
+          "id, row_number, import_row_matches (target_id, deleted_at), merge_reviews (candidate_table, candidate_id, decision, deleted_at)",
+        )
+        .eq("import_job_id", jobId)
+        .eq("row_state", "Valid")
+        .is("deleted_at", null)
+        .order("row_number");
+      if (error) throw new Error(`import_row_results: ${error.message}`);
+      return (data ?? []).map((r) => {
+        const match = (r["import_row_matches"] ?? []).find((m) => m["deleted_at"] === null);
+        const merged = (r["merge_reviews"] ?? []).find(
+          (m) => m["decision"] === "Merged" && m["deleted_at"] === null,
+        );
+        return {
+          id: text(r, "id"),
+          rowNumber: Number(r["row_number"]),
+          matchedId: match ? text(match, "target_id") : null,
+          mergeInto: merged
+            ? {
+                table: text(merged, "candidate_table"),
+                id: text(merged, "candidate_id"),
+              }
+            : null,
+        };
+      });
+    },
+    async commitWrite(input) {
+      await call("commit_import_write", {
+        p_import_row_result_id: input.rowId,
+        p_import_batch_id: input.batchId,
+        p_target_id: input.targetId,
+        p_write_action: input.action,
+        p_before_image: input.before,
+      });
+    },
+    async refuseRow(rowId, reason) {
+      await exec(
+        app
+          .from("import_row_results")
+          .update({
+            row_state: "Refused",
+            reason,
+          })
+          .eq("id", rowId),
+        "import_row_results",
+      );
+    },
+    async finishBatch(batchId) {
+      await call("finish_import_batch", { p_import_batch_id: batchId });
+    },
+  };
+}
+//#endregion
 //#region edge/entry.ts
 /**
  * Entry of the Edge Function bundle (supabase/functions/_vendor/xos-platform.js). The Supabase Edge
@@ -39187,6 +45873,7 @@ export {
   UPLOAD_STAGING_BUCKET,
   ZIP_LIMITS,
   addonForLookupKey,
+  asDbClient,
   billingEnvSchema,
   billingStore,
   checkContent,
@@ -39205,9 +45892,12 @@ export {
   extraSeatForLookupKey,
   extraSeatLookupKeyFor,
   gatewayLink,
+  handleInboundRequest,
   handleStripeWebhook,
+  httpFromFetch,
   identityFromEnv,
   inboundStore,
+  integrationsTranslator,
   internalErrorResponse,
   isLocalDevelopment,
   isPublicAddress,
@@ -39216,6 +45906,7 @@ export {
   localPartFor,
   lookupKeyFor,
   mailpitMailer,
+  mintChatSession,
   notificationStore,
   observe,
   observeEdgeFunction,
@@ -39233,6 +45924,8 @@ export {
   requestIdFor,
   resendMailer,
   resolvePriceId,
+  runImportJobs,
+  runIntegrationRuntime,
   runReportDeliveries,
   runReportJobs,
   runScheduledReports,
@@ -39245,7 +45938,10 @@ export {
   sniffFamilies,
   stagedUploadTarget,
   stripQuotedText,
+  supabaseCommunicationSource,
   supabaseDb,
+  supabaseImportStore,
+  supabaseInboundStore,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,

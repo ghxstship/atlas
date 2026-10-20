@@ -450,3 +450,7 @@ verify_jwt = false
 [functions.api-token]
 # Authenticates its caller by the API key itself (A04R, migration 0922).
 verify_jwt = false
+
+[functions.integration-inbound]
+# Providers authenticate by webhook signature (A83, migration 1400; packages/integrations/src/inbound).
+verify_jwt = false
