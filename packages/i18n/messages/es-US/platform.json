@@ -725,6 +725,7 @@
       "filed": "Archivado",
       "discarded": "Descartado"
     },
+    "rejectedHelp": "El dominio del remitente no confirmó este mensaje, así que podría ser falso. No se puede archivar; descártelo o pida al remitente que lo envíe de nuevo.",
     "filedAs": "Archivado como {document} por {name} el {date}",
     "filedTo": "En el registro {record}",
     "discardedBy": "Descartado por {name} el {date}",

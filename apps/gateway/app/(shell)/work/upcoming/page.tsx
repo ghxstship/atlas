@@ -40,7 +40,8 @@ function detailLabel(detail: string | null, t: Translate): string | null {
 
 /**
  * Work, Upcoming (Section 4.5.8): a list or calendar of every dated thing across orgs, with a
- * calendar file for any calendar app. Each row opens its engagement in one tap.
+ * calendar file for any calendar app and a link to subscribe to the person's calendar feed
+ * (Settings, Calendar Feeds). Each row opens its engagement in one tap.
  */
 export default async function UpcomingPage({ searchParams }: PageProps<"/work/upcoming">) {
   const ctx = await requireNode("work.upcoming");
@@ -107,6 +108,12 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
         action={
           <>
             <ViewSwitcher views={views} current={view} path="/work/upcoming" query={query} />
+            <Link
+              href={"/settings/calendar-feeds" as Route}
+              className="text-text-13 text-accent-text underline"
+            >
+              {t("gateway.settings.calendarFeeds.subscribe")}
+            </Link>
             <CalendarDownload
               label={t("gateway.work.upcoming.download")}
               fileName="gateway-upcoming.ics"

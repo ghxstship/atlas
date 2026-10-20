@@ -344,7 +344,7 @@ export function feedEvents(feed: FeedMeta, events: readonly FeedEvent[], links: 
             .filter((part): part is string => Boolean(part))
             .join(" · ")
         : e.title;
-    const description = [e.orgName, e.projectName, e.scopeNodeName, e.recordKey]
+    const description = [e.orgName, project, e.scopeNodeName, e.recordKey]
       .filter((part): part is string => Boolean(part))
       .join("\n");
     return {

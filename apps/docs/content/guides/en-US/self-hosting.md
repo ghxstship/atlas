@@ -99,7 +99,8 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `XOS_LOG_LEVEL`               | Optional | Optional | `info` in production                                                                     |
 | `COMPASS_APPLE_TEAM_IDS`      | Optional | Optional | Apple team ids, so Compass opens Atlas and Gateway links as universal links              |
 | `COMPASS_ANDROID_CERT_SHA256` | Optional | Optional | Compass signing certificate fingerprints, for Android App Links                          |
-| `XOS_TRUSTED_PROXY_HOPS`      | Optional |          | Trusted proxies in front of the one that appends the client address; `0` by default      |
+| `XOS_TRUSTED_PROXY_HOPS`      | Optional | Optional | Trusted proxies in front of the one that appends the client address; `0` by default      |
+| `XOS_INBOUND_DOMAIN`          | Optional |          | The domain project inbox mail is received on, so Project Settings shows full addresses   |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
@@ -121,7 +122,7 @@ For a self-hosted stack, mount `supabase/functions` into the Compose stack's fun
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Links and the postal address in email                                                            |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | Outgoing email through Resend (`XOS_EMAIL_TRANSPORT=resend`); unset, email is recorded, not sent |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Who may receive email; set `XOS_EMAIL_DELIVER_TO_ANY=true` only in production                    |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email                                                            |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email and project inboxes                                        |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, only if you bill through Stripe                                                |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, the ClamAV daemon; the port defaults to 3310 (see Upload scanning below)          |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Optional error reporting and log level                                                           |

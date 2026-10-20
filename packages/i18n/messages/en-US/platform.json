@@ -725,6 +725,7 @@
       "filed": "Filed",
       "discarded": "Discarded"
     },
+    "rejectedHelp": "The sender's domain did not confirm this message, so it may be forged. It cannot be filed; discard it, or ask the sender to send it again.",
     "filedAs": "Filed as {document} by {name} on {date}",
     "filedTo": "On record {record}",
     "discardedBy": "Discarded by {name} on {date}",
