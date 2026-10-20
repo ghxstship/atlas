@@ -2,7 +2,24 @@
 title: Páginas en Gateway y Atlas
 summary: Entradas de Más que se abren en Gateway o Atlas porque Compass todavía no las muestra.
 kind: page
-nodes: [timesheets, per-diem, travel-and-lodging, onboarding, purchase-orders, deliveries, submittals, time-entries, deliverables, advance-summary, rider, settlement, reports, proof-of-performance, expenses]
+nodes:
+  [
+    timesheets,
+    per-diem,
+    travel-and-lodging,
+    onboarding,
+    purchase-orders,
+    deliveries,
+    submittals,
+    time-entries,
+    deliverables,
+    advance-summary,
+    rider,
+    settlement,
+    reports,
+    proof-of-performance,
+    expenses,
+  ]
 order: 1
 ---
 

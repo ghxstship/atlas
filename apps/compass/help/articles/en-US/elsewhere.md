@@ -2,7 +2,24 @@
 title: Pages in Gateway and Atlas
 summary: More entries that open in Gateway or Atlas because Compass does not show them yet.
 kind: page
-nodes: [timesheets, per-diem, travel-and-lodging, onboarding, purchase-orders, deliveries, submittals, time-entries, deliverables, advance-summary, rider, settlement, reports, proof-of-performance, expenses]
+nodes:
+  [
+    timesheets,
+    per-diem,
+    travel-and-lodging,
+    onboarding,
+    purchase-orders,
+    deliveries,
+    submittals,
+    time-entries,
+    deliverables,
+    advance-summary,
+    rider,
+    settlement,
+    reports,
+    proof-of-performance,
+    expenses,
+  ]
 order: 1
 ---
 
