@@ -81,7 +81,10 @@ function done(slug: string, result: Result<unknown>, t: Translate): State {
 }
 
 function failed(t: Translate, error: DataError): State {
-  return { error: errorMessage(t, error) };
+  return {
+    error: errorMessage(t, error),
+    ...(error.kind === "refusal" ? { rule: error.rule } : {}),
+  };
 }
 
 const uuid = z.uuid();
