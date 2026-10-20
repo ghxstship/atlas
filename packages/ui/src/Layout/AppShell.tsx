@@ -1,12 +1,15 @@
-import { useEffect, useId, useRef, useState, type ReactElement } from "react";
+import { useEffect, useId, useRef, type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
 import { Icon } from "../Icon/Icon.tsx";
+import { useControllable } from "../lib/hooks.ts";
 import { type AppShellProps } from "./Layout.types.ts";
 
 /**
  * Brand slot, sidebar, header and content for every Atlas page. Below lg the sidebar becomes a drawer
- * opened from the header menu button and closed by Esc or the scrim; below md the bottom bar shows.
+ * opened from the header menu button (or by the shell through menuOpen, for the bottom bar's Menu tab)
+ * and closed by Esc or the scrim; opening it moves focus to its first control. Below md the bottom
+ * bar shows.
  */
 export function AppShell({
   brand,
@@ -14,11 +17,14 @@ export function AppShell({
   header,
   children,
   mobileNav,
+  menuOpen,
+  onMenuOpenChange,
 }: AppShellProps): ReactElement {
   const t = useT();
   const sideId = useId().replace(/:/g, "");
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useControllable(menuOpen, false, onMenuOpenChange);
   const menuButton = useRef<HTMLButtonElement>(null);
+  const side = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
   // A scrolling region keyboard users cannot reach fails WCAG 2.1.1. When the page overflows and holds
   // nothing focusable (a long read-only table), the region itself takes focus so arrow keys scroll it;
@@ -42,6 +48,12 @@ export function AppShell({
   }, [children]);
   useEffect(() => {
     if (!open) return undefined;
+    // The drawer only exists below lg; on a wide screen the sidebar is always there.
+    if (side.current && getComputedStyle(side.current).position === "absolute") {
+      side.current
+        .querySelector<HTMLElement>("a[href], button:not([disabled]), select, input")
+        ?.focus();
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
@@ -50,7 +62,7 @@ export function AppShell({
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
+  }, [open, setOpen]);
   return (
     <div
       data-open={open ? "true" : undefined}
@@ -61,6 +73,7 @@ export function AppShell({
     >
       <div
         id={sideId}
+        ref={side}
         className={cx(
           "flex flex-col gap-4 min-h-0 p-8 overflow-y-auto bg-bg-surface border-e border-border-subtle [&>*]:shrink-0",
           "[&_nav]:border-0 [&_nav]:p-0 [&_nav]:w-auto print:hidden",
@@ -98,7 +111,7 @@ export function AppShell({
               title={t("shell.menu")}
               aria-expanded={open}
               aria-controls={sideId}
-              onClick={() => setOpen((v) => !v)}
+              onClick={() => setOpen(!open)}
               className="inline-flex items-center justify-center h-control-md min-w-control-md rounded-control border border-transparent bg-transparent text-text-secondary cursor-pointer hover:bg-bg-hover pointer-coarse:min-h-target-coarse pointer-coarse:min-w-target-coarse"
             >
               <Icon name="Menu" />
