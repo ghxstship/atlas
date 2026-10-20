@@ -112,7 +112,7 @@ function OfferPanel({
           <ActionButton
             action={acceptOfferAction.bind(null, offer.id)}
             label={t("gateway.work.applications.offer.accept")}
-            variant="primary"
+            variant="secondary"
           />
           <ActionButton
             action={declineOfferAction.bind(null, offer.id)}

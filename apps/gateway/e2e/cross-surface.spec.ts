@@ -109,6 +109,7 @@ test("journey 59: four orgs, the union of roles in each, and no approving one's 
   const g = await gateway.newPage();
   await g.goto("/auth/sign-in?next=%2Fwork%2Fengagements");
   await g.locator("#signin-email").fill("multi@example.com");
+  await g.getByRole("button", { name: "Use a password" }).click();
   await g.locator("#signin-password").fill(DEMO_PASSWORD);
   await g.getByRole("button", { name: "Sign in with password" }).click();
   await g.waitForURL("**/work/engagements**");

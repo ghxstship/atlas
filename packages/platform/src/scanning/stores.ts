@@ -113,6 +113,13 @@ export function supabaseStorage(client: SupabaseClient): ObjectStorage {
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
       return new Uint8Array(await data.arrayBuffer());
     },
+    async upload(bucket, name, bytes, contentType) {
+      const { error } = await client.storage.from(bucket).upload(name, bytes, {
+        upsert: true,
+        ...(contentType === null ? {} : { contentType }),
+      });
+      if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
+    },
     async remove(bucket, name) {
       const { error } = await client.storage.from(bucket).remove([name]);
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);

@@ -27,6 +27,29 @@ describe("environment", () => {
     expect(message).toContain("ATLAS_SITE_URL");
     expect(message).toContain(".env.example");
   });
+
+  it("reads the API host as a bare host name and the docs site as a URL", () => {
+    const config = parseEnv({
+      ...valid,
+      XOS_API_HOST: " API.Example.test ",
+      DOCS_SITE_URL: "https://docs.example.test",
+    });
+    expect(config.XOS_API_HOST).toBe("api.example.test");
+    expect(config.DOCS_SITE_URL).toBe("https://docs.example.test");
+    for (const bad of ["https://api.example.test", "api.example.test:443", "localhost", ""]) {
+      expect(() => parseEnv({ ...valid, XOS_API_HOST: bad }), bad).toThrow(/XOS_API_HOST/);
+    }
+  });
+
+  it("refuses an API host equal to the Atlas host, which would hide every page", () => {
+    expect(() =>
+      parseEnv({
+        ...valid,
+        ATLAS_SITE_URL: "https://atlas.example.test",
+        XOS_API_HOST: "atlas.example.test",
+      }),
+    ).toThrow(/must differ from the host of ATLAS_SITE_URL/);
+  });
 });
 
 describe("auth cookies", () => {

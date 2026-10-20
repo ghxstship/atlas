@@ -341,32 +341,34 @@ describe("ticketing API import", () => {
 });
 
 describe("ticketing source", () => {
+  const upload = "0193f2c4-0000-7000-8000-00000000b0c5/0193f2c4-0000-7000-8000-000000000001.csv";
+  const missing = "0193f2c4-0000-7000-8000-00000000b0c5/0193f2c4-0000-7000-8000-000000000002.csv";
+  const storageFor = (downloads: string[]) => ({
+    from: (bucket: string) => ({
+      download: async (path: string) => {
+        downloads.push(`${bucket}:${path}`);
+        return path === missing
+          ? { data: null, error: { message: "Object not found" } }
+          : { data: new Blob(["date,class,sold\n"]), error: null };
+      },
+    }),
+  });
+
   it("reads uploaded files, scope codes and exponents and records rows", async () => {
     const { db, calls } = recordingDb({
+      "rpc:object_scan_status": [okData("Clean"), okData("Clean")],
       "from:scope_nodes": [okData([{ id: "n", scope_code: "nwl-e01" }])],
       "from:currencies": [okData({ minor_unit_exponent: 2 }), okData(null)],
       "rpc:record_attendance": [okData(1)],
     });
     const downloads: string[] = [];
-    const storage = {
-      from: (bucket: string) => ({
-        download: async (path: string) => {
-          downloads.push(`${bucket}:${path}`);
-          return path === "missing.csv"
-            ? { data: null, error: { message: "Object not found" } }
-            : { data: new Blob(["date,class,sold\n"]), error: null };
-        },
-      }),
-    };
-    const s = supabaseTicketingSource(db, storage);
-    expect(new TextDecoder().decode(await s.readFile("integration-imports/org/box.csv"))).toBe(
+    const s = supabaseTicketingSource(db, storageFor(downloads));
+    expect(new TextDecoder().decode(await s.readFile(`imports/${upload}`))).toBe(
       "date,class,sold\n",
     );
-    expect(downloads).toEqual(["integration-imports:org/box.csv"]);
-    await expect(s.readFile("nobucket")).rejects.toMatchObject({
-      code: "attendance_source_invalid",
-    });
-    await expect(s.readFile("integration-imports/missing.csv")).rejects.toMatchObject({
+    expect(downloads).toEqual([`imports:${upload}`]);
+    expect(calls[0]?.steps[0]?.[1]).toEqual([{ p_bucket_id: "imports", p_object_name: upload }]);
+    await expect(s.readFile(`imports/${missing}`)).rejects.toMatchObject({
       code: "attendance_source_unreadable",
     });
     expect((await s.scopeCodes("p")).get("NWL-E01")).toBe("n");
@@ -374,5 +376,36 @@ describe("ticketing source", () => {
     await expect(s.exponentOf("QQQ")).rejects.toMatchObject({ code: "currency_unknown" });
     expect(await s.record("run", [])).toBe(1);
     expect(calls.at(-1)?.steps[0]?.[1]).toEqual([{ p_run_id: "run", p_rows: [] }]);
+  });
+
+  // A69-006: the worker holds the service role, so a run's source never reaches another bucket or org,
+  // and a file is read only once it scanned Clean.
+  it("reads only a Clean upload in the imports bucket", async () => {
+    const { db } = recordingDb({
+      "rpc:object_scan_status": [okData("Scanning"), okData(null), okData("Infected")],
+    });
+    const downloads: string[] = [];
+    const s = supabaseTicketingSource(db, storageFor(downloads));
+    for (const uri of [
+      "nobucket",
+      "onboarding-uploads/0193f2c4-0000-7000-8000-00000000b0c5/w9.pdf",
+      "attachments/org/box.csv",
+      `imports/../onboarding-uploads/${upload}`,
+      "imports/box-office.csv",
+    ]) {
+      await expect(s.readFile(uri)).rejects.toMatchObject({ code: "attendance_source_invalid" });
+    }
+    await expect(s.readFile(`imports/${upload}`)).rejects.toMatchObject({
+      code: "attendance_source_scanning",
+      retryable: true,
+    });
+    await expect(s.readFile(`imports/${upload}`)).rejects.toMatchObject({
+      code: "attendance_source_scanning",
+    });
+    await expect(s.readFile(`imports/${upload}`)).rejects.toMatchObject({
+      code: "attendance_source_refused",
+      retryable: false,
+    });
+    expect(downloads).toEqual([]);
   });
 });

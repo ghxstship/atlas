@@ -3,6 +3,8 @@
 import {
   BrandMark,
   buttonClass,
+  compactChevronClass,
+  compactLabelClass,
   Icon,
   orgSwitcherTriggerClass,
   type IconName,
@@ -30,7 +32,7 @@ const OPEN_KEYS = new Set(["Enter", " ", "ArrowDown"]);
  * loads the menu module and swaps in the real menu, keeping focus on the trigger; pressing it before
  * the module arrives opens the menu as soon as it does.
  */
-function useDeferredMenu() {
+function useDeferredMenu(onOpen?: () => void) {
   const [wanted, setWanted] = useState(false);
   const [openOnLoad, setOpenOnLoad] = useState(false);
   const loaded = useOnDemand(menus, wanted);
@@ -46,6 +48,8 @@ function useDeferredMenu() {
   const press = () => {
     setWanted(true);
     setOpenOnLoad(true);
+    // The real menu then opens with defaultOpen, which reports no open change.
+    onOpen?.();
   };
   const trigger = {
     type: "button" as const,
@@ -88,17 +92,26 @@ function Slot({
   );
 }
 
-/** The @xos/ui DropdownMenu, deferred: the shell's account menu and the saved-views menu. */
+/**
+ * The @xos/ui DropdownMenu, deferred: the shell's account menu and the saved-views menu. A compact
+ * menu shows only its icon below md (the account menu in a phone's top bar, A59-004).
+ */
 export function DeferredDropdownMenu({
   label,
   icon,
   items,
+  compact = false,
+  onOpen,
 }: {
   label: string;
   icon?: IconName;
   items: MenuItem[];
+  compact?: boolean;
+  /** Called each time the menu opens, including the first open that loads it. */
+  onOpen?: () => void;
 }) {
-  const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu();
+  const short = compact && icon !== undefined;
+  const { loaded, wrapper, trigger, openOnLoad } = useDeferredMenu(onOpen);
   return (
     <Slot wrapper={wrapper}>
       {loaded ? (
@@ -106,13 +119,21 @@ export function DeferredDropdownMenu({
           label={label}
           {...(icon ? { icon } : {})}
           items={items}
+          compact={compact}
           {...(openOnLoad ? { defaultOpen: true } : {})}
+          {...(onOpen ? { onOpenChange: (open: boolean) => (open ? onOpen() : undefined) } : {})}
         />
       ) : (
         <button {...trigger} className={buttonClass()}>
           {icon ? <Icon name={icon} size={14} /> : null}
-          {label}
-          <Icon name="ChevronDown" size={14} />
+          {short ? <span className={compactLabelClass}>{label}</span> : label}
+          {short ? (
+            <span className={compactChevronClass}>
+              <Icon name="ChevronDown" size={14} />
+            </span>
+          ) : (
+            <Icon name="ChevronDown" size={14} />
+          )}
         </button>
       )}
     </Slot>

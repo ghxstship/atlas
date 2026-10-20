@@ -2,7 +2,6 @@
 
 import { InlineAlert } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useRouter } from "next/navigation";
 import { useCallback, useState, useTransition } from "react";
 import type { ActionError, ActionResult } from "./action-result";
 
@@ -20,11 +19,14 @@ export function useCopy(namespace: "work" | "schedule" | "show"): Translate {
 }
 
 /**
- * Runs a server action with pending state and keeps its error for display. After a success the
- * route refreshes, so server-rendered data shows the change; the callback runs after that.
+ * Runs a server action with pending state and keeps its error for display; the callback runs after a
+ * success. Every action run here revalidates the org's pages (revalidatePath), and Next returns the
+ * refreshed route with the action's own response, so server-rendered data shows the change without a
+ * second request. A router.refresh() after each action rendered the whole org layout twice per click
+ * and kept the button pending until the second render landed; on a loaded CI runner that pushed a
+ * record's Trash, Restore and checklist steps past the journeys' wait (journey 70, A71).
  */
 export function useAction() {
-  const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<ActionError | null>(null);
   const run = useCallback(
@@ -33,14 +35,13 @@ export function useAction() {
       startTransition(async () => {
         const result = await action();
         if (result.ok) {
-          router.refresh();
           onDone?.(result.data);
         } else {
           setError(result.error);
         }
       });
     },
-    [router],
+    [],
   );
   return { pending, error, run, clear: () => setError(null) };
 }

@@ -1,18 +1,35 @@
 /**
  * Activity handlers (A07): the user-facing feed (Section 4.2 Activity) through app.activity_feed,
  * which applies the feed rule (activity.feed.read, and invariant 2 for project events). Newest
- * first; the cursor carries the time of the last entry returned.
+ * first; the cursor carries the time of the last entry returned. Each entry names the domain event it shows
+ * (`domain_event_id`), read once per page from app.activity_events under the same feed rule (A54-002).
  */
+import type { XosClient } from "@xos/data";
 import { getActivityEntry, listActivity, type ActivityEntry } from "@xos/data/activity";
 import type { Components } from "../contract/operations.generated.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { decodeCursor, encodeCursor, pageSize } from "../runtime/pagination.ts";
 import { problemFor } from "./projects.ts";
+import { from, groupBy } from "./support/table.ts";
 
 type ActivityEvent = Components["ActivityEvent"];
 
-function toEvent(orgId: string, e: ActivityEntry): ActivityEvent {
+/** The domain event of each activity row, by activity id. */
+async function domainEvents(db: XosClient, ids: readonly string[]): Promise<Map<string, string>> {
+  if (ids.length === 0) return new Map();
+  const rows = await groupBy(
+    from(db, "activity_events").select("id, domain_event_id").in("id", ids),
+    "id",
+  );
+  return new Map([...rows].map(([id, [row]]) => [id, String(row?.["domain_event_id"])]));
+}
+
+function toEvent(
+  orgId: string,
+  e: ActivityEntry,
+  events: ReadonlyMap<string, string>,
+): ActivityEvent {
   return {
     id: e.id,
     org_id: orgId,
@@ -26,6 +43,7 @@ function toEvent(orgId: string, e: ActivityEntry): ActivityEvent {
     project_id: e.project?.id ?? null,
     occurred_at: e.at,
     summary: e.description ?? e.type,
+    domain_event_id: events.get(e.id) ?? null,
   };
 }
 
@@ -46,8 +64,12 @@ export const handlers = defineHandlers("Activity", {
     });
     if (!page.ok) throw problemFor(page.error);
     const last = page.data.entries[page.data.entries.length - 1];
+    const events = await domainEvents(
+      context.db,
+      page.data.entries.map((e) => e.id),
+    );
     return ok({
-      data: page.data.entries.map((e) => toEvent(org.id, e)),
+      data: page.data.entries.map((e) => toEvent(org.id, e, events)),
       next_cursor: page.data.next !== null && last ? encodeCursor({ occurred_at: last.at }) : null,
     } as Components["ActivityEventPage"]);
   },
@@ -56,6 +78,6 @@ export const handlers = defineHandlers("Activity", {
     const org = requireOrg(context);
     const entry = await getActivityEntry(context.db, org.id, params.id);
     if (!entry.ok) throw problemFor(entry.error);
-    return ok(toEvent(org.id, entry.data));
+    return ok(toEvent(org.id, entry.data, await domainEvents(context.db, [entry.data.id])));
   },
 });

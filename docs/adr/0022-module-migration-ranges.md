@@ -84,3 +84,11 @@ A52 (unbuilt spec features: legal entities, IP allow-list, access reviews, break
 ## Amendment (2026-10-19): A56 to A58
 
 A56 (canon rulings, decision 25) takes 1230 to 1239. A57 (platform decisions: ClamAV, licenses, Spanish, .xls) takes 1240 to 1249. A58 (plan pricing, decision 18) takes 1250 to 1259.
+
+## Amendment (2026-10-20): A60 to A73
+
+A62 takes 1260 to 1264, A63 1265 to 1269, A64 1270 to 1274, A61 1275 to 1279, A65 1280 to 1289, A66 1290 to 1294, A69 1295 to 1299, A70 1300 to 1304, A71 1305 to 1309, A72 (Google sign-in) 1310 to 1314 and A73 (machine translation) 1315 to 1319. A60, A67 and A68 have no range.
+
+## Amendment (2026-10-20): A74 to A82 and a second orchestrator block
+
+A76 (settings enforcement) takes 1320 to 1329, A77 (authentication and step-up) 1330 to 1339, A78 (work details) 1340 to 1349, A79 (org lifecycle) 1350 to 1359, A80 (push, SMS and notification registry) 1360 to 1369, A81 (navigation and keyboard) 1370 to 1379 and A82 (compliance flows) 1380 to 1389. A74 and A75 have no range. The orchestrator's first block (1190 to 1199) sorts before migrations it now builds on, so it takes a second block, 1390 to 1399.

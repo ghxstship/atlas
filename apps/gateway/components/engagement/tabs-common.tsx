@@ -1,3 +1,4 @@
+import { addCalendarDays } from "@xos/data/calendar";
 import {
   APP_ENUMS,
   listEngagementDocuments,
@@ -22,14 +23,8 @@ import { PaymentSteps } from "./payment-steps";
 import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/engagement";
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
-import {
-  formatDate,
-  formatDateRange,
-  formatDateTime,
-  formatMoney,
-  isoDaysFromToday,
-  todayIso,
-} from "@/lib/format";
+import { overviewRows, type OverviewRow } from "@/lib/engagement-state";
+import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import {
@@ -40,9 +35,10 @@ import {
   RatingForm,
   TaxFormForm,
 } from "./forms";
-import { RowList, TabEmpty } from "./rows";
+import { AreaClosed, RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { MySharingPanel } from "@/components/settings/work-details";
 
 /** Engagement stages (Section 4.4.4) and where an engagement state sits among them. */
 const STAGE_KEYS = ["offer", "onboarding", "engaged", "closeOut"] as const;
@@ -57,13 +53,73 @@ const STAGE_FOR_STATE: Record<string, number> = {
 
 export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) {
   const e = view.engagement;
-  const [documents, onboarding, given] = await Promise.all([
+  const rows = overviewRows(view.roleType);
+  const [documents, onboarding, given, approvals, entitlements] = await Promise.all([
     hasArea(view, "documents") ? listEngagementDocuments(view.ctx.db, e.id) : null,
     hasArea(view, "onboarding") ? listOnboardingItems(view.ctx.db, e.id) : null,
     readView(view.ctx.db, "my_given_ratings", { eq: { engagement_id: e.id } }),
+    rows.includes("approvalsWaiting")
+      ? readView(view.ctx.db, "client_approvals", { eq: { engagement_id: e.id } })
+      : null,
+    rows.includes("entitlements")
+      ? readView(view.ctx.db, "sponsor_entitlements", { eq: { project_id: e.projectId } })
+      : null,
   ]);
+  const money = (value: string | null | undefined) =>
+    hasArea(view, "money")
+      ? (value ?? t("gateway.common.unpriced"))
+      : t("gateway.engagement.overview.rateHidden");
+  const rate = formatMoney(locale, e.rateMinor, e.rateCurrency);
+  const property: Readonly<Record<OverviewRow, () => { label: string; value: string } | null>> = {
+    org: () => ({ label: t("gateway.work.engagements.org"), value: e.orgName }),
+    project: () => ({ label: t("gateway.work.engagements.project"), value: e.projectName }),
+    role: () => ({ label: t("gateway.work.engagements.role"), value: e.jobTitle }),
+    engagement: () => ({ label: t("gateway.engagement.overview.engagement"), value: e.jobTitle }),
+    package: () => ({ label: t("gateway.engagement.overview.package"), value: e.jobTitle }),
+    dates: () => ({
+      label: t("gateway.work.engagements.dates"),
+      value: formatDateRange(locale, e.startDate, e.endDate),
+    }),
+    rate: () => ({ label: t("gateway.engagement.overview.rate"), value: money(rate) }),
+    payBasis: () => ({ label: t("gateway.engagement.overview.payBasis"), value: e.payBasis }),
+    contractValue: () => ({
+      label: t("gateway.engagement.overview.contractValue"),
+      value: money(rate),
+    }),
+    billingBasis: () => ({
+      label: t("gateway.engagement.overview.billingBasis"),
+      value: e.payBasis,
+    }),
+    sponsorshipFee: () => ({
+      label: t("gateway.engagement.overview.sponsorshipFee"),
+      value: money(rate),
+    }),
+    approvalsWaiting: () =>
+      approvals?.ok
+        ? {
+            label: t("gateway.engagement.overview.approvalsWaiting"),
+            value: t("gateway.engagement.overview.approvalsCount", {
+              n: approvals.data.filter((a) => !a.decision).length,
+            }),
+          }
+        : null,
+    entitlements: () =>
+      entitlements?.ok
+        ? {
+            label: t("gateway.engagement.overview.entitlements"),
+            value: t("gateway.engagement.overview.entitlementsCount", {
+              done: entitlements.data.filter((x) => x.fulfilled_at).length,
+              total: entitlements.data.length,
+            }),
+          }
+        : null,
+  };
+  const properties = rows.flatMap((r) => {
+    const item = property[r]();
+    return item ? [item] : [];
+  });
   const toSign = documents?.ok ? documents.data.filter((d) => d.state === "Sent") : [];
-  const today = todayIso();
+  const today = view.today;
   const open = onboarding?.ok
     ? onboarding.data.filter((i) => onboardingStanding(i, today) !== "verified")
     : [];
@@ -124,6 +180,8 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
             stages={STAGE_KEYS.map((k) => ({ label: t(`gateway.engagement.overview.stage.${k}`) }))}
           />
         </Section>
+        {/* Work Details shared with this engagement, with consent (A78); only the engaged person sees it. */}
+        <MySharingPanel ctx={view.ctx} engagementId={e.id} />
         {e.state === "Complete" ? (
           <Section title={t("gateway.engagement.forms.rating.title", { org: e.orgName })}>
             {rated ? (
@@ -136,25 +194,7 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
       </div>
       <aside>
         <Card>
-          <PropertyList
-            items={[
-              { label: t("gateway.work.engagements.org"), value: e.orgName },
-              { label: t("gateway.work.engagements.project"), value: e.projectName },
-              { label: t("gateway.work.engagements.role"), value: e.jobTitle },
-              {
-                label: t("gateway.work.engagements.dates"),
-                value: formatDateRange(locale, e.startDate, e.endDate),
-              },
-              {
-                label: t("gateway.engagement.overview.rate"),
-                value: hasArea(view, "money")
-                  ? (formatMoney(locale, e.rateMinor, e.rateCurrency) ??
-                    t("gateway.common.unpriced"))
-                  : t("gateway.engagement.overview.rateHidden"),
-              },
-              { label: t("gateway.engagement.overview.payBasis"), value: e.payBasis },
-            ]}
-          />
+          <PropertyList items={properties} />
         </Card>
       </aside>
     </div>
@@ -239,7 +279,7 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
       />
     );
   }
-  const today = todayIso();
+  const today = view.today;
   const done = items.data.filter((i) => onboardingStanding(i, today) === "verified").length;
   return (
     <div className="flex flex-col gap-16">
@@ -302,7 +342,7 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
                         <ActionButton
                           action={submitOnboardingItemAction.bind(null, i.id)}
                           label={t("gatewayOnboarding.acknowledge")}
-                          variant="primary"
+                          variant="secondary"
                           done={t("gatewayOnboarding.acknowledged")}
                         />
                       </div>
@@ -378,16 +418,8 @@ export async function MessagesTab({ view, t, locale }: TabProps) {
 /** Invoices of the engagement's project with the payment tracker, submission and self-billing. */
 export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) {
   const e = view.engagement;
-  if (!hasArea(view, "money")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.invoices.closed")}
-        actionLabel={t("gateway.engagement.messagesAction")}
-        href={tabHref(engagementKey, "engagement.messages")}
-      />
-    );
-  }
+  if (!hasArea(view, "money"))
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   const [invoices, selfBilling] = await Promise.all([
     readView(view.ctx.db, "invoices", {
       eq: { project_id: e.projectId, org_id: e.orgId },
@@ -404,8 +436,8 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
   if (!lines.ok) return <RegionError />;
   const agreement = selfBilling.data.find((a) => a.is_active);
   const currency = e.rateCurrency ?? "USD";
-  const today = todayIso();
-  const due = isoDaysFromToday(30);
+  const today = view.today;
+  const due = addCalendarDays(view.today, 30);
   return (
     <div className="flex flex-col gap-16">
       {invoices.data.length === 0 ? (

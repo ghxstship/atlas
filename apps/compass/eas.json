@@ -1,0 +1,79 @@
+{
+  "cli": {
+    "version": ">= 24.12.0",
+    "appVersionSource": "remote",
+    "requireCommit": true
+  },
+  "build": {
+    "development": {
+      "environment": "development",
+      "node": "22.14.0",
+      "pnpm": "10.15.1",
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
+      },
+      "distribution": "internal",
+      "ios": {
+        "simulator": true,
+        "buildConfiguration": "Debug"
+      },
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleDebug"
+      }
+    },
+    "preview": {
+      "environment": "preview",
+      "node": "22.14.0",
+      "pnpm": "10.15.1",
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
+      },
+      "distribution": "internal",
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "environment": "production",
+      "node": "22.14.0",
+      "pnpm": "10.15.1",
+      "env": {
+        "EXPO_NO_TELEMETRY": "1"
+      },
+      "distribution": "store",
+      "autoIncrement": true,
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "OWNER_ASC_APP_ID",
+        "appleTeamId": "OWNER_APPLE_TEAM_ID",
+        "language": "en-US",
+        "metadataPath": "./store/store.config.json"
+      },
+      "android": {
+        "serviceAccountKeyPath": "OWNER_PLAY_SERVICE_ACCOUNT_KEY_PATH",
+        "track": "internal",
+        "releaseStatus": "completed",
+        "changesNotSentForReview": false
+      }
+    },
+    "internal-draft": {
+      "extends": "production",
+      "android": {
+        "releaseStatus": "draft"
+      }
+    }
+  }
+}

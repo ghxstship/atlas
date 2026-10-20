@@ -1,3 +1,4 @@
+import { todayIn } from "@xos/data/calendar";
 import {
   getTimesheet,
   listTimesheets,
@@ -33,6 +34,7 @@ import {
 import { stateIcon } from "@/lib/crew/states";
 import { addDays, hoursFromMinutes, mondayOf } from "@/lib/crew/time";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -209,8 +211,10 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
 
   const canCreate = crew.can("crew.timesheet.submit");
   const members = canSubmitOthers ? await getMembers(crew.ctx) : [];
-  const week = mondayOf(new Date().toISOString().slice(0, 10));
   const defaultProject = projectFilter ?? projects[0] ?? null;
+  // This week on the default project's calendar (A71): its days are what the timesheet bills, and in
+  // UTC Sunday evening in New York already opened next week's timesheet.
+  const week = mondayOf(todayIn(defaultProject?.timeZone ?? (await getOrgTimeZone(crew.ctx))));
   const drawer =
     search["create"] === "1" && canCreate && defaultProject ? (
       <DrawerForm

@@ -12,6 +12,11 @@
   "related": "Relacionado",
   "loadFailed": "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
   "bodyFailed": "No se pudo cargar este artículo. Recargue la página y vuelva a abrir la Ayuda.",
+  "docs": {
+    "home": "Centro de ayuda y documentación de la API",
+    "helpCenter": "Centro de ayuda",
+    "article": "Abrir este artículo en el centro de ayuda"
+  },
   "kinds": {
     "guide": "Guía",
     "page": "Página",
@@ -181,5 +186,63 @@
     "screenshotHelp": "Una imagen PNG, JPEG o WebP de hasta 5 MB. Solo usted y el equipo de soporte de la plataforma pueden abrirla.",
     "screenshotNeedsConsent": "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     "screenshotTooBig": "Esa imagen supera los 5 MB. Elija una más pequeña."
+  },
+  "gateway": {
+    "general": "En todo Gateway",
+    "shortcuts": {
+      "search": "Buscar en Gateway"
+    },
+    "whatsNew": {
+      "contextual-help": {
+        "title": "Ayuda en cada página",
+        "body": "Pulsa ? o elige Ayuda para ver los artículos de la página donde estás, los atajos y Contactar a soporte."
+      },
+      "continue-on-phone": {
+        "title": "Continúa en tu teléfono",
+        "body": "Cada contratación tiene Continuar en teléfono: escanea el código para abrir la misma contratación en Compass."
+      },
+      "delete-account": {
+        "title": "Elimina tu cuenta en Configuración",
+        "body": "Configuración, Cuenta muestra lo que impediría la eliminación y lo que se conserva, y elimina tu cuenta cuando confirmas."
+      },
+      "asset-approvals": {
+        "title": "Los patrocinadores aprueban materiales de marca",
+        "body": "Aprueba o devuelve los banners, artes y textos que una organización envía para tus beneficios."
+      },
+      "invoice-updates": {
+        "title": "Cada paso de tus facturas en Inicio",
+        "body": "Inicio muestra cuándo una organización recibe, aprueba, programa y paga tu factura. Elige correo o notificación push en Configuración, Notificaciones."
+      },
+      "self-billing": {
+        "title": "Autofacturación para personas",
+        "body": "El equipo técnico, el personal y los contratistas pueden aceptar la autofacturación, y la organización genera sus facturas a partir de las hojas de horas aprobadas."
+      }
+    },
+    "contact": {
+      "workTitle": "Sobre tu trabajo",
+      "workBody": "Las preguntas sobre una contratación, un pago, un horario o un documento van a la organización que te contrató. Escríbeles y te responden en Mensajes.",
+      "messageOrg": "Escribir a la organización",
+      "openMessages": "Abrir Mensajes",
+      "accountTitle": "Sobre tu cuenta",
+      "accountBody": "El soporte de la plataforma solo ayuda con tu propia cuenta de Gateway: el acceso, tu correo y la eliminación de tu cuenta. Responde por correo.",
+      "categories": {
+        "Account": "Mi cuenta",
+        "Access": "Acceso",
+        "Problem": "Algo no funciona",
+        "Question": "Una pregunta"
+      },
+      "subjectHint": "El enlace de acceso nunca llega",
+      "body": "¿Qué ocurrió y qué necesitas?",
+      "bodyHint": "Lo que intentaste, lo que esperabas y lo que viste",
+      "required": "Completa el asunto y el mensaje para enviar la solicitud.",
+      "sent": "Se envió la solicitud {number}. El soporte de la plataforma responde por correo a {email}.",
+      "errors": {
+        "denied": "Vuelve a iniciar sesión y envía la solicitud.",
+        "invalid": "Falta información en la solicitud. Revisa el asunto y el mensaje.",
+        "category": "El soporte de la plataforma solo ayuda con tu propia cuenta. Pregunta a la organización por todo lo demás en Mensajes.",
+        "limit": "Enviaste cinco solicitudes en el último día. El soporte de la plataforma responde cada una por correo; espera esas respuestas primero.",
+        "unexpected": "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento."
+      }
+    }
   }
 }

@@ -17,10 +17,13 @@ name: crew-external-today
     id: "tab-crew"
 - tapOn:
     id: "tab-more"
+# Timesheets, per diem, travel and onboarding live on the engagement in Gateway: More names them on one
+# row that opens Gateway, with no "this is in Gateway" page per entry (finding A59-026).
 - assertVisible:
+    id: "more-open-gateway"
+- assertVisible: ".*Timesheets.*Onboarding Items.*"
+- assertNotVisible:
     id: "more-timesheets"
-- assertVisible:
-    id: "more-onboarding"
 - assertNotVisible:
     id: "more-incidents"
 - tapOn:

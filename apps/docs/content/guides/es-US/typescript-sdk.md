@@ -13,7 +13,7 @@ order: 7
 import { XosClient } from "@xos/sdk";
 
 const xos = new XosClient({
-  baseUrl: "https://atlas.example.com/api/v1",
+  baseUrl: "https://api.ghxstship.tech/v1",
   apiKey: process.env.XOS_API_KEY,
 });
 ```

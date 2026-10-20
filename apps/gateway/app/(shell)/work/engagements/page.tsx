@@ -55,9 +55,10 @@ function Row({ e, locale, t }: { e: Engagement; locale: string; t: Translate }) 
 }
 
 /**
- * Work, Engagements (Section 4.5.8): active and past engagements grouped by org and project, as a
- * list, a table or a board by state. An Account Member sees only the engagements assigned to them;
- * the api_external view already decides that.
+ * Work, Engagements (Section 4.5.8): current engagements, then complete or canceled ones, grouped
+ * by org and project, as a list, a table or a board by state. Groups follow the state, not the
+ * dates, so a future-dated engagement that closed early is never called past (finding A59-021). An
+ * Account Member sees only the engagements assigned to them; the api_external view decides that.
  */
 export default async function EngagementsPage({ searchParams }: PageProps<"/work/engagements">) {
   const ctx = await requireNode("work.engagements");
@@ -73,7 +74,7 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
   const all = result.ok ? result.data.filter((e) => inBrandScope(ctx.brand, e.orgId)) : [];
   const shown = orgFilter ? all.filter((e) => e.orgId === orgFilter) : all;
   const current = shown.filter(isCurrentEngagement);
-  const past = shown.filter((e) => !isCurrentEngagement(e));
+  const closed = shown.filter((e) => !isCurrentEngagement(e));
   return (
     <>
       <PageTitle
@@ -138,7 +139,7 @@ export default async function EngagementsPage({ searchParams }: PageProps<"/work
         <>
           {[
             { id: "current", title: t("gateway.work.engagements.current"), list: current },
-            { id: "past", title: t("gateway.work.engagements.past"), list: past },
+            { id: "closed", title: t("gateway.work.engagements.closed"), list: closed },
           ]
             .filter((g) => g.list.length > 0)
             .map((g) => (

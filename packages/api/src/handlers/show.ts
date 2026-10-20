@@ -3,7 +3,8 @@
  * Every read and write runs as the caller, so row level security decides; the database stamps a
  * cue's project from its running order, calls a cue once through app.call_cue (time and caller),
  * and stamps a sheet's publication once, refusing a second publish or an edit after publishing
- * with the rule. See packages/api/README.md and ADR 0023 (run-of-show, cue and sheet columns).
+ * with the rule. A cue's department calls (cueCalls, app.cue_calls) are rows of their own, one per department.
+ * See packages/api/README.md and ADR 0023 (run-of-show, cue and sheet columns).
  */
 import { callCue, publishSheet } from "@xos/data/show";
 import { defineHandlers, ok } from "../runtime/handler.ts";
@@ -32,6 +33,8 @@ export const handlers = defineHandlers("Show", {
   ...handlersFor("Show", cues),
   ...handlersFor("Show", daySheets),
   ...handlersFor("Show", callSheets),
+  // A department's call on a cue (1180, A54-002); the cue fixes its organization, one per department.
+  ...handlersFor("Show", tableResource("cueCalls")),
 
   "cues.fire": async ({ params }, context) => {
     await cues.read(context, params.id, ["id"]);

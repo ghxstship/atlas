@@ -38,7 +38,8 @@ import { conflict, refused } from "../problem.ts";
 import type { RequestContext } from "../runtime/context.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
-import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
+import { mergeBy, withTransition } from "./support/enrich.ts";
+import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row, TableResource } from "./support/table.ts";
 
 interface MoneyTotal {
@@ -92,7 +93,23 @@ const reasonOf = (body: { reason?: string | undefined }) => body.reason ?? "";
 
 const budgets = tableResource("budgets");
 const budgetLines = tableResource("budgetLines", {
-  derived: ["line_total_minor"],
+  derived: ["line_total_minor", "actual_minor", "account_code"],
+  // The line's GL account and actual spend, from app.budget_line_facts (A54-002).
+  enrich: async (rows, { db }) =>
+    mergeBy(
+      rows,
+      "id",
+      await groupBy(
+        from(db, "budget_line_facts")
+          .select("budget_line_id, actual_minor, account_code")
+          .in("budget_line_id", keysOf(rows, "id")),
+        "budget_line_id",
+      ),
+      ([fact]) => ({
+        actual_minor: fact?.["actual_minor"] ?? null,
+        account_code: fact?.["account_code"] ?? null,
+      }),
+    ),
   toContract: (row) => ({
     ...row,
     line_total_minor: extendedMinor(
@@ -104,7 +121,16 @@ const budgetLines = tableResource("budgetLines", {
 const expenses = tableResource("expenses");
 const contingencyDraws = tableResource("contingencyDraws");
 const changeOrders = tableResource("changeOrders", {
-  derived: ["total"],
+  derived: ["total", "approved_at", "approved_by"],
+  // Who approved the change order and when, from its transition ledger (A54-002).
+  enrich: (rows, { db }) =>
+    withTransition(db, rows, {
+      table: "change_order_state_transitions",
+      fk: "change_order_id",
+      toState: "Approved",
+      at: "approved_at",
+      by: "approved_by",
+    }),
   toContract: async (row, { db }) => ({
     ...row,
     total: moneyTotal(
@@ -113,7 +139,25 @@ const changeOrders = tableResource("changeOrders", {
     ),
   }),
 });
-const changeOrderLines = tableResource("changeOrderLines");
+const changeOrderLines = tableResource("changeOrderLines", {
+  derived: ["account_code", "cost_center_id"],
+  // The line's GL account and cost center, from app.change_order_line_facts (A54-002).
+  enrich: async (rows, { db }) =>
+    mergeBy(
+      rows,
+      "id",
+      await groupBy(
+        from(db, "change_order_line_facts")
+          .select("change_order_line_id, account_code, cost_center_id")
+          .in("change_order_line_id", keysOf(rows, "id")),
+        "change_order_line_id",
+      ),
+      ([fact]) => ({
+        account_code: fact?.["account_code"] ?? null,
+        cost_center_id: fact?.["cost_center_id"] ?? null,
+      }),
+    ),
+});
 const accountingPeriods = tableResource("accountingPeriods");
 const journalEntries = tableResource("journalEntries");
 const journalLines = tableResource("journalLines");

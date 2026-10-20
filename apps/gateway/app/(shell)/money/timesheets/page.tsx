@@ -81,7 +81,7 @@ export default async function TimesheetsPage({ searchParams }: PageProps<"/money
                       <ActionButton
                         action={submitTimesheetAction.bind(null, s.id)}
                         label={t("gateway.engagement.timesheets.submit")}
-                        variant="primary"
+                        variant="secondary"
                       />
                     ),
                   }

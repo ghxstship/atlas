@@ -13,6 +13,7 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "generate:sitemap": "XOS_WRITE_GENERATED=1 vitest run test/routes.test.ts",
+    "generate:help": "XOS_WRITE_GENERATED=1 vitest run test/help.test.ts",
     "e2e": "playwright test",
     "test:a11y": "playwright test -c e2e/a11y/playwright.a11y.config.ts"
   },
@@ -22,6 +23,7 @@
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.117.3",
     "@xos/data": "workspace:*",
+    "@xos/help": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/icons": "workspace:*",
@@ -29,6 +31,7 @@
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
+    "icu-minify": "4.14.9",
     "next": "16.4.0",
     "next-intl": "4.14.9",
     "react": "19.3.0",

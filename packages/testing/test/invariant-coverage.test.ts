@@ -152,6 +152,29 @@ describe("state machine transition coverage (gate 4)", () => {
     expect(unrefused, "state machines with no refused move asserted by code").toEqual([]);
   });
 
+  it("names the refusal of every move the rules do not hold (finding A54-003)", () => {
+    // A refused move asserted with a null message passes on any XR001, so an earlier guard can refuse first while
+    // the description claims the rule. Each such assertion names the refusal it expects.
+    const held = new Set(
+      migrations.flatMap((sql) =>
+        [...sql.matchAll(/insert into private\.lifecycle_transition_rules[^;]*;/g)].flatMap((m) =>
+          [...m[0].matchAll(/\(\s*'([a-z_]+)'\s*,\s*'([^']+)'\s*,\s*'([^']+)'\s*\)/g)].map(
+            (t) => `${t[1] as string}:${t[2] as string}>${t[3] as string}`,
+          ),
+        ),
+      ),
+    );
+    const move =
+      /app\.transition_([a-z_]+)\((?:\(select [^)]*\)|[^,()]+),\s*'([^']+)',\s*'([^']+)'/;
+    const vague = statements
+      .filter((s) => /throws_(ok|like)\(/.test(s) && /'XR001',\s*null/.test(s))
+      .map((s) => ({ s, m: move.exec(s) }))
+      .filter(({ m }) => m !== null && lifecycles.has(m[1] as string))
+      .filter(({ m }) => !held.has(`${m?.[1]}:${m?.[2]}>${m?.[3]}`))
+      .map(({ m }) => `${m?.[1]} ${m?.[2]} to ${m?.[3]}`);
+    expect(vague, "refused moves asserted without the refusal they expect").toEqual([]);
+  });
+
   it("exercises an allowed move of every state machine", () => {
     const unmoved = machines
       .filter(

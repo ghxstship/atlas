@@ -104,8 +104,9 @@ export function Button({
     >
       {loading ? <Spinner /> : icon ? <Icon name={icon} size={14} /> : null}
       {children}
+      {/* A touch screen has no keyboard to press it with, so the hint stays off there (A59-023). */}
       {shortcut ? (
-        <span className="ms-4 inline-flex">
+        <span className="ms-4 inline-flex pointer-coarse:hidden">
           <Keys keys={shortcut} />
         </span>
       ) : null}

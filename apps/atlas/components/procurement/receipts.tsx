@@ -23,6 +23,7 @@ import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { ReceiptForm } from "./forms";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
@@ -50,7 +51,7 @@ export async function ReceiptsSection({
   search: SearchParams;
   projectId?: string;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, all, orders] = await Promise.all([
     getCopy("procurement"),

@@ -245,7 +245,7 @@ export const sitemap: Sitemap = {
               kind: "page",
               label: "nav.gateway.work.applications",
               route: "/work/applications",
-              list: { views: ["list", "board", "table"], default: "list" },
+              list: { views: ["list", "table", "board"], default: "list" },
             },
             {
               id: "engagement",
@@ -535,6 +535,7 @@ export const sitemap: Sitemap = {
               kind: "page",
               label: "nav.gateway.money.timesheets",
               route: "/money/timesheets",
+              conditions: ["paid-work"],
               list: { views: ["table", "list"], default: "table" },
             },
             {
@@ -549,6 +550,7 @@ export const sitemap: Sitemap = {
               kind: "page",
               label: "nav.gateway.money.taxDocuments",
               route: "/money/tax-documents",
+              conditions: ["paid-work"],
               list: { views: ["table", "list"], default: "table" },
             },
           ],
@@ -682,12 +684,14 @@ export const sitemap: Sitemap = {
               kind: "section",
               label: "nav.settings.personal.workDetails",
               route: "/settings/work-details",
+              conditions: ["paid-work"],
             },
             {
               id: "settings.payout-and-tax",
               kind: "section",
               label: "nav.settings.personal.payoutAndTax",
               route: "/settings/payout-and-tax",
+              conditions: ["paid-work"],
             },
             {
               id: "settings.calendar-feeds",
@@ -765,6 +769,7 @@ export const sitemap: Sitemap = {
                     "account-finance": "full",
                     "account-member": "hidden",
                   },
+                  conditions: ["paid-work"],
                 },
                 {
                   id: "settings.company.representation",

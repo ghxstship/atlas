@@ -74,6 +74,7 @@ const engagementRow = {
   end_date: "2026-11-03",
   engagement_state: "Active",
   areas: ["engagement", "operational"],
+  project_time_zone: "America/New_York",
 };
 
 describe("display keys", () => {
@@ -103,6 +104,7 @@ describe("engagements", () => {
     expect(result.ok && result.data[0]?.key).toBe(toDisplayKey("engagement", ID));
     expect(result.ok && result.data[0]?.rateMinor).toBeNull();
     expect(result.ok && result.data[0]?.areas).toEqual(["engagement", "operational"]);
+    expect(result.ok && result.data[0]?.projectTimeZone).toBe("America/New_York");
     expect(calls[0]?.steps[1]).toEqual(["order", ["start_date", { ascending: true }]]);
   });
 

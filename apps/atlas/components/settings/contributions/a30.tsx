@@ -8,6 +8,7 @@ import {
   listSettingValues,
   type OrgDomain,
 } from "@xos/data/settings";
+import { myStagedUploadStatus } from "@xos/data/staged-uploads";
 import { GeneralForm } from "@/components/settings/forms";
 import {
   AcceptLegalForm,
@@ -26,7 +27,7 @@ import {
   ProfilePanel,
 } from "@/components/settings/profile-panels";
 import { referenceOptions } from "@/components/settings/registry-section";
-import { SettingField } from "@/components/settings/setting-field";
+import { SettingsForm } from "@/components/settings/setting-field";
 import { InlineAlert } from "@/components/ui";
 import { defaultAccent } from "@/lib/brand/contrast";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
@@ -70,6 +71,17 @@ async function BrandPanel({ ctx }: SettingsPanelProps) {
   }
   const b = brand.data;
   const canEdit = ctx.capabilities.has("org.white_label.write");
+  // A new logo waits in upload-staging for its virus scan (1265); its uploader sees whether it is
+  // still being checked or was blocked. Null once published, and for everyone else.
+  const scans = canEdit
+    ? await Promise.all(
+        [b.logoLightPath, b.logoDarkPath, b.faviconPath, b.appIconPath].map(async (path) => {
+          if (path === null) return null;
+          const scan = await myStagedUploadStatus(ctx.viewer.db, "org-brand", path);
+          return scan.ok ? scan.data : null;
+        }),
+      )
+    : [null, null, null, null];
   return (
     <>
       <section aria-labelledby="brand-heading" className="flex flex-col gap-12">
@@ -106,24 +118,28 @@ async function BrandPanel({ ctx }: SettingsPanelProps) {
               slot="logoLight"
               label={t("settings.brand.logoLight")}
               current={b.logoLightPath}
+              scan={scans[0] ?? null}
             />
             <BrandAssetForm
               org={ctx.org.slug}
               slot="logoDark"
               label={t("settings.brand.logoDark")}
               current={b.logoDarkPath}
+              scan={scans[1] ?? null}
             />
             <BrandAssetForm
               org={ctx.org.slug}
               slot="favicon"
               label={t("settings.brand.favicon")}
               current={b.faviconPath}
+              scan={scans[2] ?? null}
             />
             <BrandAssetForm
               org={ctx.org.slug}
               slot="appIcon"
               label={t("settings.brand.appIcon")}
               current={b.appIconPath}
+              scan={scans[3] ?? null}
             />
           </div>
         </section>
@@ -341,8 +357,13 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
           <Heading id={`ws-${w.id}`}>
             {t("settings.workspaces.overrides", { name: w.name })}
           </Heading>
-          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-            {defs.map((def) => {
+          <SettingsForm
+            org={ctx.org.slug}
+            group="org"
+            label={t("settings.workspaces.overrides", { name: w.name })}
+            scopeKind="Workspace"
+            scopeId={w.id}
+            fields={defs.map((def) => {
               // The workspace value, else the org value, else the platform default (Section 4.5.6).
               const here = stored.data.find(
                 (v) => v.key === def.key && v.scopeKind === "Workspace" && v.scopeId === w.id,
@@ -359,40 +380,28 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
                     ? ""
                     : formText(def.default);
               const source = here ? "Workspace" : org ? "Organization" : "Default";
-              return (
-                <li key={def.key}>
-                  <SettingField
-                    key={`${initial}:${String(orgLocked)}`}
-                    org={ctx.org.slug}
-                    group="org"
-                    def={def}
-                    label={t(def.label)}
-                    help={def.help ? t(def.help) : null}
-                    options={
-                      def.type === "choice"
-                        ? def.choices.map((c) => ({
-                            value: c,
-                            label: t(choiceLabelKey(def.key, c)),
-                          }))
-                        : (refs.get(def.key) ?? [])
-                    }
-                    initial={initial}
-                    sourceText={
-                      orgLocked
-                        ? t("settings.source.organizationLocked")
-                        : t(`settings.source.workspace${source}`)
-                    }
-                    setHere={here !== undefined}
-                    locked={false}
-                    lockedByOrg={orgLocked}
-                    canEdit={ctx.capabilities.has(def.capability)}
-                    scopeKind="Workspace"
-                    scopeId={w.id}
-                  />
-                </li>
-              );
+              return {
+                def,
+                label: t(def.label),
+                help: def.help ? t(def.help) : null,
+                options:
+                  def.type === "choice"
+                    ? def.choices.map((c) => ({
+                        value: c,
+                        label: t(choiceLabelKey(def.key, c)),
+                      }))
+                    : (refs.get(def.key) ?? []),
+                initial,
+                sourceText: orgLocked
+                  ? t("settings.source.organizationLocked")
+                  : t(`settings.source.workspace${source}`),
+                setHere: here !== undefined,
+                locked: false,
+                lockedByOrg: orgLocked,
+                canEdit: ctx.capabilities.has(def.capability),
+              };
             })}
-          </ul>
+          />
         </section>
       ))}
     </>

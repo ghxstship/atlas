@@ -4,6 +4,7 @@
  * runs as the caller, so row level security and A03's RPCs decide; refusals come back as 422 with
  * the rule. Shapes follow the corrections in catalog/modules/procurement.ts (ADR 0023).
  */
+import type { XosClient } from "@xos/data";
 import {
   approvePurchaseOrder,
   decidePoChangeOrder,
@@ -16,7 +17,18 @@ import {
 import type { HandlerSet } from "../runtime/handler.ts";
 import { defineHandlers, ok } from "../runtime/handler.ts";
 import { rfqSealedResponseHandlers } from "./parts/rfq-sealed-responses.ts";
-import { from, handlersFor, rpc, run, tableResource, unwrap, type Row } from "./support/table.ts";
+import { mergeBy, sumMinor, withTransition } from "./support/enrich.ts";
+import {
+  from,
+  groupBy,
+  handlersFor,
+  keysOf,
+  rpc,
+  run,
+  tableResource,
+  unwrap,
+  type Row,
+} from "./support/table.ts";
 
 interface TransitionBody {
   readonly expected_state: string;
@@ -27,7 +39,53 @@ interface TransitionBody {
 const reasonOf = (body: TransitionBody, fallback: string) => body.reason ?? fallback;
 
 const rfqs = tableResource("rfqs");
-const purchaseOrders = tableResource("purchaseOrders");
+/**
+ * The invoiced and paid amounts of each order: the subtotals and applied payments (app.invoice_totals) of the
+ * distinct live invoices matched to it (app.invoice_matches), NULL-aware (A54-002).
+ */
+async function withInvoicing(db: XosClient, rows: Row[]): Promise<Row[]> {
+  const matches = await groupBy(
+    from(db, "invoice_matches")
+      .select("purchase_order_id, invoice_id")
+      .in("purchase_order_id", keysOf(rows, "id"))
+      .is("deleted_at", null),
+    "purchase_order_id",
+  );
+  const invoiceIds = [...new Set([...matches.values()].flat().map((m) => String(m["invoice_id"])))];
+  const totals =
+    invoiceIds.length === 0
+      ? new Map<string, Row[]>()
+      : await groupBy(
+          from(db, "invoice_totals")
+            .select("invoice_id, subtotal_minor, applied_minor")
+            .in("invoice_id", invoiceIds),
+          "invoice_id",
+        );
+  return mergeBy(rows, "id", matches, (group) => {
+    const invoices = [...new Set(group.map((m) => String(m["invoice_id"])))]
+      .map((id) => totals.get(id)?.[0])
+      .filter((t): t is Row => t !== undefined);
+    return {
+      invoiced_minor: sumMinor(invoices, "subtotal_minor"),
+      paid_minor: sumMinor(invoices, "applied_minor"),
+    };
+  });
+}
+
+const purchaseOrders = tableResource("purchaseOrders", {
+  derived: ["sent_at", "invoiced_minor", "paid_minor"],
+  // The issue date from the transition ledger, and the invoiced and paid amounts (A54-002).
+  enrich: async (rows, { db }) =>
+    withInvoicing(
+      db,
+      await withTransition(db, rows, {
+        table: "purchase_order_state_transitions",
+        fk: "purchase_order_id",
+        toState: "Sent",
+        at: "sent_at",
+      }),
+    ),
+});
 const poChangeOrders = tableResource("poChangeOrders");
 
 const poLines = tableResource("poLines", {

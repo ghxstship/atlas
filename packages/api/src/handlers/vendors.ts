@@ -11,10 +11,25 @@ import {
   type VendorState,
 } from "@xos/data/vendors";
 import { defineHandlers, ok } from "../runtime/handler.ts";
-import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
+import { mergeBy } from "./support/enrich.ts";
+import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
 
 const vendors = tableResource("vendors", {
-  derived: ["counterparty_type"],
+  derived: ["counterparty_type", "bank_account_last4"],
+  // The last four digits of the vendor's most recent bank account, through the masked view (A54-002).
+  enrich: async (rows, { db }) =>
+    mergeBy(
+      rows,
+      "id",
+      await groupBy(
+        from(db, "vendor_bank_accounts_masked")
+          .select("id, vendor_id, account_last4")
+          .in("vendor_id", keysOf(rows, "id"))
+          .order("id", { ascending: false }),
+        "vendor_id",
+      ),
+      ([latest]) => ({ bank_account_last4: latest?.["account_last4"] ?? null }),
+    ),
   extraColumns: ["counterparty_id"],
   // The counterparty type lives on app.counterparties (0301).
   toContract: async (row, { db }) => {

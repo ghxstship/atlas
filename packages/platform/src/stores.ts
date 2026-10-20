@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { BillingStore } from "./billing/webhook.ts";
 import type { InboundStore } from "./inbound/parse.ts";
-import type { ClaimedEmail, NotificationStore } from "./notifications/dispatch.ts";
+import type { ClaimedEmail, NotificationStore, Recipient } from "./notifications/dispatch.ts";
 import type { ClaimedWebhook, WebhookStore } from "./webhooks/dispatch.ts";
 
 /**
@@ -182,6 +182,27 @@ export function gatewayLink(
   return `${gatewayUrl.replace(/\/$/, "")}${path}`;
 }
 
+/**
+ * A person's name, language and time zone for rendering any channel: their own `locale.language` and
+ * `locale.time_zone` personal settings, else en-US and UTC.
+ */
+export async function recipientProfile(db: PlatformDb, personId: string): Promise<Recipient> {
+  const person = await db.selectOne("people", "full_name", { id: personId });
+  const setting = async (key: string) =>
+    optionalText(
+      (await db.selectOne("personal_setting_values", "value_text", {
+        person_id: personId,
+        setting_key: key,
+      })) ?? undefined,
+      "value_text",
+    );
+  return {
+    name: optionalText(person ?? undefined, "full_name") ?? "",
+    locale: (await setting("locale.language")) ?? "en-US",
+    timeZone: (await setting("locale.time_zone")) ?? "UTC",
+  };
+}
+
 /** NotificationStore over the 0520 RPCs and identity reads. */
 export function notificationStore(
   db: PlatformDb,
@@ -217,10 +238,7 @@ export function notificationStore(
         from: `${name} <${options.fromAddress}>`,
       };
     },
-    async recipient(personId) {
-      const person = (await db.selectOne("people", "full_name", { id: personId })) ?? undefined;
-      return { name: optionalText(person, "full_name") ?? "", locale: "en-US", timeZone: "UTC" };
-    },
+    recipient: (personId) => recipientProfile(db, personId),
     async linkFor(claim) {
       const gateway = gatewayLink(claim, options.gatewayUrl);
       if (gateway !== null) return gateway;

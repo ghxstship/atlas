@@ -7,6 +7,7 @@ import { createApiApp } from "../src/app.ts";
 import {
   apiKeyTokenScopes,
   clientIp,
+  createNetworkCheck,
   createSupabaseAuthenticator,
   jwtClaims,
   negotiateLocale,
@@ -168,11 +169,33 @@ describe("bearer session tokens", () => {
 });
 
 describe("org IP allow-list (migration 1201)", () => {
+  // A69-009: an admission from outside an enforced list came from a break-glass session, so it is
+  // asked again on every request and ends when the session does; ordinary answers are cached.
+  it("never caches an admission that only break-glass allowed", async () => {
+    let answer = { enforced: true, allowed: true, covered: false };
+    let calls = 0;
+    const db = {
+      rpc: async () => {
+        calls += 1;
+        return { data: [answer], error: null };
+      },
+    } as unknown as Parameters<ReturnType<typeof createNetworkCheck>>[0];
+    const check = createNetworkCheck(30_000, () => 0);
+    expect(await check(db, "u", "o", "198.51.100.7")).toBe(true);
+    answer = { enforced: true, allowed: false, covered: false };
+    expect(await check(db, "u", "o", "198.51.100.7")).toBe(false);
+    expect(calls).toBe(2);
+    answer = { enforced: true, allowed: true, covered: true };
+    expect(await check(db, "u", "o", "203.0.113.40")).toBe(true);
+    expect(await check(db, "u", "o", "203.0.113.40")).toBe(true);
+    expect(calls).toBe(3);
+  });
+
   it("admits an address inside the list and refuses one outside it, for sessions and API keys", async () => {
     const { authenticate, calls } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
     const inside = await resolve(authenticate, {
       authorization: `Bearer ${VALID}`,
-      "x-forwarded-for": "203.0.113.40, 10.0.0.1",
+      "x-forwarded-for": "10.0.0.1, 203.0.113.40",
     });
     expect(inside?.org?.id).toBe(ORG_A.id);
     expect(calls.some((c) => c.startsWith("/rest/v1/rpc/network_access"))).toBe(true);
@@ -201,12 +224,48 @@ describe("org IP allow-list (migration 1201)", () => {
     expect(context?.org?.id).toBe(ORG_A.id);
   });
 
-  it("reads the caller's address from the proxy headers", () => {
-    expect(clientIp(new Headers({ "x-forwarded-for": " 203.0.113.40 , 10.0.0.1" }))).toBe(
-      "203.0.113.40",
+  it("reads the address the trusted proxy appended, never the client's first entry (A69-003)", () => {
+    expect(clientIp(new Headers({ "x-forwarded-for": " 203.0.113.40 , 198.51.100.9" }))).toBe(
+      "198.51.100.9",
     );
+    expect(clientIp(new Headers({ "x-forwarded-for": "203.0.113.41" }))).toBe("203.0.113.41");
     expect(clientIp(new Headers({ "x-real-ip": "198.51.100.7" }))).toBe("198.51.100.7");
     expect(clientIp(new Headers())).toBeNull();
+    const chain = new Headers({ "x-forwarded-for": "203.0.113.40, 198.51.100.10, 10.0.0.3" });
+    expect(clientIp(chain, 1)).toBe("198.51.100.10");
+    expect(clientIp(new Headers({ "x-forwarded-for": "198.51.100.11" }), 1)).toBeNull();
+  });
+
+  it("refuses an outside address that names an allowed one first (A69-003)", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
+    await expect(
+      resolve(authenticate, {
+        authorization: `Bearer ${VALID}`,
+        "x-forwarded-for": "203.0.113.40, 198.51.100.7",
+      }),
+    ).rejects.toMatchObject({ body: { status: 401 } });
+    await expect(
+      resolve(authenticate, {
+        authorization: "Bearer xos_live_valid",
+        "x-forwarded-for": "203.0.113.40, 198.51.100.7",
+      }),
+    ).rejects.toMatchObject({ body: { status: 401 } });
+  });
+
+  it("checks every org's list when the request is bound to none (A69-010)", async () => {
+    const { authenticate, calls } = fakeSupabase([ORG_A, ORG_B], { allowedIps: ["203.0.113.40"] });
+    const unbound = resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-forwarded-for": "198.51.100.7",
+    });
+    await expect(unbound).rejects.toMatchObject({ body: { status: 401 } });
+    const inside = await resolve(authenticate, {
+      authorization: `Bearer ${VALID}`,
+      "x-forwarded-for": "203.0.113.40",
+    });
+    expect(inside?.org).toBeNull();
+    const checks = calls.filter((c) => c.startsWith("/rest/v1/rpc/network_access"));
+    expect(checks.length).toBeGreaterThanOrEqual(2);
   });
 });
 
@@ -294,6 +353,62 @@ describe("the Atlas session cookie", () => {
       headers: { authorization: "Bearer xos_live_abcdef" },
     });
     expect(res.status).toBe(401);
+  });
+});
+
+describe("the API host (RRR-119)", () => {
+  const atlas = "https://atlas.test/api/v1/me";
+  const api = "https://api.atlas.test/v1/me";
+  const at = (
+    authenticate: ReturnType<typeof fakeSupabase>["authenticate"],
+    url: string,
+    headers: Record<string, string>,
+    method = "GET",
+  ) => authenticate(new Request(url, { method, headers }), "req-1");
+  const summary = (c: RequestContext | null) =>
+    c && { user: c.user.id, org: c.org?.id, credential: c.credential, scopes: c.scopes };
+
+  it("decides session tokens and API keys the same on both hosts", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    for (const headers of [
+      { authorization: `Bearer ${VALID}` },
+      { authorization: "Bearer xos_live_valid" },
+      { authorization: "Bearer not-a-token" },
+      {},
+    ]) {
+      expect(summary(await at(authenticate, api, headers))).toEqual(
+        summary(await at(authenticate, atlas, headers)),
+      );
+    }
+  });
+
+  it("applies the org IP allow-list the same on both hosts", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
+    for (const url of [atlas, api]) {
+      const allowed = await at(authenticate, url, {
+        authorization: "Bearer xos_live_valid",
+        "x-forwarded-for": "203.0.113.40",
+      });
+      expect(allowed?.org?.id, url).toBe(ORG_A.id);
+      await expect(
+        at(authenticate, url, {
+          authorization: "Bearer xos_live_valid",
+          "x-forwarded-for": "198.51.100.7",
+        }),
+      ).rejects.toThrow(/allowed networks/);
+    }
+  });
+
+  it("refuses the Atlas cookie on a state-changing request from the API host's origin", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    await expect(
+      at(
+        authenticate,
+        api,
+        { cookie: sessionCookie(VALID), origin: "https://api.atlas.test" },
+        "POST",
+      ),
+    ).rejects.toThrow(/cross-site/);
   });
 });
 

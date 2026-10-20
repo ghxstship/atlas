@@ -9,6 +9,7 @@ import {
   listMyBlocks,
   networkAccess,
 } from "@xos/data/access-controls";
+import { addCalendarDays } from "@xos/data/calendar";
 import { listSettingValues } from "@xos/data/settings";
 import { getLocale } from "next-intl/server";
 import { headers } from "next/headers";
@@ -29,6 +30,7 @@ import {
 import { InlineAlert } from "@/components/ui";
 import { clientIp } from "@/lib/auth/legal";
 import { planHasFeature } from "@/lib/settings/plan";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
@@ -310,9 +312,11 @@ async function AccessReviewsPanel({ ctx }: SettingsPanelProps) {
     settings.data.find(
       (v) => v.key === "access_reviews.remove_unreviewed" && v.scopeKind === "Organization",
     )?.value === true;
-  const today = new Date();
-  const due = new Date(today.getTime() + 14 * 86_400_000).toISOString().slice(0, 10);
-  const quarter = Math.floor(today.getUTCMonth() / 3) + 1;
+  // The suggested due date and quarter follow the org's calendar, as review due dates do in the
+  // database (1306); the UTC date is a day ahead every evening in the Americas (A71).
+  const today = await orgToday(ctx);
+  const due = addCalendarDays(today, 14);
+  const quarter = Math.floor((Number(today.slice(5, 7)) - 1) / 3) + 1;
   const list = items?.ok ? items.data : [];
   const decided = list.filter((i) => i.decision !== null).length;
   const flagged = list.filter((i) => i.decision === null && i.flaggedAt !== null).length;
@@ -395,7 +399,7 @@ async function AccessReviewsPanel({ ctx }: SettingsPanelProps) {
       ) : canManage ? (
         <OpenReviewForm
           org={ctx.org.slug}
-          defaultName={t(`${P}.reviews.defaultName`, { quarter, year: today.getUTCFullYear() })}
+          defaultName={t(`${P}.reviews.defaultName`, { quarter, year: Number(today.slice(0, 4)) })}
           defaultDue={due}
           defaultAutoRemove={removeUnreviewed}
         />

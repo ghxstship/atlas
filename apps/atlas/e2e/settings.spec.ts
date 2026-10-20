@@ -59,12 +59,26 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
   }
 
   // Journey 63: lock the time zone at org level.
+  // A59-018: the page has one form and no Save button until something changes; the save bar
+  // counts the changes, Discard puts them back, and Save sends them together.
   await page.goto(`/${slug}/settings/localization`);
-  const zone = page.locator("form").filter({ has: page.getByLabel("Time zone") });
+  const form = page.getByRole("form", { name: "Settings on this page" });
+  const zone = form.locator("li").filter({ has: page.getByLabel("Time zone") });
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  await zone.getByLabel("Time zone").selectOption("Europe/London");
+  await expect(form.getByText("1 unsaved change")).toBeVisible();
+  await form.getByRole("button", { name: "Discard" }).click();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
   await zone.getByLabel("Time zone").selectOption("America/New_York");
-  await zone.getByLabel(/Lock this value/).check();
-  await zone.getByRole("button", { name: "Save" }).click();
+  await zone.getByRole("button", { name: "Lock value" }).click();
+  await expect(zone.getByRole("button", { name: "Lock value" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expectAccessible(page);
+  await form.getByRole("button", { name: "Save", exact: true }).click();
   await expect(zone.getByText(/Set and locked for the organization/)).toBeVisible();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
 
   // Personal preferences show the locked value as locked for the person.
   await page.goto(`/${slug}/me/preferences`);

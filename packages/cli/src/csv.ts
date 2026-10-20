@@ -47,14 +47,34 @@ export function parseCsv(text: string): Row[] {
       );
     }
     // An empty cell is null: unknown, never zero (Section 3.11).
-    return Object.fromEntries(header.map((h, i) => [h, r[i] === "" ? null : r[i]]));
+    return Object.fromEntries(
+      header.map((h, i) => {
+        const cell = r[i] as string;
+        return [h, cell === "" ? null : restoreFormulaText(cell)];
+      }),
+    );
   });
 }
 
+const FORMULA_START = /^[=+\-@\t\r]/;
+const PLAIN_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+
+/**
+ * A text value a spreadsheet would run as a formula (it starts with =, +, -, @, a tab or a carriage
+ * return) is written with a leading apostrophe, so an export opened in Excel never runs record data
+ * (A69-005, CWE-1236). Plain numbers stay numbers. `parseCsv` removes the apostrophe again, so an
+ * export imports back unchanged.
+ */
 function csvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
+  const raw = typeof value === "object" ? JSON.stringify(value) : String(value);
+  const text = FORMULA_START.test(raw) && !PLAIN_NUMBER.test(raw) ? `'${raw}` : raw;
   return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/** Removes the apostrophe `csvCell` put before a formula character. */
+function restoreFormulaText(cell: string): string {
+  return cell.startsWith("'") && FORMULA_START.test(cell.slice(1)) ? cell.slice(1) : cell;
 }
 
 export function formatCsv(rows: readonly Row[], columns?: readonly string[]): string {

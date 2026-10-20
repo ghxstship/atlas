@@ -11,7 +11,7 @@ order: 9
 
 ```bash
 export XOS_API_KEY="xos_live_..."
-xos auth login --base-url https://atlas.example.com/api/v1 --profile northwind
+xos auth login --base-url https://api.ghxstship.tech/v1 --profile northwind
 xos auth status
 ```
 

@@ -51,10 +51,13 @@ type DockView = (typeof DOCK_VIEWS)[number];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const DAY_MS = 86_400_000;
 
-/** Monday of the week to show (`week=YYYY-MM-DD`, default this week), as a UTC day number. */
-function weekStart(search: SearchParams, now: Date = new Date()): number {
+/**
+ * Monday of the week to show (`week=YYYY-MM-DD`, default the week of `today`, the scope's date on
+ * the project's or org's calendar), as a day number.
+ */
+function weekStart(search: SearchParams, today: string): number {
   const asked = param(search, "week") ?? "";
-  const base = /^\d{4}-\d{2}-\d{2}$/.test(asked) ? Date.parse(`${asked}T00:00:00Z`) : now.getTime();
+  const base = Date.parse(`${/^\d{4}-\d{2}-\d{2}$/.test(asked) ? asked : today}T00:00:00Z`);
   const day = Math.floor(base / DAY_MS);
   const dow = (new Date(day * DAY_MS).getUTCDay() + 6) % 7;
   return day - dow;
@@ -84,8 +87,8 @@ export async function DockSection({
   const projects = scope.project ? [scope.project] : scope.projects;
   const venueIds = [...new Set(projects.flatMap((p) => (p.venueId ? [p.venueId] : [])))];
   const timeZone = scope.project?.timeZone ?? projects[0]?.timeZone ?? "UTC";
-  const monday = weekStart(search);
-  const cal = calendarMonth(search);
+  const monday = weekStart(search, scope.today);
+  const cal = calendarMonth(search, scope.today);
   const window =
     view === "calendar"
       ? { from: `${cal.previous}-20T00:00:00Z`, to: `${cal.next}-10T00:00:00Z` }

@@ -22,12 +22,21 @@ import { requireOrg } from "../runtime/context.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
-import { from, handlersFor, run, tableResource, unwrap } from "./support/table.ts";
+import { mergeBy } from "./support/enrich.ts";
+import { from, groupBy, handlersFor, keysOf, run, tableResource, unwrap } from "./support/table.ts";
 import type { TableOptions } from "./support/table.ts";
 
 type Department = Components["CanonDepartment"];
 
-const DEPARTMENT_COLUMNS = ["dept_code", "department", "source", "note"] as const;
+const DEPARTMENT_COLUMNS = [
+  "dept_code",
+  "department",
+  "source",
+  "note",
+  "executive_lead",
+  "core_function",
+  "scope",
+] as const;
 
 /** A read-only canon resource: canon tables never soft-delete. */
 const canon = (op: string, options: TableOptions = {}) =>
@@ -88,15 +97,63 @@ export const handlers = defineHandlers("Canon", {
   ...canon("canonRecordStates"),
   ...canon("canonRoles"),
   ...canon("canonCounterpartyTypes"),
-  ...canon("canonGlAccounts"),
+  // The normal balance is stored once per account type (xpms.dim_gl_account_type).
+  ...canon("canonGlAccounts", {
+    derived: ["normal_balance"],
+    extraColumns: ["account_type"],
+    enrich: async (rows, { db }) =>
+      mergeBy(
+        rows,
+        "account_type",
+        await groupBy(
+          from(db, "dim_gl_account_type", "xpms")
+            .select("account_type, normal_balance")
+            .in("account_type", keysOf(rows, "account_type")),
+          "account_type",
+        ),
+        ([type]) => ({ normal_balance: type?.["normal_balance"] ?? null }),
+      ),
+  }),
   ...canon("canonCostCenterTemplates"),
-  ...canon("canonCategoryGl"),
+  // The default GL account is resolved by xpms.v_category_gl.
+  ...canon("canonCategoryGl", {
+    derived: ["account_code"],
+    enrich: async (rows, { db }) =>
+      mergeBy(
+        rows,
+        "cat_urid",
+        await groupBy(
+          from(db, "v_category_gl", "xpms")
+            .select("cat_urid, account_code")
+            .in("cat_urid", keysOf(rows, "cat_urid")),
+          "cat_urid",
+        ),
+        ([gl]) => ({ account_code: gl?.["account_code"] ?? null }),
+      ),
+  }),
   ...canon("canonUnitAliases"),
   ...canon("canonUnitDimensions"),
   ...canon("canonUrnNamespaces"),
   ...canon("canonLocales"),
   ...canon("canonStdEmergencyCodes"),
   ...canon("canonStdDocumentLibrary"),
+  // An emergency protocol with its numbered steps (xpms.emergency_protocol_step).
+  ...canon("canonStdEmergencyProtocols", {
+    derived: ["steps"],
+    enrich: async (rows, { db }) =>
+      mergeBy(
+        rows,
+        "record_key",
+        await groupBy(
+          from(db, "emergency_protocol_step", "xpms")
+            .select("record_key, step_no, body")
+            .in("record_key", keysOf(rows, "record_key"))
+            .order("step_no", { ascending: true }),
+          "record_key",
+        ),
+        (steps) => ({ steps: steps.map((st) => ({ step_no: st["step_no"], body: st["body"] })) }),
+      ),
+  }),
   ...canon("canonStdEnumerations"),
   ...canon("canonStdLaborRateCards"),
   ...canon("canonStdRadioChannels"),

@@ -12,7 +12,8 @@ select pg_temp.as_user('bob');
 with c as (insert into app.integration_connections (org_id, provider_code, display_name) values (pg_temp.id('org_a'), 'ticketing_csv', 'Box Office Exports') returning id) insert into world select 'csv', id from c;
 with c as (insert into app.integration_connections (org_id, provider_code, display_name) values (pg_temp.id('org_a'), 'slack', 'Slack') returning id) insert into world select 'slack', id from c;
 select app.transition_integration_connection(pg_temp.id('csv'), 'Pending', 'Connected', 'Ready for exports.');
-insert into world values ('run', app.enqueue_integration_sync(pg_temp.id('csv'), 'Attendance Import', 'Inbound', 'box-office-2027-06-05', pg_temp.id('prj_a'), 3::smallint, null, null, 'imports/box-office.csv'));
+insert into world values ('run', app.enqueue_integration_sync(pg_temp.id('csv'), 'Attendance Import', 'Inbound', 'box-office-2027-06-05', pg_temp.id('prj_a'), 3::smallint, null, null,
+  'imports/' || pg_temp.id('bob') || '/0193f2c4-0000-7000-8000-00000000b0c5.csv'));
 
 -- Runner import -------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();

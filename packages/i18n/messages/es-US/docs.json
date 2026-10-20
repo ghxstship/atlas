@@ -75,14 +75,28 @@
   },
   "help": {
     "title": "Centro de ayuda",
-    "sentence": "Cómo funciona Atlas, página por página. Son los artículos que muestra el panel de ayuda dentro de la aplicación.",
+    "sentence": "Cómo funcionan Atlas, Gateway y Compass, página por página. Son los artículos que muestra el panel de ayuda de cada aplicación.",
     "searchLabel": "Buscar en la ayuda",
     "searchButton": "Buscar",
     "results": "{count} artículos coinciden con {query}.",
     "noResults": "Ningún artículo coincide con {query}. Prueba una palabra más corta o explora los temas de abajo.",
     "whatsNew": "Novedades",
     "related": "Abrir el artículo relacionado",
-    "back": "Todos los artículos de ayuda"
+    "back": "Todos los artículos de ayuda",
+    "shells": {
+      "atlas": {
+        "title": "Atlas",
+        "sentence": "Para los miembros de una organización, página por página."
+      },
+      "gateway": {
+        "title": "Gateway",
+        "sentence": "Para las personas y empresas que contratan las organizaciones: oportunidades, contrataciones, pagos y configuración."
+      },
+      "compass": {
+        "title": "Compass",
+        "sentence": "La aplicación de campo para los miembros y todas las personas que contratan, pantalla por pantalla."
+      }
+    }
   },
   "notFound": {
     "title": "Esta página no existe",

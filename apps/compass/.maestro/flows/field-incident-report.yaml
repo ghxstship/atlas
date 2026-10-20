@@ -2,6 +2,9 @@ appId: pro.ghxstship.compass
 # Journeys 16 and 54, report an incident in three steps with photos and a voice note, filed once.
 # Named after its file: config.yaml orders flows by name.
 name: field-incident-report
+# Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
+tags:
+  - airplane-mode
 ---
 # Offline (journey 54): the three steps, the photos, the voice notes and the submit all happen with no
 # server. Android goes into airplane mode; on iOS the network helper (scripts/maestro-network.ts, started

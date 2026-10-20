@@ -1,5 +1,5 @@
 appId: pro.ghxstship.compass
-# Vendor sees purchase orders and deliveries, never internal tools.
+# Vendor reaches purchase orders and deliveries in Gateway, never internal tools.
 # Named after its file: config.yaml orders flows by name.
 name: vendor-external-scan
 ---
@@ -9,15 +9,11 @@ name: vendor-external-scan
       EMAIL: vendor@example.com
 - tapOn:
     id: "tab-more"
+# Purchase orders, deliveries and submittals open in Gateway, named on one row (finding A59-026).
 - assertVisible:
+    id: "more-open-gateway"
+- assertVisible: ".*Purchase Orders.*Deliveries.*Submittals.*"
+- assertNotVisible:
     id: "more-purchase-orders"
-- assertVisible:
-    id: "more-deliveries"
-- assertVisible:
-    id: "more-submittals"
 - assertNotVisible:
     id: "more-inspections"
-- tapOn:
-    id: "more-purchase-orders"
-- assertVisible:
-    id: "pending-open"

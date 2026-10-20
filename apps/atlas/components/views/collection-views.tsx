@@ -72,6 +72,9 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
   const [views, setViews] = useState<readonly SavedView[] | null>(null);
   const [teams, setTeams] = useState<readonly Team[]>([]);
   const [error, setError] = useState<string | null>(null);
+  // A failed load shows in the menu, which retries when it opens. It never adds a line to the page
+  // header after the page has painted: that pushed the whole collection down (CLS, gate 10).
+  const [loadFailed, setLoadFailed] = useState(false);
   const [status, setStatus] = useState("");
   const [dialog, setDialog] = useState<Dialogs>(null);
   const [applied, setApplied] = useState<string | null>(null);
@@ -94,28 +97,41 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
     go(next.toString());
   };
 
-  const showError = useCallback(
-    (code: ViewsError | "loadFailed") => setError(t(`errors.${code}`)),
-    [t],
-  );
+  const showError = useCallback((code: ViewsError) => setError(t(`errors.${code}`)), [t]);
+
+  const failLoad = useCallback(() => {
+    setLoadFailed(true);
+    setStatus(t("errors.loadFailed"));
+  }, [t]);
 
   const accept = useCallback(
     (result: Awaited<ReturnType<typeof loadViewsAction>>) => {
       if (!result.ok) {
-        showError("loadFailed");
+        failLoad();
         return null;
       }
+      setLoadFailed(false);
       setViews(result.data.views);
       setTeams(result.data.teams);
       return result.data.views;
     },
-    [showError],
+    [failLoad],
   );
 
   const reload = useCallback(async () => {
     if (!collection || !org) return null;
-    return accept(await loadViewsAction(org, collection));
-  }, [collection, org, accept]);
+    return loadViewsAction(org, collection).then(accept, () => {
+      failLoad();
+      return null;
+    });
+  }, [collection, org, accept, failLoad]);
+
+  /** Opening the menu after a failed load tries again, as the failure message says. */
+  const retryLoad = () => {
+    if (!loadFailed) return;
+    setLoadFailed(false);
+    void reload();
+  };
 
   // Load once per page; open the person's default when the URL carries no collection state.
   useEffect(() => {
@@ -134,13 +150,13 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
         }
       },
       () => {
-        if (live) showError("loadFailed");
+        if (live) failLoad();
       },
     );
     return () => {
       live = false;
     };
-  }, [collection, org, accept, go, offered, showError]);
+  }, [collection, org, accept, go, offered, failLoad]);
 
   const here = currentQuery(new URLSearchParams(search.toString()), value, offered);
   const active = views?.find((v) => canonicalQuery(viewToQuery(v, offered)) === here) ?? null;
@@ -169,8 +185,9 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
   };
 
   const items: MenuItem[] = [];
+  if (loadFailed) items.push({ heading: t("errors.loadFailed") });
   if (views === null) {
-    items.push({ heading: t("menu.loading") });
+    if (!loadFailed) items.push({ heading: t("menu.loading") });
   } else if (views.length === 0) {
     items.push({ heading: t("menu.empty") });
   } else {
@@ -270,6 +287,7 @@ export function CollectionViews({ label, value, options, onChange }: CollectionV
           label={active ? active.name : t("menu.label")}
           icon="Bookmark"
           items={items}
+          onOpen={retryLoad}
         />
       ) : null}
       <p role="status" className="sr-only">

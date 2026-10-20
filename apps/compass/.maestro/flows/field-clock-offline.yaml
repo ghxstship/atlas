@@ -2,6 +2,10 @@ appId: pro.ghxstship.compass
 # Clock in during airplane mode, then the queue drains on reconnect.
 # Named after its file: config.yaml orders flows by name.
 name: field-clock-offline
+# Tagged for runs that can take the device or the server offline: airplane mode on Android, the network
+# helper on iOS (apps/compass/scripts/maestro-network.ts). A run without either excludes the tag.
+tags:
+  - airplane-mode
 ---
 # Android: Maestro toggles airplane mode, so the device itself goes offline. iOS: Maestro cannot, and the
 # simulator shares the Mac's network, so the server goes away instead: the network helper

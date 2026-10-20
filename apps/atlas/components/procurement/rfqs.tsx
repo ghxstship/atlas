@@ -44,6 +44,7 @@ import {
   type SearchParams,
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { ResponseForm } from "./forms";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board"];
@@ -75,7 +76,7 @@ export async function RfqsSection({
   search: SearchParams;
   projectId?: string;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, all, projects, vendors, rules] = await Promise.all([
     getCopy("procurement"),
