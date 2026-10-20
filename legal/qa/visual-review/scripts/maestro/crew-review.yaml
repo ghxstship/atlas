@@ -1,0 +1,88 @@
+appId: pro.ghxstship.compass
+name: A59 review, external crew (crew@example.com) through their Compass, light then dark
+---
+- runFlow:
+    file: ../../../../../apps/compass/.maestro/subflows/sign-in.yaml
+    env:
+      EMAIL: crew@example.com
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Light
+- runFlow:
+    file: tabs.yaml
+    env:
+      P: crew-light
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: timesheets
+      SHOT: crew-light-timesheets
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: onboarding
+      SHOT: crew-light-onboarding
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: per-diem
+      SHOT: crew-light-per-diem
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: travel-and-lodging
+      SHOT: crew-light-travel
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: run-of-show
+      SHOT: crew-light-run-of-show
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: workforce
+      SHOT: crew-light-workforce
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: offline-queue
+      SHOT: crew-light-offline-queue
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: profile
+      SHOT: crew-light-profile
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: settings
+      SHOT: crew-light-settings
+- tapOn:
+    id: "settings-delete-account"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: crew-light-account-delete
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Dark
+- runFlow:
+    file: tabs.yaml
+    env:
+      P: crew-dark
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: timesheets
+      SHOT: crew-dark-timesheets
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: onboarding
+      SHOT: crew-dark-onboarding
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Device

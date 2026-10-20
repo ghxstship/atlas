@@ -439,6 +439,7 @@ function Card({
   return (
     <section
       aria-label={label}
+      data-help-card=""
       className={`${CARD_POSITION} flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu forced-colors:border`}
     >
       {children}

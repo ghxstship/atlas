@@ -37,7 +37,8 @@ require_local_docker
 
 field() { grep "^$1=" "$MANIFEST" | head -1 | cut -d= -f2-; }
 IMAGE="$(field image)"
-[[ "$IMAGE" =~ ^public\.ecr\.aws/supabase/postgres:[0-9.]+$ ]] || die "Manifest image ${IMAGE} is not a Supabase Postgres image."
+# The CLI pulls Supabase Postgres from public.ecr.aws, GitHub's registry or Docker Hub, depending on where it runs.
+[[ "$IMAGE" =~ ^((public\.ecr\.aws|ghcr\.io)/)?supabase/postgres:[0-9.]+$ ]] || die "Manifest image ${IMAGE} is not a Supabase Postgres image."
 
 FAILURES=0
 fail() {

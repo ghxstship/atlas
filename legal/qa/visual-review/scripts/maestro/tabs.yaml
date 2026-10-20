@@ -1,0 +1,40 @@
+appId: pro.ghxstship.compass
+---
+# Captures the tab roots as ${P}-<tab>: Today, Schedule, Scan, Inbox, Crew (when shown) and More.
+- runFlow: to-tabs.yaml
+- tapOn:
+    id: "tab-today"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: ${P}-today
+- scroll
+- takeScreenshot: ${P}-today-scrolled
+- tapOn:
+    id: "tab-schedule"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: ${P}-schedule
+- tapOn:
+    id: "tab-scan"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: ${P}-scan
+- tapOn:
+    id: "tab-inbox"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: ${P}-inbox
+- runFlow:
+    when:
+      visible:
+        id: "tab-crew"
+    commands:
+      - tapOn:
+          id: "tab-crew"
+      - waitForAnimationToEnd:
+          timeout: 4000
+      - takeScreenshot: ${P}-crew
+- runFlow: to-more.yaml
+- takeScreenshot: ${P}-more
+- scroll
+- takeScreenshot: ${P}-more-scrolled

@@ -1,0 +1,11 @@
+/*
+ * Applied only while a core-screen baseline is captured (Section 18, gate 9). It hides what is not
+ * part of the screen: the next dev indicator and the text caret.
+ */
+nextjs-portal {
+  visibility: hidden !important;
+}
+
+* {
+  caret-color: transparent !important;
+}

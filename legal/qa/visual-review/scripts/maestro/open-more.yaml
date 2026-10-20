@@ -1,0 +1,23 @@
+appId: pro.ghxstship.compass
+---
+# Opens the More item ITEM (its testID without the more- prefix) and captures it as SHOT.
+- runFlow: to-more.yaml
+# The More list keeps its scroll position, so look upward first, then downward.
+- scrollUntilVisible:
+    element:
+      id: "more-${ITEM}"
+    direction: UP
+    centerElement: true
+    optional: true
+- scrollUntilVisible:
+    element:
+      id: "more-${ITEM}"
+    direction: DOWN
+    centerElement: true
+    optional: true
+- tapOn:
+    id: "more-${ITEM}"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: ${SHOT}
