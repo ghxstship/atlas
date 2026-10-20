@@ -12711,6 +12711,7 @@ var settings_default$1 = {
     assetCurrent: "Current file: {name}",
     assetNone: "No file yet. The platform mark is used.",
     assetHelp: "PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
+    assetScanning: "Being checked for viruses. It replaces the current mark once the check passes.",
     upload: "Upload",
   },
   domains: {
@@ -28811,6 +28812,8 @@ var settings_default = {
     assetCurrent: "Archivo actual: {name}",
     assetNone: "Aún no hay archivo. Se usa la marca de la plataforma.",
     assetHelp: "PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
+    assetScanning:
+      "Se está revisando en busca de virus. Reemplaza la marca actual cuando pase la revisión.",
     upload: "Subir",
   },
   domains: {
