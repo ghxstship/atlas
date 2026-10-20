@@ -78,6 +78,7 @@ The owner was given every open decision blocking the release, each with its opti
     - The CSMIA26 template rows stay private (RRR-67).
     - Bible inconsistencies (RRR-66) remain owner rulings, one by one.
 27. **Spanish:** a native reviewer is hired (RRR-68). A project gate is "compuerta" ("puerta" stays for physical doors).
+    - _Amended 2026-10-20:_ no reviewer is hired. Google Cloud Translation reviews es-US and produces every other translation, and a project gate stays "compuerta" (ADR 0037, RRR-118).
 28. **Legacy .xls import:** dropped. .xlsx and .csv remain.
 
 ### Human testing and launch

@@ -343,6 +343,80 @@ Approaches considered: running the stack in a Linux job and tunnelling to it fro
 **Android on `ubuntu-24.04`.** The first run never reached Maestro. The runner user could not open `/dev/kvm`, so the emulator ran with `-accel off`. It took 13 minutes to boot, and then `adb` lost it (`Broken pipe`) while the action turned animations off. The job now adds the udev rule GitHub documents for hardware acceleration. The release APK is built for x86_64 only, since the emulator is x86_64; the four-ABI build took 23 minutes. The CI build also allows cleartext HTTP, because release builds refuse `http://10.0.2.2:55421`; store builds keep Android's default.
 
 **Both.** `apps/compass/scripts/maestro-ci-env.sh` gives the flows what they read: `SUPABASE_URL` and `SUPABASE_ANON_KEY` for their helper scripts, and a kiosk registered as the Demo Admin with the Demo Field Tech's kiosk PIN, for `supervisor-kiosk`. `apps/compass/scripts/maestro-ci.sh` installs Maestro at `MAESTRO_VERSION` and runs the flows with a JUnit report, uploaded as the job's artifact. iOS skips `field-clock-offline` (tag `airplane-mode`), because Maestro sets airplane mode only on Android.
+## 9. Workflow `.github/workflows/translate.yml` (manual, ADR 0037)
+
+This workflow runs the machine translation pipeline with Google Cloud Translation when the owner starts it. It uploads the changed files as a patch to apply and review locally.
+
+- **No stored key.** It authenticates through Workload Identity Federation. First set up the provider, the service account and the four repository variables (`infra/runbooks/production.md`, Machine translation, step 6).
+- **One new action.** It needs `google-github-actions/auth` v3.0.0, pinned by SHA. That is an ADR 0001 amendment, recorded in ADR 0037. The workflow is in the repository since 2026-10-20 (the orchestrator checked that the SHA is the v3.0.0 tag).
+- **The offline check needs nothing here.** It already runs in the `checks` job through `pnpm verify`.
+
+```yaml
+name: Translate
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "translate (missing and stale), review (es-US), or all (glossary, translate, review)"
+        type: choice
+        options: [translate, review, all]
+        default: translate
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  translate:
+    name: Machine translation (${{ inputs.command }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: google
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_TRANSLATE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+      - name: Translate
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_TRANSLATE_GLOSSARY_BUCKET: ${{ vars.GOOGLE_TRANSLATE_GLOSSARY_BUCKET }}
+          GOOGLE_OAUTH_ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
+          COMMAND: ${{ inputs.command }}
+        run: |
+          case "$COMMAND" in
+            translate) pnpm --filter @xos/i18n translate ;;
+            review) pnpm --filter @xos/i18n translate:review ;;
+            all) pnpm --filter @xos/i18n translate:all ;;
+          esac
+      - name: Offline check on the result
+        run: pnpm --filter @xos/i18n test
+      - name: Changes as a patch
+        if: always()
+        run: git add -A && git diff --cached --binary > translation.patch
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: translation-${{ inputs.command }}
+          path: translation.patch
+```
+
+To apply the result:
+
+1. Download the artifact.
+2. Run `git apply translation.patch` on a branch.
+3. Read `docs/i18n/review/es-US/README.md`.
+4. Follow step 5 of the runbook section.
 
 ## Frequency and regions
 

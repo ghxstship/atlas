@@ -2045,7 +2045,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Cada escaneo en una zona se registra con su resultado: permitido o denegado, y por qué. Los escaneos sin conexión se vuelven a verificar en el servidor al reconectar, y se conservan ambas respuestas.",
+            v: "Cada escaneo en una zona se registra con su resultado: permitido o denegado, y por qué. Los escaneos hechos sin conexión en Compass se vuelven a verificar en el servidor cuando el dispositivo se reconecta, y se conservan ambas respuestas.",
           },
         ],
       },
