@@ -64,7 +64,7 @@ begin
 
   perform app.transition_integration_connection(c_csv, 'Pending', 'Connected', 'Ready for box office exports.');
   v_run := app.enqueue_integration_sync(c_csv, 'Attendance Import', 'Inbound', 'demo-box-office-opening', c_project, 3::smallint,
-    null, null, 'integration-imports/demo/opening-weekend.csv');
+    null, null, 'imports/' || c_admin || '/01920000-0000-7000-8000-000000219001.csv');
 
   -- The runner's part, as the platform.
   perform set_config('request.jwt.claims', '', true);
@@ -79,7 +79,7 @@ begin
 
   perform set_config('request.jwt.claims', json_build_object('sub', c_admin, 'role', 'authenticated')::text, true);
   v_run := app.enqueue_integration_sync(c_csv, 'Attendance Import', 'Inbound', 'demo-box-office-sunday', c_project, 1::smallint,
-    null, null, 'integration-imports/demo/sunday.csv');
+    null, null, 'imports/' || c_admin || '/01920000-0000-7000-8000-000000219002.csv');
   perform set_config('request.jwt.claims', '', true);
   perform app.claim_integration_sync(v_run);
   perform app.fail_integration_sync(v_run, 'csv_header_missing', 'The file needs a ticket class column.', false);

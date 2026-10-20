@@ -1,3 +1,4 @@
+import { clientAddress, trustedProxyHops } from "@xos/data/client-address";
 import type { LegalDocument } from "@/ia/generate";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
 
@@ -24,9 +25,11 @@ export function signupAcceptances(
   return documents.map((d) => ({ slug: d.slug, version: d.version }));
 }
 
-/** The client IP the platform saw, from the proxy chain headers. */
+/**
+ * The client IP the platform saw: the X-Forwarded-For entry the trusted proxy appended, counted
+ * from the right past `XOS_TRUSTED_PROXY_HOPS`, never the first entry, which the client writes
+ * (finding A69-003; the org IP allow-list relies on it).
+ */
 export function clientIp(headers: Headers): string | null {
-  const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || null;
-  return headers.get("x-real-ip");
+  return clientAddress(headers, trustedProxyHops(process.env["XOS_TRUSTED_PROXY_HOPS"]));
 }

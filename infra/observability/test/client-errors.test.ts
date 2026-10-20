@@ -150,10 +150,12 @@ describe("createClientErrorHandler", () => {
   it("rate-limits each caller", async () => {
     const captureException = vi.fn();
     const { handler } = setup({ sink: { captureException }, limit: 2 });
-    const from = (ip: string) => post(valid, { "x-forwarded-for": `${ip}, 10.0.0.1` });
+    const from = (ip: string, spoofed = "10.0.0.1") =>
+      post(valid, { "x-forwarded-for": `${spoofed}, ${ip}` });
     expect((await handler(from("198.51.100.1"))).status).toBe(204);
-    expect((await handler(from("198.51.100.1"))).status).toBe(204);
-    expect((await handler(from("198.51.100.1"))).status).toBe(429);
+    expect((await handler(from("198.51.100.1", "203.0.113.1"))).status).toBe(204);
+    // A69-003: a new first entry is the client's own text and buys no fresh limit.
+    expect((await handler(from("198.51.100.1", "203.0.113.2"))).status).toBe(429);
     expect((await handler(from("198.51.100.2"))).status).toBe(204);
     expect(captureException).toHaveBeenCalledTimes(3);
   });
@@ -171,8 +173,8 @@ describe("createRateLimiter", () => {
 });
 
 describe("clientKey and toBrowserError", () => {
-  it("keys on the first forwarded address, then x-real-ip", () => {
-    expect(clientKey(new Headers({ "x-forwarded-for": "1.1.1.1, 2.2.2.2" }))).toBe("1.1.1.1");
+  it("keys on the address the proxy appended, then x-real-ip", () => {
+    expect(clientKey(new Headers({ "x-forwarded-for": "1.1.1.1, 2.2.2.2" }))).toBe("2.2.2.2");
     expect(clientKey(new Headers({ "x-real-ip": "3.3.3.3" }))).toBe("3.3.3.3");
     expect(clientKey(new Headers())).toBe("unknown");
   });

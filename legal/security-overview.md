@@ -30,12 +30,12 @@ This page describes how GHXSTSHIP Industries LLC ("GHXSTSHIP") protects XOS 4.0 
 
 - Email and password, magic links, passkeys, and Google, Apple and Microsoft sign-in. SAML single sign-on and SCIM on the Enterprise plan.
 - Passwords are checked against known breached-password lists.
-- Multi-factor authentication with TOTP or passkeys, which organizations can require per role.
-- Step-up authentication for billing, data export, role changes and API key creation.
-- Configurable session lifetime and IP allow-lists. An org's IP allow-list is enforced wherever Atlas and the XOS API check a session or an API key. It is not yet enforced on direct calls to the underlying Supabase data endpoint (REST, Storage and Realtime) made with a valid session token, because only Atlas and the API see the caller's address. So a signed-in person outside the allowed networks who calls that endpoint directly can still read and write what their role allows. We plan to close this gap by routing all data access through the API.
+- Multi-factor authentication with TOTP or passkeys is enabled in our authentication service. The screens to enroll and verify a second factor, and organization policies that require it per role, are not yet available; until they are, an organization cannot require it, and features that need a second factor stay unavailable rather than open.
+- Step-up authentication (a second factor in the current session) for Restricted data exports, SCIM tokens and break-glass. Step-up for billing, role changes and API key creation is planned with the second-factor screens.
+- IP allow-lists. Per-organization session lifetime and idle timeout settings are planned and cannot be changed until they are enforced. An org's IP allow-list is enforced wherever Atlas and the XOS API check a session or an API key. It is not yet enforced on direct calls to the underlying Supabase data endpoint (REST, Storage and Realtime) made with a valid session token, because only Atlas and the API see the caller's address. So a signed-in person outside the allowed networks who calls that endpoint directly can still read and write what their role allows. We plan to close this gap by routing all data access through the API.
 - Role-based access with fine-grained capabilities, spend authority limits and separation of duties enforced in the database.
 - "View as role" and "Why can I see this" make access transparent. Quarterly access reviews flag unreviewed access.
-- Break-glass access requires MFA and a written reason, notifies every Admin, and expires after one hour.
+- Break-glass access requires MFA and a written reason, notifies every Admin, applies only in the session that passed the second factor, and expires after one hour; its start, end or expiry is recorded in the audit ledger.
 
 ## 4. Data Protection
 

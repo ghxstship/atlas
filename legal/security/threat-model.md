@@ -4,13 +4,15 @@ version: 1.0.0-draft
 effective_date: The date this version is approved by the Owner
 status: Draft for review before launch
 audience: Internal; shared with customers and auditors under confidentiality
-owner: A22 Security Review (RRR-41)
+owner: A22 Security Review (RRR-41), updated by the A69 independent review (RRR-114)
 ---
 
 # XOS 4.0 Platform Threat Model
 
 This model covers Atlas, Gateway, Compass, the public API and the Supabase back end as built on
-main at the Wave 6 review (d36918a, with the fixes merged at 1a63487). It uses STRIDE per trust
+main at the Wave 6 review (d36918a, with the fixes merged at 1a63487), updated by the independent
+review A69 (RRR-114) of main at 7ccd1fd9, which added the A69 findings below and the controls and
+residual risks marked A69 in each boundary. It uses STRIDE per trust
 boundary: Spoofing, Tampering, Repudiation, Information disclosure, Denial of service and Elevation
 of privilege. Each boundary lists the threats that apply, the controls that answer them, the
 evidence (a test or document), and the residual risk.
@@ -23,23 +25,34 @@ than the database allows.
 
 ## Findings referenced
 
-| Id      | Severity | Boundary                        | State    |
-| ------- | -------- | ------------------------------- | -------- |
-| A22-001 | High     | API key to api-token JWT        | Fixed    |
-| A22-002 | High     | Compass offline sync            | Fixed    |
-| A22-003 | Medium   | Tenant member to app            | Fixed    |
-| A22-004 | Medium   | Storage buckets                 | Fixed    |
-| A22-005 | Low      | Subprocessors (legal)           | Fixed    |
-| A22-006 | Low      | Subprocessors (legal)           | Fixed    |
-| A22-007 | Low      | Normalization (gate 29)         | Fixed    |
-| A22-008 | Low      | Normalization (gate 29)         | Fixed    |
-| A22-009 | Low      | Normalization (gate 29)         | Fixed    |
-| A22-010 | Medium   | Tenant member to app            | Fixed    |
-| A22-011 | Medium   | Storage buckets                 | Fixed    |
-| A22-012 | Low      | API key to api-token JWT        | Fixed    |
-| A22-013 | Low      | Service role and Edge Functions | Fixed    |
-| A22-014 | Low      | Tenant member to app            | Fixed    |
-| A22-015 | Low      | Integrations (OAuth)            | Accepted |
+| Id      | Severity | Boundary                        | State        |
+| ------- | -------- | ------------------------------- | ------------ |
+| A22-001 | High     | API key to api-token JWT        | Fixed        |
+| A22-002 | High     | Compass offline sync            | Fixed        |
+| A22-003 | Medium   | Tenant member to app            | Fixed        |
+| A22-004 | Medium   | Storage buckets                 | Fixed        |
+| A22-005 | Low      | Subprocessors (legal)           | Fixed        |
+| A22-006 | Low      | Subprocessors (legal)           | Fixed        |
+| A22-007 | Low      | Normalization (gate 29)         | Fixed        |
+| A22-008 | Low      | Normalization (gate 29)         | Fixed        |
+| A22-009 | Low      | Normalization (gate 29)         | Fixed        |
+| A22-010 | Medium   | Tenant member to app            | Fixed        |
+| A22-011 | Medium   | Storage buckets                 | Fixed        |
+| A22-012 | Low      | API key to api-token JWT        | Fixed        |
+| A22-013 | Low      | Service role and Edge Functions | Fixed        |
+| A22-014 | Low      | Tenant member to app            | Fixed        |
+| A22-015 | Low      | Integrations (OAuth)            | Accepted     |
+| A69-001 | High     | Anonymous visitor to api_public | Fixed        |
+| A69-002 | Medium   | Anonymous visitor to api_public | Fixed        |
+| A69-003 | Medium   | Tenant member to app            | Fixed        |
+| A69-004 | Medium   | Service role and Edge Functions | Fixed        |
+| A69-005 | Medium   | Exports and logs                | Fixed        |
+| A69-006 | Medium   | Integrations (sync runs)        | Fixed        |
+| A69-007 | High     | Tenant member to app            | Mitigated    |
+| A69-008 | Medium   | Exports and logs                | Fixed        |
+| A69-009 | Medium   | Tenant member to app            | Fixed        |
+| A69-010 | Low      | Tenant member to app            | Partly fixed |
+| A69-011 | Low      | Tenant member to app            | Fixed        |
 
 ## Trust boundaries
 
@@ -53,6 +66,7 @@ than the database allows.
 8. Integrations: Vault credentials, SCIM, SSO just-in-time joins and OAuth grants
 9. Aurora AI: prompt injection, tool scopes and data exfiltration
 10. Storage buckets
+11. Exports and logs
 
 ## 1. Anonymous visitor to api_public
 
@@ -60,17 +74,25 @@ Anon has USAGE only on `api_public`, `public`, `extensions` and `storage`. It re
 SECURITY DEFINER RPCs: token documents and agreements, advance packets, public profiles, brand
 lookup, cookie consent, calendar feeds and certification verification.
 
-| STRIDE | Threat                                                  | Control                                                                                                 | Evidence                                              |
-| ------ | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
-| S      | Guessing a document, advance or agreement token         | Random tokens stored only as hashes; a separate access code; lockout after 5 failed codes               | 0769, 0430 and 0361 suites; `private.resolve_*_token` |
-| T      | Writing tenant rows without a sign-in                   | No anon policies anywhere; anon has no USAGE on `app`; every anon RPC is SECURITY DEFINER with checks   | `9900_security_catalog.test.sql`                      |
-| R      | Denying a signature                                     | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)   | 0361 and 0769 suites                                  |
-| I      | Enumerating people or certifications                    | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code | 0860, 0352 and 0510 suites                            |
-| D      | Flooding consent or verification RPCs                   | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                  | `private.rate_limit_exceeded`                         |
-| E      | Reaching a privileged function through a new anon grant | The catalog test fixes the exact set of anon-callable functions                                         | `9900_security_catalog.test.sql`                      |
+| STRIDE | Threat                                                   | Control                                                                                                 | Evidence                                              |
+| ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| S      | Guessing a document, advance or agreement token          | Random tokens stored only as hashes; a separate access code; lockout after 5 failed codes               | 0769, 0430 and 0361 suites; `private.resolve_*_token` |
+| T      | Writing tenant rows without a sign-in                    | No anon policies anywhere; anon has no USAGE on `app`; every anon RPC is SECURITY DEFINER with checks   | `9900_security_catalog.test.sql`                      |
+| R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)   | 0361 and 0769 suites                                  |
+| I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code | 0860, 0352 and 0510 suites                            |
+| D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                  | `private.rate_limit_exceeded`                         |
+| S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row      | 1295 suite (catalog of every volatile api_public RPC) |
+| S      | Spoofing the address a per-IP limit counts (A69-002)     | `private.request_ip` reads the gateway's appended entry past `xos.trusted_proxy_hops`, never the first  | 1296 suite                                            |
+| E      | Reaching a privileged function through a new anon grant  | The catalog test fixes the exact set of anon-callable functions                                         | `9900_security_catalog.test.sql`                      |
 
-Residual risk: a GET through PostgREST runs read-only, so failed-attempt counters only advance on
-POST. Lockout still holds for POST, which is the only path that can return data, so the risk is low.
+A GET through PostgREST runs the RPC in a read-only transaction. Before A69-001 that skipped every
+failed-attempt count while a right code still returned its rows, so a link's 6-digit access code
+could be guessed without limit. Every volatile api_public RPC now refuses a read-only call with one
+fixed error before it looks anything up.
+
+Residual risk: the hosted Supabase edge may add a trusted hop to `X-Forwarded-For`. Until the hop
+count is checked on staging (`infra/runbooks/hosted-security-settings.md`), a per-IP limit there may
+count a proxy's address and so be shared by many callers; it never counts the client's own text.
 
 ## 2. External party to api_external
 
@@ -93,17 +115,25 @@ Signed-in members reach `app` under RLS: 481 tables, all with RLS on, and 1,135 
 `private.has_capability`, `private.project_ids_with`, `private.orgs_with_capability` and the scope
 helpers (ADR 0008, ADR 0016).
 
-| STRIDE | Threat                                               | Control                                                                                                     | Evidence                                                              |
-| ------ | ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| S      | Using another member's session                       | Supabase Auth JWTs; same-origin check on cookie writes; MFA and step-up for billing, export, roles and keys | `packages/api/test/security/auth-attacks.test.ts`; A02 and A30 suites |
-| T      | Writing into another tenant                          | RLS on every table; `org_id` derived by trigger; cross-org references refused                               | `9902` and `9903` security suites                                     |
-| T      | A lower band writing (Viewer, Collaborator, Field)   | Capability reach (own, assigned, organization) checked in every write policy and RPC                        | `9904_security_viewer_band`; `9907` (A22-003); 0205 and 0400 suites   |
-| R      | Denying an action                                    | Append-only audit ledger with 7-year retention; domain events written only by triggers                      | 0501 suite                                                            |
-| I      | Reading another tenant's rows                        | RLS read policies; owner-rights views limited to reference, masking and self-filtering views                | `9901` security suite; `9900` view allowlist                          |
-| I      | Reading Restricted columns (pay, bank, tax, medical) | Column SELECT revoked; reads through `*_masked` views that check the restricted-read capability             | `9900` masking assertion; 0363 suite                                  |
-| D      | Expensive list queries starving the database         | Indexed policy columns; gate 17 benchmark under 50 ms at p95 on 1,000,000 rows                              | `0399_rls_benchmark.psql`; 0943 suite                                 |
-| E      | Granting oneself a role or capability                | Granting limits (own band and below, capabilities held); separation of duties; at least one Owner kept      | 0206 suite                                                            |
-| E      | A SECURITY DEFINER function without its own check    | Empty search path on every function; reviewed list of anon RPCs; static triage of every org-scoped RPC      | `9900`; review notes below                                            |
+| STRIDE | Threat                                                                         | Control                                                                                                                                                  | Evidence                                                                                     |
+| ------ | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| S      | Using another member's session                                                 | Supabase Auth JWTs; same-origin check on cookie writes; step-up (aal2) for Restricted exports, SCIM tokens and break-glass                               | `packages/api/test/security/auth-attacks.test.ts`; A02 and A30 suites                        |
+| S      | Signing in with a stolen password where the org chose to require MFA (A69-007) | Not enforced: no screen enrolls or verifies a second factor. The MFA policy, session length and idle timeout keep their defaults and refuse other values | 1299 suite; owner decision in A69-007                                                        |
+| S      | Claiming an allowed address past the IP allow-list (A69-003)                   | Atlas and the API read the entry the trusted proxy appended past `XOS_TRUSTED_PROXY_HOPS`                                                                | `client-address.test.ts`; API and Atlas auth suites; Semgrep `xos-forwarded-for-first-entry` |
+| E      | Break-glass reach outside the session that passed the second factor (A69-009)  | The emergency branch applies only to the holder's own aal2 session, never through a delegation; expiry is audited                                        | 1298 suite                                                                                   |
+| T      | Writing into another tenant                                                    | RLS on every table; `org_id` derived by trigger; cross-org references refused                                                                            | `9902` and `9903` security suites; `9909` for the resources added since A22 (A69-011)        |
+| T      | A lower band writing (Viewer, Collaborator, Field)                             | Capability reach (own, assigned, organization) checked in every write policy and RPC                                                                     | `9904_security_viewer_band`; `9907` (A22-003); 0205 and 0400 suites                          |
+| R      | Denying an action                                                              | Append-only audit ledger with 7-year retention; domain events written only by triggers                                                                   | 0501 suite                                                                                   |
+| I      | Reading another tenant's rows                                                  | RLS read policies; owner-rights views limited to reference, masking and self-filtering views                                                             | `9901` security suite; `9900` view allowlist                                                 |
+| I      | Reading Restricted columns (pay, bank, tax, medical)                           | Column SELECT revoked; reads through `*_masked` views that check the restricted-read capability                                                          | `9900` masking assertion; 0363 suite                                                         |
+| D      | Expensive list queries starving the database                                   | Indexed policy columns; gate 17 benchmark under 50 ms at p95 on 1,000,000 rows                                                                           | `0399_rls_benchmark.psql`; 0943 suite                                                        |
+| E      | Granting oneself a role or capability                                          | Granting limits (own band and below, capabilities held); separation of duties; at least one Owner kept                                                   | 0206 suite                                                                                   |
+| E      | A SECURITY DEFINER function without its own check                              | Empty search path on every function; reviewed list of anon RPCs; static triage of every org-scoped RPC                                                   | `9900`; review notes below                                                                   |
+
+The IP allow-list (1201) is applied where Atlas and the API check credentials, not by RLS, which
+cannot see the caller's address. Residual risk (A69-010, ADR 0034 decision 5): a direct call to the
+Supabase endpoint, or an API request bound to one org, still reads another member org's rows from
+outside that org's networks. The API now checks every member org when a request is bound to none.
 
 Review notes: every one of the 268 SECURITY DEFINER functions in `app` that authenticated may
 execute was triaged for an explicit person, membership or capability check. Six had no such check in
@@ -144,6 +174,11 @@ token).
 
 `_shared/runtime.ts` `serve` returns a request id and logs the error server side (A22-013, fixed).
 
+Outbound calls (webhook dispatch, the ticketing API feed) pass `isPublicAddress`, which judges IPv4
+written as IPv6 (mapped, compatible, NAT64) by the IPv4 rules and refuses every special-purpose block
+(A69-004). Residual risk: the host is resolved for the check and again by `fetch`, so DNS rebinding
+can still reach an internal address; the Edge runtime's `fetch` cannot connect to a checked address.
+
 ## 6. Webhooks: Stripe, inbound email and kiosk punch
 
 These Edge Functions run with `verify_jwt = false` and authenticate another way.
@@ -178,14 +213,15 @@ RPCs listed in `private.sync_rpcs`. PowerSync streams rows filtered by `private.
 
 ## 8. Integrations: Vault, SCIM, SSO and OAuth
 
-| STRIDE | Threat                             | Control                                                                                                    | Evidence                      |
-| ------ | ---------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------- |
-| S      | A forged SCIM or SSO identity      | Just-in-time joins need an SSO session; SCIM tokens are stored as prefixes and hashes                      | 0638 suite                    |
-| T      | Provider data overwriting XOS work | Inbound changes never delete XOS work; deletions re-place or report (ADR 0024)                             | 0600 to 0636 suites           |
-| I      | Reading integration credentials    | Secrets only in Supabase Vault; only the service role reads them through `app.read_integration_credential` | `9900` service-role assertion |
-| I      | Secrets in connector settings      | `provider_settings` is documented as never holding secrets, and connectors validate it                     | 0600 suite                    |
-| E      | SSO or SCIM granting Owner         | SSO and SCIM never grant Owner; SCIM deprovisioning ends the membership and opens offboarding              | 0638 suite                    |
-| E      | An OAuth app exceeding its consent | OAuth scopes map to capability groups; grants are recorded per app and person                              | 0638 suite                    |
+| STRIDE | Threat                                                                     | Control                                                                                                    | Evidence                        |
+| ------ | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| S      | A forged SCIM or SSO identity                                              | Just-in-time joins need an SSO session; SCIM tokens are stored as prefixes and hashes                      | 0638 suite                      |
+| T      | Provider data overwriting XOS work                                         | Inbound changes never delete XOS work; deletions re-place or report (ADR 0024)                             | 0600 to 0636 suites             |
+| I      | Reading integration credentials                                            | Secrets only in Supabase Vault; only the service role reads them through `app.read_integration_credential` | `9900` service-role assertion   |
+| I      | Secrets in connector settings                                              | `provider_settings` is documented as never holding secrets, and connectors validate it                     | 0600 suite                      |
+| E      | SSO or SCIM granting Owner                                                 | SSO and SCIM never grant Owner; SCIM deprovisioning ends the membership and opens offboarding              | 0638 suite                      |
+| E      | An OAuth app exceeding its consent                                         | OAuth scopes map to capability groups; grants are recorded per app and person                              | 0638 suite                      |
+| I      | A sync run naming another org's file for the service-role worker (A69-006) | A run imports only an imports bucket upload of its enqueuer (or a member of its org), and only once Clean  | 1297 suite; `ticketing.test.ts` |
 
 Residual risk: the OAuth 2.1 authorization and token endpoints are not built yet (ADR 0024). Until
 they are, OAuth grants cannot be exercised end to end, and ASVS V10 requirements are marked as gaps.
@@ -238,6 +274,16 @@ file for `org-brand` or `profile-media` is uploaded to the private `upload-stagi
 target bucket's rules, and the worker publishes it only once it scans Clean. An infected file is never
 public (ADR 0034 amendment, `1265_public_upload_staging` suite).
 
+## 11. Exports and logs
+
+| STRIDE | Threat                                                  | Control                                                                                                   | Evidence                                                   |
+| ------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| T      | A cell in a CSV export running as a formula (A69-005)   | `csvField()` neutralizes a leading `=`, `+`, `-`, `@`, tab or carriage return; plain numbers stay numbers | `csv.test.ts`; Semgrep `xos-csv-quoting-outside-csv-field` |
+| I      | Link tokens in request logs and error reports (A69-008) | The redactor replaces `xadv_`, `xagr_`, `xcal_`, `xdoc_`, `xinv_`, `xlnk_` and `xos_scim_` tokens         | `redact.test.ts`                                           |
+| I      | Personal data in error reports                          | One redactor for logs, traces and Sentry; `sendDefaultPii` off; `beforeSend` scrubs                       | `infra/observability` suites                               |
+
+XLSX files write strings as strings (exceljs) and PDFs draw text (pdfkit), so neither runs content.
+
 ## Review method
 
 - Catalog-generated pgTAP: `supabase/tests/9900` to `9908`.
@@ -248,3 +294,45 @@ public (ADR 0034 amendment, `1265_public_upload_staging` suite).
   pinned to a commit SHA.
 - New attack reproductions go in `supabase/tests/security/*.attack.psql` and run with
   `supabase/tests/security/run-attacks.sh`.
+
+### A69 independent review (RRR-114)
+
+A white-box review of main at 7ccd1fd9, with local probing of the reviewer's own stack only; no
+traffic went to a hosted system. Each finding has a file in `legal/qa/findings/A69-NNN.md` with its
+fix and regression test. It closes RRR-41.
+
+- Read: every SECURITY DEFINER function added since the A22 review that authenticated or anon may
+  execute (1,037 definer functions all pin `search_path`), the A52 features (IP allow-list,
+  break-glass, access reviews, project shares, blocks, legal entities, project roles), price books,
+  cue calls, the API runtime (authentication, org binding, rate limits, idempotency), the Atlas and
+  Gateway proxies, every Edge Function, the integration worker, the upload pipeline and the
+  exporters.
+- Probed locally: GET against the volatile token RPCs, forwarded headers through the local Kong
+  gateway, and the API authenticator with spoofed chains.
+- New checks: the 1295 catalog assertion (every volatile api_public RPC refuses a read-only call),
+  the 1296 catalog assertion (only `private.request_ip` reads the forwarding headers), the 9909
+  cross-tenant suite and policy helper assertion, and the Semgrep rules
+  `xos-csv-quoting-outside-csv-field` and `xos-forwarded-for-first-entry`.
+
+Reviewed and found sound:
+
+- Tenant isolation of the new resources: no cross-tenant read, change or RPC with another org's ids
+  succeeded (9909); org ids passed to RPCs are checked against the caller's capability in the
+  database.
+- SECURITY DEFINER functions: each one reachable by authenticated checks the person, membership or
+  capability, or reads only the caller's own rows; anon reaches exactly the reviewed list (9900).
+- API: no handler uses the service role; every query carries the caller's token; CORS headers are
+  absent, so browsers allow only same-origin calls; cookie writes need a same-origin `Origin`.
+- Web: per-request CSP nonces with `strict-dynamic`, `frame-ancestors 'none'`, HSTS, nosniff and
+  COOP on every page; session cookies are `__Host-`, `HttpOnly`, `Secure` over https and
+  `SameSite=Lax`; `safeNext` refuses every off-site `next=` value.
+- Auth: invite tokens are hashed, single-use, expire, lock after 5 mismatches and need the invited,
+  confirmed email; magic links are single-use in Supabase Auth; account deletion deletes the
+  sign-in (sessions, factors and identities with it), ends memberships and erases the profile.
+- Uploads: per-bucket type and size limits, content sniffing and zip limits before ClamAV, object
+  names issued by the database or checked by policy, 60-second signed URLs for Clean files only.
+- Secrets: only public values reach client bundles (`NEXT_PUBLIC_XOS_RELEASE`, the Sentry DSN and,
+  for Compass, the anon key); the only JWTs in the tree are the public local demo anon key; Edge
+  Functions read secrets from their environment and compare worker secrets in constant time.
+- Rendering: no `dangerouslySetInnerHTML` outside the docs theme script; emails render through
+  React; help bodies are generated elements.
