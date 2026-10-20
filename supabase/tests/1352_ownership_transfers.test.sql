@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(30);
+select plan(31);
 
 create function pg_temp.as_stepped_up(p_key text) returns void
 language plpgsql as $$
@@ -49,6 +49,8 @@ select is((select count(*)::int from app.notifications where kind = 'organizatio
   1, 'the member is told');
 select pg_temp.as_user('dave');
 select is((select count(*)::int from app.ownership_transfers), 1, 'the member reads the offer');
+select is((select ownership_offered_by from app.org_banner_status(pg_temp.id('org_a'))), 'Alice Moreno',
+  'and sees it in the org banner, with who offered it');
 select pg_temp.as_user('xavier');
 select is((select count(*)::int from app.ownership_transfers), 0, 'another org reads nothing');
 

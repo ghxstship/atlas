@@ -27,6 +27,7 @@ import enUS_logistics from "../messages/en-US/logistics.json" with { type: "json
 import enUS_myWork from "../messages/en-US/myWork.json" with { type: "json" };
 import enUS_nav from "../messages/en-US/nav.json" with { type: "json" };
 import enUS_opportunities from "../messages/en-US/opportunities.json" with { type: "json" };
+import enUS_orgLifecycle from "../messages/en-US/orgLifecycle.json" with { type: "json" };
 import enUS_payouts from "../messages/en-US/payouts.json" with { type: "json" };
 import enUS_peek from "../messages/en-US/peek.json" with { type: "json" };
 import enUS_people from "../messages/en-US/people.json" with { type: "json" };
@@ -79,6 +80,7 @@ import esUS_logistics from "../messages/es-US/logistics.json" with { type: "json
 import esUS_myWork from "../messages/es-US/myWork.json" with { type: "json" };
 import esUS_nav from "../messages/es-US/nav.json" with { type: "json" };
 import esUS_opportunities from "../messages/es-US/opportunities.json" with { type: "json" };
+import esUS_orgLifecycle from "../messages/es-US/orgLifecycle.json" with { type: "json" };
 import esUS_payouts from "../messages/es-US/payouts.json" with { type: "json" };
 import esUS_peek from "../messages/es-US/peek.json" with { type: "json" };
 import esUS_people from "../messages/es-US/people.json" with { type: "json" };
@@ -133,6 +135,7 @@ export const enUS = {
   myWork: enUS_myWork,
   nav: enUS_nav,
   opportunities: enUS_opportunities,
+  orgLifecycle: enUS_orgLifecycle,
   payouts: enUS_payouts,
   peek: enUS_peek,
   people: enUS_people,
@@ -188,6 +191,7 @@ export const esUS = {
   myWork: esUS_myWork,
   nav: esUS_nav,
   opportunities: esUS_opportunities,
+  orgLifecycle: esUS_orgLifecycle,
   payouts: esUS_payouts,
   peek: esUS_peek,
   people: esUS_people,

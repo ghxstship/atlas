@@ -1,3 +1,4 @@
+import type { DeletionCertificateData } from "../../src/documents/deletion-certificate.ts";
 import type { DocumentBrand } from "../../src/documents/generate.ts";
 import type { DocumentKind } from "../../src/documents/model.ts";
 import type { DocumentDataMap, DocumentProject } from "../../src/documents/templates.ts";
@@ -463,4 +464,24 @@ export const FIXTURES: { readonly [K in DocumentKind]: DocumentDataMap[K] } = {
       ],
     },
   },
+};
+
+/**
+ * The deletion certificate of an org (A79, Section 14.7), with a long name and characters outside the font's
+ * Latin subset, so veraPDF checks the fallback and wrapping on it too.
+ */
+export const DELETION_CERTIFICATE: DeletionCertificateData = {
+  id: "0192a000-0000-7000-8000-00000000c001",
+  deletedOrgId: "0192a000-0000-7000-8000-0000000000b1",
+  orgName:
+    "Harbor Lights Productions: Ünïcode Ωmega Ŝtage & Touring Company of the Greater Northwest Coast",
+  orgSlug: "harbor-lights",
+  basis: "deletion_request",
+  requestedAt: "2026-10-01T12:00:00Z",
+  dueAt: "2026-10-08T12:00:00Z",
+  purgedAt: "2026-10-08T13:23:00Z",
+  tablesPurged: 41,
+  rowsPurged: 18204,
+  storageObjectsDeleted: 112,
+  ownerName: "Xavier Dubois",
 };

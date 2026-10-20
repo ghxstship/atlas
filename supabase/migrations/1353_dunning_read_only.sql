@@ -67,7 +67,10 @@ returns table (
   trial_ends_at timestamptz,
   billing_state text,
   past_due_since timestamptz,
-  white_label_until timestamptz
+  white_label_until timestamptz,
+  ownership_transfer_id uuid,
+  ownership_offered_by text,
+  ownership_expires_at timestamptz
 )
 language plpgsql
 stable
@@ -97,11 +100,21 @@ begin
          then v_sub.subscription_state::text end,
     case when v_sub.subscription_state in ('past_due', 'read_only') and (v_staff or v_sub.subscription_state = 'read_only')
          then private.past_due_since(v_sub.id) end,
-    null::timestamptz;
+    null::timestamptz,
+    o.id, o.offered_by, o.expires_at
+  from (select 1) one
+  left join lateral (
+    select t.id, p.full_name as offered_by, t.expires_at from app.ownership_transfers t
+    join app.people p on p.id = t.from_person_id
+    where t.org_id = p_org_id and t.to_person_id = private.current_person_id()
+      and t.accepted_at is null and t.declined_at is null and t.canceled_at is null and t.expired_at is null
+      and t.deleted_at is null and t.expires_at > now()
+    limit 1
+  ) o on true;
 end;
 $$;
 
-comment on function app.org_banner_status(uuid) is 'Everything the org banners show, in one call, for an active member: why the org is read-only with its dates (cancellation, deletion request, dunning), the running trial and its end, the dunning state and when the payment first failed (Owners and Admins from day 0, everyone once the org is read-only), and until when a downgraded org keeps its white label (1355).';
+comment on function app.org_banner_status(uuid) is 'Everything the org banners show, in one call, for an active member: why the org is read-only with its dates (cancellation, deletion request, dunning), the running trial and its end, the dunning state and when the payment first failed (Owners and Admins from day 0, everyone once the org is read-only), until when a downgraded org keeps its white label (1355), and an ownership offer made to the caller (1352).';
 revoke all on function app.org_banner_status(uuid) from public, anon;
 grant execute on function app.org_banner_status(uuid) to authenticated, service_role;
 

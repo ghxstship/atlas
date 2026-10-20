@@ -166,7 +166,8 @@ begin
   values (p_org_id, v_person, p_to_person_id, p_previous_owner_outcome, now(), now() + interval '7 days')
   returning id into v_id;
   perform private.notify(p_org_id, p_to_person_id, 'organization.ownership_offered', 'app.ownership_transfers', v_id, null,
-    jsonb_build_object('expires_at', now() + interval '7 days'));
+    jsonb_build_object('expires_at', private.epoch_ms(now() + interval '7 days'),
+      'actorName', coalesce((select p.full_name from app.people p where p.id = v_person), '')));
   return v_id;
 end;
 $$;
@@ -232,7 +233,7 @@ begin
 
   update app.ownership_transfers set accepted_at = now() where id = v_transfer.id;
   perform private.notify(v_transfer.org_id, v_transfer.from_person_id, 'organization.ownership_accepted', 'app.ownership_transfers',
-    v_transfer.id, null, '{}'::jsonb);
+    v_transfer.id, null, jsonb_build_object('actorName', coalesce((select p.full_name from app.people p where p.id = v_person), '')));
   return v_transfer.id;
 end;
 $$;
@@ -261,7 +262,7 @@ begin
   end if;
   update app.ownership_transfers set declined_at = now() where id = v_transfer.id;
   perform private.notify(v_transfer.org_id, v_transfer.from_person_id, 'organization.ownership_declined', 'app.ownership_transfers',
-    v_transfer.id, null, '{}'::jsonb);
+    v_transfer.id, null, jsonb_build_object('actorName', coalesce((select p.full_name from app.people p where p.id = v_person), '')));
   return v_transfer.id;
 end;
 $$;

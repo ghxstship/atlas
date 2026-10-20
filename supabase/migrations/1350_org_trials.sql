@@ -144,6 +144,18 @@ select k.kind, c.channel, 'account', case when c.channel = 'Email' then 'notific
 from (values ('billing.trial_ending'), ('billing.trial_ended')) as k (kind)
 cross join (values ('In App'::app.notification_channel), ('Email'), ('SMS'), ('Push')) as c (channel);
 
+create or replace function private.epoch_ms(p_at timestamptz)
+returns bigint
+language sql
+immutable
+set search_path = ''
+as $$
+  select (extract(epoch from p_at) * 1000)::bigint;
+$$;
+
+comment on function private.epoch_ms(timestamptz) is 'A moment as Unix epoch milliseconds: the form notification message arguments carry dates in, which the email copy formats as ICU dates in the recipient''s language.';
+revoke all on function private.epoch_ms(timestamptz) from public, anon, authenticated;
+
 create or replace function private.billing_owner_ids(p_org_id uuid, p_now timestamptz default now())
 returns setof uuid
 language sql
@@ -223,7 +235,7 @@ begin
             and n.message_args ->> 'days' = v_days::text)
       loop
         perform private.notify(v_sub.org_id, v_person, 'billing.trial_ending', 'app.subscriptions', v_sub.id, null,
-          jsonb_build_object('days', v_days, 'plan', v_sub.plan_code, 'ends_at', v_sub.trial_ends_at));
+          jsonb_build_object('days', v_days, 'plan', v_sub.plan_code, 'ends_at', private.epoch_ms(v_sub.trial_ends_at)));
         v_actions := v_actions + 1;
       end loop;
     end if;

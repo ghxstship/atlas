@@ -230,7 +230,7 @@ begin
   returning id into v_id;
   for v_owner in select private.org_owner_ids(p_org_id) loop
     perform private.notify(p_org_id, v_owner, 'organization.deletion_requested', 'app.org_deletion_requests', v_id, null,
-      jsonb_build_object('recover_until', now() + interval '7 days'));
+      jsonb_build_object('recover_until', private.epoch_ms(now() + interval '7 days')));
   end loop;
   return v_id;
 end;
@@ -380,6 +380,12 @@ insert into private.retention_policies (table_name, basis, time_column, retentio
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values ('deletion-certificates', 'deletion-certificates', false, 10485760, array['application/pdf'])
 on conflict (id) do nothing;
+
+-- The former Owner downloads their own certificate PDF; only the worker (service role) writes the bucket.
+create policy deletion_certificates_object_read on storage.objects for select to authenticated
+  using (bucket_id = 'deletion-certificates'
+         and name in (select d.document_object from app.deletion_certificates d
+                      where d.owner_person_id = (select private.current_person_id()) and d.document_object is not null));
 
 -- Storage objects of an org -------------------------------------------------------------------------------------------
 

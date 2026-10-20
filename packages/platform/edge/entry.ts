@@ -17,6 +17,7 @@ export { createLogger, identityFromEnv } from "../../../infra/observability/src/
 export { createObservability, observe } from "../../../infra/observability/src/index.ts";
 export { observeEdgeFunction } from "../../../infra/observability/src/edge.ts";
 export * from "./reports.ts";
+export * from "./lifecycle.ts";
 
 /** The plan registry the bundle was built from. */
 export const planRegistry: PlanRegistry = parsePlanRegistry(plansYaml);

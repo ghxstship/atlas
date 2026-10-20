@@ -335,7 +335,7 @@ begin
   for v_person in select private.org_owner_ids(new.org_id) loop
     perform private.notify(new.org_id, v_person,
       case when v_until > now() then 'organization.white_label_reverting' else 'organization.white_label_reverted' end,
-      'app.organizations', new.org_id, null, jsonb_build_object('plan', old.plan_code, 'until', v_until));
+      'app.organizations', new.org_id, null, jsonb_build_object('plan', old.plan_code, 'until', private.epoch_ms(v_until)));
   end loop;
   return null;
 end;
@@ -367,7 +367,7 @@ begin
     update app.white_label_grace set ended_at = p_now, end_reason = 'reverted' where id = v_grace.id;
     for v_person in select private.org_owner_ids(v_grace.org_id) loop
       perform private.notify(v_grace.org_id, v_person, 'organization.white_label_reverted', 'app.white_label_grace', v_grace.id, null,
-        jsonb_build_object('plan', v_grace.plan_from, 'until', v_grace.kept_until));
+        jsonb_build_object('plan', v_grace.plan_from, 'until', private.epoch_ms(v_grace.kept_until)));
     end loop;
     v_count := v_count + 1;
   end loop;
@@ -480,7 +480,10 @@ returns table (
   trial_ends_at timestamptz,
   billing_state text,
   past_due_since timestamptz,
-  white_label_until timestamptz
+  white_label_until timestamptz,
+  ownership_transfer_id uuid,
+  ownership_offered_by text,
+  ownership_expires_at timestamptz
 )
 language plpgsql
 stable
@@ -512,7 +515,17 @@ begin
          then private.past_due_since(v_sub.id) end,
     case when v_staff then (select g.kept_until from app.white_label_grace g
                             where g.org_id = p_org_id and g.ended_at is null and g.deleted_at is null and g.kept_until > now()
-                            limit 1) end;
+                            limit 1) end,
+    o.id, o.offered_by, o.expires_at
+  from (select 1) one
+  left join lateral (
+    select t.id, p.full_name as offered_by, t.expires_at from app.ownership_transfers t
+    join app.people p on p.id = t.from_person_id
+    where t.org_id = p_org_id and t.to_person_id = private.current_person_id()
+      and t.accepted_at is null and t.declined_at is null and t.canceled_at is null and t.expired_at is null
+      and t.deleted_at is null and t.expires_at > now()
+    limit 1
+  ) o on true;
 end;
 $$;
 
