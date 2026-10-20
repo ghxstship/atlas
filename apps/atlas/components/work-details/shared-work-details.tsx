@@ -65,7 +65,9 @@ function categoryBody(
             <li key={`${e.phoneE164}-${i}`}>
               {e.fullName}
               {e.relationship ? ` · ${e.relationship}` : ""} ·{" "}
-              <a href={`tel:${e.phoneE164}`}>{formatPhone(e.phoneE164, region)}</a>
+              <a href={`tel:${e.phoneE164}`} className="underline">
+                {formatPhone(e.phoneE164, region)}
+              </a>
               {e.alternatePhoneE164 ? ` · ${formatPhone(e.alternatePhoneE164, region)}` : ""}
               {e.email ? ` · ${e.email}` : ""}
             </li>

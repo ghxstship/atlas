@@ -131,7 +131,7 @@ async function ContactsSection({
                 </span>
                 <span className="text-text-secondary">
                   {t(`${P}.contacts.order`, { position: index + 1 })} ·{" "}
-                  <a href={`tel:${c.phoneE164}`} className="text-text-primary">
+                  <a href={`tel:${c.phoneE164}`} className="text-text-primary underline">
                     {formatPhone(c.phoneE164, region)}
                   </a>
                   {c.alternatePhoneE164 ? ` · ${formatPhone(c.alternatePhoneE164, region)}` : ""}
@@ -590,6 +590,7 @@ export async function MySharingPanel({
               {s.sharingOpen ? (
                 <div className="flex flex-wrap items-start gap-8">
                   <WorkDetailsForm
+                    key={`${s.shareId ?? "none"}-${s.categories.join(",")}`}
                     action={shareAction}
                     hidden={{ ...hidden, engagementId: s.engagementId }}
                     label={t(`${P}.sharing.categoriesLabel`, { org: s.orgName })}
