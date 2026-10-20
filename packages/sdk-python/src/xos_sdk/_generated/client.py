@@ -363,6 +363,10 @@ from .resources import (
     TemplateItemsResource,
     SupportSessionsResource,
     WholesaleStatementsResource,
+    OwnershipTransfersResource,
+    OrgDeletionRequestsResource,
+    DeletionCertificatesResource,
+    PartnerStandingGrantsResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -769,6 +773,10 @@ class XosClient(XosClientCore):
     template_items: TemplateItemsResource
     support_sessions: SupportSessionsResource
     wholesale_statements: WholesaleStatementsResource
+    ownership_transfers: OwnershipTransfersResource
+    org_deletion_requests: OrgDeletionRequestsResource
+    deletion_certificates: DeletionCertificatesResource
+    partner_standing_grants: PartnerStandingGrantsResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1163,6 +1171,10 @@ class XosClient(XosClientCore):
         self.template_items = TemplateItemsResource(self)
         self.support_sessions = SupportSessionsResource(self)
         self.wholesale_statements = WholesaleStatementsResource(self)
+        self.ownership_transfers = OwnershipTransfersResource(self)
+        self.org_deletion_requests = OrgDeletionRequestsResource(self)
+        self.deletion_certificates = DeletionCertificatesResource(self)
+        self.partner_standing_grants = PartnerStandingGrantsResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

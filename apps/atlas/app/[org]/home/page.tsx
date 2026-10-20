@@ -2,7 +2,7 @@ import { getSubscription, listMembers, listPendingInvites } from "@xos/data";
 import { isNodeVisible } from "@xos/ia";
 import { CircleCheck, Circle } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { ButtonLink, PageHeader } from "@/components/ui";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
@@ -31,6 +31,8 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   const routeParams = await params;
   const ctx = await requireNode("home", routeParams);
   const t = await getTranslations("shell.home");
+  const lifecycle = await getTranslations("orgLifecycle");
+  const format = await getFormatter();
   const translate = await getTranslate();
   const db = ctx.viewer.db;
   const [members, invites, subscription] = await Promise.all([
@@ -114,7 +116,16 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
           <h2 id="home-plan" className="text-heading-16 font-semibold">
             {t("plan.title")}
           </h2>
-          {subscription.ok ? (
+          {subscription.ok && subscription.data.trialEndsAt ? (
+            <p className="text-text-13 text-text-secondary">
+              {lifecycle("home.trial", {
+                org: ctx.org.name,
+                date: format.dateTime(new Date(subscription.data.trialEndsAt), {
+                  dateStyle: "medium",
+                }),
+              })}
+            </p>
+          ) : subscription.ok ? (
             <p className="text-text-13 text-text-secondary">
               {t("plan.current", {
                 org: ctx.org.name,

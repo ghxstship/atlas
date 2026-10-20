@@ -8,10 +8,12 @@ import type { Components } from "../contract/operations.generated.ts";
 import { badRequest, notFound, refused } from "../problem.ts";
 import { requireOrg, requirePerson } from "../runtime/context.ts";
 import { assertIfMatch } from "../runtime/etag.ts";
+import type { HandlerSet } from "../runtime/handler.ts";
 import { created, defineHandlers, ok } from "../runtime/handler.ts";
 import { decodeCursor, pageSize, toPage } from "../runtime/pagination.ts";
 import { identityParity } from "./identity/parity.ts";
 import { a52IdentityHandlers } from "./parts/a52.ts";
+import { a79IdentityHandlers } from "./parts/a79.ts";
 
 type JoinRequest = Components["JoinRequest"];
 type InvitationLink = Components["InvitationLink"];
@@ -313,6 +315,8 @@ export const handlers = defineHandlers("Identity", {
   ...identityParity,
   // Project assignment roles and blocks (A52): see ./parts/a52.ts.
   ...a52IdentityHandlers,
+  // Leaving a partner and checking a custom domain (A79): see ./parts/a79.ts.
+  ...(a79IdentityHandlers as unknown as HandlerSet<"Identity">),
   "joinRequests.list": async ({ query }, context) => {
     const org = requireOrg(context);
     const size = pageSize(query.limit);

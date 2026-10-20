@@ -101,7 +101,18 @@
     "grantList": "Standing grants",
     "grantRow": "{scope} until {date}. {reference}",
     "grantEnded": "Ended",
-    "grantEnd": "End now"
+    "grantEnd": "End now",
+    "yourPartner": "your partner",
+    "scopes": {
+      "org_settings_read": "Organization settings",
+      "org_members_read": "Members",
+      "org_usage_read": "Plan usage",
+      "projects_project_read": "Projects",
+      "work_record_read": "Records and tasks",
+      "schedule_timeline_read": "Schedule",
+      "finance_budget_read": "Budgets",
+      "reports_report_read": "Reports"
+    }
   },
   "domains": {
     "title": "Domain setup",

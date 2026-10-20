@@ -24,6 +24,7 @@ import type { ListQuery } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
 import { a36Handlers } from "./parts/a36.ts";
+import { a79PlatformHandlers } from "./parts/a79.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
@@ -258,6 +259,7 @@ export const handlers = defineHandlers("Platform", {
   ...(viewsHelpSupportHandlers as unknown as HandlerSet<"Platform">),
   ...(workflowHandlers as unknown as HandlerSet<"Platform">),
   ...(a36Handlers as unknown as HandlerSet<"Platform">),
+  ...(a79PlatformHandlers as unknown as HandlerSet<"Platform">),
 
   ...handlersFor("Platform", commentThreads),
   "commentThreads.update": async ({ params, body, ifMatch }, context) => {

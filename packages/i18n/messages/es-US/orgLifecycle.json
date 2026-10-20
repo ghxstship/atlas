@@ -101,7 +101,18 @@
     "grantList": "Permisos permanentes",
     "grantRow": "{scope} hasta el {date}. {reference}",
     "grantEnded": "Terminado",
-    "grantEnd": "Terminar ahora"
+    "grantEnd": "Terminar ahora",
+    "yourPartner": "su socio",
+    "scopes": {
+      "org_settings_read": "Configuración de la organización",
+      "org_members_read": "Miembros",
+      "org_usage_read": "Uso del plan",
+      "projects_project_read": "Proyectos",
+      "work_record_read": "Registros y tareas",
+      "schedule_timeline_read": "Cronograma",
+      "finance_budget_read": "Presupuestos",
+      "reports_report_read": "Informes"
+    }
   },
   "domains": {
     "title": "Configuración de dominios",
