@@ -342,6 +342,11 @@ import {
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
+  WorkDetailsResource,
+  EmergencyContactsResource,
+  LoyaltyProgramsResource,
+  WorkDetailSharesResource,
+  WorkDetailEventsResource,
   SavedViewSharesResource,
   SavedViewDefaultsResource,
   TourProgressResource,
@@ -1168,6 +1173,16 @@ export class XosClient extends XosClientCore {
   readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
   /** Settings: operations on `aiUsage`. */
   readonly aiUsage: AiUsageResource = new AiUsageResource(this);
+  /** Identity: operations on `workDetails`. */
+  readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
+  /** Identity: operations on `emergencyContacts`. */
+  readonly emergencyContacts: EmergencyContactsResource = new EmergencyContactsResource(this);
+  /** Identity: operations on `loyaltyPrograms`. */
+  readonly loyaltyPrograms: LoyaltyProgramsResource = new LoyaltyProgramsResource(this);
+  /** Identity: operations on `workDetailShares`. */
+  readonly workDetailShares: WorkDetailSharesResource = new WorkDetailSharesResource(this);
+  /** Identity: operations on `workDetailEvents`. */
+  readonly workDetailEvents: WorkDetailEventsResource = new WorkDetailEventsResource(this);
   /** Platform: operations on `savedViewShares`. */
   readonly savedViewShares: SavedViewSharesResource = new SavedViewSharesResource(this);
   /** Platform: operations on `savedViewDefaults`. */

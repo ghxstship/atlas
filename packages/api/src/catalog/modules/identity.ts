@@ -7,6 +7,11 @@ import { z } from "@hono/zod-openapi";
 import { AccountRole, OrgRole, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, removeVerbs, setTable } from "../correct.ts";
+import {
+  workDetailCapabilities,
+  workDetailCorrections,
+  workDetailResources,
+} from "./parts/work-details.ts";
 
 /** A profile handle as app.person_profiles and app.organization_profiles store it (0860). */
 const handle = {
@@ -36,7 +41,10 @@ const label = (values: readonly [string, ...string[]], description: string) =>
 const TITLE_CASE = /^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$/;
 
 export const additions = defineAdditions("Identity", {
+  resources: [...workDetailResources],
+  capabilities: { ...workDetailCapabilities },
   corrections: [
+    ...workDetailCorrections,
     {
       id: "person-full-name",
       since: "1.0.0-draft.2",

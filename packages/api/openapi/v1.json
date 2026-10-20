@@ -34060,9 +34060,23 @@
             "maxLength": 300,
             "description": "Legal or full name.",
             "example": "Alex Rivera"
+          },
+          "given_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Optional given name, as the person writes it.",
+            "example": "Ivy"
+          },
+          "family_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Optional family name, as the person writes it.",
+            "example": "Marchetti"
           }
         },
-        "required": ["id", "created_at", "updated_at", "full_name"],
+        "required": ["id", "created_at", "updated_at", "full_name", "given_name", "family_name"],
         "description": "One human, linked to one sign-in. Personal facts are owned by the person."
       },
       "PersonUpdate": {
@@ -34074,6 +34088,20 @@
             "maxLength": 300,
             "description": "Legal or full name.",
             "example": "Alex Rivera"
+          },
+          "given_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Optional given name, as the person writes it.",
+            "example": "Ivy"
+          },
+          "family_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Optional family name, as the person writes it.",
+            "example": "Marchetti"
           }
         },
         "description": "Fields accepted when updating a Person. Omitted fields are unchanged."
@@ -48730,6 +48758,1395 @@
           "output_tokens"
         ],
         "description": "Aurora metering (ADR 0020): one row per authorized request. The monthly allowance aurora_requests_per_month counts these rows by UTC month."
+      },
+      "WorkDetailsPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetails" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WorkDetails": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the work details.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person the work details belong to; always the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shirt_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "jacket_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "pants_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Pants size as the person writes it.",
+            "example": "32x32"
+          },
+          "shoe_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Shoe size with its system.",
+            "example": "US 10.5"
+          },
+          "glove_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "hat_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Hat size as the person writes it.",
+            "example": "7 1/4"
+          },
+          "uniform_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Anything else about fit.",
+            "example": "Prefers a relaxed cut."
+          },
+          "dietary_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DietaryNeed" },
+            "maxItems": 9,
+            "description": "Dietary needs, each once, in enum order.",
+            "example": ["Vegan"]
+          },
+          "allergies": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Allergies in the person's words, with how severe.",
+            "example": "Peanuts, severe"
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Other dietary notes.",
+            "example": "No pork."
+          },
+          "accessibility_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccessibilityNeed" },
+            "maxItems": 10,
+            "description": "Accessibility needs, each once, in enum order.",
+            "example": ["Seating"]
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Accessibility needs in the person's words.",
+            "example": "Needs a seat near the stage door."
+          },
+          "seat_preference": {
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+          },
+          "meal_preference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Preferred in-flight meal.",
+            "example": "Vegetarian (VGML)"
+          },
+          "home_airport": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "IATA airport code.",
+            "example": "MIA"
+          },
+          "passport_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 30,
+                "description": "Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.",
+                "example": "YA0000TEST"
+              },
+              { "$ref": "#/components/schemas/Masked" },
+              { "type": "null" }
+            ]
+          },
+          "passport_number_last4": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Last four characters of the passport number.",
+            "example": "TEST"
+          },
+          "passport_issuing_country": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{2}$",
+            "description": "Country that issued the passport.",
+            "example": "US"
+          },
+          "passport_expires_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the passport expires.",
+            "example": "2026-10-08"
+          },
+          "passport_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name exactly as printed in the passport.",
+            "example": "IVY MARCHETTI"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "shirt_size",
+          "jacket_size",
+          "pants_size",
+          "shoe_size",
+          "glove_size",
+          "hat_size",
+          "uniform_notes",
+          "dietary_needs",
+          "allergies",
+          "dietary_notes",
+          "accessibility_needs",
+          "accessibility_notes",
+          "seat_preference",
+          "meal_preference",
+          "home_airport",
+          "passport_number",
+          "passport_number_last4",
+          "passport_issuing_country",
+          "passport_expires_on",
+          "passport_name"
+        ],
+        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second)."
+      },
+      "GarmentLetterSize": {
+        "type": "string",
+        "enum": ["XXS", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL", "5XL"],
+        "description": "Letter size for a shirt, jacket or gloves.",
+        "example": "XXS"
+      },
+      "DietaryNeed": {
+        "type": "string",
+        "enum": [
+          "Vegetarian",
+          "Vegan",
+          "Pescatarian",
+          "Halal",
+          "Kosher",
+          "Gluten Free",
+          "Dairy Free",
+          "Nut Free",
+          "Shellfish Free"
+        ],
+        "description": "A dietary need hospitality caters for.",
+        "example": "Vegetarian"
+      },
+      "AccessibilityNeed": {
+        "type": "string",
+        "enum": [
+          "Step-Free Access",
+          "Accessible Parking",
+          "Accessible Restroom",
+          "Seating",
+          "Sign Language Interpreter",
+          "Captioning",
+          "Large Print",
+          "Service Animal",
+          "Quiet Space",
+          "Assistance on Arrival"
+        ],
+        "description": "An accessibility need the person asks an engaging org to plan for.",
+        "example": "Step-Free Access"
+      },
+      "SeatPreference": {
+        "type": "string",
+        "enum": ["Window", "Aisle", "No Preference"],
+        "description": "Preferred seat when an org books travel.",
+        "example": "Window"
+      },
+      "WorkDetailsCreate": {
+        "type": "object",
+        "properties": {
+          "shirt_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "jacket_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "pants_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Pants size as the person writes it.",
+            "example": "32x32"
+          },
+          "shoe_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Shoe size with its system.",
+            "example": "US 10.5"
+          },
+          "glove_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "hat_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Hat size as the person writes it.",
+            "example": "7 1/4"
+          },
+          "uniform_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Anything else about fit.",
+            "example": "Prefers a relaxed cut."
+          },
+          "dietary_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DietaryNeed" },
+            "maxItems": 9,
+            "description": "Dietary needs, each once, in enum order.",
+            "example": ["Vegan"]
+          },
+          "allergies": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Allergies in the person's words, with how severe.",
+            "example": "Peanuts, severe"
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Other dietary notes.",
+            "example": "No pork."
+          },
+          "accessibility_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccessibilityNeed" },
+            "maxItems": 10,
+            "description": "Accessibility needs, each once, in enum order.",
+            "example": ["Seating"]
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Accessibility needs in the person's words.",
+            "example": "Needs a seat near the stage door."
+          },
+          "seat_preference": {
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+          },
+          "meal_preference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Preferred in-flight meal.",
+            "example": "Vegetarian (VGML)"
+          },
+          "home_airport": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "IATA airport code.",
+            "example": "MIA"
+          },
+          "passport_number": {
+            "type": ["string", "null"],
+            "minLength": 5,
+            "maxLength": 30,
+            "description": "Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.",
+            "example": "YA0000TEST"
+          },
+          "passport_issuing_country": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{2}$",
+            "description": "Country that issued the passport.",
+            "example": "US"
+          },
+          "passport_expires_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the passport expires.",
+            "example": "2026-10-08"
+          },
+          "passport_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name exactly as printed in the passport.",
+            "example": "IVY MARCHETTI"
+          }
+        },
+        "description": "Fields accepted when creating a WorkDetails."
+      },
+      "WorkDetailsUpdate": {
+        "type": "object",
+        "properties": {
+          "shirt_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "jacket_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "pants_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Pants size as the person writes it.",
+            "example": "32x32"
+          },
+          "shoe_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Shoe size with its system.",
+            "example": "US 10.5"
+          },
+          "glove_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "hat_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "Hat size as the person writes it.",
+            "example": "7 1/4"
+          },
+          "uniform_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Anything else about fit.",
+            "example": "Prefers a relaxed cut."
+          },
+          "dietary_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DietaryNeed" },
+            "maxItems": 9,
+            "description": "Dietary needs, each once, in enum order.",
+            "example": ["Vegan"]
+          },
+          "allergies": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Allergies in the person's words, with how severe.",
+            "example": "Peanuts, severe"
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Other dietary notes.",
+            "example": "No pork."
+          },
+          "accessibility_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccessibilityNeed" },
+            "maxItems": 10,
+            "description": "Accessibility needs, each once, in enum order.",
+            "example": ["Seating"]
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Accessibility needs in the person's words.",
+            "example": "Needs a seat near the stage door."
+          },
+          "seat_preference": {
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+          },
+          "meal_preference": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Preferred in-flight meal.",
+            "example": "Vegetarian (VGML)"
+          },
+          "home_airport": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "IATA airport code.",
+            "example": "MIA"
+          },
+          "passport_number": {
+            "type": ["string", "null"],
+            "minLength": 5,
+            "maxLength": 30,
+            "description": "Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.",
+            "example": "YA0000TEST"
+          },
+          "passport_issuing_country": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{2}$",
+            "description": "Country that issued the passport.",
+            "example": "US"
+          },
+          "passport_expires_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the passport expires.",
+            "example": "2026-10-08"
+          },
+          "passport_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Name exactly as printed in the passport.",
+            "example": "IVY MARCHETTI"
+          }
+        },
+        "description": "Fields accepted when updating a WorkDetails. Omitted fields are unchanged."
+      },
+      "PassportReveal": {
+        "type": "object",
+        "properties": {
+          "passport_number": {
+            "type": "string",
+            "description": "The passport number in plain text.",
+            "example": "YA0000TEST"
+          }
+        },
+        "required": ["passport_number"],
+        "description": "A revealed passport number. Each reveal is written to the person's access log."
+      },
+      "EmergencyContactPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/EmergencyContact" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "EmergencyContact": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the emergency contact.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person the contact belongs to; always the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "full_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Contact's name.",
+            "example": "Marco Marchetti"
+          },
+          "relationship": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "How the contact relates to the person.",
+            "example": "Brother"
+          },
+          "phone_e164": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "Contact's phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "alternate_phone_e164": {
+            "type": ["string", "null"],
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "A second phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Contact's email address.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Order to call in, lowest first.",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "full_name",
+          "relationship",
+          "phone_e164",
+          "alternate_phone_e164",
+          "email",
+          "sort_order"
+        ],
+        "description": "One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category."
+      },
+      "EmergencyContactCreate": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Contact's name.",
+            "example": "Marco Marchetti"
+          },
+          "relationship": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "How the contact relates to the person.",
+            "example": "Brother"
+          },
+          "phone_e164": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "Contact's phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "alternate_phone_e164": {
+            "type": ["string", "null"],
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "A second phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Contact's email address.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Order to call in, lowest first.",
+            "example": 0
+          }
+        },
+        "required": ["full_name", "phone_e164"],
+        "description": "Fields accepted when creating a EmergencyContact."
+      },
+      "EmergencyContactUpdate": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Contact's name.",
+            "example": "Marco Marchetti"
+          },
+          "relationship": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 60,
+            "description": "How the contact relates to the person.",
+            "example": "Brother"
+          },
+          "phone_e164": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "Contact's phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "alternate_phone_e164": {
+            "type": ["string", "null"],
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "A second phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Contact's email address.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Order to call in, lowest first.",
+            "example": 0
+          }
+        },
+        "description": "Fields accepted when updating a EmergencyContact. Omitted fields are unchanged."
+      },
+      "LoyaltyProgramPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/LoyaltyProgram" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "LoyaltyProgram": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the loyalty program.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person the program belongs to; always the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "program_kind": { "$ref": "#/components/schemas/LoyaltyProgramKind" },
+          "program_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Program.",
+            "example": "SkyMiles"
+          },
+          "member_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Membership number.",
+            "example": "SM-0000-TEST"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order.",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "program_kind",
+          "program_name",
+          "member_number",
+          "sort_order"
+        ],
+        "description": "A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category."
+      },
+      "LoyaltyProgramKind": {
+        "type": "string",
+        "enum": ["Airline", "Hotel", "Car Rental", "Rail"],
+        "description": "Kind of travel loyalty program.",
+        "example": "Airline"
+      },
+      "LoyaltyProgramCreate": {
+        "type": "object",
+        "properties": {
+          "program_kind": { "$ref": "#/components/schemas/LoyaltyProgramKind" },
+          "program_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Program.",
+            "example": "SkyMiles"
+          },
+          "member_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Membership number.",
+            "example": "SM-0000-TEST"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order.",
+            "example": 0
+          }
+        },
+        "required": ["program_kind", "program_name", "member_number"],
+        "description": "Fields accepted when creating a LoyaltyProgram."
+      },
+      "LoyaltyProgramUpdate": {
+        "type": "object",
+        "properties": {
+          "program_kind": { "$ref": "#/components/schemas/LoyaltyProgramKind" },
+          "program_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Program.",
+            "example": "SkyMiles"
+          },
+          "member_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "Membership number.",
+            "example": "SM-0000-TEST"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Display order.",
+            "example": 0
+          }
+        },
+        "description": "Fields accepted when updating a LoyaltyProgram. Omitted fields are unchanged."
+      },
+      "WorkDetailSharePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailShare" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WorkDetailShare": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the work detail share.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the engagement the share serves; the caller must be its person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person sharing.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "consent_record_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the work_details_sharing consent record for the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
+            "minItems": 1,
+            "maxItems": 6,
+            "description": "Categories shared.",
+            "example": ["Dietary Needs", "Emergency Contacts"]
+          },
+          "shared_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the share was given.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the person revoked it; null while it stands.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "engagement_id",
+          "person_id",
+          "consent_record_id",
+          "categories",
+          "shared_at",
+          "revoked_at"
+        ],
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them."
+      },
+      "WorkDetailCategory": {
+        "type": "string",
+        "enum": [
+          "Emergency Contacts",
+          "Uniform Sizes",
+          "Dietary Needs",
+          "Accessibility Needs",
+          "Travel Profile",
+          "Passport"
+        ],
+        "description": "A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.",
+        "example": "Emergency Contacts"
+      },
+      "WorkDetailShareCreate": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the engagement the share serves; the caller must be its person.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
+            "minItems": 1,
+            "maxItems": 6,
+            "description": "Categories shared.",
+            "example": ["Dietary Needs", "Emergency Contacts"]
+          }
+        },
+        "required": ["engagement_id", "categories"],
+        "description": "Fields accepted when creating a WorkDetailShare."
+      },
+      "WorkDetailShareUpdate": {
+        "type": "object",
+        "properties": {
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
+            "minItems": 1,
+            "maxItems": 6,
+            "description": "Categories shared.",
+            "example": ["Dietary Needs", "Emergency Contacts"]
+          }
+        },
+        "description": "Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged."
+      },
+      "SharedWorkDetails": {
+        "type": "object",
+        "properties": {
+          "engagement_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Person the engagement names.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Engaging org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "work_detail_share_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Live share; null when none stands.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "shared_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the share was given.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "sharing_open": {
+            "type": "boolean",
+            "description": "The engagement is Onboarding to Closing; a closed engagement reads nothing.",
+            "example": true
+          },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
+            "description": "Categories the person shared.",
+            "example": ["Dietary Needs"]
+          },
+          "readable": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
+            "description": "Shared categories the caller's project capabilities cover; the others come back null.",
+            "example": ["Dietary Needs"]
+          },
+          "emergency_contacts": {
+            "type": ["array", "null"],
+            "items": { "$ref": "#/components/schemas/SharedEmergencyContact" }
+          },
+          "uniform": {
+            "anyOf": [{ "$ref": "#/components/schemas/SharedUniformSizes" }, { "type": "null" }]
+          },
+          "dietary": {
+            "anyOf": [{ "$ref": "#/components/schemas/SharedDietaryNeeds" }, { "type": "null" }]
+          },
+          "accessibility": {
+            "anyOf": [
+              { "$ref": "#/components/schemas/SharedAccessibilityNeeds" },
+              { "type": "null" }
+            ]
+          },
+          "travel": {
+            "anyOf": [{ "$ref": "#/components/schemas/SharedTravelProfile" }, { "type": "null" }]
+          },
+          "passport": {
+            "anyOf": [{ "$ref": "#/components/schemas/SharedPassport" }, { "type": "null" }]
+          }
+        },
+        "required": [
+          "engagement_id",
+          "person_id",
+          "org_id",
+          "work_detail_share_id",
+          "shared_at",
+          "sharing_open",
+          "categories",
+          "readable",
+          "emergency_contacts",
+          "uniform",
+          "dietary",
+          "accessibility",
+          "travel",
+          "passport"
+        ],
+        "description": "What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked."
+      },
+      "SharedEmergencyContact": {
+        "type": "object",
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "description": "Contact's name.",
+            "example": "Marco Marchetti"
+          },
+          "relationship": {
+            "type": ["string", "null"],
+            "description": "Relationship.",
+            "example": "Brother"
+          },
+          "phone_e164": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "Contact's phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "alternate_phone_e164": {
+            "type": ["string", "null"],
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "description": "A second phone. E.164 format.",
+            "example": "+13055550142"
+          },
+          "email": {
+            "type": ["string", "null"],
+            "description": "Email address.",
+            "example": "marco@example.com"
+          },
+          "sort_order": { "type": "integer", "description": "Calling order.", "example": 0 }
+        },
+        "required": [
+          "full_name",
+          "relationship",
+          "phone_e164",
+          "alternate_phone_e164",
+          "email",
+          "sort_order"
+        ],
+        "description": "An emergency contact as an engaging org reads it."
+      },
+      "SharedUniformSizes": {
+        "type": "object",
+        "properties": {
+          "shirt_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "jacket_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "pants_size": {
+            "type": ["string", "null"],
+            "description": "Pants size.",
+            "example": "32x32"
+          },
+          "shoe_size": {
+            "type": ["string", "null"],
+            "description": "Shoe size.",
+            "example": "US 10.5"
+          },
+          "glove_size": {
+            "anyOf": [{ "$ref": "#/components/schemas/GarmentLetterSize" }, { "type": "null" }]
+          },
+          "hat_size": {
+            "type": ["string", "null"],
+            "description": "Hat size.",
+            "example": "7 1/4"
+          },
+          "uniform_notes": {
+            "type": ["string", "null"],
+            "description": "Fit notes.",
+            "example": "Prefers a relaxed cut."
+          }
+        },
+        "required": [
+          "shirt_size",
+          "jacket_size",
+          "pants_size",
+          "shoe_size",
+          "glove_size",
+          "hat_size",
+          "uniform_notes"
+        ],
+        "description": "Uniform sizes as an engaging org reads them."
+      },
+      "SharedDietaryNeeds": {
+        "type": "object",
+        "properties": {
+          "dietary_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DietaryNeed" }
+          },
+          "allergies": {
+            "type": ["string", "null"],
+            "description": "Allergies.",
+            "example": "Peanuts, severe"
+          },
+          "dietary_notes": {
+            "type": ["string", "null"],
+            "description": "Other dietary notes.",
+            "example": "No pork."
+          }
+        },
+        "required": ["dietary_needs", "allergies", "dietary_notes"],
+        "description": "Dietary needs as an engaging org reads them."
+      },
+      "SharedAccessibilityNeeds": {
+        "type": "object",
+        "properties": {
+          "accessibility_needs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AccessibilityNeed" }
+          },
+          "accessibility_notes": {
+            "type": ["string", "null"],
+            "description": "Accessibility notes.",
+            "example": "Needs a seat near the stage door."
+          }
+        },
+        "required": ["accessibility_needs", "accessibility_notes"],
+        "description": "Accessibility needs as an engaging org reads them."
+      },
+      "SharedTravelProfile": {
+        "type": "object",
+        "properties": {
+          "seat_preference": {
+            "anyOf": [{ "$ref": "#/components/schemas/SeatPreference" }, { "type": "null" }]
+          },
+          "meal_preference": {
+            "type": ["string", "null"],
+            "description": "Preferred in-flight meal.",
+            "example": "Vegetarian (VGML)"
+          },
+          "home_airport": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{3}$",
+            "description": "IATA airport code.",
+            "example": "MIA"
+          },
+          "loyalty_programs": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/SharedLoyaltyProgram" }
+          }
+        },
+        "required": ["seat_preference", "meal_preference", "home_airport", "loyalty_programs"],
+        "description": "The travel profile as an engaging org reads it."
+      },
+      "SharedLoyaltyProgram": {
+        "type": "object",
+        "properties": {
+          "program_kind": { "$ref": "#/components/schemas/LoyaltyProgramKind" },
+          "program_name": { "type": "string", "description": "Program.", "example": "SkyMiles" },
+          "member_number": {
+            "type": "string",
+            "description": "Membership number.",
+            "example": "SM-0000-TEST"
+          }
+        },
+        "required": ["program_kind", "program_name", "member_number"],
+        "description": "A loyalty program as an engaging org reads it."
+      },
+      "SharedPassport": {
+        "type": "object",
+        "properties": {
+          "passport_number": {
+            "type": "null",
+            "description": "Always null: the number is masked; reveal it through revealPassport.",
+            "example": null
+          },
+          "passport_number_last4": {
+            "type": ["string", "null"],
+            "description": "Last four characters of the number.",
+            "example": "TEST"
+          },
+          "passport_number_masked": {
+            "type": "boolean",
+            "description": "A number is recorded and withheld.",
+            "example": true
+          },
+          "passport_issuing_country": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Z]{2}$",
+            "description": "Country that issued the passport.",
+            "example": "US"
+          },
+          "passport_expires_on": {
+            "type": ["string", "null"],
+            "format": "date",
+            "description": "Day the passport expires.",
+            "example": "2026-10-08"
+          },
+          "passport_name": {
+            "type": ["string", "null"],
+            "description": "Name as printed in the passport.",
+            "example": "IVY MARCHETTI"
+          }
+        },
+        "required": [
+          "passport_number",
+          "passport_number_last4",
+          "passport_number_masked",
+          "passport_issuing_country",
+          "passport_expires_on",
+          "passport_name"
+        ],
+        "description": "Passport details as an engaging org reads them, the number masked."
+      },
+      "PassportRevealRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 500,
+            "description": "Why the number is needed, 10 to 500 characters. Logged with the reveal.",
+            "example": "Booking the June flights."
+          }
+        },
+        "required": ["reason"],
+        "description": "Request to reveal a shared passport number."
+      },
+      "WorkDetailEventPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailEvent" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "WorkDetailEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the entry.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person whose work details were touched.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "actor_person_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who acted; null for the database or a service.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the org whose member acted or whose share changed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement of a share, read or reveal.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+            "description": "What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.",
+            "example": "work_details.viewed"
+          },
+          "categories": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/WorkDetailCategory" },
+            "description": "Categories the act covered.",
+            "example": ["Dietary Needs"]
+          },
+          "changed_columns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Columns an owner change touched, never their values.",
+            "example": ["allergies"]
+          },
+          "reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Reason an org member gave for revealing the passport number.",
+            "example": "Booking the June flights."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When it happened.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "person_id",
+          "actor_person_id",
+          "org_id",
+          "engagement_id",
+          "action",
+          "categories",
+          "changed_columns",
+          "reason",
+          "created_at"
+        ],
+        "description": "One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org."
       },
       "SavedViewSharePage": {
         "type": "object",
@@ -109841,7 +111258,9 @@
                       "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "created_at": "2026-10-08T14:30:00Z",
                       "updated_at": "2026-10-08T14:30:00Z",
-                      "full_name": "Alex Rivera"
+                      "full_name": "Alex Rivera",
+                      "given_name": "Ivy",
+                      "family_name": "Marchetti"
                     }
                   ],
                   "next_cursor": null
@@ -109895,7 +111314,9 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "full_name": "Alex Rivera"
+                  "full_name": "Alex Rivera",
+                  "given_name": "Ivy",
+                  "family_name": "Marchetti"
                 },
                 "schema": { "$ref": "#/components/schemas/Person" }
               }
@@ -109934,7 +111355,11 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": { "full_name": "Alex Rivera" },
+              "example": {
+                "full_name": "Alex Rivera",
+                "given_name": "Ivy",
+                "family_name": "Marchetti"
+              },
               "schema": { "$ref": "#/components/schemas/PersonUpdate" }
             }
           }
@@ -109954,7 +111379,9 @@
                   "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "created_at": "2026-10-08T14:30:00Z",
                   "updated_at": "2026-10-08T14:30:00Z",
-                  "full_name": "Alex Rivera"
+                  "full_name": "Alex Rivera",
+                  "given_name": "Ivy",
+                  "family_name": "Marchetti"
                 },
                 "schema": { "$ref": "#/components/schemas/Person" }
               }
@@ -133047,6 +134474,1475 @@
                   "next_cursor": null
                 },
                 "schema": { "$ref": "#/components/schemas/AiUsagePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-details": {
+      "get": {
+        "operationId": "workDetails.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_work_details",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List work details rows",
+        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns a cursor page of work details rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of work details rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "shirt_size": "XXS",
+                      "jacket_size": "XXS",
+                      "pants_size": "32x32",
+                      "shoe_size": "US 10.5",
+                      "glove_size": "XXS",
+                      "hat_size": "7 1/4",
+                      "uniform_notes": "Prefers a relaxed cut.",
+                      "dietary_needs": ["Vegan"],
+                      "allergies": "Peanuts, severe",
+                      "dietary_notes": "No pork.",
+                      "accessibility_needs": ["Seating"],
+                      "accessibility_notes": "Needs a seat near the stage door.",
+                      "seat_preference": "Window",
+                      "meal_preference": "Vegetarian (VGML)",
+                      "home_airport": "MIA",
+                      "passport_number": "YA0000TEST",
+                      "passport_number_last4": "TEST",
+                      "passport_issuing_country": "US",
+                      "passport_expires_on": "2026-10-08",
+                      "passport_name": "IVY MARCHETTI"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailsPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "workDetails.create",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_work_details",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a work details",
+        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Creates a work details. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "shirt_size": "XXS",
+                "jacket_size": "XXS",
+                "pants_size": "32x32",
+                "shoe_size": "US 10.5",
+                "glove_size": "XXS",
+                "hat_size": "7 1/4",
+                "uniform_notes": "Prefers a relaxed cut.",
+                "dietary_needs": ["Vegan"],
+                "allergies": "Peanuts, severe",
+                "dietary_notes": "No pork.",
+                "accessibility_needs": ["Seating"],
+                "accessibility_notes": "Needs a seat near the stage door.",
+                "seat_preference": "Window",
+                "meal_preference": "Vegetarian (VGML)",
+                "home_airport": "MIA",
+                "passport_number": "YA0000TEST",
+                "passport_issuing_country": "US",
+                "passport_expires_on": "2026-10-08",
+                "passport_name": "IVY MARCHETTI"
+              },
+              "schema": { "$ref": "#/components/schemas/WorkDetailsCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created work details.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shirt_size": "XXS",
+                  "jacket_size": "XXS",
+                  "pants_size": "32x32",
+                  "shoe_size": "US 10.5",
+                  "glove_size": "XXS",
+                  "hat_size": "7 1/4",
+                  "uniform_notes": "Prefers a relaxed cut.",
+                  "dietary_needs": ["Vegan"],
+                  "allergies": "Peanuts, severe",
+                  "dietary_notes": "No pork.",
+                  "accessibility_needs": ["Seating"],
+                  "accessibility_notes": "Needs a seat near the stage door.",
+                  "seat_preference": "Window",
+                  "meal_preference": "Vegetarian (VGML)",
+                  "home_airport": "MIA",
+                  "passport_number": "YA0000TEST",
+                  "passport_number_last4": "TEST",
+                  "passport_issuing_country": "US",
+                  "passport_expires_on": "2026-10-08",
+                  "passport_name": "IVY MARCHETTI"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetails" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-details/{id}": {
+      "get": {
+        "operationId": "workDetails.get",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_work_details",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a work details",
+        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Returns one work details with its `ETag`. A work details the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work details.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work details.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The work details.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shirt_size": "XXS",
+                  "jacket_size": "XXS",
+                  "pants_size": "32x32",
+                  "shoe_size": "US 10.5",
+                  "glove_size": "XXS",
+                  "hat_size": "7 1/4",
+                  "uniform_notes": "Prefers a relaxed cut.",
+                  "dietary_needs": ["Vegan"],
+                  "allergies": "Peanuts, severe",
+                  "dietary_notes": "No pork.",
+                  "accessibility_needs": ["Seating"],
+                  "accessibility_notes": "Needs a seat near the stage door.",
+                  "seat_preference": "Window",
+                  "meal_preference": "Vegetarian (VGML)",
+                  "home_airport": "MIA",
+                  "passport_number": "YA0000TEST",
+                  "passport_number_last4": "TEST",
+                  "passport_issuing_country": "US",
+                  "passport_expires_on": "2026-10-08",
+                  "passport_name": "IVY MARCHETTI"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetails" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "workDetails.update",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_work_details",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Update a work details",
+        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work details.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work details.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "shirt_size": "XXS",
+                "jacket_size": "XXS",
+                "pants_size": "32x32",
+                "shoe_size": "US 10.5",
+                "glove_size": "XXS",
+                "hat_size": "7 1/4",
+                "uniform_notes": "Prefers a relaxed cut.",
+                "dietary_needs": ["Vegan"],
+                "allergies": "Peanuts, severe",
+                "dietary_notes": "No pork.",
+                "accessibility_needs": ["Seating"],
+                "accessibility_notes": "Needs a seat near the stage door.",
+                "seat_preference": "Window",
+                "meal_preference": "Vegetarian (VGML)",
+                "home_airport": "MIA",
+                "passport_number": "YA0000TEST",
+                "passport_issuing_country": "US",
+                "passport_expires_on": "2026-10-08",
+                "passport_name": "IVY MARCHETTI"
+              },
+              "schema": { "$ref": "#/components/schemas/WorkDetailsUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated work details.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shirt_size": "XXS",
+                  "jacket_size": "XXS",
+                  "pants_size": "32x32",
+                  "shoe_size": "US 10.5",
+                  "glove_size": "XXS",
+                  "hat_size": "7 1/4",
+                  "uniform_notes": "Prefers a relaxed cut.",
+                  "dietary_needs": ["Vegan"],
+                  "allergies": "Peanuts, severe",
+                  "dietary_notes": "No pork.",
+                  "accessibility_needs": ["Seating"],
+                  "accessibility_notes": "Needs a seat near the stage door.",
+                  "seat_preference": "Window",
+                  "meal_preference": "Vegetarian (VGML)",
+                  "home_airport": "MIA",
+                  "passport_number": "YA0000TEST",
+                  "passport_number_last4": "TEST",
+                  "passport_issuing_country": "US",
+                  "passport_expires_on": "2026-10-08",
+                  "passport_name": "IVY MARCHETTI"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetails" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "workDetails.delete",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_work_details",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Delete a work details",
+        "description": "The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second). Soft-deletes the work details: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work details.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work details.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The work details moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-details/{id}/reveal-passport": {
+      "post": {
+        "operationId": "workDetails.revealPassport",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_work_details",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.reveal_my_passport_number",
+        "summary": "Reveal the caller's passport number",
+        "description": "Returns the caller's own passport number in plain text through `app.reveal_my_passport_number`. Every reveal is written to the person's access log. 422 passport_number_missing when none is recorded. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work details.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work details.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "passport_number": "YA0000TEST" },
+                "schema": { "$ref": "#/components/schemas/PassportReveal" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/emergency-contacts": {
+      "get": {
+        "operationId": "emergencyContacts.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_emergency_contacts",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["sort_order", "created_at"], "numeric": false },
+        "summary": "List emergency contact rows",
+        "description": "One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns a cursor page of emergency contact rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of emergency contact rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "full_name": "Marco Marchetti",
+                      "relationship": "Brother",
+                      "phone_e164": "+13055550142",
+                      "alternate_phone_e164": "+13055550142",
+                      "email": "alex.rivera@northwindlive.example",
+                      "sort_order": 0
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/EmergencyContactPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "emergencyContacts.create",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_emergency_contacts",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create an emergency contact",
+        "description": "One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Creates an emergency contact. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "full_name": "Marco Marchetti",
+                "relationship": "Brother",
+                "phone_e164": "+13055550142",
+                "alternate_phone_e164": "+13055550142",
+                "email": "alex.rivera@northwindlive.example",
+                "sort_order": 0
+              },
+              "schema": { "$ref": "#/components/schemas/EmergencyContactCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created emergency contact.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "full_name": "Marco Marchetti",
+                  "relationship": "Brother",
+                  "phone_e164": "+13055550142",
+                  "alternate_phone_e164": "+13055550142",
+                  "email": "alex.rivera@northwindlive.example",
+                  "sort_order": 0
+                },
+                "schema": { "$ref": "#/components/schemas/EmergencyContact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/emergency-contacts/{id}": {
+      "get": {
+        "operationId": "emergencyContacts.get",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_emergency_contacts",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get an emergency contact",
+        "description": "One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Returns one emergency contact with its `ETag`. A emergency contact the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the emergency contact.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the emergency contact.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The emergency contact.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "full_name": "Marco Marchetti",
+                  "relationship": "Brother",
+                  "phone_e164": "+13055550142",
+                  "alternate_phone_e164": "+13055550142",
+                  "email": "alex.rivera@northwindlive.example",
+                  "sort_order": 0
+                },
+                "schema": { "$ref": "#/components/schemas/EmergencyContact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "emergencyContacts.update",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_emergency_contacts",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Update an emergency contact",
+        "description": "One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the emergency contact.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the emergency contact.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "full_name": "Marco Marchetti",
+                "relationship": "Brother",
+                "phone_e164": "+13055550142",
+                "alternate_phone_e164": "+13055550142",
+                "email": "alex.rivera@northwindlive.example",
+                "sort_order": 0
+              },
+              "schema": { "$ref": "#/components/schemas/EmergencyContactUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated emergency contact.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "full_name": "Marco Marchetti",
+                  "relationship": "Brother",
+                  "phone_e164": "+13055550142",
+                  "alternate_phone_e164": "+13055550142",
+                  "email": "alex.rivera@northwindlive.example",
+                  "sort_order": 0
+                },
+                "schema": { "$ref": "#/components/schemas/EmergencyContact" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "emergencyContacts.delete",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_emergency_contacts",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Delete an emergency contact",
+        "description": "One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category. Soft-deletes the emergency contact: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the emergency contact.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the emergency contact.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The emergency contact moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/loyalty-programs": {
+      "get": {
+        "operationId": "loyaltyPrograms.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_loyalty_programs",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["sort_order", "created_at"], "numeric": false },
+        "summary": "List loyalty program rows",
+        "description": "A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns a cursor page of loyalty program rows the caller may see. The default order is `sort_order`, then `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of loyalty program rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "program_kind": "Airline",
+                      "program_name": "SkyMiles",
+                      "member_number": "SM-0000-TEST",
+                      "sort_order": 0
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/LoyaltyProgramPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "loyaltyPrograms.create",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_loyalty_programs",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a loyalty program",
+        "description": "A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Creates a loyalty program. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "program_kind": "Airline",
+                "program_name": "SkyMiles",
+                "member_number": "SM-0000-TEST",
+                "sort_order": 0
+              },
+              "schema": { "$ref": "#/components/schemas/LoyaltyProgramCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created loyalty program.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "program_kind": "Airline",
+                  "program_name": "SkyMiles",
+                  "member_number": "SM-0000-TEST",
+                  "sort_order": 0
+                },
+                "schema": { "$ref": "#/components/schemas/LoyaltyProgram" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/loyalty-programs/{id}": {
+      "get": {
+        "operationId": "loyaltyPrograms.get",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_loyalty_programs",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a loyalty program",
+        "description": "A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Returns one loyalty program with its `ETag`. A loyalty program the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the loyalty program.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the loyalty program.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The loyalty program.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "program_kind": "Airline",
+                  "program_name": "SkyMiles",
+                  "member_number": "SM-0000-TEST",
+                  "sort_order": 0
+                },
+                "schema": { "$ref": "#/components/schemas/LoyaltyProgram" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "loyaltyPrograms.update",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_loyalty_programs",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Update a loyalty program",
+        "description": "A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the loyalty program.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the loyalty program.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "program_kind": "Airline",
+                "program_name": "SkyMiles",
+                "member_number": "SM-0000-TEST",
+                "sort_order": 0
+              },
+              "schema": { "$ref": "#/components/schemas/LoyaltyProgramUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated loyalty program.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "program_kind": "Airline",
+                  "program_name": "SkyMiles",
+                  "member_number": "SM-0000-TEST",
+                  "sort_order": 0
+                },
+                "schema": { "$ref": "#/components/schemas/LoyaltyProgram" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "loyaltyPrograms.delete",
+        "tags": ["Identity"],
+        "x-xos-table": "app.person_loyalty_programs",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Delete a loyalty program",
+        "description": "A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category. Soft-deletes the loyalty program: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the loyalty program.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the loyalty program.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The loyalty program moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-detail-shares": {
+      "get": {
+        "operationId": "workDetailShares.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List work detail share rows",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns a cursor page of work detail share rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of work detail share rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "categories": ["Dietary Needs", "Emergency Contacts"],
+                      "shared_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailSharePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "workDetailShares.create",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Create a work detail share",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Creates a work detail share. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "categories": ["Dietary Needs", "Emergency Contacts"]
+              },
+              "schema": { "$ref": "#/components/schemas/WorkDetailShareCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created work detail share.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "categories": ["Dietary Needs", "Emergency Contacts"],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-detail-shares/{id}": {
+      "get": {
+        "operationId": "workDetailShares.get",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "summary": "Get a work detail share",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Returns one work detail share with its `ETag`. A work detail share the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work detail share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work detail share.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The work detail share.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "categories": ["Dietary Needs", "Emergency Contacts"],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "workDetailShares.update",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Update a work detail share",
+        "description": "The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work detail share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work detail share.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "categories": ["Dietary Needs", "Emergency Contacts"] },
+              "schema": { "$ref": "#/components/schemas/WorkDetailShareUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated work detail share.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "categories": ["Dietary Needs", "Emergency Contacts"],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-detail-shares/{id}/revoke": {
+      "post": {
+        "operationId": "workDetailShares.revoke",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.revoke_work_detail_share",
+        "summary": "Revoke a work details share",
+        "description": "Ends the share at once through `app.revoke_work_detail_share`; the org reads nothing more, and its work_details_sharing consent is withdrawn when this was its last live share. Only the person who gave it revokes it (422 work_detail_share_not_yours). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work detail share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work detail share.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "consent_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "categories": ["Dietary Needs", "Emergency Contacts"],
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailShare" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-detail-shares/{id}/details": {
+      "get": {
+        "operationId": "workDetailShares.details",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "opportunities.engagement.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["opportunities"] }],
+        "x-xos-rpc": "app.shared_work_details",
+        "summary": "Read what the share's person shared",
+        "description": "For a member of the engaging org: the shared categories the caller's project capabilities cover (safety readers and engagement editors for emergency contacts, engagement readers and shift editors for uniform sizes, hospitality readers for the rest), through `app.shared_work_details`. Nothing is returned once the share is revoked or the engagement is Complete or Canceled. The passport number is always masked. Each read is logged in the person's access log and the org's audit ledger. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work detail share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work detail share.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "work_detail_share_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "shared_at": "2026-10-08T14:30:00Z",
+                  "sharing_open": true,
+                  "categories": ["Dietary Needs"],
+                  "readable": ["Dietary Needs"],
+                  "emergency_contacts": [
+                    {
+                      "full_name": "Marco Marchetti",
+                      "relationship": "Brother",
+                      "phone_e164": "+13055550142",
+                      "alternate_phone_e164": "+13055550142",
+                      "email": "marco@example.com",
+                      "sort_order": 0
+                    }
+                  ],
+                  "uniform": {
+                    "shirt_size": "XXS",
+                    "jacket_size": "XXS",
+                    "pants_size": "32x32",
+                    "shoe_size": "US 10.5",
+                    "glove_size": "XXS",
+                    "hat_size": "7 1/4",
+                    "uniform_notes": "Prefers a relaxed cut."
+                  },
+                  "dietary": {
+                    "dietary_needs": ["Vegetarian"],
+                    "allergies": "Peanuts, severe",
+                    "dietary_notes": "No pork."
+                  },
+                  "accessibility": {
+                    "accessibility_needs": ["Step-Free Access"],
+                    "accessibility_notes": "Needs a seat near the stage door."
+                  },
+                  "travel": {
+                    "seat_preference": "Window",
+                    "meal_preference": "Vegetarian (VGML)",
+                    "home_airport": "MIA",
+                    "loyalty_programs": [
+                      {
+                        "program_kind": "Airline",
+                        "program_name": "SkyMiles",
+                        "member_number": "SM-0000-TEST"
+                      }
+                    ]
+                  },
+                  "passport": {
+                    "passport_number": null,
+                    "passport_number_last4": "TEST",
+                    "passport_number_masked": true,
+                    "passport_issuing_country": "US",
+                    "passport_expires_on": "2026-10-08",
+                    "passport_name": "IVY MARCHETTI"
+                  }
+                },
+                "schema": { "$ref": "#/components/schemas/SharedWorkDetails" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-detail-shares/{id}/reveal-passport": {
+      "post": {
+        "operationId": "workDetailShares.revealPassport",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_shares",
+        "x-xos-capability": "data.restricted.read.government_id",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-rpc": "app.reveal_shared_passport_number",
+        "summary": "Reveal a shared passport number",
+        "description": "For a member of the engaging org: returns the passport number through `app.reveal_shared_passport_number`. Needs a live share naming Passport on an open engagement, hospitality.fulfillment.read on the project, data.restricted.read.government_id in the org, step-up authentication (422 step_up_required) and a reason (422 passport_reveal_reason). Logged with the reason, never the value. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the work detail share.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the work detail share.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Booking the June flights." },
+              "schema": { "$ref": "#/components/schemas/PassportRevealRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "passport_number": "YA0000TEST" },
+                "schema": { "$ref": "#/components/schemas/PassportReveal" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/work-detail-events": {
+      "get": {
+        "operationId": "workDetailEvents.list",
+        "tags": ["Identity"],
+        "x-xos-table": "app.work_detail_events",
+        "x-xos-capability": "me.work_details.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false, "descending": true },
+        "summary": "List work detail event rows",
+        "description": "One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org. Returns a cursor page of work detail event rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of work detail event rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "actor_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "action": "work_details.viewed",
+                      "categories": ["Dietary Needs"],
+                      "changed_columns": ["allergies"],
+                      "reason": "Booking the June flights.",
+                      "created_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/WorkDetailEventPage" }
               }
             }
           },

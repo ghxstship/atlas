@@ -348,6 +348,11 @@ from .resources import (
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    WorkDetailsResource,
+    EmergencyContactsResource,
+    LoyaltyProgramsResource,
+    WorkDetailSharesResource,
+    WorkDetailEventsResource,
     SavedViewSharesResource,
     SavedViewDefaultsResource,
     TourProgressResource,
@@ -751,6 +756,11 @@ class XosClient(XosClientCore):
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    work_details: WorkDetailsResource
+    emergency_contacts: EmergencyContactsResource
+    loyalty_programs: LoyaltyProgramsResource
+    work_detail_shares: WorkDetailSharesResource
+    work_detail_events: WorkDetailEventsResource
     saved_view_shares: SavedViewSharesResource
     saved_view_defaults: SavedViewDefaultsResource
     tour_progress: TourProgressResource
@@ -1142,6 +1152,11 @@ class XosClient(XosClientCore):
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.work_details = WorkDetailsResource(self)
+        self.emergency_contacts = EmergencyContactsResource(self)
+        self.loyalty_programs = LoyaltyProgramsResource(self)
+        self.work_detail_shares = WorkDetailSharesResource(self)
+        self.work_detail_events = WorkDetailEventsResource(self)
         self.saved_view_shares = SavedViewSharesResource(self)
         self.saved_view_defaults = SavedViewDefaultsResource(self)
         self.tour_progress = TourProgressResource(self)
