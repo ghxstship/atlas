@@ -538,6 +538,17 @@ describe("Tabs, SegmentedControl and Accordion", () => {
     await expectAccessible(container);
   });
 
+  it("renders section headers at the heading level the page needs", () => {
+    render(
+      <>
+        <Accordion items={[{ title: "Details", content: "Body" }]} />
+        <Accordion headingLevel={2} items={[{ title: "Filters", content: "Chips" }]} />
+      </>,
+    );
+    expect(screen.getByRole("heading", { level: 3, name: "Details" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Filters" })).toBeTruthy();
+  });
+
   it("keeps collapsed More fields mounted and hidden so they submit with the form", async () => {
     const { container } = render(
       <form aria-label="Profile">
