@@ -3,6 +3,7 @@ import {
   MFA_PATH,
   opensWithoutSecondFactor,
   orgAuthRedirect,
+  lastSeenSetCookie,
   parseLastSeen,
   recordsLastSeen,
   relyingPartyFrom,
@@ -61,6 +62,13 @@ describe("where a session that owes something goes (A77)", () => {
     expect(recordsLastSeen(at, at + 60_000)).toBe(true);
     // A clock that went back records again rather than keeping a future time.
     expect(recordsLastSeen(at, at - 1)).toBe(true);
+  });
+
+  it("writes the last-seen cookie as an httpOnly, site-wide Set-Cookie value", () => {
+    expect(lastSeenSetCookie(1792503122000, true)).toBe(
+      "xos-last-seen=1792503122000; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax; Secure",
+    );
+    expect(lastSeenSetCookie(1792503122000, false)).not.toContain("Secure");
   });
 
   it("takes the relying party from configuration, or none when it is incomplete", () => {

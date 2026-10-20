@@ -140,6 +140,9 @@ test("an org that requires a second factor sends a member without one to set it 
 }) => {
   const { slug } = await newOwner(page, "policy");
   await page.goto(`/${slug}/settings/security`);
+  // The idle timeout's record of the device's last request reaches the browser, httpOnly.
+  const seen = (await page.context().cookies()).find((c) => c.name === "xos-last-seen");
+  expect(seen?.httpOnly).toBe(true);
   const policy = page
     .locator("form")
     .filter({ has: page.getByLabel("Multi-factor authentication") });

@@ -17,16 +17,22 @@ export const SESSION_ENDED_PATH = "/auth/session-ended";
 /** The device's last request, for the org idle timeout: an httpOnly epoch-milliseconds cookie. */
 export const LAST_SEEN_COOKIE = "xos-last-seen";
 
-/**
- * How stale the last-seen cookie may get before a request records it again. Next.js refreshes the page after any
- * server action whose response sets a cookie, so recording it on every request would refresh the page after every
- * action (and loop with an action a page calls when it renders). A minute is well inside any idle timeout.
- */
+/** How stale the last-seen cookie may get before a request records it again; well inside any idle timeout. */
 export const LAST_SEEN_STEP_MS = 60_000;
 
 /** Whether a request at `now` records the last-seen cookie again. */
 export function recordsLastSeen(lastSeenAt: number | null, now: number): boolean {
   return lastSeenAt === null || now - lastSeenAt >= LAST_SEEN_STEP_MS || now < lastSeenAt;
+}
+
+/**
+ * The Set-Cookie value that records the last-seen time. The proxy appends it as a raw header rather than through
+ * `response.cookies`: Next.js hands cookies set that way to the server action behind the request, counts them as
+ * changed, and refreshes the page after the action, which looped with an action a page calls when it renders.
+ */
+export function lastSeenSetCookie(now: number, secure: boolean): string {
+  const maxAge = 60 * 60 * 24 * 30;
+  return `${LAST_SEEN_COOKIE}=${now}; Path=/; Max-Age=${maxAge}; HttpOnly; SameSite=Lax${secure ? "; Secure" : ""}`;
 }
 
 /** The page a request is for, as the proxy forwards it, so a page context can return there after verifying. */

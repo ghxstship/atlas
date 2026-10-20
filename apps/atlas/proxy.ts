@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
   LAST_SEEN_COOKIE,
+  lastSeenSetCookie,
   recordsLastSeen,
   opensWithoutSecondFactor,
   orgAuthRedirect,
@@ -188,16 +189,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return secure(rewrite);
   }
   const result = response();
-  if (user && recordSeen) {
-    // The device's last request, for the org idle timeout (security.idle_timeout_minutes).
-    result.cookies.set(LAST_SEEN_COOKIE, String(now), {
-      path: "/",
-      sameSite: "lax",
-      httpOnly: true,
-      secure: secureSite,
-      maxAge: 60 * 60 * 24 * 30,
-    });
-  }
   // Remember the org this device opened last, so the entry route returns to it.
   const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   if (slug && user && request.cookies.get(LAST_ORG_COOKIE)?.value !== slug) {
@@ -208,6 +199,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       secure: secureSite,
       maxAge: 60 * 60 * 24 * 365,
     });
+  }
+  if (user && recordSeen) {
+    // The device's last request, for the org idle timeout (security.idle_timeout_minutes). Last,
+    // because response.cookies rewrites every Set-Cookie header from its own list when it sets one.
+    result.headers.append("set-cookie", lastSeenSetCookie(now, secureSite));
   }
   return secure(result);
 }
