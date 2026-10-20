@@ -238,6 +238,7 @@ export function ShellFrame(props: ShellFrameProps) {
         <Button
           variant="ghost"
           icon="Plus"
+          data-create-trigger=""
           {...(props.keys.display["create-menu"]
             ? { shortcut: props.keys.display["create-menu"] }
             : {})}

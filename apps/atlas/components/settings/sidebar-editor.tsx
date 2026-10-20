@@ -54,6 +54,12 @@ export function SidebarEditor({
   const t = useTranslations("settings.sidebar") as unknown as Translate;
   const router = useRouter();
   const [groups, setGroups] = useState(initial);
+  // After Save or Reset the server sends the layout again; take it and keep the message.
+  const [source, setSource] = useState(initial);
+  if (source !== initial) {
+    setSource(initial);
+    setGroups(initial);
+  }
   const [held, setHeld] = useState<Held | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [status, setStatus] = useState("");

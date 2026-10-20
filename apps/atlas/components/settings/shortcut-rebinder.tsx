@@ -51,6 +51,12 @@ export function ShortcutRebinder({
   const router = useRouter();
   const shell = SHORTCUT_REGISTRY.shells.atlas;
   const [bindings, setBindings] = useState<CustomBindings>(custom);
+  // After a save the server sends the bindings again; take them and keep the message.
+  const [source, setSource] = useState(custom);
+  if (source !== custom) {
+    setSource(custom);
+    setBindings(custom);
+  }
   const [recording, setRecording] = useState<string | null>(null);
   const [first, setFirst] = useState<string | null>(null);
   const [problem, setProblem] = useState<{ readonly id: string; readonly text: string } | null>(

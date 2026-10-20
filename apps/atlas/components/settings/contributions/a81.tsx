@@ -37,7 +37,6 @@ async function ShortcutsPanel({ ctx }: SettingsPanelProps) {
     .map((s) => s.id);
   return (
     <ShortcutRebinder
-      key={JSON.stringify(custom)}
       org={ctx.org.slug}
       platform={platformOf({
         platform: headerStore.get("sec-ch-ua-platform") ?? undefined,
@@ -74,7 +73,7 @@ async function SidebarPanel({ ctx }: SettingsPanelProps) {
       hidden: placed.get(item.id)?.hidden ?? false,
     })),
   }));
-  return <SidebarEditor key={JSON.stringify(layout.data)} org={ctx.org.slug} groups={groups} />;
+  return <SidebarEditor org={ctx.org.slug} groups={groups} />;
 }
 
 export const contributions: readonly SettingsContribution[] = [
