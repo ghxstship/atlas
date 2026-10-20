@@ -1,4 +1,4 @@
-import { getSecondFactorStatus } from "@xos/data/auth-assurance";
+import { requireSecondFactor } from "@xos/data/auth-assurance";
 import { buildOrgExport, canExportOrg, recordOrgExport } from "@xos/data/lifecycle";
 import { getOrgContext } from "@/lib/shell/context";
 
@@ -20,8 +20,9 @@ export async function GET(
   if (!ctx) return new Response(null, { status: 404 });
   const allowed = await canExportOrg(ctx.viewer.db, ctx.org.id);
   if (!allowed.ok || !allowed.data) return new Response(null, { status: 404 });
-  const stepUp = await getSecondFactorStatus(ctx.viewer.db);
-  if (!stepUp.ok || !stepUp.data.steppedUp) {
+  // A Restricted export: the one step-up check, an aal2 session (migration 1333, recency not asked).
+  const stepUp = await requireSecondFactor(ctx.viewer.db, { recent: false });
+  if (!stepUp.ok) {
     return Response.redirect(new URL(`/${ctx.org.slug}/settings/danger-zone`, request.url), 303);
   }
   const built = await buildOrgExport(ctx.viewer.db, { id: ctx.org.id, slug: ctx.org.slug });

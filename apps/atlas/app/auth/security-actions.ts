@@ -5,6 +5,7 @@ import {
   finishPasskeyRegistration,
   finishPasskeySignIn,
   getSecondFactorStatus,
+  requireSecondFactor,
   listSecondFactors,
   removePasskey,
   removeSecondFactor,
@@ -95,9 +96,9 @@ async function stepUpGate(db: XosClient, always: boolean): Promise<string | null
     if (!factors.ok) return errorKey(factors.error);
     if (!factors.data.some((f) => f.verified)) return null;
   }
-  const status = await getSecondFactorStatus(db);
-  if (!status.ok) return errorKey(status.error);
-  return status.data.recent ? null : "step_up_required";
+  // The one step-up check (migration 1333's rule): a second factor within the last 15 minutes.
+  const check = await requireSecondFactor(db);
+  return check.ok ? null : check.rule;
 }
 
 const id = z.uuid();

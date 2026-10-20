@@ -11,6 +11,7 @@ import {
   orgAuthDecision,
   removeSecondFactor,
   renameSecondFactor,
+  requireSecondFactor,
   startSecurityKeyEnrollment,
   startSsoSignIn,
   startTotpEnrollment,
@@ -106,6 +107,24 @@ describe("assurance", () => {
         recent: false,
         recentUntil: "2026-10-20T10:15:00Z",
       },
+    });
+  });
+
+  it("is the one step-up check: recent by default, aal2 when recency is not asked, closed on error", async () => {
+    const status = (row: Record<string, unknown> | null, error: unknown = null) =>
+      client({ rpc: { my_second_factor_status: { data: row ? [row] : [], error } } }).db;
+    const stale = status({ session_aal: "aal2", recent: false });
+    expect(await requireSecondFactor(stale)).toEqual({ ok: false, rule: "step_up_required" });
+    expect(await requireSecondFactor(stale, { recent: false })).toEqual({ ok: true });
+    expect(await requireSecondFactor(status({ session_aal: "aal2", recent: true }))).toEqual({
+      ok: true,
+    });
+    expect(
+      await requireSecondFactor(status({ session_aal: "aal1", recent: false }), { recent: false }),
+    ).toEqual({ ok: false, rule: "step_up_required" });
+    expect(await requireSecondFactor(status(null, { message: "down", code: "XX000" }))).toEqual({
+      ok: false,
+      rule: "step_up_required",
     });
   });
 });

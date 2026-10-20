@@ -125,6 +125,27 @@ export async function getSecondFactorStatus(db: XosClient): Promise<Result<Secon
   });
 }
 
+/** The answer of the one step-up check: passed, or refused with the rule the database uses too. */
+export type StepUpCheck =
+  { readonly ok: true } | { readonly ok: false; readonly rule: "step_up_required" };
+
+/**
+ * The one step-up check for server code (A77), by the rule of private.require_second_factor (migration 1333): an aal2
+ * session that, when `recent` (the default), passed a second factor within the last 15 minutes. `recent: false` asks
+ * only for aal2, the step-up of Restricted exports and break-glass. A server action calls it before the RPC so the
+ * form can open the step-up dialog at once; the database still refuses on its own. Fails closed when the status cannot
+ * be read. A79's requireStepUp (org deletion, ownership transfer) delegates here.
+ */
+export async function requireSecondFactor(
+  db: XosClient,
+  options: { readonly recent?: boolean } = {},
+): Promise<StepUpCheck> {
+  const status = await getSecondFactorStatus(db);
+  const passed =
+    status.ok && ((options.recent ?? true) ? status.data.recent : status.data.steppedUp);
+  return passed ? { ok: true } : { ok: false, rule: "step_up_required" };
+}
+
 // What an org asks of the session --------------------------------------------------------------------------------------
 
 export interface OrgAuthStatus {
