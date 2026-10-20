@@ -1,40 +1,45 @@
+/**
+ * A Gateway or Compass help article in the help center, as the app's help panel shows it. The
+ * routes /<locale>/help/gateway/<slug> and /<locale>/help/compass/<slug> render it; Atlas articles
+ * keep /<locale>/help/<slug>.
+ */
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { ReactElement } from "react";
 import { Markdown, Outline } from "@/components/markdown.tsx";
 import { Breadcrumbs, TemplateDocument } from "@/components/ui.tsx";
 import { helpArticles, type HelpShell } from "@/lib/content.ts";
 import { LOCALES, isLocale, translator } from "@/lib/i18n.ts";
 
-export const dynamicParams = false;
+export type AppShell = Exclude<HelpShell, "atlas">;
 
-/** The shells whose articles live under /<locale>/help/<shell>; Atlas keeps /<locale>/help. */
-const SHELLS: readonly Exclude<HelpShell, "atlas">[] = ["gateway", "compass"];
+export interface ShellArticleParams {
+  readonly locale: string;
+  readonly slug: string;
+}
 
-export function generateStaticParams() {
+/** Every locale and article of a shell, for generateStaticParams. */
+export function shellHelpParams(shell: AppShell): ShellArticleParams[] {
   return LOCALES.flatMap((locale) =>
-    SHELLS.flatMap((shell) =>
-      helpArticles(locale, shell).map((a) => ({ locale, shell, slug: a.slug })),
-    ),
+    helpArticles(locale, shell).map((a) => ({ locale, slug: a.slug })),
   );
 }
 
-type Params = { params: Promise<{ locale: string; shell: string; slug: string }> };
-
-function find(locale: string, shell: string, slug: string) {
-  if (!isLocale(locale) || !(SHELLS as readonly string[]).includes(shell)) return undefined;
-  return helpArticles(locale, shell as HelpShell).find((a) => a.slug === slug);
+function find(shell: AppShell, locale: string, slug: string) {
+  return isLocale(locale) ? helpArticles(locale, shell).find((a) => a.slug === slug) : undefined;
 }
 
-export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { locale, shell, slug } = await params;
-  const article = find(locale, shell, slug);
+export function shellHelpMetadata(shell: AppShell, { locale, slug }: ShellArticleParams): Metadata {
+  const article = find(shell, locale, slug);
   return article ? { title: article.title, description: article.summary } : {};
 }
 
-/** A Gateway or Compass help article, as the app's help panel shows it. */
-export default async function ShellHelpArticlePage({ params }: Params) {
-  const { locale, shell, slug } = await params;
-  const article = find(locale, shell, slug);
+export function ShellHelpArticle({
+  shell,
+  locale,
+  slug,
+}: ShellArticleParams & { readonly shell: AppShell }): ReactElement {
+  const article = find(shell, locale, slug);
   if (!article || !isLocale(locale)) notFound();
   const t = translator(locale);
   const th = translator(locale, "help");
