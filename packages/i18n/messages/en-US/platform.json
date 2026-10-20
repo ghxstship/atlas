@@ -477,7 +477,9 @@
       },
       "billing": {
         "payment_failed": "Payment failed",
-        "read_only": "Organization is read-only"
+        "read_only": "Organization is read-only",
+        "trial_ending": "Trial ending soon",
+        "trial_ended": "Trial ended"
       },
       "comment": {
         "created": "New comment"
@@ -511,6 +513,18 @@
       },
       "occupancy": {
         "threshold": "Occupancy threshold reached"
+      },
+      "organization": {
+        "deletion_requested": "Organization deletion requested",
+        "deletion_recovered": "Organization recovered",
+        "ownership_offered": "Ownership offered",
+        "ownership_accepted": "Ownership accepted",
+        "ownership_declined": "Ownership declined",
+        "white_label_reverting": "White label ending",
+        "white_label_reverted": "White label ended"
+      },
+      "partner": {
+        "client_left": "Client organization left"
       },
       "recognition": {
         "received": "Recognition received"

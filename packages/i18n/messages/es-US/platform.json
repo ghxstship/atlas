@@ -477,7 +477,9 @@
       },
       "billing": {
         "payment_failed": "Pago fallido",
-        "read_only": "La organización está en modo de solo lectura"
+        "read_only": "La organización está en modo de solo lectura",
+        "trial_ending": "La prueba termina pronto",
+        "trial_ended": "La prueba terminó"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -511,6 +513,18 @@
       },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
+      },
+      "organization": {
+        "deletion_requested": "Eliminación de la organización solicitada",
+        "deletion_recovered": "Organización recuperada",
+        "ownership_offered": "Propiedad ofrecida",
+        "ownership_accepted": "Propiedad aceptada",
+        "ownership_declined": "Propiedad rechazada",
+        "white_label_reverting": "La marca blanca termina pronto",
+        "white_label_reverted": "La marca blanca terminó"
+      },
+      "partner": {
+        "client_left": "Una organización cliente se fue"
       },
       "recognition": {
         "received": "Reconocimiento recibido"
