@@ -17,6 +17,9 @@ and then to production, and record the date and who applied it in the release no
 | WebAuthn MFA and passkeys  | Authentication > Multi-Factor, and Passkeys            | Enroll and verify on                                                       |
 | WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | The production registrable domain, for example the Atlas apex domain       |
 | WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | The https origins of Atlas and Gateway, including custom Gateway domains   |
+| Google provider            | Authentication > Sign In / Providers > Google          | On, with the clients from `production.md`, "Sign in with Google (OWNER)"   |
+| Google skip nonce checks   | Authentication > Sign In / Providers > Google          | On: native iOS sign-in cannot send the nonce (ADR 0036, decision 9)        |
+| Manual identity linking    | Authentication > Sign In / Providers (User Signups)    | Off: Google links only to an account with the same verified email          |
 
 Notes:
 
@@ -27,6 +30,9 @@ Notes:
   127.0.0.1, and the WebAuthn `rp_id` is `localhost`). Set the hosted values in the dashboard.
 - Atlas and Gateway also refuse passwords that contain a product name, the email's local part or a
   part of the person's name. That check runs in the sign-up server actions and needs no setting.
+- Skipping the nonce check affects only ID token sign-in (Compass). It still checks Google's signature,
+  the issuer, the expiry and that the audience is one of the configured client IDs; a captured ID
+  token could be replayed within its hour. The web flow exchanges the code with Google itself.
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 

@@ -14,6 +14,15 @@ export function isOAuthProvider(value: unknown): value is OAuthProvider {
   return typeof value === "string" && (OAUTH_PROVIDERS as readonly string[]).includes(value);
 }
 
+/**
+ * Extra authorization parameters per provider. Google is asked to show its account chooser, so a
+ * person signed in to several Google accounts picks the one an invitation was sent to instead of
+ * being signed in silently with another.
+ */
+export function providerQueryParams(provider: OAuthProvider): Record<string, string> {
+  return provider === "google" ? { prompt: "select_account" } : {};
+}
+
 export function parseEnabledProviders(settings: unknown): OAuthProvider[] {
   const external =
     typeof settings === "object" && settings !== null && "external" in settings
