@@ -1,5 +1,6 @@
 "use server";
 
+import { addCalendarDays, startOfDayIn } from "@xos/data/calendar";
 import {
   acceptOwnershipTransfer,
   cancelOwnershipTransfer,
@@ -18,6 +19,7 @@ import { z } from "zod";
 import { requireStepUp } from "@/lib/auth/step-up";
 import { OWNERSHIP_OUTCOME_COOKIE } from "@/lib/lifecycle/outcome";
 import { contextFor } from "@/lib/platform/action-context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import {
   done,
   field,
@@ -188,10 +190,12 @@ export async function recordStandingGrantAction(
       reference: field(form, "reference"),
     });
   if (!parsed.success) return inputError();
+  // The grant runs through the chosen day on the org's calendar: it ends at the org's next midnight.
+  const zone = await getOrgTimeZone(ctx);
   const result = await recordStandingGrant(ctx.viewer.db, {
     orgId: ctx.org.id,
     capabilityCode: parsed.data.capability,
-    validTo: `${parsed.data.until}T23:59:59Z`,
+    validTo: startOfDayIn(addCalendarDays(parsed.data.until, 1), zone),
     agreementReference: parsed.data.reference,
   });
   if (!result.ok) return fromDataError(result.error);

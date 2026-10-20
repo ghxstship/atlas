@@ -1,5 +1,11 @@
-import { daysOverdue, readOnlyOn, type OrgBannerStatus } from "@xos/data/org-lifecycle";
-import { daysUntil } from "@xos/data/lifecycle";
+import {
+  dayOf,
+  daysOverdue,
+  readOnlyOn,
+  trialDaysLeft,
+  windowLastDay,
+  type OrgBannerStatus,
+} from "@xos/data/org-lifecycle";
 import type { Route } from "next";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -9,13 +15,15 @@ import { acceptOwnershipFormAction, declineOwnershipFormAction } from "@/lib/lif
 import { OWNERSHIP_OUTCOME_COOKIE, ownershipRefusal } from "@/lib/lifecycle/outcome";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * A79's org banners (Section 12, Section 14.7, Section 16), from the one banner status call
  * (app.org_banner_status): the org waiting for deletion, the dunning state (Owners and Admins from the day a
  * payment fails, everyone once the org is read-only on day 21), the trial countdown for billing owners,
  * white label kept to the end of a paid period after a downgrade, and an ownership offer made to the viewer.
- * Each names its fix and links to where it is made.
+ * Each names its fix and links to where it is made. Every date and count is on the org's calendar
+ * (getOrgTimeZone): a window's last day, never the UTC date of its end.
  */
 
 const linkClass = "font-medium text-accent-text underline";
@@ -45,7 +53,7 @@ export async function LifecycleBanners({
     key: string,
     values?: Record<string, string | number>,
   ) => string;
-  const { date } = await getFormatters(ctx);
+  const [{ date }, zone] = await Promise.all([getFormatters(ctx), getOrgTimeZone(ctx)]);
   const slug = ctx.org.slug;
   const billingHref = `/${slug}/settings/billing-and-plan` as Route;
   const dangerHref = `/${slug}/settings/danger-zone` as Route;
@@ -56,7 +64,7 @@ export async function LifecycleBanners({
     banners.push(
       <Banner key="deletion" tone="danger" icon="Trash2">
         <span data-testid="deletion-banner">
-          {t("banners.deletion", { date: date(status.recoverUntil) })}{" "}
+          {t("banners.deletion", { date: date(windowLastDay(status.recoverUntil, zone)) })}{" "}
           {ctx.capabilities.has("org.organization.delete") ? (
             <Link href={dangerHref} className={linkClass}>
               {t("banners.deletionAction")}
@@ -76,7 +84,7 @@ export async function LifecycleBanners({
             ? t("banners.readOnly")
             : t("banners.pastDue", {
                 days: daysOverdue(status.pastDueSince),
-                date: date(readOnlyOn(status.pastDueSince)),
+                date: date(dayOf(readOnlyOn(status.pastDueSince), zone)),
               })}{" "}
           {owner ? (
             <Link href={billingHref} className={linkClass}>
@@ -95,9 +103,9 @@ export async function LifecycleBanners({
       <Banner key="trial" tone="info" icon="Sparkles">
         <span data-testid="trial-banner">
           {t("banners.trial", {
-            days: daysUntil(status.trialEndsAt),
+            days: trialDaysLeft(status.trialEndsAt, zone),
             org: ctx.org.name,
-            date: date(status.trialEndsAt),
+            date: date(windowLastDay(status.trialEndsAt, zone)),
           })}{" "}
           <Link href={billingHref} className={linkClass}>
             {t("banners.trialAction")}
@@ -111,7 +119,7 @@ export async function LifecycleBanners({
     banners.push(
       <Banner key="white-label" tone="info" icon="Palette">
         <span data-testid="white-label-banner">
-          {t("banners.whiteLabel", { date: date(status.whiteLabelUntil) })}{" "}
+          {t("banners.whiteLabel", { date: date(windowLastDay(status.whiteLabelUntil, zone)) })}{" "}
           <Link href={billingHref} className={linkClass}>
             {t("banners.whiteLabelAction")}
           </Link>
@@ -132,7 +140,7 @@ export async function LifecycleBanners({
             {t("banners.ownership", {
               name: status.ownershipOffer.offeredBy,
               org: ctx.org.name,
-              date: date(status.ownershipOffer.expiresAt),
+              date: date(windowLastDay(status.ownershipOffer.expiresAt, zone)),
             })}
           </span>
           <span className="flex flex-wrap items-center gap-8">

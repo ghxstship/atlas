@@ -484,4 +484,5 @@ export const DELETION_CERTIFICATE: DeletionCertificateData = {
   rowsPurged: 18204,
   storageObjectsDeleted: 112,
   ownerName: "Xavier Dubois",
+  timeZone: "America/Los_Angeles",
 };

@@ -37,8 +37,9 @@ select results_eq(
   $$select plan_code, subscription_state from app.subscriptions$$,
   $$values ('pro'::text, 'trialing'::app.subscription_state)$$,
   'a new org starts a Pro trial (Section 14.7)');
-select ok((select trial_ends_at between now() + interval '14 days' - interval '1 minute' and now() + interval '14 days'
-  from app.subscriptions), 'the trial lasts 14 days and needs no card');
+select ok((select trial_ends_at - now() >= interval '14 days' and trial_ends_at - now() <= interval '15 days'
+  and (trial_ends_at at time zone 'UTC')::time = '00:00' from app.subscriptions),
+  'the trial lasts 14 whole days after today, to midnight on the org''s calendar, and needs no card');
 select is((select count(*)::integer from app.subscription_state_transitions), 1, 'the subscription creation is in the ledger');
 select is_empty('select 1 from app.workspaces', 'Home starts empty: no workspaces');
 select is_empty('select 1 from app.teams', 'Home starts empty: no teams');

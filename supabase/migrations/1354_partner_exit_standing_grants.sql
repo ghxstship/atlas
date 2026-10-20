@@ -240,7 +240,7 @@ begin
   if coalesce(v_sub.plan_code, 'access') = 'access' then
     perform private.create_subscription(p_org_id, 'access');
   else
-    perform private.start_trial(p_org_id, v_sub.plan_code, now() + private.trial_length(),
+    perform private.start_trial(p_org_id, v_sub.plan_code, private.org_window_end(p_org_id, private.trial_days()),
       format('Left the partner: the %s plan continues for 14 days and stays once a card is added.', v_sub.plan_code));
   end if;
   perform private.end_trusted_operation('billing_handover');

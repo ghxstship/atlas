@@ -7,12 +7,13 @@
 --     the session passed a second factor (private.session_aal() = 'aal2', which A77's migration 1330 narrows to the last
 --     15 minutes) and is not an API key. Atlas answers the refusal with the step-up flow and retries.
 --   * app.org_deletion_requests: deletion, separate from cancellation. The Owner types the name with step-up; the
---     subscription ends and the org is read-only at once; the Owner may recover it for 7 days; then it is deleted.
+--     subscription ends and the org is read-only at once; the Owner may recover it for the rest of that day and 7 whole
+--     days on the org's calendar (private.org_window_end, 1350); then it is deleted.
 --   * app.deletion_certificates: the record of a deleted org, kept after the org is gone (no foreign key to it), with
 --     the counts of what was deleted, the certificate PDF and its delivery to the former Owner.
 --   * The purge, in three steps the hourly lifecycle job and the org-lifecycle worker share:
---       1. the job writes a certificate for each org due (day 90 of a cancellation, or the end of a deletion request's
---          recovery window), unless a legal hold stands;
+--       1. the job writes a certificate for each org due (day 90 of a cancellation on the org's calendar, counted from
+--          the day it was canceled, or the end of a deletion request's recovery window), unless a legal hold stands;
 --       2. the worker deletes the org's storage objects through the Storage API (SQL deletes of storage.objects are
 --          refused), lists them with app.deletion_storage_objects and records that none remain;
 --       3. the job deletes every row of the org with private.purge_organization, through the sanctioned tenant purge of
@@ -60,7 +61,7 @@ create table app.org_deletion_requests (
   recovered_at timestamptz,
   recovered_by uuid references app.people (id),
   constraint org_deletion_requests_reason_length check (char_length(btrim(reason)) between 1 and 1000),
-  constraint org_deletion_requests_window check (recover_until = requested_at + interval '7 days'),
+  constraint org_deletion_requests_window check (recover_until between requested_at + interval '6 days 22 hours' and requested_at + interval '8 days 2 hours'),
   constraint org_deletion_requests_recovered check ((recovered_at is null) = (recovered_by is null)),
   constraint org_deletion_requests_recovered_in_window check (recovered_at is null or recovered_at <= recover_until)
 );
@@ -73,7 +74,7 @@ create index org_deletion_requests_recovered_by_idx on app.org_deletion_requests
 call private.describe('app.org_deletion_requests', 'An Owner''s request to delete the org (Section 14.7), separate from cancellation: made with step-up and the typed org name, it ends the subscription and makes the org read-only at once; the Owner may recover the org for 7 days, after which its data is deleted and the Owner receives a deletion certificate. Written only by app.request_org_deletion and app.recover_org_deletion.', array[
   'reason', 'Why the org is deleted, in the Owner''s words.',
   'requested_at', 'When the Owner asked for deletion.',
-  'recover_until', 'End of the 7-day recovery window; the org is deleted after it.',
+  'recover_until', 'End of the recovery window: midnight on the org''s calendar after the seventh whole day after the request; the org is deleted after it.',
   'requested_by', 'Owner who asked for deletion.',
   'recovered_at', 'When an Owner recovered the org inside the window.',
   'recovered_by', 'Owner who recovered it.'
@@ -198,6 +199,7 @@ declare
   v_sub app.subscriptions;
   v_id uuid;
   v_owner uuid;
+  v_until timestamptz;
 begin
   if not private.has_capability(p_org_id, 'org.organization.delete') then
     raise exception using errcode = '42501', message = 'org.organization.delete is required';
@@ -225,18 +227,20 @@ begin
     perform private.transition_subscription(v_sub.id, v_sub.subscription_state, 'canceled',
       'Deletion requested by the Owner: ' || left(btrim(p_reason), 400));
   end if;
+  v_until := private.org_window_end(p_org_id, 7);
   insert into app.org_deletion_requests (org_id, reason, requested_at, recover_until, requested_by)
-  values (p_org_id, btrim(p_reason), now(), now() + interval '7 days', v_person)
+  values (p_org_id, btrim(p_reason), now(), v_until, v_person)
   returning id into v_id;
+  -- "deleted after <date>": the window's last day on the org's calendar.
   for v_owner in select private.org_owner_ids(p_org_id) loop
     perform private.notify(p_org_id, v_owner, 'organization.deletion_requested', 'app.org_deletion_requests', v_id, null,
-      jsonb_build_object('recover_until', private.epoch_ms(now() + interval '7 days')));
+      jsonb_build_object('recover_until', private.org_day_mark(p_org_id, private.org_window_last_day(p_org_id, v_until))));
   end loop;
   return v_id;
 end;
 $$;
 
-comment on function app.request_org_deletion(uuid, text, text) is 'Asks to delete an org (Section 14.7): the Owner (org.organization.delete) with step-up (private.require_step_up) types the org name and a reason. The subscription is canceled in the database (the billing service ends any Stripe subscription through its own seam), the org becomes read-only, every Owner is told, and the org is deleted after a 7-day recovery window. Refuses a partner with client orgs and an org under a legal hold. Returns the request id.';
+comment on function app.request_org_deletion(uuid, text, text) is 'Asks to delete an org (Section 14.7): the Owner (org.organization.delete) with step-up (private.require_step_up) types the org name and a reason. The subscription is canceled in the database (the billing service ends any Stripe subscription through its own seam), the org becomes read-only, every Owner is told, and the org is deleted after a recovery window of the rest of the day and 7 whole days on the org''s calendar. Refuses a partner with client orgs and an org under a legal hold. Returns the request id.';
 revoke all on function app.request_org_deletion(uuid, text, text) from public, anon;
 grant execute on function app.request_org_deletion(uuid, text, text) to authenticated, service_role;
 
@@ -293,6 +297,7 @@ create table app.deletion_certificates (
   owner_name text,
   owner_email text,
   locale text not null default 'en-US',
+  time_zone text not null default 'UTC',
   held_at timestamptz,
   blocked_reason text,
   storage_cleared_at timestamptz,
@@ -348,6 +353,7 @@ call private.describe('app.deletion_certificates', 'The record of an org whose d
   'owner_name', 'Name of the former Owner when the certificate was written.',
   'owner_email', 'Address the certificate is emailed to, kept with the certificate as delivery evidence.',
   'locale', 'Language of the certificate and its email: the Owner''s language in the org, en-US or es-US.',
+  'time_zone', 'The org''s time zone when it was due (its locale.time_zone setting, UTC unset): the calendar the certificate and its email date the deletion on.',
   'held_at', 'When a legal hold was found on the org; the purge waits while it is set.',
   'blocked_reason', 'Why the purge refused, for example rows of another org that reference this one; the platform resolves it.',
   'storage_cleared_at', 'When the worker found no storage object of the org left after deleting them through the Storage API.',
@@ -472,9 +478,9 @@ begin
      order by (m.valid_to is null) desc, m.valid_from limit 1),
     p_requester) into v_owner;
   insert into app.deletion_certificates (deleted_org_id, org_name, org_slug, basis, requested_at, due_at,
-    owner_person_id, owner_name, owner_email, locale)
+    owner_person_id, owner_name, owner_email, locale, time_zone)
   select v_org.id, v_org.name, v_org.slug, p_basis, p_requested_at, p_due_at, v_owner, p.full_name, lower(u.email),
-    private.person_language(v_owner, p_org_id)
+    private.person_language(v_owner, p_org_id), private.org_time_zone(p_org_id)
   from (select 1) one
   left join app.people p on p.id = v_owner
   left join auth.users u on u.id = p.user_id
@@ -503,9 +509,11 @@ begin
     from app.org_deletion_requests r
     where r.recovered_at is null and r.deleted_at is null and r.recover_until <= p_now
     union all
-    select c.org_id, 'cancellation', c.canceled_at, c.purge_after, c.created_by
+    select c.org_id, 'cancellation', c.canceled_at,
+      private.zone_day_start(private.org_date(c.org_id, c.canceled_at) + 90, private.org_time_zone(c.org_id)), c.created_by
     from app.org_cancellations c
-    where c.reactivated_at is null and c.deleted_at is null and c.purge_after <= p_now
+    where c.reactivated_at is null and c.deleted_at is null
+      and private.org_date(c.org_id, p_now) >= private.org_date(c.org_id, c.canceled_at) + 90
       and not exists (select 1 from app.org_deletion_requests r
                       where r.org_id = c.org_id and r.recovered_at is null and r.deleted_at is null)
   loop
@@ -525,7 +533,7 @@ begin
 end;
 $$;
 
-comment on function private.schedule_deletions(timestamptz) is 'Deletion step of the lifecycle job: writes a certificate for each org due (the recovery window of a deletion request ended, or day 90 of a cancellation), and marks certificates held while a legal hold stands. Returns how many certificates it wrote.';
+comment on function private.schedule_deletions(timestamptz) is 'Deletion step of the lifecycle job: writes a certificate for each org due (the recovery window of a deletion request ended, or day 90 of a cancellation on the org''s calendar, from its midnight), and marks certificates held while a legal hold stands. Returns how many certificates it wrote.';
 revoke all on function private.schedule_deletions(timestamptz) from public, anon, authenticated;
 
 -- The purge ------------------------------------------------------------------------------------------------------------

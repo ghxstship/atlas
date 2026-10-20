@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { XosClient } from "../src/client.ts";
 import {
   acceptOwnershipTransfer,
+  calendarDaysBetween,
   cancelOwnershipTransfer,
+  dayOf,
   daysOverdue,
   declineOwnershipTransfer,
   downloadDeletionCertificate,
@@ -15,6 +17,7 @@ import {
   listMyDeletionCertificates,
   listStandingGrants,
   offerOwnershipTransfer,
+  purgeDay,
   readOnlyOn,
   recordStandingGrant,
   recoverOrgDeletion,
@@ -23,6 +26,8 @@ import {
   toBannerStatus,
   toDnsRecords,
   transferStatus,
+  trialDaysLeft,
+  windowLastDay,
 } from "../src/org-lifecycle.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -109,6 +114,44 @@ describe("banner status", () => {
       ok: false,
       error: { kind: "not-found" },
     });
+  });
+});
+
+describe("days on the org's calendar", () => {
+  // A trial that started on 2026-10-20 in New York ends at New York's midnight after 14 whole days (1350).
+  const ny = "America/New_York";
+  const trialEnd = "2026-11-04T05:00:00Z"; // 2026-11-04 00:00 in New York (EST)
+
+  it("counts whole calendar days between dates", () => {
+    expect(calendarDaysBetween("2026-10-20", "2026-11-03")).toBe(14);
+    expect(calendarDaysBetween("2026-11-03", "2026-10-20")).toBe(-14);
+    expect(calendarDaysBetween("2026-03-07", "2026-03-09")).toBe(2);
+  });
+
+  it("names the day an instant falls on where the org is", () => {
+    expect(dayOf("2026-10-21T02:30:00Z", ny)).toBe("2026-10-20");
+    expect(dayOf("2026-10-21T02:30:00Z", "UTC")).toBe("2026-10-21");
+    expect(dayOf("2026-10-21T02:30:00Z", "Not/AZone")).toBe("2026-10-21");
+  });
+
+  it("shows a window ending at the org's midnight by its last day", () => {
+    expect(windowLastDay(trialEnd, ny)).toBe("2026-11-03");
+    expect(windowLastDay("2026-10-28T04:00:00Z", ny)).toBe("2026-10-27");
+    expect(windowLastDay("2026-10-28T00:00:00Z", "UTC")).toBe("2026-10-27");
+  });
+
+  it("counts the trial down on the org's calendar, never the UTC date", () => {
+    // 21:00 in New York on the first day is already the next day in UTC.
+    expect(trialDaysLeft(trialEnd, ny, new Date("2026-10-21T01:00:00Z"))).toBe(14);
+    expect(trialDaysLeft(trialEnd, ny, new Date("2026-11-03T04:59:59Z"))).toBe(1);
+    expect(trialDaysLeft(trialEnd, ny, new Date("2026-11-03T05:00:00Z"))).toBe(0);
+    expect(trialDaysLeft(trialEnd, ny, new Date("2026-11-05T00:00:00Z"))).toBe(0);
+  });
+
+  it("puts day 90 of a cancellation on the org's calendar", () => {
+    // Canceled at 22:00 on 2026-10-20 in New York: day 90 is 2027-01-18 there, a day before the UTC count.
+    expect(purgeDay("2026-10-21T02:00:00Z", ny)).toBe("2027-01-18");
+    expect(purgeDay("2026-10-21T02:00:00Z", "UTC")).toBe("2027-01-19");
   });
 });
 

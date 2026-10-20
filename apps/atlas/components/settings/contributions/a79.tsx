@@ -1,10 +1,13 @@
 import { getSubscription, listMembers } from "@xos/data";
+import { addCalendarDays } from "@xos/data/calendar";
 import {
+  dayOf,
   getDeletionRequest,
   getOpenOwnershipTransfer,
   listDomainProvisioning,
   listMyDeletionCertificates,
   listStandingGrants,
+  windowLastDay,
 } from "@xos/data/org-lifecycle";
 import { getPartnerOf } from "@xos/data/partner";
 import { untyped } from "@xos/data/untyped";
@@ -21,6 +24,7 @@ import {
   StandingGrantForm,
 } from "@/components/lifecycle/forms";
 import { getFormatters } from "@/lib/platform/format";
+import { getOrgTimeZone, orgToday } from "@/lib/shell/time-zone";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
@@ -78,7 +82,7 @@ async function partnerName(ctx: SettingsPanelProps["ctx"], partnerId: string, t:
 
 async function DeletionPanel({ ctx }: SettingsPanelProps) {
   const t = await lifecycleT();
-  const { date } = await getFormatters(ctx);
+  const [{ date }, zone] = await Promise.all([getFormatters(ctx), getOrgTimeZone(ctx)]);
   const request = await getDeletionRequest(ctx.viewer.db, ctx.org.id);
   const owner = ctx.capabilities.has("org.organization.delete");
   return (
@@ -93,7 +97,9 @@ async function DeletionPanel({ ctx }: SettingsPanelProps) {
       ) : request.data ? (
         <div className="flex flex-col gap-12">
           <InlineAlert tone="danger" title={t("deletion.pending")}>
-            {t("deletion.pendingBody", { date: date(request.data.recoverUntil) })}
+            {t("deletion.pendingBody", {
+              date: date(windowLastDay(request.data.recoverUntil, zone)),
+            })}
           </InlineAlert>
           {owner ? <RecoverOrganizationForm org={ctx.org.slug} /> : null}
         </div>
@@ -108,7 +114,7 @@ async function DeletionPanel({ ctx }: SettingsPanelProps) {
 
 async function TransferPanel({ ctx }: SettingsPanelProps) {
   const t = await lifecycleT();
-  const { date } = await getFormatters(ctx);
+  const [{ date }, zone] = await Promise.all([getFormatters(ctx), getOrgTimeZone(ctx)]);
   const owner = ctx.capabilities.has("org.ownership.transfer");
   if (!owner) {
     return (
@@ -148,7 +154,10 @@ async function TransferPanel({ ctx }: SettingsPanelProps) {
       ) : open.data ? (
         <div className="flex flex-col gap-12">
           <p className="m-0 text-text-13" data-testid="ownership-offer-open">
-            {t("transfer.open", { name: offeredTo, date: date(open.data.expiresAt) })}
+            {t("transfer.open", {
+              name: offeredTo,
+              date: date(windowLastDay(open.data.expiresAt, zone)),
+            })}
           </p>
           <CancelOwnershipForm org={ctx.org.slug} transfer={open.data.id} />
         </div>
@@ -193,14 +202,16 @@ async function StandingGrantsPanel({ ctx }: SettingsPanelProps) {
   const partner = await getPartnerOf(ctx.viewer.db, ctx.org.id);
   if (!partner.ok || partner.data === null) return null;
   const t = await lifecycleT();
-  const { date } = await getFormatters(ctx);
+  const [{ date }, zone, today] = await Promise.all([
+    getFormatters(ctx),
+    getOrgTimeZone(ctx),
+    orgToday(ctx),
+  ]);
   const [name, grants] = await Promise.all([
     partnerName(ctx, partner.data, t),
     listStandingGrants(ctx.viewer.db, ctx.org.id),
   ]);
   const owner = ctx.capabilities.has("org.support_session.grant");
-  const today = new Date();
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
   const scopeLabel = (code: string) =>
     (STANDING_GRANT_SCOPES as readonly string[]).includes(code) ? t(scopeKey(code)) : code;
   return (
@@ -221,7 +232,7 @@ async function StandingGrantsPanel({ ctx }: SettingsPanelProps) {
               <span>
                 {t("partner.grantRow", {
                   scope: scopeLabel(g.capabilityCode),
-                  date: date(g.validTo),
+                  date: date(windowLastDay(g.validTo, zone)),
                   reference: g.agreementReference,
                 })}
               </span>
@@ -238,8 +249,8 @@ async function StandingGrantsPanel({ ctx }: SettingsPanelProps) {
         <StandingGrantForm
           org={ctx.org.slug}
           scopes={STANDING_GRANT_SCOPES.map((code) => ({ value: code, label: t(scopeKey(code)) }))}
-          defaultUntil={iso(new Date(today.getTime() + 90 * 86_400_000))}
-          maxUntil={iso(new Date(today.getTime() + 365 * 86_400_000))}
+          defaultUntil={addCalendarDays(today, 90)}
+          maxUntil={addCalendarDays(today, 364)}
         />
       ) : null}
     </section>
@@ -350,7 +361,7 @@ async function DeletionCertificatesPanel({ ctx }: SettingsPanelProps) {
                 <span>
                   {t("certificates.row", {
                     org: c.orgName,
-                    date: date(c.purgedAt),
+                    date: date(dayOf(c.purgedAt, c.timeZone)),
                     rows: number(c.rowsPurged ?? 0),
                     files: number(c.storageObjectsDeleted),
                   })}
@@ -365,7 +376,10 @@ async function DeletionCertificatesPanel({ ctx }: SettingsPanelProps) {
               </>
             ) : (
               <span className="text-text-secondary">
-                {t("certificates.preparing", { org: c.orgName, date: date(c.purgedAt ?? c.dueAt) })}
+                {t("certificates.preparing", {
+                  org: c.orgName,
+                  date: date(dayOf(c.purgedAt ?? c.dueAt, c.timeZone)),
+                })}
               </span>
             )}
           </li>

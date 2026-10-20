@@ -1,13 +1,25 @@
 -- pgTAP: org deletion and the day-90 purge (1351, A79, finding A65-015, Section 14.7). Deletion needs the Owner, step-up
--- and the typed name, makes the org read-only and can be recovered for 7 days. When an org is due, the lifecycle job
--- writes a deletion certificate, the worker deletes its storage objects, the job deletes every row through the tenant
--- purge, and the certificate outlives the org. A legal hold holds the purge; rows of another org block it.
+-- and the typed name, makes the org read-only and can be recovered for the rest of the day and 7 whole days. When an
+-- org is due, the lifecycle job writes a deletion certificate, the worker deletes its storage objects, the job deletes
+-- every row through the tenant purge, and the certificate outlives the org. A legal hold holds the purge; rows of
+-- another org block it. Windows and day 90 follow the org's calendar: as in 1305, org_a takes a zone whose date
+-- differs from UTC's right now.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(44);
+select plan(50);
+
+create temporary table clock as
+  select s.zone, (now() at time zone s.zone)::date as local_on, (now() at time zone 'UTC')::date as utc_on
+  from (select case when extract(hour from now() at time zone 'UTC') >= 12 then 'Pacific/Kiritimati' else 'Etc/GMT+12' end as zone) s;
+grant select on clock to public;
+create function pg_temp.zone() returns text language sql stable as $$ select zone from clock $$;
+create function pg_temp.local_on() returns date language sql stable as $$ select local_on from clock $$;
+create function pg_temp.utc_on() returns date language sql stable as $$ select utc_on from clock $$;
+create function pg_temp.recover_until(p_key text) returns timestamptz language sql stable as $$
+  select recover_until from app.org_deletion_requests where org_id = pg_temp.id(p_key) and recovered_at is null and deleted_at is null $$;
 
 -- A session that passed a second factor just now (the amr entry real tokens carry; A77, 1330).
 create function pg_temp.as_stepped_up(p_key text) returns void
@@ -39,8 +51,11 @@ select pg_temp.as_stepped_up('xavier');
 insert into world select 'del_b', app.request_org_deletion(pg_temp.id('org_b'), 'Harbor Lights Productions', 'We are closing down.');
 select ok(pg_temp.id('del_b') is not null, 'the Owner asks for deletion with step-up');
 select pg_temp.as_platform();
-select is((select recover_until - requested_at from app.org_deletion_requests where id = pg_temp.id('del_b')), interval '7 days',
-  'a 7-day recovery window applies');
+select is(pg_temp.recover_until('org_b'), private.zone_day_start(pg_temp.utc_on() + 8, 'UTC'),
+  'the recovery window is the rest of the day and 7 whole days, to midnight on the org''s calendar (UTC, never set)');
+select is((select (message_args ->> 'recover_until')::bigint from app.notifications
+  where kind = 'organization.deletion_requested' and recipient_person_id = pg_temp.id('xavier')),
+  private.org_day_mark(pg_temp.id('org_b'), pg_temp.utc_on() + 7), 'the notice dates the deletion after the window''s last day');
 select is((select count(*)::int from app.subscriptions where org_id = pg_temp.id('org_b') and subscription_state <> 'canceled'), 0,
   'the subscription ends at once');
 select is(private.org_read_only_reason(pg_temp.id('org_b')), 'deletion', 'the org is read-only while it waits');
@@ -74,13 +89,13 @@ update app.legal_holds set released_at = now() where org_id = pg_temp.id('org_b'
 select pg_temp.as_stepped_up('xavier');
 select app.request_org_deletion(pg_temp.id('org_b'), 'Harbor Lights Productions', 'We are closing down for good.');
 select pg_temp.as_platform();
-select is(private.schedule_deletions(now() + interval '6 days'), 0, 'nothing is due inside the window');
-select is(private.schedule_deletions(now() + interval '7 days 1 hour'), 1, 'after the window the job writes a certificate');
+select is(private.schedule_deletions(pg_temp.recover_until('org_b') - interval '1 second'), 0, 'nothing is due inside the window');
+select is(private.schedule_deletions(pg_temp.recover_until('org_b')), 1, 'after the window the job writes a certificate');
 insert into world select 'cert_b', id from app.deletion_certificates where deleted_org_id = pg_temp.id('org_b');
 select results_eq($$select basis, org_name, org_slug, owner_person_id, owner_email, locale from app.deletion_certificates where id = (select id from world where key = 'cert_b')$$,
   $$values ('deletion_request'::text, 'Harbor Lights Productions'::text, 'harbor-lights'::text, (select id from world where key = 'xavier'), 'xavier@harborlights.test'::text, 'en-US'::text)$$,
   'the certificate names the org and the Owner it goes to');
-select is(private.schedule_deletions(now() + interval '8 days'), 0, 'an org gets one certificate');
+select is(private.schedule_deletions(now() + interval '9 days'), 0, 'an org gets one certificate');
 select pg_temp.as_user('alice');
 select is((select count(*)::int from app.deletion_certificates), 0, 'nobody else reads the certificate');
 select pg_temp.as_user('xavier');
@@ -133,6 +148,23 @@ select is(private.purge_organization(pg_temp.id('cert_c')), null, 'a purge that 
 select ok((select blocked_reason like '%app.record_grants%' from app.deletion_certificates where id = pg_temp.id('cert_c')),
   'and records why, for the platform to resolve');
 select is((select count(*)::int from app.organizations where id = pg_temp.id('org_c')), 1, 'nothing of that org was deleted');
+
+-- The org's calendar: the recovery window and day 90 ------------------------------------------------------------------
+select isnt(pg_temp.local_on(), pg_temp.utc_on(), 'the suite''s zone is on another date than UTC right now');
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'locale.time_zone', 'Organization', pg_temp.id('org_a'), pg_temp.zone(), null, null, true);
+select pg_temp.as_platform();
+select is(private.org_window_end(pg_temp.id('org_a'), 7), private.zone_day_start(pg_temp.local_on() + 8, pg_temp.zone()),
+  'org_a''s recovery window ends at its own midnight after 7 whole days');
+insert into app.org_cancellations (org_id, canceled_at, read_only_until, purge_after, reason)
+values (pg_temp.id('org_a'), now(), now() + interval '30 days', now() + interval '90 days', 'Season over.');
+select is(private.schedule_deletions(private.zone_day_start(pg_temp.local_on() + 90, pg_temp.zone()) - interval '1 second'), 0,
+  'a canceled org is not due on day 89 of its calendar');
+select is(private.schedule_deletions(private.zone_day_start(pg_temp.local_on() + 90, pg_temp.zone())), 1,
+  'it is due from midnight on day 90 of its calendar');
+select results_eq($$select due_at, time_zone from app.deletion_certificates where deleted_org_id = (select id from world where key = 'org_a')$$,
+  $$select private.zone_day_start(pg_temp.local_on() + 90, pg_temp.zone()), pg_temp.zone()$$,
+  'the certificate is due on that day and keeps the org''s time zone for its dates');
 
 -- Who may run it -------------------------------------------------------------------------------------------------------
 select ok(not has_function_privilege('authenticated', 'private.purge_organization(uuid)', 'execute')

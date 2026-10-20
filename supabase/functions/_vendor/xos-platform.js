@@ -43906,7 +43906,7 @@ function certificateKey(id) {
 function buildDeletionCertificateModel(data, options) {
   const now = options.now ?? /* @__PURE__ */ new Date();
   const t = documentTranslator(options.messages);
-  const f = formatter(options.locale, "UTC", t);
+  const f = formatter(options.locale, data.timeZone, t);
   const key = certificateKey(data.id);
   const c = (k, values) => t(`deletionCertificate.${k}`, values);
   return {
@@ -44138,7 +44138,7 @@ async function runDeletionCertificates(options) {
       const copy = options.copy(cert.locale);
       const values = {
         org: cert.orgName,
-        date: copy.date(cert.purgedAt),
+        date: copy.date(cert.purgedAt, cert.timeZone),
         id: cert.id,
       };
       const text = copy.text(values);
@@ -44190,6 +44190,7 @@ function toClaimedCertificate(r) {
     rowsPurged: count(r, "rows_purged"),
     storageObjectsDeleted: count(r, "storage_objects_deleted"),
     ownerName: textOrNull(r, "owner_name"),
+    timeZone: text(r, "time_zone") || "UTC",
     ownerEmail: textOrNull(r, "owner_email"),
     locale: text(r, "locale") || "en-US",
     storageClearedAt: textOrNull(r, "storage_cleared_at"),
@@ -44816,11 +44817,20 @@ function deletionCertificateCopy(locale) {
   return {
     subject: (values) => fill(email("subject"), values),
     text: (values) => fill(email("body"), values),
-    date: (iso) =>
-      new Intl.DateTimeFormat(lang, {
+    date: (iso, timeZone) => {
+      const zone = (() => {
+        try {
+          new Intl.DateTimeFormat(lang, { timeZone });
+          return timeZone;
+        } catch {
+          return "UTC";
+        }
+      })();
+      return new Intl.DateTimeFormat(lang, {
         dateStyle: "long",
-        timeZone: "UTC",
-      }).format(new Date(iso)),
+        timeZone: zone,
+      }).format(new Date(iso));
+    },
   };
 }
 //#endregion

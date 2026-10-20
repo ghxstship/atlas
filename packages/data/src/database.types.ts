@@ -13068,6 +13068,7 @@ export type Database = {
           storage_cleared_at: string | null;
           storage_objects_deleted: number;
           tables_purged: number | null;
+          time_zone: string;
           updated_at: string;
           updated_by: string | null;
         };
@@ -13103,6 +13104,7 @@ export type Database = {
           storage_cleared_at?: string | null;
           storage_objects_deleted?: number;
           tables_purged?: number | null;
+          time_zone?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -13137,6 +13139,7 @@ export type Database = {
           storage_cleared_at?: string | null;
           storage_objects_deleted?: number;
           tables_purged?: number | null;
+          time_zone?: string;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -54014,6 +54017,7 @@ export type Database = {
           storage_cleared_at: string | null;
           storage_objects_deleted: number;
           tables_purged: number | null;
+          time_zone: string;
           updated_at: string;
           updated_by: string | null;
         }[];

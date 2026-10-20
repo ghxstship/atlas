@@ -1,12 +1,24 @@
 -- pgTAP: org trials (1350, A79, finding A65-015, Section 14.7). A new org starts a 14-day Pro trial with no card; billing
--- owners hear on days 3 and 1; at the end the org moves to the Access plan in place with its data kept; adding a card
--- through Stripe converts the trial; a partner's client org keeps the plan the partner set; nothing charges a card.
+-- owners hear 3 days and 1 day before its last day; at the end the org moves to the Access plan in place with its data
+-- kept; adding a card through Stripe converts the trial; a partner's client org keeps the plan the partner set; nothing
+-- charges a card. The trial lasts whole days on the org's calendar: as in 1305, org_a takes a zone whose date differs
+-- from UTC's right now, so the assertions tell the org's calendar from the database's UTC date at any time of day.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(24);
+select plan(32);
+
+create temporary table clock as
+  select s.zone, (now() at time zone s.zone)::date as local_on, (now() at time zone 'UTC')::date as utc_on
+  from (select case when extract(hour from now() at time zone 'UTC') >= 12 then 'Pacific/Kiritimati' else 'Etc/GMT+12' end as zone) s;
+grant select on clock to public;
+create function pg_temp.zone() returns text language sql stable as $$ select zone from clock $$;
+create function pg_temp.local_on() returns date language sql stable as $$ select local_on from clock $$;
+create function pg_temp.utc_on() returns date language sql stable as $$ select utc_on from clock $$;
+create function pg_temp.trial_end(p_key text) returns timestamptz language sql stable as $$
+  select trial_ends_at from app.subscriptions where org_id = pg_temp.id(p_key) and deleted_at is null $$;
 
 -- Starting ------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('nina');
@@ -16,6 +28,8 @@ select results_eq($$select plan_code, subscription_state::text from app.subscrip
   $$values ('pro'::text, 'trialing'::text)$$, 'a new org starts a Pro trial');
 select is((select days_left from app.org_trial(pg_temp.id('trial_org'))), 14, 'the countdown starts at 14 days');
 select pg_temp.as_platform();
+select is(pg_temp.trial_end('trial_org'), private.zone_day_start(pg_temp.utc_on() + 15, 'UTC'),
+  'an org that never set a time zone ends its trial at UTC midnight after 14 whole days');
 select ok(private.org_has_feature(pg_temp.id('trial_org'), 'white_label'), 'the trial gives Pro features, white label among them');
 select is((select count(*)::int from app.stripe_subscription_links l join app.subscriptions s on s.id = l.subscription_id
   where s.org_id = pg_temp.id('trial_org')), 0, 'no Stripe subscription exists for a trial: no card, nothing to charge');
@@ -27,18 +41,18 @@ select is_empty($$select * from app.org_trial((select id from world where key = 
 
 -- Notices ---------------------------------------------------------------------------------------------------------
 select pg_temp.as_platform();
-select ok(private.run_trials(now() + interval '11 days 1 hour') >= 1, 'three days before the end the job acts');
-select private.run_trials(now() + interval '11 days 2 hours');
+select ok(private.run_trials(pg_temp.trial_end('trial_org') - interval '3 days 1 hour') >= 1, 'three days before the last day the job acts');
+select private.run_trials(pg_temp.trial_end('trial_org') - interval '3 days 30 minutes');
 select is((select count(*)::int from app.notifications where kind = 'billing.trial_ending' and recipient_person_id = pg_temp.id('nina')
   and message_args ->> 'days' = '3'), 1, 'the Owner hears once on day 3, however often the job runs');
-select private.run_trials(now() + interval '13 days 1 hour');
+select private.run_trials(pg_temp.trial_end('trial_org') - interval '1 day 1 hour');
 select is((select count(*)::int from app.notifications where kind = 'billing.trial_ending' and recipient_person_id = pg_temp.id('nina')),
-  2, 'and once more the day before the end');
+  2, 'and once more the day before the last day');
 select is((select subscription_state::text from app.subscriptions where org_id = pg_temp.id('trial_org')), 'trialing',
   'the trial runs until its end');
 
 -- Expiry ----------------------------------------------------------------------------------------------------------
-select private.run_trials(now() + interval '14 days 1 hour');
+select private.run_trials(pg_temp.trial_end('trial_org') + interval '1 hour');
 select results_eq($$select plan_code, subscription_state::text, extra_seats from app.subscriptions where org_id = (select id from world where key = 'trial_org')$$,
   $$values ('access'::text, 'active'::text, 0)$$, 'at the end the org moves to the Access plan in place');
 select ok(not private.org_has_feature(pg_temp.id('trial_org'), 'white_label'), 'Pro features end with the trial');
@@ -49,7 +63,7 @@ select ok((select reason from app.subscription_state_transitions where org_id = 
   like '%moved to the Access plan%', 'the ledger records why');
 select is((select trial_ends_at is not null from app.subscriptions where org_id = pg_temp.id('trial_org')), true,
   'the trial end stays as history');
-select is(private.run_trials(now() + interval '15 days'), 0, 'an ended trial is not touched again');
+select is(private.run_trials(pg_temp.trial_end('trial_org') + interval '1 day'), 0, 'an ended trial is not touched again');
 select pg_temp.as_user('nina');
 select is_empty($$select * from app.org_trial((select id from world where key = 'trial_org'))$$, 'no countdown after the trial');
 
@@ -63,6 +77,25 @@ select results_eq($$select plan_code, subscription_state::text from app.subscrip
   $$values ('team'::text, 'active'::text)$$, 'the org is on the plan it bought');
 select private.run_trials(now() + interval '20 days');
 select is((select plan_code from app.subscriptions where org_id = pg_temp.id('card_org')), 'team', 'a converted trial never expires');
+
+-- The org's calendar ------------------------------------------------------------------------------------------------
+select isnt(pg_temp.local_on(), pg_temp.utc_on(), 'the suite''s zone is on another date than UTC right now');
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'locale.time_zone', 'Organization', pg_temp.id('org_a'), pg_temp.zone(), null, null, true);
+select pg_temp.as_platform();
+select is(private.org_window_end(pg_temp.id('org_a'), private.trial_days()), private.zone_day_start(pg_temp.local_on() + 15, pg_temp.zone()),
+  'a trial starting now in org_a ends after 14 whole days of org_a''s calendar');
+select is((private.org_window_end(pg_temp.id('org_a'), private.trial_days()) at time zone pg_temp.zone())::time, '00:00'::time,
+  'at midnight where the org is, not UTC midnight');
+select ok(private.org_window_end(pg_temp.id('org_a'), private.trial_days()) - now() >= interval '14 days',
+  'never shorter than 14 days');
+select is(private.trial_days_left(pg_temp.id('org_a'), private.org_window_end(pg_temp.id('org_a'), private.trial_days())), 14,
+  'the countdown counts org_a''s days: 14 today');
+select is(private.trial_days_left(pg_temp.id('org_a'), private.org_window_end(pg_temp.id('org_a'), private.trial_days()),
+  private.zone_day_start(pg_temp.local_on() + 14, pg_temp.zone()) - interval '1 second'), 1,
+  '1 until the last second of the day before the last day');
+select is(private.trial_days_left(pg_temp.id('org_a'), private.org_window_end(pg_temp.id('org_a'), private.trial_days()),
+  private.zone_day_start(pg_temp.local_on() + 14, pg_temp.zone())), 0, 'and 0 on the last day');
 
 -- Machinery ---------------------------------------------------------------------------------------------------------
 select ok(exists (select 1 from cron.job where jobname = 'xos_hourly_org_lifecycle' and command like '%private.run_org_lifecycle()%'),

@@ -1,14 +1,16 @@
-import { getOrgBannerStatus, readOnlyOn } from "@xos/data/org-lifecycle";
+import { dayOf, getOrgBannerStatus, readOnlyOn, windowLastDay } from "@xos/data/org-lifecycle";
 import { getTranslations } from "next-intl/server";
 import { Button, Card, InlineAlert } from "@/components/ui";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * The trial and dunning state at the top of Billing and Plan (A79; Section 14.7 and Section 16), where the
  * org banners send the Owner to fix billing. Adding a card and updating the payment method run through
  * Stripe Checkout and the customer portal (@xos/platform billing), which Atlas does not reach yet (ADR 0035,
- * gaps); until then the button stays disabled and the copy says how to get it done.
+ * gaps); until then the button stays disabled and the copy says how to get it done. Dates are days on the
+ * org's calendar.
  */
 export async function BillingLifecycleNotice({ ctx }: { ctx: OrgContext }) {
   const status = await getOrgBannerStatus(ctx.viewer.db, ctx.org.id);
@@ -19,7 +21,7 @@ export async function BillingLifecycleNotice({ ctx }: { ctx: OrgContext }) {
     key: string,
     values?: Record<string, string | number>,
   ) => string;
-  const { date } = await getFormatters(ctx);
+  const [{ date }, zone] = await Promise.all([getFormatters(ctx), getOrgTimeZone(ctx)]);
   const readOnly = s.billingState === "read_only";
   return (
     <Card>
@@ -36,10 +38,13 @@ export async function BillingLifecycleNotice({ ctx }: { ctx: OrgContext }) {
         <p className="m-0 text-text-14">
           {s.billingState && s.pastDueSince
             ? t(readOnly ? "billing.readOnlyBody" : "billing.pastDueBody", {
-                since: date(s.pastDueSince),
-                date: date(readOnlyOn(s.pastDueSince)),
+                since: date(dayOf(s.pastDueSince, zone)),
+                date: date(dayOf(readOnlyOn(s.pastDueSince), zone)),
               })
-            : t("billing.trialBody", { org: ctx.org.name, date: date(s.trialEndsAt ?? "") })}
+            : t("billing.trialBody", {
+                org: ctx.org.name,
+                date: s.trialEndsAt ? date(windowLastDay(s.trialEndsAt, zone)) : "",
+              })}
         </p>
         <div>
           <Button variant="primary" disabled>

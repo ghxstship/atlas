@@ -4,6 +4,9 @@
 --   * app.subscriptions.trial_ends_at: when a trialing subscription ends. A new org (app.create_organization) and an
 --     external account that starts using Atlas (app.subscribe_external_account) start a 14-day Pro trial instead of
 --     the Access plan. A client org a partner creates keeps the plan the partner sets.
+--   * The org's calendar: the trial covers the rest of the day it starts and 14 whole days on the org's calendar
+--     (locale.time_zone, private.org_today of 1305) and ends at the org's midnight (private.org_window_end). The
+--     countdown is its last day minus the org's today: 14 when it starts and 0 on its last day.
 --   * Conversion: a card is added only through Stripe Checkout. Its webhook calls app.sync_subscription_from_stripe,
 --     which moves the trialing subscription to active on the plan bought (trialing to active is an allowed
 --     transition). Checkout carries the rest of the trial as the Stripe trial end, so Stripe charges the card when
@@ -11,7 +14,7 @@
 --   * Expiry: private.run_org_lifecycle runs hourly. A trial past its end moves to the Access plan in place
 --     (trialing to active, plan access, no extra seats), and each billing owner is told. Nothing calls Stripe, so a
 --     trial never charges anyone.
---   * Notices: billing owners hear on days 3 and 1 before the end (billing.trial_ending, once per mark) and when it
+--   * Notices: billing owners hear 3 days and 1 day before the last day (billing.trial_ending, once per mark) and when it
 --     ends (billing.trial_ended). Atlas shows the countdown in the org banner.
 
 -- Trial end ------------------------------------------------------------------------------------------------------
@@ -24,17 +27,103 @@ comment on column app.subscriptions.trial_ends_at is 'When the trial of this sub
 
 create index subscriptions_trial_due_idx on app.subscriptions (trial_ends_at) where subscription_state = 'trialing';
 
-create or replace function private.trial_length()
-returns interval
+-- Windows of whole days on the org's calendar ----------------------------------------------------------------------
+-- The trial, the recovery window of a deletion request and an ownership offer last whole days on the org's calendar
+-- (its locale.time_zone setting, private.org_today in 1305), never UTC days: each ends at midnight where the org is,
+-- after the rest of the day it starts on and its whole days, so it is never shorter than its length.
+
+create or replace function private.zone_day_start(p_day date, p_time_zone text)
+returns timestamptz
+language plpgsql
+stable
+set search_path = ''
+as $$
+begin
+  return p_day::timestamp at time zone coalesce(nullif(btrim(p_time_zone), ''), 'UTC');
+exception when invalid_parameter_value then
+  return p_day::timestamp at time zone 'UTC';
+end;
+$$;
+
+comment on function private.zone_day_start(date, text) is 'The instant a calendar day starts in an IANA time zone; UTC for a blank or unknown zone (A79, beside private.zone_date of 1305).';
+revoke all on function private.zone_day_start(date, text) from public, anon, authenticated;
+
+create or replace function private.org_date(p_org_id uuid, p_at timestamptz)
+returns date
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.zone_date(p_at, private.org_time_zone(p_org_id));
+$$;
+
+comment on function private.org_date(uuid, timestamptz) is 'The calendar date of an instant on the org''s calendar (private.org_time_zone); private.org_today is the same for now (A79).';
+revoke all on function private.org_date(uuid, timestamptz) from public, anon, authenticated;
+
+create or replace function private.org_window_end(p_org_id uuid, p_days integer, p_now timestamptz default now())
+returns timestamptz
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.zone_day_start(private.org_date(p_org_id, p_now) + p_days + 1, private.org_time_zone(p_org_id));
+$$;
+
+comment on function private.org_window_end(uuid, integer, timestamptz) is 'The end of a window of p_days whole days that starts at p_now: midnight on the org''s calendar after the p_days-th day after the day p_now falls on. The window covers the rest of that day and p_days whole days, so it is never shorter than p_days days (A79).';
+revoke all on function private.org_window_end(uuid, integer, timestamptz) from public, anon, authenticated;
+
+create or replace function private.org_window_last_day(p_org_id uuid, p_ends_at timestamptz)
+returns date
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.org_date(p_org_id, p_ends_at - interval '1 microsecond');
+$$;
+
+comment on function private.org_window_last_day(uuid, timestamptz) is 'The last day on the org''s calendar inside a window ending at p_ends_at: the day before it ends when it ends at the org''s midnight (A79).';
+revoke all on function private.org_window_last_day(uuid, timestamptz) from public, anon, authenticated;
+
+create or replace function private.org_day_mark(p_org_id uuid, p_day date)
+returns bigint
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select (extract(epoch from private.zone_day_start(p_day, private.org_time_zone(p_org_id)) + interval '12 hours') * 1000)::bigint;
+$$;
+
+comment on function private.org_day_mark(uuid, date) is 'A day on the org''s calendar as the form a notification carries a date in: epoch milliseconds at the org''s noon that day. The recipient''s time zone formats it, and noon keeps the date for recipients up to 12 hours from the org (A79).';
+revoke all on function private.org_day_mark(uuid, date) from public, anon, authenticated;
+
+create or replace function private.trial_days()
+returns integer
 language sql
 immutable
 set search_path = ''
 as $$
-  select interval '14 days';
+  select 14;
 $$;
 
-comment on function private.trial_length() is 'Length of the trial a new org starts with: 14 days (Section 14.7).';
-revoke all on function private.trial_length() from public, anon, authenticated;
+comment on function private.trial_days() is 'Length of the trial a new org starts with: 14 whole days on the org''s calendar after the day it starts (Section 14.7, private.org_window_end).';
+revoke all on function private.trial_days() from public, anon, authenticated;
+
+create or replace function private.trial_days_left(p_org_id uuid, p_ends_at timestamptz, p_now timestamptz default now())
+returns integer
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select greatest(0, private.org_window_last_day(p_org_id, p_ends_at) - private.org_date(p_org_id, p_now));
+$$;
+
+comment on function private.trial_days_left(uuid, timestamptz, timestamptz) is 'Whole days left in a trial on the org''s calendar: its last day minus today, 14 on the day it starts and 0 on its last day (Section 14.7).';
+revoke all on function private.trial_days_left(uuid, timestamptz, timestamptz) from public, anon, authenticated;
 
 create or replace function private.trial_plan()
 returns text
@@ -89,7 +178,7 @@ declare
 begin
   perform private.assert_org_slug_available(p_slug);
   insert into app.organizations (name, slug) values (btrim(p_name), p_slug) returning id into v_org;
-  perform private.start_trial(v_org, private.trial_plan(), now() + private.trial_length(),
+  perform private.start_trial(v_org, private.trial_plan(), private.org_window_end(v_org, private.trial_days()),
     'Organization created: a 14-day Pro trial with no card.');
 
   perform private.begin_trusted_operation('membership_write');
@@ -121,7 +210,7 @@ begin
   if exists (select 1 from app.subscriptions s where s.org_id = p_account_id and s.deleted_at is null) then
     perform private.refuse('account_already_subscribed', 'This company already uses Atlas; open it from the organization switcher.');
   end if;
-  perform private.start_trial(p_account_id, private.trial_plan(), now() + private.trial_length(),
+  perform private.start_trial(p_account_id, private.trial_plan(), private.org_window_end(p_account_id, private.trial_days()),
     'External account started using Atlas: a 14-day Pro trial with no card.');
 
   perform private.begin_trusted_operation('membership_write');
@@ -225,7 +314,7 @@ begin
       v_actions := v_actions + 1;
       continue;
     end if;
-    v_days := ceil(extract(epoch from (v_sub.trial_ends_at - p_now)) / 86400)::integer;
+    v_days := private.trial_days_left(v_sub.org_id, v_sub.trial_ends_at, p_now);
     if v_days in (3, 1) then
       for v_person in
         select b.person_id from private.billing_owner_ids(v_sub.org_id, p_now) as b (person_id)
@@ -244,7 +333,7 @@ begin
 end;
 $$;
 
-comment on function private.run_trials(timestamptz) is 'Trial step of the lifecycle job: ends every trial past its end (private.expire_trial) and tells billing owners on days 3 and 1 before the end, once per mark. Returns the actions taken.';
+comment on function private.run_trials(timestamptz) is 'Trial step of the lifecycle job: ends every trial past its end (private.expire_trial) and tells billing owners 3 days and 1 day before the trial''s last day on the org''s calendar, once per mark. Returns the actions taken.';
 revoke all on function private.run_trials(timestamptz) from public, anon, authenticated;
 
 create or replace function private.run_org_lifecycle(p_now timestamptz default now())
@@ -273,13 +362,12 @@ stable
 security definer
 set search_path = ''
 as $$
-  select s.plan_code, s.trial_ends_at,
-    greatest(0, ceil(extract(epoch from (s.trial_ends_at - now())) / 86400))::integer
+  select s.plan_code, s.trial_ends_at, private.trial_days_left(s.org_id, s.trial_ends_at)
   from app.subscriptions s
   where s.org_id = p_org_id and s.subscription_state = 'trialing' and s.deleted_at is null
     and p_org_id in (select private.my_org_ids());
 $$;
 
-comment on function app.org_trial(uuid) is 'The org''s running trial for its members: the plan it gives, when it ends and whole days left, or no row when the org is not in a trial (Section 14.7). Atlas shows the countdown from it.';
+comment on function app.org_trial(uuid) is 'The org''s running trial for its members: the plan it gives, when it ends and whole days left on the org''s calendar (0 on its last day), or no row when the org is not in a trial (Section 14.7). Atlas shows the countdown from it.';
 revoke all on function app.org_trial(uuid) from public, anon;
 grant execute on function app.org_trial(uuid) to authenticated, service_role;

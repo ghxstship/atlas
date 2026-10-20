@@ -1,3 +1,4 @@
+import { addCalendarDays, dateIn, todayIn } from "./calendar.ts";
 import type { XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import {
@@ -19,6 +20,10 @@ import { untyped } from "./untyped.ts";
  * ownership transfer, deletion certificates, standing partner grants, leaving a partner, and custom domain
  * provisioning. Every write goes through an RPC that decides the rules; reads run with the caller's row
  * level security.
+ *
+ * Dates are days on the org's calendar (its locale.time_zone, A71's @xos/data/calendar), never UTC days. The
+ * trial, the recovery window and an ownership offer end at the org's midnight after their whole days
+ * (private.org_window_end, 1350), so the day to show is the window's last day (windowLastDay).
  */
 
 // Banner status -------------------------------------------------------------------------------------------------
@@ -81,14 +86,48 @@ export function getOrgBannerStatus(db: XosClient, orgId: string): Promise<Result
   );
 }
 
-/** Day of dunning a payment has been overdue, from the day it first failed. */
+/** Day of dunning a payment has been overdue, from when it first failed, as private.run_dunning counts (0560). */
 export function daysOverdue(since: string, now: Date = new Date()): number {
   return Math.max(0, Math.floor((now.getTime() - new Date(since).getTime()) / 86_400_000));
 }
 
-/** The day dunning makes the org read-only: day 21 after the payment first failed (Section 16). */
+/** When dunning makes the org read-only: day 21 after the payment first failed (Section 16, 0560). */
 export function readOnlyOn(since: string): string {
   return new Date(new Date(since).getTime() + 21 * 86_400_000).toISOString();
+}
+
+// Days on the org's calendar ------------------------------------------------------------------------------------
+
+/** Whole days from one `YYYY-MM-DD` date to another; negative when `to` comes first. */
+export function calendarDaysBetween(from: string, to: string): number {
+  return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000);
+}
+
+/** The calendar day an instant falls on in a zone (UTC for an unknown zone), as `YYYY-MM-DD`. */
+export function dayOf(instant: string, zone: string | null | undefined): string {
+  return dateIn(new Date(instant), zone);
+}
+
+/**
+ * The last day inside a window that ends at `endsAt`, on a zone's calendar: the day before when it ends at
+ * that zone's midnight, as the trial, the recovery window and an ownership offer do (1350).
+ */
+export function windowLastDay(endsAt: string, zone: string | null | undefined): string {
+  return dateIn(new Date(Date.parse(endsAt) - 1), zone);
+}
+
+/** Whole days left in a trial on the org's calendar: 14 on the day it starts, 0 on its last day (1350). */
+export function trialDaysLeft(
+  trialEndsAt: string,
+  zone: string | null | undefined,
+  now: Date = new Date(),
+): number {
+  return Math.max(0, calendarDaysBetween(todayIn(zone, now), windowLastDay(trialEndsAt, zone)));
+}
+
+/** Day 90 of a cancellation on the org's calendar, counted from the day it was canceled: its data is deleted then (1351). */
+export function purgeDay(canceledAt: string, zone: string | null | undefined): string {
+  return addCalendarDays(dayOf(canceledAt, zone), 90);
 }
 
 // Deletion ----------------------------------------------------------------------------------------------------------
@@ -164,13 +203,15 @@ export interface DeletionCertificate {
   readonly documentObject: string | null;
   readonly documentSha256: string | null;
   readonly deliveredAt: string | null;
+  /** The deleted org's time zone, the calendar its certificate dates the deletion on. */
+  readonly timeZone: string;
 }
 
 /** Private bucket of certificate PDFs; the former Owner reads their own (1351). */
 export const DELETION_CERTIFICATES_BUCKET = "deletion-certificates";
 
 export const CERTIFICATE_COLUMNS =
-  "id, deleted_org_id, org_name, org_slug, basis, requested_at, due_at, purged_at, tables_purged, rows_purged, storage_objects_deleted, issued_at, document_object, document_sha256, delivered_at";
+  "id, deleted_org_id, org_name, org_slug, basis, requested_at, due_at, purged_at, tables_purged, rows_purged, storage_objects_deleted, issued_at, document_object, document_sha256, delivered_at, time_zone";
 
 export function toCertificate(r: Raw): DeletionCertificate {
   return {
@@ -189,6 +230,7 @@ export function toCertificate(r: Raw): DeletionCertificate {
     documentObject: strOrNull(r["document_object"]),
     documentSha256: strOrNull(r["document_sha256"]),
     deliveredAt: strOrNull(r["delivered_at"]),
+    timeZone: strOrNull(r["time_zone"]) ?? "UTC",
   };
 }
 

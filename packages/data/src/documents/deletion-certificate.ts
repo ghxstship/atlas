@@ -23,6 +23,8 @@ export interface DeletionCertificateData {
   readonly rowsPurged: number;
   readonly storageObjectsDeleted: number;
   readonly ownerName: string | null;
+  /** The deleted org's time zone (UTC when it never set one): the calendar the certificate dates on. */
+  readonly timeZone: string;
 }
 
 export interface DeletionCertificateOptions {
@@ -58,7 +60,7 @@ export function buildDeletionCertificateModel(
 ): DocumentModel {
   const now = options.now ?? new Date();
   const t = documentTranslator(options.messages);
-  const f = formatter(options.locale, "UTC", t);
+  const f = formatter(options.locale, data.timeZone, t);
   const key = certificateKey(data.id);
   const c = (k: string, values?: Record<string, string | number>) =>
     t(`deletionCertificate.${k}`, values);

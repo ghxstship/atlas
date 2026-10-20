@@ -41,6 +41,7 @@ const base: ClaimedCertificate = {
   rowsPurged: 0,
   storageObjectsDeleted: 0,
   ownerName: "Xavier Dubois",
+  timeZone: "America/Los_Angeles",
   ownerEmail: "xavier@harborlights.example",
   locale: "en-US",
   storageClearedAt: null,
@@ -121,7 +122,8 @@ const copy = () => ({
   subject: ({ org }: { org: string }) => `Deletion certificate for ${org}`,
   text: ({ org, date, id }: { org: string; date: string; id: string }) =>
     `The data of ${org} was deleted on ${date}.\n\nCertificate ${id} & <attached>.`,
-  date: (iso: string) => iso.slice(0, 10),
+  date: (iso: string, timeZone: string) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone }).format(new Date(iso)),
 });
 
 const render = async (c: ClaimedCertificate) => ({
@@ -345,6 +347,18 @@ describe("the certificate document", () => {
     expect(pdf).toContain("pdfuaid:part");
   }, 30_000);
 
+  it("dates the deletion on the deleted org's calendar, not UTC's", () => {
+    const evening = { ...purged, purgedAt: "2026-10-08T03:23:00Z" };
+    const model = buildDeletionCertificateModel(evening, {
+      locale: "en-US",
+      messages: messages("en-US"),
+      recordUrl: "https://atlas.example.test/x",
+    });
+    const text = JSON.stringify(model.blocks);
+    expect(text).toContain("Oct 7, 2026, 8:23");
+    expect(text).not.toContain("Oct 8, 2026, 3:23");
+  });
+
   it("versions the template by issue time", () => {
     expect(deletionCertificateVersion("2026-10-21T00:00:00Z")).toBe(1);
     expect(deletionCertificateVersion("2020-01-01T00:00:00Z")).toBe(1);
@@ -369,6 +383,7 @@ describe("Supabase adapters", () => {
         owner_name: null,
         owner_email: "a@b.example",
         locale: "es-US",
+        time_zone: "America/Chicago",
         storage_cleared_at: null,
         issued_at: null,
         document_object: null,
@@ -379,6 +394,7 @@ describe("Supabase adapters", () => {
       purged: false,
       storageObjectsDeleted: 3,
       locale: "es-US",
+      timeZone: "America/Chicago",
       rowsPurged: 0,
     });
   });

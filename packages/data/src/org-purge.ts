@@ -62,7 +62,8 @@ export type CertificateRenderer = (
 export interface CertificateEmailCopy {
   subject(input: { readonly org: string }): string;
   text(input: { readonly org: string; readonly date: string; readonly id: string }): string;
-  date(iso: string): string;
+  /** An instant as a date on the deleted org's calendar. */
+  date(iso: string, timeZone: string): string;
 }
 
 export type CertificateCopy = (locale: string) => CertificateEmailCopy;
@@ -187,7 +188,11 @@ export async function runDeletionCertificates(options: {
         fileName = deletionCertificateFileName(cert);
       }
       const copy = options.copy(cert.locale);
-      const values = { org: cert.orgName, date: copy.date(cert.purgedAt), id: cert.id };
+      const values = {
+        org: cert.orgName,
+        date: copy.date(cert.purgedAt, cert.timeZone),
+        id: cert.id,
+      };
       const text = copy.text(values);
       const sent = await options.mailer.send({
         to: cert.ownerEmail,
@@ -234,6 +239,7 @@ export function toClaimedCertificate(r: Row): ClaimedCertificate {
     rowsPurged: count(r, "rows_purged"),
     storageObjectsDeleted: count(r, "storage_objects_deleted"),
     ownerName: textOrNull(r, "owner_name"),
+    timeZone: text(r, "time_zone") || "UTC",
     ownerEmail: textOrNull(r, "owner_email"),
     locale: text(r, "locale") || "en-US",
     storageClearedAt: textOrNull(r, "storage_cleared_at"),

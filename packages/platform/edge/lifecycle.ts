@@ -64,7 +64,18 @@ export function deletionCertificateCopy(locale: string): CertificateEmailCopy {
   return {
     subject: (values) => fill(email("subject"), values),
     text: (values) => fill(email("body"), values),
-    date: (iso) =>
-      new Intl.DateTimeFormat(lang, { dateStyle: "long", timeZone: "UTC" }).format(new Date(iso)),
+    date: (iso, timeZone) => {
+      const zone = (() => {
+        try {
+          new Intl.DateTimeFormat(lang, { timeZone });
+          return timeZone;
+        } catch {
+          return "UTC";
+        }
+      })();
+      return new Intl.DateTimeFormat(lang, { dateStyle: "long", timeZone: zone }).format(
+        new Date(iso),
+      );
+    },
   };
 }

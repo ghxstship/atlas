@@ -1,12 +1,13 @@
 -- pgTAP: ownership transfer (1352, A79, finding A65-015, Section 14.7). An Owner offers the org with step-up; the member
 -- accepts with step-up (MFA) and becomes an Owner; the old Owner becomes an Admin or leaves; the org keeps an Owner at
--- every step (invariant 4); offers can be declined, withdrawn or lapse; everything is audited.
+-- every step (invariant 4); offers can be declined, withdrawn or lapse, at midnight on the org's calendar after 7 whole
+-- days; everything is audited.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(31);
+select plan(33);
 
 create function pg_temp.as_stepped_up(p_key text) returns void
 language plpgsql as $$
@@ -103,8 +104,16 @@ select ok((select valid_to is not null from app.memberships where id = pg_temp.i
 select pg_temp.as_stepped_up('alice');
 insert into world select 'tr5', app.offer_ownership_transfer(pg_temp.id('org_a'), pg_temp.id('bob'), 'admin');
 select pg_temp.as_platform();
-select is(private.expire_ownership_transfers(now() + interval '6 days'), 0, 'an offer is open for 7 days');
-select is(private.expire_ownership_transfers(now() + interval '7 days 1 hour'), 1, 'then the lifecycle job lapses it');
+select is((select expires_at from app.ownership_transfers where id = pg_temp.id('tr5')),
+  private.zone_day_start((now() at time zone 'UTC')::date + 8, 'UTC'),
+  'an offer lasts the rest of the day and 7 whole days, to midnight on the org''s calendar (UTC, never set)');
+select is((select (message_args ->> 'expires_at')::bigint from app.notifications
+  where kind = 'organization.ownership_offered' and subject_id = pg_temp.id('tr5')),
+  private.org_day_mark(pg_temp.id('org_a'), (now() at time zone 'UTC')::date + 8), 'the notice asks for an answer before the day it lapses');
+select is(private.expire_ownership_transfers((select expires_at from app.ownership_transfers where id = pg_temp.id('tr5')) - interval '1 second'), 0,
+  'an offer is open until its last second');
+select is(private.expire_ownership_transfers((select expires_at from app.ownership_transfers where id = pg_temp.id('tr5'))), 1,
+  'then the lifecycle job lapses it');
 select pg_temp.as_stepped_up('bob');
 select throws_like($$select app.accept_ownership_transfer((select id from world where key = 'tr5'))$$,
   'ownership_transfer_closed:%', 'a lapsed offer cannot be accepted');

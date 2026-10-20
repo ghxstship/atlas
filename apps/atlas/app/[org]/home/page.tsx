@@ -1,4 +1,5 @@
 import { getSubscription, listMembers, listPendingInvites } from "@xos/data";
+import { windowLastDay } from "@xos/data/org-lifecycle";
 import { isNodeVisible } from "@xos/ia";
 import { CircleCheck, Circle } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import { formatAlert } from "@/components/home/format-alert";
 import { HomeTiles } from "@/components/home/home-tiles";
 import { loadHomeTiles } from "@/lib/home/data";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * Home (Dashboard template, Section 11.6). A new org sees the first-run checklist of Section 11.7
@@ -36,6 +38,7 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   const format = await getFormatter();
   const translate = await getTranslate();
   const db = ctx.viewer.db;
+  const zone = await getOrgTimeZone(ctx);
   const [members, invites, subscription] = await Promise.all([
     listMembers(db, ctx.org.id),
     ctx.capabilities.has("org.members.read")
@@ -139,9 +142,11 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
             <p className="text-text-13 text-text-secondary">
               {lifecycle("home.trial", {
                 org: ctx.org.name,
-                date: format.dateTime(new Date(subscription.data.trialEndsAt), {
-                  dateStyle: "medium",
-                }),
+                // The trial's last day on the org's calendar, formatted as that calendar day.
+                date: format.dateTime(
+                  new Date(`${windowLastDay(subscription.data.trialEndsAt, zone)}T00:00:00Z`),
+                  { dateStyle: "medium", timeZone: "UTC" },
+                ),
               })}
             </p>
           ) : subscription.ok ? (

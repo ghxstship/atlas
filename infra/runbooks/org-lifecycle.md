@@ -49,11 +49,21 @@ provider.
    connected; `select jobname, schedule from cron.job where jobname = 'xos_hourly_org_lifecycle';` shows the
    hourly job.
 
+## The org's calendar
+
+Every window here runs on the org's calendar (its `locale.time_zone` setting, UTC when unset; `private.org_today`
+of 1305), never on UTC days. The trial (14 days), the recovery window of a deletion request (7 days) and an
+ownership offer (7 days) cover the rest of the day they start and that many whole days, and end at the org's
+midnight (`private.org_window_end`), so none is ever shorter than its length. Atlas shows each window by its last
+day, and the trial countdown is that day minus the org's today: 14 when it starts, 0 on its last day. Day 90 of a
+cancellation is counted from the day it was canceled and starts at the org's midnight. A certificate keeps the
+org's time zone, and its PDF and email date the deletion on that calendar.
+
 ## Trials
 
 - A new org, and an external account that starts using Atlas, start a 14-day Pro trial with no card
-  (`app.subscriptions.trial_ends_at`). Billing owners hear on days 3 and 1; at the end the subscription moves to
-  the Access plan in place and nothing is deleted.
+  (`app.subscriptions.trial_ends_at`). Billing owners hear 3 days and 1 day before its last day; at the end the
+  subscription moves to the Access plan in place and nothing is deleted.
 - Adding a card runs through Stripe Checkout with `trialEnd` (`@xos/platform` `createCheckoutSession`): Stripe
   holds the charge to the trial end, and the webhook moves the subscription to active, which converts the trial.
   Nothing charges a card before then, and the expiry job never calls Stripe.

@@ -1,8 +1,8 @@
 -- 1352_ownership_transfers.sql
 -- A79 (RRR-124), finding A65-015, Section 14.7: "Ownership transfer: the new Owner must accept and pass MFA. The old
 -- Owner becomes an Admin unless removed."
---   * app.ownership_transfers: an Owner offers the org to another active member, with step-up; the offer lasts 7
---     days. The member accepts with step-up (a second factor, so MFA) or declines; the Owner who offered, or any
+--   * app.ownership_transfers: an Owner offers the org to another active member, with step-up; the offer lasts the
+--     rest of that day and 7 whole days on the org's calendar (private.org_window_end, 1350). The member accepts with step-up (a second factor, so MFA) or declines; the Owner who offered, or any
 --     Owner, may cancel; the hourly lifecycle job expires offers nobody answered.
 --   * Acceptance runs in one transaction that keeps invariant 4 (the org keeps an Owner) at every step: the new Owner
 --     gets the Owner role first, the old Owner gets Admin (unless they chose to leave), and only then does the old
@@ -26,7 +26,7 @@ create table app.ownership_transfers (
   expired_at timestamptz,
   constraint ownership_transfers_not_self check (from_person_id <> to_person_id),
   constraint ownership_transfers_outcome check (previous_owner_outcome in ('admin', 'leave')),
-  constraint ownership_transfers_window check (expires_at = offered_at + interval '7 days'),
+  constraint ownership_transfers_window check (expires_at between offered_at + interval '6 days 22 hours' and offered_at + interval '8 days 2 hours'),
   constraint ownership_transfers_one_answer check (num_nonnulls(accepted_at, declined_at, canceled_at, expired_at) <= 1),
   constraint ownership_transfers_canceled check ((canceled_at is null) = (canceled_by is null))
 );
@@ -43,7 +43,7 @@ call private.describe('app.ownership_transfers', 'An Owner''s offer to hand the 
   'to_person_id', 'Member the org is offered to; becomes an Owner on accepting.',
   'previous_owner_outcome', 'What happens to the Owner who offered on acceptance: admin (becomes an Admin) or leave (their membership ends).',
   'offered_at', 'When the offer was made.',
-  'expires_at', 'When an unanswered offer lapses, 7 days after it was made.',
+  'expires_at', 'When an unanswered offer lapses: midnight on the org''s calendar after the seventh whole day after it was made.',
   'accepted_at', 'When the member accepted and became an Owner.',
   'declined_at', 'When the member declined.',
   'canceled_at', 'When an Owner withdrew the offer.',
@@ -135,6 +135,7 @@ as $$
 declare
   v_person uuid := private.require_person();
   v_id uuid;
+  v_until timestamptz;
 begin
   if not private.has_capability(p_org_id, 'org.ownership.transfer') then
     raise exception using errcode = '42501', message = 'org.ownership.transfer is required';
@@ -162,17 +163,19 @@ begin
                and t.expired_at is null and t.deleted_at is null) then
     perform private.refuse('ownership_transfer_open', 'An ownership offer is already open; cancel it before making another.');
   end if;
+  v_until := private.org_window_end(p_org_id, 7);
   insert into app.ownership_transfers (org_id, from_person_id, to_person_id, previous_owner_outcome, offered_at, expires_at)
-  values (p_org_id, v_person, p_to_person_id, p_previous_owner_outcome, now(), now() + interval '7 days')
+  values (p_org_id, v_person, p_to_person_id, p_previous_owner_outcome, now(), v_until)
   returning id into v_id;
+  -- "accept or decline before <date>": the day it lapses at the start of, on the org's calendar.
   perform private.notify(p_org_id, p_to_person_id, 'organization.ownership_offered', 'app.ownership_transfers', v_id, null,
-    jsonb_build_object('expires_at', private.epoch_ms(now() + interval '7 days'),
+    jsonb_build_object('expires_at', private.org_day_mark(p_org_id, private.org_date(p_org_id, v_until)),
       'actorName', coalesce((select p.full_name from app.people p where p.id = v_person), '')));
   return v_id;
 end;
 $$;
 
-comment on function app.offer_ownership_transfer(uuid, uuid, text) is 'An Owner (org.ownership.transfer) with step-up offers the org to another active member who is not yet an Owner, choosing whether they become an Admin or leave on acceptance. One open offer per org; it lapses after 7 days. The member is told. Returns the transfer id.';
+comment on function app.offer_ownership_transfer(uuid, uuid, text) is 'An Owner (org.ownership.transfer) with step-up offers the org to another active member who is not yet an Owner, choosing whether they become an Admin or leave on acceptance. One open offer per org; it lapses at midnight on the org''s calendar after 7 whole days. The member is told. Returns the transfer id.';
 revoke all on function app.offer_ownership_transfer(uuid, uuid, text) from public, anon;
 grant execute on function app.offer_ownership_transfer(uuid, uuid, text) to authenticated, service_role;
 
