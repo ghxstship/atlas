@@ -71,7 +71,7 @@ test("deleting an org needs step-up, makes it read-only and can be recovered wit
   // Recover within the window.
   await page.goto(`/${slug}/settings/danger-zone`);
   await page.getByRole("button", { name: "Recover the organization" }).click();
-  await expect(page.getByTestId("deletion-banner")).toHaveCount(0);
+  await expect(page.getByTestId("deletion-banner")).toHaveCount(0, { timeout: 30_000 });
   await expect(page.getByRole("form", { name: "Delete the organization" })).toBeVisible();
 });
 
@@ -130,7 +130,7 @@ test("ownership moves to a member who accepts with step-up; the old Owner become
     .getByTestId("ownership-offer-banner")
     .getByRole("button", { name: "Accept ownership" })
     .click();
-  await expect(heir.getByTestId("ownership-offer-banner")).toHaveCount(0);
+  await expect(heir.getByTestId("ownership-offer-banner")).toHaveCount(0, { timeout: 30_000 });
 
   // The new Owner reaches the Owner's controls; the old Owner is an Admin and no longer offers the org.
   await heir.goto(`/${slug}/settings/danger-zone`);

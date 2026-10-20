@@ -8,9 +8,7 @@ import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import {
-  acceptOwnershipAction,
   cancelOwnershipAction,
-  declineOwnershipAction,
   endStandingGrantAction,
   leavePartnerAction,
   offerOwnershipAction,
@@ -241,33 +239,6 @@ export function CancelOwnershipForm({ org, transfer }: { org: string; transfer: 
       submitLabel={t("transfer.cancel")}
       submitVariant="secondary"
     />
-  );
-}
-
-/** Accept or decline an ownership offer, from the org banner of the member it was made to. */
-export function OwnershipOfferActions({ org, transfer }: { org: string; transfer: string }) {
-  const t = useLifecycleT();
-  return (
-    <div className="flex flex-wrap items-start gap-8">
-      <LifecycleForm
-        action={acceptOwnershipAction}
-        org={org}
-        hidden={{ transfer }}
-        label={t("banners.ownershipAccept")}
-        submitLabel={t("banners.ownershipAccept")}
-        inline
-      />
-      <LifecycleForm
-        action={declineOwnershipAction}
-        org={org}
-        hidden={{ transfer }}
-        label={t("banners.ownershipDecline")}
-        submitLabel={t("banners.ownershipDecline")}
-        submitVariant="secondary"
-        success={t("banners.ownershipDeclined")}
-        inline
-      />
-    </div>
   );
 }
 

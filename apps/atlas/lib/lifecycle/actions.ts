@@ -13,13 +13,16 @@ import {
   requestOrgDeletion,
 } from "@xos/data/org-lifecycle";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { requireStepUp } from "@/lib/auth/step-up";
+import { OWNERSHIP_OUTCOME_COOKIE } from "@/lib/lifecycle/outcome";
 import { contextFor } from "@/lib/platform/action-context";
 import {
   done,
   field,
   fromDataError,
+  INITIAL_PLATFORM_STATE,
   inputError,
   type PlatformActionState,
 } from "@/lib/platform/state";
@@ -110,6 +113,36 @@ export async function acceptOwnershipAction(
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}`, "layout");
   return done(result.data);
+}
+
+/**
+ * The org banner's Accept and Decline buttons are plain forms, so the banner every org page renders ships no
+ * client JavaScript (the route budget, ADR 0027). A refusal is kept for two minutes in a cookie scoped to the
+ * org, keyed by the offer, and the banner shows it with the step-up link.
+ */
+async function rememberOutcome(slug: string, transfer: string, state: PlatformActionState) {
+  const jar = await cookies();
+  if (state.rule || state.error) {
+    jar.set(OWNERSHIP_OUTCOME_COOKIE, `${transfer}:${state.rule ?? "other"}`, {
+      path: `/${slug}`,
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 120,
+    });
+  } else {
+    jar.delete({ name: OWNERSHIP_OUTCOME_COOKIE, path: `/${slug}` });
+  }
+  revalidatePath(`/${slug}`, "layout");
+}
+
+export async function acceptOwnershipFormAction(form: FormData): Promise<void> {
+  const state = await acceptOwnershipAction(INITIAL_PLATFORM_STATE, form);
+  await rememberOutcome(field(form, "org"), field(form, "transfer"), state);
+}
+
+export async function declineOwnershipFormAction(form: FormData): Promise<void> {
+  const state = await declineOwnershipAction(INITIAL_PLATFORM_STATE, form);
+  await rememberOutcome(field(form, "org"), field(form, "transfer"), state);
 }
 
 export async function declineOwnershipAction(
