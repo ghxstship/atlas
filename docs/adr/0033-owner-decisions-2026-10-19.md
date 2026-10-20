@@ -100,6 +100,24 @@ The owner was given every open decision blocking the release, each with its opti
 33. **IP allow-list reach:** accepted for launch and documented. Direct Supabase REST calls with a valid session are not filtered per org; routing data access through the API closes this later.
 34. **Break-glass:** grants the Owner role's capabilities and passes the IP allow-list, and lifts nothing else. It already requires a second factor.
 
+### Decisions of 2026-10-20
+
+35. **SMS quiet hours:** a recipient with no quiet hours of their own gets 21:00 to 08:00 in their time zone (A80, RRR-125).
+    - **Urgent kinds bypass quiet hours,** both the default and personal ones: safety alerts, sign-in and verification codes, and changes to a shift starting within 12 hours. The list is a flag on those kinds in `packages/schemas/notification-kinds.yaml`, so it stays short and reviewable.
+    - **The recipient's zone falls back** to the engagement's project zone, then the org's. It is never UTC.
+    - **Held texts go out at 08:00** local as one summary per recipient and org, not a burst.
+    - **Why:** carrier and state rules, and crew who opt out after a 2 a.m. text, lose the channel for the alerts that matter. Overnight productions still need urgent texts delivered.
+36. **Gateway ratings stay on.** No org can hide ratings, because selective suppression is what the FTC rule on reviews (16 CFR Part 465) forbids.
+    - **The setting becomes prompt-only:** `gateway.ratings_enabled` only controls whether the org's own members are prompted to rate the people it engages. Turning prompts off never hides or removes a rating already given.
+    - **Moderation removes only policy violations** (abuse, personal data), whatever the rating.
+    - **Counsel confirms** this before launch.
+37. **Record keys are fixed.** `numbering.record_key_format` leaves the settings screens and refuses writes. URLs, printed QR codes, offline Compass data and API v1 depend on record keys.
+    - **The customizable numbers** are the invoice prefix and document number padding (`org.invoice_number_prefix`, `numbering.document_number_padding`).
+    - **If keys ever become configurable,** a new format applies only to new records, old keys keep resolving permanently, and no key is reused.
+38. **Passport expiry stays unencrypted** (A78, migration 1340). The passport number is the identifier: it is encrypted under its own Vault key, masked, and revealed only through an audited step that needs a second factor and a reason.
+    - **The expiry date is Confidential,** owner-only, shared per engagement by consent, and on the AI never-send list.
+    - **Encrypting it would break expiry reminders,** or make those jobs decrypt routinely.
+
 ## Consequences
 
 - **Engineering:**
