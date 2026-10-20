@@ -85,9 +85,10 @@ $$, 'every api_public RPC is SECURITY DEFINER, so anon never needs a grant on an
 
 select is_empty($$
   select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-  where n.nspname = 'app' and p.proname in ('exchange_api_key', 'read_integration_credential')
+  where n.nspname = 'app' and p.proname in ('exchange_api_key', 'read_integration_credential', 'read_integration_inbound_secret',
+      'read_warehouse_credential', 'warehouse_table_rows')
     and (has_function_privilege('authenticated', p.oid, 'EXECUTE') or has_function_privilege('anon', p.oid, 'EXECUTE'))
-$$, 'the key exchange and the Vault credential reader run only for the service role (ADR 0024)');
+$$, 'the key exchange, the Vault credential and webhook secret readers and the warehouse row reader run only for the service role (ADR 0024, 1400, 1401)');
 
 -- Views ------------------------------------------------------------------------------------------------------------
 select set_eq($$
@@ -102,7 +103,7 @@ $$, $$values ('ai_never_send'), ('application_board'), ('bid_totals'), ('brand_f
   ('onboarding_item_status'), ('opportunity_position_counts'), ('org_legal_entities_masked'), ('pay_rates_masked'), ('pay_transparency_rules'),
   ('payroll_line_amounts'), ('rate_card_lines_masked'), ('report_sources'), ('retention_policies'),
   ('separation_of_duties_rules'), ('setting_choices'), ('setting_definitions'), ('shared_certifications'),
-  ('sync_rpcs'), ('vendor_bank_accounts_masked')$$,
+  ('sync_rpcs'), ('vendor_bank_accounts_masked'), ('warehouse_providers')$$,
   'every owner-rights view in app is a reviewed reference, masking or self-filtering view');
 
 select is_empty($$
