@@ -6,6 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
   LAST_SEEN_COOKIE,
+  recordsLastSeen,
   opensWithoutSecondFactor,
   orgAuthRedirect,
   parseLastSeen,
@@ -83,11 +84,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return response;
   };
 
-  // The org idle timeout judges the device's previous request; pages and actions behind this
-  // request see it recorded already, so they agree with the decision made here.
+  // The org idle timeout judges the device's previous request, recorded at most once a minute
+  // (recordsLastSeen); pages and actions behind this request see it recorded already.
   const now = Date.now();
   const lastSeenAt = parseLastSeen(request.cookies.get(LAST_SEEN_COOKIE)?.value);
-  request.cookies.set(LAST_SEEN_COOKIE, String(now));
+  const recordSeen = recordsLastSeen(lastSeenAt, now);
+  if (recordSeen) request.cookies.set(LAST_SEEN_COOKIE, String(now));
 
   const { db, response } = createProxySupabase(request, () =>
     NextResponse.next({ request: { headers: forwardedHeaders() } }),
@@ -186,7 +188,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     return secure(rewrite);
   }
   const result = response();
-  if (user) {
+  if (user && recordSeen) {
     // The device's last request, for the org idle timeout (security.idle_timeout_minutes).
     result.cookies.set(LAST_SEEN_COOKIE, String(now), {
       path: "/",

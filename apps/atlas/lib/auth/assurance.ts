@@ -17,6 +17,18 @@ export const SESSION_ENDED_PATH = "/auth/session-ended";
 /** The device's last request, for the org idle timeout: an httpOnly epoch-milliseconds cookie. */
 export const LAST_SEEN_COOKIE = "xos-last-seen";
 
+/**
+ * How stale the last-seen cookie may get before a request records it again. Next.js refreshes the page after any
+ * server action whose response sets a cookie, so recording it on every request would refresh the page after every
+ * action (and loop with an action a page calls when it renders). A minute is well inside any idle timeout.
+ */
+export const LAST_SEEN_STEP_MS = 60_000;
+
+/** Whether a request at `now` records the last-seen cookie again. */
+export function recordsLastSeen(lastSeenAt: number | null, now: number): boolean {
+  return lastSeenAt === null || now - lastSeenAt >= LAST_SEEN_STEP_MS || now < lastSeenAt;
+}
+
 /** The page a request is for, as the proxy forwards it, so a page context can return there after verifying. */
 export const PATH_HEADER = "x-xos-path";
 

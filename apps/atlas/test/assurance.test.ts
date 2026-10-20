@@ -4,6 +4,7 @@ import {
   opensWithoutSecondFactor,
   orgAuthRedirect,
   parseLastSeen,
+  recordsLastSeen,
   relyingPartyFrom,
   secondFactorRedirect,
 } from "../lib/auth/assurance";
@@ -51,6 +52,15 @@ describe("where a session that owes something goes (A77)", () => {
     expect(parseLastSeen("1792503122000")).toBe(1792503122000);
     expect(parseLastSeen(undefined)).toBeNull();
     expect(parseLastSeen("soon")).toBeNull();
+  });
+
+  it("records the last-seen time at most once a minute, so actions do not refresh the page each time", () => {
+    const at = 1792503122000;
+    expect(recordsLastSeen(null, at)).toBe(true);
+    expect(recordsLastSeen(at, at + 59_999)).toBe(false);
+    expect(recordsLastSeen(at, at + 60_000)).toBe(true);
+    // A clock that went back records again rather than keeping a future time.
+    expect(recordsLastSeen(at, at - 1)).toBe(true);
   });
 
   it("takes the relying party from configuration, or none when it is incomplete", () => {
