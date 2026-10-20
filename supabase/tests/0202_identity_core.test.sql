@@ -50,6 +50,10 @@ select is(
        'person_notification_preferences',
        -- person-owned blocks keyed by person_id, readable only by the blocker (A52, migration 1206)
        'blocks',
+       -- person-owned Work Details keyed by person_id, readable only by the person (A78, migration 1340)
+       'person_work_details', 'person_emergency_contacts', 'person_loyalty_programs',
+       -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
+       'work_detail_events',
        -- the record of an org's deletion, kept after the org and its members are gone (A79, migration 1351)
        'deletion_certificates')
      and (select count(*) from information_schema.columns c

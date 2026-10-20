@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect as baseExpect, settle as settleNetwork, test, type Page } from "./engine-test";
 import AxeBuilder from "@axe-core/playwright";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
@@ -42,6 +42,11 @@ async function expectAccessibleView(page: Page): Promise<void> {
  */
 
 test.use({ reducedMotion: "reduce" });
+// Every step that changes a record waits on a server action that re-renders the org's pages
+// (revalidatePath on the org layout) before the page shows the change: 0.3 to 4 seconds on a loaded
+// machine, past the 5-second default now and then on a CI runner that also hosts the stack. The
+// other journeys allow 20 seconds (A71).
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 async function newOwnerOrg(page: Page): Promise<string> {
   const id = uniqueId();
@@ -201,6 +206,10 @@ test("journey 70: Trash, restore, duplicate with children and watch", async ({ p
   await createProject(page, slug, "TRS", "Tour Rehearsal");
   const key = await createTask(page, slug, "Pack the cable trunks");
   await page.goto(`/${slug}/r/${key}`);
+  // Act once the page is quiet (A71): Next runs server actions one at a time, so a click made while the
+  // page's own on-load action is in flight waits behind it, and typing before hydration relies on React
+  // replaying the click.
+  await settleNetwork(page);
   await page.getByLabel("New item").fill("Label every trunk");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await expect(page.getByRole("checkbox", { name: "Label every trunk" })).toBeVisible();

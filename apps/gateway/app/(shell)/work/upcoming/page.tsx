@@ -15,6 +15,7 @@ import { DestinationTabs } from "@/components/page/work-tabs";
 import { Calendar, EmptyStateLink, Icon } from "@/components/ui";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
+import { personToday } from "@/lib/time-zone";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { byDay, mergeUpcoming, type UpcomingItem } from "@/lib/upcoming";
 
@@ -72,6 +73,8 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   ]);
   const failed = !shifts.ok || !records.ok || !docks.ok || !lodging.ok || !applications.ok;
   const now = new Date();
+  // Upcoming spans engagements across orgs, so its calendar opens on the person's own today.
+  const today = await personToday(ctx);
   const items = mergeUpcoming({
     now,
     engagements: current,
@@ -93,7 +96,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   const month =
     typeof query["month"] === "string" && /^\d{4}-\d{2}-01$/.test(query["month"])
       ? query["month"]
-      : `${now.toISOString().slice(0, 7)}-01`;
+      : `${today.slice(0, 7)}-01`;
   const shiftMonth = (delta: number) => {
     const d = new Date(`${month}T00:00:00Z`);
     d.setUTCMonth(d.getUTCMonth() + delta);
@@ -148,7 +151,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
           </div>
           <Calendar
             month={month}
-            today={now.toISOString().slice(0, 10)}
+            today={today}
             events={items.map((i) => ({
               date: i.at.slice(0, 10),
               label: i.title,

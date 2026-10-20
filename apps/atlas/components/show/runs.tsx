@@ -43,6 +43,7 @@ import { CollectionViews } from "@/components/views/collection-views";
  */
 export function RunCollection({
   org,
+  today,
   title,
   runs,
   total,
@@ -54,6 +55,8 @@ export function RunCollection({
   peek,
 }: {
   org: string;
+  /** Today on the org's calendar (A71); an empty timeline starts here. */
+  today: string;
   title: string;
   runs: readonly RunOfShow[];
   total: number;
@@ -165,7 +168,7 @@ export function RunCollection({
     );
   } else if (view === "timeline") {
     const days = [...new Set(runs.map((r) => r.showDate))].sort();
-    const first = days[0] ?? new Date().toISOString().slice(0, 10);
+    const first = days[0] ?? today;
     const last = days.at(-1) ?? first;
     const span = Math.min(
       Math.round(

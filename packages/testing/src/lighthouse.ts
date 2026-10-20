@@ -59,28 +59,47 @@ export interface AuthSession {
 /** @supabase/ssr splits cookie values longer than this into name.0, name.1 and so on. */
 export const SSR_CHUNK_SIZE = 3180;
 
-/**
- * The Cookie header @supabase/ssr reads for a session: `base64-` plus base64url JSON, chunked the
- * way the library writes it.
- */
-export function sessionCookieHeader(name: string, session: AuthSession): string {
-  const value = `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`;
-  if (value.length <= SSR_CHUNK_SIZE) return `${name}=${value}`;
-  const parts: string[] = [];
-  for (let i = 0; i * SSR_CHUNK_SIZE < value.length; i += 1) {
-    parts.push(`${name}.${i}=${value.slice(i * SSR_CHUNK_SIZE, (i + 1) * SSR_CHUNK_SIZE)}`);
-  }
-  return parts.join("; ");
+export interface SessionCookie {
+  readonly name: string;
+  readonly value: string;
 }
+
+/**
+ * The cookies @supabase/ssr reads for a session: `base64-` plus base64url JSON, chunked the way the
+ * library writes it.
+ */
+export function sessionCookies(name: string, session: AuthSession): SessionCookie[] {
+  const value = `base64-${Buffer.from(JSON.stringify(session)).toString("base64url")}`;
+  if (value.length <= SSR_CHUNK_SIZE) return [{ name, value }];
+  const parts: SessionCookie[] = [];
+  for (let i = 0; i * SSR_CHUNK_SIZE < value.length; i += 1) {
+    parts.push({
+      name: `${name}.${i}`,
+      value: value.slice(i * SSR_CHUNK_SIZE, (i + 1) * SSR_CHUNK_SIZE),
+    });
+  }
+  return parts;
+}
+
+/** Environment variable that hands the session cookies to `lighthouse-session.cjs`. */
+export const SESSION_COOKIES_ENV = "XOS_LH_SESSION_COOKIES";
 
 export interface LighthouseRcInput {
   readonly app: LighthouseApp;
   readonly baseUrl: string;
-  readonly cookie: string | null;
+  /**
+   * For signed-in apps, the path of `lighthouse-session.cjs` relative to the directory lhci runs
+   * in. It puts the session in the browser's cookie jar before each page. A session sent as an
+   * extra Cookie header lasts only until the page sets a cookie of its own: from then on Chrome
+   * sends the jar instead, so server actions, redirects and prefetches ran signed out.
+   */
+  readonly sessionScript: string | null;
   readonly chromePath: string | undefined;
   readonly outputDir: string;
   readonly runs?: number;
 }
+
+const CHROME_FLAGS = ["--headless=new", "--no-sandbox"];
 
 /** One app's lighthouserc: desktop preset, the spec budgets as assertions, local reports only. */
 export function lighthouseRc(input: LighthouseRcInput) {
@@ -91,10 +110,17 @@ export function lighthouseRc(input: LighthouseRcInput) {
         url: target.paths.map((path) => `${input.baseUrl}${path}`),
         numberOfRuns: input.runs ?? 1,
         ...(input.chromePath ? { chromePath: input.chromePath } : {}),
+        // With a session script, lhci launches Chrome through puppeteer (lighthouse's own
+        // puppeteer-core), so the Chrome flags go to puppeteer's launch.
+        ...(input.sessionScript
+          ? {
+              puppeteerScript: input.sessionScript,
+              puppeteerLaunchOptions: { args: CHROME_FLAGS.slice(1) },
+            }
+          : {}),
         settings: {
           preset: "desktop",
-          ...(input.cookie ? { extraHeaders: JSON.stringify({ Cookie: input.cookie }) } : {}),
-          chromeFlags: "--headless=new --no-sandbox",
+          ...(input.sessionScript ? {} : { chromeFlags: CHROME_FLAGS.join(" ") }),
         },
       },
       assert: { assertions: lighthouseAssertions() },

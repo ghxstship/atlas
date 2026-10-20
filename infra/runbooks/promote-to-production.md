@@ -211,33 +211,46 @@ Largest deletions: `app.activity_events` 447, `app.domain_events` 447, `app.audi
 
 ## 5. Auth Site URL and redirect URLs (OWNER CONFIRMS)
 
-The domain is still to come from the owner (decision 5). Until it exists, leave the Site URL at the current
-Vercel production URL of Atlas.
+The owner confirmed the domain on 2026-10-20 (ADR 0033, decision 5, amended): `ghxstship.tech`, with Atlas at
+`atlas.` and Gateway at `gateway.`. The orchestrator set these values that day, together with the Data API
+schemas below.
 
 Authentication, URL Configuration:
 
-| Setting       | Value                                                                                                                                              |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site URL      | `https://app.<domain>`                                                                                                                             |
-| Redirect URLs | `https://app.<domain>/auth/callback`, `https://gateway.<domain>/auth/callback`, each custom Gateway domain's `/auth/callback`, `compass://sign-in` |
+| Setting       | Value                                                                                                                 |
+| ------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Site URL      | `https://atlas.ghxstship.tech`                                                                                        |
+| Redirect URLs | `https://atlas.ghxstship.tech/auth/callback**`, `https://gateway.ghxstship.tech/auth/callback**`, `compass://sign-in` |
 
-Remove `localhost`, `127.0.0.1` and every Vercel preview URL: previews belong to the staging branch (step 14).
+Keep the `**` at the end of each callback. Atlas and Gateway return to `/auth/callback` with a query string (`?next=...` for invitations and the claim step, `&provider=google` for Sign in with Google, ADR 0036), and Supabase Auth matches the whole address: an exact entry refuses it and sends the person to the Site URL instead. Checked on a local Supabase Auth (v2.197.0): `.../auth/callback**` accepts the callback with any query string and still refuses other paths and other hosts. Addresses on the Site URL's own host are always accepted.
 
-Verify: request a password reset for a test account; the link opens `https://app.<domain>/auth/callback`.
-Rollback: put back the values recorded before the change.
+- `**` lets a callback URL carry its query, such as the page to return to.
+- When an org verifies a custom Gateway domain, add `https://<that domain>/auth/callback**`.
+- Remove `localhost`, `127.0.0.1` and every Vercel preview URL: previews belong to the staging branch (step 14).
+
+**Data API.** The hosted Data API's exposed schemas (Project Settings, Data API) must match `[api] schemas` in
+`supabase/config.toml`: `app`, `xpms`, `api_public` and `api_external`. Until 2026-10-20 the hosted project
+exposed only `public`, and Gateway's brand lookup failed with `PGRST106`. When a migration adds a schema to
+`config.toml`, add it here in the same release.
+
+Verify: request a password reset for a test account; the link opens
+`https://atlas.ghxstship.tech/auth/callback`. `https://gateway.ghxstship.tech/` renders the platform brand, not
+an error. Rollback: put back the values recorded before the change.
 
 ## 6. Email: SMTP through Resend and the templates (OWNER CONFIRMS)
 
-1. In Resend, verify the sending subdomain (`mail.<domain>`, decision 6) with its SPF, DKIM and DMARC records.
+1. In Resend, verify the sending subdomain `mail.ghxstship.tech` (decision 6) with the SPF, DKIM and DMARC
+   records in `production.md`, "Domains".
 2. Authentication, Emails, SMTP Settings: enable custom SMTP, host `smtp.resend.com`, port 465, user `resend`,
-   password the Resend API key (secret), sender `no-reply@mail.<domain>`, sender name `XOS`.
+   password the Resend API key (secret), sender `no-reply@mail.ghxstship.tech`, sender name `XOS`.
 3. Templates (confirm signup, invite, magic link, change email, reset password, reauthentication): the product's
    own email goes through the Edge Functions; the auth templates keep Supabase's defaults with the product name
-   and links to `https://app.<domain>`. Check that no template still names staging or the demo tenant.
+   and links to `https://atlas.ghxstship.tech`. Check that no template still names staging or the demo tenant.
 4. Raise the email rate limit (Authentication, Rate Limits) from the built-in SMTP's limit to the value the owner
    chooses; the repository's local value is 2 a minute per address.
 
-Verify: a test sign-up receives its confirmation from `mail.<domain>`, and the message passes SPF, DKIM and DMARC.
+Verify: a test sign-up receives its confirmation from `mail.ghxstship.tech`, and the message passes SPF, DKIM and
+DMARC.
 Rollback: disable custom SMTP to fall back to Supabase's built-in sender (rate-limited, not for production).
 
 ## 7. Password security and leaked-password protection (OWNER CONFIRMS)
@@ -252,16 +265,17 @@ Rollback: switch the setting off.
 
 Match `supabase/config.toml`, except the local URLs:
 
-| Setting                                      | Value                                                                           |
-| -------------------------------------------- | ------------------------------------------------------------------------------- |
-| TOTP                                         | Enroll and verify on                                                            |
-| WebAuthn and passkeys                        | Enroll and verify on; relying party id `<domain>`; origins of Atlas and Gateway |
-| Phone MFA                                    | Off                                                                             |
-| Maximum enrolled factors                     | 10                                                                              |
-| Custom access token hook                     | On, `pg-functions://postgres/private/custom_access_token_hook`                  |
-| JWT expiry, refresh token rotation, reuse    | 3600 seconds, on, 10 seconds                                                    |
-| Sign-ups; anonymous sign-ins; manual linking | On; off; off                                                                    |
-| Double confirm email changes                 | On                                                                              |
+| Setting                                      | Value                                                                                                                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| TOTP                                         | Enroll and verify on                                                                                                                                                 |
+| WebAuthn and passkeys                        | Enroll and verify on; relying party id `ghxstship.tech`; origins `https://atlas.ghxstship.tech` and `https://gateway.ghxstship.tech` (`hosted-security-settings.md`) |
+| Phone MFA                                    | Off                                                                                                                                                                  |
+| Maximum enrolled factors                     | 10                                                                                                                                                                   |
+| Custom access token hook                     | On, `pg-functions://postgres/private/custom_access_token_hook`                                                                                                       |
+| JWT expiry, refresh token rotation, reuse    | 3600 seconds, on, 10 seconds                                                                                                                                         |
+| Sign-ups; anonymous sign-ins; manual linking | On; off; off                                                                                                                                                         |
+| Sign in with Google                          | As in `production.md`, "Sign in with Google (OWNER)", step 5, once the owner has created the Google clients                                                          |
+| Double confirm email changes                 | On                                                                                                                                                                   |
 
 `enable_confirmations` is off locally so tests can sign in at once. For production the owner decides whether new
 email sign-ups must confirm their address first; the recommendation is on.
@@ -336,13 +350,17 @@ the legacy keys; moving to them is a separate change, because `api-token` signs 
 Production environment only; the Preview environment moves to the staging branch in step 14. The full table is
 in `production.md`, "Environment variables".
 
-| App       | Production variables                                                                                                                                                                                                  |
-| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`         |
-| `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256` |
-| `docs`    | None                                                                                                                                                                                                                  |
+| App       | Production variables                                                                                                                                                                                                                           |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `atlas`   | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `ATLAS_SITE_URL`, `GATEWAY_SITE_URL`, `XOS_API_HOST`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256` |
+| `gateway` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (new), `GATEWAY_SITE_URL`, `GATEWAY_PLATFORM_HOSTS`, `DOCS_SITE_URL`, `NEXT_PUBLIC_SENTRY_DSN`, `XOS_TRACES_SAMPLE_RATE`, `XOS_LOG_LEVEL`, `COMPASS_APPLE_TEAM_IDS`, `COMPASS_ANDROID_CERT_SHA256`         |
+| `docs`    | None                                                                                                                                                                                                                                           |
 
-`SUPABASE_URL` does not change (the project keeps its ref). The site URLs change when the domain exists.
+`SUPABASE_URL` does not change (the project keeps its ref). Set on 2026-10-20: `ATLAS_SITE_URL`
+(`https://atlas.ghxstship.tech`) and `GATEWAY_SITE_URL` (`https://gateway.ghxstship.tech`) in both projects, and
+`GATEWAY_PLATFORM_HOSTS` (`gateway.ghxstship.tech,gateway-umber-omega.vercel.app`) in `gateway`. Still to set:
+`XOS_API_HOST=api.ghxstship.tech` in `atlas`, and `DOCS_SITE_URL=https://docs.ghxstship.tech` in both, once
+`api.` and `docs.` serve.
 
 Verify: each production deployment's runtime logs show no auth errors; synthetic checks pass against production.
 Rollback: Vercel Instant Rollback to the previous deployment, with the previous variables.
@@ -367,6 +385,9 @@ the branch. Rollback: point the secret and variables back.
   values recorded in step 1.
 - Supabase advisors (`infra/security/supabase-advisors.sh`) report nothing new.
 - Synthetic checks green against production and staging.
+- The hosted Data API's exposed schemas still match `[api] schemas` in `supabase/config.toml` (step 5).
+- `https://api.ghxstship.tech/` answers the JSON pointer, `https://api.ghxstship.tech/v1/openapi.json` the
+  document, and `https://api.ghxstship.tech/auth/sign-in` a 404 problem with no `Set-Cookie`.
 
 ## Staging branch plan
 

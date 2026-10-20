@@ -31,6 +31,7 @@
     "@xos/schemas": "workspace:*",
     "@xos/tokens": "workspace:*",
     "@xos/ui": "workspace:*",
+    "icu-minify": "4.14.9",
     "next": "16.4.0",
     "next-intl": "4.14.9",
     "react": "19.3.0",

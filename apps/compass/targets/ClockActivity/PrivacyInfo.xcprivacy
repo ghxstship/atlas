@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Privacy manifest of the Compass Clock widget extension (Live Activity and the Clock In App Shortcut).
+  The extension reads and writes the punch queue and the prepared clock-in context in the App Group
+  group.pro.ghxstship.compass (UserDefaults suite, reason 1C8F.1). It collects nothing itself: the app
+  uploads the queued punches. See apps/compass/store/ios/privacy-manifest.md.
+-->
+<plist version="1.0">
+  <dict>
+    <key>NSPrivacyTracking</key>
+    <false/>
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+      <dict>
+        <key>NSPrivacyAccessedAPIType</key>
+        <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+        <key>NSPrivacyAccessedAPITypeReasons</key>
+        <array>
+          <string>1C8F.1</string>
+        </array>
+      </dict>
+    </array>
+  </dict>
+</plist>

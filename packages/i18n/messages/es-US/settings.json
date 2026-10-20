@@ -1,10 +1,16 @@
 {
   "choose": "Elige una opción",
-  "lock": "Bloquear este valor para que espacios de trabajo, proyectos y personas no puedan cambiarlo",
+  "lock": "Los espacios de trabajo, proyectos y personas no pueden cambiar un valor bloqueado.",
   "save": "Guardar",
   "saved": "Guardado.",
   "inherit": "Usar el valor heredado",
   "reset": "Restablecer al valor de la plataforma",
+  "undoReset": "Mantener este valor",
+  "resetPending": "Vuelve al valor de la plataforma cuando guardes.",
+  "inheritPending": "Usa el valor heredado cuando guardes.",
+  "lockValue": "Bloquear valor",
+  "discard": "Descartar",
+  "unsaved": "{count, plural, one {# cambio sin guardar} other {# cambios sin guardar}}",
   "loadFailed": "No se pudieron cargar estos ajustes. Recarga la página para intentarlo de nuevo.",
   "registryHeading": "Ajustes de esta página",
   "personalSections": "Secciones de ajustes personales",
@@ -258,6 +264,10 @@
     "shortcutsEnabled": {
       "label": "Atajos de teclado",
       "help": "Atajos de una tecla como J, K y ? en el escritorio."
+    },
+    "messageTranslation": {
+      "label": "Traducir mensajes del chat",
+      "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
     }
   },
   "choices": {
@@ -619,6 +629,114 @@
     "sharedWithUs": {
       "title": "Compartido con su organización",
       "entry": "Compartido por {owner} · Sus miembros actúan como {role}"
+    }
+  },
+  "notifications": {
+    "category": "Categoría",
+    "channels": {
+      "inApp": "En la app",
+      "email": "Correo electrónico",
+      "sms": "Mensaje de texto (SMS)",
+      "push": "Push"
+    },
+    "cellLabel": "{category} por {channel}",
+    "urgent": "Urgente: llega de inmediato, incluso en horas de silencio.",
+    "save": "Guardar configuración de notificaciones",
+    "saved": "Configuración de notificaciones guardada.",
+    "loadFailed": "No se pudo cargar la configuración de notificaciones. Vuelve a cargar la página para intentarlo de nuevo.",
+    "digest": {
+      "Off": "Desactivado",
+      "Daily": "Diario",
+      "Weekly": "Semanal (los lunes)"
+    },
+    "errors": {
+      "notification_category_mandatory": "Tu organización hizo obligatoria esta categoría en ese canal, así que sigue activada.",
+      "time_zone_unknown": "Elige una zona horaria de la lista.",
+      "denied": "No puedes cambiar esta configuración.",
+      "invalid": "Revisa los campos marcados.",
+      "unexpected": "No se guardó la configuración. Inténtalo de nuevo.",
+      "sms_phone_unverified": "Verifica un número de teléfono en tu cuenta antes de activar los mensajes de texto."
+    },
+    "fieldErrors": {
+      "invalid": "Escribe un valor válido.",
+      "quietPair": "Indica el inicio y el fin de las horas de silencio, o ninguno.",
+      "quietSame": "Las horas de silencio terminan a una hora distinta de la de inicio."
+    },
+    "mine": {
+      "formLabel": "Tu configuración de notificaciones",
+      "matrixTitle": "Qué te llega",
+      "matrixDescription": "Elige cómo te llega cada tipo de notificación. Mientras no elijas, se aplican los valores predeterminados de tu organización.",
+      "locked": "Obligatorio por tu organización",
+      "smsNote": "Los mensajes de texto solo van a un número de teléfono verificado en el que aceptaste recibirlos. Responde STOP a cualquier mensaje para dejar de recibirlos.",
+      "quietTitle": "Horas de silencio y resumen",
+      "quietDescription": "Durante las horas de silencio, los mensajes de texto y las notificaciones push esperan hasta el final, salvo los urgentes. Los mensajes de texto también esperan entre las 21:00 y las 08:00 si no defines tus propias horas de silencio.",
+      "quietStart": "Inicio de las horas de silencio",
+      "quietEnd": "Fin de las horas de silencio",
+      "timeZone": "Zona horaria",
+      "digest": "Resumen por correo electrónico",
+      "digestHelp": "Reúne en un solo mensaje el correo que no es urgente.",
+      "digestHour": "Hora del resumen",
+      "smsNoPhone": "Agrega y verifica un número de teléfono en tu cuenta para recibir mensajes de texto.",
+      "smsConsent": "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda."
+    },
+    "org": {
+      "formLabel": "Valores predeterminados de notificaciones de la organización",
+      "matrixTitle": "Valores predeterminados para los miembros",
+      "matrixDescription": "Lo que reciben los miembros mientras no elijan por su cuenta. Marca una categoría como obligatoria para mantener activados sus canales marcados para todos.",
+      "mandatory": "Obligatoria",
+      "mandatoryLabel": "{category} es obligatoria",
+      "mandatoryHelp": "Las categorías obligatorias siguen activadas en cada canal marcado aquí. Los mensajes de texto siguen necesitando el consentimiento de cada miembro, y STOP sigue deteniéndolos.",
+      "readOnly": "Puedes ver los valores predeterminados. Para cambiarlos necesitas el permiso de configuración de notificaciones."
+    },
+    "categories": {
+      "mentions": {
+        "label": "Menciones",
+        "help": "Alguien te menciona en un comentario o mensaje."
+      },
+      "assignments": {
+        "label": "Asignaciones",
+        "help": "Se te asigna trabajo, una capacitación o una solicitud de ayuda."
+      },
+      "approvals": {
+        "label": "Aprobaciones",
+        "help": "Solicitudes que esperan tu decisión y decisiones sobre tus solicitudes."
+      },
+      "comments": {
+        "label": "Comentarios",
+        "help": "Comentarios nuevos en los registros que sigues."
+      },
+      "schedule": {
+        "label": "Horario",
+        "help": "Turnos asignados o cambiados e invitaciones a eventos."
+      },
+      "finance": {
+        "label": "Facturas y pagos",
+        "help": "Facturas aprobadas, recibidas, programadas y pagadas."
+      },
+      "safety": {
+        "label": "Seguridad",
+        "help": "Incidentes, umbrales de aforo y alertas meteorológicas."
+      },
+      "account": {
+        "label": "Cuenta y facturación",
+        "help": "Cambios de seguridad, acceso de emergencia y problemas de pago."
+      },
+      "reports": {
+        "label": "Informes",
+        "help": "Informes programados listos para leer."
+      },
+      "imports": {
+        "label": "Importaciones y exportaciones",
+        "help": "Importaciones terminadas y exportaciones listas para descargar."
+      },
+      "messages": {
+        "label": "Mensajes",
+        "help": "Mensajes de chat nuevos para ti o tus grupos."
+      },
+      "feed": {
+        "label": "Noticias",
+        "help": "Anuncios, encuestas y reconocimientos."
+      }
     }
   }
 }

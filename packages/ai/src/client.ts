@@ -72,7 +72,7 @@ export type AuroraCall<T> =
   { readonly ok: true; readonly data: T } | { readonly ok: false; readonly problem: AuroraProblem };
 
 export interface AuroraClientOptions {
-  /** API origin and prefix, for example `/api/v1` in Atlas or `https://atlas.example.com/api/v1`. */
+  /** API origin and prefix, for example `/api/v1` in Atlas or `https://api.ghxstship.tech/v1`. */
   readonly baseUrl: string;
   readonly fetch?: typeof fetch;
   /** Extra headers, for example `Authorization: Bearer <session JWT>` on Compass. */

@@ -39,6 +39,7 @@ import {
   type SearchParams,
 } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 const REFUSALS = "procurement.refusals";
@@ -57,7 +58,7 @@ export async function CatalogSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, bindings, currencies, vendors] = await Promise.all([
     getCopy("procurement"),

@@ -12,7 +12,7 @@ pip install xos-sdk
 import os
 from xos_sdk import XosClient
 
-xos = XosClient("https://atlas.example.com/api/v1", api_key=os.environ["XOS_API_KEY"])
+xos = XosClient("https://api.ghxstship.tech/v1", api_key=os.environ["XOS_API_KEY"])
 
 response = xos.projects.get(project_id)
 xos.projects.update(project_id, {"name": "Harborfront Fall Series"}, if_match=response.etag)

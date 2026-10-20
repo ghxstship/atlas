@@ -29,9 +29,12 @@ function loadPanel(): Promise<PanelModule> {
 export function HelpEntry({
   open,
   onOpenChange,
+  docsUrl,
 }: {
   readonly open: boolean;
   readonly onOpenChange: (open: boolean) => void;
+  /** The docs site origin, for help center links; null on custom domains and when unset. */
+  readonly docsUrl: string | null;
 }) {
   const [panel, setPanel] = useState<PanelModule | null>(null);
 
@@ -51,5 +54,7 @@ export function HelpEntry({
     };
   }, [open, panel]);
 
-  return panel ? <panel.HelpPanel open={open} onOpenChange={onOpenChange} /> : null;
+  return panel ? (
+    <panel.HelpPanel open={open} onOpenChange={onOpenChange} docsUrl={docsUrl} />
+  ) : null;
 }

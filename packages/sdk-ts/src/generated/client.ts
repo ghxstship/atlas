@@ -345,6 +345,11 @@ import {
   AiSuggestionsResource,
   AiRequestsResource,
   AiUsageResource,
+  WorkDetailsResource,
+  EmergencyContactsResource,
+  LoyaltyProgramsResource,
+  WorkDetailSharesResource,
+  WorkDetailEventsResource,
   SavedViewSharesResource,
   SavedViewDefaultsResource,
   TourProgressResource,
@@ -403,7 +408,7 @@ import {
  * OpenAPI document is a method.
  *
  * @example
- * const xos = new XosClient({ baseUrl: "https://atlas.example.com/api/v1", apiKey: process.env.XOS_API_KEY });
+ * const xos = new XosClient({ baseUrl: "https://api.ghxstship.tech/v1", apiKey: process.env.XOS_API_KEY });
  * for await (const project of xos.projects.listAll({ filter: { project_state: { eq: "Active" } } })) {
  *   console.log(project.name);
  * }
@@ -1182,6 +1187,16 @@ export class XosClient extends XosClientCore {
   readonly aiRequests: AiRequestsResource = new AiRequestsResource(this);
   /** Settings: operations on `aiUsage`. */
   readonly aiUsage: AiUsageResource = new AiUsageResource(this);
+  /** Identity: operations on `workDetails`. */
+  readonly workDetails: WorkDetailsResource = new WorkDetailsResource(this);
+  /** Identity: operations on `emergencyContacts`. */
+  readonly emergencyContacts: EmergencyContactsResource = new EmergencyContactsResource(this);
+  /** Identity: operations on `loyaltyPrograms`. */
+  readonly loyaltyPrograms: LoyaltyProgramsResource = new LoyaltyProgramsResource(this);
+  /** Identity: operations on `workDetailShares`. */
+  readonly workDetailShares: WorkDetailSharesResource = new WorkDetailSharesResource(this);
+  /** Identity: operations on `workDetailEvents`. */
+  readonly workDetailEvents: WorkDetailEventsResource = new WorkDetailEventsResource(this);
   /** Platform: operations on `savedViewShares`. */
   readonly savedViewShares: SavedViewSharesResource = new SavedViewSharesResource(this);
   /** Platform: operations on `savedViewDefaults`. */

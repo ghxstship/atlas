@@ -13,6 +13,11 @@ import {
   a79IdentityCorrections,
 } from "./parts/a79.ts";
 import { identityFieldExposure } from "./parts/playbook-field-exposure.ts";
+import {
+  workDetailCapabilities,
+  workDetailCorrections,
+  workDetailResources,
+} from "./parts/work-details.ts";
 
 /** A profile handle as app.person_profiles and app.organization_profiles store it (0860). */
 const handle = {
@@ -44,8 +49,10 @@ const TITLE_CASE = /^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$/;
 export const additions = defineAdditions("Identity", {
   // A79: leaving a partner and checking a custom domain (./parts/a79.ts).
   actions: { ...a79IdentityActions },
-  capabilities: { ...a79IdentityCapabilities },
+  resources: [...workDetailResources],
+  capabilities: { ...a79IdentityCapabilities, ...workDetailCapabilities },
   corrections: [
+    ...workDetailCorrections,
     {
       id: "person-full-name",
       since: "1.0.0-draft.2",

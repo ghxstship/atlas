@@ -250,6 +250,12 @@
     "heading": "Solicitud recibida",
     "body": "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}."
   },
+  "sms": {
+    "message": "{orgName}: {body} {url} Responde STOP para cancelar.",
+    "help": "Notificaciones de XOS: novedades sobre tu trabajo de las organizaciones a las que perteneces. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Ayuda: {helpContact}. Responde STOP para cancelar.",
+    "stop": "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte.",
+    "start": "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar."
+  },
   "deletionCertificate": {
     "subject": "Certificado de eliminación de {org}",
     "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."

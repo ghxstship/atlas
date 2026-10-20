@@ -5,7 +5,7 @@ section: start
 order: 1
 ---
 
-The XOS public API is one versioned REST API at `/api/v1` on your Atlas deployment. Atlas, Gateway and Compass use it, and so can your integrations. This guide takes you from no key to your first list of projects.
+The XOS public API is one versioned REST API. On the hosted service its base URL is `https://api.ghxstship.tech/v1`; a self-hosted deployment serves it at `/api/v1` on its Atlas origin. Atlas, Gateway and Compass use it, and so can your integrations. This guide takes you from no key to your first list of projects.
 
 ## Create an API key
 
@@ -20,7 +20,7 @@ An API key belongs to one organization and acts as its own service account. It c
 Set two variables, then list the projects the key can see:
 
 ```bash
-export XOS_BASE_URL="https://atlas.example.com/api/v1"
+export XOS_BASE_URL="https://api.ghxstship.tech/v1"
 export XOS_API_KEY="xos_live_..."
 
 curl "$XOS_BASE_URL/projects?limit=5" \

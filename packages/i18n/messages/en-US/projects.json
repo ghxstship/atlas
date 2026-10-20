@@ -3,7 +3,9 @@
     "tabs": "Project tabs",
     "scope": "Scope",
     "wholeProject": "Whole project",
-    "archived": "Archived"
+    "archived": "Archived",
+    "more": "More",
+    "moreTabs": "More tabs"
   },
   "states": {
     "Proposed": "Proposed",

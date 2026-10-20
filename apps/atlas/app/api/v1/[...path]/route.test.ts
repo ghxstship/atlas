@@ -16,6 +16,17 @@ describe("/api/v1/[...path]", { timeout: 30_000 }, () => {
     expect(((await res.json()) as { instance: string }).instance).toBe("/api/v1/canon/departments");
   });
 
+  it("serves the API host's /v1 paths, which keep their path after the proxy rewrite", async () => {
+    const { GET } = await import("./route");
+    const res = await GET(
+      new Request("http://localhost:3000/v1/canon/departments", {
+        headers: { host: "api.localhost:3000" },
+      }),
+    );
+    expect(res.status).toBe(401);
+    expect(((await res.json()) as { instance: string }).instance).toBe("/v1/canon/departments");
+  });
+
   it("answers 404 for a path no operation serves", async () => {
     const { POST } = await import("./route");
     const res = await POST(

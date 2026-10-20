@@ -1251,7 +1251,7 @@
       "accessibility": "Preferencias de movimiento, contraste y lectura.",
       "notifications": "Cómo te contactan las organizaciones.",
       "outOfOffice": "Cuándo no estás y qué ven las organizaciones en ese tiempo.",
-      "workDetails": "Datos sobre cómo trabajas.",
+      "workDetails": "Contactos de emergencia, tallas, necesidades y datos de viaje, y qué contrataciones los ven.",
       "payoutAndTax": "Dónde te pagan las organizaciones y los formularios fiscales que les diste.",
       "calendarFeeds": "Tu trabajo en tu propio calendario.",
       "connectedApps": "Aplicaciones conectadas a tu cuenta.",
@@ -1362,8 +1362,6 @@
       "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."
     },
     "notes": {
-      "workDetails": "Tus datos de trabajo salen de tu perfil: habilidades, certificaciones, tarifas y disponibilidad.",
-      "toProfile": "Editar perfil",
       "calendarFeeds": "Agrega cada turno, horario y fecha límite a tu calendario desde Próximos.",
       "toUpcoming": "Abrir Próximos",
       "connectedApps": "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
@@ -1484,6 +1482,11 @@
       "haveAccount": "¿Ya tienes una cuenta?",
       "toSignIn": "Iniciar sesión"
     },
+    "terms": {
+      "title": "Acepta los Términos para trabajadores",
+      "lead": "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
+      "submit": "Continuar"
+    },
     "providers": {
       "continueWith": "Continuar con {provider}",
       "google": "Google",
@@ -1519,6 +1522,11 @@
       "over_request_rate_limit": "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       "provider_disabled": "Ese método de acceso aún no está activado en Gateway. Usa tu correo.",
       "link_invalid": "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      "oauth_cancelled": "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      "oauth_expired": "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      "provider_error": "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      "email_not_verified": "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      "sso_required": "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       "fullName": "Escribe tu nombre completo.",
       "email": "Escribe un correo como nombre@empresa.com.",

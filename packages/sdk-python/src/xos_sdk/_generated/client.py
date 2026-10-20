@@ -351,6 +351,11 @@ from .resources import (
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    WorkDetailsResource,
+    EmergencyContactsResource,
+    LoyaltyProgramsResource,
+    WorkDetailSharesResource,
+    WorkDetailEventsResource,
     SavedViewSharesResource,
     SavedViewDefaultsResource,
     TourProgressResource,
@@ -412,7 +417,7 @@ class XosClient(XosClientCore):
 
         from xos_sdk import XosClient
 
-        xos = XosClient("https://atlas.example.com/api/v1", api_key=os.environ["XOS_API_KEY"])
+        xos = XosClient("https://api.ghxstship.tech/v1", api_key=os.environ["XOS_API_KEY"])
         for project in xos.projects.list_all(filter={"project_state": {"eq": "Active"}}):
             print(project["name"])
     """
@@ -761,6 +766,11 @@ class XosClient(XosClientCore):
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    work_details: WorkDetailsResource
+    emergency_contacts: EmergencyContactsResource
+    loyalty_programs: LoyaltyProgramsResource
+    work_detail_shares: WorkDetailSharesResource
+    work_detail_events: WorkDetailEventsResource
     saved_view_shares: SavedViewSharesResource
     saved_view_defaults: SavedViewDefaultsResource
     tour_progress: TourProgressResource
@@ -1159,6 +1169,11 @@ class XosClient(XosClientCore):
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.work_details = WorkDetailsResource(self)
+        self.emergency_contacts = EmergencyContactsResource(self)
+        self.loyalty_programs = LoyaltyProgramsResource(self)
+        self.work_detail_shares = WorkDetailSharesResource(self)
+        self.work_detail_events = WorkDetailEventsResource(self)
         self.saved_view_shares = SavedViewSharesResource(self)
         self.saved_view_defaults = SavedViewDefaultsResource(self)
         self.tour_progress = TourProgressResource(self)

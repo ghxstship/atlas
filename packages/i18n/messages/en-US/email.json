@@ -250,6 +250,12 @@
     "heading": "Request received",
     "body": "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}."
   },
+  "sms": {
+    "message": "{orgName}: {body} {url} Reply STOP to opt out.",
+    "help": "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: {helpContact}. Reply STOP to opt out.",
+    "stop": "You will get no more texts from XOS notifications. Reply START to subscribe again.",
+    "start": "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out."
+  },
   "deletionCertificate": {
     "subject": "Deletion certificate for {org}",
     "body": "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule."

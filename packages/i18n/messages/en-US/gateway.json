@@ -1251,7 +1251,7 @@
       "accessibility": "Motion, contrast and reading preferences.",
       "notifications": "How organizations reach you.",
       "outOfOffice": "When you are away and what organizations see then.",
-      "workDetails": "Facts about how you work.",
+      "workDetails": "Emergency contacts, sizes, needs and travel details, and which engagements see them.",
       "payoutAndTax": "Where organizations pay you and the tax forms you gave them.",
       "calendarFeeds": "Your work in your own calendar.",
       "connectedApps": "Apps connected to your account.",
@@ -1362,8 +1362,6 @@
       "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway."
     },
     "notes": {
-      "workDetails": "Your work details come from your profile: skills, certifications, rates and availability.",
-      "toProfile": "Edit profile",
       "calendarFeeds": "Add every shift, set time and deadline to your calendar from Upcoming.",
       "toUpcoming": "Open Upcoming",
       "connectedApps": "No apps are connected to your account. Organizations connect their own tools in Atlas.",
@@ -1484,6 +1482,11 @@
       "haveAccount": "Already have an account?",
       "toSignIn": "Sign in"
     },
+    "terms": {
+      "title": "Accept the Worker Terms",
+      "lead": "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
+      "submit": "Continue"
+    },
     "providers": {
       "continueWith": "Continue with {provider}",
       "google": "Google",
@@ -1519,6 +1522,11 @@
       "over_request_rate_limit": "Too many attempts. Wait a minute, then try again.",
       "provider_disabled": "That sign-in method is not turned on for Gateway yet. Use email instead.",
       "link_invalid": "This link expired or was already used. Request a new one.",
+      "oauth_cancelled": "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      "oauth_expired": "This sign-in expired or was started in another browser. Start again on this page.",
+      "provider_error": "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      "email_not_verified": "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      "sso_required": "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       "unexpected": "Something went wrong on our side. Try again in a moment.",
       "fullName": "Enter your full name.",
       "email": "Enter an email address like name@company.com.",
