@@ -36,7 +36,11 @@ select throws_ok($$update app.submittals set decided_at = now() where id = (sele
   'XR001', null, 'decision columns change only through the RPC');
 select throws_ok($$update app.submittals set vendor_id = (select id from world where key = 'ven') , project_id = (select id from world where key = 'prj_a2') where id = (select id from world where key = 'sub')$$,
   'XR001', null, 'the project never changes');
-select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Approved', 'Skip.')$$, 'XR001', null, 'a Proposed submittal cannot be approved before it is submitted');
+-- Asked by someone other than the creator, so sod_approval_requester passes and the rules refuse (A54-003).
+select pg_temp.as_user('bob');
+select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Approved', 'Skip.')$$,
+  'XR001', 'submittal_transition_not_allowed: A submittal cannot move from Proposed to Approved.', 'a Proposed submittal cannot be approved before it is submitted');
+select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Proposed', 'Submitted', 'Drawings attached.')$$, 'Proposed to Submitted');
 select throws_ok($$select app.transition_submittal((select id from world where key = 'sub'), 'Submitted', 'Approved', 'Mine.')$$,
   'XR001', null, 'the creator cannot approve (sod_approval_requester)');

@@ -13,6 +13,7 @@ import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, putActions, setOrder } from "../correct.ts";
 import { collectionAction, collectionQuery, itemAction, resource, transition } from "../define.ts";
 import { financeFieldHomes } from "./parts/playbook-field-homes.ts";
+import { financeFieldExposure } from "./parts/playbook-field-exposure.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -584,5 +585,6 @@ export const additions = defineAdditions("Finance", {
       apply: editShape({ rename: { currency: "currency_code" } }),
     },
     ...financeFieldHomes,
+    ...financeFieldExposure,
   ],
 });

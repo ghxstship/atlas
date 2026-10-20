@@ -7,6 +7,7 @@ import { z } from "@hono/zod-openapi";
 import { AccountRole, OrgRole, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, removeVerbs, setTable } from "../correct.ts";
+import { identityFieldExposure } from "./parts/playbook-field-exposure.ts";
 
 /** A profile handle as app.person_profiles and app.organization_profiles store it (0860). */
 const handle = {
@@ -536,5 +537,6 @@ export const additions = defineAdditions("Identity", {
         },
       }),
     },
+    ...identityFieldExposure,
   ],
 });

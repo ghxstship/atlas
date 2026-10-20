@@ -155,6 +155,7 @@ export interface Components {
     project_id: string | null;
     occurred_at: string;
     summary: string;
+    domain_event_id: string | null;
   };
   ActivityEventPage: { data: Array<Components["ActivityEvent"]>; next_cursor: string | null };
   AdvancePacket: {
@@ -1134,6 +1135,8 @@ export interface Components {
     line_number: number;
     phase_code: Components["PhaseCode"] | null;
     tier_code: Components["TierCode"] | null;
+    actual_minor: number | null;
+    account_code: Components["GlAccountCode"] | null;
   };
   BudgetLineCreate: {
     budget_id: string;
@@ -1234,8 +1237,13 @@ export interface Components {
     disc_code: Components["DiscCode"];
     category: string;
     source: string;
+    xyz: Components["Xyz"] | null;
   };
-  CanonCategoryGl: { cat_urid: Components["Urid"]; default_cost_center: string };
+  CanonCategoryGl: {
+    cat_urid: Components["Urid"];
+    default_cost_center: string;
+    account_code: Components["GlAccountCode"] | null;
+  };
   CanonCategoryGlPage: { data: Array<Components["CanonCategoryGl"]>; next_cursor: string | null };
   CanonCategoryPage: { data: Array<Components["CanonCategory"]>; next_cursor: string | null };
   CanonCostCenterTemplate: {
@@ -1249,7 +1257,14 @@ export interface Components {
     data: Array<Components["CanonCostCenterTemplate"]>;
     next_cursor: string | null;
   };
-  CanonCounterpartyType: { counterparty_type: Components["CounterpartyType"]; definition: string };
+  CanonCounterpartyType: {
+    counterparty_type: Components["CounterpartyType"];
+    definition: string;
+    classification_code: string | null;
+    vendor_class: string | null;
+    clearance_tier: string | null;
+    default_account_code: Components["GlAccountCode"] | null;
+  };
   CanonCounterpartyTypePage: {
     data: Array<Components["CanonCounterpartyType"]>;
     next_cursor: string | null;
@@ -1259,6 +1274,9 @@ export interface Components {
     department: string;
     source: string;
     note: string | null;
+    executive_lead: string | null;
+    core_function: string | null;
+    scope: string | null;
   };
   CanonDepartmentPage: { data: Array<Components["CanonDepartment"]>; next_cursor: string | null };
   CanonDiscipline: {
@@ -1290,6 +1308,9 @@ export interface Components {
     crew: string | null;
     unspsc: string | null;
     lifecycle_state: string;
+    purchase_account: Components["GlAccountCode"] | null;
+    default_cost_center: string | null;
+    external_ref: string | null;
   };
   CanonElementGtin: { gtin: string; element_id: Components["ItemId"]; confirmed_by: string };
   CanonElementGtinPage: { data: Array<Components["CanonElementGtin"]>; next_cursor: string | null };
@@ -1324,6 +1345,7 @@ export interface Components {
   };
   CanonElementTag: { element_id: Components["ItemId"]; tag_id: Components["TagId"] };
   CanonElementTagPage: { data: Array<Components["CanonElementTag"]>; next_cursor: string | null };
+  CanonEmergencyProtocolStep: { step_no: number; body: string };
   CanonEscalationIndex: {
     index_id: string;
     name: string;
@@ -1358,6 +1380,7 @@ export interface Components {
     account_type: string;
     tax_type: Components["TaxType"];
     description: string;
+    normal_balance: "Debit" | "Credit" | null;
   };
   CanonGlAccountPage: { data: Array<Components["CanonGlAccount"]>; next_cursor: string | null };
   CanonGrain: {
@@ -1519,6 +1542,19 @@ export interface Components {
   CanonStalenessPolicy: { age_months_gte: number; action: string; detail: string | null };
   CanonStalenessPolicyPage: {
     data: Array<Components["CanonStalenessPolicy"]>;
+    next_cursor: string | null;
+  };
+  CanonStdEmergencyProtocol: {
+    record_key: string;
+    code: string;
+    domain: string;
+    department: string | null;
+    category: string | null;
+    sub_category: string | null;
+    steps: Array<Components["CanonEmergencyProtocolStep"]>;
+  };
+  CanonStdEmergencyProtocolPage: {
+    data: Array<Components["CanonStdEmergencyProtocol"]>;
     next_cursor: string | null;
   };
   CanonSupersession: {
@@ -1707,6 +1743,8 @@ export interface Components {
     priced_by: string | null;
     schedule_impact_days: number | null;
     client_impact: string | null;
+    approved_at: string | null;
+    approved_by: string | null;
   };
   ChangeOrderCreate: {
     project_id: string;
@@ -1731,6 +1769,8 @@ export interface Components {
     quantity: number;
     unit_price_minor: number | null;
     is_no_cost: boolean;
+    account_code: Components["GlAccountCode"] | null;
+    cost_center_id: string | null;
   };
   ChangeOrderLineCreate: {
     change_order_id: string;
@@ -2028,6 +2068,27 @@ export interface Components {
     segment: string | null;
     description: string | null;
     space_id: string | null;
+  };
+  CueCall: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    cue_id: string;
+    call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction: string;
+  };
+  CueCallCreate: {
+    cue_id: string;
+    call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction: string;
+  };
+  CueCallPage: { data: Array<Components["CueCall"]>; next_cursor: string | null };
+  CueCallUpdate: {
+    call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+    instruction?: string;
   };
   CueCreate: {
     run_of_show_id: string;
@@ -2530,6 +2591,7 @@ export interface Components {
     arrangement: string | null;
     start_date: string;
     end_date: string | null;
+    counterparty_id: string | null;
   };
   EngagementCreate: {
     application_id: string;
@@ -3360,6 +3422,7 @@ export interface Components {
     closed_signed_off_by: string | null;
     accuracy_m: number | null;
     device_reported_at: string | null;
+    closed_at: string | null;
   };
   IncidentCloseRequest: { note: string };
   IncidentCreate: {
@@ -4740,6 +4803,8 @@ export interface Components {
     search_indexing: boolean;
     handle: string;
     handle_changed_at: string | null;
+    website_url: string | null;
+    contact_email: string | null;
   };
   OrganizationProfileCreate: {
     organization_id: string;
@@ -4756,6 +4821,8 @@ export interface Components {
     visibility?: Components["ProfileVisibility"];
     search_indexing?: boolean;
     handle?: string;
+    website_url?: string | null;
+    contact_email?: string | null;
   };
   OrganizationRelationship: {
     id: string;
@@ -4990,6 +5057,7 @@ export interface Components {
     search_indexing: boolean;
     handle: string;
     handle_changed_at: string | null;
+    preferred_name: string | null;
   };
   PersonProfileCreate: {
     person_id: string;
@@ -5011,6 +5079,7 @@ export interface Components {
     visibility?: Components["ProfileVisibility"];
     search_indexing?: boolean;
     handle?: string;
+    preferred_name?: string | null;
   };
   PersonUpdate: { full_name?: string | null };
   PhaseCode: string;
@@ -5356,6 +5425,8 @@ export interface Components {
     valid_to?: string | null;
     project_role?: "Producer" | "Department Head" | "Coordinator" | "Field Supervisor" | "Field";
   };
+  ProjectAuthority: { project_id: string; service: string; agency: string; contact: string | null };
+  ProjectAuthorityPage: { data: Array<Components["ProjectAuthority"]>; next_cursor: string | null };
   ProjectCreate: {
     name: string;
     description?: string | null;
@@ -5453,6 +5524,9 @@ export interface Components {
     payment_terms_days: number | null;
     tax_minor: number | null;
     shipping_minor: number | null;
+    sent_at: string | null;
+    invoiced_minor: number | null;
+    paid_minor: number | null;
   };
   PurchaseOrderApproveRequest: { reason: string };
   PurchaseOrderCreate: {
@@ -5687,6 +5761,10 @@ export interface Components {
     description: string | null;
     sop_id: string | null;
     team_code: Components["TeamId"] | null;
+    assignee_membership_ids: Array<string>;
+    progress_pct: number | null;
+    permit_identifier: string | null;
+    inspection_result_enum_id: string | null;
   };
   RecordChecklistItem: {
     id: string;
@@ -7096,6 +7174,10 @@ export interface Components {
     sub_category: string | null;
     status: string | null;
     notes: string | null;
+    organization: string | null;
+    project: string | null;
+    file_size: string | null;
+    storage_url: string | null;
   };
   StdDocumentPage: { data: Array<Components["StdDocument"]>; next_cursor: string | null };
   StdEmergencyCode: {
@@ -7190,6 +7272,8 @@ export interface Components {
     sub_category: string | null;
     status: string | null;
     notes: string | null;
+    organization: string | null;
+    project: string | null;
   };
   StdSopPage: { data: Array<Components["StdSop"]>; next_cursor: string | null };
   StdVendorClass: {
@@ -7653,6 +7737,8 @@ export interface Components {
     source: "Web" | "Mobile" | "Kiosk";
     auto_closed_at: string | null;
     needs_review: boolean;
+    meal_out_at: string | null;
+    meal_in_at: string | null;
   };
   TimeEntryAudit: {
     id: string;
@@ -8076,6 +8162,7 @@ export interface Components {
     default_currency_code: string | null;
     default_account_code: Components["GlAccountCode"] | null;
     default_cost_center_id: string | null;
+    bank_account_last4: string | null;
   };
   VendorClass: {
     id: string;
@@ -22200,6 +22287,72 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["TemplateApplication"] };
   };
+  "projectAuthorities.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-authorities";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectAuthorityPage"] };
+  };
+  "cueCalls.list": {
+    module: "Show";
+    method: "get";
+    path: "/cue-calls";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["CueCallPage"] };
+  };
+  "cueCalls.create": {
+    module: "Show";
+    method: "post";
+    path: "/cue-calls";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["CueCallCreate"];
+    responses: { 201: Components["CueCall"] };
+  };
+  "cueCalls.get": {
+    module: "Show";
+    method: "get";
+    path: "/cue-calls/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["CueCall"] };
+  };
+  "cueCalls.update": {
+    module: "Show";
+    method: "patch";
+    path: "/cue-calls/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["CueCallUpdate"];
+    responses: { 200: Components["CueCall"] };
+  };
+  "cueCalls.delete": {
+    module: "Show";
+    method: "delete";
+    path: "/cue-calls/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
   "guestListEntries.list": {
     module: "Advancing";
     method: "get";
@@ -22379,6 +22532,30 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "canonStdEmergencyProtocols.list": {
+    module: "Canon";
+    method: "get";
+    path: "/canon/std/emergency-protocols";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["CanonStdEmergencyProtocolPage"] };
+  };
+  "canonStdEmergencyProtocols.get": {
+    module: "Canon";
+    method: "get";
+    path: "/canon/std/emergency-protocols/{record_key}";
+    params: { record_key: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["CanonStdEmergencyProtocol"] };
   };
   "reportScheduleRecipients.list": {
     module: "Reports";
@@ -24712,7 +24889,8 @@ export interface ModuleOperations {
     | "gateEvidence.list"
     | "gateEvidence.create"
     | "gateEvidence.get"
-    | "gateEvidence.delete";
+    | "gateEvidence.delete"
+    | "projectAuthorities.list";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
@@ -24791,7 +24969,12 @@ export interface ModuleOperations {
     | "callSheets.get"
     | "callSheets.update"
     | "callSheets.delete"
-    | "callSheets.publish";
+    | "callSheets.publish"
+    | "cueCalls.list"
+    | "cueCalls.create"
+    | "cueCalls.get"
+    | "cueCalls.update"
+    | "cueCalls.delete";
   Knowledge:
     | "sops.list"
     | "sops.create"
@@ -25595,7 +25778,9 @@ export interface ModuleOperations {
     | "canonElementEconomics.list"
     | "canonCrosswalkCoverage.list"
     | "canonUrns.resolve"
-    | "canonExtensions.propose";
+    | "canonExtensions.propose"
+    | "canonStdEmergencyProtocols.list"
+    | "canonStdEmergencyProtocols.get";
   Reports:
     | "reportDefinitions.list"
     | "reportDefinitions.create"

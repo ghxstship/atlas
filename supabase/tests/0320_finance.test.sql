@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(111);
+select plan(112);
 
 -- World ----------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -124,7 +124,14 @@ select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Rejected', 'Proposed', 'Resubmitted.')$$, 'the submitter resubmits');
 select lives_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Proposed', 'Canceled', 'Withdrawn.')$$, 'the submitter cancels');
 select throws_ok($$select app.transition_expense((select id from world where key = 'exp_big'), 'Canceled', 'Proposed', 'Revive.')$$, 'XR001', 'expense_transition_not_allowed: A expense cannot move from Canceled to Proposed.', 'Canceled is terminal');
-select throws_ok($$select app.transition_expense((select id from world where key = 'exp1'), 'Approved', 'Rejected', 'No.')$$, 'XR001', null, 'rejection only through its RPC');
+select throws_ok($$select app.transition_expense((select id from world where key = 'exp1'), 'Approved', 'Rejected', 'No.')$$,
+  'XR001', 'expense_use_approval_rpc: Approve or reject an expense through app.approve_expense or app.reject_expense.', 'rejection only through its RPC (expense_use_approval_rpc)');
+-- Every move to Rejected through transition_expense meets that guard, and app.reject_expense only moves a Proposed
+-- expense, so the Approved to Rejected rule is asserted in the transition engine every RPC calls (A54-003).
+select pg_temp.as_platform();
+select throws_ok($$select private.transition_lifecycle('expense', 'app.expenses', 'expense_state', 'app.expense_state_transitions', 'expense_id', (select id from world where key = 'exp1'), 'Approved', 'Rejected', 'No.')$$,
+  'XR001', 'expense_transition_not_allowed: A expense cannot move from Approved to Rejected.', 'an Approved expense cannot be rejected');
+select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_expense((select id from world where key = 'exp1'), 'Approved', 'Paid', 'Wired.')$$, 'Approved to Paid');
 select pg_temp.as_platform();
 

@@ -376,6 +376,7 @@
     "assetCurrent": "Current file: {name}",
     "assetNone": "No file yet. The platform mark is used.",
     "assetHelp": "PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
+    "assetScanning": "Being checked for viruses. It replaces the current mark once the check passes.",
     "upload": "Upload"
   },
   "domains": {

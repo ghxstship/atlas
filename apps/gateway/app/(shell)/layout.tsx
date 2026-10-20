@@ -1,6 +1,6 @@
 import { listMyEngagements } from "@xos/data/gateway";
 import { cookies, headers } from "next/headers";
-import { getLocale } from "next-intl/server";
+import { negotiatedLocale } from "@/i18n/request";
 import type { ReactNode } from "react";
 import { GatewayFrame } from "@/components/shell/gateway-frame";
 import { ReporterUser } from "@/components/shell/reporter-user";
@@ -21,7 +21,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
   const ctx = await requireContext(path);
   const [t, locale, cookieStore, engagements] = await Promise.all([
     getTranslate(),
-    getLocale(),
+    negotiatedLocale(),
     cookies(),
     listMyEngagements(ctx.db),
   ]);

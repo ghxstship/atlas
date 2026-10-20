@@ -95,12 +95,12 @@ update private.object_scans set attempts = 5 where object_name = pg_temp.form_ph
 select is(app.release_object_scan((select id from private.object_scans where object_name = pg_temp.form_photo('crack.jpg')), 'clamd unreachable'),
   'Scan Failed'::app.scan_status, 'after five attempts the scan fails and the file stays closed');
 
--- Public buckets are scanned too.
-select pg_temp.as_user('nina');
+-- Public buckets are scanned too. Since 1265 only the service role writes them (people upload to
+-- upload-staging first); a write that is not a staged file being published is queued like any other.
+select pg_temp.as_platform();
 insert into storage.objects (bucket_id, name, owner_id, metadata)
 values ('profile-media', pg_temp.id('nina') || '/avatar.png', pg_temp.id('nina_user')::text,
         jsonb_build_object('mimetype', 'image/png', 'size', 120));
-select pg_temp.as_platform();
 select is((select scan_status from private.object_scans where bucket_id = 'profile-media' and object_name = pg_temp.id('nina') || '/avatar.png'),
   'Scanning'::app.scan_status, 'a profile-media upload is queued for scanning');
 

@@ -21,7 +21,7 @@ import { listPage } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { requireOrg } from "../runtime/context.ts";
 import { aliasedSource, problemFor } from "./projects.ts";
-import { tableHandlers } from "./support/table.ts";
+import { from, groupBy, tableHandlers } from "./support/table.ts";
 
 type RecordBody = Components["Record"];
 type ChecklistItem = Components["RecordChecklistItem"];
@@ -64,6 +64,62 @@ export const RECORD_COLUMNS = [
 ] as const;
 
 const RECORD_ALIASES = { record_key: "record_display_key" } as const;
+
+/**
+ * Read fields a record's sidecars hold (A54-002): its assignees (app.record_assignments) and the subtype facts of
+ * app.record_task, app.record_permit and app.record_inspection. Read once per page, never selected.
+ */
+const RECORD_DERIVED = [
+  "assignee_membership_ids",
+  "progress_pct",
+  "permit_identifier",
+  "inspection_result_enum_id",
+] as const;
+
+/** Every read field of a record, in contract order. */
+const RECORD_FIELDS = [...RECORD_COLUMNS, "external_visibility", ...RECORD_DERIVED];
+const derivedField = (c: string) =>
+  c === "external_visibility" || (RECORD_DERIVED as readonly string[]).includes(c);
+
+/** Adds the sidecar fields the caller asked for to each record, one query per sidecar for the page. */
+async function withSidecars<T extends Row>(
+  db: XosClient,
+  rows: T[],
+  wanted: readonly string[],
+): Promise<T[]> {
+  const asked = RECORD_DERIVED.filter((f) => wanted.includes(f));
+  if (asked.length === 0 || rows.length === 0) return rows;
+  const ids = rows.map((r) => String(r["id"]));
+  const sidecar = (table: string, columns: string, ask: boolean) =>
+    ask
+      ? groupBy(
+          from(db, table)
+            .select(`record_id, ${columns}`)
+            .in("record_id", ids)
+            .is("deleted_at", null)
+            .order("created_at", { ascending: true }),
+          "record_id",
+        )
+      : Promise.resolve(new Map<string, Row[]>());
+  const [assignees, tasks, permits, inspections] = await Promise.all([
+    sidecar("record_assignments", "membership_id", asked.includes("assignee_membership_ids")),
+    sidecar("record_task", "progress_pct", asked.includes("progress_pct")),
+    sidecar("record_permit", "permit_identifier", asked.includes("permit_identifier")),
+    sidecar("record_inspection", "result_enum_id", asked.includes("inspection_result_enum_id")),
+  ]);
+  const first = (groups: ReadonlyMap<string, Row[]>, id: string, column: string) =>
+    groups.get(id)?.[0]?.[column] ?? null;
+  return rows.map((r) => {
+    const id = String(r["id"]);
+    const facts: Row = {
+      assignee_membership_ids: (assignees.get(id) ?? []).map((a) => String(a["membership_id"])),
+      progress_pct: first(tasks, id, "progress_pct"),
+      permit_identifier: first(permits, id, "permit_identifier"),
+      inspection_result_enum_id: first(inspections, id, "result_enum_id"),
+    };
+    return { ...r, ...Object.fromEntries(asked.map((f) => [f, facts[f]])) };
+  });
+}
 
 /** Columns a page reads to compose `record_key` itself. */
 const KEY_PARTS = ["project_id", "record_number"] as const;
@@ -175,10 +231,9 @@ async function withVisibility<T extends Row>(
 }
 
 async function readRecord(db: XosClient, id: string, fields?: string): Promise<RecordBody> {
-  const all = [...RECORD_COLUMNS, "external_visibility"];
-  const wanted = selectColumns(fields, all, "id");
+  const wanted = selectColumns(fields, RECORD_FIELDS, "id");
   const columns = wanted
-    .filter((c) => c !== "external_visibility")
+    .filter((c) => !derivedField(c))
     .map((c) =>
       c in RECORD_ALIASES ? `${c}:${RECORD_ALIASES[c as keyof typeof RECORD_ALIASES]}` : c,
     );
@@ -192,7 +247,7 @@ async function readRecord(db: XosClient, id: string, fields?: string): Promise<R
   if (data === null) throw notFound(`No record with id ${id} is visible to you.`);
   const [row] = await withVisibility(
     db,
-    [data as unknown as Row],
+    await withSidecars(db, [data as unknown as Row], wanted),
     wanted.includes("external_visibility"),
   );
   return row as unknown as RecordBody;
@@ -420,13 +475,17 @@ function defined(body: Row): Row {
 
 export const handlers = defineHandlers("Work", {
   "records.list": async ({ query }, { db }) => {
-    const wanted = selectColumns(query.fields, [...RECORD_COLUMNS, "external_visibility"], "id");
+    const wanted = selectColumns(query.fields, RECORD_FIELDS, "id");
     const page = await listPage<Row>(
       liveRecords(db),
-      { ...query, fields: wanted.filter((c) => c !== "external_visibility").join(",") },
+      { ...query, fields: wanted.filter((c) => !derivedField(c)).join(",") },
       { columns: RECORD_COLUMNS, key: "id", defaultOrder: ["created_at"] },
     );
-    const data = await withVisibility(db, page.data, wanted.includes("external_visibility"));
+    const data = await withVisibility(
+      db,
+      await withSidecars(db, page.data, wanted),
+      wanted.includes("external_visibility"),
+    );
     return ok({ data, next_cursor: page.next_cursor } as unknown as Components["RecordPage"]);
   },
 

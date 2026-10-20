@@ -39,6 +39,7 @@ import type { Page } from "../../runtime/pagination.ts";
 import { selectColumns } from "../../runtime/pagination.ts";
 
 export type Row = Record<string, unknown>;
+type Enrich = (rows: Row[], context: RequestContext) => Promise<Row[]>;
 
 // The corrected catalog -----------------------------------------------------------------------------
 
@@ -262,6 +263,11 @@ export interface TableOptions {
   readonly extraColumns?: readonly string[];
   /** Maps a row read from the table to the contract shape. */
   readonly toContract?: (row: Row, context: RequestContext) => Row | Promise<Row>;
+  /**
+   * Adds derived fields to the rows of a page (or the one row of a read) in one pass, before
+   * `toContract`: a sidecar or view read once per page with `in`, never once per row.
+   */
+  readonly enrich?: (rows: Row[], context: RequestContext) => Promise<Row[]>;
   /** Columns the insert sets beyond the create body, such as a parent reference. */
   readonly beforeCreate?: (body: Row, context: RequestContext) => Row | Promise<Row>;
   /** Columns the update sets beyond the update body, or a check that may refuse it. */
@@ -321,6 +327,9 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
     if (options.scope !== undefined) out = options.scope(out, context);
     return out;
   };
+  /** Whether the read asks for a derived field, so the page needs its enrichment. */
+  const enriches = (wanted: readonly string[]) =>
+    options.enrich !== undefined && wanted.some((f) => derived.has(f));
   const shape = async (context: RequestContext, row: Row, wanted: readonly string[]) => {
     const mapped = options.toContract === undefined ? row : await options.toContract(row, context);
     return Object.fromEntries(wanted.map((f) => [f, mapped[f] ?? null]));
@@ -334,7 +343,8 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
     );
     const row = await run<Row | null>(q.maybeSingle());
     if (row === null) throw notFound(`No ${spec.label} with this identifier is visible to you.`);
-    return shape(context, row, wanted);
+    const [enriched] = enriches(wanted) ? await (options.enrich as Enrich)([row], context) : [row];
+    return shape(context, enriched ?? row, wanted);
   };
 
   const list = async (context: RequestContext, query: ListQuery) => {
@@ -364,7 +374,10 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
         filterable: sortable,
       },
     );
-    const data = await Promise.all(page.data.map((row) => shape(context, row, wanted)));
+    const rows = enriches(wanted)
+      ? await (options.enrich as Enrich)(page.data, context)
+      : page.data;
+    const data = await Promise.all(rows.map((row) => shape(context, row, wanted)));
     return { data, next_cursor: page.next_cursor };
   };
 
@@ -457,6 +470,25 @@ export function tableResource(op: string, options: TableOptions = {}): TableReso
   }
 
   return { spec, fields, key, read, list, source: (c) => scoped(c, source(c)), handlers };
+}
+
+/**
+ * Rows of `query` grouped by `column`, for enriching a page: the caller narrows the query to the
+ * page's keys with `in`. Groups keep the query's order.
+ */
+export async function groupBy(query: Query, column: string): Promise<Map<string, Row[]>> {
+  const rows = await run<Row[] | null>(query);
+  const out = new Map<string, Row[]>();
+  for (const row of rows ?? []) {
+    const key = String(row[column]);
+    out.set(key, [...(out.get(key) ?? []), row]);
+  }
+  return out;
+}
+
+/** The distinct string values of `column` across rows, for an `in` filter. */
+export function keysOf(rows: readonly Row[], column: string): string[] {
+  return [...new Set(rows.map((r) => r[column]).filter((v): v is string => typeof v === "string"))];
 }
 
 /** The item path parameter of a request. */

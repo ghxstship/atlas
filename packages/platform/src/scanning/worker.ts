@@ -7,10 +7,15 @@ import { ScannerUnavailableError, type VirusScanner } from "./scanner.ts";
  *
  * - Attachments: the A18 job `attachment.scan` (migration 0590), claimed from the job queue; the
  *   verdict goes to `app.record_attachment_scan`, so a Clean version becomes downloadable.
- * - The field-media, onboarding-uploads, profile-media and org-brand buckets: `app.claim_object_scans`
- *   and `app.record_object_scan` (migration 1041).
+ * - The field-media, onboarding-uploads, imports, support-screenshots and upload-staging buckets (and
+ *   any service-role write to profile-media or org-brand): `app.claim_object_scans` and
+ *   `app.record_object_scan` (migrations 1041, 1240, 1265).
+ * - Files for the public buckets profile-media and org-brand are uploaded to the private upload-staging
+ *   bucket as `<bucket>/<name>` (1265). A staged file that scans Clean is published: written to its
+ *   public bucket, recorded Clean, and removed from staging. Nothing reaches a public bucket unscanned.
  *
- * An infected or refused file is removed from storage after its verdict is recorded. When the scanner
+ * An infected or refused file is removed from storage after its verdict is recorded; a staged one is
+ * never published, and its verdict stays for the uploader (app.my_upload_scan_status). When the scanner
  * or storage cannot answer, the scan is retried with backoff and recorded as Scan Failed after
  * `MAX_SCAN_ATTEMPTS`, so a file never stays in Scanning for ever and is never served unscanned.
  */
@@ -60,7 +65,31 @@ export interface ScanStore {
 
 export interface ObjectStorage {
   download(bucket: string, name: string): Promise<Uint8Array>;
+  /** Writes an object, replacing one of the same name (publishing a staged upload). */
+  upload(
+    bucket: string,
+    name: string,
+    bytes: Uint8Array,
+    contentType: string | null,
+  ): Promise<void>;
   remove(bucket: string, name: string): Promise<void>;
+}
+
+/** The private bucket files for the public buckets are uploaded to first (migration 1265). */
+export const UPLOAD_STAGING_BUCKET = "upload-staging";
+/** The public buckets a staged upload may be published to. */
+export const PUBLIC_UPLOAD_BUCKETS = ["org-brand", "profile-media"] as const;
+
+/**
+ * Where a staged upload is published: `org-brand/<org id>/logo.png` goes to org-brand as
+ * `<org id>/logo.png`. Null for a name that names no public bucket.
+ */
+export function stagedUploadTarget(stagedName: string): { bucket: string; name: string } | null {
+  const slash = stagedName.indexOf("/");
+  if (slash <= 0 || slash === stagedName.length - 1) return null;
+  const bucket = stagedName.slice(0, slash);
+  if (!(PUBLIC_UPLOAD_BUCKETS as readonly string[]).includes(bucket)) return null;
+  return { bucket, name: stagedName.slice(slash + 1) };
 }
 
 /** Storage could not return or delete an object; the scan is retried. */
@@ -71,7 +100,8 @@ export class StorageUnavailableError extends Error {
   }
 }
 
-export type ScanResult = "clean" | "infected" | "refused" | "retrying" | "failed" | "skipped";
+export type ScanResult =
+  "clean" | "published" | "infected" | "refused" | "retrying" | "failed" | "skipped";
 
 export interface ScanOutcome {
   readonly kind: "attachment" | "object";
@@ -89,7 +119,7 @@ export interface ScanRunOptions {
 }
 
 type Verdict =
-  | { readonly result: "clean" }
+  | { readonly result: "clean"; readonly bytes: Uint8Array }
   | { readonly result: "infected" | "refused"; readonly detail: string };
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
@@ -131,7 +161,9 @@ async function judge(
   const content = checkContent({ bytes, contentType: file.contentType, filename: file.filename });
   if (!content.ok) return { result: "refused", detail: content.reason };
   const verdict = await options.scanner.scan(bytes);
-  return verdict.clean ? { result: "clean" } : { result: "infected", detail: verdict.signature };
+  return verdict.clean
+    ? { result: "clean", bytes }
+    : { result: "infected", detail: verdict.signature };
 }
 
 function transient(error: unknown): error is ScannerUnavailableError | StorageUnavailableError {
@@ -218,9 +250,42 @@ async function scanObject(options: ScanRunOptions, scan: ClaimedObjectScan): Pro
     const status = await options.store.releaseObjectScan(id, detail);
     return { kind: "object", id, result: status === "Scan Failed" ? "failed" : "retrying", detail };
   }
+  const staged = scan.bucketId === UPLOAD_STAGING_BUCKET;
+  const target = staged ? stagedUploadTarget(scan.objectName) : null;
+  if (staged && target === null && verdict.result === "clean") {
+    verdict = {
+      result: "refused",
+      detail: "A staged upload must name the public bucket it is for.",
+    };
+  }
   if (verdict.result === "clean") {
+    if (target !== null) {
+      // Publish before recording Clean: the public copy is written while this scan still holds the
+      // staged original, so the database records it Clean too (1265). A failed write is retried.
+      try {
+        await options.storage.upload(target.bucket, target.name, verdict.bytes, scan.contentType);
+      } catch (error) {
+        const detail = describe(
+          new StorageUnavailableError(`could not publish to ${target.bucket}`, { cause: error }),
+        );
+        const status = await options.store.releaseObjectScan(id, detail);
+        return {
+          kind: "object",
+          id,
+          result: status === "Scan Failed" ? "failed" : "retrying",
+          detail,
+        };
+      }
+    }
     await options.store.recordObjectScan(id, true, null);
-    return { kind: "object", id, result: "clean" };
+    if (target === null) return { kind: "object", id, result: "clean" };
+    const leftover = await removeQuietly(options, scan.bucketId, scan.objectName);
+    return {
+      kind: "object",
+      id,
+      result: "published",
+      detail: leftover ?? `Published to ${target.bucket}.`,
+    };
   }
   await options.store.recordObjectScan(
     id,

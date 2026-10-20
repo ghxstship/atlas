@@ -214,13 +214,14 @@ tools appear only for resources or modules named with `--write`, and delete also
 
 ## 10. Storage buckets
 
-| Bucket               | Public | Write rule                                                           |
-| -------------------- | ------ | -------------------------------------------------------------------- |
-| `attachments`        | No     | `private.attachment_upload_allowed`; reads follow the subject's RLS  |
-| `field-media`        | No     | `private.field_media_allowed`                                        |
-| `onboarding-uploads` | No     | `private.onboarding_upload_writable`; reads by the party and the org |
-| `org-brand`          | Yes    | `org.white_label.write` on the org in the object path                |
-| `profile-media`      | Yes    | The person's own folder, or an org profile editor                    |
+| Bucket               | Public | Write rule                                                                                                                                                                              |
+| -------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `attachments`        | No     | `private.attachment_upload_allowed`; reads follow the subject's RLS                                                                                                                     |
+| `field-media`        | No     | `private.field_media_allowed`                                                                                                                                                           |
+| `onboarding-uploads` | No     | `private.onboarding_upload_writable`; reads by the party and the org                                                                                                                    |
+| `org-brand`          | Yes    | Service role only: the scan worker publishes Clean staged files                                                                                                                         |
+| `profile-media`      | Yes    | Service role only: the scan worker publishes Clean staged files                                                                                                                         |
+| `upload-staging`     | No     | The target bucket's rule: `org.white_label.write` on the org in the path for `org-brand`, the person's own folder or an org profile editor for `profile-media`; only the uploader reads |
 
 | STRIDE | Threat                                            | Control                                                                  | Evidence                     |
 | ------ | ------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------- |
@@ -232,8 +233,10 @@ Uploads are sniffed and scanned by the `upload-scan` worker; private buckets ser
 anyone but the uploader (A22-011, fixed in 1041). The imports and support-screenshots buckets are
 scanned too, and an import is parsed only once its file is Clean (1240). The scanner is self-hosted
 ClamAV (ADR 0034). Residual risk: without a reachable clamd, `upload-scan` claims nothing and files stay
-quarantined. Public buckets cannot gate reads, so a file there is readable by URL until the worker
-removes it.
+quarantined. Public buckets cannot gate reads, so since migration 1265 nobody signed in writes them: a
+file for `org-brand` or `profile-media` is uploaded to the private `upload-staging` bucket under the
+target bucket's rules, and the worker publishes it only once it scans Clean. An infected file is never
+public (ADR 0034 amendment, `1265_public_upload_staging` suite).
 
 ## Review method
 

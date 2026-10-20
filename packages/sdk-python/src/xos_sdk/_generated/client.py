@@ -338,10 +338,13 @@ from .resources import (
     TrashItemsResource,
     TemplatesResource,
     TemplateApplicationsResource,
+    ProjectAuthoritiesResource,
+    CueCallsResource,
     GuestListEntriesResource,
     Form1099NecResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
+    CanonStdEmergencyProtocolsResource,
     ReportScheduleRecipientsResource,
     ReportDeliveriesResource,
     AuroraResource,
@@ -741,10 +744,13 @@ class XosClient(XosClientCore):
     trash_items: TrashItemsResource
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
+    project_authorities: ProjectAuthoritiesResource
+    cue_calls: CueCallsResource
     guest_list_entries: GuestListEntriesResource
     form1099_nec: Form1099NecResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
+    canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
     report_schedule_recipients: ReportScheduleRecipientsResource
     report_deliveries: ReportDeliveriesResource
     aurora: AuroraResource
@@ -1132,10 +1138,13 @@ class XosClient(XosClientCore):
         self.trash_items = TrashItemsResource(self)
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
+        self.project_authorities = ProjectAuthoritiesResource(self)
+        self.cue_calls = CueCallsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
+        self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)
         self.report_schedule_recipients = ReportScheduleRecipientsResource(self)
         self.report_deliveries = ReportDeliveriesResource(self)
         self.aurora = AuroraResource(self)

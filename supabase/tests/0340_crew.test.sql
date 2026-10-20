@@ -173,6 +173,9 @@ select throws_ok($$update app.pay_rates set rate_minor = 1$$, 'XR001', null, 'th
 -- Pay periods and payroll runs (invariants 14 and 15) ---------------------------------------------------------------------
 select pg_temp.as_user('carol');
 with x as (insert into app.pay_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-05-31', '2027-06-13') returning id) insert into world select 'pp', id from x;
+-- Before the period has a run, so pay_period_runs_open passes and the rules refuse (A54-003).
+select throws_ok($$select app.transition_pay_period((select id from world where key = 'pp'), 'Open', 'Posted', 'Skip.')$$,
+  'XR001', 'pay_period_transition_not_allowed: A pay period cannot move from Open to Posted.', 'an Open period cannot jump to Posted');
 with x as (insert into app.payroll_runs (pay_period_id, currency_code) values (pg_temp.id('pp'), 'USD') returning id) insert into world select 'run', id from x;
 select pg_temp.as_user('bob');
 with x as (insert into app.earning_codes (org_id, code, name) values (pg_temp.id('org_a'), 'REG', 'Regular') returning id) insert into world select 'ec', id from x;
@@ -186,7 +189,6 @@ select pg_temp.as_user('alice');
 insert into app.spend_authorities (org_id, role_id, document_type, currency_code, limit_minor) values (pg_temp.id('org_a'), pg_temp.system_role('admin'), 'Payroll Run', 'USD', 100000000);
 select pg_temp.as_user('bob');
 select is(app.approve_payroll_run(pg_temp.id('run'), 'Approved.'), true, 'an Admin within spend authority approves the run');
-select throws_ok($$select app.transition_pay_period((select id from world where key = 'pp'), 'Open', 'Posted', 'Skip.')$$, 'XR001', null, 'an Open period cannot jump to Posted');
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_pay_period((select id from world where key = 'pp'), 'Open', 'Closed', 'Cutoff.')$$, 'Open to Closed');
 select throws_ok($$select app.transition_pay_period((select id from world where key = 'pp'), 'Closed', 'Posted', 'Post.')$$,

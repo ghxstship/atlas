@@ -21,6 +21,9 @@ const DEPARTMENTS: Row[] = ["0000", "1000", "2000", "3000", "4000"].map((code) =
   department: `Department ${code}`,
   source: "canon",
   note: null,
+  executive_lead: code === "0000" ? "Executive Producer" : null,
+  core_function: null,
+  scope: null,
 }));
 
 function fakeDb(rows: Row[], fail?: { code: string; message: string }): XosClient {
@@ -169,7 +172,14 @@ describe("contract validation", () => {
   it("checks the keywords the contract uses", () => {
     expect(
       validateSchema({ $ref: "#/components/schemas/CanonDepartment" }, { dept_code: "4000" }),
-    ).toEqual(["/department is required", "/source is required", "/note is required"]);
+    ).toEqual([
+      "/department is required",
+      "/source is required",
+      "/note is required",
+      "/executive_lead is required",
+      "/core_function is required",
+      "/scope is required",
+    ]);
     expect(validateSchema({ type: "string", format: "uuid" }, "x")).toEqual([
       "/ is not a valid uuid",
     ]);
