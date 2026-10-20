@@ -125,29 +125,35 @@ export const DOCUMENT_INFO = {
 export interface ApiDeps extends MountOptions {
   /** Module handler sets; defaults to every file in `src/handlers`. */
   readonly handlers?: readonly AnyModuleHandlers[];
-  /** Mount prefix stripped before routing, such as `/api/v1` in Atlas. */
-  readonly basePath?: string;
+  /**
+   * Mount prefix stripped before routing, such as `/api/v1` in Atlas. A list names every prefix
+   * the app is reached under, tried in order: Atlas serves `/api/v1` on its own host and `/v1` on
+   * the API host, whose requests keep their original path after the proxy rewrites them.
+   */
+  readonly basePath?: string | readonly string[];
+}
+
+/** The path the routes see: the request path without the first mount prefix it starts with. */
+export function stripBasePath(path: string, bases: readonly string[]): string {
+  for (const base of bases) {
+    if (path === base) return "/";
+    if (path.startsWith(`${base}/`)) return path.slice(base.length);
+  }
+  return path;
 }
 
 export function createApiApp(
   deps?: ApiDeps,
   specs: readonly ResourceSpec[] = catalog,
 ): OpenAPIHono {
-  const base = deps?.basePath?.replace(/\/$/, "") ?? "";
+  const bases = (typeof deps?.basePath === "string" ? [deps.basePath] : (deps?.basePath ?? []))
+    .map((base) => base.replace(/\/$/, ""))
+    .filter((base) => base !== "");
   const app = new OpenAPIHono({
     defaultHook: validationHook,
-    ...(base === ""
+    ...(bases.length === 0
       ? {}
-      : {
-          getPath: (request: Request) => {
-            const path = new URL(request.url).pathname;
-            return path === base
-              ? "/"
-              : path.startsWith(`${base}/`)
-                ? path.slice(base.length)
-                : path;
-          },
-        }),
+      : { getPath: (request: Request) => stripBasePath(new URL(request.url).pathname, bases) }),
   });
   const registry = app.openAPIRegistry;
   registerSecuritySchemes(registry, loadCapabilityRegistry());
