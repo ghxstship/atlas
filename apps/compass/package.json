@@ -24,6 +24,7 @@
     "@supabase/supabase-js": "2.117.3",
     "@xos/ai": "workspace:*",
     "@xos/data": "workspace:*",
+    "@xos/help": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/sync": "workspace:*",
