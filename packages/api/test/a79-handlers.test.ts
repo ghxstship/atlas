@@ -151,7 +151,7 @@ const domain = {
   hostname: "atlas.northwindlive.example",
   purpose: "Atlas",
   verification_state: "Pending",
-  verification_token: "xos-verify-6f1c2d",
+  verification_token: "xos-verify-7d1c",
   last_checked_at: null,
   auto_join_role_id: null,
   provisioning_status: "Pending DNS",

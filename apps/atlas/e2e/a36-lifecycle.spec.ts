@@ -56,7 +56,7 @@ test("journey 39: cancel an org, download the full export, read-only banner", as
   await page.goto(`/${slug}/settings/custom-objects`);
   await page.getByLabel("Name", { exact: true }).fill("Read Only Probe");
   await page.getByRole("button", { name: "Define the object" }).click();
-  await expect(page.getByText("This organization is canceled and read-only.")).toBeVisible();
+  await expect(page.getByText("This organization is read-only right now.")).toBeVisible();
 
   // The export stays available during the window.
   await page.goto(`/${slug}/settings/danger-zone`);

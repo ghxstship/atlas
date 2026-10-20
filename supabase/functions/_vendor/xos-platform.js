@@ -10804,7 +10804,7 @@ var platform_default$1 = {
     org_reactivation_window:
       "An organization can be reactivated during the 30 days after it was canceled.",
     org_read_only:
-      "This organization is canceled and read-only. The Owner can reactivate it in Settings, Danger zone.",
+      "This organization is read-only right now. The banner at the top of the page says why and what lifts it.",
     inbox_action_unknown: "An Inbox item is approved, rejected or marked Done.",
     inbox_action_not_offered: "Only an approval request is approved or rejected from the Inbox.",
     inbox_snooze_window: "Snooze an item for up to 30 days.",
@@ -27251,7 +27251,7 @@ var platform_default = {
     org_reactivation_window:
       "Una organización se puede reactivar durante los 30 días posteriores a su cancelación.",
     org_read_only:
-      "Esta organización está cancelada y en solo lectura. El Propietario puede reactivarla en Configuración, Zona de peligro.",
+      "Esta organización está en solo lectura en este momento. El aviso en la parte superior de la página explica por qué y qué lo levanta.",
     inbox_action_unknown: "Un elemento de la Bandeja se aprueba, se rechaza o se marca como Listo.",
     inbox_action_not_offered:
       "Solo una solicitud de aprobación se aprueba o se rechaza desde la Bandeja.",

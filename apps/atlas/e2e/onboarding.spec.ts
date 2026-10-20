@@ -11,7 +11,7 @@ test("sign up, create an org with legal acceptance, and land on an empty Home", 
   await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible();
   await expect(page.getByRole("heading", { name: `Get Northlight ${id} ready` })).toBeVisible();
   await expect(page.getByText("0 of 8 done")).toBeVisible();
-  await expect(page.getByText(`Northlight ${id} is on the Access plan.`)).toBeVisible();
+  await expect(page.getByText(`Northlight ${id} is on a Pro trial until`)).toBeVisible();
   await expectAccessible(page);
 });
 
