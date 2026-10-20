@@ -416,8 +416,8 @@ settings:
     help: settings.fields.autoTranslate.help
     pages: { org: settings.communication, personal: me.preferences }
     deferred:
-      reason: "Message translation waits on a translation provider (ADR 0026); until one is chosen there is nothing for the switch to offer."
-      decision: "Owner decision on the message translation provider (ADR 0026)"
+      reason: "Waits on wiring to the ADR 0037 / A80 translation seam: Google Cloud Translation is chosen and A80's message translation provider (migration 1363, communication.message_translation) is built, but nothing connects this switch to it yet."
+      decision: "Wiring to the ADR 0037 / A80 translation seam (migration 1363); no owner decision pending"
 
   # Help and support ------------------------------------------------------------------------------------------------
   - key: help.support_email
@@ -616,8 +616,8 @@ settings:
     help: settings.fields.captions.help
     pages: { personal: me.accessibility }
     deferred:
-      reason: "Nothing in the product plays captioned media yet: voice notes have no transcripts and there is no video. Transcription needs a provider, the same open decision as translation."
-      decision: "Owner decision on a transcription provider (ADR 0026)"
+      reason: "Waits on wiring to the ADR 0037 / A80 translation seam. Nothing in the product plays captioned media yet: voice notes have no transcripts and there is no video."
+      decision: "Wiring to the ADR 0037 / A80 translation seam (migration 1363); no owner decision pending"
 
   # Personal: out of office ----------------------------------------------------------------------------------------------
   - key: me.out_of_office.enabled
