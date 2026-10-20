@@ -2,14 +2,15 @@ import { useEffect, useId, useRef, type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
 import { Icon } from "../Icon/Icon.tsx";
-import { useControllable } from "../lib/hooks.ts";
+import { useControllable, useMediaQuery } from "../lib/hooks.ts";
 import { type AppShellProps } from "./Layout.types.ts";
 
 /**
  * Brand slot, sidebar, header and content for every Atlas page. Below lg the sidebar becomes a drawer
  * opened from the header menu button (or by the shell through menuOpen, for the bottom bar's Menu tab)
- * and closed by Esc or the scrim; opening it moves focus to its first control. Below md the bottom
- * bar shows.
+ * and closed by Esc or the scrim. While it is open the page behind is inert, as behind a dialog:
+ * focus moves to the drawer's first control and returns to the menu button on Esc. Below md the
+ * bottom bar shows.
  */
 export function AppShell({
   brand,
@@ -26,6 +27,10 @@ export function AppShell({
   const menuButton = useRef<HTMLButtonElement>(null);
   const side = useRef<HTMLDivElement>(null);
   const content = useRef<HTMLDivElement>(null);
+  const returnFocus = useRef(false);
+  // The drawer only exists below lg; on a wide screen the sidebar is always there.
+  const drawer = useMediaQuery("(max-width: 63.999rem)");
+  const covered = open && drawer;
   // A scrolling region keyboard users cannot reach fails WCAG 2.1.1. When the page overflows and holds
   // nothing focusable (a long read-only table), the region itself takes focus so arrow keys scroll it;
   // otherwise it stays out of the tab order.
@@ -47,8 +52,12 @@ export function AppShell({
     return () => observer.disconnect();
   }, [children]);
   useEffect(() => {
-    if (!open) return undefined;
-    // The drawer only exists below lg; on a wide screen the sidebar is always there.
+    if (!open) {
+      // The menu button takes focus back once the page behind is no longer inert.
+      if (returnFocus.current) menuButton.current?.focus();
+      returnFocus.current = false;
+      return undefined;
+    }
     if (side.current && getComputedStyle(side.current).position === "absolute") {
       side.current
         .querySelector<HTMLElement>("a[href], button:not([disabled]), select, input")
@@ -56,8 +65,8 @@ export function AppShell({
     }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        returnFocus.current = true;
         setOpen(false);
-        menuButton.current?.focus();
       }
     };
     document.addEventListener("keydown", onKey);
@@ -95,7 +104,7 @@ export function AppShell({
           )}
         />
       ) : null}
-      <main className="flex flex-col min-w-0 min-h-0">
+      <main className="flex flex-col min-w-0 min-h-0" inert={covered}>
         <div
           className={cx(
             "flex items-center justify-between gap-8 h-(--ui-shell-head) px-16 border-b border-border-subtle",
