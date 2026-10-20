@@ -3,7 +3,7 @@ import * as Linking from "expo-linking";
 import { useRouter, type Href } from "expo-router";
 import { useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import type { ScrollView} from "react-native";
+import type { ScrollView } from "react-native";
 import { View } from "react-native";
 import { elsewhereLink, operationalEngagements } from "../../src/domain/access";
 import {
