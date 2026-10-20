@@ -6,6 +6,7 @@ import NextLink from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ActivityDescription } from "./describe";
+import { peekHref as shellPeekHref } from "@/lib/shell/peek";
 
 /**
  * One activity line (A59-030): who, the verb, and the thing acted on, named in the body font (a record
@@ -24,12 +25,9 @@ export function ActivityLine({
   const t = useTranslations("activity.feed");
   const pathname = usePathname();
   const search = useSearchParams();
-  const peekHref = (key: string) => {
-    const q = new URLSearchParams(search.toString());
-    q.set("peek", key);
-    q.delete("full");
-    return `${pathname}?${q.toString()}` as Route;
-  };
+  const org = pathname.split("/")[1] ?? "";
+  // A peek where the shell opens it, else the record page (lib/shell/peek).
+  const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key) as Route;
   return (
     <article className="flex max-w-(--layout-peek) items-start gap-12">
       <Avatar name={description.actor} />

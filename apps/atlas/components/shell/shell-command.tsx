@@ -9,6 +9,7 @@ import { HELP_LOCALES, type HelpLocale } from "@/help/model";
 import type { ShellNav } from "@/lib/shell/nav-model";
 import { openHelpArticle } from "@/components/help/help-center";
 import { searchCommandMenu, type CommandResultGroup } from "@/lib/shell/search-actions";
+import { peekHref as shellPeekHref } from "@/lib/shell/peek";
 
 /** Help articles for the command menu, in the person's locale. */
 export function helpCommandItems(locale: string): { slug: string; title: string }[] {
@@ -67,12 +68,8 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
   }, [open, org, query]);
 
   const close = () => onOpenChange(false);
-  const peekHref = (key: string) => {
-    const next = new URLSearchParams(search.toString());
-    next.set("peek", key);
-    next.delete("full");
-    return `${pathname}?${next.toString()}`;
-  };
+  // A peek where the shell opens it, else the record page (lib/shell/peek).
+  const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key);
   const found = answer.groups.map((g) => ({
     label: g.label,
     items: g.items.map((item) => ({
