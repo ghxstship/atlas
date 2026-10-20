@@ -356,7 +356,7 @@ async function PostsSection({
               help: t("feed.optionsHelp"),
               rows: 4,
             },
-            ...audienceFields(t, pickers),
+            ...audienceFields(t, pickers, { withDepartments: true }),
             {
               kind: "datetime",
               name: "publishAt",

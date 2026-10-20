@@ -69,12 +69,24 @@ export function args(values: Readonly<Record<string, unknown>>): Raw {
   return Object.fromEntries(Object.entries(values).filter(([, v]) => v !== undefined));
 }
 
-/** Who a feed post, survey or event reaches (app.audience_kind). */
-export type AudienceKind = "Organization" | "Project" | "Team" | "Role" | "Group";
+/**
+ * Who a feed post, survey or event reaches (app.audience_kind). Department, a canon department code
+ * (1365), reaches feed posts only; surveys and events take the other kinds.
+ */
+export type AudienceKind = "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
 export const AUDIENCE_KINDS: readonly AudienceKind[] = [
   "Organization",
   "Project",
   "Team",
+  "Role",
+  "Group",
+];
+/** The audience kinds of a feed post, in app.audience_kind order. */
+export const FEED_AUDIENCE_KINDS: readonly AudienceKind[] = [
+  "Organization",
+  "Project",
+  "Team",
+  "Department",
   "Role",
   "Group",
 ];
@@ -85,6 +97,8 @@ export interface Audience {
   readonly teamId: string | null;
   readonly roleId: string | null;
   readonly groupId: string | null;
+  /** Canon department code of a Department audience (feed posts). */
+  readonly departmentCode?: string | null;
 }
 
 export function audienceOf(r: Raw): Audience {
@@ -94,6 +108,7 @@ export function audienceOf(r: Raw): Audience {
     teamId: strOrNull(r["team_id"]),
     roleId: strOrNull(r["role_id"]),
     groupId: strOrNull(r["group_id"]),
+    departmentCode: strOrNull(r["department_code"]),
   };
 }
 

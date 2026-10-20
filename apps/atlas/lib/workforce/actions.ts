@@ -134,13 +134,28 @@ const reasonOf = (form: FormData) => requiredText(form, "reason", 500);
 function audienceOf(form: FormData) {
   const kind = text(form, "audienceKind") ?? "Organization";
   const target = uuid(form, "audienceTarget");
+  const department = text(form, "audienceTarget");
   return {
-    kind: kind as "Organization" | "Project" | "Team" | "Role" | "Group",
+    kind: kind as "Organization" | "Project" | "Team" | "Department" | "Role" | "Group",
     projectId: kind === "Project" ? target : null,
     teamId: kind === "Team" ? target : null,
     roleId: kind === "Role" ? target : null,
     groupId: kind === "Group" ? target : null,
+    // A canon department code (1365); only feed posts offer it.
+    departmentCode:
+      kind === "Department" && department !== null && /^[0-9]000$/.test(department)
+        ? department
+        : null,
   };
+}
+
+/** True when the audience names the target its kind needs. */
+function audienceComplete(audience: ReturnType<typeof audienceOf>): boolean {
+  if (audience.kind === "Organization") return true;
+  if (audience.kind === "Department") return audience.departmentCode !== null;
+  return [audience.projectId, audience.teamId, audience.roleId, audience.groupId].some(
+    (v) => v !== null,
+  );
 }
 
 // Groups and chat -------------------------------------------------------------------------------------
@@ -258,8 +273,7 @@ export async function createPostAction(_: ActionState, form: FormData): Promise<
   if (kind === "Poll" && (options.length < 2 || options.length > 10))
     errors.add("options", "lineFormat");
   const audience = audienceOf(form);
-  if (audience.kind !== "Organization" && uuid(form, "audienceTarget") === null)
-    errors.add("audienceTarget", "required");
+  if (!audienceComplete(audience)) errors.add("audienceTarget", "required");
   if (errors.any || !kind || !body) return errors.state;
   return finish(
     await createFeedPost(ctx.viewer.db, ctx.org.id, {

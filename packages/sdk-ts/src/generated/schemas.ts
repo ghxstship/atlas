@@ -38757,9 +38757,9 @@ export interface FeedPost {
    */
   readonly body: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38780,6 +38780,11 @@ export interface FeedPost {
    * Format: `uuid`.
    */
   readonly group_id: string | null;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code: string | null;
   /**
    * Identifier of the member who wrote the post.
    * Format: `uuid`.
@@ -38843,9 +38848,9 @@ export interface FeedPostCreate {
    */
   readonly body: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38866,6 +38871,11 @@ export interface FeedPostCreate {
    * Format: `uuid`.
    */
   readonly group_id?: string | null;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code?: string | null;
   /**
    * Whether every member of the audience must acknowledge it.
    */
@@ -38919,9 +38929,9 @@ export interface PollPostRequest {
    */
   readonly title?: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Project audience.
    * Format: `uuid`.
@@ -38942,6 +38952,11 @@ export interface PollPostRequest {
    * Format: `uuid`.
    */
   readonly group_id?: string;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code?: string;
   /**
    * Poll question.
    * Length: 1 to 300.
@@ -39220,9 +39235,9 @@ export interface Survey {
    */
   readonly description: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -39283,9 +39298,9 @@ export interface SurveyDraftRequest {
    */
   readonly description?: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Project audience.
    * Format: `uuid`.
@@ -39740,9 +39755,9 @@ export interface WorkforceEvent {
    */
   readonly space_id: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -39828,9 +39843,9 @@ export interface WorkforceEventCreate {
    */
   readonly space_id?: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.

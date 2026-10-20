@@ -2801,11 +2801,12 @@ export interface Components {
     post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
     title: string | null;
     body: string;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
     group_id: string | null;
+    department_code: string | null;
     author_membership_id: string | null;
     pinned_at: string | null;
     requires_acknowledgment: boolean;
@@ -2820,11 +2821,12 @@ export interface Components {
     post_kind: "Announcement" | "Update" | "Poll" | "Recognition";
     title?: string | null;
     body: string;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string | null;
     team_id?: string | null;
     role_id?: string | null;
     group_id?: string | null;
+    department_code?: string | null;
     requires_acknowledgment: boolean;
     reactions_enabled: boolean;
     comments_enabled: boolean;
@@ -5169,11 +5171,12 @@ export interface Components {
   PollPostRequest: {
     body: string;
     title?: string;
-    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string;
     team_id?: string;
     role_id?: string;
     group_id?: string;
+    department_code?: string;
     question: string;
     options: Array<string>;
     allows_multiple?: boolean;
@@ -7425,7 +7428,7 @@ export interface Components {
     updated_by: string | null;
     title: string;
     description: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
@@ -7439,7 +7442,7 @@ export interface Components {
   SurveyDraftRequest: {
     title: string;
     description?: string;
-    audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string;
     team_id?: string;
     role_id?: string;
@@ -8623,7 +8626,7 @@ export interface Components {
     location: string | null;
     venue_id: string | null;
     space_id: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id: string | null;
     team_id: string | null;
     role_id: string | null;
@@ -8642,7 +8645,7 @@ export interface Components {
     location?: string | null;
     venue_id?: string | null;
     space_id?: string | null;
-    audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+    audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
     project_id?: string | null;
     team_id?: string | null;
     role_id?: string | null;
