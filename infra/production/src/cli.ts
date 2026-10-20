@@ -2,7 +2,8 @@
  * Demo seed marker block for infra/production/remove-demo-data.sql (runbook:
  * infra/runbooks/promote-to-production.md).
  *
- *   generate              Re-read supabase/seeds/*.sql and rewrite the marker block in the SQL file.
+ *   generate              Re-read the marker sources (supabase/seeds, the load fixtures) and rewrite the
+ *                         marker block in the SQL file.
  *   check                 Exit 1 when the block no longer matches the seeds (the test suite checks it too).
  *   delete-storage <csv>  Delete the objects the dry run listed through the Storage API, with SUPABASE_URL
  *                         and SUPABASE_SERVICE_ROLE_KEY from the environment (remove-demo-data.sh runs it).
@@ -12,11 +13,12 @@
  * generate and check read and write repository files only; neither connects to anything.
  */
 
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import {
   deriveSeedMarkers,
   extractMarkerBlock,
+  readMarkerSources,
   renderMarkerBlock,
   replaceMarkerBlock,
   unsafeDomains,
@@ -24,17 +26,15 @@ import {
 import { compareCounts, formatDifferences, parseCounts } from "./compare.ts";
 import { deleteObjects, parseObjectList } from "./storage.ts";
 
-const seedDir = fileURLToPath(new URL("../../../supabase/seeds/", import.meta.url));
+const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const sqlPath = fileURLToPath(new URL("../remove-demo-data.sql", import.meta.url));
 
-const markers = deriveSeedMarkers(
-  readdirSync(seedDir)
-    .filter((name) => name.endsWith(".sql"))
-    .map((name) => ({ name, sql: readFileSync(`${seedDir}${name}`, "utf8") })),
-);
+const markers = deriveSeedMarkers(readMarkerSources(repoRoot));
 const unsafe = unsafeDomains(markers);
 if (unsafe.length > 0) {
-  console.error(`Seeds use non-test email domains: ${unsafe.join(", ")}. Fix the seeds first.`);
+  console.error(
+    `Test data uses non-test email domains: ${unsafe.join(", ")}. Fix the seeds first.`,
+  );
   process.exit(1);
 }
 const block = renderMarkerBlock(markers);

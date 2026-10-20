@@ -8,14 +8,16 @@
 --   psql -v mode=execute   deletes, verifies and commits only when every check passes
 --
 -- What counts as demo data is derived, never listed by hand:
---   1. Markers read out of supabase/seeds/*.sql (the generated block below): every fixed id in the seed
---      namespace and the email domains the seeds use (example.com only, a reserved domain).
+--   1. Markers read out of the repository's test-data sources, supabase/seeds/*.sql and the load-test
+--      fixtures in packages/testing/load/fixtures (the generated block below): every fixed id in the seed
+--      namespace and the email domains they use (example.com and load.example.test, reserved domains).
 --   2. Roots: rows whose id is a seed id, auth users whose id is a seed id or whose email is on a seed
 --      domain, and the people of those users.
 --   3. Closure, repeated until nothing new is found:
 --        * every row whose org_id is a marked org
 --        * every row that references a marked row through a foreign key that would block or cascade the
 --          delete (ON DELETE NO ACTION, RESTRICT or CASCADE); SET NULL references are left to the database
+--        * every org whose members are all demo people
 --      so an org a demo user created, its contents, and every row a demo person created are included.
 -- What stays: every row the closure does not reach. Canon (xpms), the plan, capability, role and settings
 -- registries, reference data, storage buckets, cron jobs and Vault secrets carry no demo org or person and
@@ -24,9 +26,8 @@
 --
 -- Guards. Tenant tables refuse hard deletes in several places (append-only ledgers, the audit ledger, the
 -- sole-Owner rule, retained Canceled records). The schema's sanctioned path is the tenant purge of
--- migration 1270: private.begin_tenant_purge(org ids, person ids) marks this transaction as purging those
--- orgs and people; the guards then let deletes of their rows through and the audit trigger does not
--- write audit rows for them. Nothing is disabled: every trigger and foreign key stays on, and the marker
+-- migration 1270: private.begin_tenant_purge(org ids) marks this transaction as purging those orgs; the
+-- guards then let deletes of their rows through and the audit trigger does not write audit rows for them. Nothing is disabled: every trigger and foreign key stays on, and the marker
 -- ends with the transaction.
 --
 -- Storage objects cannot be deleted in SQL (storage.protect_objects_delete); the wrapper removes the
@@ -62,7 +63,7 @@ create temp table demo_email_domains (domain text primary key);
 create temp table demo_seed_tables (table_name text primary key);
 
 -- BEGIN GENERATED SEED MARKERS (infra/production/src/cli.ts generate)
--- Derived from 26 seed files: 224 fixed ids, 2 email domain(s), 236 seeded tables.
+-- Derived from 27 seed files: 224 fixed ids, 3 email domain(s), 236 seeded tables.
 insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000000001'::uuid),
   ('01920000-0000-7000-8000-000000000101'::uuid),
@@ -290,7 +291,8 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000010900003'::uuid);
 insert into pg_temp.demo_email_domains (domain) values
   ('example.com'),
-  ('group.calendar.example.com');
+  ('group.calendar.example.com'),
+  ('load.example.test');
 insert into pg_temp.demo_seed_tables (table_name) values
   ('app.access_grid'),
   ('app.accommodation_assignments'),
@@ -631,6 +633,17 @@ begin
     v_pass := v_pass + pg_temp.demo_mark('app.people',
       'c.user_id in (select (m.key ->> ''id'')::uuid from pg_temp.demo_marks m where m.rel = ''auth.users''::regclass)',
       'person of a demo sign-in');
+    -- Orgs whose every member is a demo person (for example the load fixtures' tenants, created by a SQL
+    -- session so created_by is empty): at least one membership or external account membership, and none
+    -- held by anyone else.
+    v_pass := v_pass + pg_temp.demo_mark('app.organizations', $w$
+      exists (select 1 from app.memberships x where x.org_id = c.id
+              union all select 1 from app.account_memberships x where x.org_id = c.id)
+      and not exists (
+        select 1 from (select x.person_id from app.memberships x where x.org_id = c.id
+                       union all select x.person_id from app.account_memberships x where x.org_id = c.id) x
+        where x.person_id not in (select (m.key ->> 'id')::uuid from pg_temp.demo_marks m where m.rel = 'app.people'::regclass))
+      $w$, 'every member is a demo person');
     -- Every row of a marked org.
     for v_scope in select * from pg_temp.demo_scope s where s.has_org loop
       v_pass := v_pass + pg_temp.demo_mark(v_scope.rel,
@@ -694,7 +707,7 @@ $$;
 -- Report: what the run removes ---------------------------------------------------------------------------------
 
 \echo
-\echo '== Orgs to remove (seeded = fixed id from the seeds; otherwise created by a demo person)'
+\echo '== Orgs to remove (seeded = fixed id from the seeds; otherwise created by or made up only of demo people)'
 select slug, name, seeded from demo_orgs order by seeded desc, slug;
 
 \echo
@@ -702,6 +715,16 @@ select slug, name, seeded from demo_orgs order by seeded desc, slug;
 select count(*) as users, count(*) filter (where seeded) as seeded_ids,
   count(*) filter (where not seeded) as on_seed_domain_only
 from demo_users;
+
+\echo
+\echo '== What stays: orgs and sign-ins the closure does not reach (review before executing)'
+select 'org' as kind, o.slug as name, 1 as count
+from app.organizations o where o.id not in (select org_id from demo_orgs)
+union all
+select 'sign-ins on ' || lower(split_part(u.email, '@', 2)), null, count(*)::int
+from auth.users u where u.id not in (select user_id from demo_users)
+group by lower(split_part(u.email, '@', 2))
+order by 1, 2;
 
 \echo
 \echo '== Rows reached in orgs that are not being removed (must be empty to execute)'

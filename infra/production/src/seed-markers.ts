@@ -2,8 +2,10 @@
  * Demo seed markers (RRR-109, ADR 0033 decision 1 amendment).
  *
  * The removal script `infra/production/remove-demo-data.sql` never guesses what the demo seed created.
- * It starts from markers read out of `supabase/seeds/*.sql` and follows foreign keys and org_id from
- * there. This module reads the seeds and renders the marker block the script carries:
+ * It starts from markers read out of the repository's test-data sources (MARKER_SOURCES: the demo seeds
+ * in `supabase/seeds/*.sql`, and the load-test fixtures, which may have been run against staging) and
+ * follows foreign keys and org_id from there. This module reads them and renders the marker block the
+ * script carries:
  *
  *   ids       every fixed id in the seed namespace (0000_demo_tenant_conventions.sql): the demo orgs,
  *             sign-ins, people, memberships and the other rows a seed pins to a known id
@@ -15,6 +17,12 @@
  * The block sits between the BEGIN and END marker lines in the SQL file. `cli.ts generate` rewrites it
  * and `cli.ts check` (and the test suite) fail when the seeds change without regenerating it.
  */
+
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+
+/** Repository directories whose SQL files create test data that must never reach production. */
+export const MARKER_SOURCES = ["supabase/seeds", "packages/testing/load/fixtures"] as const;
 
 /** Prefix of every fixed id the seeds use (see supabase/seeds/0000_demo_tenant_conventions.sql). */
 export const SEED_ID_NAMESPACE = "01920000-0000-7000-8000-";
@@ -60,6 +68,18 @@ export function deriveSeedMarkers(files: readonly SeedFile[]): SeedMarkers {
     domains: sortedUnique(domains),
     tables: sortedUnique(tables),
   };
+}
+
+/** Reads every SQL file of the marker sources, named by its repository path. */
+export function readMarkerSources(repoRoot: string): SeedFile[] {
+  return MARKER_SOURCES.flatMap((dir) =>
+    readdirSync(join(repoRoot, dir))
+      .filter((name) => name.endsWith(".sql"))
+      .map((name) => ({
+        name: `${dir}/${name}`,
+        sql: readFileSync(join(repoRoot, dir, name), "utf8"),
+      })),
+  );
 }
 
 const sqlValues = (values: readonly string[], cast: string): string =>

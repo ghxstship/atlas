@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { compareCounts, formatDifferences, parseCounts } from "../src/compare.ts";
@@ -7,18 +7,16 @@ import {
   BLOCK_END,
   deriveSeedMarkers,
   extractMarkerBlock,
+  readMarkerSources,
   renderMarkerBlock,
   replaceMarkerBlock,
   unsafeDomains,
 } from "../src/seed-markers.ts";
 import { batchByBucket, deleteObjects, parseObjectList } from "../src/storage.ts";
 
-const seedDir = fileURLToPath(new URL("../../../supabase/seeds/", import.meta.url));
+const repoRoot = fileURLToPath(new URL("../../../", import.meta.url));
 const sqlPath = fileURLToPath(new URL("../remove-demo-data.sql", import.meta.url));
-const repoSeeds = () =>
-  readdirSync(seedDir)
-    .filter((name) => name.endsWith(".sql"))
-    .map((name) => ({ name, sql: readFileSync(`${seedDir}${name}`, "utf8") }));
+const repoSeeds = () => readMarkerSources(repoRoot);
 
 describe("seed markers", () => {
   const files = [
@@ -98,6 +96,8 @@ describe("the repository's removal script", () => {
       expect(markers.ids).toContain(id);
     }
     expect(unsafeDomains(markers)).toEqual([]);
+    expect(markers.domains).toContain("load.example.test");
+    expect(markers.files.some((name) => name.startsWith("supabase/seeds/0010_"))).toBe(true);
   });
 
   it("deletes through the sanctioned tenant purge and never switches integrity off", () => {
