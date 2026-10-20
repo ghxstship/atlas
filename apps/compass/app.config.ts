@@ -72,8 +72,85 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
   };
 }
 
+/**
+ * Store builds (RRR-113, `eas.json`). The EAS environment of each build profile supplies these values; none is
+ * committed:
+ * - XOS_APPLE_TEAM_ID: the Apple Developer team id (10 characters). @bacons/apple-targets signs the widget
+ *   extension with ios.appleTeamId; EAS signs every target itself, so the value only matters for local
+ *   device builds. Anything that is not a team id is ignored.
+ * - GOOGLE_SERVICES_JSON: an EAS file variable with the Firebase Android config, which Android needs for an
+ *   Expo push token (FCM). Without it Compass still runs and only Android push registration is skipped.
+ */
+const APPLE_TEAM_ID = /^[A-Z0-9]{10}$/;
+
+/** The EAS build profiles that reach testers or the stores. */
+export const RELEASE_PROFILES = ["preview", "production"] as const;
+
+type Env = Readonly<Record<string, string | undefined>>;
+
+function isHttpsUrl(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const url = new URL(value);
+    return (
+      url.protocol === "https:" && url.hostname !== "localhost" && url.hostname !== "127.0.0.1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Why a build would ship pointing at the wrong servers. Compass falls back to a local stack when the
+ * EXPO_PUBLIC_* values are missing (src/runtime/platform.ts), which is right in development and broken in a
+ * tester's hands, so a preview or production build on EAS stops here instead.
+ */
+export function releaseConfigProblems(env: Env): string[] {
+  const profile = env["EAS_BUILD_PROFILE"] ?? "";
+  if (env["EAS_BUILD"] !== "true" || !(RELEASE_PROFILES as readonly string[]).includes(profile)) {
+    return [];
+  }
+  const problems: string[] = [];
+  for (const name of [
+    "EXPO_PUBLIC_SUPABASE_URL",
+    "EXPO_PUBLIC_ATLAS_URL",
+    "EXPO_PUBLIC_GATEWAY_URL",
+  ]) {
+    if (!isHttpsUrl(env[name])) problems.push(`${name} must be an https URL that is not local`);
+  }
+  if (!env["EXPO_PUBLIC_SUPABASE_ANON_KEY"])
+    problems.push("EXPO_PUBLIC_SUPABASE_ANON_KEY is not set");
+  return problems.map((p) => `${p} (EAS environment "${profile}")`);
+}
+
+export function withStoreBuild(config: ExpoConfig, env: Env): ExpoConfig {
+  const problems = releaseConfigProblems(env);
+  if (problems.length > 0) {
+    throw new Error(
+      `Compass release build is missing configuration:\n- ${problems.join("\n- ")}\n` +
+        "Set the values with `eas env:create` (infra/runbooks/production.md, Compass store release).",
+    );
+  }
+  const teamId = env["XOS_APPLE_TEAM_ID"];
+  const googleServices = env["GOOGLE_SERVICES_JSON"];
+  return {
+    ...config,
+    ios: {
+      ...config.ios,
+      ...(teamId && APPLE_TEAM_ID.test(teamId) ? { appleTeamId: teamId } : {}),
+    },
+    android: {
+      ...config.android,
+      ...(googleServices ? { googleServicesFile: googleServices } : {}),
+    },
+  };
+}
+
 export default ({ config }: ConfigContext): ExpoConfig =>
-  withUniversalLinks(
-    config as ExpoConfig,
-    universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"]),
+  withStoreBuild(
+    withUniversalLinks(
+      config as ExpoConfig,
+      universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"]),
+    ),
+    process.env,
   );

@@ -1,0 +1,159 @@
+appId: pro.ghxstship.compass
+name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
+---
+# Captures the App Store and Google Play screenshots of Compass as the seeded Demo Field Tech
+# (tech@example.com) against a freshly reset local stack with supabase/seeds. Run by
+# apps/compass/scripts/store-screenshots.sh, once per simulator and device language; it works in English
+# and Spanish because it finds controls by testID, apart from seed data names. It records one gate scan
+# per run and changes nothing else: nobody clocks in and the incident report stays unsent. Captures land
+# in the working directory as raw-<name>.png; the script crops and sizes them for each store.
+- launchApp:
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "sign-in|tab-bar"
+    timeout: 120000
+- runFlow:
+    when:
+      visible:
+        id: "tab-bar"
+    file: ../subflows/sign-out.yaml
+- extendedWaitUntil:
+    visible:
+      id: "sign-in"
+    timeout: 20000
+- tapOn:
+    id: "sign-in-toggle"
+- tapOn:
+    id: "sign-in-email"
+- inputText: "tech@example.com"
+- tapOn:
+    id: "sign-in-password"
+- inputText: ${XOS_DEMO_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "sign-in-submit"
+# iOS offers to save the password after a password sign-in; it covers the app until answered.
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible: "Not Now|Ahora no"
+    commands:
+      - tapOn: "Not Now|Ahora no"
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar"
+    timeout: 30000
+# Inside the Northwind Pier geofence (supabase/seeds/0217_compass.sql).
+- setLocation:
+    latitude: 25.7752
+    longitude: -80.1855
+# Today, before the shift: the clock button, with the geofence check passed.
+- tapOn:
+    id: "tab-today"
+- extendedWaitUntil:
+    visible:
+      id: "clock-button"
+    timeout: 30000
+- waitForAnimationToEnd:
+    timeout: 8000
+- takeScreenshot: raw-01-today
+# Schedule.
+- tapOn:
+    id: "tab-schedule"
+- waitForAnimationToEnd:
+    timeout: 5000
+- takeScreenshot: raw-02-schedule
+# Scan: a Crew badge granted at the Main Gate, typed in as a badge that will not scan.
+- tapOn:
+    id: "tab-scan"
+- waitForAnimationToEnd:
+    timeout: 4000
+- tapOn:
+    id: "scan-mode-credential"
+    optional: true
+- tapOn:
+    text: "Main Gate"
+    optional: true
+- tapOn:
+    id: "scan-manual"
+- inputText: "CR-000005"
+- hideKeyboard
+- tapOn:
+    id: "scan-manual-submit"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: raw-03-scan
+# Incident report, second step, with the location filled in.
+- tapOn:
+    id: "tab-more"
+- waitForAnimationToEnd:
+    timeout: 3000
+- scrollUntilVisible:
+    element:
+      id: "more-incidents"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "more-incidents"
+- tapOn:
+    id: "incident-report"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    text: "Level 4 - Minor"
+- tapOn:
+    id: "incident-next"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn:
+    id: "incident-title"
+- inputText: "Loose cable cover at Bar 2"
+- hideKeyboard
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: raw-04-incident
+# Leave the report unsent: back out with the header's back button until the More tab shows.
+- repeat:
+    times: 6
+    while:
+      notVisible:
+        id: "more"
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "tab-more"
+          commands:
+            - tapOn:
+                id: "tab-more"
+      - runFlow:
+          when:
+            notVisible:
+              id: "tab-more"
+          commands:
+            - tapOn:
+                point: "9%,9%"
+      - waitForAnimationToEnd:
+          timeout: 3000
+# Show and show mode.
+- scrollUntilVisible:
+    element:
+      id: "more-show"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "more-show"
+- waitForAnimationToEnd:
+    timeout: 4000
+- takeScreenshot: raw-05a-show
+- tapOn:
+    id: "show-mode"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: raw-05-show
+- tapOn:
+    id: "show-mode"
+    optional: true
