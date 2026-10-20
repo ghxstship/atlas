@@ -124,8 +124,10 @@ describe("labelActivity (A59-030)", () => {
               project: { project_key: "NWS" },
             },
           },
+          { id: "s2", role_code: "5000.51.02", starts_at: "2026-10-18T12:00:00Z", record: null },
         ]),
       ],
+      "from:xpms.role": [okResponse([{ role_code: "5000.51.02", job_title: "Stagehand" }])],
       "from:credentials": [
         okResponse([{ id: "c1", credential_number: "CR-000003", holder_person_id: "p9" }]),
       ],
@@ -162,7 +164,9 @@ describe("labelActivity (A59-030)", () => {
         data: { hostname: "atlas.example.com" },
       }),
       entry({ id: "7", recordKey: "NWS-1", recordTitle: "Kickoff" }),
+      entry({ id: "8", subjectId: "s2" }),
     ]);
+    expect(labelled[7]?.subjectAt).toBe("2026-10-18T12:00:00Z");
     expect(labelled.map((e) => [e.recordKey, e.recordTitle, e.subjectLabel ?? null])).toEqual([
       ["NWS-17", "Stagehand · Load-in", null],
       ["NWS-17", "Stagehand · Load-in", null],
@@ -171,6 +175,7 @@ describe("labelActivity (A59-030)", () => {
       [null, null, "PO-44"],
       [null, null, "atlas.example.com"],
       ["NWS-1", "Kickoff", null],
+      [null, null, "Stagehand"],
     ]);
   });
 

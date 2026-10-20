@@ -1,7 +1,7 @@
 "use client";
 
 import type { ActivityEntry } from "@xos/data/activity";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 
 /*
  * Its own module so the Home tiles can describe entries without loading the activity feed's table
@@ -24,6 +24,7 @@ export interface ActivityDescription {
 export function useDescribe() {
   const a = useTranslations("activity") as unknown as Translate & { has: (k: string) => boolean };
   const p = useTranslations("projects") as unknown as Translate & { has: (k: string) => boolean };
+  const format = useFormatter();
   const state = (value: unknown) => {
     const text = String(value);
     return p.has(`states.${text}`)
@@ -44,7 +45,11 @@ export function useDescribe() {
       : subject === "project" && entry.project
         ? `${entry.project.key} ${entry.project.name}`
         : entry.subjectLabel
-          ? `${entry.subjectLabel}${where}`
+          ? `${entry.subjectLabel}${
+              entry.subjectAt
+                ? ` · ${format.dateTime(new Date(entry.subjectAt), { dateStyle: "medium", timeStyle: "short" })}`
+                : ""
+            }${where}`
           : criterion && entry.project
             ? `${criterion} · ${entry.project.key}`
             : `${noun}${where}`;

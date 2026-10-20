@@ -30,6 +30,8 @@ export interface ActivityEntry {
   readonly actorPersonId: string | null;
   /** What the entry acted on when it is not a record: a credential number, a party, a host name. */
   readonly subjectLabel?: string | null;
+  /** When the subject happens (a shift's start), for the label's date. */
+  readonly subjectAt?: string | null;
 }
 
 export interface ActivityPage<T> {
@@ -162,7 +164,7 @@ export async function labelActivity(
         ? client
             .from("shifts")
             .select(
-              "id, record:records!shifts_record_id_fkey(record_number, title, project:projects!records_project_id_fkey(project_key))",
+              "id, role_code, starts_at, record:records!shifts_record_id_fkey(record_number, title, project:projects!records_project_id_fkey(project_key))",
             )
             .in("id", shiftIds)
         : null,
@@ -192,10 +194,24 @@ export async function labelActivity(
         : null,
     ),
   ]);
-  const holders = await personNames(
-    db,
-    credentials.map((c) => text(c["holder_person_id"])),
-  );
+  const roleCodes = [
+    ...new Set(shifts.map((s) => text(s["role_code"])).filter((c): c is string => c !== null)),
+  ];
+  const canon = untyped(db).schema("xpms");
+  const [holders, roles] = await Promise.all([
+    personNames(
+      db,
+      credentials.map((c) => text(c["holder_person_id"])),
+    ),
+    read(
+      roleCodes.length > 0
+        ? canon.from("role").select("role_code, job_title").in("role_code", roleCodes)
+        : null,
+    ),
+  ]);
+  const jobTitle = new Map(roles.map((r) => [String(r["role_code"]), text(r["job_title"])]));
+  /** A shift without a record reads as its role and when it starts (in the reader's zone). */
+  const shiftLabels = new Map<string, { label: string; at: string | null }>();
   const records = new Map<string, { key: string; title: string }>();
   for (const s of shifts) {
     const record = s["record"] as {
@@ -209,6 +225,10 @@ export async function labelActivity(
         key: `${key}-${record.record_number}`,
         title: record.title ?? "",
       });
+    } else {
+      const code = text(s["role_code"]);
+      const title = code ? (jobTitle.get(code) ?? null) : null;
+      if (title) shiftLabels.set(String(s["id"]), { label: title, at: text(s["starts_at"]) });
     }
   }
   const labels = new Map<string, string>();
@@ -230,6 +250,8 @@ export async function labelActivity(
     const shift = shiftOf(e);
     const record = shift ? records.get(shift) : undefined;
     if (record) return { ...e, recordKey: record.key, recordTitle: record.title };
+    const role = shift ? shiftLabels.get(shift) : undefined;
+    if (role) return { ...e, subjectLabel: role.label, subjectAt: role.at };
     const label =
       labels.get(e.subjectId) ?? (table(e) === "org_domains" ? text(e.data["hostname"]) : null);
     return label ? { ...e, subjectLabel: label } : e;
