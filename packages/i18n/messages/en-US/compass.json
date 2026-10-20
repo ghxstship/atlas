@@ -673,5 +673,51 @@
     "prompt": "Turn on notifications to approve timesheets and other requests right from the alert.",
     "denied": "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
     "turnOn": "Turn On Notifications"
+  },
+  "help": {
+    "title": "Help",
+    "entry": "Help",
+    "entryHelp": "Articles for each screen, and Contact Support",
+    "search": "Search help",
+    "results": "Articles matching {query}",
+    "searchEmpty": "No articles match {query}. Try another word, or contact support below.",
+    "forScreen": "For the screen you were on",
+    "general": "Everywhere in Compass",
+    "all": "All help for your role",
+    "offline": "Help is saved on this phone, so it works offline.",
+    "missing": "This article is not available. Go back to Help for the others.",
+    "back": "Back to Help",
+    "contact": {
+      "open": "Contact Support",
+      "title": "Contact Support",
+      "orgTitle": "Your organization",
+      "orgBody": "Ask your organization's teams, such as operations, IT, HR or facilities, in the Help Desk. They answer there.",
+      "orgAction": "Open Help Desk",
+      "workTitle": "Your work with an organization",
+      "workBody": "Questions about an engagement, a payment, a schedule or a document go to the organization that engaged you, in Messages in Gateway.",
+      "workAction": "Open Messages in Gateway",
+      "accountTitle": "Your account",
+      "accountBody": "Platform support helps only with your own account: signing in, your email and deleting your account. It answers by email.",
+      "category": "Category",
+      "categories": {
+        "Account": "Account",
+        "Access": "Sign-In",
+        "Problem": "Problem",
+        "Question": "Question"
+      },
+      "subject": "Subject",
+      "body": "What happened, and what do you need?",
+      "diagnostics": "Attach Diagnostics",
+      "diagnosticsHelp": "Sends the screen you were on ({screen}), the app version ({version}) and your device ({device}).",
+      "send": "Send Request",
+      "required": "Fill in the subject and the message to send the request.",
+      "offline": "Sending a request needs a connection. Connect, then try again.",
+      "sent": "Request {number} sent. Platform support answers by email.",
+      "errors": {
+        "limit": "You sent five requests in the last day. Platform support answers each by email; wait for those answers first.",
+        "invalid": "The request is missing something. Check the subject and the message.",
+        "unexpected": "The request could not be sent. Try again in a moment."
+      }
+    }
   }
 }

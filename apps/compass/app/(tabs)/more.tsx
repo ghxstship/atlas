@@ -89,6 +89,13 @@ export default function MoreScreen(): ReactElement {
             onPress={() => router.push("/kiosk")}
           />
         ) : null}
+        <ListRow
+          testID="more-help"
+          icon="circle-help"
+          title={t("compass.help.entry")}
+          subtitle={t("compass.help.entryHelp")}
+          onPress={() => router.push("/help" as Href)}
+        />
       </Card>
     </Screen>
   );

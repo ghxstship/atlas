@@ -3283,6 +3283,57 @@ var compass_default$1 = {
       "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
     turnOn: "Turn On Notifications",
   },
+  help: {
+    title: "Help",
+    entry: "Help",
+    entryHelp: "Articles for each screen, and Contact Support",
+    search: "Search help",
+    results: "Articles matching {query}",
+    searchEmpty: "No articles match {query}. Try another word, or contact support below.",
+    forScreen: "For the screen you were on",
+    general: "Everywhere in Compass",
+    all: "All help for your role",
+    offline: "Help is saved on this phone, so it works offline.",
+    missing: "This article is not available. Go back to Help for the others.",
+    back: "Back to Help",
+    contact: {
+      open: "Contact Support",
+      title: "Contact Support",
+      orgTitle: "Your organization",
+      orgBody:
+        "Ask your organization's teams, such as operations, IT, HR or facilities, in the Help Desk. They answer there.",
+      orgAction: "Open Help Desk",
+      workTitle: "Your work with an organization",
+      workBody:
+        "Questions about an engagement, a payment, a schedule or a document go to the organization that engaged you, in Messages in Gateway.",
+      workAction: "Open Messages in Gateway",
+      accountTitle: "Your account",
+      accountBody:
+        "Platform support helps only with your own account: signing in, your email and deleting your account. It answers by email.",
+      category: "Category",
+      categories: {
+        Account: "Account",
+        Access: "Sign-In",
+        Problem: "Problem",
+        Question: "Question",
+      },
+      subject: "Subject",
+      body: "What happened, and what do you need?",
+      diagnostics: "Attach Diagnostics",
+      diagnosticsHelp:
+        "Sends the screen you were on ({screen}), the app version ({version}) and your device ({device}).",
+      send: "Send Request",
+      required: "Fill in the subject and the message to send the request.",
+      offline: "Sending a request needs a connection. Connect, then try again.",
+      sent: "Request {number} sent. Platform support answers by email.",
+      errors: {
+        limit:
+          "You sent five requests in the last day. Platform support answers each by email; wait for those answers first.",
+        invalid: "The request is missing something. Check the subject and the message.",
+        unexpected: "The request could not be sent. Try again in a moment.",
+      },
+    },
+  },
 };
 var credentials_default$1 = {
   categories: {
@@ -19316,6 +19367,58 @@ var compass_default = {
     denied:
       "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
     turnOn: "Activar notificaciones",
+  },
+  help: {
+    title: "Ayuda",
+    entry: "Ayuda",
+    entryHelp: "Artículos para cada pantalla, y Contactar a soporte",
+    search: "Buscar en la ayuda",
+    results: "Artículos que coinciden con {query}",
+    searchEmpty:
+      "Ningún artículo coincide con {query}. Prueba con otra palabra o contacta a soporte abajo.",
+    forScreen: "Para la pantalla donde estabas",
+    general: "En todo Compass",
+    all: "Toda la ayuda para tu rol",
+    offline: "La ayuda se guarda en este teléfono, así que funciona sin conexión.",
+    missing: "Este artículo no está disponible. Vuelve a Ayuda para ver los demás.",
+    back: "Volver a Ayuda",
+    contact: {
+      open: "Contactar a soporte",
+      title: "Contactar a soporte",
+      orgTitle: "Tu organización",
+      orgBody:
+        "Pregunta a los equipos de tu organización, como operaciones, TI, recursos humanos o instalaciones, en la Mesa de ayuda. Responden ahí.",
+      orgAction: "Abrir Mesa de ayuda",
+      workTitle: "Tu trabajo con una organización",
+      workBody:
+        "Las preguntas sobre una contratación, un pago, un horario o un documento van a la organización que te contrató, en Mensajes de Gateway.",
+      workAction: "Abrir Mensajes en Gateway",
+      accountTitle: "Tu cuenta",
+      accountBody:
+        "El soporte de la plataforma solo ayuda con tu propia cuenta: el acceso, tu correo y la eliminación de tu cuenta. Responde por correo.",
+      category: "Categoría",
+      categories: {
+        Account: "Cuenta",
+        Access: "Acceso",
+        Problem: "Problema",
+        Question: "Pregunta",
+      },
+      subject: "Asunto",
+      body: "¿Qué ocurrió y qué necesitas?",
+      diagnostics: "Adjuntar diagnósticos",
+      diagnosticsHelp:
+        "Envía la pantalla donde estabas ({screen}), la versión de la aplicación ({version}) y tu dispositivo ({device}).",
+      send: "Enviar solicitud",
+      required: "Completa el asunto y el mensaje para enviar la solicitud.",
+      offline: "Para enviar una solicitud necesitas conexión. Conéctate y vuelve a intentarlo.",
+      sent: "Se envió la solicitud {number}. El soporte de la plataforma responde por correo.",
+      errors: {
+        limit:
+          "Enviaste cinco solicitudes en el último día. El soporte de la plataforma responde cada una por correo; espera esas respuestas primero.",
+        invalid: "Falta información en la solicitud. Revisa el asunto y el mensaje.",
+        unexpected: "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento.",
+      },
+    },
   },
 };
 var credentials_default = {

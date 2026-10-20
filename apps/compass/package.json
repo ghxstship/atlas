@@ -15,6 +15,7 @@
     "build": "tsc --noEmit",
     "test": "vitest run --coverage",
     "generate:navigation": "XOS_WRITE_GENERATED=1 vitest run test/navigation.test.ts",
+    "generate:help": "XOS_WRITE_GENERATED=1 vitest run test/help.test.ts",
     "e2e": "maestro test .maestro"
   },
   "dependencies": {
