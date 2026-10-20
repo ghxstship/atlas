@@ -1411,14 +1411,6 @@
       "en-XA": "Pseudolocal (acentos)",
       "ar-XB": "Pseudolocal (derecha a izquierda)"
     },
-    "help": {
-      "title": "Ayuda",
-      "body": "Las preguntas sobre una contratación van a la organización que te contrató. Abre Mensajes para escribirles; responden ahí.",
-      "messages": "Abrir mensajes",
-      "ranking": "Cómo funciona el orden",
-      "account": "El soporte de la plataforma solo ayuda con tu propia cuenta: acceso, correo y eliminación de la cuenta.",
-      "close": "Cerrar"
-    },
     "switchOrg": {
       "title": "Cambiar de organización",
       "body": "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
