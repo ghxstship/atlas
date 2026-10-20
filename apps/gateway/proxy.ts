@@ -1,4 +1,4 @@
-import { listMyAccounts } from "@xos/data/gateway";
+import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
@@ -15,7 +15,9 @@ import {
   isPlatformHost,
   navContext,
   resolveActing,
+  routeNeeds,
 } from "@/lib/shell/standing";
+import { doesPaidWork } from "@/lib/engagement-state";
 import { createProxySupabase } from "@/lib/supabase/proxy";
 
 /**
@@ -97,14 +99,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       if (!accounts.ok)
         throw new Error(`Gateway proxy could not read accounts: ${accounts.error.kind}`);
       const acting = resolveActing(accounts.data, request.cookies.get(ACTING_COOKIE)?.value);
+      const container = sitemap.engagementTabs?.container;
+      const guarded = node.parent?.node.id === container && container ? container : match.id;
+      // Only payout, tax and work-detail routes depend on paid work; read role types just for them.
+      const roleTypes = routeNeeds(sitemap, guarded, "paid-work")
+        ? await listMyEngagementRoleTypes(db)
+        : null;
       const ctx = navContext({
         standing: acting.standing,
         companyAccount: acting.account !== null,
         platformDomain: isPlatformHost(host, platformHosts(config)),
         desktop: isDesktopAgent(request.headers.get("user-agent")),
+        paidWork: roleTypes?.ok ? doesPaidWork(roleTypes.data) : true,
       });
-      const container = sitemap.engagementTabs?.container;
-      const guarded = node.parent?.node.id === container && container ? container : match.id;
       if (!isNodeVisible(sitemap, guarded, ctx)) {
         const rewrite = NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url), {
           request: { headers: forwardedHeaders() },

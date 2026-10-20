@@ -8,6 +8,7 @@ import {
   listSettingValues,
   type OrgDomain,
 } from "@xos/data/settings";
+import { myStagedUploadStatus } from "@xos/data/staged-uploads";
 import { GeneralForm } from "@/components/settings/forms";
 import {
   AcceptLegalForm,
@@ -70,6 +71,17 @@ async function BrandPanel({ ctx }: SettingsPanelProps) {
   }
   const b = brand.data;
   const canEdit = ctx.capabilities.has("org.white_label.write");
+  // A new logo waits in upload-staging for its virus scan (1265); its uploader sees whether it is
+  // still being checked or was blocked. Null once published, and for everyone else.
+  const scans = canEdit
+    ? await Promise.all(
+        [b.logoLightPath, b.logoDarkPath, b.faviconPath, b.appIconPath].map(async (path) => {
+          if (path === null) return null;
+          const scan = await myStagedUploadStatus(ctx.viewer.db, "org-brand", path);
+          return scan.ok ? scan.data : null;
+        }),
+      )
+    : [null, null, null, null];
   return (
     <>
       <section aria-labelledby="brand-heading" className="flex flex-col gap-12">
@@ -106,24 +118,28 @@ async function BrandPanel({ ctx }: SettingsPanelProps) {
               slot="logoLight"
               label={t("settings.brand.logoLight")}
               current={b.logoLightPath}
+              scan={scans[0] ?? null}
             />
             <BrandAssetForm
               org={ctx.org.slug}
               slot="logoDark"
               label={t("settings.brand.logoDark")}
               current={b.logoDarkPath}
+              scan={scans[1] ?? null}
             />
             <BrandAssetForm
               org={ctx.org.slug}
               slot="favicon"
               label={t("settings.brand.favicon")}
               current={b.faviconPath}
+              scan={scans[2] ?? null}
             />
             <BrandAssetForm
               org={ctx.org.slug}
               slot="appIcon"
               label={t("settings.brand.appIcon")}
               current={b.appIconPath}
+              scan={scans[3] ?? null}
             />
           </div>
         </section>

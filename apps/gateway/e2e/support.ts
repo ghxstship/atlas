@@ -132,6 +132,8 @@ export async function reloadSettled(page: Page): Promise<void> {
 export async function signIn(page: Page, email: string, next = "/home"): Promise<void> {
   await page.goto(`/auth/sign-in?next=${encodeURIComponent(next)}`);
   await page.locator("#signin-email").fill(email);
+  // The password field appears on request: the sign-in link is the first choice (A59-025).
+  await page.getByRole("button", { name: "Use a password" }).click();
   await page.locator("#signin-password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Sign in with password" }).click();
   await page.waitForURL((url) => url.pathname === next.split("?")[0]);

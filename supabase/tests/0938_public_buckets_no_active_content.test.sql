@@ -34,11 +34,12 @@ end $$;
 select isnt(pg_temp.upload_svg(), 'stored',
   'an SVG cannot be stored in the public profile-media bucket');
 
+-- Since 1265 a file for a public bucket is uploaded to upload-staging first, under the same rules.
 create function pg_temp.upload(p_name text, p_type text) returns text
 language plpgsql as $$
 begin
   insert into storage.objects (bucket_id, name, owner_id, metadata)
-  values ('profile-media', pg_temp.id('nina') || '/' || p_name, pg_temp.id('nina_user')::text,
+  values ('upload-staging', 'profile-media/' || pg_temp.id('nina') || '/' || p_name, pg_temp.id('nina_user')::text,
           jsonb_build_object('mimetype', p_type, 'size', 120));
   return 'stored';
 exception when others then
@@ -47,7 +48,7 @@ end $$;
 select isnt(pg_temp.upload('page.html', 'image/png'), 'stored',
   'an HTML file name is refused even when its declared type is an image');
 select is(pg_temp.upload('avatar.png', 'image/png'), 'stored',
-  'a PNG avatar is stored in the person''s own folder');
+  'a PNG avatar is staged for the person''s own folder');
 
 select * from finish();
 rollback;

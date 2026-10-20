@@ -194,6 +194,9 @@ export const CONDITIONS = [
   "platform-domain",
   "company-account",
   "org-allows-personal-tokens",
+  // Gateway: the person does paid work (not only client or sponsor engagements), so payout, tax
+  // and work details apply to them (finding A59-033).
+  "paid-work",
 ] as const;
 export type Condition = (typeof CONDITIONS)[number];
 

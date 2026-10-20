@@ -9,6 +9,7 @@ import {
   setModuleEnabled,
   type BrandInput,
 } from "@xos/data/settings";
+import { stagePublicUpload } from "@xos/data/staged-uploads";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -109,7 +110,11 @@ const LOGO_TYPES: Readonly<Record<string, string>> = {
 };
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
-/** Uploads one logo or icon to the org-brand bucket and points the brand at it. */
+/**
+ * Uploads one logo or icon for the org-brand bucket and points the brand at it. The file is staged in
+ * upload-staging and published to org-brand once its virus scan passes (migration 1265), so the brand
+ * shows it from then on; until then, and if the scan blocks it, the slot shows why.
+ */
 export async function uploadBrandAssetAction(
   _: IdentityFormState,
   form: FormData,
@@ -124,10 +129,8 @@ export async function uploadBrandAssetAction(
   if (!extension) return { fieldErrors: { file: "fileType" } };
   if (file.size > LOGO_MAX_BYTES) return { fieldErrors: { file: "fileSize" } };
   const path = `${ctx.org.id}/${slot.data}-${Date.now()}.${extension}`;
-  const upload = await ctx.viewer.db.storage
-    .from("org-brand")
-    .upload(path, file, { contentType: file.type, upsert: false });
-  if (upload.error) return { error: "uploadFailed" };
+  const upload = await stagePublicUpload(ctx.viewer.db, "org-brand", path, file, file.type);
+  if (!upload.ok) return { error: "uploadFailed" };
   const current = await getOrgBrand(ctx.viewer.db, ctx.org.id);
   if (!current.ok) return { error: settingErrorKey(current.error) };
   const brand: BrandInput = { ...current.data, [LOGO_SLOTS[slot.data]]: path };

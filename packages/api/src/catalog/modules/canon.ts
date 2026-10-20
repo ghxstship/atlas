@@ -7,6 +7,10 @@ import { z } from "@hono/zod-openapi";
 import { canonCodes, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeVerbs, setOrder, setTable } from "../correct.ts";
+import {
+  canonEmergencyProtocolResources,
+  canonFieldExposure,
+} from "./parts/playbook-field-exposure.ts";
 
 const TITLE_CASE = /^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$/;
 
@@ -48,6 +52,7 @@ const mirrorReason = (table: string, sheet: string) =>
   `${table} (0105) mirrors the Playbook ${sheet} sheet cell for cell: the row is keyed by its RECORD ID and every other cell is nullable text, number or boolean as the sheet holds it. The frozen shape named fields the sheet does not have. ADR 0023 left these mirrors for the canon owner; their columns are fixed by the import (Section 2.1), so the shape follows them (ADR 0032).`;
 
 export const additions = defineAdditions("Canon", {
+  resources: [...canonEmergencyProtocolResources],
   corrections: [
     {
       id: "canon-act-code",
@@ -920,5 +925,6 @@ export const additions = defineAdditions("Canon", {
         },
       }),
     },
+    ...canonFieldExposure,
   ],
 });

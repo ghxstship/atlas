@@ -1,5 +1,8 @@
 appId: pro.ghxstship.compass
 name: Clock in during airplane mode, then the queue drains on reconnect
+# CI runs this flow on Android only (apps/compass/scripts/maestro-ci.sh --exclude-tags airplane-mode).
+tags:
+  - airplane-mode
 ---
 # Maestro toggles airplane mode on Android emulators; on iOS simulators run this flow on Android or
 # disconnect the host network by hand at the marked step.

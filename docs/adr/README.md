@@ -39,5 +39,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0033](0033-owner-decisions-2026-10-19.md)               | Owner Decisions of 2026-10-19                                                    | Accepted |
 | [0034](0034-upload-scanning.md)                          | Upload Scanning with Self-Hosted ClamAV, and Other Owner Decisions of 2026-10-19 | Accepted |
 | [0035](0035-pricing-v4-seats-and-add-ons.md)             | Pricing v4: Seat-Based Plans, Extra Seats, Add-Ons and Grandfathering            | Accepted |
+| [0037](0037-machine-translation.md)                      | Machine Translation Replaces the Native Spanish Reviewer                         | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

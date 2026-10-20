@@ -1,9 +1,10 @@
 import { COMPASS_AURORA_ENTRY } from "@xos/ai/conversation";
 import { isInternal } from "@xos/sync";
+import * as Linking from "expo-linking";
 import { useRouter, type Href } from "expo-router";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { moreMenu } from "../../src/domain/access";
+import { elsewhereLink, moreSections } from "../../src/domain/access";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { ProjectPicker, SyncBanner, useAllowed } from "../../src/screens/common";
 import { Badge, Card, ListRow, Screen } from "../../src/ui";
@@ -15,39 +16,37 @@ const ICONS: Readonly<Record<string, string>> = {
   logistics: "package",
   show: "clapperboard",
   "run-of-show": "clapperboard",
-  expenses: "file-text",
   reference: "book-open",
   "offline-queue": "refresh-cw",
   profile: "user",
   settings: "settings",
 };
 
-/** Routes Compass renders itself; every other More entry opens the pending-page state. */
-const NATIVE = new Set([
-  "incidents",
-  "inspections",
-  "logistics",
-  "show",
-  "run-of-show",
-  "reference",
-  "offline-queue",
-  "profile",
-  "settings",
-]);
-
-/** The More menu in the sitemap's order for the person's role (Section 4.5.7). */
+/**
+ * The More menu in the sitemap's order for the person's role (Section 4.5.7). Compass's own screens
+ * are listed; the entries it does not render yet (timesheets, per diem, purchase orders, expenses
+ * and the rest) are named on one row that opens Gateway or Atlas directly, instead of one "this is
+ * in Gateway" page per entry (finding A59-026).
+ */
 export default function MoreScreen(): ReactElement {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { resolved, status } = useCompass();
+  const { resolved, status, config } = useCompass();
   const canKiosk = useAllowed("kiosk.operate");
-  const items = resolved ? moreMenu(resolved.identity.audience) : [];
+  const audience = resolved?.identity.audience;
+  const { native, elsewhere } = audience ? moreSections(audience) : { native: [], elsewhere: [] };
+  const link = audience ? elsewhereLink(audience, config) : null;
+  const labels = elsewhere.map((m) => t(m.label));
+  const names =
+    typeof Intl.ListFormat === "function"
+      ? new Intl.ListFormat(i18n.language, { type: "conjunction" }).format(labels)
+      : labels.join(", ");
   return (
     <Screen testID="more" title={t("compass.more.title")}>
       <ProjectPicker />
       <SyncBanner />
       <Card>
-        {items.map((item) => (
+        {native.map((item) => (
           <ListRow
             key={item.id}
             testID={`more-${item.id}`}
@@ -58,12 +57,10 @@ export default function MoreScreen(): ReactElement {
                 <Badge count={status.queued} tone={status.conflicts > 0 ? "danger" : "neutral"} />
               ) : undefined
             }
-            onPress={() =>
-              router.push((NATIVE.has(item.id) ? item.route : `/pending/${item.id}`) as Href)
-            }
+            onPress={() => router.push(item.route as Href)}
           />
         ))}
-        {resolved && isInternal(resolved.identity.audience) ? (
+        {audience && isInternal(audience) ? (
           <ListRow
             testID="more-workforce"
             icon="users"
@@ -71,7 +68,7 @@ export default function MoreScreen(): ReactElement {
             onPress={() => router.push("/workforce" as Href)}
           />
         ) : null}
-        {resolved && isInternal(resolved.identity.audience) ? (
+        {audience && isInternal(audience) ? (
           <ListRow
             testID={`more-${COMPASS_AURORA_ENTRY.id}`}
             icon="sparkles"
@@ -89,7 +86,27 @@ export default function MoreScreen(): ReactElement {
             onPress={() => router.push("/kiosk")}
           />
         ) : null}
+        <ListRow
+          testID="more-help"
+          icon="circle-help"
+          title={t("compass.help.entry")}
+          subtitle={t("compass.help.entryHelp")}
+          onPress={() => router.push("/help" as Href)}
+        />
       </Card>
+      {link && elsewhere.length > 0 ? (
+        <Card title={t(link.app === "atlas" ? "compass.more.inAtlas" : "compass.more.inGateway")}>
+          <ListRow
+            testID={`more-open-${link.app}`}
+            icon="external-link"
+            title={t(
+              link.app === "atlas" ? "compass.common.openAtlas" : "compass.common.openGateway",
+            )}
+            subtitle={names}
+            onPress={() => void Linking.openURL(link.url)}
+          />
+        </Card>
+      ) : null}
     </Screen>
   );
 }

@@ -4,8 +4,8 @@ import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ThemeFollower, XOSProvider } from "@/components/ui";
-import { localeDirection, type GatewayLocale } from "@/i18n/negotiate";
-import { clientMessages, uiMessages } from "@/i18n/request";
+import { localeDirection } from "@/i18n/negotiate";
+import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
 import { brandStyle } from "@/lib/brand/brand";
 import { getRequestFacts } from "@/lib/shell/context";
 import { THEME_COOKIE, preferenceFromCookie, renderedTheme } from "@/lib/theme";
@@ -25,7 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
  * and the org brand accent on a custom Gateway domain (Section 4.4.7).
  */
 export default async function RootLayout({ children }: { children: ReactNode }) {
-  const [locale, cookieStore, headerStore, facts] = await Promise.all([
+  // The negotiated locale (a pseudo-locale in development) picks the language, direction and messages; next-intl's
+  // locale, which XOSProvider formats with, is its formatting locale (i18n/request.ts, A53-001).
+  const [locale, formatting, cookieStore, headerStore, facts] = await Promise.all([
+    negotiatedLocale(),
     getLocale(),
     cookies(),
     headers(),
@@ -33,7 +36,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   ]);
   const preference = preferenceFromCookie(cookieStore.get(THEME_COOKIE)?.value);
   const theme = renderedTheme(preference, headerStore.get("sec-ch-prefers-color-scheme"));
-  const overrides = uiMessages(locale as GatewayLocale);
+  const overrides = uiMessages(locale);
   return (
     <html
       lang={locale}
@@ -43,8 +46,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       style={brandStyle(facts.brand)}
     >
       <body>
-        <NextIntlClientProvider messages={clientMessages(locale as GatewayLocale)}>
-          <XOSProvider locale={locale} {...(overrides ? { messages: overrides } : {})}>
+        <NextIntlClientProvider messages={clientMessages(locale)}>
+          <XOSProvider locale={formatting} {...(overrides ? { messages: overrides } : {})}>
             {preference === "system" ? <ThemeFollower /> : null}
             {children}
           </XOSProvider>

@@ -1,95 +1,24 @@
 /**
- * Build-time only: reads the help content directory with node:fs (see model.ts for the convention).
- * The generator test imports it; the Next.js app reads content.generated.ts and bodies.generated.ts.
+ * Build-time only: reads the Atlas help content directory with node:fs through @xos/help/node (see
+ * model.ts for the convention). The generator test imports it; the Next.js app reads
+ * content.generated.ts, guides.generated.ts and bodies.generated.ts.
  */
-import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse } from "yaml";
-import { z } from "zod";
 import {
-  ARTICLE_KINDS,
-  HELP_LOCALES,
-  parseBody,
-  type Article,
-  type ArticleSummary,
-  type HelpBodies,
-  type HelpContent,
-  type HelpGuides,
-  type HelpIndex,
-  type HelpLocale,
-} from "./model";
+  loadHelpContent as loadFrom,
+  renderHelpBodies as bodies,
+  renderHelpGuides as guides,
+  renderHelpModule as index,
+} from "@xos/help/node";
+import type { HelpContent } from "./model";
+
+export { parseArticle } from "@xos/help/node";
 
 export const HELP_DIR = fileURLToPath(new URL("./", import.meta.url));
 
-const KEY = /^[a-z][a-z0-9-]*(\.[a-z][a-z0-9-]*)*$/;
-const NODE_PATTERN = /^(\*|[a-z][a-z0-9-]*(\.[a-z0-9-]+)*(\.\*)?)$/;
-
-const frontmatter = z.strictObject({
-  title: z.string().min(1).max(120),
-  summary: z.string().min(1).max(300),
-  kind: z.enum(ARTICLE_KINDS),
-  nodes: z.array(z.string().regex(NODE_PATTERN)),
-  order: z.number().int().min(0),
-});
-
-/** Parses one article file: YAML frontmatter between `---` lines, then the Markdown body. */
-export function parseArticle(slug: string, text: string): Article {
-  const match = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(text);
-  if (!match) throw new Error(`Article ${slug} has no frontmatter.`);
-  const meta = frontmatter.parse(parse(match[1] as string));
-  return { slug, ...meta, body: parseBody(match[2] as string) };
-}
-
-const toursFile = z.strictObject({
-  tours: z.array(
-    z.strictObject({
-      key: z.string().regex(KEY),
-      nodes: z.array(z.string().regex(NODE_PATTERN)).min(1),
-      steps: z.array(z.strictObject({ target: z.string().min(1).nullable() })).min(1),
-    }),
-  ),
-});
-const tipsFile = z.strictObject({
-  tips: z.array(
-    z.strictObject({
-      key: z.string().regex(KEY),
-      nodes: z.array(z.string().regex(NODE_PATTERN)).min(1),
-      article: z.string().regex(KEY),
-    }),
-  ),
-});
-const whatsNewFile = z.strictObject({
-  entries: z.array(
-    z.strictObject({
-      key: z.string().regex(KEY),
-      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      article: z.string().regex(KEY).nullable().optional(),
-    }),
-  ),
-});
-
 /** Reads every article, tour, tip and What's New entry. */
 export function loadHelpContent(dir: string = HELP_DIR): HelpContent {
-  const articles = Object.fromEntries(
-    HELP_LOCALES.map((locale) => {
-      const folder = join(dir, "articles", locale);
-      const list = readdirSync(folder)
-        .filter((f) => f.endsWith(".md"))
-        .sort()
-        .map((f) => parseArticle(f.slice(0, -3), readFileSync(join(folder, f), "utf8")));
-      return [locale, list];
-    }),
-  ) as Record<HelpLocale, Article[]>;
-  const read = (name: string) => parse(readFileSync(join(dir, name), "utf8")) as unknown;
-  return {
-    articles,
-    tours: toursFile.parse(read("tours.yaml")).tours,
-    tips: tipsFile.parse(read("tips.yaml")).tips,
-    whatsNew: whatsNewFile
-      .parse(read("whats-new.yaml"))
-      .entries.map((e) => ({ key: e.key, date: e.date, article: e.article ?? null })),
-  };
+  return loadFrom(dir);
 }
 
 const HEADER = [
@@ -99,27 +28,7 @@ const HEADER = [
 
 /** The help index the shell loads with every page: everything but the article bodies. */
 export function renderHelpModule(content: HelpContent): string {
-  const summary = (a: Article): ArticleSummary => ({
-    slug: a.slug,
-    title: a.title,
-    summary: a.summary,
-    kind: a.kind,
-    nodes: a.nodes,
-    order: a.order,
-  });
-  const index: HelpIndex = {
-    ...content,
-    articles: Object.fromEntries(
-      HELP_LOCALES.map((l) => [l, content.articles[l].map(summary)]),
-    ) as unknown as HelpIndex["articles"],
-  };
-  return [
-    ...HEADER,
-    'import type { HelpIndex } from "./model";',
-    "",
-    `export const HELP_CONTENT: HelpIndex = ${JSON.stringify(index)};`,
-    "",
-  ].join("\n");
+  return index(content, HEADER);
 }
 
 /**
@@ -127,29 +36,10 @@ export function renderHelpModule(content: HelpContent): string {
  * and loads the help panel (with the article index) only when it does or the person opens Help.
  */
 export function renderHelpGuides(content: HelpContent): string {
-  const guides: HelpGuides = { tours: content.tours, tips: content.tips };
-  return [
-    ...HEADER,
-    'import type { HelpGuides } from "./model";',
-    "",
-    `export const HELP_GUIDES: HelpGuides = ${JSON.stringify(guides)};`,
-    "",
-  ].join("\n");
+  return guides(content, HEADER);
 }
 
 /** The article bodies, which the help panel imports when it opens. */
 export function renderHelpBodies(content: HelpContent): string {
-  const bodies: HelpBodies = Object.fromEntries(
-    HELP_LOCALES.map((l) => [
-      l,
-      Object.fromEntries(content.articles[l].map((a) => [a.slug, a.body])),
-    ]),
-  ) as HelpBodies;
-  return [
-    ...HEADER,
-    'import type { HelpBodies } from "./model";',
-    "",
-    `export const HELP_BODIES: HelpBodies = ${JSON.stringify(bodies)};`,
-    "",
-  ].join("\n");
+  return bodies(content, HEADER);
 }

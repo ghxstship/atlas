@@ -12,6 +12,7 @@ Section 5.1 (global performance and reliability), Section 9 (operations) and Sec
 | `db/`            | Partition proposals for `time_entries` and `access_scans`, and their verification                         | `db/README.md`                             |
 | `powersync/`     | PowerSync service configuration, local stack and readiness check for Compass sync                         | `powersync/README.md`                      |
 | `ci/`            | Reusable CI scripts and the exact workflow snippets for the orchestrator                                  | `ci/README.md`                             |
+| `production/`    | Demo-data removal before promoting staging to production, its row-count comparison and storage step       | `runbooks/promote-to-production.md`        |
 | `runbooks/`      | Production deploys and rollback, incident response, backup and restore, progressive delivery              | `runbooks/production.md`                   |
 
 ## Cost rules

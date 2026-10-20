@@ -619,6 +619,14 @@ describe("formats", () => {
     expect(formatCsv([{ o: { n: 1 } }])).toBe('o\n"{""n"":1}"\n');
   });
 
+  // A69-005: exports opened in a spreadsheet never run record data as a formula, and import back unchanged.
+  it("neutralizes formula cells on export and restores them on import", () => {
+    const rows = [{ name: '=HYPERLINK("https://evil.example","x")', n: "-12.5", at: "@home" }];
+    const csv = formatCsv(rows);
+    expect(csv).toBe(`name,n,at\n"'=HYPERLINK(""https://evil.example"",""x"")",-12.5,'@home\n`);
+    expect(parseCsv(csv)).toEqual(rows);
+  });
+
   it("reads NDJSON and JSON arrays and refuses other files", () => {
     expect(parseRows('{"a":1}\n\n{"a":2}\n', "x.jsonl")).toEqual([{ a: 1 }, { a: 2 }]);
     expect(() => parseRows("[1]\n", "x.ndjson")).toThrow(/not a JSON object/);

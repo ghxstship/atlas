@@ -79,12 +79,14 @@ select pg_temp.as_stepped_up('dave');
 select lives_ok($$select app.start_break_glass((select id from world where key = 'org_a'), 'Locked out by the allow-list on the road to the venue.')$$,
   'he takes emergency access');
 insert into world select 'bg2', id from app.break_glass_sessions where person_id = pg_temp.id('dave');
-select pg_temp.claims('dave');
+-- 1298 (A69-009): the emergency reach applies in the holder's second-factor session only.
+select pg_temp.as_stepped_up('dave');
+select set_config('role', 'postgres', true);
 select is(private.has_capability(pg_temp.id('org_a'), 'org.security.write'), true, 'during: the Owner role''s capabilities reach org-wide');
-select pg_temp.as_user('dave');
+select pg_temp.as_stepped_up('dave');
 select is((select allowed from app.network_access(pg_temp.id('org_a'), '198.51.100.7')), true, 'during: the allow-list lets the holder in');
 select lives_ok($$select app.end_break_glass((select id from world where key = 'bg2'))$$, 'he ends it early');
-select pg_temp.claims('dave');
+select set_config('role', 'postgres', true);
 select is(private.has_capability(pg_temp.id('org_a'), 'org.security.write'), false, 'after: the extra reach is gone');
 
 select pg_temp.as_user('xavier');

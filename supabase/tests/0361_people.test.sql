@@ -131,7 +131,9 @@ select pg_temp.as_platform();
 -- Filling
 select pg_temp.as_user('carol');
 select lives_ok($$select app.transition_requisition((select id from world where key = 'req1'), 'Approved', 'Filled', 'Hired.')$$, 'an Approved requisition is Filled');
-select throws_ok($$select app.transition_requisition((select id from world where key = 'req1'), 'Filled', 'Approved', 'Reopen.')$$, 'XR001', null, 'Filled is terminal');
+-- A move to Approved meets requisition_use_approval_rpc first; Canceled passes the guards, so the rules refuse (A54-003).
+select throws_ok($$select app.transition_requisition((select id from world where key = 'req1'), 'Filled', 'Canceled', 'Reopen.')$$,
+  'XR001', 'requisition_transition_not_allowed: A requisition cannot move from Filled to Canceled.', 'Filled is terminal');
 select pg_temp.as_platform();
 
 -- Role assignments --------------------------------------------------------------------------------------------
@@ -244,7 +246,9 @@ select throws_ok($$update app.agreements set title = 'Edited' where id = (select
   'XR001', 'agreement_signed_permanent: A signed agreement is never revoked, unsigned or edited; supersede it with a new agreement.', 'or edited');
 select throws_ok($$update app.agreements set deleted_at = now() where id = (select id from world where key = 'agr1')$$, 'XR001', null, 'or deleted');
 select lives_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Signed', 'Superseded', 'Replaced by the revised letter.')$$, 'it can only be superseded');
-select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Superseded', 'Signed', 'Back.')$$, 'XR001', null, 'Superseded is terminal');
+-- A move to Signed meets agreement_signed_by_signer first; Canceled passes the guards, so the rules refuse (A54-003).
+select throws_ok($$select app.transition_agreement((select id from world where key = 'agr1'), 'Superseded', 'Canceled', 'Back.')$$,
+  'XR001', 'agreement_transition_not_allowed: A agreement cannot move from Superseded to Canceled.', 'Superseded is terminal');
 
 -- Recall voids the token; signing while signed in
 insert into tokens select 'agr_nda', t.signing_token, t.access_code from app.send_agreement(pg_temp.id('agr_nda'), 'Sent.') t;

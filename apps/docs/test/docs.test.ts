@@ -3,8 +3,8 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { resolveHref } from "../lib/links.ts";
-import { guides, helpArticles, searchPages, whatsNew } from "../lib/content.ts";
+import { isAppPath, resolveHref } from "../lib/links.ts";
+import { guides, helpArticles, helpPath, searchPages, whatsNew } from "../lib/content.ts";
 import { LOCALES, negotiate, translator } from "../lib/i18n.ts";
 import {
   linksIn,
@@ -183,6 +183,31 @@ describe("help center", () => {
     for (const locale of LOCALES)
       expect(helpArticles(locale).map((a) => a.slug)).toEqual(en.map((a) => a.slug));
     expect(en.every((a) => ["guide", "page", "workflow", "glossary"].includes(a.kind))).toBe(true);
+  });
+
+  it("publishes Gateway and Compass help beside Atlas, in every locale", () => {
+    for (const shell of ["gateway", "compass"] as const) {
+      const en = helpArticles("en-US", shell);
+      expect(en.length, shell).toBeGreaterThan(30);
+      for (const locale of LOCALES) {
+        const articles = helpArticles(locale, shell);
+        expect(articles.map((a) => a.slug)).toEqual(en.map((a) => a.slug));
+        const slugs = new Set(articles.map((a) => a.slug));
+        for (const a of articles) {
+          for (const href of linksIn(a.body).filter((h) => h.startsWith("help:"))) {
+            expect(slugs.has(href.slice(5)), `${shell}/${locale}/${a.slug}: ${href}`).toBe(true);
+          }
+        }
+      }
+    }
+    expect(helpPath("es-US", "atlas", "gates")).toBe("/es-US/help/gates");
+    expect(helpPath("en-US", "gateway", "home")).toBe("/en-US/help/gateway/home");
+    expect(resolveHref("help:home", "en-US", "/en-US/help/compass")).toEqual({
+      href: "/en-US/help/compass/home",
+      external: false,
+    });
+    expect(isAppPath("/settings/account", "en-US")).toBe(true);
+    expect(isAppPath("/en-US/help", "en-US")).toBe(false);
   });
 
   it("searches titles first", () => {

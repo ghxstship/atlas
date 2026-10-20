@@ -654,6 +654,7 @@ sheets:
         target: app.record_assignments.membership_id
         type: text
         transform: Person assigned to the task.
+        api: Exposed as app.records.assignee_membership_ids
       - letter: L
         header: ASSIGNEE NAME
         key: assignee_name
@@ -729,6 +730,7 @@ sheets:
         target: app.record_task.progress_pct
         type: numeric
         transform: Progress of the task record (0 to 1 in the Playbook, a percentage in XOS).
+        api: Exposed as app.records.progress_pct
       - letter: V
         header: STATUS
         key: status
@@ -846,6 +848,7 @@ sheets:
         target: app.record_assignments.membership_id
         type: text
         transform: Person assigned to the work order's record.
+        api: Exposed as app.records.assignee_membership_ids
       - letter: M
         header: LEAD ASSIGNEE NAME
         key: lead_assignee_name
@@ -953,6 +956,7 @@ sheets:
         target: app.record_task.progress_pct
         type: numeric
         transform: Progress of the work order's record.
+        api: Exposed as app.records.progress_pct
       - letter: AA
         header: STATUS
         key: status
@@ -3136,6 +3140,7 @@ sheets:
         target: app.clock_punches.effective_at
         type: time
         transform: Meal out as a Break Start punch.
+        api: Exposed as app.time_entries.meal_out_at
       - letter: L
         header: MEAL IN TIME
         key: meal_in_time
@@ -3143,6 +3148,7 @@ sheets:
         target: app.clock_punches.effective_at
         type: time
         transform: Meal in as a Break End punch.
+        api: Exposed as app.time_entries.meal_in_at
       - letter: M
         header: ACTUAL OUT TIME
         key: actual_out_time
@@ -4037,6 +4043,7 @@ sheets:
         type: text
         transform: Actual spend is derived from postings (Section 3.15); the column is empty in the Playbook.
         real_world: price
+        api: Exposed as app.budget_lines.actual_minor
       - letter: AA
         header: VARIANCE
         key: variance
@@ -4090,6 +4097,7 @@ sheets:
         target: app.budget_line_facts.account_code
         type: text
         transform: GL account is derived from the line's category (Bible tab 31); the column restates it.
+        api: Exposed as app.budget_lines.account_code
       - letter: AH
         header: ACCOUNT NAME
         key: account_name
@@ -4251,6 +4259,7 @@ sheets:
         target: app.change_order_line_facts.account_code
         type: numeric
         transform: GL account is derived from the line's category (Bible tab 31).
+        api: Exposed as app.change_order_lines.account_code
       - letter: O
         header: COST CENTER
         key: cost_center
@@ -4258,6 +4267,7 @@ sheets:
         target: app.change_order_line_facts.cost_center_id
         type: text
         transform: Cost center of the budget line the change revises.
+        api: Exposed as app.change_order_lines.cost_center_id
       - letter: P
         header: CURRENCY
         key: currency
@@ -4301,6 +4311,7 @@ sheets:
         type: text
         transform: Who moved the change order to Approved, from its transition ledger.
         real_world: person
+        api: Exposed as app.change_orders.approved_by
       - letter: V
         header: APPROVAL DATE
         key: approval_date
@@ -4308,6 +4319,7 @@ sheets:
         target: app.change_order_state_transitions.created_at
         type: date
         transform: When the change order moved to Approved, from its transition ledger.
+        api: Exposed as app.change_orders.approved_at
       - letter: W
         header: STATUS
         key: status
@@ -4387,6 +4399,7 @@ sheets:
         target: app.purchase_order_state_transitions.created_at
         type: date
         transform: Issue date is when the order moved to Sent, from its transition ledger.
+        api: Exposed as app.purchase_orders.sent_at
       - letter: F
         header: DELIVERY DATE
         key: delivery_date
@@ -4449,6 +4462,7 @@ sheets:
         type: numeric
         transform: Invoiced amount is derived from the invoices matched to the order (invoice_matches).
         real_world: price
+        api: Exposed as app.purchase_orders.invoiced_minor
       - letter: N
         header: PAID AMOUNT
         key: paid_amount
@@ -4457,6 +4471,7 @@ sheets:
         type: numeric
         transform: Paid amount is derived from payments applied to the matched invoices.
         real_world: price
+        api: Exposed as app.purchase_orders.paid_minor
       - letter: O
         header: CURRENCY
         key: currency
@@ -4574,6 +4589,7 @@ sheets:
         target: app.budget_line_facts.account_code
         type: numeric
         transform: GL account of the committed budget line, derived from its category (Bible tab 31).
+        api: Exposed as app.budget_lines.account_code
       - letter: J
         header: COST CENTER
         key: cost_center
@@ -4965,6 +4981,7 @@ sheets:
         target: app.vendor_bank_accounts.account_last4
         type: text
         transform: ACH form on file is derived from the vendor's bank account.
+        api: Exposed as app.vendors.bank_account_last4
       - letter: T
         header: COI
         key: coi
@@ -5294,6 +5311,7 @@ sheets:
         type: text
         transform: Permit identifier issued by the authority, on the permit record of the inspection.
         real_world: identifier
+        api: Exposed as app.records.permit_identifier
       - letter: K
         header: PERMIT DOC ID
         key: permit_doc_id
@@ -5347,6 +5365,7 @@ sheets:
         target: app.record_inspection.result_enum_id
         type: text
         transform: Inspection Result enumeration row (Standard Library) on the inspection record.
+        api: Exposed as app.records.inspection_result_enum_id
       - letter: R
         header: DEFICIENCY SUMMARY
         key: deficiency_summary
@@ -5529,6 +5548,7 @@ sheets:
         target: app.incident_state_transitions.created_at
         type: text
         transform: When the incident moved to Closed, from its transition ledger.
+        api: Exposed as app.incidents.closed_at
       - letter: Q
         header: POLICE REPORT NUMBER
         key: police_report_number
@@ -5673,6 +5693,7 @@ sheets:
         target: xpms.emergency_protocol_step.body
         type: text
         transform: Split into numbered steps; ruling D15 replaces agency names with service tokens.
+        api: Exposed as xpms.emergency_protocol.steps
       - letter: K
         header: STATUS
         key: status
@@ -5994,6 +6015,7 @@ sheets:
         target: xpms.dim_gl_account_type.normal_balance
         type: text
         transform: Normal balance depends on the account type; stored once per type.
+        api: Exposed as xpms.dim_gl_account.normal_balance
       - letter: F
         header: DESCRIPTION
         key: description
@@ -6293,6 +6315,7 @@ sheets:
         target: xpms.v_category_gl.account_code
         type: numeric
         transform: Cross-checked against the Bible value; a difference waits in xpms.intake.
+        api: Exposed as xpms.dim_category_gl.account_code
       - letter: G
         header: SCHEMA FAMILY (XYZ)
         key: schema_family_xyz

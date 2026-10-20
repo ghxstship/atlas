@@ -1,5 +1,5 @@
 import { strongestAccountRole, type AccountRole, type ExternalAccount } from "@xos/data/gateway";
-import type { Condition, NavContext } from "@xos/ia";
+import { getNode, type Condition, type NavContext, type Sitemap } from "@xos/ia";
 
 /**
  * A person's standing in Gateway (ADR 0006 item 6, Section 4.5.8): they act for themselves
@@ -53,16 +53,25 @@ export function isDesktopAgent(userAgent: string | null): boolean {
   return !/Mobi|Android|iPhone|iPad|iPod/i.test(userAgent ?? "");
 }
 
+/** Whether a node, or one of its ancestors, renders only when a condition holds. */
+export function routeNeeds(sitemap: Sitemap, id: string, condition: Condition): boolean {
+  const entry = getNode(sitemap, id);
+  return [entry, ...entry.ancestors].some((e) => e.node.conditions?.includes(condition) ?? false);
+}
+
 /** The sitemap navigation context for a standing and the request's conditions. */
 export function navContext(input: {
   readonly standing: Standing | null;
   readonly companyAccount: boolean;
   readonly platformDomain: boolean;
   readonly desktop: boolean;
+  /** The person does paid work (finding A59-033); omitted, it holds. */
+  readonly paidWork?: boolean;
 }): NavContext {
   const conditions: Condition[] = [];
   if (input.companyAccount) conditions.push("company-account");
   if (input.platformDomain) conditions.push("platform-domain");
   if (input.desktop) conditions.push("desktop");
+  if (input.paidWork ?? true) conditions.push("paid-work");
   return { role: input.standing, conditions };
 }

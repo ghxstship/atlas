@@ -75,14 +75,28 @@
   },
   "help": {
     "title": "Help center",
-    "sentence": "How Atlas works, page by page. These are the articles the help panel shows inside the app.",
+    "sentence": "How Atlas, Gateway and Compass work, page by page. These are the articles each app's help panel shows.",
     "searchLabel": "Search help",
     "searchButton": "Search",
     "results": "{count} articles match {query}.",
     "noResults": "No articles match {query}. Try a shorter word, or browse the topics below.",
     "whatsNew": "What's new",
     "related": "Open the related article",
-    "back": "All help articles"
+    "back": "All help articles",
+    "shells": {
+      "atlas": {
+        "title": "Atlas",
+        "sentence": "For members of an organization, page by page."
+      },
+      "gateway": {
+        "title": "Gateway",
+        "sentence": "For the people and companies organizations engage: opportunities, engagements, pay and settings."
+      },
+      "compass": {
+        "title": "Compass",
+        "sentence": "The field app for members and everyone they engage, screen by screen."
+      }
+    }
   },
   "notFound": {
     "title": "This page does not exist",
