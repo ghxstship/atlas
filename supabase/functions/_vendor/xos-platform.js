@@ -4268,7 +4268,7 @@ var docs_default$1 = {
   help: {
     title: "Help center",
     sentence:
-      "How Atlas works, page by page. These are the articles the help panel shows inside the app.",
+      "How Atlas, Gateway and Compass work, page by page. These are the articles each app's help panel shows.",
     searchLabel: "Search help",
     searchButton: "Search",
     results: "{count} articles match {query}.",
@@ -4276,6 +4276,21 @@ var docs_default$1 = {
     whatsNew: "What's new",
     related: "Open the related article",
     back: "All help articles",
+    shells: {
+      atlas: {
+        title: "Atlas",
+        sentence: "For members of an organization, page by page.",
+      },
+      gateway: {
+        title: "Gateway",
+        sentence:
+          "For the people and companies organizations engage: opportunities, engagements, pay and settings.",
+      },
+      compass: {
+        title: "Compass",
+        sentence: "The field app for members and everyone they engage, screen by screen.",
+      },
+    },
   },
   notFound: {
     title: "This page does not exist",
@@ -20386,7 +20401,7 @@ var docs_default = {
   help: {
     title: "Centro de ayuda",
     sentence:
-      "Cómo funciona Atlas, página por página. Son los artículos que muestra el panel de ayuda dentro de la aplicación.",
+      "Cómo funcionan Atlas, Gateway y Compass, página por página. Son los artículos que muestra el panel de ayuda de cada aplicación.",
     searchLabel: "Buscar en la ayuda",
     searchButton: "Buscar",
     results: "{count} artículos coinciden con {query}.",
@@ -20395,6 +20410,22 @@ var docs_default = {
     whatsNew: "Novedades",
     related: "Abrir el artículo relacionado",
     back: "Todos los artículos de ayuda",
+    shells: {
+      atlas: {
+        title: "Atlas",
+        sentence: "Para los miembros de una organización, página por página.",
+      },
+      gateway: {
+        title: "Gateway",
+        sentence:
+          "Para las personas y empresas que contratan las organizaciones: oportunidades, contrataciones, pagos y configuración.",
+      },
+      compass: {
+        title: "Compass",
+        sentence:
+          "La aplicación de campo para los miembros y todas las personas que contratan, pantalla por pantalla.",
+      },
+    },
   },
   notFound: {
     title: "Esta página no existe",

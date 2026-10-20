@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Breadcrumbs, Card, Link } from "@/components/ui.tsx";
-import { helpArticles, searchPages, whatsNew } from "@/lib/content.ts";
+import {
+  HELP_SHELLS,
+  helpArticles,
+  helpPath,
+  searchPages,
+  whatsNew,
+  type HelpArticle,
+  type HelpShell,
+} from "@/lib/content.ts";
 import { isLocale, translator } from "@/lib/i18n.ts";
 import { textOf } from "@/lib/markdown.ts";
 
@@ -17,7 +25,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return isLocale(locale) ? { title: translator(locale)("help.title") } : {};
 }
 
-/** The help center: the same articles as the in-app help panel, with search and What's New. */
+/**
+ * The help center: the same articles as the help panels of Atlas, Gateway and Compass, with search
+ * across all three and Atlas's What's New.
+ */
 export default async function HelpIndex({ params, searchParams }: Props) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
@@ -25,10 +36,24 @@ export default async function HelpIndex({ params, searchParams }: Props) {
   const th = translator(locale, "help");
   const raw = (await searchParams).q;
   const query = (Array.isArray(raw) ? raw[0] : raw)?.trim() ?? "";
-  const articles = helpArticles(locale);
-  const results = query ? searchPages(articles, query, (a) => textOf(a.body)) : [];
-  const articleLink = (slug: string, title: string) => (
-    <Link href={`/${locale}/help/${slug}`}>{title}</Link>
+  const byShell = HELP_SHELLS.map((shell) => ({ shell, articles: helpArticles(locale, shell) }));
+  const results = query
+    ? byShell.flatMap(({ shell, articles }) =>
+        searchPages(articles, query, (a) => textOf(a.body)).map((article) => ({ shell, article })),
+      )
+    : [];
+  const articleLink = (shell: HelpShell, a: HelpArticle) => (
+    <Link href={helpPath(locale, shell, a.slug)}>{a.title}</Link>
+  );
+  const list = (shell: HelpShell, articles: readonly HelpArticle[]) => (
+    <ul className="m-0 p-0 list-none flex flex-col gap-8">
+      {articles.map((a) => (
+        <li key={a.slug} className="flex flex-col gap-2">
+          {articleLink(shell, a)}
+          <span className="text-text-13 text-text-secondary">{a.summary}</span>
+        </li>
+      ))}
+    </ul>
   );
   return (
     <>
@@ -69,36 +94,51 @@ export default async function HelpIndex({ params, searchParams }: Props) {
               : t("help.noResults", { query })}
           </h2>
           <ul className="m-0 p-0 list-none flex flex-col gap-8">
-            {results.map((a) => (
-              <li key={a.slug} className="flex flex-col gap-2">
-                {articleLink(a.slug, a.title)}
-                <span className="text-text-13 text-text-secondary">{a.summary}</span>
+            {results.map(({ shell, article }) => (
+              <li key={`${shell}-${article.slug}`} className="flex flex-col gap-2">
+                {articleLink(shell, article)}
+                <span className="text-text-13 text-text-secondary">
+                  {t(`help.shells.${shell}.title`)} · {article.summary}
+                </span>
               </li>
             ))}
           </ul>
         </section>
       ) : null}
       <div className="grid grid-cols-[minmax(0,2fr)_minmax(0,1fr)] max-lg:grid-cols-1 gap-24">
-        <div className="flex flex-col gap-24">
-          {KINDS.map((kind) => {
-            const group = articles.filter((a) => a.kind === kind);
-            if (group.length === 0) return null;
-            return (
-              <section key={kind} aria-labelledby={`kind-${kind}`} className="flex flex-col gap-8">
-                <h2 id={`kind-${kind}`} className="m-0 text-heading-16 font-semibold">
-                  {th(`kinds.${kind}`)}
+        <div className="flex flex-col gap-32">
+          {byShell.map(({ shell, articles }) => (
+            <section
+              key={shell}
+              aria-labelledby={`shell-${shell}`}
+              className="flex flex-col gap-16"
+            >
+              <header className="flex flex-col gap-4">
+                <h2 id={`shell-${shell}`} className="m-0 text-heading-20 font-semibold">
+                  {t(`help.shells.${shell}.title`)}
                 </h2>
-                <ul className="m-0 p-0 list-none flex flex-col gap-8">
-                  {group.map((a) => (
-                    <li key={a.slug} className="flex flex-col gap-2">
-                      {articleLink(a.slug, a.title)}
-                      <span className="text-text-13 text-text-secondary">{a.summary}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            );
-          })}
+                <p className="m-0 text-text-13 text-text-secondary">
+                  {t(`help.shells.${shell}.sentence`)}
+                </p>
+              </header>
+              {KINDS.map((kind) => {
+                const group = articles.filter((a) => a.kind === kind);
+                if (group.length === 0) return null;
+                return (
+                  <section
+                    key={kind}
+                    aria-labelledby={`kind-${shell}-${kind}`}
+                    className="flex flex-col gap-8"
+                  >
+                    <h3 id={`kind-${shell}-${kind}`} className="m-0 text-heading-16 font-semibold">
+                      {th(`kinds.${kind}`)}
+                    </h3>
+                    {list(shell, group)}
+                  </section>
+                );
+              })}
+            </section>
+          ))}
         </div>
         <aside aria-labelledby="whats-new">
           <Card>
@@ -117,7 +157,7 @@ export default async function HelpIndex({ params, searchParams }: Props) {
                   <strong>{th(`whatsNew.${entry.key}.title`)}</strong>
                   <span className="text-text-secondary">{th(`whatsNew.${entry.key}.body`)}</span>
                   {entry.article ? (
-                    <Link href={`/${locale}/help/${entry.article}`}>{t("help.related")}</Link>
+                    <Link href={helpPath(locale, "atlas", entry.article)}>{t("help.related")}</Link>
                   ) : null}
                 </li>
               ))}
