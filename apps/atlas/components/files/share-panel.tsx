@@ -87,7 +87,11 @@ function LinkRow({
     <li className="flex flex-wrap items-center justify-between gap-8 py-8">
       <span className="flex min-w-0 flex-col text-text-12 text-text-secondary">
         <span className="text-text-13 text-text-primary">
-          {link.note ?? t(`row.${link.accessCodeRequired ? "codeRequired" : "never"}`)}
+          {link.note ??
+            t("row.made", {
+              date: format.dateTime(new Date(link.createdAt), { dateStyle: "medium" }),
+            })}
+          {link.accessCodeRequired ? ` · ${t("row.codeRequired")}` : ""}
         </span>
         <span>
           {link.expiresAt

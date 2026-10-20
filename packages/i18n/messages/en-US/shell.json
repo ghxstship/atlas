@@ -945,7 +945,8 @@
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
       "orgName": "Organization name",
       "orgSlug": "Web address",
-      "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}."
+      "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
+      "age": "I am 16 or older."
     },
     "or": "or",
     "signIn": {
@@ -1023,7 +1024,8 @@
       "orgSlug": "Use 2 to 48 lowercase letters, numbers and single hyphens.",
       "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
       "slug_taken": "That web address is already in use. Choose another.",
-      "slug_reserved": "That web address is reserved by Atlas. Choose another."
+      "slug_reserved": "That web address is reserved by Atlas. Choose another.",
+      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
     },
     "networkRestricted": {
       "title": "Your network is not allowed",

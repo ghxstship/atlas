@@ -1,0 +1,237 @@
+import { createClient } from "@supabase/supabase-js";
+import { readFileSync } from "node:fs";
+import { expect, test, type Browser, type Page } from "./engine-test";
+import { ORG, signIn } from "./a16-support";
+import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } from "./support";
+
+/**
+ * A82 compliance journeys (RRR-127, findings A65-014 and A65-016): the cookie banner and Global
+ * Privacy Control (Section 14.3), "16 or older" at sign-up (Sections 14.3 and 14.9), and share links
+ * with the Section 8.6 rules and watermark. The config sends Global Privacy Control so the banner
+ * stays out of other journeys; these tests open their own contexts without it.
+ */
+
+/** A browser context that sends no Global Privacy Control signal. */
+async function plainContext(browser: Browser) {
+  return browser.newContext({ extraHTTPHeaders: {} });
+}
+
+function consentCookie(cookies: { name: string; value: string }[]): string | undefined {
+  return cookies.find((c) => c.name === "xos-consent")?.value;
+}
+
+test.describe("cookie consent", () => {
+  test("the banner asks once, offers equal choices and records the refusal", async ({
+    browser,
+  }) => {
+    const context = await plainContext(browser);
+    const page = await context.newPage();
+    await page.goto("/auth/sign-in");
+    const banner = page.getByRole("region", { name: "Cookies" });
+    await expect(banner).toBeVisible();
+    await expect(banner.getByRole("button", { name: "Accept all" })).toBeVisible();
+    await expect(banner.getByRole("button", { name: "Reject all" })).toBeVisible();
+    await expectAccessible(page);
+    await banner.getByRole("button", { name: "Reject all" }).click();
+    await expect(banner).toHaveCount(0);
+    expect(consentCookie(await context.cookies())).toMatch(/^1\.[0-9a-f]{32}\.00\.0$/);
+    await page.reload();
+    await expect(page.getByRole("region", { name: "Cookies" })).toHaveCount(0);
+
+    // Cookie settings: change the choice; Preferences on.
+    await page.goto("/legal/cookie-settings");
+    await expect(page.getByRole("heading", { level: 1, name: "Cookie settings" })).toBeVisible();
+    await expect(page.getByText("Your choice: Preferences off, Performance off.")).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "Opens the organization you used last." }),
+    ).toBeVisible();
+    await expectAccessible(page);
+    await page.getByLabel(/^Preferences:/).check();
+    await page.getByRole("button", { name: "Save choices" }).click();
+    await expect(page.getByText("Your choice: Preferences on, Performance off.")).toBeVisible();
+    expect(consentCookie(await context.cookies())).toMatch(/\.10\.0$/);
+    await context.close();
+  });
+
+  test("a browser sending Global Privacy Control never sees the banner and is told why", async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({ extraHTTPHeaders: { "Sec-GPC": "1" } });
+    const page = await context.newPage();
+    await page.goto("/auth/sign-in");
+    await expect(page.getByRole("region", { name: "Cookies" })).toHaveCount(0);
+    // The proxy recorded the signal and remembers it for this browser.
+    expect(consentCookie(await context.cookies())).toMatch(/\.00\.1$/);
+    await page.goto("/legal/cookie-settings");
+    await expect(page.getByText(/Your browser sends Global Privacy Control/)).toBeVisible();
+    await expect(page.getByLabel(/^Preferences:/)).toBeDisabled();
+    await context.close();
+  });
+});
+
+test.describe("16 or older", () => {
+  test("sign-up asks and records the age before the account exists", async ({ browser }) => {
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const id = uniqueId();
+    await page.goto("/auth/sign-up");
+    await page.getByLabel(/^Full name$/).fill("Ada Age");
+    await page.locator("#signup-email").fill(testEmail("age", id));
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.getByRole("button", { name: "Create account" }).click();
+    await expect(
+      page.getByText("Confirm that you are 16 or older. XOS accounts are for people 16 and over."),
+    ).toBeVisible();
+    await expectAccessible(page);
+    // Typed input is kept; ticking the box creates the account.
+    await expect(page.locator("#signup-email")).toHaveValue(testEmail("age", id));
+    await page.locator("#signup-password").fill(PASSWORD);
+    await page.getByRole("checkbox", { name: /16 or older/ }).check();
+    await page.getByRole("button", { name: "Create account" }).click();
+    // The sign-up recorded the age, so creating the org asks only for the terms.
+    await page.waitForURL("**/auth/organization");
+    await expect(page.getByRole("checkbox", { name: /16 or older/ })).toHaveCount(0);
+    await createOrganization(page, { name: `Age ${id}`, slug: `age-${id}` });
+    await context.close();
+  });
+});
+
+// Share links ---------------------------------------------------------------------------------------
+
+/** A 2 by 2 PNG, enough for the renderer to embed. */
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAFklEQVR4nGP4z8DAwMDAxMDAwMDAAAANHQEDK+mmyAAAAABJRU5ErkJggg==",
+  "base64",
+);
+
+/** Stands in for the upload-scan worker's local pass-through (ADR 0034) on attachment scans. */
+async function passAttachmentScans() {
+  const url = process.env["E2E_SUPABASE_URL"];
+  const key = process.env["E2E_SUPABASE_SERVICE_KEY"];
+  if (!url || !key)
+    throw new Error("Set E2E_SUPABASE_URL and E2E_SUPABASE_SERVICE_KEY to the local stack.");
+  if (!/^http:\/\/(127\.0\.0\.1|localhost):\d+$/.test(url)) throw new Error("Local stack only.");
+  const app = createClient(url, key, { auth: { persistSession: false } }).schema("app");
+  const { data, error } = await app.rpc("claim_jobs", {
+    p_worker: "atlas-e2e-a82",
+    p_job_kind: "attachment.scan",
+    p_limit: 50,
+  });
+  if (error) throw new Error(`claim_jobs: ${error.message}`);
+  for (const job of (data as { id: string; subject_id: string }[] | null) ?? []) {
+    const scanned = await app.rpc("record_attachment_scan", {
+      p_attachment_version_id: job.subject_id,
+      p_clean: true,
+    });
+    if (scanned.error) throw new Error(`record_attachment_scan: ${scanned.error.message}`);
+    await app.rpc("finish_job", { p_job_id: job.id, p_succeeded: true, p_error: null });
+  }
+}
+
+/** Opens the first demo document's full record page, where files attach. */
+async function openDocument(page: Page) {
+  await page.goto(`/${ORG}/knowledge/documents?view=list`);
+  await page.getByRole("row").nth(1).getByRole("button", { name: "Open" }).click();
+  await page.waitForURL(/peek=/);
+  const url = new URL(page.url());
+  url.searchParams.set("full", "1");
+  await page.goto(url.toString());
+  await page.locator("html[data-shell-ready]").waitFor();
+}
+
+async function upload(page: Page, name: string, mimeType: string, buffer: Buffer) {
+  const files = page.locator("section", {
+    has: page.getByRole("heading", { name: "Attachments" }),
+  });
+  await files.locator('input[type="file"]').setInputFiles({ name, mimeType, buffer });
+  await files.getByRole("button", { name: "Upload" }).click();
+  await expect(files.getByText(name).first()).toBeVisible();
+  await passAttachmentScans();
+  await page.reload();
+  await page.locator("html[data-shell-ready]").waitFor();
+  return page.locator("li", { hasText: name }).first();
+}
+
+test.describe("share links", () => {
+  test("an Internal link opens without an account; a Confidential image downloads watermarked", async ({
+    page,
+    browser,
+  }) => {
+    const id = uniqueId();
+    await signIn(page);
+    await openDocument(page);
+
+    // Internal: a link with an expiry, opened in a browser with no session.
+    const plan = await upload(
+      page,
+      `plan-${id}.pdf`,
+      "application/pdf",
+      Buffer.from("%PDF-1.4\n%a82\n"),
+    );
+    await plan.getByRole("button", { name: "Share" }).click();
+    const panel = page.getByRole("region", { name: `Share plan-${id}.pdf` });
+    await expect(panel).toBeVisible();
+    await expectAccessible(page);
+    await panel.getByRole("button", { name: "Create link" }).click();
+    const linkField = panel.getByRole("textbox", { name: "Link" });
+    await expect(linkField).toHaveValue(/\/share\/xshr_[0-9a-f]{64}$/);
+    const internalUrl = new URL(await linkField.inputValue());
+
+    const visitor = await (await plainContext(browser)).newPage();
+    await visitor.goto(internalUrl.pathname);
+    await expect(visitor.getByRole("heading", { level: 1, name: "Shared file" })).toBeVisible();
+    await expectAccessible(visitor);
+    const download = visitor.waitForEvent("download");
+    await visitor.getByRole("button", { name: "Open file" }).click();
+    expect((await download).suggestedFilename()).toBe(`plan-${id}.pdf`);
+
+    // Revoked links stop opening.
+    await panel.getByRole("button", { name: "Revoke" }).click();
+    await expect(panel.getByText("Revoked")).toBeVisible();
+    await visitor.goto(internalUrl.pathname);
+    await visitor.getByRole("button", { name: "Open file" }).click();
+    await expect(visitor.getByText("This link does not work.", { exact: false })).toBeVisible();
+
+    // Confidential: classify the image, then a link for one recipient with an access code.
+    const stage = await upload(page, `stage-${id}.png`, "image/png", PNG);
+    await stage.getByRole("button", { name: "Share" }).click();
+    const imagePanel = page.getByRole("region", { name: `Share stage-${id}.png` });
+    await imagePanel.getByLabel("Classification").selectOption("Confidential");
+    await imagePanel.getByRole("button", { name: "Save classification" }).click();
+    await expect(imagePanel.getByText("Classification saved.")).toBeVisible();
+    await expect(
+      imagePanel.getByText("Confidential files always ask for an access code."),
+    ).toBeVisible();
+    await imagePanel.getByRole("button", { name: "Create link" }).click();
+    await expect(
+      imagePanel.getByText("Enter the recipient's email. The watermark carries it."),
+    ).toBeVisible();
+    await imagePanel.getByLabel("Recipient's email").fill(`ana-${id}@venue.test`);
+    await imagePanel.getByRole("button", { name: "Create link" }).click();
+    const code = await imagePanel.getByRole("textbox", { name: "Access code" }).inputValue();
+    expect(code).toMatch(/^[0-9]{6}$/);
+    const confidentialUrl = new URL(
+      await imagePanel.getByRole("textbox", { name: "Link" }).inputValue(),
+    );
+
+    await visitor.goto(confidentialUrl.pathname);
+    await visitor.getByRole("button", { name: "Open file" }).click();
+    await expect(visitor.getByText("Enter the access code that came with the link.")).toBeVisible();
+    await visitor.getByLabel("Access code").fill(code === "000000" ? "111111" : "000000");
+    await visitor.getByRole("button", { name: "Open file" }).click();
+    await expect(visitor.getByText("That code is not right.", { exact: false })).toBeVisible();
+    await visitor.getByLabel("Access code").fill(code);
+    const marked = visitor.waitForEvent("download");
+    await visitor.getByRole("button", { name: "Open file" }).click();
+    const file = await marked;
+    expect(file.suggestedFilename()).toBe(`stage-${id}-watermarked.pdf`);
+    const pdf = readFileSync((await file.path()) as string).toString("latin1");
+    expect(pdf.startsWith("%PDF-1.7")).toBe(true);
+    expect(pdf).toContain(`<pdf:Keywords>Downloaded by ana-${id}@venue.test on`);
+
+    // Restricted files are never shared.
+    await imagePanel.getByLabel("Classification").selectOption("Restricted");
+    await imagePanel.getByRole("button", { name: "Save classification" }).click();
+    await expect(imagePanel.getByText("Restricted files are never shared by link.")).toBeVisible();
+  });
+});

@@ -30,6 +30,7 @@ test("invite a member, accept as them, and hide what their role may not see", as
   await invitee.getByLabel(/^Full name$/).fill("Vic Viewer");
   await invitee.locator("#signup-email").fill(inviteeEmail);
   await invitee.locator("#signup-password").fill(`E2e-${"passphrase"}-9431`);
+  await invitee.getByRole("checkbox", { name: /16 or older/ }).check();
   await invitee.getByRole("button", { name: "Create account" }).click();
   await expect(invitee.getByRole("heading", { name: `Join Crew ${id}` })).toBeVisible();
   await expect(invitee.getByText("as Viewer")).toBeVisible();

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { CookieBanner } from "@/components/privacy/cookie-banner";
 import { XOSProvider } from "@/components/xos-provider";
 import { localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
@@ -32,6 +33,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body>
         <NextIntlClientProvider messages={clientMessages(locale)}>
           <XOSProvider locale={formatting} {...(overrides ? { messages: overrides } : {})}>
+            <CookieBanner />
             {children}
           </XOSProvider>
         </NextIntlClientProvider>

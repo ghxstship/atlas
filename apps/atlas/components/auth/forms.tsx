@@ -38,6 +38,34 @@ function fieldError(t: Translate, state: FormState, field: string): string {
 
 const INITIAL: FormState = {};
 
+/**
+ * "I am 16 or older" (Section 14.3, 14.9; Terms of Service 3.2). Every way of creating or first
+ * using an account asks it; the action records it (migration 1381).
+ */
+function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
+  const t = useAuthCopy();
+  const error = state.fieldErrors?.["ageConfirmed"];
+  return (
+    <div className="flex flex-col gap-4">
+      <Checkbox
+        id={id}
+        name="ageConfirmed"
+        value="16"
+        required
+        defaultChecked={state.values?.["ageConfirmed"] === "16"}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        label={<span className="text-text-13">{t("fields.age")}</span>}
+      />
+      {error ? (
+        <p id={`${id}-error`} className="m-0 text-text-12 text-danger-text">
+          {t("errors.age")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function Submit({ pending, children }: { pending: boolean; children: ReactNode }) {
   return (
     <Button
@@ -114,6 +142,7 @@ export function MagicLinkForm({ next, intent }: { next: string; intent: "sign-in
         defaultValue={state.values?.["email"] ?? ""}
         error={fieldError(t, state, "email")}
       />
+      {intent === "sign-up" ? <AgeConfirmation id="magic-age" state={state} /> : null}
       <Submit pending={pending}>{t("signIn.magicLink")}</Submit>
     </form>
   );
@@ -164,6 +193,7 @@ export function SignUpForm({ next }: { next: string }) {
         help={t("fields.passwordHelp")}
         error={fieldError(t, state, "password")}
       />
+      <AgeConfirmation id="signup-age" state={state} />
       <Submit pending={pending}>{t("signUp.submit")}</Submit>
     </form>
   );
@@ -172,9 +202,12 @@ export function SignUpForm({ next }: { next: string }) {
 export function OrganizationForm({
   terms,
   dpa,
+  askAge = false,
 }: {
   terms: { href: string; title: string };
   dpa: { href: string; title: string };
+  /** The person has not confirmed they are 16 or older yet (a first Google sign-in). */
+  askAge?: boolean;
 }) {
   const t = useAuthCopy();
   const tr = useTranslations("shell.auth.organization");
@@ -248,18 +281,20 @@ export function OrganizationForm({
           {t("errors.accept")}
         </p>
       ) : null}
+      {askAge ? <AgeConfirmation id="org-age" state={state} /> : null}
       <Submit pending={pending}>{t("organization.submit")}</Submit>
     </form>
   );
 }
 
-export function AcceptInviteForm({ token }: { token: string }) {
+export function AcceptInviteForm({ token, askAge = false }: { token: string; askAge?: boolean }) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(acceptInvitation, INITIAL);
   return (
     <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-12">
       {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
       <input type="hidden" name="token" value={token} />
+      {askAge ? <AgeConfirmation id="invite-age" state={state} /> : null}
       <Submit pending={pending}>{t("invite.accept")}</Submit>
     </form>
   );

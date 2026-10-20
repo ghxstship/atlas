@@ -55,7 +55,8 @@
       "revoked": "Revocado",
       "locked": "Bloqueado tras 5 códigos incorrectos",
       "expired": "Vencido",
-      "revoke": "Revocar"
+      "revoke": "Revocar",
+      "made": "Creado el {date}"
     },
     "errors": {
       "share_link_restricted": "Los archivos restringidos nunca se comparten por enlace.",
@@ -94,5 +95,52 @@
     "download_restricted": "Descargar un archivo restringido necesita la capacidad de exportación restringida.",
     "step_up_required": "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
     "notFound": "Este archivo no está disponible."
+  },
+  "cookies": {
+    "title": "Cookies",
+    "body": "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma, tema y último espacio de trabajo durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    "policy": "Política de cookies",
+    "settingsLink": "Configuración de cookies",
+    "acceptAll": "Aceptar todas",
+    "rejectAll": "Rechazar todas",
+    "choose": "Elegir cookies",
+    "necessary": "Estrictamente necesarias: inicio de sesión, seguridad y esta elección. Siempre activas.",
+    "preferences": "Preferencias: recordar tu idioma, tema, espacio de trabajo y última organización durante 12 meses.",
+    "performance": "Rendimiento: tiempos de página e informes de errores. Hoy no usamos cookies de rendimiento; tu elección se aplica si alguna vez agregamos una.",
+    "save": "Guardar elección",
+    "settingsTitle": "Configuración de cookies",
+    "settingsLead": "Elige qué cookies puede usar Atlas en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    "gpc": "Tu navegador envía Global Privacy Control. Lo tratamos como un rechazo de toda cookie que no sea estrictamente necesaria, así que las opciones de abajo quedan desactivadas mientras esté activo.",
+    "categories": "Categorías",
+    "current": {
+      "none": "Todavía no has elegido.",
+      "choice": "Tu elección: Preferencias {preferences}, Rendimiento {performance}.",
+      "on": "activadas",
+      "off": "desactivadas"
+    },
+    "table": {
+      "caption": "Cookies que usa Atlas",
+      "name": "Nombre",
+      "category": "Categoría",
+      "purpose": "Para qué sirve",
+      "categories": {
+        "necessary": "Estrictamente necesaria",
+        "preferences": "Preferencias"
+      },
+      "purposes": {
+        "session": "Mantiene tu sesión iniciada durante el tiempo que fija tu organización.",
+        "consent": "Recuerda esta elección durante 12 meses.",
+        "viewAs": "Mantiene una vista previa Ver como que inició un administrador, hasta por una hora.",
+        "locale": "Recuerda el idioma que elegiste.",
+        "theme": "Recuerda el tema claro u oscuro que elegiste.",
+        "workspace": "Recuerda el filtro de espacio de trabajo que elegiste.",
+        "lastOrg": "Abre la organización que usaste por última vez.",
+        "acting": "Recuerda la cuenta por la que actúa este navegador."
+      }
+    },
+    "gatewayBody": "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma y tema durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    "gatewayPreferences": "Preferencias: recordar tu idioma y tema durante 12 meses.",
+    "gatewaySettingsLead": "Elige qué cookies puede usar Gateway en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    "gatewayTableCaption": "Cookies que usa Gateway"
   }
 }

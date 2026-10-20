@@ -1461,7 +1461,8 @@
       "fullName": "Full name",
       "email": "Email",
       "password": "Password",
-      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
+      "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
+      "age": "I am 16 or older."
     },
     "or": "or",
     "usePassword": "Use a password",
@@ -1532,7 +1533,8 @@
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
       "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
-      "terms": "Accept the Worker Terms to create your account: tick the box above the button."
+      "terms": "Accept the Worker Terms to create your account: tick the box above the button.",
+      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
     }
   },
   "work": {

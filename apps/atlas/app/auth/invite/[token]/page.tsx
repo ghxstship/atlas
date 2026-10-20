@@ -1,4 +1,5 @@
 import { previewInvite } from "@xos/data";
+import { minimumAgeConfirmed } from "@xos/data/consent";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
@@ -23,17 +24,19 @@ export default async function InvitePage({ params }: PageProps<"/auth/invite/[to
   const here = `/auth/invite/${encodeURIComponent(token)}`;
   const viewer = await getViewer();
   if (!viewer) redirect(`/auth/sign-up?next=${encodeURIComponent(here)}`);
-  const [t, translate, format] = await Promise.all([
+  const [t, translate, format, age] = await Promise.all([
     getTranslations("shell.auth.invite"),
     getTranslate(),
     getFormatter(),
+    minimumAgeConfirmed(viewer.db),
   ]);
+  const askAge = !(age.ok && age.data);
   if (token.startsWith("xlnk_")) {
     return (
       <div className="flex flex-col gap-16">
         <h1 className="text-heading-20 font-semibold">{t("accept")}</h1>
         <p className="text-text-14 text-text-secondary">{translate("profiles.join.linkBody")}</p>
-        <AcceptInviteForm token={token} />
+        <AcceptInviteForm token={token} askAge={askAge} />
       </div>
     );
   }
@@ -64,7 +67,7 @@ export default async function InvitePage({ params }: PageProps<"/auth/invite/[to
           expires: format.relativeTime(new Date(expiresAt)),
         })}
       </p>
-      <AcceptInviteForm token={token} />
+      <AcceptInviteForm token={token} askAge={askAge} />
     </div>
   );
 }

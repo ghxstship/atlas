@@ -1,5 +1,16 @@
 import { getCurrentPerson } from "@xos/data";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
+import {
+  CONSENT_COOKIE,
+  consentCookieOptions,
+  newVisitorId,
+  parseConsent,
+  preferenceCookieOptions,
+  preferencesAllowed,
+  recordCookieConsent,
+  sendsGpc,
+  serializeConsent,
+} from "@xos/data/consent";
 import { findRoute } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
@@ -25,7 +36,10 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *      security headers;
  *   3. refreshes the Supabase session so tokens renew silently (Section 11.7);
  *   4. guards routes from the sitemap: signed-out visitors go to sign in, and a route the viewer
- *      may not see renders the 404 page with status 404, never 403 (ADR 0006).
+ *      may not see renders the 404 page with status 404, never 403 (ADR 0006);
+ *   5. records a Global Privacy Control signal once per browser (Section 14.3, A65-014): the
+ *      signal refuses every non-essential cookie, is logged server-side and stands in for the
+ *      banner's choice.
  * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
  * never open a hidden page.
  */
@@ -34,6 +48,21 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
 const NOT_FOUND_PATH = "/auth/not-found";
 /** Where a member whose network an org's IP allow-list refuses is sent. */
 const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
+
+/** A top-level page load, not a server action, an RSC fetch or a prefetch. */
+function isDocumentRequest(request: NextRequest): boolean {
+  if (
+    request.method !== "GET" ||
+    request.headers.has("rsc") ||
+    request.headers.has("next-action")
+  ) {
+    return false;
+  }
+  const dest = request.headers.get("sec-fetch-dest");
+  return dest === null
+    ? (request.headers.get("accept") ?? "").includes("text/html")
+    : dest === "document";
+}
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = env();
@@ -67,7 +96,26 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     headers.set("content-security-policy", csp);
     return headers;
   };
+  // Global Privacy Control (Section 14.3): a browser that sends it and has no recorded GPC choice yet.
+  const consent = parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
+  const gpc = sendsGpc(request.headers);
+  const gpcConsent =
+    gpc && consent?.gpc !== true && isDocumentRequest(request)
+      ? {
+          visitorId: consent?.visitorId ?? newVisitorId(),
+          preferences: false,
+          performance: false,
+          gpc: true,
+        }
+      : null;
   const secure = <T extends NextResponse>(response: T): T => {
+    if (gpcConsent) {
+      response.cookies.set(
+        CONSENT_COOKIE,
+        serializeConsent(gpcConsent),
+        consentCookieOptions(secureSite),
+      );
+    }
     response.headers.set("Content-Security-Policy", csp);
     for (const [name, value] of Object.entries(securityHeaders(secureSite))) {
       response.headers.set(name, value);
@@ -80,6 +128,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   );
   const { data } = await db.auth.getUser();
   const user = data.user;
+  if (gpcConsent) {
+    const recorded = await recordCookieConsent(db, gpcConsent);
+    if (!recorded.ok) console.error("Global Privacy Control was not recorded", recorded.error);
+  }
 
   let personId: string | null | undefined;
   const network: { restrictedOrg: string | null } = { restrictedOrg: null };
@@ -136,13 +188,12 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // Remember the org this device opened last, so the entry route returns to it.
   const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   if (slug && user && request.cookies.get(LAST_ORG_COOKIE)?.value !== slug) {
-    result.cookies.set(LAST_ORG_COOKIE, slug, {
-      path: "/",
-      sameSite: "lax",
-      httpOnly: true,
-      secure: secureSite,
-      maxAge: 60 * 60 * 24 * 365,
-    });
+    // A Preferences cookie (legal/cookie-policy.md): 12 months with consent, the visit without it.
+    result.cookies.set(
+      LAST_ORG_COOKIE,
+      slug,
+      preferenceCookieOptions(preferencesAllowed(consent, gpc), secureSite),
+    );
   }
   return secure(result);
 }
