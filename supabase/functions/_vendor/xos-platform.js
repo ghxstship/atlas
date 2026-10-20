@@ -4845,6 +4845,8 @@ var email_default$1 = {
     stop: "You will get no more texts from XOS notifications. Reply START to subscribe again.",
     start:
       "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
+    summary:
+      "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out.",
   },
 };
 var finance_default$1 = {
@@ -13251,7 +13253,7 @@ var settings_default$1 = {
         "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
       quietTitle: "Quiet hours and digest",
       quietDescription:
-        "During quiet hours, texts and push notifications wait until the end, except urgent ones. Texts also wait between 21:00 and 08:00 unless you set your own quiet hours.",
+        "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts and changes to a shift starting within 12 hours always arrive at once.",
       quietStart: "Quiet hours start",
       quietEnd: "Quiet hours end",
       timeZone: "Time zone",
@@ -21424,6 +21426,8 @@ var email_default = {
     stop: "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte.",
     start:
       "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar.",
+    summary:
+      "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Lo más importante: {body} {url} Responde STOP para cancelar.",
   },
 };
 var finance_default = {
@@ -29922,7 +29926,7 @@ var settings_default = {
         "Los mensajes de texto solo van a un número de teléfono verificado en el que aceptaste recibirlos. Responde STOP a cualquier mensaje para dejar de recibirlos.",
       quietTitle: "Horas de silencio y resumen",
       quietDescription:
-        "Durante las horas de silencio, los mensajes de texto y las notificaciones push esperan hasta el final, salvo los urgentes. Los mensajes de texto también esperan entre las 21:00 y las 08:00 si no defines tus propias horas de silencio.",
+        "Durante las horas de silencio, las notificaciones push esperan hasta el final y los mensajes de texto llegan juntos en un solo mensaje. Los mensajes de texto también esperan entre las 21:00 y las 08:00 en tu zona horaria si no defines tus propias horas de silencio. Las alertas de seguridad y los cambios en un turno que empieza en menos de 12 horas siempre llegan de inmediato.",
       quietStart: "Inicio de las horas de silencio",
       quietEnd: "Fin de las horas de silencio",
       timeZone: "Zona horaria",
@@ -35980,6 +35984,7 @@ var NOTIFICATION_KINDS = [
     category: "mentions",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.mention.created.subject",
@@ -35991,6 +35996,7 @@ var NOTIFICATION_KINDS = [
     category: "assignments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.assignment.created.subject",
@@ -36002,6 +36008,7 @@ var NOTIFICATION_KINDS = [
     category: "approvals",
     emailTemplate: "notification",
     pushCategory: "approval_request",
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.approval.requested.subject",
@@ -36013,6 +36020,7 @@ var NOTIFICATION_KINDS = [
     category: "approvals",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.approval.decided.subject",
@@ -36024,6 +36032,7 @@ var NOTIFICATION_KINDS = [
     category: "comments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.comment.created.subject",
@@ -36035,6 +36044,7 @@ var NOTIFICATION_KINDS = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.assigned.subject",
@@ -36046,6 +36056,7 @@ var NOTIFICATION_KINDS = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: { startsWithinHours: 12 },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.changed.subject",
@@ -36057,6 +36068,7 @@ var NOTIFICATION_KINDS = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.event.invited.subject",
@@ -36068,6 +36080,7 @@ var NOTIFICATION_KINDS = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.approved.subject",
@@ -36079,6 +36092,7 @@ var NOTIFICATION_KINDS = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.submitted.subject",
@@ -36090,6 +36104,7 @@ var NOTIFICATION_KINDS = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.scheduled.subject",
@@ -36101,6 +36116,7 @@ var NOTIFICATION_KINDS = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.paid.subject",
@@ -36112,6 +36128,7 @@ var NOTIFICATION_KINDS = [
     category: "safety",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.incident.reported.subject",
@@ -36123,6 +36140,7 @@ var NOTIFICATION_KINDS = [
     category: "safety",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.occupancy.threshold.subject",
@@ -36134,6 +36152,7 @@ var NOTIFICATION_KINDS = [
     category: "safety",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: { startsWithinHours: null },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.weather.alert.subject",
@@ -36145,6 +36164,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.security_changed.subject",
@@ -36156,6 +36176,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.billing.payment_failed.subject",
@@ -36167,6 +36188,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.billing.read_only.subject",
@@ -36178,6 +36200,7 @@ var NOTIFICATION_KINDS = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.access.break_glass_started.subject",
@@ -36189,6 +36212,7 @@ var NOTIFICATION_KINDS = [
     category: "reports",
     emailTemplate: "report_delivery",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.report.delivered.subject",
@@ -36200,6 +36224,7 @@ var NOTIFICATION_KINDS = [
     category: "imports",
     emailTemplate: "import_finished",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.import.finished.subject",
@@ -36211,6 +36236,7 @@ var NOTIFICATION_KINDS = [
     category: "imports",
     emailTemplate: "export_ready",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.export.ready.subject",
@@ -36222,6 +36248,7 @@ var NOTIFICATION_KINDS = [
     category: "messages",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.message.received.subject",
@@ -36233,6 +36260,7 @@ var NOTIFICATION_KINDS = [
     category: "feed",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.announcement.posted.subject",
@@ -36244,6 +36272,7 @@ var NOTIFICATION_KINDS = [
     category: "feed",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.survey.opened.subject",
@@ -36255,6 +36284,7 @@ var NOTIFICATION_KINDS = [
     category: "feed",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.recognition.received.subject",
@@ -36266,6 +36296,7 @@ var NOTIFICATION_KINDS = [
     category: "assignments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.training.assigned.subject",
@@ -36277,6 +36308,7 @@ var NOTIFICATION_KINDS = [
     category: "assignments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.help_request.assigned.subject",
@@ -36324,6 +36356,9 @@ var kindSchema = z.strictObject({
   email_template: z.string().regex(CODE).optional(),
   push_category: z.string().regex(CODE).optional(),
   channels: z.array(z.enum(NOTIFICATION_CHANNELS)).min(1).optional(),
+  bypasses_quiet_hours: z
+    .union([z.literal(true), z.strictObject({ starts_within_hours: z.int().min(1).max(72) })])
+    .optional(),
 });
 z.strictObject({
   version: z.literal(1),
@@ -36332,7 +36367,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1360_notification_kind_seed.sql"
+"supabase/migrations/1368_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -36982,6 +37017,67 @@ async function dispatchSms(store, provider, limit = 50) {
     }
   return {
     attempted: claims.length,
+    sent,
+    failed,
+    bounced,
+  };
+}
+/**
+ * The text of a summary: one held text reads like any notification; several read as the count and the most
+ * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`).
+ */
+async function smsSummaryBody(summary, store) {
+  const recipient = await store.recipient(summary.recipientPersonId);
+  const locale = localeOf(recipient.locale);
+  const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
+  const args = {
+    orgName: clip(await store.orgName(summary.orgId), 40),
+    url: await store.inboxLink(summary.orgId),
+  };
+  return summary.heldCount <= 1
+    ? formatMessage(locale, "sms.message", {
+        ...args,
+        body: clip(text.body, 300),
+      })
+    : formatMessage(locale, "sms.summary", {
+        ...args,
+        count: summary.heldCount,
+        body: clip(text.body, 200),
+      });
+}
+/**
+ * Sends one text per member and org whose quiet hours ended, settling every held delivery with its outcome:
+ * Sent, Bounced for an error a retry cannot fix, Failed otherwise (the summary retries with backoff).
+ */
+async function dispatchSmsSummaries(store, provider, limit = 50) {
+  const summaries = await store.claimSummaries(limit);
+  let sent = 0;
+  let failed = 0;
+  let bounced = 0;
+  for (const summary of summaries)
+    try {
+      const body = await smsSummaryBody(summary, store);
+      const result = await provider.send({
+        to: summary.address,
+        body,
+        deliveryId: summary.deliveryIds[0] ?? "",
+      });
+      await store.recordSummary(summary.deliveryIds, "Sent", result.providerMessageId, null);
+      sent += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const permanent = error instanceof SmsSendError && error.permanent;
+      await store.recordSummary(
+        summary.deliveryIds,
+        permanent ? "Bounced" : "Failed",
+        null,
+        message,
+      );
+      if (permanent) bounced += 1;
+      else failed += 1;
+    }
+  return {
+    attempted: summaries.length,
     sent,
     failed,
     bounced,
@@ -37734,9 +37830,15 @@ function pushStore(db) {
   };
 }
 /** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
+/**
+ * SmsStore and SmsSummaryStore over app.claim_notification_deliveries, app.claim_sms_summaries and their
+ * record RPCs (1361, 1367).
+ */
 function smsStore(db, options) {
   const org = async (orgId) =>
     (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
+  const inbox = async (orgId) =>
+    `${options.appUrl.replace(/\/$/, "")}/${text$3(await org(orgId), "slug")}/inbox`;
   return {
     async claimSms(limit) {
       return rows$2(
@@ -37757,12 +37859,34 @@ function smsStore(db, options) {
     async orgName(orgId) {
       return text$3(await org(orgId), "name");
     },
-    async linkFor(claim) {
-      return `${options.appUrl.replace(/\/$/, "")}/${text$3(await org(claim.orgId), "slug")}/inbox`;
-    },
+    linkFor: (claim) => inbox(claim.orgId),
+    inboxLink: inbox,
     async record(deliveryId, outcome, providerMessageId, error) {
       await db.rpc("record_notification_delivery", {
         p_delivery_id: deliveryId,
+        p_status: outcome,
+        p_provider_message_id: providerMessageId,
+        p_error: error,
+      });
+    },
+    async claimSummaries(limit) {
+      return rows$2(await db.rpc("claim_sms_summaries", { p_limit: limit })).map((row) => {
+        const ids = row["delivery_ids"];
+        const count = row["held_count"];
+        return {
+          orgId: text$3(row, "org_id"),
+          recipientPersonId: text$3(row, "recipient_person_id"),
+          address: text$3(row, "address"),
+          deliveryIds: Array.isArray(ids) ? ids.filter((i) => typeof i === "string") : [],
+          heldCount: typeof count === "number" ? count : 0,
+          kind: text$3(row, "kind"),
+          messageArgs: row["message_args"] ?? {},
+        };
+      });
+    },
+    async recordSummary(deliveryIds, outcome, providerMessageId, error) {
+      await db.rpc("record_sms_summary", {
+        p_delivery_ids: [...deliveryIds],
         p_status: outcome,
         p_provider_message_id: providerMessageId,
         p_error: error,
@@ -41086,6 +41210,7 @@ export {
   dispatchEmail,
   dispatchPush,
   dispatchSms,
+  dispatchSmsSummaries,
   dispatchWebhooks,
   edgeFunctionName,
   expoPushClient,
@@ -41147,6 +41272,7 @@ export {
   smsInboundStore,
   smsKeyword,
   smsStore,
+  smsSummaryBody,
   sniffFamilies,
   stagedUploadTarget,
   staticAccessToken,

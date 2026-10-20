@@ -41458,6 +41458,88 @@ export type Database = {
           },
         ];
       };
+      sms_summary_queue: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          due_at: string;
+          id: string;
+          membership_id: string;
+          notification_created_at: string;
+          notification_delivery_id: string;
+          org_id: string;
+          sent_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_at: string;
+          id?: string;
+          membership_id: string;
+          notification_created_at: string;
+          notification_delivery_id: string;
+          org_id: string;
+          sent_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          due_at?: string;
+          id?: string;
+          membership_id?: string;
+          notification_created_at?: string;
+          notification_delivery_id?: string;
+          org_id?: string;
+          sent_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sms_summary_queue_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sms_summary_queue_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sms_summary_queue_notification_delivery_id_notification_cr_fkey";
+            columns: ["notification_delivery_id", "notification_created_at"];
+            isOneToOne: false;
+            referencedRelation: "notification_deliveries";
+            referencedColumns: ["id", "notification_created_at"];
+          },
+          {
+            foreignKeyName: "sms_summary_queue_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sms_summary_queue_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       sop_acknowledgments: {
         Row: {
           acknowledged_at: string;
@@ -53577,6 +53659,18 @@ export type Database = {
           ticket_id: string;
         }[];
       };
+      claim_sms_summaries: {
+        Args: { p_limit?: number };
+        Returns: {
+          address: string;
+          delivery_ids: string[];
+          held_count: number;
+          kind: string;
+          message_args: Json;
+          org_id: string;
+          recipient_person_id: string;
+        }[];
+      };
       claim_token_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -54331,6 +54425,7 @@ export type Database = {
           urgent: boolean;
         }[];
       };
+      my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -54881,6 +54976,15 @@ export type Database = {
       record_sms_status: {
         Args: { p_error?: string; p_provider_message_id: string; p_status: string };
         Returns: boolean;
+      };
+      record_sms_summary: {
+        Args: {
+          p_delivery_ids: string[];
+          p_error?: string;
+          p_provider_message_id?: string;
+          p_status: Database["app"]["Enums"]["message_status"];
+        };
+        Returns: undefined;
       };
       record_stripe_event: {
         Args: {
