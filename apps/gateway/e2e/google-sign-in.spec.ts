@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "./engine-test";
-import { expectAccessible } from "./support";
+import { DEMO_PASSWORD, expectAccessible, signIn, sql, uniqueId } from "./support";
 
 /**
  * Sign in with Google on Gateway (ADR 0036, RRR-117): the same account Atlas and Compass use. The
@@ -107,4 +108,59 @@ test("a Google sign-in that comes back refused shows why on the sign-in page", a
     await expect(page).toHaveURL(/\/auth\/sign-in\?error=/);
     await expect(page.getByRole("alert").filter({ hasText: message })).toBeVisible();
   }
+});
+
+/**
+ * An account Google created, as Supabase Auth writes it: a google identity and no Worker Terms
+ * acceptance. It also gets the demo password, so the journey can sign in without Google.
+ */
+async function googleAccount(): Promise<string> {
+  const id = randomUUID();
+  const email = `google-${uniqueId()}@gateway-e2e.test`;
+  await sql(
+    `insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+       raw_app_meta_data, raw_user_meta_data, created_at, updated_at, confirmation_token, recovery_token,
+       email_change_token_new, email_change)
+     values ('00000000-0000-0000-0000-000000000000', $1, 'authenticated', 'authenticated', $2,
+       extensions.crypt($3, extensions.gen_salt('bf')), now(),
+       '{"provider": "google", "providers": ["google", "email"]}', '{"full_name": "Sam Rivera"}',
+       now(), now(), '', '', '', '')`,
+    [id, email, DEMO_PASSWORD],
+  );
+  await sql(
+    `insert into auth.identities (id, user_id, provider_id, provider, identity_data, created_at, updated_at)
+     values (gen_random_uuid(), $1, $2, 'google', jsonb_build_object('sub', $2::text, 'email', $3::text), now(), now()),
+            (gen_random_uuid(), $1, $1::text, 'email', jsonb_build_object('sub', $1::text, 'email', $3::text), now(), now())`,
+    [id, `11${Date.now()}`, email],
+  );
+  return email;
+}
+
+test("an account Google created accepts the Worker Terms before going on", async ({ page }) => {
+  const email = await googleAccount();
+  await signIn(page, email, `/auth/terms?next=${encodeURIComponent(CLAIM)}`);
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Accept the Worker Terms" }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Worker Terms" })).toHaveAttribute(
+    "href",
+    "/legal/worker-terms",
+  );
+  await expectAccessible(page);
+
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(page.getByText("Accept the Worker Terms to create your account")).toBeVisible();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await page.waitForURL((url) => url.pathname === CLAIM);
+
+  const rows = await sql<{ document_slug: string }>(
+    `select a.document_slug from app.legal_acceptances a join auth.users u on u.id = a.user_id
+     where u.email = $1`,
+    [email],
+  );
+  expect(rows.map((r) => r.document_slug)).toEqual(["worker-terms"]);
+  // Accepted once, the step steps aside from then on.
+  await page.goto("/auth/terms?next=%2Fhome");
+  await page.waitForURL((url) => url.pathname === "/home");
 });

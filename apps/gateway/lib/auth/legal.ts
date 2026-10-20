@@ -61,6 +61,29 @@ export function pendingAcceptances(metadata: unknown): Acceptance[] {
   });
 }
 
+/**
+ * The account-creation documents the signed-in person has not accepted yet. A provider such as
+ * Google creates the account at its first sign-in, before any form (ADR 0036), so Gateway asks
+ * for them right after that sign-in, on /auth/terms. Acceptances waiting in the metadata are about
+ * to be written, so they count as given. If the log cannot be read, everything counts as missing:
+ * accepting twice adds a second entry to the log, which does no harm.
+ */
+export async function missingSignUpAcceptances(db: XosClient): Promise<Acceptance[]> {
+  const required = signUpAcceptances();
+  const { data } = await db.auth.getUser();
+  if (!data.user || pendingAcceptances(data.user.user_metadata).length > 0) return [];
+  const { data: rows, error } = await db
+    .from("legal_acceptances")
+    .select("document_slug")
+    .in(
+      "document_slug",
+      required.map((d) => d.slug),
+    );
+  if (error) return required;
+  const accepted = new Set(rows.map((row) => row.document_slug));
+  return required.filter((d) => !accepted.has(d.slug));
+}
+
 /** The client IP the platform saw, from the proxy chain headers. */
 export function clientIp(headers: Headers): string | null {
   const forwarded = headers.get("x-forwarded-for");

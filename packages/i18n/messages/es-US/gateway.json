@@ -1492,6 +1492,11 @@
       "haveAccount": "¿Ya tienes una cuenta?",
       "toSignIn": "Iniciar sesión"
     },
+    "terms": {
+      "title": "Acepta los Términos para trabajadores",
+      "lead": "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
+      "submit": "Continuar"
+    },
     "providers": {
       "continueWith": "Continuar con {provider}",
       "google": "Google",

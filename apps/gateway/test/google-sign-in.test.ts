@@ -50,6 +50,12 @@ vi.mock("next/navigation", () => ({
 }));
 
 let tokenRequests: { auth_code: string; code_verifier: string }[];
+/** The signed-in user's metadata, as Supabase Auth's /user returns it. */
+let userMetadata: Record<string, unknown>;
+/** Worker Terms rows the acceptance log holds for the person. */
+let accepted: { document_slug: string }[];
+/** Acceptances written through app.record_legal_acceptances. */
+let recorded: Record<string, unknown>[];
 
 function json(body: unknown): Response {
   return new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
@@ -81,6 +87,9 @@ beforeEach(() => {
   jar.values.clear();
   jar.host.value = "127.0.0.1:3127";
   tokenRequests = [];
+  userMetadata = { full_name: "Sam Rivera" };
+  accepted = [];
+  recorded = [];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
     if (url.origin !== SUPABASE) throw new Error(`unexpected request to ${url.origin}`);
@@ -88,6 +97,14 @@ beforeEach(() => {
     if (url.pathname === "/auth/v1/token") {
       tokenRequests.push(JSON.parse(String(init?.body)));
       return json(session());
+    }
+    if (url.pathname === "/auth/v1/user") {
+      return json({ ...(session()["user"] as object), user_metadata: userMetadata });
+    }
+    if (url.pathname === "/rest/v1/legal_acceptances") return json(accepted);
+    if (url.pathname === "/rest/v1/rpc/record_legal_acceptances") {
+      recorded.push(JSON.parse(String(init?.body)));
+      return json(1);
     }
     throw new Error(`unexpected request to ${url.pathname}`);
   });
@@ -164,6 +181,7 @@ describe("Gateway: Continue with Google", () => {
   });
 
   it("exchanges the code and lands on next with the session cookie set", async () => {
+    accepted = [{ document_slug: "worker-terms" }];
     const start = await startWith({ provider: "google", next: "/work/engagements/eng_1" });
     const back = new URL(start.searchParams.get("redirect_to") ?? "");
     back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000127");
@@ -198,6 +216,65 @@ describe("Gateway: Continue with Google", () => {
     const { to: elsewhere } = await callback("code=abc&provider=google");
     expect(`${elsewhere.pathname}${elsewhere.search}`).toBe("/auth/sign-in?error=oauth_expired");
     expect(tokenRequests).toEqual([]);
+  });
+});
+
+describe("Gateway: the Worker Terms for an account Google created (A59-025)", () => {
+  async function signedInWithGoogle(next: string): Promise<URL> {
+    const start = await startWith({ provider: "google", next });
+    const back = new URL(start.searchParams.get("redirect_to") ?? "");
+    back.searchParams.set("code", "c0ffee00-0000-4000-8000-000000000128");
+    return (await callback(back.searchParams.toString())).to;
+  }
+
+  it("sends a new Google account to accept the Worker Terms, keeping where it was going", async () => {
+    const to = await signedInWithGoogle("/auth/claim");
+    expect(`${to.pathname}${to.search}`).toBe("/auth/terms?next=%2Fauth%2Fclaim");
+    const home = await signedInWithGoogle("/home");
+    expect(`${home.pathname}${home.search}`).toBe("/auth/terms");
+  });
+
+  it("lets an account through that accepted them, or whose acceptance is about to be written", async () => {
+    accepted = [{ document_slug: "worker-terms" }];
+    expect((await signedInWithGoogle("/auth/claim")).pathname).toBe("/auth/claim");
+    accepted = [];
+    userMetadata = {
+      pending_legal_acceptances: [{ slug: "worker-terms", version: "1.0.0-draft" }],
+    };
+    expect((await signedInWithGoogle("/auth/claim")).pathname).toBe("/auth/claim");
+  });
+
+  it("never asks after an email link, which accepted them on the sign-up form", async () => {
+    const start = await startWith({ provider: "google" });
+    expect(start.pathname).toBe("/auth/v1/authorize");
+    const { to } = await callback("code=abc&next=%2Fauth%2Fclaim");
+    expect(to.pathname).toBe("/auth/claim");
+  });
+
+  it("records the acceptance with the current versions, then continues", async () => {
+    const { acceptSignUpTerms } = await import("../app/auth/actions");
+    await startWith({ provider: "google" });
+    const back = new URLSearchParams({ code: "abc", provider: "google" });
+    await callback(back.toString());
+
+    const unticked = new FormData();
+    unticked.set("next", "/auth/claim");
+    expect(await acceptSignUpTerms({}, unticked)).toEqual({
+      fieldErrors: { acceptTerms: "terms" },
+    });
+    expect(recorded).toEqual([]);
+
+    const ticked = new FormData();
+    ticked.set("next", "/auth/claim");
+    ticked.set("acceptTerms", "yes");
+    await expect(acceptSignUpTerms({}, ticked)).rejects.toMatchObject({ url: "/auth/claim" });
+    expect(recorded).toEqual([
+      {
+        p_org_id: null,
+        p_document_slugs: ["worker-terms"],
+        p_document_versions: ["1.0.0-draft"],
+      },
+    ]);
   });
 });
 

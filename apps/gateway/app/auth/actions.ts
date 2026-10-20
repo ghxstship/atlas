@@ -4,6 +4,7 @@ import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { recordLegalAcceptances } from "@xos/data/settings";
 import { authErrorKey } from "@/lib/auth/errors";
 import {
   clientIp,
@@ -183,5 +184,24 @@ export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   if (error) return { error: authErrorKey(error), values };
   if (!data.session) redirect(`/auth/check-email?email=${encodeURIComponent(parsed.data.email)}`);
   await recordPendingAcceptances(db, clientIp(await headers()));
+  redirect(next as Route);
+}
+
+/**
+ * Accepts the Worker Terms for an account a provider created (Sign in with Google, ADR 0036, and
+ * finding A59-025). The account exists already, so the acceptance goes straight to the log.
+ */
+export async function acceptSignUpTerms(_: FormState, form: FormData): Promise<FormState> {
+  const next = safeNext(form.get("next"), HOME);
+  if (!acceptedTerms(form)) return { fieldErrors: { acceptTerms: "terms" } };
+  const db = await createServerSupabase();
+  const { data } = await db.auth.getUser();
+  if (!data.user) redirect(`/auth/sign-in?next=${encodeURIComponent(next)}` as Route);
+  const recorded = await recordLegalAcceptances(db, {
+    orgId: null,
+    documents: signUpAcceptances(),
+    clientIp: clientIp(await headers()),
+  });
+  if (!recorded.ok) return { error: "unexpected", values: { acceptTerms: "yes" } };
   redirect(next as Route);
 }

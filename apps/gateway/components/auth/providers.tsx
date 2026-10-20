@@ -36,7 +36,12 @@ export async function ProviderButtons({ next }: { next: string }) {
                 {mark ? (
                   // A fixed brand mark: next/image would add client code to the sign-in page for nothing.
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={mark.src} alt="" aria-hidden="true" className="size-icon-16 flex-none" />
+                  <img
+                    src={mark.src}
+                    alt=""
+                    aria-hidden="true"
+                    className="size-icon-16 flex-none"
+                  />
                 ) : null}
                 {t("providers.continueWith", { provider: t(`providers.${provider}`) })}
               </Button>

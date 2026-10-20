@@ -2,7 +2,13 @@
 
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useState, type ReactNode } from "react";
-import { sendMagicLink, signInWithPassword, signUp, type FormState } from "@/app/auth/actions";
+import {
+  acceptSignUpTerms,
+  sendMagicLink,
+  signInWithPassword,
+  signUp,
+  type FormState,
+} from "@/app/auth/actions";
 import { Button, Checkbox, InlineAlert, Input } from "@xos/ui";
 
 import { keepInputOnSubmit } from "@/components/forms/keep-input";
@@ -219,6 +225,40 @@ export function SignUpForm({
         {t(password ? "signUp.submit" : "signIn.magicLink")}
       </Submit>
       <MethodSwitch label={t(password ? "useLink" : "usePassword")} onSwitch={toggle} />
+    </form>
+  );
+}
+
+/**
+ * The Worker Terms for an account a provider created (ADR 0036): the same box as on the sign-up
+ * form, then on to where the person was going.
+ */
+export function TermsForm({ next, termsLabel }: { next: string; termsLabel: ReactNode }) {
+  const t = useAuthCopy();
+  const [state, action, pending] = useActionState(acceptSignUpTerms, INITIAL);
+  const termsError = fieldError(t, state, "acceptTerms");
+  return (
+    <form action={action} className="flex flex-col gap-12" noValidate>
+      {state.error ? <InlineAlert tone="danger">{errorMessage(t, state.error)}</InlineAlert> : null}
+      <input type="hidden" name="next" value={next} />
+      <div className="flex flex-col gap-4">
+        <Checkbox
+          id="terms-accept"
+          name="acceptTerms"
+          value="yes"
+          required
+          defaultChecked={state.values?.["acceptTerms"] === "yes"}
+          aria-invalid={termsError ? true : undefined}
+          aria-describedby={termsError ? "terms-accept-error" : undefined}
+          label={<span className="text-text-13">{termsLabel}</span>}
+        />
+        {termsError ? (
+          <p id="terms-accept-error" className="m-0 text-text-13 text-danger-text">
+            {termsError}
+          </p>
+        ) : null}
+      </div>
+      <Submit pending={pending}>{t("terms.submit")}</Submit>
     </form>
   );
 }

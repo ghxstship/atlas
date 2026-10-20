@@ -1492,6 +1492,11 @@
       "haveAccount": "Already have an account?",
       "toSignIn": "Sign in"
     },
+    "terms": {
+      "title": "Accept the Worker Terms",
+      "lead": "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
+      "submit": "Continue"
+    },
     "providers": {
       "continueWith": "Continue with {provider}",
       "google": "Google",
