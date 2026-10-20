@@ -1,0 +1,26 @@
+appId: pro.ghxstship.compass
+---
+# Back to the root of the More tab. Pushed screens (Settings, Incidents, ...) hide the tab bar, so the
+# header's back button is tapped until the tab bar shows, then the More tab.
+- repeat:
+    times: 6
+    while:
+      notVisible:
+        id: "more"
+    commands:
+      - runFlow:
+          when:
+            visible:
+              id: "tab-more"
+          commands:
+            - tapOn:
+                id: "tab-more"
+      - runFlow:
+          when:
+            notVisible:
+              id: "tab-more"
+          commands:
+            - tapOn:
+                point: "9%,9%"
+      - waitForAnimationToEnd:
+          timeout: 3000
