@@ -167,6 +167,38 @@ export function bindingProblem(
 }
 
 /**
+ * The stored bindings the registry still accepts. Each binding is checked against every other
+ * shortcut's keys as they stand with all the stored bindings applied, so moving one shortcut frees its
+ * keys for another; a binding for an unknown or fixed shortcut, or whose keys are now reserved or
+ * clash, is dropped, and the shell never answers two shortcuts with one key.
+ */
+export function validBindings(
+  registry: ShortcutRegistry,
+  shellId: ShortcutShell,
+  custom: CustomBindings,
+): CustomBindings {
+  const shell = registry.shells[shellId];
+  const cache = new Map<Platform, ReadonlyMap<string, string | null>>();
+  const current = (platform: Platform) => {
+    let bindings = cache.get(platform);
+    if (bindings === undefined) {
+      bindings = effectiveBindings(shell, custom, platform);
+      cache.set(platform, bindings);
+    }
+    return bindings;
+  };
+  const accepted: Record<string, string | null> = {};
+  for (const [id, keys] of Object.entries(custom)) {
+    const shortcut = shell.shortcuts.find((s) => s.id === id);
+    if (!shortcut || shortcut.fixed) continue;
+    if (keys === null || bindingProblem(registry, shellId, current, id, keys) === null) {
+      accepted[id] = keys;
+    }
+  }
+  return accepted;
+}
+
+/**
  * Every rule a registry breaks, for the loader and the tests: unique ids and go targets, known
  * scopes and groups, keys in the grammar, defaults that use no reserved keys (fixed shortcuts may use
  * the keys of keyboard operation, such as Escape and Enter, which they document), and no two defaults

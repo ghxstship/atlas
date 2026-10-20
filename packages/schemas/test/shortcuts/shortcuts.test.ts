@@ -28,6 +28,7 @@ import {
   type KeyEventLike,
   type Platform,
   type ShortcutRegistry,
+  validBindings,
 } from "../../src/shortcuts/index.ts";
 
 const packageRoot = fileURLToPath(new URL("../../", import.meta.url));
@@ -302,6 +303,23 @@ describe("personal bindings", () => {
     expect(keys.get("list.next")).toBe("J");
     expect(keys.has("gone")).toBe(false);
     expect(keys.get("go.safety")).toBeNull();
+  });
+
+  it("keep only stored bindings the registry still accepts", () => {
+    expect(
+      validBindings(registry, "atlas", {
+        // Moving Go to Work frees G W for Go to Assets, whichever is stored first.
+        "go.assets": "G W",
+        "go.work": "G X",
+        search: null,
+        "list.next": "N",
+        gone: "Z",
+        "go.safety": "Mod+T",
+        "go.places": "C",
+        "go.canon": "G Z",
+        "go.credentials": "G Z",
+      }),
+    ).toEqual({ "go.assets": "G W", "go.work": "G X", search: null });
   });
 
   it("refuse unknown, fixed, malformed and typing-unsafe bindings", () => {
