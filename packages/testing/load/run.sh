@@ -12,6 +12,10 @@ ONLY="${2:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 RESULTS="$HERE/../node_modules/.cache/k6"
 mkdir -p "$RESULTS"
+# The k6 image runs as its own user (k6, uid 12345). On Linux the bind mount keeps host ownership, so
+# a folder only the runner may write leaves k6 unable to save its summary (permission denied). The
+# summaries hold load numbers only. Not 1777: the renames below move files k6 owns.
+chmod 0777 "$RESULTS"
 
 if [ "$MODE" != "smoke" ] && [ "$MODE" != "full" ]; then
   echo "Mode must be smoke or full, got $MODE." >&2
