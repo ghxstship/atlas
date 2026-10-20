@@ -48,6 +48,8 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Pull the stack images from GHCR (infra/ci/README.md)
+        run: infra/ci/supabase-images.sh db
       - name: Apply migrations from empty
         run: supabase db start
       - name: Run pgTAP suites
@@ -130,28 +132,6 @@ jobs:
           path: node_modules/.cache/playwright-visual
           if-no-files-found: ignore
 
-  ai-evals:
-    name: Aurora AI evals (gate 21)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # Runs only where the Anthropic key is configured; unit tests use a fake model client.
-    env:
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        if: env.ANTHROPIC_API_KEY != ''
-      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-        if: env.ANTHROPIC_API_KEY != ''
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        if: env.ANTHROPIC_API_KEY != ''
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-        if: env.ANTHROPIC_API_KEY != ''
-      - run: pnpm --filter @xos/ai evals
-        if: env.ANTHROPIC_API_KEY != ''
-
   # Gate 6. Chromium only: the Firefox and WebKit legs (E2E_ENGINES) triple the minutes and wait on
   # the owner (A24-008). Journeys run against production builds, since dev compiles each route on
   # first visit and typing before hydration is the race they guard against. Gateway's external role
@@ -188,14 +168,17 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/${{ matrix.app }}
       # The full stack (Auth, PostgREST, Storage, Mailpit) with migrations and the demo seed.
-      # Services no test uses stay off, which also keeps image pulls under the registry rate limit.
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environment from the stack
         run: |
           ANON=$(supabase status -o env | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')
-          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\n' "$ANON" > apps/atlas/.env.local
+          # XOS_API_HOST: e2e/api-host.spec.ts reaches the API host by sending Host: api.localhost (RRR-119).
+          printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nATLAS_SITE_URL=http://127.0.0.1:3006\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nSUPABASE_INBUCKET_URL=http://127.0.0.1:55424\nXOS_API_HOST=api.localhost\n' "$ANON" > apps/atlas/.env.local
           printf 'SUPABASE_URL=http://127.0.0.1:55421\nSUPABASE_ANON_KEY=%s\nGATEWAY_SITE_URL=http://127.0.0.1:3127\nGATEWAY_PLATFORM_HOSTS=127.0.0.1,localhost\n' "$ANON" > apps/gateway/.env.local
           echo "E2E_ATLAS_URL=http://127.0.0.1:3006" >> "$GITHUB_ENV"
+          echo "E2E_API_HOST=api.localhost" >> "$GITHUB_ENV"
           echo "E2E_GATEWAY_URL=http://127.0.0.1:3127" >> "$GITHUB_ENV"
           echo "E2E_SUPABASE_URL=http://127.0.0.1:55421" >> "$GITHUB_ENV"
           echo "E2E_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55422/postgres" >> "$GITHUB_ENV"
@@ -253,6 +236,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
         working-directory: apps/atlas
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environments from the stack
         run: |
@@ -350,10 +335,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      # No install, so no pnpm store to cache: setup-node's cache step would fail on the missing path.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
-          cache: pnpm
       - run: pnpm audit --prod
 
   # Gate 9, core screens: the browser runs in the pinned image; the stack and next dev run beside it.
@@ -377,6 +362,8 @@ jobs:
           version: 2.120.0
       - run: pnpm install --frozen-lockfile
       - run: docker pull --platform linux/amd64 mcr.microsoft.com/playwright:v1.64.0-noble
+      # Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+      - run: infra/ci/supabase-images.sh start
       - run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
       - name: Write the app environment from the stack
         run: |

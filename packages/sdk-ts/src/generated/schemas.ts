@@ -927,6 +927,11 @@ export interface ActivityEvent {
    * Length: 1 to 300.
    */
   readonly summary: string;
+  /**
+   * Identifier of the domain event the activity row shows, as webhooks and the outbox name it.
+   * Format: `uuid`.
+   */
+  readonly domain_event_id: string | null;
 }
 
 /**
@@ -1567,6 +1572,25 @@ export interface Record {
    */
   readonly sop_id: string | null;
   readonly team_code: TeamId | null;
+  /**
+   * Memberships assigned to the record (app.record_assignments), oldest first.
+   */
+  readonly assignee_membership_ids: ReadonlyArray<string>;
+  /**
+   * Progress of a task record, as a percentage.
+   * Range: 0 to 100.
+   */
+  readonly progress_pct: number | null;
+  /**
+   * Permit identifier the authority issued, on a permit record.
+   * Length: 1 to 200.
+   */
+  readonly permit_identifier: string | null;
+  /**
+   * Identifier of the Inspection Result enumeration row (Standard Library) of an inspection record.
+   * Format: `uuid`.
+   */
+  readonly inspection_result_enum_id: string | null;
 }
 
 /**
@@ -9272,6 +9296,16 @@ export interface TimeEntry {
    * Whether the entry was closed automatically and awaits review.
    */
   readonly needs_review: boolean;
+  /**
+   * Effective time of the entry's first Break Start punch (meal out).
+   * Format: `date-time`.
+   */
+  readonly meal_out_at: string | null;
+  /**
+   * Effective time of the entry's last Break End punch (meal in).
+   * Format: `date-time`.
+   */
+  readonly meal_in_at: string | null;
 }
 
 /**
@@ -12265,6 +12299,12 @@ export interface BudgetLine {
   readonly line_number: number;
   readonly phase_code: PhaseCode | null;
   readonly tier_code: TierCode | null;
+  /**
+   * Approved and paid expenses posted to the line (app.budget_line_facts); null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly actual_minor: number | null;
+  readonly account_code: GlAccountCode | null;
 }
 
 /**
@@ -12276,6 +12316,11 @@ export type LineType = string;
  * Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).
  */
 export type ItemId = string | null;
+
+/**
+ * GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
+ */
+export type GlAccountCode = string;
 
 /**
  * Fields accepted when creating a BudgetLine.
@@ -12731,6 +12776,16 @@ export interface ChangeOrder {
    * Length: 1 to 500.
    */
   readonly client_impact: string | null;
+  /**
+   * When the change order moved to Approved, from its transition ledger.
+   * Format: `date-time`.
+   */
+  readonly approved_at: string | null;
+  /**
+   * Identifier of the person who moved the change order to Approved.
+   * Format: `uuid`.
+   */
+  readonly approved_by: string | null;
 }
 
 /**
@@ -12901,6 +12956,12 @@ export interface ChangeOrderLine {
    * Whether the line is deliberately free of charge.
    */
   readonly is_no_cost: boolean;
+  readonly account_code: GlAccountCode | null;
+  /**
+   * Identifier of the cost center (dimension 1) of the budget line the change revises.
+   * Format: `uuid`.
+   */
+  readonly cost_center_id: string | null;
 }
 
 /**
@@ -13318,11 +13379,6 @@ export interface JournalLine {
   readonly quantity: number | null;
   readonly unit_basis: UnitCode | null;
 }
-
-/**
- * GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).
- */
-export type GlAccountCode = string;
 
 /**
  * Fields accepted when creating a JournalLine.
@@ -15234,6 +15290,21 @@ export interface PurchaseOrder {
    * Format: `int64`.
    */
   readonly shipping_minor: number | null;
+  /**
+   * When the order moved to Sent (its issue date), from its transition ledger.
+   * Format: `date-time`.
+   */
+  readonly sent_at: string | null;
+  /**
+   * Subtotal of the invoices matched to the order; null when none is matched or one is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly invoiced_minor: number | null;
+  /**
+   * Payments applied to the invoices matched to the order; null when none is matched. Integer minor units of the resource currency; null means unpriced, never zero.
+   * Format: `int64`.
+   */
+  readonly paid_minor: number | null;
 }
 
 /**
@@ -16272,6 +16343,11 @@ export interface Vendor {
    * Format: `uuid`.
    */
   readonly default_cost_center_id: string | null;
+  /**
+   * Last four digits of the vendor's most recent bank account; null when none is on file.
+   * Pattern: `^[0-9]{4}$`. Length: 1 to 4.
+   */
+  readonly bank_account_last4: string | null;
 }
 
 /**
@@ -17842,6 +17918,11 @@ export interface Incident {
    * Format: `date-time`.
    */
   readonly device_reported_at: string | null;
+  /**
+   * When the incident moved to Closed, from its transition ledger.
+   * Format: `date-time`.
+   */
+  readonly closed_at: string | null;
 }
 
 /**
@@ -20296,6 +20377,11 @@ export interface Engagement {
    * Format: `date`.
    */
   readonly end_date: string | null;
+  /**
+   * Identifier of the counterparty (vendor) the holder is engaged through; null when direct.
+   * Format: `uuid`.
+   */
+  readonly counterparty_id: string | null;
 }
 
 /**
@@ -22592,6 +22678,21 @@ export interface CanonDepartment {
    * Length: 1 to 20000.
    */
   readonly note: string | null;
+  /**
+   * Executive lead of the department.
+   * Length: 1 to 200.
+   */
+  readonly executive_lead: string | null;
+  /**
+   * Core function of the department.
+   * Length: 1 to 2000.
+   */
+  readonly core_function: string | null;
+  /**
+   * Scope of the department.
+   * Length: 1 to 2000.
+   */
+  readonly scope: string | null;
 }
 
 /**
@@ -22666,6 +22767,7 @@ export interface CanonCategory {
    * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
    */
   readonly source: string;
+  readonly xyz: Xyz | null;
 }
 
 /**
@@ -23643,6 +23745,22 @@ export interface CanonCounterpartyType {
    * Length: 1 to 20000.
    */
   readonly definition: string;
+  /**
+   * Classification code.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly classification_code: string | null;
+  /**
+   * Vendor class.
+   * Length: 1 to 100.
+   */
+  readonly vendor_class: string | null;
+  /**
+   * Clearance tier.
+   * Length: 1 to 200.
+   */
+  readonly clearance_tier: string | null;
+  readonly default_account_code: GlAccountCode | null;
 }
 
 /**
@@ -23680,6 +23798,10 @@ export interface CanonGlAccount {
    * Length: 1 to 20000.
    */
   readonly description: string;
+  /**
+   * Normal balance of the account's type: Debit or Credit.
+   */
+  readonly normal_balance: "Debit" | "Credit" | null;
 }
 
 /**
@@ -23747,6 +23869,7 @@ export interface CanonCategoryGl {
    * Length: 1 to 300.
    */
   readonly default_cost_center: string;
+  readonly account_code: GlAccountCode | null;
 }
 
 /**
@@ -23973,6 +24096,17 @@ export interface CanonElement {
    * Pattern: `^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$`.
    */
   readonly lifecycle_state: string;
+  readonly purchase_account: GlAccountCode | null;
+  /**
+   * Default cost center (dimension 1) of the element.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly default_cost_center: string | null;
+  /**
+   * External reference of the element.
+   * Length: 1 to 200.
+   */
+  readonly external_ref: string | null;
 }
 
 /**
@@ -24294,6 +24428,26 @@ export interface StdDocument {
    * Length: 1 to 20000.
    */
   readonly notes: string | null;
+  /**
+   * Organization as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly organization: string | null;
+  /**
+   * Project as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly project: string | null;
+  /**
+   * File size as the sheet gives it.
+   * Length: 1 to 100.
+   */
+  readonly file_size: string | null;
+  /**
+   * Where the file is stored, as the sheet gives it.
+   * Length: 1 to 2000.
+   */
+  readonly storage_url: string | null;
 }
 
 /**
@@ -24761,6 +24915,16 @@ export interface StdSop {
    * Length: 1 to 20000.
    */
   readonly notes: string | null;
+  /**
+   * Organization as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly organization: string | null;
+  /**
+   * Project as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly project: string | null;
 }
 
 /**
@@ -25421,6 +25585,16 @@ export interface Person {
    * Length: 1 to 300.
    */
   readonly full_name: string | null;
+  /**
+   * Optional given name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly given_name: string | null;
+  /**
+   * Optional family name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly family_name: string | null;
 }
 
 /**
@@ -25432,6 +25606,16 @@ export interface PersonUpdate {
    * Length: 1 to 300.
    */
   readonly full_name?: string | null;
+  /**
+   * Optional given name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly given_name?: string | null;
+  /**
+   * Optional family name, as the person writes it.
+   * Length: 1 to 100.
+   */
+  readonly family_name?: string | null;
 }
 
 /**
@@ -26836,6 +27020,11 @@ export interface PersonProfile {
    * Format: `date-time`.
    */
   readonly handle_changed_at: string | null;
+  /**
+   * Name the person goes by.
+   * Length: 1 to 100.
+   */
+  readonly preferred_name: string | null;
 }
 
 /**
@@ -26923,6 +27112,11 @@ export interface PersonProfileUpdate {
    * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
    */
   readonly handle?: string;
+  /**
+   * Name the person goes by.
+   * Length: 1 to 100.
+   */
+  readonly preferred_name?: string | null;
 }
 
 /**
@@ -26983,6 +27177,16 @@ export interface OrganizationProfile {
    * Format: `date-time`.
    */
   readonly handle_changed_at: string | null;
+  /**
+   * Website of the organization; https only.
+   * Format: `uri`.
+   */
+  readonly website_url: string | null;
+  /**
+   * Contact email of the organization, stored in lowercase.
+   * Format: `email`.
+   */
+  readonly contact_email: string | null;
 }
 
 /**
@@ -27025,6 +27229,16 @@ export interface OrganizationProfileUpdate {
    * Pattern: `^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$`.
    */
   readonly handle?: string;
+  /**
+   * Website of the organization; https only.
+   * Format: `uri`.
+   */
+  readonly website_url?: string | null;
+  /**
+   * Contact email of the organization, stored in lowercase.
+   * Format: `email`.
+   */
+  readonly contact_email?: string | null;
 }
 
 /**
@@ -35148,6 +35362,145 @@ export interface TemplateApplicationCreate {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface ProjectAuthorityPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectAuthority>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none.
+ */
+export interface ProjectAuthority {
+  /**
+   * Identifier of the project.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Responder service the agency provides.
+   * Length: 1 to 100.
+   */
+  readonly service: string;
+  /**
+   * Agency having jurisdiction.
+   * Length: 1 to 300.
+   */
+  readonly agency: string;
+  /**
+   * How to reach the agency.
+   * Length: 1 to 300.
+   */
+  readonly contact: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface CueCallPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<CueCall>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department.
+ */
+export interface CueCall {
+  /**
+   * Identifier of the cue call.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the cue the call belongs to.
+   * Format: `uuid`.
+   */
+  readonly cue_id: string;
+  /**
+   * Department making the call.
+   */
+  readonly call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string;
+}
+
+/**
+ * Fields accepted when creating a CueCall.
+ */
+export interface CueCallCreate {
+  /**
+   * Identifier of the cue the call belongs to.
+   * Format: `uuid`.
+   */
+  readonly cue_id: string;
+  /**
+   * Department making the call.
+   */
+  readonly call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction: string;
+}
+
+/**
+ * Fields accepted when updating a CueCall. Omitted fields are unchanged.
+ */
+export interface CueCallUpdate {
+  /**
+   * Department making the call.
+   */
+  readonly call_kind?: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
+  /**
+   * What the department does on the cue.
+   * Length: 1 to 2000.
+   */
+  readonly instruction?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface GuestListEntryPage {
   /**
    * Items on this page, in the documented default order.
@@ -35591,6 +35944,76 @@ export interface RequiredAdditionalInsuredUpdate {
    */
   readonly endorsement_kind?:
     "Additional Insured" | "Primary and Noncontributory" | "Waiver of Subrogation";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface CanonStdEmergencyProtocolPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<CanonStdEmergencyProtocol>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps.
+ */
+export interface CanonStdEmergencyProtocol {
+  /**
+   * Record identifier of the protocol.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly record_key: string;
+  /**
+   * Radio code the protocol answers (xpms.emergency_code).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly code: string;
+  /**
+   * Operational domain the protocol applies to.
+   * Length: 1 to 200.
+   */
+  readonly domain: string;
+  /**
+   * Department as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly department: string | null;
+  /**
+   * Category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly category: string | null;
+  /**
+   * Sub-category as the sheet names it.
+   * Length: 1 to 200.
+   */
+  readonly sub_category: string | null;
+  /**
+   * The protocol's steps (xpms.emergency_protocol_step), in order.
+   */
+  readonly steps: ReadonlyArray<CanonEmergencyProtocolStep>;
+}
+
+/**
+ * One numbered step of an emergency protocol.
+ */
+export interface CanonEmergencyProtocolStep {
+  /**
+   * Step number, from 1.
+   * Range: 1 to unbounded.
+   */
+  readonly step_no: number;
+  /**
+   * What to do; responder services appear as tokens such as {fire} (ruling D15).
+   * Length: 1 to 2000.
+   */
+  readonly body: string;
 }
 
 /**
@@ -36403,6 +36826,977 @@ export interface AiUsage {
    * Range: 0 to unbounded.
    */
   readonly output_tokens: number | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WorkDetailsPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WorkDetails>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's own work details (Section 4.5.6 item 10): uniform sizes, dietary and accessibility needs and the travel profile. Read and written only by the person; an engaging org sees a category only while the person shares it with that engagement. The passport number is Restricted and encrypted: it is written here, always read masked, and shown only through the logged revealPassport action. One live row per person (409 on a second).
+ */
+export interface WorkDetails {
+  /**
+   * Identifier of the work details.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person the work details belong to; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  readonly shirt_size: GarmentLetterSize | null;
+  readonly jacket_size: GarmentLetterSize | null;
+  /**
+   * Pants size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly pants_size: string | null;
+  /**
+   * Shoe size with its system.
+   * Length: 1 to 20.
+   */
+  readonly shoe_size: string | null;
+  readonly glove_size: GarmentLetterSize | null;
+  /**
+   * Hat size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly hat_size: string | null;
+  /**
+   * Anything else about fit.
+   * Length: 1 to 500.
+   */
+  readonly uniform_notes: string | null;
+  /**
+   * Dietary needs, each once, in enum order.
+   */
+  readonly dietary_needs: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies in the person's words, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes: string | null;
+  /**
+   * Accessibility needs, each once, in enum order.
+   */
+  readonly accessibility_needs: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility needs in the person's words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes: string | null;
+  readonly seat_preference: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   * Length: 1 to 100.
+   */
+  readonly meal_preference: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport: string | null;
+  readonly passport_number: string | Masked | null;
+  /**
+   * Last four characters of the passport number.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly passport_number_last4: string | null;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on: string | null;
+  /**
+   * Name exactly as printed in the passport.
+   * Length: 1 to 200.
+   */
+  readonly passport_name: string | null;
+}
+
+/**
+ * Letter size for a shirt, jacket or gloves.
+ */
+export type GarmentLetterSize =
+  "XXS" | "XS" | "S" | "M" | "L" | "XL" | "2XL" | "3XL" | "4XL" | "5XL";
+
+/**
+ * A dietary need hospitality caters for.
+ */
+export type DietaryNeed =
+  | "Vegetarian"
+  | "Vegan"
+  | "Pescatarian"
+  | "Halal"
+  | "Kosher"
+  | "Gluten Free"
+  | "Dairy Free"
+  | "Nut Free"
+  | "Shellfish Free";
+
+/**
+ * An accessibility need the person asks an engaging org to plan for.
+ */
+export type AccessibilityNeed =
+  | "Step-Free Access"
+  | "Accessible Parking"
+  | "Accessible Restroom"
+  | "Seating"
+  | "Sign Language Interpreter"
+  | "Captioning"
+  | "Large Print"
+  | "Service Animal"
+  | "Quiet Space"
+  | "Assistance on Arrival";
+
+/**
+ * Preferred seat when an org books travel.
+ */
+export type SeatPreference = "Window" | "Aisle" | "No Preference";
+
+/**
+ * Fields accepted when creating a WorkDetails.
+ */
+export interface WorkDetailsCreate {
+  readonly shirt_size?: GarmentLetterSize | null;
+  readonly jacket_size?: GarmentLetterSize | null;
+  /**
+   * Pants size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly pants_size?: string | null;
+  /**
+   * Shoe size with its system.
+   * Length: 1 to 20.
+   */
+  readonly shoe_size?: string | null;
+  readonly glove_size?: GarmentLetterSize | null;
+  /**
+   * Hat size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly hat_size?: string | null;
+  /**
+   * Anything else about fit.
+   * Length: 1 to 500.
+   */
+  readonly uniform_notes?: string | null;
+  /**
+   * Dietary needs, each once, in enum order.
+   */
+  readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies in the person's words, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies?: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes?: string | null;
+  /**
+   * Accessibility needs, each once, in enum order.
+   */
+  readonly accessibility_needs?: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility needs in the person's words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes?: string | null;
+  readonly seat_preference?: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   * Length: 1 to 100.
+   */
+  readonly meal_preference?: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport?: string | null;
+  /**
+   * Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+   * Length: 5 to 30.
+   */
+  readonly passport_number?: string | null;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country?: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on?: string | null;
+  /**
+   * Name exactly as printed in the passport.
+   * Length: 1 to 200.
+   */
+  readonly passport_name?: string | null;
+}
+
+/**
+ * Fields accepted when updating a WorkDetails. Omitted fields are unchanged.
+ */
+export interface WorkDetailsUpdate {
+  readonly shirt_size?: GarmentLetterSize | null;
+  readonly jacket_size?: GarmentLetterSize | null;
+  /**
+   * Pants size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly pants_size?: string | null;
+  /**
+   * Shoe size with its system.
+   * Length: 1 to 20.
+   */
+  readonly shoe_size?: string | null;
+  readonly glove_size?: GarmentLetterSize | null;
+  /**
+   * Hat size as the person writes it.
+   * Length: 1 to 20.
+   */
+  readonly hat_size?: string | null;
+  /**
+   * Anything else about fit.
+   * Length: 1 to 500.
+   */
+  readonly uniform_notes?: string | null;
+  /**
+   * Dietary needs, each once, in enum order.
+   */
+  readonly dietary_needs?: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies in the person's words, with how severe.
+   * Length: 1 to 500.
+   */
+  readonly allergies?: string | null;
+  /**
+   * Other dietary notes.
+   * Length: 1 to 500.
+   */
+  readonly dietary_notes?: string | null;
+  /**
+   * Accessibility needs, each once, in enum order.
+   */
+  readonly accessibility_needs?: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility needs in the person's words.
+   * Length: 1 to 1000.
+   */
+  readonly accessibility_notes?: string | null;
+  readonly seat_preference?: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   * Length: 1 to 100.
+   */
+  readonly meal_preference?: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport?: string | null;
+  /**
+   * Passport number, write-only: letters and digits are kept and encrypted. Send null to clear it.
+   * Length: 5 to 30.
+   */
+  readonly passport_number?: string | null;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country?: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on?: string | null;
+  /**
+   * Name exactly as printed in the passport.
+   * Length: 1 to 200.
+   */
+  readonly passport_name?: string | null;
+}
+
+/**
+ * A revealed passport number. Each reveal is written to the person's access log.
+ */
+export interface PassportReveal {
+  /**
+   * The passport number in plain text.
+   */
+  readonly passport_number: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface EmergencyContactPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<EmergencyContact>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One of the caller's emergency contacts (Section 4.5.6 item 10), in calling order, at most five (422 emergency_contact_limit). Phones are E.164 (Section 15). Shared with an engagement under the Emergency Contacts category.
+ */
+export interface EmergencyContact {
+  /**
+   * Identifier of the emergency contact.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person the contact belongs to; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Contact's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name: string;
+  /**
+   * How the contact relates to the person.
+   * Length: 1 to 60.
+   */
+  readonly relationship: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164: string | null;
+  /**
+   * Contact's email address.
+   * Format: `email`.
+   */
+  readonly email: string | null;
+  /**
+   * Order to call in, lowest first.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
+}
+
+/**
+ * Fields accepted when creating a EmergencyContact.
+ */
+export interface EmergencyContactCreate {
+  /**
+   * Contact's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name: string;
+  /**
+   * How the contact relates to the person.
+   * Length: 1 to 60.
+   */
+  readonly relationship?: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164?: string | null;
+  /**
+   * Contact's email address.
+   * Format: `email`.
+   */
+  readonly email?: string | null;
+  /**
+   * Order to call in, lowest first.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * Fields accepted when updating a EmergencyContact. Omitted fields are unchanged.
+ */
+export interface EmergencyContactUpdate {
+  /**
+   * Contact's name.
+   * Length: 1 to 200.
+   */
+  readonly full_name?: string;
+  /**
+   * How the contact relates to the person.
+   * Length: 1 to 60.
+   */
+  readonly relationship?: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164?: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164?: string | null;
+  /**
+   * Contact's email address.
+   * Format: `email`.
+   */
+  readonly email?: string | null;
+  /**
+   * Order to call in, lowest first.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface LoyaltyProgramPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<LoyaltyProgram>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A travel loyalty program the caller belongs to, at most twenty (422 loyalty_program_limit). A program name appears once per kind (409). Shared with an engagement under the Travel Profile category.
+ */
+export interface LoyaltyProgram {
+  /**
+   * Identifier of the loyalty program.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person the program belongs to; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  readonly program_kind: LoyaltyProgramKind;
+  /**
+   * Program.
+   * Length: 1 to 100.
+   */
+  readonly program_name: string;
+  /**
+   * Membership number.
+   * Length: 1 to 40.
+   */
+  readonly member_number: string;
+  /**
+   * Display order.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order: number;
+}
+
+/**
+ * Kind of travel loyalty program.
+ */
+export type LoyaltyProgramKind = "Airline" | "Hotel" | "Car Rental" | "Rail";
+
+/**
+ * Fields accepted when creating a LoyaltyProgram.
+ */
+export interface LoyaltyProgramCreate {
+  readonly program_kind: LoyaltyProgramKind;
+  /**
+   * Program.
+   * Length: 1 to 100.
+   */
+  readonly program_name: string;
+  /**
+   * Membership number.
+   * Length: 1 to 40.
+   */
+  readonly member_number: string;
+  /**
+   * Display order.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * Fields accepted when updating a LoyaltyProgram. Omitted fields are unchanged.
+ */
+export interface LoyaltyProgramUpdate {
+  readonly program_kind?: LoyaltyProgramKind;
+  /**
+   * Program.
+   * Length: 1 to 100.
+   */
+  readonly program_name?: string;
+  /**
+   * Membership number.
+   * Length: 1 to 40.
+   */
+  readonly member_number?: string;
+  /**
+   * Display order.
+   * Range: 0 to unbounded.
+   */
+  readonly sort_order?: number;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WorkDetailSharePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WorkDetailShare>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The caller's consent to share chosen categories of their work details with the org that engages them, for one engagement, under a work_details_sharing consent record (Section 14.3). Creating a share for an engagement that already has one replaces its categories; fewer categories is a partial revocation. Revoke ends it at once and withdraws the org's consent with its last share. Shares cannot be made once the engagement is Complete or Canceled (422 work_detail_share_closed). The person and the engaging org read shares; only the person writes them.
+ */
+export interface WorkDetailShare {
+  /**
+   * Identifier of the work detail share.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the engagement the share serves; the caller must be its person.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Identifier of the person sharing.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Identifier of the work_details_sharing consent record for the org.
+   * Format: `uuid`.
+   */
+  readonly consent_record_id: string;
+  /**
+   * Categories shared.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * When the share was given.
+   * Format: `date-time`.
+   */
+  readonly shared_at: string;
+  /**
+   * When the person revoked it; null while it stands.
+   * Format: `date-time`.
+   */
+  readonly revoked_at: string | null;
+}
+
+/**
+ * A category of work details shared with an engaging org on its own. Travel Profile is seat and meal preference, home airport and loyalty programs; Passport is the passport details.
+ */
+export type WorkDetailCategory =
+  | "Emergency Contacts"
+  | "Uniform Sizes"
+  | "Dietary Needs"
+  | "Accessibility Needs"
+  | "Travel Profile"
+  | "Passport";
+
+/**
+ * Fields accepted when creating a WorkDetailShare.
+ */
+export interface WorkDetailShareCreate {
+  /**
+   * Identifier of the engagement the share serves; the caller must be its person.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Categories shared.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+}
+
+/**
+ * Fields accepted when updating a WorkDetailShare. Omitted fields are unchanged.
+ */
+export interface WorkDetailShareUpdate {
+  /**
+   * Categories shared.
+   */
+  readonly categories?: ReadonlyArray<WorkDetailCategory>;
+}
+
+/**
+ * What the person an engagement names shared of their work details, as the caller may read it. Unshared or unreadable categories are null; the passport number is always masked.
+ */
+export interface SharedWorkDetails {
+  /**
+   * Engagement.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string;
+  /**
+   * Person the engagement names.
+   * Format: `uuid`.
+   */
+  readonly person_id: string | null;
+  /**
+   * Engaging org.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * Live share; null when none stands.
+   * Format: `uuid`.
+   */
+  readonly work_detail_share_id: string | null;
+  /**
+   * When the share was given.
+   * Format: `date-time`.
+   */
+  readonly shared_at: string | null;
+  /**
+   * The engagement is Onboarding to Closing; a closed engagement reads nothing.
+   */
+  readonly sharing_open: boolean;
+  /**
+   * Categories the person shared.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Shared categories the caller's project capabilities cover; the others come back null.
+   */
+  readonly readable: ReadonlyArray<WorkDetailCategory>;
+  readonly emergency_contacts: ReadonlyArray<SharedEmergencyContact> | null;
+  readonly uniform: SharedUniformSizes | null;
+  readonly dietary: SharedDietaryNeeds | null;
+  readonly accessibility: SharedAccessibilityNeeds | null;
+  readonly travel: SharedTravelProfile | null;
+  readonly passport: SharedPassport | null;
+}
+
+/**
+ * An emergency contact as an engaging org reads it.
+ */
+export interface SharedEmergencyContact {
+  /**
+   * Contact's name.
+   */
+  readonly full_name: string;
+  /**
+   * Relationship.
+   */
+  readonly relationship: string | null;
+  /**
+   * Contact's phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly phone_e164: string;
+  /**
+   * A second phone. E.164 format.
+   * Pattern: `^\+[1-9][0-9]{6,14}$`.
+   */
+  readonly alternate_phone_e164: string | null;
+  /**
+   * Email address.
+   */
+  readonly email: string | null;
+  /**
+   * Calling order.
+   */
+  readonly sort_order: number;
+}
+
+/**
+ * Uniform sizes as an engaging org reads them.
+ */
+export interface SharedUniformSizes {
+  readonly shirt_size: GarmentLetterSize | null;
+  readonly jacket_size: GarmentLetterSize | null;
+  /**
+   * Pants size.
+   */
+  readonly pants_size: string | null;
+  /**
+   * Shoe size.
+   */
+  readonly shoe_size: string | null;
+  readonly glove_size: GarmentLetterSize | null;
+  /**
+   * Hat size.
+   */
+  readonly hat_size: string | null;
+  /**
+   * Fit notes.
+   */
+  readonly uniform_notes: string | null;
+}
+
+/**
+ * Dietary needs as an engaging org reads them.
+ */
+export interface SharedDietaryNeeds {
+  readonly dietary_needs: ReadonlyArray<DietaryNeed>;
+  /**
+   * Allergies.
+   */
+  readonly allergies: string | null;
+  /**
+   * Other dietary notes.
+   */
+  readonly dietary_notes: string | null;
+}
+
+/**
+ * Accessibility needs as an engaging org reads them.
+ */
+export interface SharedAccessibilityNeeds {
+  readonly accessibility_needs: ReadonlyArray<AccessibilityNeed>;
+  /**
+   * Accessibility notes.
+   */
+  readonly accessibility_notes: string | null;
+}
+
+/**
+ * The travel profile as an engaging org reads it.
+ */
+export interface SharedTravelProfile {
+  readonly seat_preference: SeatPreference | null;
+  /**
+   * Preferred in-flight meal.
+   */
+  readonly meal_preference: string | null;
+  /**
+   * IATA airport code.
+   * Pattern: `^[A-Z]{3}$`.
+   */
+  readonly home_airport: string | null;
+  readonly loyalty_programs: ReadonlyArray<SharedLoyaltyProgram>;
+}
+
+/**
+ * A loyalty program as an engaging org reads it.
+ */
+export interface SharedLoyaltyProgram {
+  readonly program_kind: LoyaltyProgramKind;
+  /**
+   * Program.
+   */
+  readonly program_name: string;
+  /**
+   * Membership number.
+   */
+  readonly member_number: string;
+}
+
+/**
+ * Passport details as an engaging org reads them, the number masked.
+ */
+export interface SharedPassport {
+  /**
+   * Always null: the number is masked; reveal it through revealPassport.
+   */
+  readonly passport_number: null;
+  /**
+   * Last four characters of the number.
+   */
+  readonly passport_number_last4: string | null;
+  /**
+   * A number is recorded and withheld.
+   */
+  readonly passport_number_masked: boolean;
+  /**
+   * Country that issued the passport.
+   * Pattern: `^[A-Z]{2}$`.
+   */
+  readonly passport_issuing_country: string | null;
+  /**
+   * Day the passport expires.
+   * Format: `date`.
+   */
+  readonly passport_expires_on: string | null;
+  /**
+   * Name as printed in the passport.
+   */
+  readonly passport_name: string | null;
+}
+
+/**
+ * Request to reveal a shared passport number.
+ */
+export interface PassportRevealRequest {
+  /**
+   * Why the number is needed, 10 to 500 characters. Logged with the reveal.
+   * Length: 10 to 500.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface WorkDetailEventPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<WorkDetailEvent>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One entry of a person's work details access log (Section 8.4): a change they made, a share or revocation, or a read or reveal by an engaging org, with the categories and changed column names but never a value. The person reads all of theirs; an org's audit readers read the entries naming their org.
+ */
+export interface WorkDetailEvent {
+  /**
+   * Identifier of the entry.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the person whose work details were touched.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Identifier of the person who acted; null for the database or a service.
+   * Format: `uuid`.
+   */
+  readonly actor_person_id: string | null;
+  /**
+   * Identifier of the org whose member acted or whose share changed.
+   * Format: `uuid`.
+   */
+  readonly org_id: string | null;
+  /**
+   * Identifier of the engagement of a share, read or reveal.
+   * Format: `uuid`.
+   */
+  readonly engagement_id: string | null;
+  /**
+   * What happened, as subject.verb: person_work_details.update, work_details.shared, work_details.share_changed, work_details.share_revoked, work_details.viewed, passport.revealed and others.
+   * Pattern: `^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$`.
+   */
+  readonly action: string;
+  /**
+   * Categories the act covered.
+   */
+  readonly categories: ReadonlyArray<WorkDetailCategory>;
+  /**
+   * Columns an owner change touched, never their values.
+   */
+  readonly changed_columns: ReadonlyArray<string>;
+  /**
+   * Reason an org member gave for revealing the passport number.
+   * Length: 1 to 500.
+   */
+  readonly reason: string | null;
+  /**
+   * When it happened.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
 }
 
 /**
@@ -38354,9 +39748,9 @@ export interface FeedPost {
    */
   readonly body: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38377,6 +39771,11 @@ export interface FeedPost {
    * Format: `uuid`.
    */
   readonly group_id: string | null;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code: string | null;
   /**
    * Identifier of the member who wrote the post.
    * Format: `uuid`.
@@ -38440,9 +39839,9 @@ export interface FeedPostCreate {
    */
   readonly body: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38463,6 +39862,11 @@ export interface FeedPostCreate {
    * Format: `uuid`.
    */
   readonly group_id?: string | null;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code?: string | null;
   /**
    * Whether every member of the audience must acknowledge it.
    */
@@ -38516,9 +39920,9 @@ export interface PollPostRequest {
    */
   readonly title?: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Project audience.
    * Format: `uuid`.
@@ -38539,6 +39943,11 @@ export interface PollPostRequest {
    * Format: `uuid`.
    */
   readonly group_id?: string;
+  /**
+   * Canon department code of a Department audience (xpms.dim_department).
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly department_code?: string;
   /**
    * Poll question.
    * Length: 1 to 300.
@@ -38817,9 +40226,9 @@ export interface Survey {
    */
   readonly description: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -38880,9 +40289,9 @@ export interface SurveyDraftRequest {
    */
   readonly description?: string;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind?: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind?: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Project audience.
    * Format: `uuid`.
@@ -39337,9 +40746,9 @@ export interface WorkforceEvent {
    */
   readonly space_id: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.
@@ -39425,9 +40834,9 @@ export interface WorkforceEventCreate {
    */
   readonly space_id?: string | null;
   /**
-   * Who the row reaches.
+   * Who the row reaches. Department (a canon department, 1365) is for feed posts only.
    */
-  readonly audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+  readonly audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
   /**
    * Identifier of the project audience, or the project the row belongs to.
    * Format: `uuid`.

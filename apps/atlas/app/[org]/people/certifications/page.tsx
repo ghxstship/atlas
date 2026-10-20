@@ -25,6 +25,7 @@ import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, getMembers, withParams } from "@/lib/crew/context";
 import { peopleStateIcon } from "@/lib/people/states";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -45,7 +46,8 @@ export default async function Page({
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
-  const today = new Date().toISOString().slice(0, 10);
+  // Expiry follows the org's calendar, as the database's certification dates do (1306).
+  const today = await orgToday(crew.ctx);
   const [certsResult, holdersResult] = await Promise.all([
     listCertifications(db, crew.orgId),
     listCertificationHolders(db, { orgId: crew.orgId }),

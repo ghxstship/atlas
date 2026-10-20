@@ -58,8 +58,37 @@ export function uniqueId(): string {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
-/** axe-core on the current page: zero serious or critical findings (Section 18, gate 8). */
+/**
+ * Waits for the resting state axe measures (journey 46, A71). Under reduced motion a drawer, side
+ * peek, dialog or toast still fades in over --motion-duration-reduced (80 ms), and an Atlas side peek
+ * starts its fade after the row behind it is already visible; axe sampling mid-fade blends every text
+ * node of the panel with the canvas and reports color contrast on all of them. So the pointer leaves
+ * any control (hover colors are tracked separately, finding A24-004), the page goes quiet, two frames
+ * paint so a panel that just mounted has started its fade, and every finite animation and transition
+ * finishes, as Atlas's expectAccessible does.
+ */
+async function restingState(page: Page): Promise<void> {
+  await page.mouse.move(0, 0);
+  await settle(page);
+  await page.evaluate(
+    () =>
+      new Promise<void>((done) => requestAnimationFrame(() => requestAnimationFrame(() => done()))),
+  );
+  await page
+    .waitForFunction(
+      () =>
+        document
+          .getAnimations()
+          .every((a) => a.playState !== "running" || a.effect?.getTiming().iterations === Infinity),
+      undefined,
+      { timeout: 5_000 },
+    )
+    .catch(() => undefined);
+}
+
+/** axe-core on the current page at rest: zero serious or critical findings (Section 18, gate 8). */
 export async function expectAccessible(page: Page): Promise<void> {
+  await restingState(page);
   const results = await new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
     .analyze();
@@ -103,6 +132,8 @@ export async function reloadSettled(page: Page): Promise<void> {
 export async function signIn(page: Page, email: string, next = "/home"): Promise<void> {
   await page.goto(`/auth/sign-in?next=${encodeURIComponent(next)}`);
   await page.locator("#signin-email").fill(email);
+  // The password field appears on request: the sign-in link is the first choice (A59-025).
+  await page.getByRole("button", { name: "Use a password" }).click();
   await page.locator("#signin-password").fill(DEMO_PASSWORD);
   await page.getByRole("button", { name: "Sign in with password" }).click();
   await page.waitForURL((url) => url.pathname === next.split("?")[0]);

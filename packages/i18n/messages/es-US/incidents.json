@@ -18,7 +18,7 @@
   "anySeverity": "Cualquier gravedad",
   "anyState": "Cualquier estado",
   "arrivedAt": "Llegó {time}",
-  "boardEmpty": "Ninguno",
+  "boardEmpty": "Ningún incidente en este estado.",
   "close": "Cerrar con aprobación",
   "closeHeading": "Cerrar",
   "closeHelp": "Al cerrar quedas registrado como quien aprueba. Quien reportó un incidente crítico no puede aprobar su cierre.",

@@ -3,7 +3,9 @@
     "tabs": "Pestañas del proyecto",
     "scope": "Alcance",
     "wholeProject": "Todo el proyecto",
-    "archived": "Archivado"
+    "archived": "Archivado",
+    "more": "Más",
+    "moreTabs": "Más pestañas"
   },
   "states": {
     "Proposed": "Propuesto",

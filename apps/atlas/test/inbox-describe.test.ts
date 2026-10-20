@@ -1,5 +1,6 @@
 import { getMessages, locales } from "@xos/i18n";
 import type { InboxItem } from "@xos/data/inbox";
+import { NOTIFICATION_KINDS } from "@xos/schemas/notifications";
 import { IntlMessageFormat } from "intl-messageformat";
 import { describe, expect, it } from "vitest";
 import { describeInboxItem, inboxTarget, type InboxCopy } from "../lib/inbox/describe";
@@ -108,6 +109,10 @@ describe("Inbox item copy", () => {
       ] as Tree
     )["kinds"] as Tree,
   );
+
+  it("labels every kind of the notification registry (A80), and only those", () => {
+    expect([...labelled].sort()).toEqual(NOTIFICATION_KINDS.map((k) => k.kind).sort());
+  });
 
   it("knows the arguments of every labelled kind", () => {
     expect(labelled.length).toBeGreaterThan(20);

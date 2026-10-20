@@ -41,6 +41,7 @@ import {
 import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { requestNow } from "@/lib/workforce/time";
 import { QuerySwitch } from "./client";
 import { OverflowMenu } from "./overflow-menu";
@@ -120,7 +121,7 @@ async function PostsSection({
   tabs: React.ReactNode;
 }) {
   const feedView = search["view"] === undefined || search["view"] === "feed";
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const mine = [ctx.org.membershipId];
   const [format, feed, pickers] = await Promise.all([
     getFormatter(),
@@ -369,7 +370,7 @@ async function PostsSection({
               help: t("feed.optionsHelp"),
               rows: 4,
             },
-            ...audienceFields(t, pickers),
+            ...audienceFields(t, pickers, { withDepartments: true }),
             {
               kind: "datetime",
               name: "publishAt",
@@ -572,7 +573,7 @@ async function SurveysSection({
   t: Copy;
   tabs: React.ReactNode;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const [format, surveys, pickers] = await Promise.all([
     getFormatter(),
     listSurveys(ctx.viewer.db, ctx.org.id, [ctx.org.membershipId]),

@@ -7,6 +7,10 @@
 # account role. Engagement tabs render only for the engagement's role type, from the
 # sets under engagementTabs, in order. Crew and Staff carry Invoices after Timesheets (A43, finding
 # A38-007): a person engaged as an individual agrees to self-billing and follows pay there.
+# Timesheets, tax documents, work details and payout carry the paid-work condition (A62, finding
+# A59-033): they are hidden for someone whose engagements are all client or sponsor ones, because
+# the org never pays them. View switchers list the default view first, then the rest in the
+# VIEW_TYPES order, so neighboring pages agree (finding A59-029).
 schemaVersion: 1
 shell: gateway
 home: home
@@ -190,7 +194,7 @@ nodes:
             kind: page
             label: nav.gateway.work.applications
             route: /work/applications
-            list: { views: [list, board, table], default: list }
+            list: { views: [list, table, board], default: list }
           - id: engagement
             kind: record
             label: nav.gateway.work.engagement
@@ -393,6 +397,7 @@ nodes:
             kind: page
             label: nav.gateway.money.timesheets
             route: /money/timesheets
+            conditions: [paid-work]
             list: { views: [table, list], default: table }
           - id: money.payments
             kind: page
@@ -403,6 +408,7 @@ nodes:
             kind: page
             label: nav.gateway.money.taxDocuments
             route: /money/tax-documents
+            conditions: [paid-work]
             list: { views: [table, list], default: table }
       - id: messages
         kind: item
@@ -497,10 +503,12 @@ nodes:
             kind: section
             label: nav.settings.personal.workDetails
             route: /settings/work-details
+            conditions: [paid-work]
           - id: settings.payout-and-tax
             kind: section
             label: nav.settings.personal.payoutAndTax
             route: /settings/payout-and-tax
+            conditions: [paid-work]
           - id: settings.calendar-feeds
             kind: section
             label: nav.settings.personal.calendarFeeds
@@ -551,6 +559,7 @@ nodes:
                 kind: section
                 label: nav.settings.company.payoutAndTax
                 route: /settings/company/payout-and-tax
+                conditions: [paid-work]
                 visibility:
                   individual: hidden
                   account-owner: full

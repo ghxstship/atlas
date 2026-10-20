@@ -33,6 +33,7 @@ import {
 import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { requestNow } from "@/lib/workforce/time";
 import { REFUSALS, audienceFields, audienceLabel, orgPickers, workforceCopy } from "./shared";
 
@@ -63,7 +64,7 @@ export async function EventsSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const [t, format, events, pickers] = await Promise.all([
     workforceCopy(),
     getFormatter(),

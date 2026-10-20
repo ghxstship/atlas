@@ -15,6 +15,7 @@ import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { ProjectPicker, REFUSALS, chosenProject, orgPickers, workforceCopy } from "./shared";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
@@ -39,7 +40,7 @@ export async function GuestCheckInSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const [t, format, pickers] = await Promise.all([
     workforceCopy(),
     getFormatter(),

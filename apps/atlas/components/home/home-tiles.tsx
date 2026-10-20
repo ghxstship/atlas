@@ -3,11 +3,10 @@
 import { StatTile } from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { HomeTilesData } from "@/lib/home/data";
 import { ActivityLine } from "@/components/activity/activity-line";
 import { collapseRepeats, useDescribe } from "@/components/activity/describe";
-import { useAlertText } from "./alert-text";
 
 function Tile({
   id,
@@ -42,25 +41,31 @@ function Tile({
   );
 }
 
-/** The Home dashboard tiles A07 adds under the checklist (Dashboard template, Section 11.6). */
+/**
+ * The Home dashboard tiles A07 adds under the checklist (Dashboard template, Section 11.6). Alert
+ * texts and relative activity times arrive formatted by the server: building Intl date and
+ * relative-time formatters during hydration was the largest part of Home's main-thread work on a
+ * slow CPU (gate 10, Total Blocking Time).
+ */
 export function HomeTiles({
   org,
   tiles,
   links,
-  now,
+  text,
 }: {
   org: string;
   tiles: HomeTilesData;
-  /** Server time the tiles were read at, so relative times render the same on server and client. */
-  now: string;
   links: { readiness: string; alerts: string; activity: string | null };
+  /** Each alert's text and each activity entry's relative time, by id, as the server formatted them. */
+  text: {
+    readonly alerts: Readonly<Record<string, string>>;
+    readonly times: Readonly<Record<string, string>>;
+  };
 }) {
   const t = useTranslations("home.dashboard");
   const r = useTranslations("home.readiness");
   const p = useTranslations("projects");
-  const format = useFormatter();
   const describe = useDescribe();
-  const alertText = useAlertText();
   return (
     <div className="mt-16 flex flex-col gap-16">
       <div className="grid grid-cols-1 gap-16 sm:grid-cols-2 lg:grid-cols-4">
@@ -106,7 +111,7 @@ export function HomeTiles({
           ) : (
             <ul className="m-0 flex list-none flex-col gap-8 p-0 text-text-13">
               {tiles.alerts.map((a) => (
-                <li key={a.id}>{alertText(a)}</li>
+                <li key={a.id}>{text.alerts[a.id]}</li>
               ))}
             </ul>
           )}
@@ -121,7 +126,7 @@ export function HomeTiles({
                   <ActivityLine
                     description={description}
                     count={count}
-                    time={format.relativeTime(new Date(e.at), new Date(now))}
+                    time={text.times[e.id] ?? ""}
                   />
                 </li>
               ))}

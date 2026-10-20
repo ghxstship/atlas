@@ -13,6 +13,7 @@ import {
 import { getTranslations } from "next-intl/server";
 import { requireNode } from "@/lib/shell/require-node";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import type { OrgContext } from "@/lib/shell/context";
 import { LoadError } from "./load-error";
@@ -105,7 +106,8 @@ export async function ProjectsPage({
   const fallback = (list?.default ?? views[0] ?? "table") as ProjectView;
   const view = views.find((v) => v === requested) ?? fallback;
   const includeArchived = one(searchParams, "archived") === "1";
-  const today = new Date().toISOString().slice(0, 10);
+  // The portfolio is the org's: today and this month on its calendar, not UTC's (A71).
+  const today = await orgToday(ctx);
   const monthParam = one(searchParams, "month");
   const month =
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;

@@ -423,6 +423,42 @@ describe("screens and Compass layouts", () => {
   });
 });
 
+describe("LiveActivity shift card (finding A59-022)", () => {
+  const labels = { break: "Break", endBreak: "End Break", clockOut: "Clock Out" };
+  it("names the shift being worked, its time and place, under the clock", () => {
+    render(
+      <LiveActivity
+        label="On Shift"
+        elapsed="0:12"
+        place="You're at Pier Site"
+        nextShift="Head Rigger"
+        nextTime="7:00 AM to 11:30 PM"
+        nextPlace="Venue to be confirmed"
+        labels={labels}
+      />,
+    );
+    expect(
+      screen.getByLabelText("Head Rigger, 7:00 AM to 11:30 PM, Venue to be confirmed"),
+    ).toBeTruthy();
+    expect(screen.getByText("Venue to be confirmed")).toBeTruthy();
+  });
+
+  it("leaves the card out when there is no shift to name, never an empty square", () => {
+    render(
+      <LiveActivity
+        label="On Shift"
+        elapsed="0:12"
+        place=""
+        nextShift=""
+        nextTime=""
+        labels={labels}
+      />,
+    );
+    expect(screen.getAllByLabelText(/^On Shift, 0:12/)).toHaveLength(1);
+    expect(screen.queryAllByLabelText(/^, |^$/)).toHaveLength(0);
+  });
+});
+
 describe("SignaturePad inside a scrolling form (simulator defect)", () => {
   it("keeps the stroke from the scroll view and still counts a stroke that is taken", () => {
     const create = vi.spyOn(PanResponder, "create");

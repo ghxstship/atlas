@@ -46,6 +46,34 @@ const rows = [
 ];
 
 describe("DataTable", () => {
+  it("becomes stacked cards with three fields below md, a name as the title (A59-013)", async () => {
+    const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("max-width"),
+          media: query,
+          addEventListener: () => undefined,
+          removeEventListener: () => undefined,
+        }) as unknown as MediaQueryList,
+    );
+    const onRowActivate = vi.fn();
+    const { container } = render(
+      <DataTable caption="Audio" columns={columns} rows={rows} onRowActivate={onRowActivate} />,
+    );
+    expect(screen.queryByRole("grid")).toBeNull();
+    const cards = within(screen.getByRole("region", { name: "Audio" })).getAllByRole("listitem");
+    expect(cards).toHaveLength(3);
+    const first = within(cards[0] as HTMLElement);
+    expect(first.getByRole("button", { name: "Line Array Package" })).toBeTruthy();
+    expect(first.getByText("5000.01")).toBeTruthy();
+    expect(first.getByText("Qty")).toBeTruthy();
+    expect(first.queryByText("Rate")).toBeNull();
+    await userEvent.click(first.getByRole("button", { name: "Line Array Package" }));
+    expect(onRowActivate).toHaveBeenCalledWith(rows[0], 0);
+    await expectAccessible(container);
+    matchMedia.mockRestore();
+  });
+
   it("renders a labeled grid with NULL-aware money and totals", async () => {
     const { container } = render(
       <DataTable

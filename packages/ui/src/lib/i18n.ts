@@ -1,5 +1,6 @@
 import { defaultLocale } from "@xos/i18n/locales";
 import enUSui from "@xos/i18n/messages/en-US/ui.json" with { type: "json" };
+import { formatNumber } from "./format.ts";
 
 /**
  * Component copy (ADR 0010, D6). Every visible string comes from the `ui` namespace of the
@@ -67,7 +68,7 @@ export function format(message: string, locale: string, vars?: MessageVars): str
   return message.replace(/\{(\w+)\}/g, (match, name: string) => {
     const value = vars[name];
     if (value === undefined) return match;
-    return typeof value === "number" ? new Intl.NumberFormat(locale).format(value) : value;
+    return typeof value === "number" ? formatNumber(locale, value) : value;
   });
 }
 

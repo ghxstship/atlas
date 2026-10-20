@@ -3,15 +3,15 @@ import { useLocalSearchParams } from "expo-router";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { isInternal } from "@xos/sync";
-import { moreMenu } from "../../src/domain/access";
+import { elsewhereLink, moreMenu } from "../../src/domain/access";
 import { useCompass } from "../../src/runtime/CompassProvider";
 import { DenialNotice } from "../../src/screens/common";
 import { Button, Screen, Text } from "../../src/ui";
 
 /**
- * More entries whose module screens are not native to Compass yet (timesheets, per diem, purchase orders,
- * logistics, expenses and the rest). The page names where the work lives today and opens it there
- * (Section 11.10 item 13: continue on another device).
+ * A More entry whose screen is not native to Compass yet, reached only by a deep link: More gathers these
+ * behind one row that opens Gateway or Atlas (finding A59-026). The page names where the work lives
+ * today and opens it there (Section 11.10 item 13: continue on another device).
  */
 export default function PendingPage(): ReactElement {
   const { t } = useTranslation();
@@ -27,7 +27,8 @@ export default function PendingPage(): ReactElement {
     );
   const name = t(entry.label);
   const internal = isInternal(audience);
-  const url = `${internal ? config.atlasUrl : config.gatewayUrl}${entry.route}`;
+  // The sitemap route is Compass's own (/timesheets); the work lives on Gateway's engagements or in Atlas.
+  const url = elsewhereLink(audience, config).url;
   return (
     <Screen testID={`pending-${entry.id}`} title={name}>
       <Text variant="heading20" heading>

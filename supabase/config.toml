@@ -332,6 +332,29 @@ skip_nonce_check = false
 # If enabled, it will allow the user to successfully authenticate when the provider does not return an email address.
 email_optional = false
 
+# Sign in with Google (ADR 0036). Atlas and Gateway use the web flow (PKCE through
+# /auth/v1/authorize); Compass signs in natively and hands the Google ID token to
+# signInWithIdToken. The client ID and secret come from the environment and are never committed.
+# With both variables unset the stack still starts: the CLI passes the env() text through, the
+# Google button shows (the end-to-end journeys rely on it) and Google refuses the sign-in. To sign
+# in with Google locally, export both variables, then run `supabase stop` and `supabase start`.
+[auth.external.google]
+enabled = true
+# The Web client ID first, then Compass's iOS and Android client IDs, comma-separated, so the ID
+# tokens the native apps get are accepted (the dashboard's "Authorized Client IDs").
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+# DO NOT commit the Web client secret to git. Use environment variable substitution instead:
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+# Where Google returns after consent: this stack's Auth callback. Add it to the Web client's
+# authorized redirect URIs in Google Cloud to test locally.
+redirect_uri = "http://127.0.0.1:55421/auth/v1/callback"
+url = ""
+# The Google Sign-In SDK on iOS puts its own nonce in the ID token and does not reveal it, so
+# Compass cannot pass it back. Skipping the check is what lets native iOS sign-in work; the web flow
+# does not use it. The hosted project sets the same ("Skip nonce checks"). See ADR 0036.
+skip_nonce_check = true
+email_optional = false
+
 # Allow Solana wallet holders to sign in to your project via the Sign in with Solana (SIWS, EIP-4361) standard.
 # You can configure "web3" rate limit in the [auth.rate_limit] section and set up [auth.captcha] if self-hosting.
 [auth.web3.solana]
@@ -422,6 +445,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.kiosk-punch]
+verify_jwt = false
+
+[functions.sms-webhook]
+# Authenticates Twilio by its request signature (A80, migration 1361).
 verify_jwt = false
 
 [functions.api-token]

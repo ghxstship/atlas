@@ -338,16 +338,24 @@ from .resources import (
     TrashItemsResource,
     TemplatesResource,
     TemplateApplicationsResource,
+    ProjectAuthoritiesResource,
+    CueCallsResource,
     GuestListEntriesResource,
     Form1099NecResource,
     InsuranceCertificateInsuredsResource,
     RequiredAdditionalInsuredsResource,
+    CanonStdEmergencyProtocolsResource,
     ReportScheduleRecipientsResource,
     ReportDeliveriesResource,
     AuroraResource,
     AiSuggestionsResource,
     AiRequestsResource,
     AiUsageResource,
+    WorkDetailsResource,
+    EmergencyContactsResource,
+    LoyaltyProgramsResource,
+    WorkDetailSharesResource,
+    WorkDetailEventsResource,
     SavedViewSharesResource,
     SavedViewDefaultsResource,
     TourProgressResource,
@@ -405,7 +413,7 @@ class XosClient(XosClientCore):
 
         from xos_sdk import XosClient
 
-        xos = XosClient("https://atlas.example.com/api/v1", api_key=os.environ["XOS_API_KEY"])
+        xos = XosClient("https://api.ghxstship.tech/v1", api_key=os.environ["XOS_API_KEY"])
         for project in xos.projects.list_all(filter={"project_state": {"eq": "Active"}}):
             print(project["name"])
     """
@@ -741,16 +749,24 @@ class XosClient(XosClientCore):
     trash_items: TrashItemsResource
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
+    project_authorities: ProjectAuthoritiesResource
+    cue_calls: CueCallsResource
     guest_list_entries: GuestListEntriesResource
     form1099_nec: Form1099NecResource
     insurance_certificate_insureds: InsuranceCertificateInsuredsResource
     required_additional_insureds: RequiredAdditionalInsuredsResource
+    canon_std_emergency_protocols: CanonStdEmergencyProtocolsResource
     report_schedule_recipients: ReportScheduleRecipientsResource
     report_deliveries: ReportDeliveriesResource
     aurora: AuroraResource
     ai_suggestions: AiSuggestionsResource
     ai_requests: AiRequestsResource
     ai_usage: AiUsageResource
+    work_details: WorkDetailsResource
+    emergency_contacts: EmergencyContactsResource
+    loyalty_programs: LoyaltyProgramsResource
+    work_detail_shares: WorkDetailSharesResource
+    work_detail_events: WorkDetailEventsResource
     saved_view_shares: SavedViewSharesResource
     saved_view_defaults: SavedViewDefaultsResource
     tour_progress: TourProgressResource
@@ -1132,16 +1148,24 @@ class XosClient(XosClientCore):
         self.trash_items = TrashItemsResource(self)
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
+        self.project_authorities = ProjectAuthoritiesResource(self)
+        self.cue_calls = CueCallsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.form1099_nec = Form1099NecResource(self)
         self.insurance_certificate_insureds = InsuranceCertificateInsuredsResource(self)
         self.required_additional_insureds = RequiredAdditionalInsuredsResource(self)
+        self.canon_std_emergency_protocols = CanonStdEmergencyProtocolsResource(self)
         self.report_schedule_recipients = ReportScheduleRecipientsResource(self)
         self.report_deliveries = ReportDeliveriesResource(self)
         self.aurora = AuroraResource(self)
         self.ai_suggestions = AiSuggestionsResource(self)
         self.ai_requests = AiRequestsResource(self)
         self.ai_usage = AiUsageResource(self)
+        self.work_details = WorkDetailsResource(self)
+        self.emergency_contacts = EmergencyContactsResource(self)
+        self.loyalty_programs = LoyaltyProgramsResource(self)
+        self.work_detail_shares = WorkDetailSharesResource(self)
+        self.work_detail_events = WorkDetailEventsResource(self)
         self.saved_view_shares = SavedViewSharesResource(self)
         self.saved_view_defaults = SavedViewDefaultsResource(self)
         self.tour_progress = TourProgressResource(self)

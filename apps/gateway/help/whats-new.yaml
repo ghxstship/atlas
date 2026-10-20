@@ -1,0 +1,21 @@
+# What's New in the Gateway help panel, newest first. Copy lives in help.gateway.whatsNew.<key>
+# (title, body); article names the Gateway article that explains the change.
+entries:
+  - key: contextual-help
+    date: "2026-10-20"
+    article: getting-around
+  - key: continue-on-phone
+    date: "2026-10-18"
+    article: engagement-overview
+  - key: delete-account
+    date: "2026-10-17"
+    article: settings-account
+  - key: asset-approvals
+    date: "2026-10-17"
+    article: engagement-asset-approvals
+  - key: invoice-updates
+    date: "2026-10-17"
+    article: money-invoices
+  - key: self-billing
+    date: "2026-10-17"
+    article: engagement-invoices

@@ -4,7 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { SignInForm } from "@/components/auth/forms";
 import { ProviderButtons } from "@/components/auth/providers";
 import { InlineAlert } from "@/components/ui";
-import { authErrorKey } from "@/lib/auth/errors";
+import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,7 +27,9 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
     <div className="flex flex-col gap-16">
       <h1 className="text-heading-20 font-semibold">{t("signIn.title")}</h1>
       {query["signedOut"] === undefined && error ? (
-        <InlineAlert tone="danger">{t(`errors.${error}`)}</InlineAlert>
+        <InlineAlert tone={isAuthNotice(error) ? "info" : "danger"}>
+          {t(`errors.${error}`)}
+        </InlineAlert>
       ) : null}
       <ProviderButtons next={next} />
       <SignInForm next={next} />

@@ -16,8 +16,8 @@ import { z } from "zod";
 import { authErrorKey } from "@/lib/auth/errors";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
-import { isOAuthProvider } from "@/lib/auth/providers";
-import { safeNext, siteUrl } from "@/lib/auth/redirect";
+import { enabledProviders, isOAuthProvider, providerQueryParams } from "@/lib/auth/providers";
+import { safeNext, signInErrorPath, siteUrl } from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -117,17 +117,29 @@ export async function sendMagicLink(_: FormState, form: FormData): Promise<FormS
   redirect(`/auth/check-email?email=${encodeURIComponent(parsed.data)}`);
 }
 
+/**
+ * Starts an OAuth sign-in (Sign in with Google, ADR 0036). The server client from @supabase/ssr
+ * uses the PKCE flow: signInWithOAuth stores the code verifier in an httpOnly cookie and returns
+ * Supabase Auth's /authorize URL with the code challenge. The return leg is /auth/callback, which
+ * carries `next` (an invitation or an org page, kept on this site by safeNext) and the provider.
+ * Signing up and signing in are the same step: a new Google account is created on first use.
+ */
 export async function signInWithProvider(form: FormData): Promise<void> {
+  const next = safeNext(form.get("next"));
   const provider = form.get("provider");
-  if (!isOAuthProvider(provider)) redirect("/auth/sign-in?error=provider_disabled");
+  const refused = signInErrorPath("provider_disabled", next) as Route;
+  if (!isOAuthProvider(provider) || !(await enabledProviders()).includes(provider)) {
+    redirect(refused);
+  }
   const db = await createServerSupabase();
   const { data, error } = await db.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: siteUrl(env().ATLAS_SITE_URL, "/auth/callback", safeNext(form.get("next"))),
+      redirectTo: siteUrl(env().ATLAS_SITE_URL, "/auth/callback", next, { provider }),
+      queryParams: providerQueryParams(provider),
     },
   });
-  if (error || !data.url) redirect("/auth/sign-in?error=provider_disabled");
+  if (error || !data.url) redirect(refused);
   redirect(data.url as Route);
 }
 

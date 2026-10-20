@@ -13,6 +13,13 @@ export interface CspInput {
 }
 
 /**
+ * Where Google's consent screen lives (Sign in with Google, ADR 0036). Without JavaScript the
+ * sign-in form posts natively, and browsers check form-action on every redirect of that navigation:
+ * Supabase Auth, then Google. Other providers add their origin here when they are turned on.
+ */
+export const OAUTH_AUTHORIZE_ORIGINS = ["https://accounts.google.com"] as const;
+
+/**
  * A strict policy: scripts run only with this response's nonce ('strict-dynamic' lets them load
  * their own chunks), styles come from the site or carry the nonce, and nothing may frame Gateway.
  * Style attributes stay allowed because React and Radix position overlays with them. Development
@@ -34,7 +41,7 @@ export function buildCsp({ nonce, development, supabaseOrigin, secureSite }: Csp
     "connect-src": ["'self'", ...(development ? ["ws:", "wss:"] : [])],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
-    "form-action": ["'self'", supabaseOrigin],
+    "form-action": ["'self'", supabaseOrigin, ...OAUTH_AUTHORIZE_ORIGINS],
     "frame-ancestors": ["'none'"],
     ...(secureSite ? { "upgrade-insecure-requests": [] } : {}),
   };

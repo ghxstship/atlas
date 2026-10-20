@@ -6,7 +6,8 @@ import { PageTitle, RegionError, Section } from "@/components/page/page";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { Card, EmptyStateLink } from "@/components/ui";
 import { Chart } from "@/components/ui-chart";
-import { formatMoney, todayIso } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { moneyOverview, paidByMonth } from "@/lib/money";
 import { requireNode } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
@@ -25,7 +26,8 @@ export default async function MoneyOverviewPage() {
     listPayments(ctx.db),
     readView(ctx.db, "invoices", { order: ["due_on", "asc"] }),
   ]);
-  const today = todayIso();
+  // Money from every org, on the person's own calendar (their locale.time_zone), not UTC's.
+  const today = await personToday(ctx);
   const failed = !payments.ok || !invoices.ok;
   const overview = moneyOverview({
     payments: payments.ok ? payments.data : [],
@@ -46,7 +48,12 @@ export default async function MoneyOverviewPage() {
       {!failed && overview.earned.length === 0 && overview.pending.length === 0 ? (
         <EmptyStateLink
           icon="Wallet"
-          sentence={t("gateway.money.overview.empty")}
+          sentence={t(
+            // Someone the org never pays (client or sponsor) has nothing to earn (finding A59-033).
+            [...(ctx.nav.conditions ?? [])].includes("paid-work")
+              ? "gateway.money.overview.empty"
+              : "gateway.money.overview.emptyUnpaid",
+          )}
           actionLabel={t("gateway.money.overview.emptyAction")}
           href="/work/engagements"
         />

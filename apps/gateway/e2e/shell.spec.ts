@@ -28,6 +28,8 @@ test("a crew member signs in and moves through the five destinations", async ({ 
 
   // Command menu: Cmd or Ctrl+K, type, Enter.
   await page.keyboard.press("ControlOrMeta+k");
+  // The menu loads on first use, as in Atlas; typing before it opens would be lost.
+  await expect(page.getByRole("dialog").filter({ has: page.getByRole("combobox") })).toBeVisible();
   await page.keyboard.type("Tax Documents");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/money\/tax-documents$/);
@@ -67,6 +69,8 @@ test("signed-out visitors go to sign in and come back afterwards", async ({ page
   await expect(page).toHaveURL(/\/auth\/sign-in\?next=%2Fmoney%2Fpayments$/);
   await expectAccessible(page);
   await page.locator("#signin-email").fill("crew@example.com");
+  // The password field appears on request: the sign-in link is the first choice (A59-025).
+  await page.getByRole("button", { name: "Use a password" }).click();
   await page.locator("#signin-password").fill(["xos", "demo", "2026"].join("-"));
   await page.getByRole("button", { name: "Sign in with password" }).click();
   await expect(page).toHaveURL(/\/money\/payments$/);

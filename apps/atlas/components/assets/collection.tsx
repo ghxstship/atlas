@@ -320,7 +320,7 @@ function renderView(
     case "calendar":
       return (
         <Calendar
-          month={props.month ?? new Date().toISOString().slice(0, 8) + "01"}
+          month={props.month ?? `${(props.today ?? new Date().toISOString()).slice(0, 7)}-01`}
           {...(props.today ? { today: props.today } : {})}
           events={props.rows
             .filter((r) => r.date)

@@ -132,7 +132,7 @@ interface Chain extends PromiseLike<{ data: unknown; error: unknown }> {
 
 // Engagements -----------------------------------------------------------------------------------------------------
 
-const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
+const ENGAGEMENT_COLUMNS = `${AUDIT}, project_id, person_id, role_type, engagement_state, application_id, worker_classification, pay_basis, arrangement, start_date, end_date, counterparty_id, counterparty:counterparties(organization_id), transitions:engagement_state_transitions(to_state, created_at), application:applications(offers(id, offer_state, deleted_at))`;
 
 interface EngagementRow extends AuditRow {
   project_id: string;
@@ -145,6 +145,7 @@ interface EngagementRow extends AuditRow {
   arrangement: string | null;
   start_date: string;
   end_date: string | null;
+  counterparty_id: string | null;
   counterparty: { organization_id: string } | null;
   transitions: { to_state: string; created_at: string }[] | null;
   application: {
@@ -178,6 +179,7 @@ function toEngagement(row: EngagementRow): Engagement {
     arrangement: row.arrangement,
     start_date: row.start_date,
     end_date: row.end_date,
+    counterparty_id: row.counterparty_id ?? null,
   };
 }
 

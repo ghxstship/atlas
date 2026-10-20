@@ -220,6 +220,7 @@ describe("ClamAV adapter", () => {
       store,
       storage: {
         download: async (_bucket, name) => files[name] ?? new Uint8Array(),
+        upload: async () => undefined,
         remove: async (_bucket, name) => {
           removed.push(name);
         },

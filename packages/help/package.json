@@ -1,0 +1,31 @@
+{
+  "name": "@xos/help",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The help content model shared by Atlas, Gateway, Compass and the docs help center: articles, tours, tips and What's New, their Markdown subset, the loader and the generators.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/model.ts",
+    "./node": "./src/load.ts"
+  },
+  "sideEffects": false,
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "dependencies": {
+    "yaml": "2.9.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "@xos/config": "workspace:*",
+    "eslint": "10.12.0",
+    "typescript": "6.0.3",
+    "vite": "8.3.3",
+    "vitest": "5.0.3"
+  }
+}

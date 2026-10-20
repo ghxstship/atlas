@@ -1,11 +1,27 @@
 import type { Locale } from "./i18n.ts";
 
-/** Resolves `help:`, `guide:` and `reference:` links to site paths. */
-export function resolveHref(href: string, locale: Locale): { href: string; external: boolean } {
+/**
+ * Resolves `help:`, `guide:` and `reference:` links to site paths. `help:` links resolve within the
+ * help of the shell the page comes from, under `helpBase` (Atlas's articles live at /<locale>/help).
+ */
+export function resolveHref(
+  href: string,
+  locale: Locale,
+  helpBase = `/${locale}/help`,
+): { href: string; external: boolean } {
   const m = /^(help|guide|reference):(.+)$/.exec(href);
   if (m) {
+    if (m[1] === "help") return { href: `${helpBase}/${m[2]}`, external: false };
     const section = m[1] === "guide" ? "guides" : m[1];
     return { href: `/${locale}/${section}/${m[2]}`, external: false };
   }
   return { href, external: /^https?:\/\//.test(href) };
+}
+
+/**
+ * Whether a link is a path inside the app an article was written for, such as Gateway's
+ * /settings/account: it means nothing on the docs site, so the help center shows its text only.
+ */
+export function isAppPath(href: string, locale: Locale): boolean {
+  return href.startsWith("/") && !href.startsWith(`/${locale}/`);
 }

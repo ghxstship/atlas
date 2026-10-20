@@ -24,6 +24,7 @@
     "@xos/ai": "workspace:*",
     "@xos/api": "workspace:*",
     "@xos/data": "workspace:*",
+    "@xos/help": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/icons": "workspace:*",

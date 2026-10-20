@@ -34,6 +34,7 @@ import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
 const REFUSALS = "knowledge.refusals";
@@ -58,7 +59,7 @@ export async function SopsSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const me = ctx.viewer.person?.id ?? null;
   const [t, format, sops] = await Promise.all([

@@ -20,6 +20,7 @@ import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { formatWhen } from "./format";
@@ -254,7 +255,8 @@ export async function RecurringPage({
   const { views, defaultView } = nodeViews(node);
   const requested = param(search, "view");
   const view = requested && views.includes(requested) ? requested : defaultView;
-  const today = new Date().toISOString().slice(0, 10);
+  // Recurring work is the org's: this month on its calendar, not UTC's (A71).
+  const today = await orgToday(ctx);
   const monthParam = param(search, "month");
   const month =
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;

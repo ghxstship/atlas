@@ -57,6 +57,9 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
       )
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
+      // Notifications written in one transaction share created_at; the id (UUIDv7, in insert order)
+      // settles their order, which was otherwise whatever the scan returned (A71).
+      .order("id", { ascending: false })
       .limit(200),
   );
   if (!result.ok) return result;
@@ -90,7 +93,7 @@ export async function listInbox(db: XosClient, orgId: string): Promise<Result<In
 export function sortInbox(items: readonly InboxItem[]): InboxItem[] {
   return [...items].sort((a, b) => {
     if (a.section !== b.section) return a.section === "Needs You" ? -1 : 1;
-    return b.createdAt.localeCompare(a.createdAt);
+    return b.createdAt.localeCompare(a.createdAt) || b.id.localeCompare(a.id);
   });
 }
 

@@ -520,6 +520,57 @@ describe("Tabs, SegmentedControl and Accordion", () => {
     await expectAccessible(container);
   });
 
+  it("moves focus between segments with arrows, Home and End, and turns one on with Enter", async () => {
+    const onChange = vi.fn();
+    render(
+      <SegmentedControl
+        label="View"
+        value="board"
+        onChange={onChange}
+        options={[
+          { value: "list", label: "List" },
+          { value: "board", label: "Board" },
+          { value: "table", label: "Table" },
+        ]}
+      />,
+    );
+    const radios = screen.getAllByRole("radio");
+    // One tab stop: the segment that is on.
+    expect(radios.map((r) => r.tabIndex)).toEqual([-1, 0, -1]);
+    expect(radios[1]?.getAttribute("data-state")).toBe("on");
+    radios[1]?.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(document.activeElement).toBe(radios[2]);
+    expect(onChange).not.toHaveBeenCalled();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(document.activeElement).toBe(radios[0]);
+    await userEvent.keyboard("{End}");
+    expect(document.activeElement).toBe(radios[2]);
+    await userEvent.keyboard("{Enter}");
+    expect(onChange).toHaveBeenLastCalledWith("table");
+    expect(radios[2]?.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("mirrors segment arrows in right-to-left", async () => {
+    render(
+      <XOSProvider locale="ar-XB">
+        <SegmentedControl
+          label="View"
+          options={[
+            { value: "a", label: "A" },
+            { value: "b", label: "B" },
+            { value: "c", label: "C" },
+          ]}
+        />
+      </XOSProvider>,
+    );
+    const radios = screen.getAllByRole("radio");
+    expect(screen.getByRole("radiogroup").getAttribute("dir")).toBe("rtl");
+    radios[0]?.focus();
+    await userEvent.keyboard("{ArrowLeft}");
+    expect(document.activeElement).toBe(radios[1]);
+  });
+
   it("toggles accordion sections with Enter", async () => {
     const { container } = render(
       <Accordion
@@ -536,6 +587,17 @@ describe("Tabs, SegmentedControl and Accordion", () => {
     expect(advanced.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("Advanced body")).toBeTruthy();
     await expectAccessible(container);
+  });
+
+  it("renders section headers at the heading level the page needs", () => {
+    render(
+      <>
+        <Accordion items={[{ title: "Details", content: "Body" }]} />
+        <Accordion headingLevel={2} items={[{ title: "Filters", content: "Chips" }]} />
+      </>,
+    );
+    expect(screen.getByRole("heading", { level: 3, name: "Details" })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 2, name: "Filters" })).toBeTruthy();
   });
 
   it("keeps collapsed More fields mounted and hidden so they submit with the form", async () => {

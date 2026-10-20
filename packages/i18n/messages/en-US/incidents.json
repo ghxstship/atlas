@@ -18,7 +18,7 @@
   "anySeverity": "Any severity",
   "anyState": "Any state",
   "arrivedAt": "Arrived {time}",
-  "boardEmpty": "None",
+  "boardEmpty": "No incidents in this state.",
   "close": "Close with sign-off",
   "closeHeading": "Close",
   "closeHelp": "Closing records you as the person signing off. The reporter of a critical incident cannot sign off its closure.",

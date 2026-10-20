@@ -323,6 +323,10 @@ export function ticketingConnectors(source: TicketingSource, resolve: HostResolv
   ];
 }
 
+const IMPORTS_BUCKET = "imports";
+/** imports/<person id>/<upload id>.csv or .xlsx; the capture is the object name inside the bucket. */
+const IMPORT_UPLOAD = /^imports\/([0-9a-f-]{36}\/[0-9a-f-]{36}\.(?:csv|xlsx))$/;
+
 export function supabaseTicketingSource(
   db: DbClient,
   storage: {
@@ -333,15 +337,30 @@ export function supabaseTicketingSource(
 ): TicketingSource {
   return {
     async readFile(sourceUri) {
-      const slash = sourceUri.indexOf("/");
-      if (slash <= 0)
+      // The worker holds the service role, so it reads only an imports bucket upload, named the way that bucket
+      // names them, and only once it scanned Clean (A69-006; migrations 1061, 1240 and 1297).
+      const match = IMPORT_UPLOAD.exec(sourceUri);
+      if (match === null)
         throw new IntegrationError(
           "attendance_source_invalid",
-          `${sourceUri} is not a <bucket>/<path> reference.`,
+          "A CSV import reads a spreadsheet uploaded to the imports bucket.",
         );
-      const { data, error } = await storage
-        .from(sourceUri.slice(0, slash))
-        .download(sourceUri.slice(slash + 1));
+      const path = match[1] as string;
+      const status = await unwrap<string | null>(
+        db.rpc("object_scan_status", { p_bucket_id: IMPORTS_BUCKET, p_object_name: path }),
+      );
+      if (status === null || status === "Scanning")
+        throw new IntegrationError(
+          "attendance_source_scanning",
+          "The uploaded file is still being checked for viruses.",
+          { retryable: true },
+        );
+      if (status !== "Clean")
+        throw new IntegrationError(
+          "attendance_source_refused",
+          "The uploaded file did not pass its virus scan, so it was not read.",
+        );
+      const { data, error } = await storage.from(IMPORTS_BUCKET).download(path);
       if (error || data === null)
         throw new IntegrationError(
           "attendance_source_unreadable",

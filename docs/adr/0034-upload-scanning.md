@@ -23,7 +23,7 @@ Four smaller decisions were taken the same day: the `buffers` dependency without
      - In imports and support-screenshots only the uploader can read a file at all (1061, 1034). An import's detection is queued only when its spreadsheet scans Clean. An Infected or refused spreadsheet fails the import without being parsed. The import worker also checks the scan before every read.
      - Support tooling reads screenshots with the service role, so it must check `app.object_scan_status` before it opens one.
    - **Uploaders are told why.** The worker removes an infected file. Its Infected or Scan Failed verdict now stays, with the uploader's id, until that name is uploaded again. `app.my_upload_scan_status` answers only the uploader. Atlas uses it to explain a failed import, and attachment panels explain a blocked file, in plain words in en-US and es-US.
-   - **Public buckets are still not gated.** profile-media and org-brand objects are public by URL, so a read cannot wait for the scan. The worker removes what is not Clean, and A22-004 limits both to raster images. Moving uploads into a private staging bucket first is the fix if this is no longer acceptable.
+   - **Public buckets are still not gated.** profile-media and org-brand objects are public by URL, so a read cannot wait for the scan. The worker removes what is not Clean, and A22-004 limits both to raster images. Moving uploads into a private staging bucket first is the fix if this is no longer acceptable. Superseded by the amendment below (A63): uploads now wait in a private staging bucket.
    - Deployment is in `infra/runbooks/production.md` and the self-hosting guide. Local use is in `infra/scanning/README.md`. The image is published for linux/amd64 only. Run it on an amd64 host, or under emulation on Apple silicon (`platform: linux/amd64`).
 
 2. **`buffers` 0.1.1 is removed (decision 17).** It came from `exceljs` 4.4.0, through `unzipper` 0.10.14 and `binary` 0.3.0, and declares no license. A pnpm override in `pnpm-workspace.yaml` (`exceljs>unzipper: 0.12.3`) moves exceljs to unzipper 0.12.3 (MIT). That version no longer depends on `binary` or `buffers`, and it keeps the `Parse` API that exceljs's streaming reader uses. A streamed `.xlsx` was read back to check it. `licenses:check` no longer reports `buffers`. The Edge import map loads `npm:exceljs@4.4.0` through Deno, which resolves its own tree. Edge Functions only write `.xlsx`, through JSZip, so they never load unzipper.
@@ -51,3 +51,35 @@ Four smaller decisions were taken the same day: the `buffers` dependency without
 
 - ADR 0026 consequences, "Production virus scanner": decided here.
 - ADR 0001: `clamav/clamav` 1.5.4 and the `unzipper` 0.12.3 override (amendment of 2026-10-19, A57).
+
+## Amendment (2026-10-19): public buckets take files only after a clean scan (A63, RRR-108)
+
+Decision 1 left the public buckets ungated: profile-media and org-brand are public by URL, so a read cannot wait for
+the scan, and the worker removed what was not Clean after it had been readable for a while. Moving uploads into a
+private staging bucket first was named as the fix. It is made now.
+
+- **A private staging bucket, `upload-staging` (migration 1265).** A file for profile-media or org-brand is uploaded
+  there as `<bucket>/<name>`, for example `org-brand/<org id>/logoLight-1.png`. The write policy applies the target
+  bucket's own rules: who may write there (org.white_label.write on the org for org-brand; the person's own folder,
+  or an org profile they edit, for profile-media), passive content only (A22-004), and the target bucket's type
+  allowlist and size limit. Only the uploader reads, replaces or withdraws a staged file.
+- **Nobody signed in writes a public bucket.** Their insert and update policies are dropped; delete stays. Only the
+  service role writes them.
+- **The worker publishes Clean files.** Staged files are scanned through `private.object_scans` like the other upload
+  buckets. A staged file that scans Clean is written to its public bucket, recorded Clean, and removed from staging.
+  The public copy is written while the scan still holds its staged original, and the database records it Clean
+  then, so it is never public unscanned and never scanned twice. A write the public bucket refuses is retried like
+  a scanner outage. Any other service-role write to a public bucket is still queued and scanned.
+- **Infected files are rejected, not published.** An Infected or refused staged file is removed and never reaches
+  the public bucket. Its verdict stays for the uploader (`app.my_upload_scan_status` on `upload-staging`), and Atlas
+  explains it under the brand logo with the existing plain-language copy (`platform.uploadScan`). While the scan
+  runs, the logo slot says it is being checked; the brand keeps its path, and the public object appears once it is
+  published.
+- **Code paths.** `@xos/data/staged-uploads` (`stagePublicUpload`, `myStagedUploadStatus`); the Atlas brand asset
+  action stages logos; account deletion also removes the person's staged files; `runUploadScans` in
+  `@xos/platform` publishes, and `ObjectStorage` gains `upload`. API clients that upload brand or profile files
+  directly through Storage must use `upload-staging` the same way.
+
+Tests: pgTAP `1265_public_upload_staging` (policies, publication, the infected path), `0938` and `1041` follow the
+new write path, and the unit tests in `packages/platform/test/scanning.test.ts`,
+`packages/data/test/staged-uploads.test.ts` and `packages/data/test/account-deletion.test.ts`.

@@ -66,11 +66,22 @@ describe("legal acceptance at signup", () => {
     expect(signupAcceptances([])).toEqual([]);
   });
 
-  it("reads the client IP from the proxy headers", () => {
-    expect(clientIp(new Headers({ "x-forwarded-for": "203.0.113.9, 10.0.0.1" }))).toBe(
-      "203.0.113.9",
+  // A69-003: the first X-Forwarded-For entry is the client's own text; the proxy appends the real one.
+  it("reads the client IP the trusted proxy appended, never the first entry", () => {
+    expect(clientIp(new Headers({ "x-forwarded-for": "203.0.113.9, 198.51.100.40" }))).toBe(
+      "198.51.100.40",
     );
+    expect(clientIp(new Headers({ "x-forwarded-for": "198.51.100.41" }))).toBe("198.51.100.41");
     expect(clientIp(new Headers({ "x-real-ip": "198.51.100.2" }))).toBe("198.51.100.2");
     expect(clientIp(new Headers())).toBeNull();
+    process.env["XOS_TRUSTED_PROXY_HOPS"] = "1";
+    try {
+      expect(
+        clientIp(new Headers({ "x-forwarded-for": "203.0.113.9, 198.51.100.42, 10.0.0.2" })),
+      ).toBe("198.51.100.42");
+      expect(clientIp(new Headers({ "x-forwarded-for": "198.51.100.43" }))).toBeNull();
+    } finally {
+      delete process.env["XOS_TRUSTED_PROXY_HOPS"];
+    }
   });
 });

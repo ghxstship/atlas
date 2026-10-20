@@ -476,6 +476,7 @@
   },
   "table": {
     "resizeColumn": "Resize column {column}",
+    "row": "Row {n}",
     "total": "Total"
   },
   "timeline": {

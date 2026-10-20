@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, XosClient } from "./client.ts";
+import { csvField } from "./csv.ts";
 import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
@@ -2451,8 +2452,10 @@ export function projectUpl(
   };
 }
 
-/** RFC 4180 CSV with CRLF line endings; fields with commas, quotes or line breaks are quoted. */
+/**
+ * RFC 4180 CSV with CRLF line endings; fields with commas, quotes or line breaks are quoted, and a
+ * field a spreadsheet would run as a formula is neutralized (A69-005, `csvField`).
+ */
 export function toCsv(header: readonly string[], body: readonly (readonly string[])[]): string {
-  const cell = (v: string) => (/[",\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
-  return [header, ...body].map((r) => r.map(cell).join(",")).join("\r\n") + "\r\n";
+  return [header, ...body].map((r) => r.map(csvField).join(",")).join("\r\n") + "\r\n";
 }

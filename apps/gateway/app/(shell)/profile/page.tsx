@@ -35,7 +35,8 @@ import {
   carryCertificationAction,
   removeAvailabilityAction,
 } from "@/lib/actions/profile";
-import { formatDate, formatDateRange, todayIso } from "@/lib/format";
+import { formatDate, formatDateRange } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { profileStrength } from "@/lib/profile";
 import { requireNode } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
@@ -155,7 +156,8 @@ export default async function ProfilePage() {
     links: count(links),
     availability: blocks.length,
   });
-  const today = todayIso();
+  // The profile spans every org the person works with, so it follows their own calendar.
+  const today = await personToday(ctx);
   const asArtist = representations.ok
     ? representations.data.filter((r) => r.artistPersonId === ctx.personId)
     : [];
@@ -371,7 +373,7 @@ export default async function ProfilePage() {
                       <ActionButton
                         action={acceptRepresentationAction.bind(null, r.id)}
                         label={t("gateway.profile.representation.accept")}
-                        variant="primary"
+                        variant="secondary"
                       />
                       <ActionButton
                         action={revokeRepresentationAction.bind(null, r.id)}

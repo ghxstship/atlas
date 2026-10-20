@@ -7,6 +7,7 @@ import { describe, expect, it } from "vitest";
 import {
   PlatformDbError,
   ScannerUnavailableError,
+  UPLOAD_STAGING_BUCKET,
   ZIP_LIMITS,
   checkContent,
   clamavScanner,
@@ -14,6 +15,7 @@ import {
   runUploadScans,
   scanStore,
   sniffFamilies,
+  stagedUploadTarget,
   supabaseStorage,
   type ClamdConnection,
   type ObjectStorage,
@@ -309,6 +311,7 @@ describe("content checks (MIME sniffing and archive limits)", () => {
 function scriptedWorld(files: Record<string, Uint8Array>) {
   const calls: string[] = [];
   const removed: string[] = [];
+  const uploaded: { path: string; bytes: Uint8Array; contentType: string | null }[] = [];
   const recorded: { id: string; clean: boolean | null; detail: string | null }[] = [];
   const finished: { jobId: string; succeeded: boolean; error: string | null }[] = [];
   const released: { id: string; error: string }[] = [];
@@ -368,6 +371,10 @@ function scriptedWorld(files: Record<string, Uint8Array>) {
       if (file === undefined) throw new Error("object not found");
       return file;
     },
+    async upload(bucket, name, bytes, contentType) {
+      if (name.includes("unwritable")) throw new Error("storage refused write");
+      uploaded.push({ path: `${bucket}/${name}`, bytes, contentType });
+    },
     async remove(bucket, name) {
       removed.push(`${bucket}/${name}`);
       if (name.includes("sticky")) throw new Error("storage refused delete");
@@ -377,6 +384,7 @@ function scriptedWorld(files: Record<string, Uint8Array>) {
     store,
     storage,
     calls,
+    uploaded,
     removed,
     recorded,
     finished,
@@ -603,6 +611,72 @@ describe("upload scan worker", () => {
     ]);
   });
 
+  it("publishes a Clean staged upload to its public bucket, and never an infected one (1265)", async () => {
+    const world = scriptedWorld({
+      "upload-staging/org-brand/o/logoLight-1.png": PNG,
+      "upload-staging/profile-media/p/notes.txt": encode(EICAR),
+      "upload-staging/profile-media/p/unwritable.png": PNG,
+      "upload-staging/elsewhere/p/avatar.png": PNG,
+    });
+    const staged = (objectScanId: string, objectName: string, contentType: string) =>
+      world.queueObject({
+        objectScanId,
+        bucketId: "upload-staging",
+        objectName,
+        contentType,
+        attempts: 1,
+      });
+    staged("logo", "org-brand/o/logoLight-1.png", "image/png");
+    staged("eicar", "profile-media/p/notes.txt", "text/plain");
+    staged("down", "profile-media/p/unwritable.png", "image/png");
+    staged("stray", "elsewhere/p/avatar.png", "image/png");
+    const outcomes = await runUploadScans({
+      store: world.store,
+      storage: world.storage,
+      scanner: clamavScanner({ connect: scriptedClamd().connect }),
+      worker: "w",
+    });
+    expect(outcomes.map((o) => [o.id, o.result])).toEqual([
+      ["logo", "published"],
+      ["eicar", "infected"],
+      ["down", "retrying"],
+      ["stray", "refused"],
+    ]);
+    // The Clean logo is written to org-brand under its own name, then recorded and removed from staging.
+    expect(world.uploaded).toEqual([
+      { path: "org-brand/o/logoLight-1.png", bytes: PNG, contentType: "image/png" },
+    ]);
+    expect(world.recorded.map((r) => [r.id, r.clean])).toEqual([
+      ["logo", true],
+      ["eicar", false],
+      ["stray", null],
+    ]);
+    expect(world.removed).toEqual([
+      "upload-staging/org-brand/o/logoLight-1.png",
+      "upload-staging/profile-media/p/notes.txt",
+      "upload-staging/elsewhere/p/avatar.png",
+    ]);
+    // A public bucket that refuses the write leaves the staged file Scanning, for a retry.
+    expect(world.released).toEqual([
+      { id: "down", error: expect.stringMatching(/could not publish to profile-media/) },
+    ]);
+  });
+
+  it("names the public bucket and object of a staged upload", () => {
+    expect(UPLOAD_STAGING_BUCKET).toBe("upload-staging");
+    expect(stagedUploadTarget("org-brand/o/logo.png")).toEqual({
+      bucket: "org-brand",
+      name: "o/logo.png",
+    });
+    expect(stagedUploadTarget("profile-media/p/a/b.png")).toEqual({
+      bucket: "profile-media",
+      name: "p/a/b.png",
+    });
+    expect(stagedUploadTarget("imports/o/a.csv")).toBeNull();
+    expect(stagedUploadTarget("org-brand/")).toBeNull();
+    expect(stagedUploadTarget("logo.png")).toBeNull();
+  });
+
   it("marks an infected bucket object Infected", async () => {
     const world = scriptedWorld({ "field-media/o/forms/p/notes.txt": encode(EICAR) });
     world.queueObject({
@@ -749,6 +823,10 @@ describe("scan stores", () => {
               if (name === "missing") return { data: null, error: { message: "Object not found" } };
               return { data: new Blob([PNG]), error: null };
             },
+            async upload(name: string, _bytes: Uint8Array, options: Record<string, unknown>) {
+              actions.push(`upload ${bucket}/${name} ${JSON.stringify(options)}`);
+              return { error: name === "full" ? { message: "quota exceeded" } : null };
+            },
             async remove(names: string[]) {
               actions.push(`remove ${bucket}/${names.join(",")}`);
               return { error: names[0] === "locked" ? { message: "denied" } : null };
@@ -760,8 +838,13 @@ describe("scan stores", () => {
     const storage = supabaseStorage(client as unknown as Parameters<typeof supabaseStorage>[0]);
     expect(await storage.download("org-brand", "o/l.png")).toEqual(PNG);
     await expect(storage.download("org-brand", "missing")).rejects.toThrow(/Object not found/);
+    await storage.upload("org-brand", "o/l.png", PNG, "image/png");
+    await storage.upload("profile-media", "p/a.png", PNG, null);
+    await expect(storage.upload("org-brand", "full", PNG, "image/png")).rejects.toThrow(/quota/);
     await storage.remove("org-brand", "o/l.png");
     await expect(storage.remove("org-brand", "locked")).rejects.toThrow(/denied/);
-    expect(actions).toHaveLength(4);
+    expect(actions).toHaveLength(7);
+    expect(actions[2]).toBe('upload org-brand/o/l.png {"upsert":true,"contentType":"image/png"}');
+    expect(actions[3]).toBe('upload profile-media/p/a.png {"upsert":true}');
   });
 });
