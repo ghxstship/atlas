@@ -1,5 +1,5 @@
 /**
- * Contract tests for A84's handlers (Section 18, gate 5; RRR-129, ADR 0038): calendar feed rotation,
+ * Contract tests for A84's handlers (Section 18, gate 5; RRR-129, ADR 0040): calendar feed rotation,
  * a person's own calendar feeds, the project inbox address and filing or discarding inbound mail.
  * Requests run through `contractApp`, every response is checked against openapi/v1.json with
  * `expectContract`, and the database is a recording stand-in for supabase-js. Refusals (422) and

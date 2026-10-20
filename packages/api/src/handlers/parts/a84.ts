@@ -1,5 +1,5 @@
 /**
- * A84 handlers (RRR-129, migrations 1410 and 1411, ADR 0038): calendar feed rotation, a person's
+ * A84 handlers (RRR-129, migrations 1410 and 1411, ADR 0040): calendar feed rotation, a person's
  * own feed across their engagements, the project inbox address, and filing or discarding inbound
  * mail. handlers/platform.ts spreads them. Every call runs as the caller: row level security and
  * the RPCs decide, and refusals answer 422 with the rule. Shapes follow

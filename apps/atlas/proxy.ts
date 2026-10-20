@@ -150,7 +150,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 export const config = {
   matcher: [
     {
-      // Calendar feeds (/ical/{token}.ics, ADR 0038) answer without a session: no cookie is read,
+      // Calendar feeds (/ical/{token}.ics, ADR 0040) answer without a session: no cookie is read,
       // refreshed or set for them, and calendar apps get no page headers.
       source: "/((?!api/|ical/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
       missing: [

@@ -14,7 +14,7 @@ import { getGatewayContext } from "@/lib/shell/context";
 
 /**
  * Settings, Calendar Feeds (Section 4.5.8 Work, Upcoming "with a calendar feed"; Section 4.6.5;
- * ADR 0038): the person's own feed across every org they work with. The token comes back once, as
+ * ADR 0040): the person's own feed across every org they work with. The token comes back once, as
  * the full subscription link on Gateway's origin; nothing stores it. Row level security and the
  * 1410 RPCs limit every write to the person's own feeds.
  */

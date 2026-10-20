@@ -41,6 +41,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0035](0035-pricing-v4-seats-and-add-ons.md)             | Pricing v4: Seat-Based Plans, Extra Seats, Add-Ons and Grandfathering            | Accepted |
 | [0036](0036-sign-in-with-google.md)                      | Sign in with Google                                                              | Accepted |
 | [0037](0037-machine-translation.md)                      | Machine Translation Replaces the Native Spanish Reviewer                         | Accepted |
-| [0038](0038-calendar-feeds-and-project-inbox.md)         | Calendar Feeds Served and the Project Inbox Surface                              | Proposed |
+| [0040](0040-calendar-feeds-and-project-inbox.md)         | Calendar Feeds Served and the Project Inbox Surface                              | Proposed |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.

@@ -95,7 +95,7 @@ caller, the same on both hosts. The API sends no CORS headers on either host.
 3. Verify the domain in Resend. Then set Supabase SMTP (`promote-to-production.md`, step 6) and the function
    secrets `RESEND_API_KEY` and `XOS_EMAIL_FROM`.
 
-Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0038) need their own receiving domain, with MX
+Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) need their own receiving domain, with MX
 records pointing at the inbound mail provider that posts each parsed message to the `inbound-email` Edge
 Function. That domain is not chosen yet. **OWNER**, once it is:
 
@@ -232,7 +232,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `XOS_LOG_LEVEL`               | `info` (`debug` on Preview)                                       |
 | `COMPASS_APPLE_TEAM_IDS`      | The Apple team id, once the developer account exists              |
 | `COMPASS_ANDROID_CERT_SHA256` | The Play app signing certificate fingerprint, once the app exists |
-| `XOS_INBOUND_DOMAIN`          | `<inbound domain>`, once the receiving domain exists (ADR 0038)   |
+| `XOS_INBOUND_DOMAIN`          | `<inbound domain>`, once the receiving domain exists (ADR 0040)   |
 
 ### Gateway (Vercel project `gateway`)
 

@@ -51,7 +51,7 @@ export interface PublicClientOptions {
 
 /**
  * A client with no session at all, acting as anon: for the reviewed api_public token RPCs that a
- * route handler answers without a sign-in (the calendar feed, ADR 0038). It reads and writes no
+ * route handler answers without a sign-in (the calendar feed, ADR 0040). It reads and writes no
  * cookie.
  */
 export function createPublicClient(options: PublicClientOptions): XosClient {

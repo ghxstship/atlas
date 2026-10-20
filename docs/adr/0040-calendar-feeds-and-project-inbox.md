@@ -1,4 +1,4 @@
-# ADR 0038: Calendar Feeds Served and the Project Inbox Surface
+# ADR 0040: Calendar Feeds Served and the Project Inbox Surface
 
 - Status: Proposed (amends ADR 0006)
 - Date: 2026-10-20

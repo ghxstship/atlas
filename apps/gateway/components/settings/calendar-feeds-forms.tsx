@@ -11,7 +11,7 @@ import {
 } from "@/lib/actions/calendar-feeds";
 
 /**
- * Client forms of Gateway Settings, Calendar Feeds (ADR 0038): add a feed, get a new link and
+ * Client forms of Gateway Settings, Calendar Feeds (ADR 0040): add a feed, get a new link and
  * revoke, confirming first where the old link stops. A new link is shown once with a copy button
  * and a webcal link that opens the device's calendar app.
  */

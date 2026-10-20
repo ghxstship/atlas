@@ -13,7 +13,7 @@
 --     (ok, not_found, rate_limited), the feed's name parts, time zone and locale, and its events with stable ids,
 --     times, IANA zones, a status (tentative, confirmed, cancelled) and a sequence that grows with every change, for
 --     the iCalendar writer in @xos/data. Canceled shifts and records stay in the feed as cancelled events
---   * limits (ADR 0038 item 3): 120 fetches an hour per token; 20 failed lookups per client address in 15 minutes,
+--   * limits (ADR 0040 item 3): 120 fetches an hour per token; 20 failed lookups per client address in 15 minutes,
 --     where the address is the one the Atlas or Gateway route relays (clientAddress(), A69-003) scoped under the
 --     address that reached PostgREST (private.request_ip(), A69-002); and 2000 failed lookups per reaching address in
 --     15 minutes, which bounds a direct caller that invents relayed addresses
@@ -41,7 +41,7 @@ create table private.retired_calendar_feed_tokens (
 
 create index retired_calendar_feed_tokens_retired_idx on private.retired_calendar_feed_tokens (retired_at);
 
-comment on table private.retired_calendar_feed_tokens is 'SHA-256 hashes of calendar feed tokens that were rotated away or revoked, kept a year so a calendar still polling a dead link gets 404 without counting as a failed guess (ADR 0038 item 3).';
+comment on table private.retired_calendar_feed_tokens is 'SHA-256 hashes of calendar feed tokens that were rotated away or revoked, kept a year so a calendar still polling a dead link gets 404 without counting as a failed guess (ADR 0040 item 3).';
 comment on column private.retired_calendar_feed_tokens.token_hash is 'SHA-256 of the retired token.';
 comment on column private.retired_calendar_feed_tokens.retired_at is 'When the token was rotated away or revoked.';
 
@@ -445,7 +445,7 @@ begin
 end;
 $$;
 
-comment on function api_public.calendar_feed(text, text) is 'Named token RPC behind /ical/{feedToken}.ics (Section 4.6.5, invariants 7 and 8; ADR 0038): resolves a live member, project or person feed token and returns its name parts, zone, locale and events (shifts, meetings, milestones and deadlines) evaluated with the owner''s access at this moment, as one JSON document with status ok, not_found or rate_limited. A revoked, rotated-away or wrong token, an ended membership or a deleted person returns not_found. Limits: 120 fetches an hour per token; failed lookups 20 per relayed client address (p_client_address, from the route''s clientAddress()) under the reaching address (private.request_ip()) and 2000 per reaching address in 15 minutes; retired tokens never count as failures.';
+comment on function api_public.calendar_feed(text, text) is 'Named token RPC behind /ical/{feedToken}.ics (Section 4.6.5, invariants 7 and 8; ADR 0040): resolves a live member, project or person feed token and returns its name parts, zone, locale and events (shifts, meetings, milestones and deadlines) evaluated with the owner''s access at this moment, as one JSON document with status ok, not_found or rate_limited. A revoked, rotated-away or wrong token, an ended membership or a deleted person returns not_found. Limits: 120 fetches an hour per token; failed lookups 20 per relayed client address (p_client_address, from the route''s clientAddress()) under the reaching address (private.request_ip()) and 2000 per reaching address in 15 minutes; retired tokens never count as failures.';
 
 revoke all on function api_public.calendar_feed(text, text) from public;
 grant execute on function api_public.calendar_feed(text, text) to anon, authenticated, service_role;

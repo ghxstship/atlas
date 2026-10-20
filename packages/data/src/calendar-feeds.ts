@@ -4,7 +4,7 @@ import type { DatabaseErrorLike } from "./result.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * Calendar feeds (Section 4.6.5, migrations 0550 and 1410, ADR 0038).
+ * Calendar feeds (Section 4.6.5, migrations 0550 and 1410, ADR 0040).
  *
  * - Member and project feeds (Atlas, Personal settings, Calendar Feeds) belong to an org
  *   membership; a person feed (Gateway, Settings, Calendar Feeds) belongs to the person and covers

@@ -1,5 +1,5 @@
 /**
- * A84 (RRR-129, finding A65-018, migrations 1410 and 1411, ADR 0038): calendar feeds rotate in
+ * A84 (RRR-129, finding A65-018, migrations 1410 and 1411, ADR 0040): calendar feeds rotate in
  * place, a person's own feed across their engagements (Gateway), the project inbox address, and
  * filing or discarding inbound mail. catalog/modules/platform.ts spreads them into the Platform
  * additions; handlers/parts/a84.ts serves them.

@@ -14,7 +14,7 @@ import { env } from "@/lib/env";
 import { getOrgContext } from "@/lib/shell/context";
 
 /**
- * Personal settings, Calendar Feeds (Section 4.6.5, ADR 0038): add a feed of the member's own
+ * Personal settings, Calendar Feeds (Section 4.6.5, ADR 0040): add a feed of the member's own
  * schedule or of a project, get a new link, revoke. The token comes back once, as the full
  * subscription link on Atlas's origin; nothing stores it. Row level security and the 1410 RPCs
  * decide every write.

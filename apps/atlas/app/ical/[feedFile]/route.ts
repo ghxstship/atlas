@@ -9,7 +9,7 @@ import { observability } from "@/lib/observability";
 
 /**
  * The calendar subscription feed, `/ical/{feedToken}.ics` (Section 4.5.3 and 4.6.5, sitemap node
- * calendar-feed; ADR 0038). A Next segment cannot carry the `.ics` suffix, so this handler takes
+ * calendar-feed; ADR 0040). A Next segment cannot carry the `.ics` suffix, so this handler takes
  * the whole file name and accepts only `<token>.ics`. It answers without a session: the token RPC
  * runs as anon with the client address the trusted proxy appended (clientAddress(), A69-003), and
  * shows only what the feed's owner may see. The proxy skips this path, so no session or cookie is

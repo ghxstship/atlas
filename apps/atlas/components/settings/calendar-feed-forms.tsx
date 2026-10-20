@@ -11,7 +11,7 @@ import {
 } from "@/app/[org]/me/calendar-feed-actions";
 
 /**
- * Client forms of Personal settings, Calendar Feeds (ADR 0038): add a feed, get a new link and
+ * Client forms of Personal settings, Calendar Feeds (ADR 0040): add a feed, get a new link and
  * revoke, each confirming first where the old link stops. A new link is shown once with a copy
  * button and a webcal link that opens the device's calendar app. None uses the primary button
  * outside a dialog (gate 27).

@@ -12,7 +12,7 @@ export const DELEGATED: Readonly<Record<string, string>> = {
 
 /**
  * Sitemap nodes Atlas serves with a route handler whose file cannot mirror the route, because a
- * Next segment cannot carry a fixed suffix (ADR 0038 item 1). `/ical/{feedToken}.ics` is served by
+ * Next segment cannot carry a fixed suffix (ADR 0040 item 1). `/ical/{feedToken}.ics` is served by
  * `app/ical/[feedFile]/route.ts`, which takes the whole file name and answers 404 unless it is
  * `<token>.ics`. Gate 15 checks each file exists and counts it as the node's route file.
  */

@@ -1,5 +1,5 @@
 /**
- * An RFC 5545 iCalendar writer for calendar feeds (Section 4.6.5, ADR 0038). No dependencies and no
+ * An RFC 5545 iCalendar writer for calendar feeds (Section 4.6.5, ADR 0040). No dependencies and no
  * Node built-ins, so Atlas and Gateway route handlers and the tests share it.
  *
  * - Lines end in CRLF and fold at 75 octets of UTF-8 (RFC 5545 3.1), never inside a character.

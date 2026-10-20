@@ -53,7 +53,7 @@ const EnvSchema = z.object({
   /** Public origin of the docs site, for help center and API reference links. Unset, none show. */
   DOCS_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
   /**
-   * The domain project inbox mail is received on (Section 4.6.5, ADR 0038), the same value the
+   * The domain project inbox mail is received on (Section 4.6.5, ADR 0040), the same value the
    * inbound-email Edge Function reads. Unset, Atlas shows each inbox's local part and says the
    * receiving domain is not set up yet.
    */

@@ -9,7 +9,7 @@ import { observability } from "@/lib/observability";
 
 /**
  * The calendar subscription feed on Gateway's own host, `/ical/{feedToken}.ics` (Section 4.5.8
- * Work, Upcoming "with a calendar feed"; Section 4.6.5; ADR 0038). The same handler as Atlas's:
+ * Work, Upcoming "with a calendar feed"; Section 4.6.5; ADR 0040). The same handler as Atlas's:
  * it takes the whole file name, accepts only `<token>.ics`, calls the token RPC as anon with the
  * client address the trusted proxy appended (A69-003), and shows only what the feed's owner may
  * see. The proxy skips this path, and the redactor drops the token from every log.
