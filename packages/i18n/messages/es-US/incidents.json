@@ -100,7 +100,8 @@
     "libraryOperations": "Canales de departamento",
     "libraryShared": "Canales compartidos y de invitados",
     "name": "Nombre",
-    "new": "Nuevo canal"
+    "new": "Nuevo canal",
+    "chooseProject": "Elige el proyecto cuyos canales de radio quieres configurar."
   },
   "reason": "Motivo",
   "remove": "Quitar",
@@ -126,5 +127,7 @@
   "unknownPerson": "Persona desconocida",
   "viewAll": "Ver todos los incidentes",
   "withdraw": "Retirar",
-  "zone": "Zona"
+  "zone": "Zona",
+  "chooseProject": "Elige el proyecto donde ocurrió el incidente y luego repórtalo.",
+  "noProjects": "Todavía no hay proyectos que puedas abrir. Crea un proyecto y vuelve para reportar incidentes."
 }
