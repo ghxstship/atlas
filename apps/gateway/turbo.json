@@ -11,6 +11,7 @@
         "SUPABASE_INBUCKET_URL",
         "COMPASS_APPLE_TEAM_IDS",
         "COMPASS_ANDROID_CERT_SHA256",
+        "DOCS_SITE_URL",
         "VERCEL_GIT_COMMIT_SHA"
       ]
     },

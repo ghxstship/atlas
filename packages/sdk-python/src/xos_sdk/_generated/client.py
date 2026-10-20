@@ -413,7 +413,7 @@ class XosClient(XosClientCore):
 
         from xos_sdk import XosClient
 
-        xos = XosClient("https://atlas.example.com/api/v1", api_key=os.environ["XOS_API_KEY"])
+        xos = XosClient("https://api.ghxstship.tech/v1", api_key=os.environ["XOS_API_KEY"])
         for project in xos.projects.list_all(filter={"project_state": {"eq": "Active"}}):
             print(project["name"])
     """
