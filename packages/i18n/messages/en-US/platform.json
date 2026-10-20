@@ -456,7 +456,6 @@
     "fyi": "For your information",
     "aRecord": "a record",
     "someone": "Someone",
-    "generic": "Update",
     "otherKind": "Notification",
     "kinds": {
       "access": {
@@ -556,8 +555,10 @@
       "approve": "approve",
       "reject": "reject",
       "done": "done",
-      "snooze": "snooze until tomorrow"
-    }
+      "snooze": "snooze until tomorrow",
+      "open": "open"
+    },
+    "open": "Open"
   },
   "access": {
     "why": {
