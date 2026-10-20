@@ -21,6 +21,7 @@ import { emptyFor } from "@/components/collection-kit/empty";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 const REFUSALS = "vendors.refusals";
@@ -38,7 +39,7 @@ export async function VendorClasses({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, classes, standard] = await Promise.all([
     getCopy("vendors"),

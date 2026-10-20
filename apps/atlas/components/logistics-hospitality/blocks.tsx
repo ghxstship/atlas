@@ -90,7 +90,7 @@ export async function BlocksSection({
   if (!rows.ok) throw new Error(`Cannot read blocks: ${JSON.stringify(rows.error)}`);
   if (!hotels.ok) throw new Error(`Cannot read hotels: ${JSON.stringify(hotels.error)}`);
   const writable = writableProjects(scope, "hospitality.accommodation.write");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = scope.today;
   const listHref = hrefWith(base, search, { peek: null, full: null, edit: null, create: null });
   const peekHref = (key: string) => hrefWith(base, search, { peek: key, full: null, edit: null });
   const phaseLabel = (b: AccommodationBlock) => t(`blocks.state.${phaseOf(b, today)}`);
@@ -489,7 +489,7 @@ export async function BlocksSection({
       />
     );
   } else if (view === "calendar") {
-    const cal = calendarMonth(search);
+    const cal = calendarMonth(search, scope.today);
     body = (
       <OperationsCalendar
         month={cal.month}
