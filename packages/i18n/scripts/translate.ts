@@ -63,18 +63,42 @@ async function formatter(): Promise<(text: string, file: string) => Promise<stri
   return (text, file) => prettierFormat(text, { ...options, filepath: file });
 }
 
-/** src/catalogs.generated.ts and src/extracts.generated.ts copy catalog values, so they follow a write. */
+/**
+ * Generated files that copy translated text follow a write: src/catalogs.generated.ts and
+ * src/extracts.generated.ts (catalog values), and Atlas's help modules (help articles and the help
+ * catalog namespace), which apps/atlas/test/help.test.ts writes with XOS_WRITE_GENERATED=1.
+ */
 function regenerate(written: readonly string[]): void {
-  if (!written.some((file) => file.includes("packages/i18n/messages/"))) return;
-  execFileSync(
-    process.execPath,
-    [
-      "--experimental-strip-types",
-      "--no-warnings",
-      join(root, "packages/i18n/scripts/generate-catalogs.ts"),
-    ],
-    { stdio: "inherit" },
-  );
+  const catalogs = written.some((file) => file.includes("packages/i18n/messages/"));
+  const help = catalogs || written.some((file) => file.includes("apps/atlas/help/"));
+  if (catalogs) {
+    execFileSync(
+      process.execPath,
+      [
+        "--experimental-strip-types",
+        "--no-warnings",
+        join(root, "packages/i18n/scripts/generate-catalogs.ts"),
+      ],
+      { stdio: "inherit" },
+    );
+  }
+  if (help) {
+    try {
+      execFileSync(
+        "pnpm",
+        ["--filter", "@xos/atlas", "exec", "vitest", "run", "test/help.test.ts"],
+        {
+          cwd: root,
+          stdio: "inherit",
+          env: { ...process.env, XOS_WRITE_GENERATED: "1" },
+        },
+      );
+    } catch (error) {
+      console.error(
+        `The Atlas help modules were rewritten, but apps/atlas/test/help.test.ts failed (${error instanceof Error ? error.message : String(error)}). Fix the help articles it names before committing.`,
+      );
+    }
+  }
 }
 
 function money(setup: Setup, n: number): string {

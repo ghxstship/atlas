@@ -101,6 +101,7 @@ This ADR records what is translated, how the pipeline works, the API, model and 
 | `translate:lock <key...>`               | Locks strings a person edited (`--unlock` releases them). Keys are catalog keys (`email.common.greeting`) or `<surface>/<file>` (`help/gates.md`)                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 - **`--dry-run`** works with every network command. It plans the work and prints strings, segments, cached segments, characters and an estimated cost per locale. It touches neither the network nor any file.
+- **Generated files.** After they write, the commands regenerate the files that copy translated text: `src/catalogs.generated.ts` and `src/extracts.generated.ts`, and Atlas's help modules (`apps/atlas/test/help.test.ts` with `XOS_WRITE_GENERATED=1`).
 - **Test expectations.** Both reports list the tests (`apps/*/test`, `apps/*/e2e`, `packages/*/test`, `infra/*/test`) that quote a Spanish string the run changed, so the expectations can be updated in the same commit.
 
 ### 7. Translation memory
