@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, InlineAlert, Input } from "@xos/ui";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState } from "react";
 import { verifyCodeAction, type SecurityState } from "@/app/auth/security-actions";
 import { errorText, useSecurityCopy } from "./copy";
 
@@ -28,14 +28,18 @@ export function CodeForm({
   variant?: "primary" | "secondary";
 }) {
   const t = useSecurityCopy();
-  const [state, action, pending] = useActionState<SecurityState, FormData>(verifyCodeAction, {});
-  const handled = useRef<number | undefined>(undefined);
-  useEffect(() => {
-    if (state.ok && state.at !== handled.current) {
-      handled.current = state.at;
-      onVerified?.();
-    }
-  }, [state, onVerified]);
+  // At sign-in the server action itself continues (and the form works before hydration). Elsewhere `onVerified`
+  // runs from the action's own result, not from an effect: the new session cookies refresh the page in the same
+  // response, and a resume that waited for a later render could be lost with it.
+  const verify = async (previous: SecurityState, form: FormData): Promise<SecurityState> => {
+    const result = await verifyCodeAction(previous, form);
+    if (result.ok) onVerified?.();
+    return result;
+  };
+  const [state, action, pending] = useActionState<SecurityState, FormData>(
+    mode === "sign-in" ? verifyCodeAction : verify,
+    {},
+  );
   return (
     <form action={action} className="flex flex-col gap-12" noValidate>
       <input type="hidden" name="factorId" value={factorId} />

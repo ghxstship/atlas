@@ -15,8 +15,8 @@ and then to production, and record the date and who applied it in the release no
 | Secure password change     | Authentication > Providers > Email                     | On: a password change needs a recent sign-in (V6.2.3)                      |
 | TOTP MFA                   | Authentication > Multi-Factor                          | Enroll and verify on. Optional per person; orgs enforce it per role        |
 | WebAuthn MFA and passkeys  | Authentication > Multi-Factor, and Passkeys            | Enroll and verify on                                                       |
-| WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | The production registrable domain, for example the Atlas apex domain       |
-| WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | The https origins of Atlas and Gateway, including custom Gateway domains   |
+| WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | `ghxstship.tech`                                                           |
+| WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | `https://atlas.ghxstship.tech`, `https://gateway.ghxstship.tech`           |
 
 Notes:
 
@@ -27,6 +27,42 @@ Notes:
   127.0.0.1, and the WebAuthn `rp_id` is `localhost`). Set the hosted values in the dashboard.
 - Atlas and Gateway also refuse passwords that contain a product name, the email's local part or a
   part of the person's name. That check runs in the sign-up server actions and needs no setting.
+
+## Second factors, passkeys, SSO and SCIM (A77)
+
+Atlas, Gateway, Compass and the API enforce second factors, the org MFA policy, session length and idle
+timeout themselves (migration 1330). These steps make the hosted project and the deployments match.
+
+1. **Supabase Auth.** Apply the TOTP, WebAuthn and passkey rows of the table above. Without TOTP
+   verify on, nobody can reach aal2, and Restricted exports, the 1099-NEC file, SCIM tokens and
+   break-glass stay refused.
+2. **Vercel, Atlas and Gateway projects.** Set `WEBAUTHN_RP_ID=ghxstship.tech` and
+   `WEBAUTHN_RP_ORIGINS=https://atlas.ghxstship.tech,https://gateway.ghxstship.tech` in both
+   projects, the same values as step 1. Unset, people still add authenticator apps and passkeys, but
+   the "Add security key" option stays hidden. A custom Gateway domain is not a WebAuthn origin of
+   `ghxstship.tech`; passkeys and security keys work there only once the domain is added to the
+   origins (and is a subdomain of the relying party).
+3. **SAML single sign-on (Enterprise orgs).** Supabase Auth SSO is a hosted add-on: enable it under
+   Authentication > Providers > SAML 2.0. For each Enterprise customer, register their identity
+   provider with the CLI, linked to the project:
+   `supabase sso add --type saml --metadata-url '<IdP metadata URL>' --domains '<their email domain>'`.
+   Give the printed provider ID to the customer's Admin, who adds it on Settings, Security with the
+   role new people receive. People then use "Sign in with single sign-on" with their work email; when
+   the provider adds people just in time, they join at sign-in (migration 1332). The SAML ACS URL to
+   give the customer is `<project URL>/auth/v1/sso/saml/acs`, and the entity ID
+   `<project URL>/auth/v1/sso/saml/metadata`. The local stack cannot enable SAML, so this path is
+   tested only against a hosted project.
+4. **SCIM.** Deploy the `scim` Edge Function (`supabase functions deploy scim --no-verify-jwt`). The
+   SCIM base URL customers enter in their identity provider is
+   `<project URL>/functions/v1/scim/v2`; the token is issued by an Admin on Settings, Security
+   (it needs step-up and is shown once). Atlas shows both.
+5. **Recovery codes.** Supabase Auth offers MFA recovery codes behind a setting the local CLI cannot
+   turn on yet, so Atlas does not issue them (A54-001 stays open). Until it does, a person who loses
+   every second factor asks an Owner or Admin to contact XOS support, who confirm the person's
+   identity and remove the factor from the dashboard (Authentication > Users > the user > MFA).
+6. **Known limit.** Like the IP allow-list, the org MFA policy, session length and idle timeout are
+   enforced where Atlas, the API and Compass check a session, not on direct calls to the Supabase
+   endpoint with a session token. The planned fix is the same: route all data access through the API.
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 

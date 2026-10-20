@@ -120,7 +120,8 @@ export async function verifyCodeAction(_: SecurityState, form: FormData): Promis
   const result = await verifyTotp(db, factorId.data, parsed.data);
   if (!result.ok) return refused(errorKey(result.error));
   if (form.get("mode") === "sign-in") redirect(next as Route);
-  revalidateSecurity();
+  // No revalidation: in the step-up dialog a page refresh would close the dialog before it resumes the
+  // action. The settings page refreshes itself once a new factor verifies.
   return done();
 }
 
@@ -180,7 +181,7 @@ export async function securityKeyVerifyAction(input: {
   const db = await session();
   const result = await verifySecurityKey(db, { ...input, rp });
   if (!result.ok) return { ok: false, error: errorKey(result.error) };
-  revalidateSecurity();
+  // No revalidation, as for codes: the step-up dialog resumes the action on the page it opened on.
   return { ok: true, data: null };
 }
 
