@@ -5,6 +5,7 @@ import { buttonClass } from "../Button/Button.tsx";
 import { renderItems } from "./Menus.shared.tsx";
 import { type DropdownMenuProps } from "./Menus.types.ts";
 import { menuClass } from "./menuClass.tsx";
+import { compactChevronClass, compactLabelClass } from "./compactTriggerClass.tsx";
 
 /** A short list of actions from a button. Arrow keys move, typing jumps, Enter selects, Esc closes. */
 export function DropdownMenu({
@@ -14,7 +15,9 @@ export function DropdownMenu({
   defaultOpen,
   open,
   onOpenChange,
+  compact = false,
 }: DropdownMenuProps): ReactElement {
+  const short = compact && icon !== undefined;
   return (
     <RDropdownMenu.Root
       {...(defaultOpen === undefined ? {} : { defaultOpen })}
@@ -24,8 +27,14 @@ export function DropdownMenu({
     >
       <RDropdownMenu.Trigger className={buttonClass()}>
         {icon ? <Icon name={icon} size={14} /> : null}
-        {label}
-        <Icon name="ChevronDown" size={14} />
+        {short ? <span className={compactLabelClass}>{label}</span> : label}
+        {short ? (
+          <span className={compactChevronClass}>
+            <Icon name="ChevronDown" size={14} />
+          </span>
+        ) : (
+          <Icon name="ChevronDown" size={14} />
+        )}
       </RDropdownMenu.Trigger>
       <RDropdownMenu.Portal>
         <RDropdownMenu.Content

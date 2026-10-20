@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Button, ScrollRegion, Select } from "@/components/ui";
 import { CollectionViews } from "@/components/views/collection-views";
 
 /**
@@ -63,28 +64,18 @@ export function FilterBar({
       {Object.entries(keep).map(([name, value]) =>
         value === undefined ? null : <input key={name} type="hidden" name={name} value={value} />,
       )}
+      {/* The same Select and Button as every other filter bar (A59-029). */}
       {fields.map((f) => (
-        <label key={f.name} className="flex flex-col gap-4 text-text-12 text-text-secondary">
-          {f.label}
-          <select
+        <div key={f.name} className="w-(--ui-field) max-w-full">
+          <Select
             name={f.name}
-            defaultValue={f.value}
-            className="min-h-control-sm rounded-control border border-border-control bg-bg-surface px-8 text-text-13 text-text-primary"
-          >
-            {f.options.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+            label={f.label}
+            value={f.value}
+            options={f.options.map((o) => ({ value: o.value, label: o.label }))}
+          />
+        </div>
       ))}
-      <button
-        type="submit"
-        className="min-h-control-sm rounded-control border border-border-control bg-bg-surface px-12 text-label-13 text-text-primary hover:bg-bg-hover"
-      >
-        {submitLabel}
-      </button>
+      <Button type="submit">{submitLabel}</Button>
     </form>
   );
 }
@@ -216,46 +207,47 @@ export interface BoardColumn {
 
 /** The Board view: one column per state, cards that open the peek. */
 export function OpsBoard({ label, columns }: { label: string; columns: readonly BoardColumn[] }) {
+  // The columns scroll sideways in a region whose cut-off edge fades (A59-012).
   return (
-    <div
-      role="region"
-      aria-label={label}
-      className="grid auto-cols-[minmax(var(--layout-property-column),1fr)] grid-flow-col gap-12 overflow-x-auto pb-8 max-md:grid-flow-row max-md:auto-cols-auto"
-    >
-      {columns.map((col) => (
-        <section
-          key={col.key}
-          aria-labelledby={`board-${col.key}`}
-          className="flex min-w-0 flex-col gap-8 rounded-card bg-bg-raised p-8"
-        >
-          <h2
-            id={`board-${col.key}`}
-            className="m-0 flex items-center justify-between px-4 text-label-13 font-semibold"
+    <ScrollRegion label={label} className="pb-8">
+      <div className="grid auto-cols-[minmax(var(--layout-property-column),1fr)] grid-flow-col gap-12 max-md:grid-flow-row max-md:auto-cols-auto">
+        {columns.map((col) => (
+          <section
+            key={col.key}
+            aria-labelledby={`board-${col.key}`}
+            className="flex min-w-0 flex-col gap-8 rounded-card bg-bg-raised p-8"
           >
-            {col.label}
-            <span className="tabular-nums text-text-secondary">{col.items.length}</span>
-          </h2>
-          {col.items.length === 0 ? (
-            <p className="m-0 px-4 text-text-12 text-text-secondary">{col.empty}</p>
-          ) : (
-            <ul className="m-0 flex list-none flex-col gap-6 p-0">
-              {col.items.map((item) => (
-                <li key={item.key}>
-                  <Link
-                    href={item.href}
-                    className="flex flex-col gap-4 rounded-card border border-border-subtle bg-bg-surface p-12 hover:border-border-strong"
-                  >
-                    <span className="text-text-13 font-medium text-text-primary">{item.title}</span>
-                    <span className="text-text-12 text-text-secondary">{item.meta}</span>
-                    {item.trailing ? <span>{item.trailing}</span> : null}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      ))}
-    </div>
+            <h2
+              id={`board-${col.key}`}
+              className="m-0 flex items-center justify-between px-4 text-label-13 font-semibold"
+            >
+              {col.label}
+              <span className="tabular-nums text-text-secondary">{col.items.length}</span>
+            </h2>
+            {col.items.length === 0 ? (
+              <p className="m-0 px-4 text-text-12 text-text-secondary">{col.empty}</p>
+            ) : (
+              <ul className="m-0 flex list-none flex-col gap-6 p-0">
+                {col.items.map((item) => (
+                  <li key={item.key}>
+                    <Link
+                      href={item.href}
+                      className="flex flex-col gap-4 rounded-card border border-border-subtle bg-bg-surface p-12 hover:border-border-strong"
+                    >
+                      <span className="text-text-13 font-medium text-text-primary">
+                        {item.title}
+                      </span>
+                      <span className="text-text-12 text-text-secondary">{item.meta}</span>
+                      {item.trailing ? <span>{item.trailing}</span> : null}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+      </div>
+    </ScrollRegion>
   );
 }
 

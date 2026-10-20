@@ -1,0 +1,12 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "Compass",
+    "NSCameraUsageDescription": "Compass usa la cámara para escanear credenciales, etiquetas de equipo y códigos de barras, y para tomar fotos de incidentes e inspecciones.",
+    "NSMicrophoneUsageDescription": "Compass graba notas de voz para los reportes de incidentes mientras mantienes presionado el botón del micrófono.",
+    "NSLocationWhenInUseUsageDescription": "Compass confirma que estás en el lugar cuando marcas entrada y ubica los reportes de incidentes donde ocurrieron.",
+    "NSLocationAlwaysAndWhenInUseUsageDescription": "Compass usa tu ubicación solo mientras la app está abierta, para confirmar que estás en el lugar cuando marcas entrada. Nunca te rastrea en segundo plano.",
+    "NSLocationAlwaysUsageDescription": "Compass usa tu ubicación solo mientras la app está abierta, para confirmar que estás en el lugar cuando marcas entrada. Nunca te rastrea en segundo plano.",
+    "NSMotionUsageDescription": "Compass no usa datos de movimiento ni de actividad física.",
+    "NSFaceIDUsageDescription": "Compass usa Face ID para desbloquear tus datos de trabajo en este dispositivo."
+  }
+}

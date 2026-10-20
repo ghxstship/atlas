@@ -51,13 +51,13 @@ class XosClientCore:
     ) -> None:
         """Create a client.
 
-        ``base_url`` includes the version, for example ``https://atlas.example.com/api/v1``.
+        ``base_url`` includes the version, for example ``https://api.ghxstship.tech/v1``.
         Pass one of ``api_key`` (an org-scoped ``xos_live_...`` key), ``access_token`` (a
         session JWT or OAuth token) or ``get_token`` (called before every request, for
         refreshing short-lived tokens).
         """
         if not base_url:
-            raise ValueError("XosClient needs a base_url such as https://atlas.example.com/api/v1.")
+            raise ValueError("XosClient needs a base_url such as https://api.ghxstship.tech/v1.")
         if sum(c is not None for c in (api_key, access_token, get_token)) > 1:
             raise ValueError("Pass only one of api_key, access_token or get_token.")
         self.base_url = base_url.rstrip("/")

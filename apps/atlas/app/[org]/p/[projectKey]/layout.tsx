@@ -82,7 +82,12 @@ export default async function ProjectLayout({
         </Suspense>
       </header>
       <Suspense>
-        <ProjectTabs label={t("header.tabs")} groups={groups} />
+        <ProjectTabs
+          label={t("header.tabs")}
+          moreLabel={t("header.more")}
+          moreName={t("header.moreTabs")}
+          groups={groups}
+        />
       </Suspense>
       <div className="min-w-0">{children}</div>
     </div>

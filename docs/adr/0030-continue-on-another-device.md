@@ -43,6 +43,7 @@ The production domains of Atlas and Gateway, and the Apple and Android signing i
    - Malformed team ids and fingerprints are dropped, and an unconfigured file answers 404, so nothing ever claims the wrong app.
    - The proxies skip `/.well-known/`.
    - In Compass, `app.config.ts` adds `applinks:` associated domains and verified Android App Links for the hosts named in `XOS_UNIVERSAL_LINK_HOSTS` (`atlas:host,gateway:host`). It restates the paths, and a test keeps them equal to `HANDOFF_PATHS`.
+   - _Amended 2026-10-20 (RRR-119):_ the owner confirmed the hosts, so an unset `XOS_UNIVERSAL_LINK_HOSTS` now claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off, and a self-hosted build names its own hosts.
 
 5. **Compass opens records natively where it has a screen.**
    - `app/+native-intent.tsx` maps every link form onto `/r/{key}` or `/e/{key}`.
@@ -78,7 +79,7 @@ The production domains of Atlas and Gateway, and the Apple and Android signing i
   - 57: the Maestro flow `.maestro/journeys/push-approve-timesheet`, run by `scripts/journey-57-push.sh`.
   - Maestro cannot run `xcrun simctl push`, so a local helper delivers the push when the flow asks. The banner's action menu is outside Maestro's hierarchy, so Approve is tapped by its position.
 - **Owner steps:**
-  - Choose the production hosts.
+  - Choose the production hosts. Done on 2026-10-20: `atlas.ghxstship.tech` and `gateway.ghxstship.tech` (ADR 0033, decision 5).
   - Set `COMPASS_APPLE_TEAM_IDS` (and `COMPASS_ANDROID_CERT_SHA256` once Android signing exists) on Atlas and Gateway.
   - Build Compass with `XOS_UNIVERSAL_LINK_HOSTS`, a signed build with the Associated Domains capability and `ios.appleTeamId`.
   - Build the push sender that claims `Push` deliveries (`app.claim_notification_deliveries`) and posts the contract above to Expo. It needs Expo push credentials, an APNs key, and an `aps-environment` of production in release builds.

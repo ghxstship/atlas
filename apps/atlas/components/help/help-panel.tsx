@@ -126,6 +126,10 @@ export function HelpPanel({
     );
   }, [state, offered, running, open, nodeId, hiddenTips]);
 
+  // A tip or tour offer waits while a drawer, dialog, peek or the navigation drawer is open, so it
+  // never covers the overlay's own actions (A59-002); it shows again once the overlay closes.
+  const covered = useOverlayOpen(offered !== null || tip !== null);
+
   const startTour = useCallback(
     (tour: Tour) => {
       setClosedOffers((c) => [...c, tour.key]);
@@ -205,6 +209,16 @@ export function HelpPanel({
                 ) : (
                   <Skeleton />
                 )}
+                {state?.docsUrl ? (
+                  <a
+                    className="self-start text-text-12 font-medium text-accent-text underline"
+                    href={`${state.docsUrl}/${lang}/help/${article.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t("docs.article")}
+                  </a>
+                ) : null}
               </>
             ) : (
               <p className="m-0">{t("noArticles")}</p>
@@ -311,6 +325,16 @@ export function HelpPanel({
                 ))}
               </ul>,
             )}
+            {state?.docsUrl ? (
+              <a
+                className="self-start text-accent-text underline"
+                href={`${state.docsUrl}/${lang}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("docs.home")}
+              </a>
+            ) : null}
             <Button
               icon="LifeBuoy"
               onClick={() =>
@@ -325,7 +349,7 @@ export function HelpPanel({
           </>
         )}
       </Drawer>
-      {offered ? (
+      {offered && !covered ? (
         <Card
           label={t("tours.label")}
           onDismiss={() => {
@@ -355,7 +379,7 @@ export function HelpPanel({
           </div>
         </Card>
       ) : null}
-      {tip ? (
+      {tip && !covered ? (
         <Card
           label={t("tips.label")}
           onDismiss={() => {
@@ -421,6 +445,49 @@ function useEscape(onEscape: () => void) {
   }, []);
 }
 
+/** Any open overlay a help card would sit above: dialogs, drawers and peeks, and the shell's drawer. */
+const OVERLAY =
+  "[role='dialog'], [role='alertdialog'], dialog[open], .xos-shell [data-open='true']";
+
+/** Whether an overlay is open, watched while `active` (while there is a card to show). */
+function useOverlayOpen(active: boolean): boolean {
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!active) return undefined;
+    const check = () => setOpen(document.querySelector(OVERLAY) !== null);
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ["data-open", "open", "role"],
+    });
+    return () => observer.disconnect();
+  }, [active]);
+  return active && open;
+}
+
+/**
+ * Keeps room under the page for a showing card (`--xos-help-card-space`, read by the shell's content
+ * column), so the page's last rows and actions can scroll clear of it instead of sitting under it.
+ */
+function useReservedSpace(ref: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const el = ref.current;
+    const root = document.documentElement;
+    if (!el || typeof ResizeObserver === "undefined") return undefined;
+    const observer = new ResizeObserver(() => {
+      root.style.setProperty("--xos-help-card-space", `${Math.ceil(el.offsetHeight)}px`);
+    });
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--xos-help-card-space");
+    };
+  }, [ref]);
+}
+
 /* On phones the cards sit above the bottom tab bar, so they never cover it or the control in focus
    (WCAG 2.4.11, A23-002). */
 const CARD_POSITION =
@@ -436,8 +503,11 @@ function Card({
   children: React.ReactNode;
 }) {
   useEscape(onDismiss);
+  const ref = useRef<HTMLElement>(null);
+  useReservedSpace(ref);
   return (
     <section
+      ref={ref}
       aria-label={label}
       data-help-card=""
       className={`${CARD_POSITION} flex w-(--ui-dialog) max-w-[calc(100vw-var(--space-32))] flex-col gap-8 rounded-card bg-bg-raised p-16 text-text-13 shadow-menu forced-colors:border`}
@@ -468,6 +538,7 @@ function TourStep({
   const key = tourCopyKey(tour.key);
   const last = step === tour.steps.length - 1;
   useEscape(onEnd);
+  useReservedSpace(ref);
 
   useEffect(() => {
     ref.current?.focus();

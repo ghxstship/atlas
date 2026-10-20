@@ -27,14 +27,21 @@ The owner was given every open decision blocking the release, each with its opti
        - Canon was unchanged: 41,749 rows in 94 tables.
        - Every data table matched a no-seed build.
        - `supabase test db` on the cleaned database passed except 3 assertions that need demo data.
-     - **Settings.** Production settings follow the removal: Site URL and redirects (the domain is still to come), Resend SMTP, leaked-password protection, MFA as in `config.toml`, function and Vault secrets, optional network restrictions, then a JWT secret rotation that renews the anon and service keys, with the Vercel and Vault updates it forces.
+     - **Settings.** Production settings follow the removal: Site URL and redirects (`atlas.ghxstship.tech` and `gateway.ghxstship.tech` since 2026-10-20, decision 5), Resend SMTP, leaked-password protection, MFA as in `config.toml`, function and Vault secrets, optional network restrictions, then a JWT secret rotation that renews the anon and service keys, with the Vercel and Vault updates it forces.
      - **Staging.** Staging becomes a persistent Supabase branch, seeded from `supabase/seeds` on the branch only. Production gets `[remotes.production.db.seed] enabled = false`. Vercel previews and `STAGING_DB_URL` point at the branch.
 2. **Backups:** Pro daily backups plus the PITR add-on. The release restore drill (`infra/drills/release-drill.sh`) runs quarterly as the verified drill.
 3. **Leaked-password protection:** turn on Supabase's built-in check against Have I Been Pwned once on Pro.
 4. **App hosting:** Vercel for Atlas, Gateway and docs.
 5. **Domains:** one main domain with subdomains (app., gateway., docs., api.). The passkey relying party is the main domain, so one passkey works in Atlas and Gateway, and Compass gets a single universal-links file. The domain name itself is still to be supplied by the owner.
+   - _Amended 2026-10-20:_ the owner confirmed **ghxstship.tech**, one subdomain per app (A74, RRR-119):
+     - `atlas.ghxstship.tech` for Atlas, `gateway.ghxstship.tech` for Gateway, `docs.ghxstship.tech` for the docs site and `api.ghxstship.tech` for the public API.
+     - **Why `atlas.` and not `app.`:** the owner chose to keep `atlas.`, the host Vercel and Supabase Auth were already set up with. It is the product's own name, as are the Vercel project `atlas` and the variable `ATLAS_SITE_URL`, and every app now sits on a subdomain named after it.
+     - **The API host** is served by the Atlas deployment. With `XOS_API_HOST=api.ghxstship.tech`, `https://api.ghxstship.tech/v1/...` is the API at `/api/v1/...`, with the same credentials, rate limits and IP allow-list. No Atlas page or cookie is served there. `https://atlas.ghxstship.tech/api/v1` keeps working. The OpenAPI document lists `https://api.ghxstship.tech/v1` as a server.
+     - **Passkeys:** the relying party id is `ghxstship.tech`, with the origins `https://atlas.ghxstship.tech` and `https://gateway.ghxstship.tech` (`infra/runbooks/hosted-security-settings.md`).
+     - **Compass** claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech` as universal links (ADR 0030).
+     - **Email** sends from `mail.ghxstship.tech` (decision 6). The settings, DNS records and environment values are in `infra/runbooks/production.md`, "Domains".
 6. **Email:** Resend, sending from a subdomain (for example mail.), with SPF, DKIM and DMARC.
-7. **Staging Site URL:** the current Vercel URL until the domain exists, then a staging subdomain. It moves to the staging branch once decision 1 is carried out.
+7. **Staging Site URL:** the current Vercel URL until the domain exists, then a staging subdomain. It moves to the staging branch once decision 1 is carried out. The staging subdomain under `ghxstship.tech` is not named yet.
 8. **Offline sync:** PowerSync Cloud.
 9. **Monitoring:** Sentry, a log drain (Axiom or Better Stack) and regional uptime checks (Checkly or Better Stack).
 10. **Upload scanning:** self-hosted ClamAV (`clamav/clamav:1.5.4`).
@@ -101,7 +108,7 @@ The owner was given every open decision blocking the release, each with its opti
   - The orchestrator applies decisions 13, 14 and 22 in CI.
 - **Owner actions:**
   - Supabase Pro and PITR.
-  - The domain name.
+  - The domain name. Done on 2026-10-20: `ghxstship.tech` (decision 5).
   - Store accounts and `npx eas login`.
   - The Stripe sandbox secret, `ANTHROPIC_API_KEY` and the other named secrets (`docs/release-checklist.md`).
   - Plan prices.
