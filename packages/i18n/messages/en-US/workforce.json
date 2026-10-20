@@ -416,7 +416,7 @@
     "agenda": "Agenda",
     "organizer": "Organizer",
     "rsvps": "RSVPs",
-    "rsvpCounts": "{Going} going, {Maybe} maybe, {Declined} declined",
+    "rsvpCounts": "{going} going, {maybe} maybe, {declined} declined",
     "rsvp": {
       "Going": "Going",
       "Maybe": "Maybe",
@@ -996,7 +996,7 @@
       },
       "when": "{start} to {end}",
       "whenAt": "{start} to {end} · {location}",
-      "counts": "{Going} going, {Maybe} maybe, {Declined} not going"
+      "counts": "{going} going, {maybe} maybe, {declined} not going"
     },
     "forms": {
       "submit": "Submit Form",

@@ -125,7 +125,7 @@
     },
     "recordKeyFormat": {
       "label": "Formato de la clave de registro",
-      "help": "Usa {PROJECT} y {SEQ}, por ejemplo {PROJECT}-{SEQ}."
+      "help": "Usa '{PROJECT}' y '{SEQ}', por ejemplo '{PROJECT}-{SEQ}'."
     },
     "numberPadding": {
       "label": "Relleno de números",
