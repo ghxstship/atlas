@@ -77,6 +77,9 @@ describe("translate", () => {
       greeting: "Hola {name}, welcome",
     });
     expect(runCheck(repo.setup()).warnings).toEqual([]);
+    const cached = [...loadMemory(repo.root, repo.setup().config, "es-US").segments.values()];
+    expect(cached).toContain("Guardar");
+    expect(cached, "the segment of the old en-US Cancel is pruned").not.toContain("Cancelar");
   });
 
   it("never overwrites a locked string, and warns when its source changes", async () => {
@@ -116,6 +119,11 @@ describe("translate", () => {
     const retry = new FakeTransport();
     const [second] = await translate(repo.context(retry));
     expect(second?.selected).toBe(2);
+    expect(retry.segments, "rejected answers are not reused").toEqual([
+      'Hello <span translate="no" id="a1">{name}</span>',
+      "Pass the gate",
+    ]);
+    expect(second?.failures).toEqual([]);
   });
 
   it("prices a dry run from the masked characters and touches neither the network nor files", async () => {

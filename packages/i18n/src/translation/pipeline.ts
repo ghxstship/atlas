@@ -249,6 +249,10 @@ async function fill(
   return cost;
 }
 
+/**
+ * Rebuilds a unit from the cached segments and validates it. On failure the unit's segments leave the
+ * memory, so the next run asks Google again instead of reusing a rejected answer.
+ */
 function assemble(
   job: Job,
   memory: Memory,
@@ -256,16 +260,20 @@ function assemble(
   t: Tools,
 ): { value: string } | { error: string } {
   const outputs = job.keys.map((k) => (k === null ? "" : (memory.segments.get(k) ?? "")));
+  const forget = (error: string) => {
+    for (const k of job.keys) if (k !== null) memory.segments.delete(k);
+    return { error };
+  };
   let value: string;
   try {
     value = job.plan.assemble(outputs);
   } catch (error) {
     if (error instanceof PlanError)
-      return { error: `Google's markup did not survive: ${error.message}` };
+      return forget(`Google's markup did not survive: ${error.message}`);
     throw error;
   }
   const problems = validateTarget(job.unit, value, locale, t);
-  return problems.length > 0 ? { error: problems.join("; ") } : { value };
+  return problems.length > 0 ? forget(problems.join("; ")) : { value };
 }
 
 function selectedSurfaces(ctx: Context): SurfaceConfig[] {
@@ -294,13 +302,19 @@ function countStatuses(
   return counts;
 }
 
-/** Drops memory entries for keys that no longer exist and cached segments of older engines. */
+/**
+ * Drops memory entries for keys that no longer exist, cached segments of older engines and, when the
+ * run covered every surface, cached segments that no current en-US string uses any more.
+ */
 function prune(
+  ctx: Context,
   memory: Memory,
   units: readonly UnitRecord[],
-  engine: string,
-  surfaces: readonly SurfaceConfig[],
+  t: Tools,
+  jobs: readonly Job[],
 ): void {
+  const engine = t.engine;
+  const surfaces = selectedSurfaces(ctx);
   const ids = new Set(units.map((u) => u.id));
   const catalogIds = surfaces.some((s) => s.kind === "catalog");
   const surfaceIds = new Set(surfaces.map((s) => s.id));
@@ -309,8 +323,23 @@ function prune(
     const mine = slash === -1 ? catalogIds : surfaceIds.has(id.slice(0, slash));
     if (mine && !ids.has(id)) memory.entries.delete(id);
   }
-  for (const key of [...memory.segments.keys()])
-    if (!key.startsWith(`${engine}:`)) memory.segments.delete(key);
+  const live = ctx.surfaces ? null : new Set(jobs.flatMap((j) => j.keys.filter((k) => k !== null)));
+  for (const key of [...memory.segments.keys()]) {
+    if (!key.startsWith(`${engine}:`) || (live !== null && !live.has(key)))
+      memory.segments.delete(key);
+  }
+}
+
+/** Jobs for every unit whose source can be planned, to know which cached segments are still used. */
+function allJobs(units: readonly UnitRecord[], t: Tools): Job[] {
+  return units.flatMap((unit) => {
+    try {
+      return [makeJob(unit, t)];
+    } catch (error) {
+      if (error instanceof Error) return [];
+      throw error;
+    }
+  });
 }
 
 /** Fills missing targets and re-translates stale ones in every target locale (or the given ones). */
@@ -387,7 +416,7 @@ export async function translate(
         if (unit && !values.has(unit.id)) values.set(unit.id, unit.target ?? unit.source);
       }
     }
-    prune(memory, units, t.engine, selectedSurfaces(ctx));
+    prune(ctx, memory, units, t, allJobs(units, t));
     const written: string[] = [];
     for (const surface of selectedSurfaces(ctx)) {
       written.push(
@@ -597,7 +626,7 @@ export async function review(ctx: Context, locale: string, apply: boolean): Prom
   const written: string[] = [];
   if (apply) {
     for (const [id, entry] of appliedEntries) memory.entries.set(id, entry);
-    prune(memory, units, t.engine, selectedSurfaces(ctx));
+    prune(ctx, memory, units, t, jobs);
     for (const surface of selectedSurfaces(ctx))
       written.push(
         ...(await writeUnits(ctx.setup.root, surface, locale, units, values, async (text) => text)),
