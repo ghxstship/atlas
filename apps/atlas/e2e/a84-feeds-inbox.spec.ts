@@ -41,7 +41,9 @@ test("calendar feeds: subscribe, get a new link and revoke", async ({ page }) =>
   const { slug, name } = await newOwnerOrg(page, "ical");
   await page.goto(`/${slug}/me/calendar-feeds`);
   await expect(page.getByRole("heading", { name: "Calendar feeds", level: 2 })).toBeVisible();
-  await expect(page.getByText("You have no calendar feeds in this organization yet.")).toBeVisible();
+  await expect(
+    page.getByText("You have no calendar feeds in this organization yet."),
+  ).toBeVisible();
   await expectAccessible(page);
 
   await page.getByRole("button", { name: "Add feed" }).click();
@@ -54,7 +56,9 @@ test("calendar feeds: subscribe, get a new link and revoke", async ({ page }) =>
   expect(body.startsWith("BEGIN:VCALENDAR\r\nVERSION:2.0\r\n")).toBe(true);
   expect(body).toContain(`X-WR-CALNAME:My schedule at ${name}`);
   expect(body.trimEnd().endsWith("END:VCALENDAR")).toBe(true);
-  await expect(page.getByRole("list", { name: "Your calendar feeds" })).toContainText("My schedule");
+  await expect(page.getByRole("list", { name: "Your calendar feeds" })).toContainText(
+    "My schedule",
+  );
   await expectAccessible(page);
 
   await page.reload();
@@ -73,7 +77,9 @@ test("calendar feeds: subscribe, get a new link and revoke", async ({ page }) =>
   await page.getByRole("button", { name: "Revoke My schedule" }).click();
   const revoke = page.getByRole("dialog", { name: "Revoke this feed?" });
   await revoke.getByRole("button", { name: "Revoke" }).click();
-  await expect(page.getByText("You have no calendar feeds in this organization yet.")).toBeVisible();
+  await expect(
+    page.getByText("You have no calendar feeds in this organization yet."),
+  ).toBeVisible();
   expect((await page.request.get(second)).status()).toBe(404);
   expect((await page.request.get("/ical/not-a-feed.ics")).status()).toBe(404);
 });
