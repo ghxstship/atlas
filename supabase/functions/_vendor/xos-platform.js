@@ -11216,6 +11216,8 @@ var platform_default$1 = {
       billing: {
         payment_failed: "Payment failed",
         read_only: "Organization is read-only",
+        trial_ending: "Trial ending soon",
+        trial_ended: "Trial ended",
       },
       comment: { created: "New comment" },
       event: { invited: "Event invitation" },
@@ -11232,6 +11234,16 @@ var platform_default$1 = {
       mention: { created: "You were mentioned" },
       message: { received: "New message" },
       occupancy: { threshold: "Occupancy threshold reached" },
+      organization: {
+        deletion_requested: "Organization deletion requested",
+        deletion_recovered: "Organization recovered",
+        ownership_offered: "Ownership offered",
+        ownership_accepted: "Ownership accepted",
+        ownership_declined: "Ownership declined",
+        white_label_reverting: "White label ending",
+        white_label_reverted: "White label ended",
+      },
+      partner: { client_left: "Client organization left" },
       recognition: { received: "Recognition received" },
       report: { delivered: "Report delivered" },
       shift: {
@@ -27674,6 +27686,8 @@ var platform_default = {
       billing: {
         payment_failed: "Pago fallido",
         read_only: "La organización está en modo de solo lectura",
+        trial_ending: "La prueba termina pronto",
+        trial_ended: "La prueba terminó",
       },
       comment: { created: "Nuevo comentario" },
       event: { invited: "Invitación a un evento" },
@@ -27690,6 +27704,16 @@ var platform_default = {
       mention: { created: "Te mencionaron" },
       message: { received: "Nuevo mensaje" },
       occupancy: { threshold: "Se alcanzó el umbral de ocupación" },
+      organization: {
+        deletion_requested: "Eliminación de la organización solicitada",
+        deletion_recovered: "Organización recuperada",
+        ownership_offered: "Propiedad ofrecida",
+        ownership_accepted: "Propiedad aceptada",
+        ownership_declined: "Propiedad rechazada",
+        white_label_reverting: "La marca blanca termina pronto",
+        white_label_reverted: "La marca blanca terminó",
+      },
+      partner: { client_left: "Una organización cliente se fue" },
       recognition: { received: "Reconocimiento recibido" },
       report: { delivered: "Informe entregado" },
       shift: {
