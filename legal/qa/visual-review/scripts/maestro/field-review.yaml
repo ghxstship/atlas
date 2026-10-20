@@ -1,0 +1,260 @@
+appId: pro.ghxstship.compass
+name: A59 review, internal Field Tech (tech@example.com) through the field screens, light then dark
+---
+# Read-only apart from the clock punch, a break and an incident report on the local review stack.
+# Captures land in the working directory (shots/compass). Steps that a seed state may not offer are
+# optional, so one missing control does not end the walk.
+- runFlow:
+    file: ../../../../../apps/compass/.maestro/subflows/sign-in.yaml
+    env:
+      EMAIL: tech@example.com
+- setLocation:
+    latitude: 25.7752
+    longitude: -80.1855
+- extendedWaitUntil:
+    visible: "You're at Pier Site"
+    timeout: 20000
+    optional: true
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Light
+- runFlow:
+    file: tabs.yaml
+    env:
+      P: field-light
+# Clock in, break, clock out.
+- tapOn:
+    id: "tab-today"
+- tapOn:
+    id: "clock-button"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "clock-live"
+    timeout: 8000
+    optional: true
+- takeScreenshot: field-light-clock-in
+- tapOn:
+    text: "Start Break"
+    optional: true
+- takeScreenshot: field-light-on-break
+- tapOn:
+    text: "End Break"
+    optional: true
+- tapOn:
+    text: "Clock Out"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: field-light-clock-out
+# Scan modes.
+- tapOn:
+    id: "tab-scan"
+- tapOn:
+    id: "scan-mode-credential"
+    optional: true
+- takeScreenshot: field-light-scan-credential
+- tapOn:
+    text: "Main Gate"
+    optional: true
+- tapOn:
+    id: "scan-manual"
+    optional: true
+- takeScreenshot: field-light-scan-manual
+- inputText: "CR-999999"
+- tapOn:
+    id: "scan-manual-submit"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: field-light-scan-refused
+# Incident report in three steps (no photo or voice note).
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: incidents
+      SHOT: field-light-incidents
+- tapOn:
+    id: "incident-report"
+    optional: true
+- takeScreenshot: field-light-incident-step1
+- tapOn:
+    text: "Level 3 - Minor"
+    optional: true
+- tapOn:
+    id: "incident-next"
+    optional: true
+- takeScreenshot: field-light-incident-step2
+- tapOn:
+    id: "incident-title"
+    optional: true
+- inputText: "Loose cable cover at Bar 2"
+- hideKeyboard
+- takeScreenshot: field-light-incident-step2-filled
+- tapOn:
+    id: "incident-submit"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      id: "incident-filed"
+    timeout: 10000
+    optional: true
+- takeScreenshot: field-light-incident-filed
+# Inspections.
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: inspections
+      SHOT: field-light-inspections
+- tapOn:
+    text: "Start"
+    index: 2
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: field-light-inspection-checklist
+- tapOn:
+    id: "checklist-pass"
+    optional: true
+- tapOn:
+    id: "checklist-fail"
+    optional: true
+- tapOn:
+    id: "fail-save"
+    optional: true
+- takeScreenshot: field-light-inspection-fail-errors
+# The offline queue, run of show, show mode, logistics, workforce, reference.
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: offline-queue
+      SHOT: field-light-offline-queue
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: run-of-show
+      SHOT: field-light-run-of-show
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: show
+      SHOT: field-light-show
+- tapOn:
+    id: "show-mode"
+    optional: true
+- takeScreenshot: field-light-show-mode
+- tapOn:
+    id: "show-mode"
+    optional: true
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: logistics
+      SHOT: field-light-logistics
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: workforce
+      SHOT: field-light-workforce
+- scroll
+- takeScreenshot: field-light-workforce-scrolled
+- tapOn:
+    text: "Announcements"
+    optional: true
+- takeScreenshot: field-light-announcements
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: workforce
+      SHOT: field-light-workforce-again
+- tapOn:
+    text: "Forms"
+    optional: true
+- takeScreenshot: field-light-forms
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: reference
+      SHOT: field-light-reference
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: aurora
+      SHOT: field-light-aurora
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: profile
+      SHOT: field-light-profile
+# Settings and the account deletion screen (look only).
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: settings
+      SHOT: field-light-settings
+- scroll
+- takeScreenshot: field-light-settings-scrolled
+- scrollUntilVisible:
+    element:
+      id: "settings-delete-account"
+    direction: DOWN
+    optional: true
+- tapOn:
+    id: "settings-delete-account"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 3000
+- takeScreenshot: field-light-account-delete
+# Dark, then Sunlight.
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Dark
+- takeScreenshot: field-dark-settings
+- runFlow:
+    file: tabs.yaml
+    env:
+      P: field-dark
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: incidents
+      SHOT: field-dark-incidents
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: run-of-show
+      SHOT: field-dark-run-of-show
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: offline-queue
+      SHOT: field-dark-offline-queue
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: workforce
+      SHOT: field-dark-workforce
+- runFlow:
+    file: open-more.yaml
+    env:
+      ITEM: settings
+      SHOT: field-dark-settings-again
+- tapOn:
+    id: "settings-delete-account"
+    optional: true
+- takeScreenshot: field-dark-account-delete
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Sunlight
+- takeScreenshot: field-sunlight-settings
+- runFlow: to-tabs.yaml
+- tapOn:
+    id: "tab-today"
+- takeScreenshot: field-sunlight-today
+- runFlow:
+    file: theme.yaml
+    env:
+      THEME: Device

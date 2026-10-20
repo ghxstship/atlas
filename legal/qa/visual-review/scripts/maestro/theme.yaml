@@ -1,0 +1,16 @@
+appId: pro.ghxstship.compass
+---
+# Picks the theme labelled THEME (System, Dark, Light or Sunlight) in Settings.
+- runFlow: to-more.yaml
+- scrollUntilVisible:
+    element:
+      id: "more-settings"
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: "more-settings"
+- waitForAnimationToEnd:
+    timeout: 3000
+- tapOn: "${THEME}"
+- waitForAnimationToEnd:
+    timeout: 3000

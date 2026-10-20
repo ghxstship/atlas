@@ -1,0 +1,13 @@
+appId: pro.ghxstship.compass
+---
+# Pops pushed screens with the header's back button until the tab bar shows again.
+- repeat:
+    times: 6
+    while:
+      notVisible:
+        id: "tab-today"
+    commands:
+      - tapOn:
+          point: "9%,9%"
+      - waitForAnimationToEnd:
+          timeout: 3000

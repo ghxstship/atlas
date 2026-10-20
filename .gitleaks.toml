@@ -21,6 +21,8 @@ description = "Stripe lookup keys of the ATLVS catalogue v3 in packages/schemas/
 regexTarget = "secret"
 regexes = [
   '''^atlvs_plan_(core|pro|team|enterprise)(_unlimited_(monthly|annual))?_v3$''',
+  # Stripe lookup keys of the v4 catalogue in packages/schemas/plans.yaml (public identifiers, 2026-10-20)
+  '''^xos_(plan|seat|addon)_[a-z0-9_]+_v4$''',
 ]
 
 [[allowlists]]
@@ -38,6 +40,9 @@ regexes = [
   '''^eyJhbGciOiJIUzI1NiJ9\.eyJzdWIiOiIxMjM0NTY3ODkwIn0\.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U$''',
   # A fake Stripe test key in the billing unit test
   '''^sk_test_abcdefghij$''',
+  # Fake Stripe keys in the setup script's test-mode guard tests (packages/platform/test/stripe-setup.test.ts, 2026-10-20)
+  '''^(sk|rk)_test_abcdefgh123$''',
+  '''^sk_live_abcdefgh123$''',
   # The kiosk device key example in the OpenAPI document (catalog/modules/crew.ts, A50, 2026-10-19)
   '''^xkio_9f2c4e1a7b3d5f6e8a0c2e4f6a8b0d2c4e6f8a0b2c4d6e8f0a2b4c6d8e0f2a4b$''',
   # A TypeScript type name the Dropbox rule mistakes for a token
