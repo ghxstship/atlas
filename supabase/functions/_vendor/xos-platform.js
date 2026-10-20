@@ -2620,6 +2620,15 @@ var compass_default$1 = {
     identityTitle: "Your access did not load",
     identity:
       "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
+    identitySteps: {
+      person: "profile",
+      memberships: "memberships",
+      roles: "roles",
+      capabilities: "permissions",
+      projects: "projects",
+      engagements: "engagements",
+      access: "access",
+    },
   },
   denial: {
     roleTitle: "Not part of your role",
@@ -18586,7 +18595,16 @@ var compass_default = {
     network: "Compass no llega al servidor. Conéctate a una red e inicia sesión.",
     identityTitle: "Tu acceso no cargó",
     identity:
-      "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+      "Compass no pudo leer {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+    identitySteps: {
+      person: "tu perfil",
+      memberships: "tus membresías",
+      roles: "tus roles",
+      capabilities: "tus permisos",
+      projects: "tus proyectos",
+      engagements: "tus contrataciones",
+      access: "tu acceso",
+    },
   },
   denial: {
     roleTitle: "No es parte de tu rol",
@@ -24519,9 +24537,9 @@ var nav_default = {
     },
     tabs: {
       today: "Hoy",
-      schedule: "Horario",
+      schedule: "Agenda",
       scan: "Escanear",
-      inbox: "Bandeja de entrada",
+      inbox: "Bandeja",
       more: "Más",
       crew: "Equipo técnico",
     },

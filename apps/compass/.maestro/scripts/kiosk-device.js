@@ -1,4 +1,5 @@
-/* global http, json, output, SUPABASE_URL, SUPABASE_ANON_KEY, XOS_DEMO_PASSWORD, KIOSK_DEVICE_KEY, KIOSK_PIN_1, KIOSK_PIN_2, KIOSK_PIN_3, KIOSK_PIN_4 */
+/* global http, json, output, SUPABASE_URL, SUPABASE_ANON_KEY, XOS_DEMO_PASSWORD */
+// KIOSK_DEVICE_KEY and KIOSK_PIN_1 to KIOSK_PIN_4 are read by name through given(), since they may be unset.
 // Kiosk setup for supervisor-kiosk: when the run passes no KIOSK_DEVICE_KEY, the Demo Admin registers a
 // kiosk over the API (app.register_kiosk_device, as Atlas's kiosk settings do) and sets a fresh four-digit
 // kiosk PIN for the Demo Field Tech (app.set_kiosk_pin). A key and PIN passed in KIOSK_DEVICE_KEY and
@@ -10,13 +11,10 @@ var PROJECT_ID = "01920000-0000-7000-8000-000000001001";
 var TECH_MEMBERSHIP_ID = "01920000-0000-7000-8000-00000000a106";
 var startedAt = new Date().getTime();
 
+// The named variable when the run passed it, else null; an unset name is not an error.
 function given(name) {
-  try {
-    var value = eval(name);
-    return typeof value === "string" && value !== "" ? value : null;
-  } catch (e) {
-    return null;
-  }
+  var value = eval("typeof " + name + ' === "undefined" ? null : ' + name);
+  return typeof value === "string" && value !== "" ? value : null;
 }
 
 if (given("KIOSK_DEVICE_KEY") !== null) {
@@ -75,8 +73,9 @@ while (warm !== 422 && new Date().getTime() < warmUntil) {
       headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
       body: "{}",
     }).status;
-  } catch (e) {
+  } catch (error) {
     warm = 0;
+    output.kiosk.warmError = String(error);
   }
 }
 output.kiosk.warm = warm;
