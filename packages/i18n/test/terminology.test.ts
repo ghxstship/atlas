@@ -26,6 +26,31 @@ const PHYSICAL_GATE_KEYS: ReadonlySet<string> = new Set([
   "shell.pages.places.sitePlans.empty",
 ]);
 
+/**
+ * Section 3.6 vocabulary and locale in the source catalog: American English ("Canceled, never Cancelled"; US
+ * "cancellation" keeps its double l) and "Element is the unit of the catalog. Never atom." The A65 requirements
+ * trace found both rules held in the catalogs with nothing guarding them.
+ */
+describe("en-US vocabulary", () => {
+  const en = flatten(getMessages("en-US") as Catalog);
+
+  it("reads the whole source catalog", () => {
+    expect(en.size).toBeGreaterThan(1000);
+  });
+
+  it("spells canceled and canceling the American way", () => {
+    const british = [...en]
+      .filter(([, text]) => /\bcancell(?:ed|ing)\b/i.test(text))
+      .map(([key]) => key);
+    expect(british).toEqual([]);
+  });
+
+  it("calls a catalog unit an element, never an atom", () => {
+    const atoms = [...en].filter(([, text]) => /\batoms?\b/i.test(text)).map(([key]) => key);
+    expect(atoms).toEqual([]);
+  });
+});
+
 describe("es-US gate terminology", () => {
   const en = flatten(getMessages("en-US") as Catalog);
   const es = flatten(getMessages("es-US") as Catalog);
