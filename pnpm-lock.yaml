@@ -1048,6 +1048,9 @@ importers:
       '@xos/i18n':
         specifier: workspace:*
         version: link:../i18n
+      '@xos/ia':
+        specifier: workspace:*
+        version: link:../ia
       '@xos/schemas':
         specifier: workspace:*
         version: link:../schemas
