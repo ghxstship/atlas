@@ -53446,6 +53446,7 @@ export type Database = {
       complete_offboarding: { Args: { p_offboarding_id: string }; Returns: undefined };
       complete_training: { Args: { p_answers?: Json; p_course_id: string }; Returns: string };
       complete_training_lesson: { Args: { p_lesson_id: string }; Returns: string };
+      confirm_minimum_age: { Args: { p_client_ip?: unknown; p_surface: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
       consume_file_download_ticket: {
         Args: { p_ticket: string };
@@ -54072,6 +54073,7 @@ export type Database = {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
         Returns: string;
       };
+      minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_access_paths: {
         Args: {
           p_org_id: string;
