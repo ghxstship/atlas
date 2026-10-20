@@ -246,7 +246,7 @@ None. The site is built from the repository and the OpenAPI document. Project se
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
-### Compass (EAS environment `production`)
+### Compass (EAS environment `production`; `preview` holds the staging values)
 
 Set in the EAS dashboard (project, Environment variables, `production`). Every value is public by design.
 
@@ -260,6 +260,10 @@ Set in the EAS dashboard (project, Environment variables, `production`). Every v
 | `XOS_UNIVERSAL_LINK_HOSTS`         | Leave unset: the build claims `atlas.ghxstship.tech` and `gateway.ghxstship.tech`. An empty value turns universal links off for that build |
 | `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below                                                                     |
 | `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                                                                                        |
+| `XOS_APPLE_TEAM_ID`                | The Apple team id (signs the widget extension in local device builds)                                                                      |
+| `GOOGLE_SERVICES_JSON`             | Secret file variable: the Firebase `google-services.json` for `pro.ghxstship.compass` (Android push)                                       |
+
+A preview or production build on EAS stops in `apps/compass/app.config.ts` when a server URL is missing, not https or local, or when the app icon `apps/compass/assets/icon.png` is missing.
 
 ### GitHub Actions (repository secrets and variables)
 
@@ -560,52 +564,110 @@ Follow `incident-response.md`: confirm impact, set the severity, contain first, 
 
 Compass's version is in `apps/compass/app.json` (`4.0.0`); the bundle identifier and Android package are `pro.ghxstship.compass`.
 
-### Prerequisites (OWNER)
+### Compass store release
 
-1. An Apple Developer Program membership and an App Store Connect app record for `pro.ghxstship.compass`, with the App Group `group.pro.ghxstship.compass` and the Live Activity capability.
-2. A Google Play Console developer account and an app for `pro.ghxstship.compass`, with Play App Signing on.
-3. An Expo account for EAS Build and Submit, with `EXPO_TOKEN` stored as a secret if builds run in CI. EAS's free tier covers a few builds a month; more is a paid plan and a stop point.
-4. App Store Connect API key and a Google Play service account for submission, stored in EAS (never in the repository).
+Everything that does not need an account is in the repository (A68, RRR-113): `apps/compass/eas.json` (build profiles development, preview and production; submit profiles for TestFlight and the Play internal track), the privacy manifest and purpose strings, the store listings and screenshots, and the privacy, data safety, age rating and App Review answers under `apps/compass/store/` (start with its `README.md`). Every value that waits on an account is an `OWNER_` token; `git grep OWNER_ apps/compass` lists them. Run every command below from `apps/compass`, where `npx eas` is the repository's eas-cli (24.12.0).
 
-### Build profiles
+#### One-time setup (OWNER)
 
-Add `apps/compass/eas.json` once the accounts exist:
+The accounts (ADR 0033, decisions 11 and 12): an Apple Developer Program organization membership (needs the D-U-N-S number), a Google Play Console organization account, and an Expo account that belongs to the `ghxstship` organization (`app.json` `owner`; project id `7a96bb1f-c266-4df1-a072-b03bbc3d567e`). EAS's free tier covers a few builds a month; a paid plan is a stop point.
 
-```json
-{
-  "cli": { "version": ">= 25.0.0", "appVersionSource": "remote" },
-  "build": {
-    "production": {
-      "environment": "production",
-      "autoIncrement": true,
-      "ios": { "resourceClass": "default" },
-      "android": { "buildType": "app-bundle" }
-    }
-  },
-  "submit": {
-    "production": {
-      "ios": { "ascAppId": "<App Store Connect app id>" },
-      "android": { "track": "internal", "releaseStatus": "draft" }
-    }
-  }
-}
+1. **Sign in to EAS and check the project.**
+
+   ```sh
+   cd apps/compass
+   npx eas login
+   npx eas whoami
+   npx eas project:info            # ghxstship/xos-compass, id 7a96bb1f-c266-4df1-a072-b03bbc3d567e
+   ```
+
+2. **The app icon.** Put the brand icon at `apps/compass/assets/icon.png`: 1024 x 1024 PNG, no transparency. There is no Compass icon in the repository yet, and release builds stop without it.
+
+3. **EAS environment variables**, once per environment (`production` below; repeat with `preview` and the staging values). Values are typed here, never committed:
+
+   ```sh
+   npx eas env:set production --name EXPO_PUBLIC_SUPABASE_URL --value https://<project-ref>.supabase.co --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <anon key> --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_ATLAS_URL --value https://app.<domain> --visibility plaintext
+   npx eas env:set production --name EXPO_PUBLIC_GATEWAY_URL --value https://gateway.<domain> --visibility plaintext
+   npx eas env:set production --name XOS_UNIVERSAL_LINK_HOSTS --value atlas:app.<domain>,gateway:gateway.<domain> --visibility plaintext
+   npx eas env:set production --name XOS_APPLE_TEAM_ID --value <team id> --visibility plaintext
+   npx eas env:set production --name GOOGLE_SERVICES_JSON --type file --value ./google-services.json --visibility secret
+   npx eas env:list production
+   ```
+
+   Delete the local `google-services.json` afterwards; EAS keeps it. Set `COMPASS_APPLE_TEAM_IDS` and `COMPASS_ANDROID_CERT_SHA256` on the Atlas and Gateway Vercel projects too (Environment variables), so universal links verify.
+
+4. **App Store Connect.** In Certificates, Identifiers and Profiles, register the bundle ids `pro.ghxstship.compass` and `pro.ghxstship.compass.clock-activity` (the widget and Live Activity) with the App Group `group.pro.ghxstship.compass`, or let step 6 create them. In App Store Connect, My Apps, create the app: name "XOS Compass" (`store.config.json` `apple.info.en-US.title`; pick another if Apple says it is taken, and change it there), primary language English (U.S.), bundle id `pro.ghxstship.compass`, SKU `xos-compass`. Create an App Store Connect API key with the App Manager role (Users and Access, Integrations).
+
+5. **Fill the iOS values and commit them** (`eas.json` has `requireCommit`; none of these is a secret): in `apps/compass/eas.json`, `submit.production.ios.ascAppId` becomes the app's numeric Apple ID (App Information, General) and `appleTeamId` the team id. In TestFlight, create an internal group (for example "Compass internal") with automatic distribution on and add the testers.
+
+6. **iOS credentials, interactively once.** Signs in to Apple through EAS and stores everything on EAS:
+
+   ```sh
+   npx eas credentials --platform ios
+   ```
+
+   Choose the production profile, then: let EAS create the distribution certificate and the provisioning profiles for `pro.ghxstship.compass` and `pro.ghxstship.compass.clock-activity` (the first build turns on App Groups and Push Notifications for both from the entitlements); add the App Store Connect API key from step 4 for submissions; set up a push notification key (Expo sends push through APNs with it).
+
+7. **Google Play Console.** Create the app: name "XOS Compass", default language English (United States), App, Free. Keep Play App Signing on. Fill App content from `apps/compass/store/google-play/data-safety.md` and `apps/compass/store/age-rating.md`, App access from `apps/compass/store/review-notes.md`, and the store listing from `apps/compass/store/google-play/listing.json` with the screenshots in `apps/compass/store/google-play/<locale>/phone/`. Add the internal testers' list.
+
+8. **Google service account for submissions.** In Google Cloud, create a service account and a JSON key; in Play Console, Users and permissions, invite its email with release permissions for this app. Then either upload the key to EAS (preferred) and delete `serviceAccountKeyPath` from `submit.production.android` in `eas.json`:
+
+   ```sh
+   npx eas credentials --platform android      # production, Google Service Account, upload the key for submissions
+   ```
+
+   or keep the key file outside the repository and put its path in `serviceAccountKeyPath`. Commit `eas.json`.
+
+9. **Firebase for Android push.** Create a Firebase project with an Android app `pro.ghxstship.compass` (its `google-services.json` is step 3's file variable), and upload an FCM V1 service account key: `npx eas credentials --platform android`, production, Push Notifications.
+
+10. **The first Android upload is manual** (the Google Play API cannot create an app's first release):
+
+    ```sh
+    npx eas build --platform android --profile production
+    ```
+
+    Download the `.aab` from the build page, then in Play Console, Test and release, Testing, Internal testing, create a release, upload it and roll it out. Check its permissions against `apps/compass/store/permissions.md` (App bundle explorer, Permissions). Note the app signing certificate's SHA-256 (Test and release, App integrity) for `COMPASS_ANDROID_CERT_SHA256`.
+
+11. **Check that nothing is missing:**
+
+    ```sh
+    pnpm --filter @xos/compass store:preflight ios
+    pnpm --filter @xos/compass store:preflight android
+    pnpm --filter @xos/compass store:preflight metadata
+    ```
+
+#### Each release: one command per store
+
+From the tagged commit:
+
+```sh
+pnpm --filter @xos/compass release:ios        # build on EAS, next build number, submit to TestFlight
+pnpm --filter @xos/compass release:android    # build the .aab on EAS, submit to the Play internal track
 ```
 
-### TestFlight (iOS)
+Each runs the preflight, then `eas build --platform <ios|android> --profile production --auto-submit`. The first iOS build may ask to confirm credentials; later builds run unattended.
 
-1. From the tagged commit: `cd apps/compass && eas build --platform ios --profile production`.
-2. `eas submit --platform ios --profile production --latest` uploads the build to App Store Connect.
-3. In App Store Connect, TestFlight: answer export compliance, add the build to the internal testing group (up to 100 team members; no review needed).
-4. Testers install through the TestFlight app. Run the Maestro field flows on a tester device, including airplane mode and queue drain.
-5. External TestFlight groups need Beta App Review. Adding one is fine; it is not a public release.
+- **TestFlight:** when App Store Connect finishes processing (minutes), the internal group with automatic distribution gets the build; no review is needed for internal testers. App Store Connect asks the export compliance question for each build until counsel confirms the answers in `apps/compass/store/ios/privacy-manifest.md` and `ios.config.usesNonExemptEncryption` is set in `app.json`. External TestFlight groups need Beta App Review; adding one is not a public release.
+- **Play internal testing:** the release reaches internal testers once Play processes it, without review. If Play answers that only draft releases are allowed (the app has not finished its first setup), submit the same build as a draft and roll it out in Play Console:
 
-### Play internal testing (Android)
+  ```sh
+  npx eas submit --platform android --profile internal-draft --latest
+  ```
 
-1. `eas build --platform android --profile production` (an `.aab`).
-2. `eas submit --platform android --profile production --latest` uploads to the internal testing track as a draft.
-3. In Play Console, Testing, Internal testing: add the tester list, review the release and roll it out to internal testers (up to 100; no review).
-4. Testers join through the opt-in link and install from Play.
+- **App Store listing:** after the listing, review contact and domain values are filled in `apps/compass/store/store.config.json`, push the text, screenshots, categories, age rating and review notes in one step (it creates the version's draft; it never submits it):
+
+  ```sh
+  pnpm --filter @xos/compass store:metadata
+  ```
+
+  Then type the demo password into App Store Connect, App Review Information, and enter the App Privacy answers from `apps/compass/store/ios/app-privacy.md` (App Privacy is not part of `eas metadata:push`).
+
+- **Smoke test:** testers install from TestFlight and from the Play opt-in link. Run the Maestro field flows on a tester device, including airplane mode and queue drain, and send one approval push (journey 57) to each platform.
+
+Retaking the store screenshots after a UI change: `apps/compass/scripts/store-screenshots.sh` (local stack and simulator only; its header lists what it needs).
 
 ### OWNER stop: public store submission
 
-Submitting to the public App Store (App Review for release) or promoting to the Play production track (or closed and open tracks that reach the public) is a Section 19.8 stop condition. The release owner prepares the listing, screenshots, privacy labels (App Privacy and the Play Data safety form, from `legal/`), age rating and review notes with a demo account, then stops and asks the owner. Only the owner presses Submit for Review or promotes to production.
+Submitting to the public App Store (App Review for release) or promoting to the Play production track (or closed and open tracks that reach the public) is a Section 19.8 stop condition. The listing, screenshots, privacy labels (App Privacy and the Play Data safety form), age rating and review notes are ready in `apps/compass/store/`; the release owner sets up the review accounts (`apps/compass/store/review-notes.md`), checks the open questions in `apps/compass/store/README.md` and `docs/release-checklist.md` (Compass store release), then stops and asks the owner. Only the owner presses Submit for Review or promotes to production. `store.config.json` keeps `automaticRelease` false, so even an approved version waits for the owner to release it.

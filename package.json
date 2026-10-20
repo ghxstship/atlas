@@ -24,6 +24,9 @@
     "turbo": "2.11.7",
     "typescript": "6.0.3"
   },
+  "op-sqlite": {
+    "sqlcipher": true
+  },
   "pnpm": {
     "overrides": {
       "@xmldom/xmldom@<0.8.15": "0.8.15",

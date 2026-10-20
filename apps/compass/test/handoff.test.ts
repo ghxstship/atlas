@@ -103,7 +103,7 @@ describe("universal links in the app config", () => {
     const previous = process.env["XOS_UNIVERSAL_LINK_HOSTS"];
     try {
       delete process.env["XOS_UNIVERSAL_LINK_HOSTS"];
-      const out = appConfig({ config: base } as ConfigContext);
+      const out = appConfig({ config: base, projectRoot: process.cwd() } as ConfigContext);
       expect(out.ios?.associatedDomains).toEqual([
         "applinks:atlas.ghxstship.tech",
         "applinks:gateway.ghxstship.tech",
@@ -114,7 +114,9 @@ describe("universal links in the app config", () => {
       ]);
       expect(universalLinkHosts(PRODUCTION_LINK_HOSTS)).toHaveLength(2);
       process.env["XOS_UNIVERSAL_LINK_HOSTS"] = "";
-      expect(appConfig({ config: base } as ConfigContext)).toBe(base);
+      const none = appConfig({ config: base, projectRoot: process.cwd() } as ConfigContext);
+      expect(none.ios?.associatedDomains ?? []).toEqual([]);
+      expect(none.android?.intentFilters ?? []).toEqual([]);
     } finally {
       if (previous === undefined) delete process.env["XOS_UNIVERSAL_LINK_HOSTS"];
       else process.env["XOS_UNIVERSAL_LINK_HOSTS"] = previous;
