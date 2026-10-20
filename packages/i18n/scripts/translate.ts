@@ -17,7 +17,8 @@
  * Network commands read GOOGLE_CLOUD_PROJECT (and GOOGLE_TRANSLATE_GLOSSARY_BUCKET for the glossary)
  * and authenticate with Application Default Credentials. --dry-run never touches the network.
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { format as prettierFormat, resolveConfig } from "prettier";
@@ -60,6 +61,20 @@ const BUCKET_EXAMPLE = "xos-translate-123456-glossaries";
 async function formatter(): Promise<(text: string, file: string) => Promise<string>> {
   const options = (await resolveConfig(join(root, "README.md"))) ?? {};
   return (text, file) => prettierFormat(text, { ...options, filepath: file });
+}
+
+/** src/catalogs.generated.ts and src/extracts.generated.ts copy catalog values, so they follow a write. */
+function regenerate(written: readonly string[]): void {
+  if (!written.some((file) => file.includes("packages/i18n/messages/"))) return;
+  execFileSync(
+    process.execPath,
+    [
+      "--experimental-strip-types",
+      "--no-warnings",
+      join(root, "packages/i18n/scripts/generate-catalogs.ts"),
+    ],
+    { stdio: "inherit" },
+  );
 }
 
 function money(setup: Setup, n: number): string {
@@ -127,6 +142,7 @@ async function runTranslate(setup: Setup): Promise<boolean> {
         `  ${r.changes.length} changed, ${r.failures.length} failed; report ${file.slice(root.length)}`,
       );
       if (r.failures.length > 0) ok = false;
+      regenerate(r.written);
     }
   }
   return ok;
@@ -153,7 +169,9 @@ async function runReview(setup: Setup): Promise<boolean> {
       .filter((i) => i.decision.startsWith("applied"))
       .map((i) => ({ id: i.id, before: i.current })),
   );
+  regenerate(r.written);
   const dir = join(root, setup.config.review.reportDir, locale);
+  rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
   for (const [name, text] of reviewReport(r, totals, tests, info(setup))) {
     writeFileSync(join(dir, name), await format(text, join(dir, name)));
