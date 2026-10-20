@@ -43,6 +43,7 @@ import {
 import { RowList, TabEmpty } from "./rows";
 import type { TabProps } from "./tab-context";
 import { DocumentActions } from "@/components/documents/document-actions";
+import { MySharingPanel } from "@/components/settings/work-details";
 
 /** Engagement stages (Section 4.4.4) and where an engagement state sits among them. */
 const STAGE_KEYS = ["offer", "onboarding", "engaged", "closeOut"] as const;
@@ -124,6 +125,8 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
             stages={STAGE_KEYS.map((k) => ({ label: t(`gateway.engagement.overview.stage.${k}`) }))}
           />
         </Section>
+        {/* Work Details shared with this engagement, with consent (A78); only the engaged person sees it. */}
+        <MySharingPanel ctx={view.ctx} engagementId={e.id} />
         {e.state === "Complete" ? (
           <Section title={t("gateway.engagement.forms.rating.title", { org: e.orgName })}>
             {rated ? (

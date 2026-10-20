@@ -1,0 +1,193 @@
+"use client";
+
+import { Button, Checkbox, InlineAlert, Input, Select, Textarea } from "@xos/ui";
+import { useTranslations } from "next-intl";
+import { useActionState, useEffect, useId, useRef } from "react";
+import { keepInputOnSubmit } from "@/components/forms/keep-input";
+import type { WorkDetailsFormState } from "@/lib/actions/work-details";
+
+/**
+ * One declarative form for every Gateway Work Details write (Section 4.5.6 item 10), the twin of
+ * Atlas's: server sections describe the fields, the action answers with a `workDetails.errors.*`
+ * key. A group of choices sits in a disclosure so a form shows at most seven fields until it is
+ * opened (gate 27). Buttons are secondary.
+ */
+
+type Translate = (key: string, values?: Record<string, string | number>) => string;
+type FormAction = (state: WorkDetailsFormState, form: FormData) => Promise<WorkDetailsFormState>;
+
+export interface ChoiceOption {
+  readonly value: string;
+  readonly label: string;
+  readonly checked: boolean;
+}
+
+export type WorkDetailsField =
+  | {
+      readonly kind: "text" | "email" | "tel" | "date";
+      readonly name: string;
+      readonly label: string;
+      readonly help?: string;
+      readonly defaultValue?: string;
+      readonly width?: number | string;
+      readonly autoComplete?: string;
+    }
+  | {
+      readonly kind: "textarea";
+      readonly name: string;
+      readonly label: string;
+      readonly help?: string;
+      readonly defaultValue?: string;
+    }
+  | {
+      readonly kind: "select";
+      readonly name: string;
+      readonly label: string;
+      readonly defaultValue: string;
+      readonly options: readonly { readonly value: string; readonly label: string }[];
+    }
+  | {
+      readonly kind: "choices";
+      readonly name: string;
+      readonly label: string;
+      readonly summary: string;
+      readonly open?: boolean;
+      readonly options: readonly ChoiceOption[];
+    };
+
+const INITIAL: WorkDetailsFormState = {};
+
+export function WorkDetailsForm({
+  action,
+  hidden = {},
+  fields,
+  submitLabel,
+  label,
+  resetOnSuccess = false,
+  inline = false,
+}: {
+  action: FormAction;
+  hidden?: Readonly<Record<string, string>>;
+  fields: readonly WorkDetailsField[];
+  submitLabel: string;
+  label: string;
+  resetOnSuccess?: boolean;
+  inline?: boolean;
+}) {
+  const t = useTranslations("workDetails") as unknown as Translate;
+  const [state, dispatch, pending] = useActionState(action, INITIAL);
+  const ref = useRef<HTMLFormElement>(null);
+  const id = useId();
+  useEffect(() => {
+    if (resetOnSuccess && state.ok) ref.current?.reset();
+  }, [state, resetOnSuccess]);
+  const fieldError = (name: string) => {
+    const code = state.fieldErrors?.[name];
+    return code ? t(`errors.${code}`) : undefined;
+  };
+  const render = (f: WorkDetailsField) => {
+    const fieldId = `${id}-${f.name}`;
+    const error = fieldError(f.name);
+    switch (f.kind) {
+      case "select":
+        return (
+          <Select
+            key={f.name}
+            id={fieldId}
+            name={f.name}
+            label={f.label}
+            value={f.defaultValue}
+            options={[...f.options]}
+            {...(error ? { error } : {})}
+          />
+        );
+      case "textarea":
+        return (
+          <Textarea
+            key={f.name}
+            id={fieldId}
+            name={f.name}
+            label={f.label}
+            rows={2}
+            width="100%"
+            defaultValue={f.defaultValue ?? ""}
+            {...(f.help ? { help: f.help } : {})}
+            {...(error ? { error } : {})}
+          />
+        );
+      case "choices":
+        return (
+          <details
+            key={f.name}
+            open={f.open}
+            className="w-full rounded-card border border-border-subtle"
+          >
+            <summary className="cursor-pointer px-12 py-8 text-text-13">
+              <span className="font-medium">{f.label}</span>{" "}
+              <span className="text-text-secondary">{f.summary}</span>
+            </summary>
+            <fieldset className="m-0 flex flex-wrap gap-x-16 gap-y-8 border-0 px-12 pb-12 pt-4">
+              <legend className="sr-only">{f.label}</legend>
+              {f.options.map((o) => (
+                <Checkbox
+                  key={o.value}
+                  name={f.name}
+                  value={o.value}
+                  label={o.label}
+                  defaultChecked={o.checked}
+                />
+              ))}
+            </fieldset>
+          </details>
+        );
+      default:
+        return (
+          <Input
+            key={f.name}
+            id={fieldId}
+            name={f.name}
+            type={f.kind}
+            label={f.label}
+            defaultValue={f.defaultValue ?? ""}
+            {...(f.width !== undefined ? { width: f.width } : {})}
+            {...(f.help ? { help: f.help } : {})}
+            {...(f.autoComplete ? { autoComplete: f.autoComplete } : {})}
+            {...(error ? { error } : {})}
+          />
+        );
+    }
+  };
+  return (
+    <form
+      ref={ref}
+      action={dispatch}
+      onSubmit={keepInputOnSubmit(dispatch)}
+      noValidate
+      aria-label={label}
+      className={inline ? "flex flex-wrap items-end gap-8" : "flex flex-col gap-12"}
+    >
+      {Object.entries(hidden).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
+      {state.error ? <InlineAlert tone="danger">{t(`errors.${state.error}`)}</InlineAlert> : null}
+      {state.ok ? (
+        <p role="status" className="m-0 text-text-13 text-success-text">
+          {t("saved")}
+        </p>
+      ) : null}
+      {state.revealed ? (
+        <p role="status" className="m-0 text-text-13">
+          {t("passport.revealed", { number: state.revealed })}
+        </p>
+      ) : null}
+      {fields.length > 0 ? (
+        <div className="flex flex-wrap items-end gap-12">{fields.map(render)}</div>
+      ) : null}
+      <div>
+        <Button type="submit" size="sm" variant="secondary" loading={pending}>
+          {submitLabel}
+        </Button>
+      </div>
+    </form>
+  );
+}
