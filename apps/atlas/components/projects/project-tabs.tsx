@@ -2,9 +2,9 @@
 
 import { Icon } from "@xos/ui";
 import type { Route } from "next";
-import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { IntentLink } from "@/components/shell/intent-link";
 
 export interface ProjectTabGroup {
   readonly id: string;
@@ -55,7 +55,9 @@ function fit(
  * from tab to tab. Tabs that do not fit the bar's width collect under a More button at its end, a
  * disclosure listing them by group; the current tab always stays in the bar, taking the last slot
  * when it would otherwise overflow (A59-003). More opens with Enter or Space, and Escape, a click
- * outside or leaving it with Tab closes it.
+ * outside or leaving it with Tab closes it. A tab, in the bar or under More, prefetches when the
+ * person points at or focuses it: prefetching all of them on every project page cost about 18 KB of
+ * script and a server render per tab (gate 10).
  */
 export function ProjectTabs({
   label,
@@ -146,13 +148,13 @@ export function ProjectTabs({
   const showMore = count === null || overflow.length > 0;
 
   const link = (tab: FlatTab, className: string) => (
-    <Link
+    <IntentLink
       href={`${tab.href}${suffix}` as Route}
       aria-current={isCurrent(tab.href) ? "page" : undefined}
       className={className}
     >
       {tab.label}
-    </Link>
+    </IntentLink>
   );
 
   return (
