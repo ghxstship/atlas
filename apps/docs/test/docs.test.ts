@@ -4,7 +4,14 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { isAppPath, resolveHref } from "../lib/links.ts";
-import { guides, helpArticles, helpPath, searchPages, whatsNew } from "../lib/content.ts";
+import {
+  guides,
+  HELP_SHELLS,
+  helpArticles,
+  helpPath,
+  searchPages,
+  whatsNew,
+} from "../lib/content.ts";
 import { LOCALES, negotiate, translator } from "../lib/i18n.ts";
 import {
   linksIn,
@@ -239,13 +246,17 @@ describe("help center", () => {
     const patterns = includes["/\\[locale\\]/help"] ?? [];
     expect(patterns).toContain("../atlas/help/whats-new.yaml");
     expect(existsSync(join(APP, "../atlas/help/whats-new.yaml"))).toBe(true);
-    for (const locale of LOCALES) {
-      for (const article of helpArticles(locale))
-        expect(existsSync(join(APP, "../atlas/help/articles", locale, `${article.slug}.md`))).toBe(
-          true,
-        );
+    for (const shell of HELP_SHELLS) {
+      expect(patterns, shell).toContain(`../${shell}/help/articles/**/*.md`);
+      for (const locale of LOCALES) {
+        const articles = helpArticles(locale, shell);
+        expect(articles.length, `${shell} ${locale}`).toBeGreaterThan(0);
+        for (const article of articles) {
+          const file = join(APP, `../${shell}/help/articles`, locale, `${article.slug}.md`);
+          expect(existsSync(file), file).toBe(true);
+        }
+      }
     }
-    expect(patterns).toContain("../atlas/help/articles/**/*.md");
   });
 });
 
