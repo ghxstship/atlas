@@ -6743,8 +6743,6 @@ var gateway_default$1 = {
         "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway.",
     },
     notes: {
-      calendarFeeds: "Add every shift, set time and deadline to your calendar from Upcoming.",
-      toUpcoming: "Open Upcoming",
       connectedApps:
         "No apps are connected to your account. Organizations connect their own tools in Atlas.",
       toOrganizations: "See your accounts",
@@ -6783,6 +6781,42 @@ var gateway_default$1 = {
       confirmBody:
         "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
       cancel: "Keep my account",
+    },
+    calendarFeeds: {
+      title: "Calendar feeds",
+      description:
+        "Subscribe from Google Calendar, Apple Calendar or Outlook to see your published shifts and the meetings, milestones and deadlines shared with you, across every organization you work with. Calendars refresh it about once an hour.",
+      secret:
+        "Anyone with a feed's link can read it, so keep the link private. If it gets out, get a new link or revoke the feed.",
+      none: "You have no calendar feeds yet.",
+      listLabel: "Your calendar feeds",
+      feedName: "My work",
+      hint: "Link ending in {hint}",
+      created: "Added {date}",
+      lastFetched: "Last fetched {date}",
+      neverFetched: "No calendar has fetched it yet",
+      rotated: "New link issued {date}",
+      add: "Add a feed",
+      rotate: "Get a new link",
+      rotateLabel: "Get a new link for the feed ending in {hint}",
+      rotateConfirm:
+        "The current link stops working at once. Calendars subscribed to it stop updating until you subscribe again with the new link.",
+      revoke: "Revoke",
+      revokeLabel: "Revoke the feed ending in {hint}",
+      revokeConfirm: "The link stops working at once and cannot be turned back on.",
+      linkTitle: "Your feed link",
+      linkHelp:
+        "Copy the link now. It is shown only once; after you leave this page you can only get a new one.",
+      linkLabel: "Subscription link",
+      copy: "Copy link",
+      copied: "Link copied.",
+      openInCalendar: "Open in my calendar app",
+      subscribe: "Subscribe in a calendar app",
+      errors: {
+        calendar_feed_limit: "You have 20 feeds. Revoke one before you add another.",
+        denied: "That feed is not available to you.",
+        unexpected: "Something went wrong. Try again.",
+      },
     },
   },
   shell: {
@@ -10510,6 +10544,18 @@ var platform_default$1 = {
       "You already decided a step of this approval. The next step needs another approver.",
     approval_rejection_reason: "Say why when you reject an approval.",
     sod_approval_requester: "You requested this approval, so someone else decides it.",
+    calendar_feed_limit: "You have 20 calendar feeds. Revoke one before you add another.",
+    calendar_feed_revoked: "A revoked calendar feed stays revoked. Add a new feed instead.",
+    calendar_feed_token: "A feed's link changes only when you get a new link.",
+    inbound_message_triaged: "This message was already filed or discarded.",
+    inbound_message_unverified:
+      "The sender of this message did not verify, so it cannot be filed. Discard it instead.",
+    inbound_message_record: "File the message to a record of this project that you can open.",
+    inbound_message_document: "File the message as a document of this project.",
+    inbound_message_filing: "Filing sets the document and the Filed status together.",
+    inbound_message_immutable: "Inbound mail is only filed or discarded.",
+    project_inbox_disabled: "A turned-off inbox address stays off. Create a new address instead.",
+    project_inbox_immutable: "An inbox address never changes. Replace the address instead.",
   },
   partner: {
     sections: "Partner console sections",
@@ -11047,6 +11093,110 @@ var platform_default$1 = {
       "Our virus scan found something harmful in this file, so it was deleted. Nobody can open it. Check the file on your device and upload a clean copy.",
     scanFailed:
       "This file could not be checked for viruses, so it stays closed. Upload it again, or save it in another format first.",
+  },
+  calendarFeeds: {
+    feed: {
+      member: "My schedule at {org}",
+      project: "{project} at {org}",
+      person: "My work",
+    },
+    title: "Calendar feeds",
+    description:
+      "Subscribe from Google Calendar, Apple Calendar or Outlook to see your shifts, meetings, milestones and deadlines there. A feed shows only what you may see, and calendars refresh it about once an hour.",
+    secret:
+      "Anyone with a feed's link can read it, so keep the link private. If it gets out, get a new link or revoke the feed.",
+    none: "You have no calendar feeds in this organization yet.",
+    listLabel: "Your calendar feeds",
+    mine: "My schedule",
+    projectFeed: "Project: {project}",
+    hint: "Link ending in {hint}",
+    created: "Added {date}",
+    lastFetched: "Last fetched {date}",
+    neverFetched: "No calendar has fetched it yet",
+    rotated: "New link issued {date}",
+    addTitle: "Add a feed",
+    scopeLabel: "Feed",
+    scopeMine: "My schedule",
+    projectLabel: "Project",
+    projectHelp:
+      "A project feed shows the project's shifts, meetings, milestones and deadlines that you may see.",
+    add: "Add feed",
+    rotate: "Get a new link",
+    rotateLabel: "Get a new link for {feed}",
+    rotateTitle: "Get a new link?",
+    rotateBody:
+      "The current link stops working at once. Calendars subscribed to it stop updating until you subscribe again with the new link.",
+    revoke: "Revoke",
+    revokeLabel: "Revoke {feed}",
+    revokeTitle: "Revoke this feed?",
+    revokeBody:
+      "The link stops working at once and cannot be turned back on. Calendars subscribed to it stop updating.",
+    cancel: "Cancel",
+    linkTitle: "Your feed link",
+    linkHelp:
+      "Copy the link now. It is shown only once; after you leave this page you can only get a new one.",
+    linkLabel: "Subscription link",
+    copy: "Copy link",
+    copied: "Link copied.",
+    openInCalendar: "Open in my calendar app",
+    revoked: "Feed revoked.",
+    errors: {
+      calendar_feed_limit: "You have 20 feeds. Revoke one before you add another.",
+      calendar_feed_revoked: "This feed was revoked. Add a new feed instead.",
+      denied: "That feed or project is not available to you.",
+      invalid: "Choose a project for a project feed.",
+      unexpected: "Something went wrong. Try again.",
+    },
+  },
+  projectInbox: {
+    title: "Project inbox",
+    description:
+      "Forward mail to the project's address. Each message waits here until a coordinator files it as a document, optionally on a record, or discards it.",
+    address: "Inbox address",
+    addressPending:
+      "Address {local}. Mail starts arriving once your organization's receiving domain is set up.",
+    noAddress: "This project has no inbox address yet.",
+    noAddressReader:
+      "This project has no inbox address yet. Someone who manages project settings can create one.",
+    create: "Create inbox address",
+    replace: "Replace address",
+    replaceTitle: "Replace the inbox address?",
+    replaceBody:
+      "The current address stops accepting mail at once. Give everyone who forwards mail here the new address.",
+    disable: "Turn off inbox",
+    disableTitle: "Turn off the project inbox?",
+    disableBody: "The address stops accepting mail at once. Mail already received stays here.",
+    copy: "Copy address",
+    copied: "Address copied.",
+    listLabel: "Project inbox messages",
+    toFile: "{count, plural, one {# message to file} other {# messages to file}}",
+    nothingToFile: "Nothing to file. Mail forwarded to the inbox address lands here.",
+    showAll: "Show filed and discarded",
+    showOpen: "Show only mail to file",
+    from: "From {from}",
+    received: "Received {date}",
+    noSubject: "No subject",
+    state: {
+      open: "To file",
+      rejected: "Sender not verified",
+      filed: "Filed",
+      discarded: "Discarded",
+    },
+    filedAs: "Filed as {document} by {name} on {date}",
+    filedTo: "On record {record}",
+    discardedBy: "Discarded by {name} on {date}",
+    discardedReason: "Reason: {reason}",
+    someone: "someone",
+    file: "File",
+    fileTitle: "File as a document",
+    fileBody:
+      "The message becomes a document of this project. Its subject, sender and text are posted as a comment on the document, and on the record you choose.",
+    documentTitle: "Document title",
+    record: "Record",
+    noRecord: "No record",
+    discard: "Discard",
+    discardTitle: "Discard this message?",
+    openDocument: "Open documents",
   },
 };
 var procurement_default$1 = {
@@ -23103,8 +23253,6 @@ var gateway_default = {
         "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",
     },
     notes: {
-      calendarFeeds: "Agrega cada turno, horario y fecha límite a tu calendario desde Próximos.",
-      toUpcoming: "Abrir Próximos",
       connectedApps:
         "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
       toOrganizations: "Ver tus cuentas",
@@ -23145,6 +23293,42 @@ var gateway_default = {
       confirmBody:
         "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
       cancel: "Conservar mi cuenta",
+    },
+    calendarFeeds: {
+      title: "Calendarios suscritos",
+      description:
+        "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver sus turnos publicados y las reuniones, hitos y fechas límite compartidos con usted, en todas las organizaciones con las que trabaja. Las aplicaciones lo actualizan aproximadamente cada hora.",
+      secret:
+        "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
+      none: "Todavía no tiene calendarios suscritos.",
+      listLabel: "Sus calendarios suscritos",
+      feedName: "Mi trabajo",
+      hint: "Enlace que termina en {hint}",
+      created: "Agregado el {date}",
+      lastFetched: "Última consulta el {date}",
+      neverFetched: "Ninguna aplicación lo ha consultado todavía",
+      rotated: "Enlace nuevo emitido el {date}",
+      add: "Agregar un calendario",
+      rotate: "Obtener un enlace nuevo",
+      rotateLabel: "Obtener un enlace nuevo para el calendario que termina en {hint}",
+      rotateConfirm:
+        "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
+      revoke: "Revocar",
+      revokeLabel: "Revocar el calendario que termina en {hint}",
+      revokeConfirm: "El enlace deja de funcionar de inmediato y no se puede volver a activar.",
+      linkTitle: "El enlace de su calendario",
+      linkHelp:
+        "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
+      linkLabel: "Enlace de suscripción",
+      copy: "Copiar enlace",
+      copied: "Enlace copiado.",
+      openInCalendar: "Abrir en mi aplicación de calendario",
+      subscribe: "Suscribirse en una aplicación de calendario",
+      errors: {
+        calendar_feed_limit: "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
+        denied: "Ese calendario no está disponible para usted.",
+        unexpected: "Algo salió mal. Inténtelo de nuevo.",
+      },
     },
   },
   shell: {
@@ -26975,6 +27159,20 @@ var platform_default = {
       "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     approval_rejection_reason: "Diga por qué cuando rechace una aprobación.",
     sod_approval_requester: "Usted solicitó esta aprobación, así que otra persona la decide.",
+    calendar_feed_limit: "Tiene 20 calendarios suscritos. Revoque uno antes de agregar otro.",
+    calendar_feed_revoked: "Un calendario revocado sigue revocado. Agregue uno nuevo.",
+    calendar_feed_token: "El enlace de un calendario solo cambia cuando obtiene un enlace nuevo.",
+    inbound_message_triaged: "Este mensaje ya se archivó o se descartó.",
+    inbound_message_unverified:
+      "El remitente de este mensaje no se verificó, así que no se puede archivar. Descártelo.",
+    inbound_message_record:
+      "Archive el mensaje en un registro de este proyecto que usted pueda abrir.",
+    inbound_message_document: "Archive el mensaje como documento de este proyecto.",
+    inbound_message_filing: "Al archivar se asignan juntos el documento y el estado Archivado.",
+    inbound_message_immutable: "El correo recibido solo se archiva o se descarta.",
+    project_inbox_disabled:
+      "Una dirección de bandeja desactivada sigue desactivada. Cree una dirección nueva.",
+    project_inbox_immutable: "Una dirección de bandeja nunca cambia. Reemplace la dirección.",
   },
   partner: {
     sections: "Secciones de la consola de socio",
@@ -27524,6 +27722,112 @@ var platform_default = {
       "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
     scanFailed:
       "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato.",
+  },
+  calendarFeeds: {
+    feed: {
+      member: "Mi horario en {org}",
+      project: "{project} en {org}",
+      person: "Mi trabajo",
+    },
+    title: "Calendarios suscritos",
+    description:
+      "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver allí sus turnos, reuniones, hitos y fechas límite. Un calendario muestra solo lo que usted puede ver, y las aplicaciones lo actualizan aproximadamente cada hora.",
+    secret:
+      "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
+    none: "Todavía no tiene calendarios suscritos en esta organización.",
+    listLabel: "Sus calendarios suscritos",
+    mine: "Mi horario",
+    projectFeed: "Proyecto: {project}",
+    hint: "Enlace que termina en {hint}",
+    created: "Agregado el {date}",
+    lastFetched: "Última consulta el {date}",
+    neverFetched: "Ninguna aplicación lo ha consultado todavía",
+    rotated: "Enlace nuevo emitido el {date}",
+    addTitle: "Agregar un calendario",
+    scopeLabel: "Calendario",
+    scopeMine: "Mi horario",
+    projectLabel: "Proyecto",
+    projectHelp:
+      "Un calendario de proyecto muestra los turnos, reuniones, hitos y fechas límite del proyecto que usted puede ver.",
+    add: "Agregar calendario",
+    rotate: "Obtener un enlace nuevo",
+    rotateLabel: "Obtener un enlace nuevo para {feed}",
+    rotateTitle: "¿Obtener un enlace nuevo?",
+    rotateBody:
+      "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
+    revoke: "Revocar",
+    revokeLabel: "Revocar {feed}",
+    revokeTitle: "¿Revocar este calendario?",
+    revokeBody:
+      "El enlace deja de funcionar de inmediato y no se puede volver a activar. Los calendarios suscritos a él dejan de actualizarse.",
+    cancel: "Cancelar",
+    linkTitle: "El enlace de su calendario",
+    linkHelp:
+      "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
+    linkLabel: "Enlace de suscripción",
+    copy: "Copiar enlace",
+    copied: "Enlace copiado.",
+    openInCalendar: "Abrir en mi aplicación de calendario",
+    revoked: "Calendario revocado.",
+    errors: {
+      calendar_feed_limit: "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
+      calendar_feed_revoked: "Este calendario fue revocado. Agregue uno nuevo.",
+      denied: "Ese calendario o proyecto no está disponible para usted.",
+      invalid: "Elija un proyecto para un calendario de proyecto.",
+      unexpected: "Algo salió mal. Inténtelo de nuevo.",
+    },
+  },
+  projectInbox: {
+    title: "Bandeja de correo del proyecto",
+    description:
+      "Reenvíe correo a la dirección del proyecto. Cada mensaje espera aquí hasta que un coordinador lo archive como documento, opcionalmente en un registro, o lo descarte.",
+    address: "Dirección de la bandeja",
+    addressPending:
+      "Dirección {local}. El correo empezará a llegar cuando su organización configure el dominio de recepción.",
+    noAddress: "Este proyecto todavía no tiene dirección de bandeja.",
+    noAddressReader:
+      "Este proyecto todavía no tiene dirección de bandeja. Alguien que administre la configuración del proyecto puede crearla.",
+    create: "Crear dirección de bandeja",
+    replace: "Reemplazar dirección",
+    replaceTitle: "¿Reemplazar la dirección de la bandeja?",
+    replaceBody:
+      "La dirección actual deja de aceptar correo de inmediato. Dé la nueva dirección a todas las personas que reenvían correo aquí.",
+    disable: "Desactivar bandeja",
+    disableTitle: "¿Desactivar la bandeja del proyecto?",
+    disableBody:
+      "La dirección deja de aceptar correo de inmediato. El correo ya recibido se queda aquí.",
+    copy: "Copiar dirección",
+    copied: "Dirección copiada.",
+    listLabel: "Mensajes de la bandeja del proyecto",
+    toFile: "{count, plural, one {# mensaje por archivar} other {# mensajes por archivar}}",
+    nothingToFile:
+      "Nada por archivar. El correo reenviado a la dirección de la bandeja llega aquí.",
+    showAll: "Mostrar archivados y descartados",
+    showOpen: "Mostrar solo el correo por archivar",
+    from: "De {from}",
+    received: "Recibido el {date}",
+    noSubject: "Sin asunto",
+    state: {
+      open: "Por archivar",
+      rejected: "Remitente no verificado",
+      filed: "Archivado",
+      discarded: "Descartado",
+    },
+    filedAs: "Archivado como {document} por {name} el {date}",
+    filedTo: "En el registro {record}",
+    discardedBy: "Descartado por {name} el {date}",
+    discardedReason: "Motivo: {reason}",
+    someone: "alguien",
+    file: "Archivar",
+    fileTitle: "Archivar como documento",
+    fileBody:
+      "El mensaje se convierte en un documento de este proyecto. Su asunto, remitente y texto se publican como comentario en el documento y en el registro que elija.",
+    documentTitle: "Título del documento",
+    record: "Registro",
+    noRecord: "Sin registro",
+    discard: "Descartar",
+    discardTitle: "¿Descartar este mensaje?",
+    openDocument: "Abrir documentos",
   },
 };
 var procurement_default = {
@@ -37064,6 +37368,14 @@ var VALUE_PATTERNS = [
   },
   {
     pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    replace: "[token]",
+  },
+  {
+    pattern: /(\/ical\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi,
     replace: "[token]",
   },
   {

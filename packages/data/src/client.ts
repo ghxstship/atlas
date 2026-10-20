@@ -39,3 +39,25 @@ export function createCallerClient(options: CallerClientOptions): XosClient {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
 }
+
+export interface PublicClientOptions {
+  /** Supabase API origin. */
+  readonly url: string;
+  /** The anon (publishable) key. Never the service role key. */
+  readonly anonKey: string;
+  /** Request-scoped fetch, for tests and tracing. */
+  readonly fetch?: typeof fetch;
+}
+
+/**
+ * A client with no session at all, acting as anon: for the reviewed api_public token RPCs that a
+ * route handler answers without a sign-in (the calendar feed, ADR 0038). It reads and writes no
+ * cookie.
+ */
+export function createPublicClient(options: PublicClientOptions): XosClient {
+  return createClient<Database, "app">(options.url, options.anonKey, {
+    db: { schema: APP_SCHEMA },
+    ...(options.fetch === undefined ? {} : { global: { fetch: options.fetch } }),
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+}
