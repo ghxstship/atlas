@@ -626,5 +626,45 @@
       "title": "Compartido con su organización",
       "entry": "Compartido por {owner} · Sus miembros actúan como {role}"
     }
+  },
+  "shortcuts": {
+    "title": "Cambiar atajos",
+    "description": "Elige Cambiar y presiona las teclas nuevas. Una secuencia es una letra y luego otra tecla, como G y luego H. Esc cancela.",
+    "table": "Atajos que puedes cambiar",
+    "recording": "Presiona las teclas nuevas para {action}, o Esc para cancelar.",
+    "saved": "{action} ahora usa {keys}.",
+    "resetOne": "{action} vuelve a usar sus teclas predeterminadas.",
+    "resetAll": "Restablecer todos los atajos",
+    "resetAllDone": "Todos los atajos vuelven a usar sus teclas predeterminadas.",
+    "singleKeysOff": "Los atajos de una sola tecla están desactivados, así que los atajos sin Ctrl, Cmd o Alt no hacen nada. Activa Atajos de teclado arriba para usarlos.",
+    "fixed": "Esc, Intro y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
+    "problems": {
+      "conflict": "{keys} ya hace {action}. Cambia primero ese atajo o elige otras teclas.",
+      "browser": "{keys} pertenece a tu navegador o computadora. Elige otras teclas.",
+      "screen-reader": "{keys} pertenece a los lectores de pantalla. Elige otras teclas.",
+      "navigation": "{keys} sirve para moverse por la página. Elige otras teclas.",
+      "typing": "Este atajo también funciona mientras escribes, así que necesita Ctrl, Cmd o Alt.",
+      "invalid": "Esas teclas no pueden ser un atajo. Usa una letra, un dígito o un símbolo, con Ctrl, Cmd, Alt o Mayús si quieres.",
+      "fixed": "Este atajo no se puede cambiar.",
+      "unknown": "Este atajo ya no existe. Vuelve a cargar la página.",
+      "failed": "No se guardó el atajo. Inténtalo de nuevo."
+    }
+  },
+  "sidebar": {
+    "title": "Barra lateral",
+    "description": "Oculta los elementos que nunca usas y ordena los grupos y elementos a tu manera. Los elementos ocultos siguen en la búsqueda y en el menú de comandos.",
+    "group": "Grupo {group}",
+    "show": "Mostrar {item} en la barra lateral",
+    "move": "Mover {item}",
+    "moveHelp": "Arrastra, o presiona Espacio para tomar, las flechas para mover, Espacio para soltar y Esc para cancelar.",
+    "picked": "{item} tomado, posición {position} de {count}. Usa las flechas para moverlo y Espacio para soltarlo.",
+    "moved": "{item} movido a la posición {position} de {count}.",
+    "dropped": "{item} soltado en la posición {position} de {count}.",
+    "returned": "{item} devuelto a la posición {position} de {count}.",
+    "save": "Guardar barra lateral",
+    "saved": "Tu barra lateral se guardó.",
+    "reset": "Restablecer el predeterminado del rol",
+    "resetDone": "Tu barra lateral volvió al predeterminado de tu rol.",
+    "failed": "No se guardó la barra lateral. Inténtalo de nuevo."
   }
 }
