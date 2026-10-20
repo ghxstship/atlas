@@ -4,9 +4,11 @@ import { weekStartOf } from "../lib/crew/time";
 import {
   allowedVisibilities,
   devicePreference,
+  engagementsToRate,
   feedSwitchDefaults,
   legalEntityDefaults,
   orgSupportOf,
+  ratingPromptsOn,
   reviewRemovesUnreviewed,
   shellSettingsOf,
   startPageOf,
@@ -133,6 +135,26 @@ describe("form defaults from org settings", () => {
     expect(
       allowedVisibilities(lookup({ "gateway.marketplace_visibility": "private" }), all),
     ).toEqual(["Invited", "Pool"]);
+  });
+});
+
+describe("rating prompts (gateway.ratings_enabled, ADR 0038)", () => {
+  const completed = [
+    { id: "unrated", orgRated: false },
+    { id: "rated", orgRated: true },
+  ];
+
+  it("prompts members to rate completed engagements by default", () => {
+    expect(ratingPromptsOn(lookup({}))).toBe(true);
+    expect(engagementsToRate(lookup({}), completed).map((e) => e.id)).toEqual(["unrated"]);
+  });
+
+  it("drops only the prompts when they are off, never the engagements or their ratings", () => {
+    const off = lookup({ "gateway.ratings_enabled": false });
+    expect(ratingPromptsOn(off)).toBe(false);
+    expect(engagementsToRate(off, completed)).toEqual([]);
+    // The input is untouched: ratings and engagements are read and shown as before.
+    expect(completed.map((e) => e.id)).toEqual(["unrated", "rated"]);
   });
 });
 

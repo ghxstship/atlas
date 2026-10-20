@@ -54,7 +54,6 @@ describe("every setting takes effect or says why not", () => {
     // Adding a deferral is a decision: name it here with its reason in the registry file.
     expect(deferred).toEqual([
       "communication.auto_translate",
-      "gateway.ratings_enabled",
       "me.captions",
       "numbering.record_key_format",
       "security.idle_timeout_minutes",
@@ -72,6 +71,15 @@ describe("every setting takes effect or says why not", () => {
   it("marks deferred settings in the generated registry so pages can say so", () => {
     for (const s of SETTINGS) {
       expect(s.deferred, s.key).toBe(enforcement.get(s.key)?.kind === "deferred");
+    }
+  });
+
+  it("keeps the fixed record key format off every screen (ADR 0038)", () => {
+    const hidden = SETTINGS.filter((s) => s.hidden).map((s) => s.key);
+    expect(hidden).toEqual(["numbering.record_key_format"]);
+    for (const s of SETTINGS.filter((d) => d.hidden)) {
+      expect(s.pages, s.key).toEqual({});
+      expect(s.deferred, s.key).toBe(true);
     }
   });
 });
@@ -100,6 +108,20 @@ settings:
 
   it("names a setting that nothing reads", () => {
     expect(issues(base).some((i) => i.includes("org.sample names no consumer"))).toBe(true);
+  });
+
+  it("hides a setting only when it is deferred and on no page", () => {
+    const deferred = `    deferred: { reason: "Waits on a decision about the sample.", decision: "Sample decision" }
+`;
+    const onPage = `${base}    hidden: true
+${deferred}`;
+    expect(issues(onPage).some((i) => i.includes("is hidden but names a page"))).toBe(true);
+    const noPage = base.replace("pages: { org: settings.general }", "pages: {}");
+    expect(issues(`${noPage}    hidden: true\n`).some((i) => i.includes("must be deferred"))).toBe(
+      true,
+    );
+    expect(issues(`${noPage}    hidden: true\n${deferred}`)).toEqual([]);
+    expect(issues(`${noPage}${deferred}`).some((i) => i.includes("needs a org page"))).toBe(true);
   });
 
   it("refuses a setting both enforced and deferred", () => {

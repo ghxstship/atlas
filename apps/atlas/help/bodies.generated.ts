@@ -1009,6 +1009,17 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Ratings are always on. " },
+          { t: "strong", v: "Prompt members to rate parties" },
+          {
+            t: "text",
+            v: " in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse or personal data, never for their score.",
+          },
+        ],
+      },
     ],
     "organization-settings": [
       {
@@ -2834,6 +2845,17 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Ambas partes se califican al cierre. Ninguna ve la calificación de la otra hasta que ambas califiquen o pasen 14 días.",
+          },
+        ],
+      },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Las calificaciones siempre están activas. " },
+          { t: "strong", v: "Pedir a los miembros que valoren a las partes" },
+          {
+            t: "text",
+            v: ", en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso o datos personales, nunca por su puntuación.",
           },
         ],
       },

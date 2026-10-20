@@ -12689,6 +12689,7 @@ var settings_default$1 = {
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
     setting_not_enforced:
       "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
+    setting_fixed: "This setting is fixed and cannot be changed.",
   },
   fields: {
     legalName: {
@@ -12753,7 +12754,7 @@ var settings_default$1 = {
     },
     numberPadding: {
       label: "Number padding",
-      help: "Digits in each document number, from 1 to 10. Four gives 0042.",
+      help: "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed.",
     },
     rounding: {
       label: "Punch rounding",
@@ -12796,8 +12797,8 @@ var settings_default$1 = {
       help: "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees.",
     },
     ratingsEnabled: {
-      label: "Ratings",
-      help: "Ask both sides to rate each other when an engagement completes.",
+      label: "Prompt members to rate parties",
+      help: "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score.",
     },
     messageRetention: {
       label: "Message retention in days",
@@ -29276,6 +29277,7 @@ var settings_default = {
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
     setting_not_enforced:
       "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
+    setting_fixed: "Esta configuración es fija y no se puede cambiar.",
   },
   fields: {
     legalName: {
@@ -29340,7 +29342,7 @@ var settings_default = {
     },
     numberPadding: {
       label: "Relleno de números",
-      help: "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042.",
+      help: "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042. El prefijo de factura y este relleno son los números que puedes personalizar; las claves de registro como NWS-42 son fijas.",
     },
     rounding: {
       label: "Redondeo de fichajes",
@@ -29383,8 +29385,8 @@ var settings_default = {
       help: "Quién puede encontrar tus oportunidades en el mercado de Gateway: todos, quienes trabajaron contigo o solo grupos e invitados.",
     },
     ratingsEnabled: {
-      label: "Calificaciones",
-      help: "Pedir a ambas partes que se califiquen al completar una contratación.",
+      label: "Pedir a los miembros que valoren a las partes",
+      help: "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y quienes ven el mercado ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales), sea cual sea la puntuación.",
     },
     messageRetention: {
       label: "Retención de mensajes en días",

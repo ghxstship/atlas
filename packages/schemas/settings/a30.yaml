@@ -30,6 +30,7 @@
 #               has no consumer, so no setting ships stored, audited and inert.
 #   deferred:   instead of enforced_by, { reason, decision } for a setting deliberately not applied yet, naming the
 #               owner decision or work package it waits on. Settings pages say it is saved but not in effect.
+#   hidden:     true for a deferred setting no settings screen offers (pages: {}); the database refuses its writes.
 contributor: a30
 settings:
   # General -------------------------------------------------------------------------------------
@@ -223,10 +224,12 @@ settings:
     capability: org.numbering.write
     label: settings.fields.recordKeyFormat.label
     help: settings.fields.recordKeyFormat.help
-    pages: { org: settings.numbering }
+    # Off every settings screen for launch, and migration 1329 refuses its writes (ADR 0038).
+    pages: {}
+    hidden: true
     deferred:
-      reason: "Section 4.5.1 fixes record display keys as {projectKey}-{sequence}, and keys live in URLs, QR codes, offline Compass data and the v1 API; a per-org format needs a decision on how old keys keep resolving."
-      decision: "Owner decision on per-org record key formats (Section 4.5.1)"
+      reason: "Record keys are fixed: URLs, QR codes, offline Compass data and API v1 depend on them; a future change applies only to new records, with old keys resolving permanently and never reused."
+      decision: "Owner decision of 2026-10-20: record keys stay fixed for launch (ADR 0038)"
   - key: numbering.document_number_padding
     type: integer
     min: 1
@@ -389,9 +392,13 @@ settings:
     label: settings.fields.ratingsEnabled.label
     help: settings.fields.ratingsEnabled.help
     pages: { org: settings.gateway-and-marketplace }
-    deferred:
-      reason: "Turning ratings off for both sides may read as suppressing reviews (Section 14.9), so ratings stay on until the owner and counsel decide whether the switch may exist."
-      decision: "Owner and counsel decision on ratings (A65-001, Section 14.9)"
+    # Prompts only (ADR 0038): whether the org's members are prompted to rate the people it engages. Ratings are
+    # always on; turning prompts off never hides or removes a rating (FTC 16 CFR Part 465). The key keeps its name.
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#ratingPromptsOn
+        test: apps/atlas/test/org-settings.test.ts
+      - consumer: apps/atlas/lib/shell/org-settings.ts#ratingPromptsOn
+        test: supabase/tests/1329_rating_prompts_and_fixed_record_keys.test.sql
 
   # Communication ---------------------------------------------------------------------------------------------------
   - key: communication.message_retention_days

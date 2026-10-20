@@ -45,6 +45,7 @@ const settingSchema = z.strictObject({
     org: z.string().regex(NODE).optional(),
     personal: z.string().regex(NODE).optional(),
   }),
+  hidden: z.literal(true).optional(),
   enforced_by: z
     .array(z.strictObject({ consumer: z.string().regex(CONSUMER), test: z.string().regex(TEST) }))
     .min(1)
@@ -123,10 +124,16 @@ export function validateSetting(raw: RawSetting, capabilities: ReadonlySet<strin
       `${at} names no consumer: add enforced_by (the module that applies it and its test) or a deferred reason (A65-001)`,
     );
   }
+  if (raw.hidden) {
+    if (raw.pages.org || raw.pages.personal) issues.push(`${at} is hidden but names a page`);
+    if (!raw.deferred) {
+      issues.push(`${at} is hidden, so it must be deferred with the reason no screen offers it`);
+    }
+  }
   const groups = new Set(raw.scopes.map(pageGroup));
   for (const group of ["org", "personal"] as const) {
     const page = raw.pages[group];
-    if (groups.has(group) && !page) issues.push(`${at} needs a ${group} page`);
+    if (groups.has(group) && !page && !raw.hidden) issues.push(`${at} needs a ${group} page`);
     if (!groups.has(group) && page) issues.push(`${at} has a ${group} page without such a scope`);
     if (page && !page.startsWith(group === "org" ? "settings." : "me.")) {
       issues.push(`${at} shows its ${group} scope on ${page}`);
@@ -156,6 +163,7 @@ function toDefinition(contributor: string, raw: RawSetting): SettingDefinition {
       ...(raw.pages.personal ? { personal: raw.pages.personal } : {}),
     },
     deferred: raw.deferred !== undefined,
+    hidden: raw.hidden === true,
   };
 }
 

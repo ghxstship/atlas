@@ -71,7 +71,8 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone."
+    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
+    "setting_fixed": "This setting is fixed and cannot be changed."
   },
   "fields": {
     "legalName": {
@@ -136,7 +137,7 @@
     },
     "numberPadding": {
       "label": "Number padding",
-      "help": "Digits in each document number, from 1 to 10. Four gives 0042."
+      "help": "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed."
     },
     "rounding": {
       "label": "Punch rounding",
@@ -179,8 +180,8 @@
       "help": "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees."
     },
     "ratingsEnabled": {
-      "label": "Ratings",
-      "help": "Ask both sides to rate each other when an engagement completes."
+      "label": "Prompt members to rate parties",
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",

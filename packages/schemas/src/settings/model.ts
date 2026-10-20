@@ -48,6 +48,11 @@ export interface SettingDefinition {
    * registry file's `deferred` block). Settings pages say so next to the control.
    */
   readonly deferred: boolean;
+  /**
+   * True for a setting kept in the registry and the database but offered on no settings screen (the
+   * registry file's `hidden: true`, with no pages). It is always deferred, and its writes are refused.
+   */
+  readonly hidden: boolean;
 }
 
 /**

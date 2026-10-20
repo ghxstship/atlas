@@ -76,6 +76,24 @@ export function legalEntityDefaults(get: SettingLookup): { month: string; curren
   };
 }
 
+/**
+ * Whether the org's own members are prompted to rate the people it engages (gateway.ratings_enabled, ADR 0038):
+ * the completed engagements waiting for their rating and the Rate the party next step. Prompts only: ratings are
+ * always on, members can still rate from the engagement, and turning prompts off never hides or removes a rating
+ * or changes what a rated party or a marketplace viewer sees.
+ */
+export function ratingPromptsOn(get: SettingLookup): boolean {
+  return get("gateway.ratings_enabled") !== false;
+}
+
+/** Completed engagements the org has not rated yet, to prompt a rating; none while prompts are off. */
+export function engagementsToRate<E extends { readonly orgRated: boolean }>(
+  get: SettingLookup,
+  completed: readonly E[],
+): E[] {
+  return ratingPromptsOn(get) ? completed.filter((e) => !e.orgRated) : [];
+}
+
 const VISIBILITY_RANK = { Invited: 0, Pool: 0, Network: 1, Public: 2 } as const;
 
 /**
