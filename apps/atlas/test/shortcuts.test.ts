@@ -250,6 +250,17 @@ class FakeElement {
   }
 }
 
+/** The parts of a key press the handler reads. */
+interface PressInit {
+  readonly code?: string;
+  readonly metaKey?: boolean;
+  readonly ctrlKey?: boolean;
+  readonly altKey?: boolean;
+  readonly shiftKey?: boolean;
+  readonly repeat?: boolean;
+  readonly target?: FakeElement;
+}
+
 interface Pressed {
   defaultPrevented: boolean;
   stopped: boolean;
@@ -283,10 +294,7 @@ describe("shell key handler (Section 11.2)", () => {
     stop = installShellKeys(state);
   }
 
-  function press(
-    key: string,
-    init: Partial<KeyboardEvent> & { target?: FakeElement } = {},
-  ): Pressed {
+  function press(key: string, init: PressInit = {}): Pressed {
     const event = new Event("keydown", { cancelable: true });
     const out: Pressed = { defaultPrevented: false, stopped: false };
     Object.defineProperties(event, {
