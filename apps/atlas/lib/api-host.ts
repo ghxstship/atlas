@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { docsUrl } from "@/lib/docs-site";
 import type { Env } from "@/lib/env";
 import { securityHeaders } from "@/lib/security/headers";
 
@@ -27,12 +28,6 @@ export const API_HOST_PREFIX = "/v1";
 export function isApiHost(host: string | null, config: Pick<Env, "XOS_API_HOST">): boolean {
   if (!config.XOS_API_HOST || !host) return false;
   return host.toLowerCase().replace(/:\d+$/, "") === config.XOS_API_HOST;
-}
-
-/** A docs site URL for a path, or null when DOCS_SITE_URL is unset. */
-export function docsUrl(config: Pick<Env, "DOCS_SITE_URL">, path = ""): string | null {
-  if (!config.DOCS_SITE_URL) return null;
-  return `${config.DOCS_SITE_URL.replace(/\/+$/, "")}${path}`;
 }
 
 const PROBLEM = "application/problem+json";

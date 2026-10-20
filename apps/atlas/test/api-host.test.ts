@@ -5,7 +5,8 @@
  */
 import { NextRequest } from "next/server";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { apiHostResponse, docsUrl, isApiHost } from "../lib/api-host";
+import { apiHostResponse, isApiHost } from "../lib/api-host";
+import { docsUrl } from "../lib/docs-site";
 
 const API_HOST = "api.atlas.test";
 

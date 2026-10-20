@@ -65,6 +65,8 @@ export interface GatewayFrameProps {
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
+  /** The docs site origin (DOCS_SITE_URL), on the platform brand only; null hides its links. */
+  readonly docsUrl: string | null;
   readonly children: ReactNode;
 }
 
@@ -341,7 +343,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
         </div>
       </Drawer>
 
-      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} />
+      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} docsUrl={props.docsUrl} />
 
       <Dialog
         open={switchOpen}

@@ -3352,6 +3352,7 @@ var compass_default$1 = {
     forScreen: "For the screen you were on",
     general: "Everywhere in Compass",
     all: "All help for your role",
+    helpCenter: "Help center on the web",
     offline: "Help is saved on this phone, so it works offline.",
     missing: "This article is not available. Go back to Help for the others.",
     back: "Back to Help",
@@ -7011,6 +7012,11 @@ var help_default$1 = {
   loadFailed:
     "Your tours and tips could not be loaded. Help articles still work; reopen Help to try again.",
   bodyFailed: "This article could not be loaded. Reload the page, then open Help again.",
+  docs: {
+    home: "Help center and API docs",
+    helpCenter: "Help center",
+    article: "Open this article in the help center",
+  },
   kinds: {
     guide: "Guide",
     page: "Page",
@@ -19480,6 +19486,7 @@ var compass_default = {
     forScreen: "Para la pantalla donde estabas",
     general: "En todo Compass",
     all: "Toda la ayuda para tu rol",
+    helpCenter: "Centro de ayuda en la web",
     offline: "La ayuda se guarda en este teléfono, así que funciona sin conexión.",
     missing: "Este artículo no está disponible. Vuelve a Ayuda para ver los demás.",
     back: "Volver a Ayuda",
@@ -23091,6 +23098,11 @@ var help_default = {
   loadFailed:
     "No se pudieron cargar sus recorridos y consejos. Los artículos funcionan; vuelva a abrir la Ayuda para intentarlo de nuevo.",
   bodyFailed: "No se pudo cargar este artículo. Recargue la página y vuelva a abrir la Ayuda.",
+  docs: {
+    home: "Centro de ayuda y documentación de la API",
+    helpCenter: "Centro de ayuda",
+    article: "Abrir este artículo en el centro de ayuda",
+  },
   kinds: {
     guide: "Guía",
     page: "Página",
