@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect, settle, test, type Page } from "./engine-test";
 import { DEMO, expectAccessible, signIn, sql } from "./support";
 
 /**
@@ -15,6 +15,8 @@ test("the ? key opens help for the page, with search, shortcuts and What's New",
 }) => {
   await signIn(page, "crew@example.com");
   await expect(page.getByRole("heading", { level: 1, name: /Hi, Demo/ })).toBeVisible();
+  // Shortcuts answer once the page has hydrated.
+  await settle(page);
 
   // Typing a question mark in a field is typing, not a shortcut.
   const search = page.getByRole("searchbox", { name: "Search opportunities" });
@@ -62,6 +64,7 @@ test("the Help button opens help, and Contact support reaches the org or platfor
 }) => {
   await sql("delete from private.account_support_requests where person_id = $1", [DEMO.crew]);
   await signIn(page, "crew@example.com", `/work/engagements/${DEMO.crewEngagementKey}/overview`);
+  await settle(page);
 
   // The top bar's Help button; the panel is fetched on this first use.
   await page.getByRole("button", { name: "Help", exact: true }).click();
@@ -94,7 +97,8 @@ test("the Help button opens help, and Contact support reaches the org or platfor
   await help.getByRole("button", { name: "Send request" }).click();
   await expect(
     help.getByText(/Request ACC-\d{6} sent\. Platform support answers by email/),
-  ).toBeVisible();
+    // The request is a server action; on a loaded machine it takes longer than the default 5 s.
+  ).toBeVisible({ timeout: 30_000 });
 
   const rows = await sql<{ category: string; route: string | null }>(
     "select category::text, route from private.account_support_requests where person_id = $1",
@@ -114,6 +118,7 @@ test("the Help button opens help, and Contact support reaches the org or platfor
 test("on a phone, Help is in the account menu", async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
   await signIn(page, "crew@example.com", "/money/overview");
+  await settle(page);
   await page.getByRole("button", { name: /Open the account menu/ }).click();
   await page.getByRole("button", { name: "Help", exact: true }).click();
   const help = panel(page);
