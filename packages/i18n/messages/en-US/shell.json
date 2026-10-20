@@ -1175,7 +1175,7 @@
   "create": {
     "button": "Create",
     "title": "Create",
-    "placeholder": "What do you want to create?",
+    "prompt": "What do you want to create?",
     "here": "On this page",
     "more": "Everything else",
     "kinds": {

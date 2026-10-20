@@ -34,7 +34,7 @@ export function ShellCreate({ open, onOpenChange, items, pathname, go }: ShellCr
       onOpenChange={onOpenChange}
       hotkey={false}
       label={t("title")}
-      placeholder={t("placeholder")}
+      placeholder={t("prompt")}
       groups={[
         ...(here.length > 0 ? [{ label: t("here"), items: here.map(entry) }] : []),
         ...(rest.length > 0
