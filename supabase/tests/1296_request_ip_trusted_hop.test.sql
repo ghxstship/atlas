@@ -5,7 +5,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(11);
+select plan(12);
 
 create function pg_temp.headers(p_headers jsonb) returns void
 language sql as $$ select set_config('request.headers', p_headers::text, true) $$;
@@ -55,6 +55,13 @@ select is((select count(*)::int from private.rate_limit_events
   'nothing is counted against the spoofed address');
 select ok(private.rate_limit_exceeded('verify_certification.failure', '192.0.2.44', 10, interval '15 minutes'),
   'the eleventh try from that address is over the limit');
+
+-- Catalog: only private.request_ip reads the forwarding chain, so no new function takes the client's first entry.
+select set_eq($$
+  select p.oid::regprocedure::text from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  where n.nspname in ('app', 'private', 'api_public', 'api_external', 'xpms')
+    and (p.prosrc ilike '%x-forwarded-for%' or p.prosrc ilike '%x-real-ip%')
+$$, $$values ('private.request_ip()')$$, 'only private.request_ip reads the proxy headers');
 
 select * from finish();
 rollback;
