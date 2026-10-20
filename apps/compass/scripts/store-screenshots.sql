@@ -1,7 +1,8 @@
 -- Store screenshots (RRR-113): moves two pieces of the local demo seed to today, so the screenshots show
 -- times a person would see on a show day instead of the seed's March 2027 dates. Run only against a
--- freshly reset LOCAL stack (scripts/store-screenshots.sh does, with docker exec on the stack's database);
--- never against staging or production, which must not hold the demo seed at all (ADR 0033, decision 1).
+-- freshly reset LOCAL stack (scripts/store-screenshots.sh does, before each capture run, with docker exec
+-- on the stack's database); never against staging or production, which must not hold the demo seed at all
+-- (ADR 0033, decision 1). Running it again moves the times again, relative to now.
 --   * the Opening Night running order runs today: its first cue was called a few minutes ago and the next
 --     one is twelve minutes away
 --   * the open Festival Rigger shift starts in two hours, so Schedule offers it to claim
@@ -28,6 +29,5 @@ begin
   update app.shifts
   set starts_at = date_trunc('hour', now()) + interval '2 hours',
       ends_at = date_trunc('hour', now()) + interval '10 hours'
-  where shift_state = 'Published' and membership_id is null and deleted_at is null
-    and starts_at > now() + interval '30 days';
+  where shift_state = 'Published' and membership_id is null and deleted_at is null;
 end $$;

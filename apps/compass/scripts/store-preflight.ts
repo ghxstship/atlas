@@ -29,6 +29,34 @@ export interface PreflightInput {
   readonly appVersion: string;
   /** Whether a path from eas.json, relative to apps/compass, names an existing file. */
   readonly fileExists: (path: string) => boolean;
+  /** The bytes of the app icon (assets/icon.png), or null when it does not exist. */
+  readonly icon: Uint8Array | null;
+}
+
+/** The app icon both stores need; app.config.ts uses it when it exists. */
+export const ICON_PATH = "assets/icon.png";
+
+/** Why an icon would fail App Store Connect's checks: it must be a 1024 x 1024 PNG with no alpha. */
+export function iconProblems(png: Uint8Array | null): string[] {
+  if (!png) {
+    return [`${ICON_PATH} is missing: the owner's 1024 x 1024 app icon, PNG, no transparency`];
+  }
+  const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  if (png.length < 26 || signature.some((b, i) => png[i] !== b))
+    return [`${ICON_PATH} is not a PNG`];
+  const view = new DataView(png.buffer, png.byteOffset, png.byteLength);
+  const width = view.getUint32(16);
+  const height = view.getUint32(20);
+  const colorType = png[25];
+  const problems: string[] = [];
+  if (width !== 1024 || height !== 1024) {
+    problems.push(`${ICON_PATH} is ${width} x ${height}, not 1024 x 1024`);
+  }
+  // PNG colour types 4 and 6 carry alpha, which App Store Connect rejects on upload (ITMS-90717).
+  if (colorType === 4 || colorType === 6) {
+    problems.push(`${ICON_PATH} has an alpha channel; export it without transparency`);
+  }
+  return problems;
 }
 
 type Json = Record<string, unknown>;
@@ -57,6 +85,7 @@ export function ownerValues(value: unknown, path = ""): string[] {
 /** What blocks the store command for a target; empty when it may run. */
 export function preflightProblems(target: Target, input: PreflightInput): string[] {
   const problems: string[] = [];
+  if (target === "ios" || target === "android") problems.push(...iconProblems(input.icon));
   if (target === "ios") {
     const ios = at(input.easJson, "submit", "production", "ios");
     problems.push(...ownerValues(ios, "eas.json submit.production.ios"));
@@ -117,6 +146,7 @@ function main(argv: readonly string[]): number {
     storeConfig: read("store/store.config.json"),
     appVersion: String(at(read("app.json"), "expo", "version")),
     fileExists: (path) => existsSync(isAbsolute(path) ? path : resolve(root, path)),
+    icon: existsSync(resolve(root, ICON_PATH)) ? readFileSync(resolve(root, ICON_PATH)) : null,
   });
   if (problems.length === 0) {
     console.log(`Compass ${target} preflight passed.`);

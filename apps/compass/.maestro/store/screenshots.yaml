@@ -137,7 +137,7 @@ name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
                 point: "9%,9%"
       - waitForAnimationToEnd:
           timeout: 3000
-# Show and show mode.
+# Show: the running order with the next cue counting down.
 - scrollUntilVisible:
     element:
       id: "more-show"
@@ -147,13 +147,4 @@ name: Store screenshots (RRR-113), the Demo Field Tech on the field screens
     id: "more-show"
 - waitForAnimationToEnd:
     timeout: 4000
-- takeScreenshot: raw-05a-show
-- tapOn:
-    id: "show-mode"
-    optional: true
-- waitForAnimationToEnd:
-    timeout: 3000
 - takeScreenshot: raw-05-show
-- tapOn:
-    id: "show-mode"
-    optional: true

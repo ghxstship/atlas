@@ -5,7 +5,12 @@ import { fileURLToPath } from "node:url";
 import type { ExpoConfig } from "expo/config";
 import { describe, expect, it } from "vitest";
 import { releaseConfigProblems, withStoreBuild } from "../app.config";
-import { ownerValues, preflightProblems, type PreflightInput } from "../scripts/store-preflight";
+import {
+  iconProblems,
+  ownerValues,
+  preflightProblems,
+  type PreflightInput,
+} from "../scripts/store-preflight";
 
 /** Store release configuration (RRR-113): eas.json, privacy, permissions and the preflight. */
 const compassDir = fileURLToPath(new URL("..", import.meta.url));
@@ -134,6 +139,19 @@ describe("eas.json", () => {
   });
 });
 
+/** The first 26 bytes of a PNG: signature, IHDR length and type, width, height, bit depth, colour type. */
+function pngHeader(width: number, height: number, colorType: number): Uint8Array {
+  const bytes = new Uint8Array(26);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52]);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  bytes[24] = 8;
+  bytes[25] = colorType;
+  return bytes;
+}
+const goodIcon = pngHeader(1024, 1024, 2);
+
 describe("store preflight", () => {
   const storeConfig = readJson("store/store.config.json");
   const base: PreflightInput = {
@@ -141,6 +159,7 @@ describe("store preflight", () => {
     storeConfig,
     appVersion: String(expo.version),
     fileExists: () => false,
+    icon: goodIcon,
   };
   const filledEas = {
     ...easJson,
@@ -192,6 +211,22 @@ describe("store preflight", () => {
     );
   });
 
+  it("asks for the owner's app icon, 1024 x 1024 and without transparency", () => {
+    expect(iconProblems(goodIcon)).toEqual([]);
+    expect(iconProblems(null)[0]).toMatch(/assets\/icon\.png is missing/);
+    expect(iconProblems(pngHeader(1024, 1024, 6))).toEqual([
+      "assets/icon.png has an alpha channel; export it without transparency",
+    ]);
+    expect(iconProblems(pngHeader(512, 512, 2))).toEqual([
+      "assets/icon.png is 512 x 512, not 1024 x 1024",
+    ]);
+    expect(iconProblems(new Uint8Array(30))).toEqual(["assets/icon.png is not a PNG"]);
+    const noIcon = { ...base, icon: null };
+    expect(preflightProblems("ios", noIcon).join("\n")).toContain("assets/icon.png is missing");
+    expect(preflightProblems("android", noIcon).join("\n")).toContain("assets/icon.png is missing");
+    expect(preflightProblems("metadata", noIcon).join("\n")).not.toContain("assets/icon.png");
+  });
+
   it("lists owner values with their JSON path", () => {
     expect(ownerValues({ a: [{ b: "x OWNER_ONE y OWNER_TWO" }] })).toEqual([
       "a[0].b: OWNER_ONE",
@@ -232,7 +267,16 @@ describe("release build guard (app.config.ts)", () => {
     ]);
     const missing = { EAS_BUILD: "true", EAS_BUILD_PROFILE: "preview" };
     expect(releaseConfigProblems(missing)).toHaveLength(4);
-    expect(() => withStoreBuild(expo, missing)).toThrow(/eas env:create/);
+    expect(() => withStoreBuild(expo, missing, true)).toThrow(/eas env:create/);
+  });
+
+  it("stops a release build without the app icon and uses the icon once it exists", () => {
+    expect(releaseConfigProblems(good, false)).toEqual([
+      'the app icon ./assets/icon.png (1024 x 1024 PNG, no transparency) is missing (EAS environment "production")',
+    ]);
+    expect(() => withStoreBuild(expo, good)).toThrow(/app icon/);
+    expect(withStoreBuild(expo, good, true).icon).toBe("./assets/icon.png");
+    expect(withStoreBuild(expo, {}).icon).toBeUndefined();
   });
 
   it("never stops a local or development build", () => {
@@ -244,11 +288,15 @@ describe("release build guard (app.config.ts)", () => {
   });
 
   it("takes the Apple team id and the Firebase file from the EAS environment", () => {
-    const out = withStoreBuild(expo, {
-      ...good,
-      XOS_APPLE_TEAM_ID: "AB12CD34EF",
-      GOOGLE_SERVICES_JSON: "/tmp/google-services.json",
-    });
+    const out = withStoreBuild(
+      expo,
+      {
+        ...good,
+        XOS_APPLE_TEAM_ID: "AB12CD34EF",
+        GOOGLE_SERVICES_JSON: "/tmp/google-services.json",
+      },
+      true,
+    );
     expect(out.ios?.appleTeamId).toBe("AB12CD34EF");
     expect(out.android?.googleServicesFile).toBe("/tmp/google-services.json");
     const ignored = withStoreBuild(expo, { XOS_APPLE_TEAM_ID: "OWNER_APPLE_TEAM_ID" });

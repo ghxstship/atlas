@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import type { ConfigContext, ExpoConfig } from "expo/config";
 
 /**
@@ -80,8 +82,14 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
  *   device builds. Anything that is not a team id is ignored.
  * - GOOGLE_SERVICES_JSON: an EAS file variable with the Firebase Android config, which Android needs for an
  *   Expo push token (FCM). Without it Compass still runs and only Android push registration is skipped.
+ *
+ * The app icon is the owner's brand asset: a 1024 x 1024 PNG without transparency at APP_ICON. Until it
+ * exists, local builds use Expo's blank icon and a release build on EAS stops, because App Store Connect
+ * rejects an icon with an alpha channel.
  */
 const APPLE_TEAM_ID = /^[A-Z0-9]{10}$/;
+
+export const APP_ICON = "./assets/icon.png";
 
 /** The EAS build profiles that reach testers or the stores. */
 export const RELEASE_PROFILES = ["preview", "production"] as const;
@@ -105,7 +113,7 @@ function isHttpsUrl(value: string | undefined): boolean {
  * EXPO_PUBLIC_* values are missing (src/runtime/platform.ts), which is right in development and broken in a
  * tester's hands, so a preview or production build on EAS stops here instead.
  */
-export function releaseConfigProblems(env: Env): string[] {
+export function releaseConfigProblems(env: Env, iconPresent = true): string[] {
   const profile = env["EAS_BUILD_PROFILE"] ?? "";
   if (env["EAS_BUILD"] !== "true" || !(RELEASE_PROFILES as readonly string[]).includes(profile)) {
     return [];
@@ -120,11 +128,13 @@ export function releaseConfigProblems(env: Env): string[] {
   }
   if (!env["EXPO_PUBLIC_SUPABASE_ANON_KEY"])
     problems.push("EXPO_PUBLIC_SUPABASE_ANON_KEY is not set");
+  if (!iconPresent)
+    problems.push(`the app icon ${APP_ICON} (1024 x 1024 PNG, no transparency) is missing`);
   return problems.map((p) => `${p} (EAS environment "${profile}")`);
 }
 
-export function withStoreBuild(config: ExpoConfig, env: Env): ExpoConfig {
-  const problems = releaseConfigProblems(env);
+export function withStoreBuild(config: ExpoConfig, env: Env, iconPresent = false): ExpoConfig {
+  const problems = releaseConfigProblems(env, iconPresent);
   if (problems.length > 0) {
     throw new Error(
       `Compass release build is missing configuration:\n- ${problems.join("\n- ")}\n` +
@@ -135,6 +145,7 @@ export function withStoreBuild(config: ExpoConfig, env: Env): ExpoConfig {
   const googleServices = env["GOOGLE_SERVICES_JSON"];
   return {
     ...config,
+    ...(iconPresent ? { icon: APP_ICON } : {}),
     ios: {
       ...config.ios,
       ...(teamId && APPLE_TEAM_ID.test(teamId) ? { appleTeamId: teamId } : {}),
@@ -146,11 +157,12 @@ export function withStoreBuild(config: ExpoConfig, env: Env): ExpoConfig {
   };
 }
 
-export default ({ config }: ConfigContext): ExpoConfig =>
+export default ({ config, projectRoot }: ConfigContext): ExpoConfig =>
   withStoreBuild(
     withUniversalLinks(
       config as ExpoConfig,
       universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"]),
     ),
     process.env,
+    existsSync(join(projectRoot, APP_ICON)),
   );
