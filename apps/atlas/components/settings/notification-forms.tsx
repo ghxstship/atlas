@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, InlineAlert, Input, Select } from "@xos/ui";
+import { Button, Checkbox, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState } from "react";
 import {
@@ -141,11 +141,14 @@ export function MyNotificationsForm({
   rows,
   settings,
   timeZones,
+  sms,
 }: {
   org: string;
   rows: readonly MemberRow[];
   settings: MemberSettings;
   timeZones: readonly Option[];
+  /** The verified phone (masked) and whether the org may text it (1366). */
+  sms: { readonly phone: string | null; readonly mayText: boolean };
 }) {
   const t = useCopy();
   const [state, action, pending] = useActionState(saveMyNotificationsAction, INITIAL);
@@ -218,6 +221,18 @@ export function MyNotificationsForm({
             )),
         )}
         <p className="m-0 text-text-13 text-text-secondary">{t("mine.smsNote")}</p>
+        {sms.phone === null ? (
+          <p className="m-0 text-text-13 text-text-secondary">{t("mine.smsNoPhone")}</p>
+        ) : (
+          <>
+            <input type="hidden" name="smsConsentWas" value={sms.mayText ? "on" : "off"} />
+            <Checkbox
+              name="smsConsent"
+              defaultChecked={sms.mayText}
+              label={t("mine.smsConsent", { phone: sms.phone })}
+            />
+          </>
+        )}
       </section>
 
       <section aria-labelledby="my-notifications-quiet" className="flex flex-col gap-12">

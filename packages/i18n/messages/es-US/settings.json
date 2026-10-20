@@ -648,7 +648,8 @@
       "time_zone_unknown": "Elige una zona horaria de la lista.",
       "denied": "No puedes cambiar esta configuración.",
       "invalid": "Revisa los campos marcados.",
-      "unexpected": "No se guardó la configuración. Inténtalo de nuevo."
+      "unexpected": "No se guardó la configuración. Inténtalo de nuevo.",
+      "sms_phone_unverified": "Verifica un número de teléfono en tu cuenta antes de activar los mensajes de texto."
     },
     "fieldErrors": {
       "invalid": "Escribe un valor válido.",
@@ -668,7 +669,9 @@
       "timeZone": "Zona horaria",
       "digest": "Resumen por correo electrónico",
       "digestHelp": "Reúne en un solo mensaje el correo que no es urgente.",
-      "digestHour": "Hora del resumen"
+      "digestHour": "Hora del resumen",
+      "smsNoPhone": "Agrega y verifica un número de teléfono en tu cuenta para recibir mensajes de texto.",
+      "smsConsent": "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda."
     },
     "org": {
       "formLabel": "Valores predeterminados de notificaciones de la organización",

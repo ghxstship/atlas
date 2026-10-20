@@ -132,6 +132,12 @@ None. The site is built from the repository and the OpenAPI document.
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                      |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310 |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                |
+| `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                 | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on   |
+| `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                 | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                      |
+| `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID`       | `<32 hex characters>`; the 10DLC Messaging Service, `MG<32 hex characters>`                         |
+| `XOS_SMS_HELP_CONTACT`                                    | The mailbox or page HELP replies name (OWNER_INPUTS item 6)                                         |
+| `XOS_SMS_ALLOWLIST`, `XOS_SMS_DELIVER_TO_ANY`             | `XOS_SMS_DELIVER_TO_ANY=true` only in production, after **OWNER** approves real-recipient SMS       |
+| `XOS_SMS_WEBHOOK_URL`                                     | Only when Twilio calls `sms-webhook` through another host; defaults to the function's own URL       |
 
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are provided to functions by Supabase. The worker schedules read the service role key from Vault (`xos_worker_key`).
 
@@ -324,6 +330,38 @@ The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the s
 - `400` about contextual translation: set `google.contextualGlossary` to `false` in `packages/i18n/translation/config.json` and run again.
 - Many strings failed with "Google's markup did not survive": the model is dropping the masking spans. Switch to NMT as above; failed strings are retried and nothing broken was written.
 - Strings listed as failed in `docs/i18n/translate-<locale>.md` kept their value (or the en-US text where they had none) and are retried on the next run.
+
+## Push and SMS (OWNER)
+
+`notification-dispatch` (every minute) sends email, push and SMS deliveries and reads push receipts; `sms-webhook` takes Twilio's inbound messages and status callbacks (finding A65-012, migrations 1361 to 1363). Until the steps below are done both channels record instead of sending: deliveries are marked Sent with a `recorded-` provider id and nothing leaves the platform. Every secret is set with `supabase secrets set --project-ref <ref> NAME=...` from the owner's secret store; values never go into the repository, a ticket or a chat.
+
+### Push (Expo push service, ADR 0030)
+
+1. In the Expo project of Compass, upload the push credentials EAS asks for: an APNs key for iOS (`eas credentials`, iOS, Push Notifications) and the FCM V1 service account for Android. Release builds need the `aps-environment` entitlement set to production.
+2. Optional: turn on enhanced push security in the Expo project settings, create an access token for push, and set `EXPO_ACCESS_TOKEN`. Without enhanced security no token is needed.
+3. Set `XOS_PUSH_TRANSPORT=expo` on staging first. Register a device in a Compass staging build, submit a timesheet, and approve it from the push (journey 57).
+4. Check: `select message_status, count(*) from app.push_tickets group by 1;` shows Sent turning into Delivered after about 15 minutes. Bounced rows with `DeviceNotRegistered` mean uninstalled apps; their devices are revoked automatically.
+
+### SMS (Twilio with 10DLC, Section 14.5)
+
+1. **Twilio account.** Create the account, upgrade it from trial, and note the Account SID (`AC<32 hex characters>`) and the Auth Token (`<32 hex characters>`).
+2. **10DLC brand.** In Twilio Console, Messaging, Regulatory Compliance, register the brand with the legal name, EIN, address and website of GHXSTSHIP Industries LLC (OWNER_INPUTS items 1 and 2). Brand vetting takes from minutes to a few days and has a one-time fee.
+3. **10DLC campaign.** Register one campaign under the brand:
+   - use case: Account Notifications (mixed if marketing is ever added; it is not today);
+   - description: "Work notifications from the organizations a person belongs to: shift changes, approvals, safety alerts.";
+   - sample messages: copy two rendered texts, for example "Northwind Live: Your shift Load in now starts Tuesday at 9:00 AM. https://atlas.example/northwind-live/inbox Reply STOP to opt out.";
+   - opt-in: "With a verified phone number, a person ticks the consent statement in Personal settings, Notifications (it names the number, message frequency, rates, STOP and HELP); each consent is recorded per organization (app.sms_consent_events, migration 1366)." Attach a screenshot of that page;
+   - opt-out STOP, help HELP, with the replies in `packages/i18n/messages/en-US/email.json` under `sms`.
+     Campaign review takes days to weeks and has a monthly fee per campaign.
+4. **Messaging Service.** Create a Messaging Service, add the 10DLC number(s) to its sender pool, attach the campaign, and note its SID (`MG<32 hex characters>`). Under Integration, set "A message comes in" to `https://<project-ref>.supabase.co/functions/v1/sms-webhook` (HTTP POST). Keep Twilio's default opt-out handling on; `sms-webhook` records STOP, START and HELP either way, and Twilio does not deliver a second reply.
+5. **Secrets.** Set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID` and `XOS_SMS_HELP_CONTACT`, then `XOS_SMS_TRANSPORT=twilio`. On staging also set `XOS_SMS_ALLOWLIST` to test numbers in E.164 (`+1<10 digits>`); production sets `XOS_SMS_DELIVER_TO_ANY=true` once the campaign is approved.
+6. **Check.** Text HELP to the number: the reply names `XOS_SMS_HELP_CONTACT`. Text STOP: `app.suppression_list` gets a `STOP` row for every org that texts the number. Text START: it is lifted.
+
+Texts go only to verified numbers with recorded consent in the org, never in quiet hours: the member's own, or 21:00 to 08:00 in their time zone when they set none.
+
+### Chat translation (off by default)
+
+The seam is built (Section 4.9) but no screen calls it yet, and the platform runs no provider until `XOS_MESSAGE_TRANSLATION=google`. When the owner approves Google Cloud Translation as a subprocessor for chat text: enable the API in the ADR 0037 project, grant the runtime's service account `roles/cloudtranslate.user` through Workload Identity Federation (`GOOGLE_WORKLOAD_IDENTITY_AUDIENCE`, `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`, no key), and add Google to the subprocessor list. Each org then turns on Settings, Communication, "Translate chat messages".
 
 ## Monitoring and alerting
 

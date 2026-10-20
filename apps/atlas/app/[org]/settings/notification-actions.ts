@@ -5,6 +5,7 @@ import {
   NOTIFICATION_MATRIX_CHANNELS,
   saveMyNotificationPreferences,
   saveMyNotificationSettings,
+  recordMySmsConsent,
   saveOrgNotificationDefaults,
   type DigestFrequency,
   type MatrixChannel,
@@ -30,7 +31,11 @@ export interface NotificationFormState {
 }
 
 const CATEGORY_CODES = new Set(NOTIFICATION_CATEGORIES.map((c) => c.code));
-const KNOWN_RULES = new Set(["notification_category_mandatory", "time_zone_unknown"]);
+const KNOWN_RULES = new Set([
+  "notification_category_mandatory",
+  "time_zone_unknown",
+  "sms_phone_unverified",
+]);
 
 function errorKey(error: DataError): string {
   if (error.kind === "refusal") return KNOWN_RULES.has(error.rule) ? error.rule : "unexpected";
@@ -70,7 +75,7 @@ function time(form: FormData, name: string): string | null | undefined {
 
 /**
  * Saves Personal settings, Notifications: the cells the member changed (unchanged cells keep following
- * the org default), then quiet hours, the time zone they are read in, and the digest.
+ * the org default), then quiet hours, the time zone they are read in, the digest, and consent to texts.
  */
 export async function saveMyNotificationsAction(
   _: NotificationFormState,
@@ -113,6 +118,13 @@ export async function saveMyNotificationsAction(
     digestHour: hour,
   });
   if (!settings.ok) return { error: errorKey(settings.error) };
+  // Express consent to texts (TCPA): recorded only when the person changed the box.
+  const consentWas = form.get("smsConsentWas");
+  const consent = form.get("smsConsent") === "on";
+  if ((consentWas === "on" || consentWas === "off") && consent !== (consentWas === "on")) {
+    const recorded = await recordMySmsConsent(ctx.viewer.db, ctx.org.id, consent);
+    if (!recorded.ok) return { error: errorKey(recorded.error) };
+  }
   revalidatePath(`/${ctx.org.slug}/me/notifications`);
   return { ok: true };
 }

@@ -648,7 +648,8 @@
       "time_zone_unknown": "Choose a time zone from the list.",
       "denied": "You cannot change these settings.",
       "invalid": "Check the highlighted fields.",
-      "unexpected": "The settings were not saved. Try again."
+      "unexpected": "The settings were not saved. Try again.",
+      "sms_phone_unverified": "Verify a phone number on your account before turning on texts."
     },
     "fieldErrors": {
       "invalid": "Enter a valid value.",
@@ -668,7 +669,9 @@
       "timeZone": "Time zone",
       "digest": "Email digest",
       "digestHelp": "Gathers email that is not urgent into one message.",
-      "digestHour": "Digest time"
+      "digestHour": "Digest time",
+      "smsNoPhone": "Add and verify a phone number on your account to receive texts.",
+      "smsConsent": "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help."
     },
     "org": {
       "formLabel": "Organization notification defaults",

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   getMyNotificationMatrix,
   getMyNotificationSettings,
+  getMySmsStatus,
   getOrgNotificationDefaults,
+  recordMySmsConsent,
   saveMyNotificationPreferences,
   saveMyNotificationSettings,
   saveOrgNotificationDefaults,
@@ -172,5 +174,34 @@ describe("notification settings (1362)", () => {
       [{ p_org_id: "org-1", p_defaults: input.defaults, p_mandatory: ["safety"] }],
     ]);
     expect((await saveOrgNotificationDefaults(db, "org-1", input)).ok).toBe(false);
+  });
+});
+
+describe("SMS consent (1366)", () => {
+  it("reads the verified phone and records consent", async () => {
+    const { db, calls } = commercialClient({
+      "rpc:my_sms_status": [
+        okResponse([{ phone_e164: "+15555550111", may_text: true }]),
+        okResponse([]),
+        errorResponse("08006", "down"),
+      ],
+      "rpc:record_my_sms_consent": [
+        okResponse(null),
+        errorResponse("XR001", "sms_phone_unverified: Verify a phone number"),
+      ],
+    });
+    expect(await getMySmsStatus(db, "org-1")).toEqual({
+      ok: true,
+      data: { phone: "+15555550111", mayText: true },
+    });
+    expect(await getMySmsStatus(db, "org-1")).toEqual({
+      ok: true,
+      data: { phone: null, mayText: false },
+    });
+    expect((await getMySmsStatus(db, "org-1")).ok).toBe(false);
+    expect(await recordMySmsConsent(db, "org-1", true)).toEqual({ ok: true, data: null });
+    expect(calls.at(-1)?.steps).toContainEqual(["args", [{ p_org_id: "org-1", p_consent: true }]]);
+    const refused = await recordMySmsConsent(db, "org-1", true);
+    expect(refused.ok ? null : refused.error.kind).toBe("refusal");
   });
 });

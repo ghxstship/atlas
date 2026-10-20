@@ -178,3 +178,29 @@ export async function saveOrgNotificationDefaults(
   if (error) return fail(toDataError(error));
   return ok(null);
 }
+
+export interface MySmsStatus {
+  /** The verified sign-in phone in E.164, or null without one. */
+  readonly phone: string | null;
+  /** The org may text it: consent recorded and no STOP. */
+  readonly mayText: boolean;
+}
+
+/** The member's verified phone and whether the org may text it (migration 1366). */
+export async function getMySmsStatus(db: XosClient, orgId: string): Promise<Result<MySmsStatus>> {
+  const { data, error } = await db.rpc("my_sms_status", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  const row = (data ?? [])[0];
+  return ok({ phone: row?.phone_e164 ?? null, mayText: row?.may_text === true });
+}
+
+/** Records the member's express consent to texts in the org, or its withdrawal (TCPA, Section 14.5). */
+export async function recordMySmsConsent(
+  db: XosClient,
+  orgId: string,
+  consent: boolean,
+): Promise<Result<null>> {
+  const { error } = await db.rpc("record_my_sms_consent", { p_org_id: orgId, p_consent: consent });
+  if (error) return fail(toDataError(error));
+  return ok(null);
+}

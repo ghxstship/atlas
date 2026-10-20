@@ -53876,6 +53876,13 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
+      my_sms_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          may_text: boolean;
+          phone_e164: string;
+        }[];
+      };
       my_subscribable_accounts: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -54242,6 +54249,7 @@ export type Database = {
         };
         Returns: string;
       };
+      record_my_sms_consent: { Args: { p_consent: boolean; p_org_id: string }; Returns: undefined };
       record_notification_delivery: {
         Args: {
           p_delivery_id: string;

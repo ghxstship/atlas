@@ -40,6 +40,10 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   const mine = page.getByRole("form", { name: "Your notification settings" });
   await expect(mine.getByRole("heading", { name: "What reaches you" })).toBeVisible();
+  // Texts need a verified phone before consent can be given (Section 14.5).
+  await expect(
+    mine.getByText("Add and verify a phone number on your account to receive texts."),
+  ).toBeVisible();
   await expectAccessible(page);
   await expect(
     mine.getByRole("checkbox", { name: "Feed by Email", exact: true }),

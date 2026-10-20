@@ -3,6 +3,10 @@
  * runs against a fake transport: nothing here reaches Expo, Twilio or Google.
  */
 import { createHmac } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { hasMessage } from "@xos/email";
+import { locales } from "@xos/i18n";
+import { NOTIFICATION_KINDS } from "@xos/schemas/notifications";
 import { describe, expect, it } from "vitest";
 import {
   EXPO_PUSH_RECEIPTS_URL,
@@ -107,6 +111,32 @@ const NOTIFICATION_ID = "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f";
 const noSleep = () => Promise.resolve();
 
 describe("notification copy on every channel (Section 3.15)", () => {
+  it("has a subject and a body for every registry kind in every locale, and SMS replies", () => {
+    for (const locale of locales) {
+      for (const k of NOTIFICATION_KINDS) {
+        expect(hasMessage(locale, k.copy.subject), `${locale} ${k.kind}`).toBe(true);
+        expect(hasMessage(locale, k.copy.body), `${locale} ${k.kind}`).toBe(true);
+      }
+      for (const key of ["sms.message", "sms.help", "sms.stop", "sms.start"])
+        expect(hasMessage(locale, key), `${locale} ${key}`).toBe(true);
+    }
+  });
+
+  it("uses only push categories Compass registers with their actions (ADR 0030)", () => {
+    const compass = readFileSync(
+      new URL("../../../apps/compass/src/domain/notifications.ts", import.meta.url),
+      "utf8",
+    );
+    const registered = [...compass.matchAll(/export const \w+_CATEGORY = "([a-z_]+)"/g)].map(
+      (m) => m[1],
+    );
+    const used = [
+      ...new Set(NOTIFICATION_KINDS.flatMap((k) => (k.pushCategory ? [k.pushCategory] : []))),
+    ];
+    expect(used.length).toBeGreaterThan(0);
+    for (const category of used) expect(registered).toContain(category);
+  });
+
   it("renders a kind's subject and body from the email catalog in the recipient's locale", () => {
     const args = { actorName: "Bob Okafor", title: "Rigging rental" };
     expect(notificationText("approval.requested", args, "en-US", "UTC")).toEqual({
