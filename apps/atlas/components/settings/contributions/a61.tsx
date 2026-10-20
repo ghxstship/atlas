@@ -96,13 +96,13 @@ async function PartnerPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
-/** Active external engagements of the org now, read under the reader's row level security. */
+/** Open external engagements of the org (onboarding to closing), read under row level security. */
 async function activeEngagements(ctx: SettingsPanelProps["ctx"]): Promise<number | null> {
   const { count, error } = await untyped(ctx.viewer.db)
     .from("engagement_board")
     .select("engagement_id", { count: "exact", head: true })
     .eq("org_id", ctx.org.id)
-    .eq("engagement_state", "Active");
+    .in("engagement_state", ["Onboarding", "Blocked", "Active", "Closing"]);
   return error ? null : (count ?? 0);
 }
 

@@ -1185,7 +1185,7 @@
       "seats": "Asientos",
       "field": "Miembros de campo",
       "projects": "Proyectos activos",
-      "engagements": "Contrataciones externas activas",
+      "engagements": "Contrataciones externas abiertas",
       "unlimited": "{used} (sin límite en este plan)",
       "ofLimit": "{used} de {limit}",
       "members": "Ver miembros",

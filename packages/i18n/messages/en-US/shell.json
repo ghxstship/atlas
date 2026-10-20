@@ -1185,7 +1185,7 @@
       "seats": "Seats",
       "field": "Field members",
       "projects": "Active projects",
-      "engagements": "Active external engagements",
+      "engagements": "Open external engagements",
       "unlimited": "{used} (no limit on this plan)",
       "ofLimit": "{used} of {limit}",
       "members": "View members",
