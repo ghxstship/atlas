@@ -7,6 +7,7 @@ import { buttonClass } from "../Button/Button.tsx";
 import { Avatar } from "../Avatar/Avatar.tsx";
 import { PropertyChip, RecordKindChip } from "../Chips/Chips.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
+import { ScrollRegion } from "../Layout/ScrollRegion.tsx";
 import { type BoardProps, type Card } from "./Views.types.ts";
 
 /**
@@ -96,73 +97,76 @@ export function Board({
     if (fromState && toState && from !== to) onMove?.(key, fromState, toState);
   };
 
+  // Columns that do not fit scroll sideways in a region whose cut-off edge fades (A59-012).
   return (
-    <div className="flex items-start gap-12 overflow-x-auto max-w-full">
-      {cols.map((col, ci) => (
-        <section
-          key={col.state}
-          aria-label={col.label}
-          onDragOver={readOnly ? undefined : (e) => e.preventDefault()}
-          onDrop={readOnly ? undefined : (e) => onDrop(e, ci)}
-          className="flex flex-none flex-col gap-8 w-(--ui-board-col) p-8 rounded-card bg-bg-surface"
-        >
-          <header className="flex items-center gap-6 p-4">
-            <StateIcon state={col.state} />
-            <h3 className="m-0 text-text-13 font-semibold">{col.label}</h3>
-            <span className="text-text-secondary tabular-nums">{col.cards.length}</span>
-          </header>
-          {col.cards.map((card) => (
-            <article
-              key={card.key}
-              ref={(el) => {
-                if (el) cardRefs.current.set(card.key, el);
-                else cardRefs.current.delete(card.key);
-              }}
-              role="button"
-              tabIndex={0}
-              aria-pressed={held?.key === card.key ? true : undefined}
-              draggable={!readOnly}
-              onDragStart={(e) => e.dataTransfer.setData("text/plain", `${card.key}|${ci}`)}
-              onKeyDown={(e) => onCardKey(e, card, ci)}
-              onDoubleClick={() => onOpen?.(card.key)}
-              className={cx(
-                "flex flex-col gap-8 p-12 rounded-card border border-border-subtle bg-bg-raised",
-                "hover:border-border-strong aria-pressed:border-accent aria-pressed:ring-(length:--stroke-width-focus) aria-pressed:ring-accent",
-                readOnly ? "cursor-pointer" : "cursor-grab",
-                "forced-colors:border-[CanvasText]",
-              )}
-            >
-              <div className="flex items-center justify-between gap-6">
-                <span className="font-mono text-text-12 text-text-secondary">{card.key}</span>
-                {card.owner ? <Avatar name={card.owner} /> : null}
-              </div>
-              <span>{card.title}</span>
-              {card.meta ? (
-                <span className="text-text-12 text-text-secondary">{card.meta}</span>
-              ) : null}
-              {card.kind || card.due ? (
-                <div className="flex flex-wrap items-center gap-4">
-                  {card.kind ? <RecordKindChip kind={card.kind} /> : null}
-                  {card.due ? <PropertyChip icon="Calendar" value={card.due} /> : null}
+    <ScrollRegion label={t("scroll.region")}>
+      <div className="flex items-start gap-12 w-max min-w-full">
+        {cols.map((col, ci) => (
+          <section
+            key={col.state}
+            aria-label={col.label}
+            onDragOver={readOnly ? undefined : (e) => e.preventDefault()}
+            onDrop={readOnly ? undefined : (e) => onDrop(e, ci)}
+            className="flex flex-none flex-col gap-8 w-(--ui-board-col) p-8 rounded-card bg-bg-surface"
+          >
+            <header className="flex items-center gap-6 p-4">
+              <StateIcon state={col.state} />
+              <h3 className="m-0 text-text-13 font-semibold">{col.label}</h3>
+              <span className="text-text-secondary tabular-nums">{col.cards.length}</span>
+            </header>
+            {col.cards.map((card) => (
+              <article
+                key={card.key}
+                ref={(el) => {
+                  if (el) cardRefs.current.set(card.key, el);
+                  else cardRefs.current.delete(card.key);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-pressed={held?.key === card.key ? true : undefined}
+                draggable={!readOnly}
+                onDragStart={(e) => e.dataTransfer.setData("text/plain", `${card.key}|${ci}`)}
+                onKeyDown={(e) => onCardKey(e, card, ci)}
+                onDoubleClick={() => onOpen?.(card.key)}
+                className={cx(
+                  "flex flex-col gap-8 p-12 rounded-card border border-border-subtle bg-bg-raised",
+                  "hover:border-border-strong aria-pressed:border-accent aria-pressed:ring-(length:--stroke-width-focus) aria-pressed:ring-accent",
+                  readOnly ? "cursor-pointer" : "cursor-grab",
+                  "forced-colors:border-[CanvasText]",
+                )}
+              >
+                <div className="flex items-center justify-between gap-6">
+                  <span className="font-mono text-text-12 text-text-secondary">{card.key}</span>
+                  {card.owner ? <Avatar name={card.owner} /> : null}
                 </div>
-              ) : null}
-            </article>
-          ))}
-          {readOnly ? null : (
-            <button
-              type="button"
-              onClick={() => onAdd?.(col.state)}
-              className={cx(buttonClass("ghost"), "justify-start")}
-            >
-              <Icon name="Plus" size={14} />
-              {addLabel ?? t("board.add")}
-            </button>
-          )}
-        </section>
-      ))}
+                <span>{card.title}</span>
+                {card.meta ? (
+                  <span className="text-text-12 text-text-secondary">{card.meta}</span>
+                ) : null}
+                {card.kind || card.due ? (
+                  <div className="flex flex-wrap items-center gap-4">
+                    {card.kind ? <RecordKindChip kind={card.kind} /> : null}
+                    {card.due ? <PropertyChip icon="Calendar" value={card.due} /> : null}
+                  </div>
+                ) : null}
+              </article>
+            ))}
+            {readOnly ? null : (
+              <button
+                type="button"
+                onClick={() => onAdd?.(col.state)}
+                className={cx(buttonClass("ghost"), "justify-start")}
+              >
+                <Icon name="Plus" size={14} />
+                {addLabel ?? t("board.add")}
+              </button>
+            )}
+          </section>
+        ))}
+      </div>
       <span aria-live="assertive" className="sr-only">
         {announcement}
       </span>
-    </div>
+    </ScrollRegion>
   );
 }

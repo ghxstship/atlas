@@ -24,6 +24,7 @@ export {
   Input,
   OrgSwitcher,
   PageHeader,
+  ScrollRegion,
   Select,
   Sidebar,
   Switch,

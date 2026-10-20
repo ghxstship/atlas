@@ -91,7 +91,7 @@ export function Timeline({
         {/* The day grid scrolls sideways; the region takes keyboard focus when it overflows, so
             arrow keys reach the later dates (2.1.1). Its drawing stays hidden: the table above
             carries the data. */}
-        <ScrollRegion label={t("timeline.scroll", { label })} className="flex-1 min-w-0">
+        <ScrollRegion label={t("timeline.scroll", { label })} frameClassName="flex-1">
           <div aria-hidden="true">
             <div
               className="flex h-(--ui-shell-head) border-b border-border-subtle"
