@@ -1,4 +1,6 @@
+import { COMPASS_AURORA_ENTRY } from "@xos/ai/conversation";
 import { articlesForNode, helpLocale, isSpecificTo, searchArticles, type Article } from "@xos/help";
+import { isInternal } from "@xos/sync";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,8 +12,9 @@ import { Button, Card, ListRow, Screen, Text, TextField } from "../../src/ui";
 
 /**
  * Help (Section 11.16), opened from More or Settings: the articles for the screen the person was
- * using, the general articles, every article for their role, search, and Contact Support. Articles
- * ship inside the app, so Help reads the same offline.
+ * using, the general articles, every article for their role, search, the assistant for members (its
+ * screen says when the org has it off), and Contact Support. Articles ship inside the app, so Help
+ * reads the same offline.
  */
 export default function HelpScreen(): ReactElement {
   const { t, i18n } = useTranslation();
@@ -73,6 +76,17 @@ export default function HelpScreen(): ReactElement {
           </Card>
         </>
       )}
+      {resolved && isInternal(resolved.identity.audience) ? (
+        <Card>
+          <ListRow
+            testID="help-aurora"
+            icon="sparkles"
+            title={t(COMPASS_AURORA_ENTRY.labelKey)}
+            subtitle={t(COMPASS_AURORA_ENTRY.descriptionKey)}
+            onPress={() => router.push(COMPASS_AURORA_ENTRY.route as Href)}
+          />
+        </Card>
+      ) : null}
       <Button
         testID="help-contact"
         variant="secondary"
