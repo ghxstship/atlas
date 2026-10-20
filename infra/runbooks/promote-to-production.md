@@ -216,10 +216,12 @@ Vercel production URL of Atlas.
 
 Authentication, URL Configuration:
 
-| Setting       | Value                                                                                                                                              |
-| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Site URL      | `https://app.<domain>`                                                                                                                             |
-| Redirect URLs | `https://app.<domain>/auth/callback`, `https://gateway.<domain>/auth/callback`, each custom Gateway domain's `/auth/callback`, `compass://sign-in` |
+| Setting       | Value                                                                                                                                                    |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Site URL      | `https://app.<domain>`                                                                                                                                   |
+| Redirect URLs | `https://app.<domain>/auth/callback**`, `https://gateway.<domain>/auth/callback**`, each custom Gateway domain's `/auth/callback**`, `compass://sign-in` |
+
+Keep the `**` at the end of each callback. Atlas and Gateway return to `/auth/callback` with a query string (`?next=...` for invitations and the claim step, `&provider=google` for Sign in with Google, ADR 0036), and Supabase Auth matches the whole address: an exact entry refuses it and sends the person to the Site URL instead. Checked on a local Supabase Auth (v2.197.0): `.../auth/callback**` accepts the callback with any query string and still refuses other paths and other hosts. Addresses on the Site URL's own host are always accepted.
 
 Remove `localhost`, `127.0.0.1` and every Vercel preview URL: previews belong to the staging branch (step 14).
 
@@ -252,16 +254,17 @@ Rollback: switch the setting off.
 
 Match `supabase/config.toml`, except the local URLs:
 
-| Setting                                      | Value                                                                           |
-| -------------------------------------------- | ------------------------------------------------------------------------------- |
-| TOTP                                         | Enroll and verify on                                                            |
-| WebAuthn and passkeys                        | Enroll and verify on; relying party id `<domain>`; origins of Atlas and Gateway |
-| Phone MFA                                    | Off                                                                             |
-| Maximum enrolled factors                     | 10                                                                              |
-| Custom access token hook                     | On, `pg-functions://postgres/private/custom_access_token_hook`                  |
-| JWT expiry, refresh token rotation, reuse    | 3600 seconds, on, 10 seconds                                                    |
-| Sign-ups; anonymous sign-ins; manual linking | On; off; off                                                                    |
-| Double confirm email changes                 | On                                                                              |
+| Setting                                      | Value                                                                                                       |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| TOTP                                         | Enroll and verify on                                                                                        |
+| WebAuthn and passkeys                        | Enroll and verify on; relying party id `<domain>`; origins of Atlas and Gateway                             |
+| Phone MFA                                    | Off                                                                                                         |
+| Maximum enrolled factors                     | 10                                                                                                          |
+| Custom access token hook                     | On, `pg-functions://postgres/private/custom_access_token_hook`                                              |
+| JWT expiry, refresh token rotation, reuse    | 3600 seconds, on, 10 seconds                                                                                |
+| Sign-ups; anonymous sign-ins; manual linking | On; off; off                                                                                                |
+| Sign in with Google                          | As in `production.md`, "Sign in with Google (OWNER)", step 5, once the owner has created the Google clients |
+| Double confirm email changes                 | On                                                                                                          |
 
 `enable_confirmations` is off locally so tests can sign in at once. For production the owner decides whether new
 email sign-ups must confirm their address first; the recommendation is on.

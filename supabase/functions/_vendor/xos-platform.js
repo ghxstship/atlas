@@ -2659,6 +2659,17 @@ var compass_default$1 = {
     sendLink: "Email Me a Link",
     usePassword: "Use Password",
     useLink: "Use Email Link",
+    google: "Continue with Google",
+    or: "or",
+    googleCancelled:
+      "You left the Google sign-in before it finished. Try again, or use an email link.",
+    googleUnavailable:
+      "Google sign-in needs Google Play services on this device. Update them, or use an email link.",
+    googleFailed: "Google could not sign you in. Try again in a moment, or use an email link.",
+    emailNotVerified:
+      "The email address on that Google account is not verified yet. Open the confirmation link we sent to it, then try again.",
+    ssoRequired:
+      "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
     submit: "Sign In",
     linkSent: "Check {email} for a sign-in link. It opens Compass.",
     invalid: "That email and password do not match. Check both, or use an email link.",
@@ -6866,6 +6877,11 @@ var gateway_default$1 = {
       haveAccount: "Already have an account?",
       toSignIn: "Sign in",
     },
+    terms: {
+      title: "Accept the Worker Terms",
+      lead: "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
+      submit: "Continue",
+    },
     providers: {
       continueWith: "Continue with {provider}",
       google: "Google",
@@ -6905,6 +6921,16 @@ var gateway_default$1 = {
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
       provider_disabled: "That sign-in method is not turned on for Gateway yet. Use email instead.",
       link_invalid: "This link expired or was already used. Request a new one.",
+      oauth_cancelled:
+        "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      oauth_expired:
+        "This sign-in expired or was started in another browser. Start again on this page.",
+      provider_error:
+        "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      email_not_verified:
+        "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      sso_required:
+        "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
@@ -13529,6 +13555,16 @@ var shell_default$1 = {
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
       provider_disabled: "That sign-in method is not turned on for Atlas yet. Use email instead.",
       link_invalid: "This link expired or was already used. Request a new one.",
+      oauth_cancelled:
+        "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      oauth_expired:
+        "This sign-in expired or was started in another browser. Start again on this page.",
+      provider_error:
+        "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      email_not_verified:
+        "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      sso_required:
+        "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
@@ -18899,6 +18935,18 @@ var compass_default = {
     sendLink: "Enviarme un enlace",
     usePassword: "Usar contraseña",
     useLink: "Usar enlace",
+    google: "Continuar con Google",
+    or: "o",
+    googleCancelled:
+      "Saliste del inicio de sesión con Google antes de terminar. Vuelve a intentarlo o usa un enlace por correo.",
+    googleUnavailable:
+      "Para iniciar sesión con Google, este dispositivo necesita los servicios de Google Play. Actualízalos o usa un enlace por correo.",
+    googleFailed:
+      "Google no pudo iniciar tu sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+    emailNotVerified:
+      "El correo de esa cuenta de Google aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+    ssoRequired:
+      "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
     submit: "Iniciar sesión",
     linkSent: "Revisa {email}: te enviamos un enlace que abre Compass.",
     invalid: "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace por correo.",
@@ -23070,6 +23118,11 @@ var gateway_default = {
       haveAccount: "¿Ya tienes una cuenta?",
       toSignIn: "Iniciar sesión",
     },
+    terms: {
+      title: "Acepta los Términos para trabajadores",
+      lead: "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
+      submit: "Continuar",
+    },
     providers: {
       continueWith: "Continuar con {provider}",
       google: "Google",
@@ -23111,6 +23164,16 @@ var gateway_default = {
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       provider_disabled: "Ese método de acceso aún no está activado en Gateway. Usa tu correo.",
       link_invalid: "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      oauth_cancelled:
+        "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      oauth_expired:
+        "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      provider_error:
+        "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      email_not_verified:
+        "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      sso_required:
+        "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
@@ -29916,6 +29979,16 @@ var shell_default = {
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       provider_disabled: "Ese método de acceso aún no está activado en Atlas. Usa tu correo.",
       link_invalid: "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      oauth_cancelled:
+        "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      oauth_expired:
+        "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      provider_error:
+        "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      email_not_verified:
+        "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      sso_required:
+        "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",

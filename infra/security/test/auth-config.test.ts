@@ -59,3 +59,32 @@ describe("Supabase Auth settings (A22-010)", () => {
     expect(value("auth", "enable_anonymous_sign_ins")).toBe("false");
   });
 });
+
+describe("Sign in with Google (ADR 0036)", () => {
+  const google = (key: string) => value("auth.external.google", key);
+
+  it("reads the client ID and secret from the environment, never from the file", () => {
+    expect(google("client_id")).toBe('"env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"');
+    expect(google("secret")).toBe('"env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"');
+  });
+
+  it("returns from Google to this stack's Auth callback", () => {
+    expect(google("enabled")).toBe("true");
+    expect(google("redirect_uri")).toMatch(/^"http:\/\/127\.0\.0\.1:\d+\/auth\/v1\/callback"$/);
+    expect(google("redirect_uri")).toContain(`:${value("api", "port")}/`);
+    expect(google("email_optional")).toBe("false");
+  });
+
+  it("links a Google identity only through automatic linking of verified emails", () => {
+    // Manual linking would let a signed-in session attach any Google account to itself.
+    expect(value("auth", "enable_manual_linking")).toBe("false");
+    expect(value("auth", "enable_signup")).toBe("true");
+  });
+
+  it("keeps the custom access token hook, so Google sessions carry the active org claim", () => {
+    expect(value("auth.hook.custom_access_token", "enabled")).toBe("true");
+    expect(value("auth.hook.custom_access_token", "uri")).toBe(
+      '"pg-functions://postgres/private/custom_access_token_hook"',
+    );
+  });
+});
