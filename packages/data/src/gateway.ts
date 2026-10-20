@@ -65,10 +65,12 @@ export interface Engagement {
   readonly endDate: string | null;
   readonly state: EngagementState;
   readonly areas: readonly EngagementArea[];
+  /** IANA time zone of the project: the calendar the engagement's dates follow (1390). */
+  readonly projectTimeZone: string;
 }
 
 const ENGAGEMENT_COLUMNS =
-  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas";
+  "id, org_id, org_name, project_id, project_name, role_type, role_code, job_title, person_id, account_id, pay_basis, arrangement, rate_minor, rate_currency_code, start_date, end_date, engagement_state, areas, project_time_zone";
 
 function toEngagement(row: ExternalRow<"engagements">): Engagement {
   const id = req(row.id, "engagements.id");
@@ -92,6 +94,7 @@ function toEngagement(row: ExternalRow<"engagements">): Engagement {
     endDate: row.end_date,
     state: req(row.engagement_state, "engagements.engagement_state"),
     areas: (row.areas ?? []) as EngagementArea[],
+    projectTimeZone: req(row.project_time_zone, "engagements.project_time_zone"),
   };
 }
 

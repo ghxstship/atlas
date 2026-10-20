@@ -1,3 +1,4 @@
+import { addCalendarDays } from "@xos/data/calendar";
 import {
   APP_ENUMS,
   listEngagementDocuments,
@@ -23,14 +24,7 @@ import { signDocumentAction, submitOnboardingItemAction } from "@/lib/actions/en
 import { agreeSelfBillingAction, revokeSelfBillingAction } from "@/lib/actions/operations";
 import { hasArea, tabHref } from "@/lib/engagement";
 import { overviewRows, type OverviewRow } from "@/lib/engagement-state";
-import {
-  formatDate,
-  formatDateRange,
-  formatDateTime,
-  formatMoney,
-  isoDaysFromToday,
-  todayIso,
-} from "@/lib/format";
+import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
 import {
@@ -124,7 +118,7 @@ export async function OverviewTab({ view, t, locale, engagementKey }: TabProps) 
     return item ? [item] : [];
   });
   const toSign = documents?.ok ? documents.data.filter((d) => d.state === "Sent") : [];
-  const today = todayIso();
+  const today = view.today;
   const open = onboarding?.ok
     ? onboarding.data.filter((i) => onboardingStanding(i, today) !== "verified")
     : [];
@@ -282,7 +276,7 @@ export async function OnboardingTab({ view, t, locale, engagementKey }: TabProps
       />
     );
   }
-  const today = todayIso();
+  const today = view.today;
   const done = items.data.filter((i) => onboardingStanding(i, today) === "verified").length;
   return (
     <div className="flex flex-col gap-16">
@@ -439,8 +433,8 @@ export async function InvoicesTab({ view, t, locale, engagementKey }: TabProps) 
   if (!lines.ok) return <RegionError />;
   const agreement = selfBilling.data.find((a) => a.is_active);
   const currency = e.rateCurrency ?? "USD";
-  const today = todayIso();
-  const due = isoDaysFromToday(30);
+  const today = view.today;
+  const due = addCalendarDays(view.today, 30);
   return (
     <div className="flex flex-col gap-16">
       {invoices.data.length === 0 ? (

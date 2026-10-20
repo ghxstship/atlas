@@ -751,6 +751,7 @@ export type Database = {
           person_id: string | null;
           project_id: string | null;
           project_name: string | null;
+          project_time_zone: string | null;
           rate_currency_code: string | null;
           rate_minor: number | null;
           role_code: string | null;
