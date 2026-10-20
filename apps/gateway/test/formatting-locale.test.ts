@@ -28,8 +28,9 @@ const configFor = async (locale: string) => {
 };
 
 const AT = new Date("2026-10-08T14:30:00Z");
+type FormatLocale = Parameters<typeof createFormatter>[0]["locale"];
 const formatted = (locale: string) => {
-  const format = createFormatter({ locale, timeZone: "UTC" });
+  const format = createFormatter({ locale: locale as FormatLocale, timeZone: "UTC" });
   return [format.dateTime(AT, { dateStyle: "medium" }), format.number(1234.5)];
 };
 
