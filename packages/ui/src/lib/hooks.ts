@@ -1,4 +1,34 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
+
+const NARROW_QUERY = "(max-width: 47.999rem)";
+
+function subscribeNarrow(onChange: () => void): () => void {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return () => undefined;
+  }
+  const query = window.matchMedia(NARROW_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+function narrowNow(): boolean {
+  return typeof window.matchMedia === "function" && window.matchMedia(NARROW_QUERY).matches;
+}
+
+/**
+ * True below md (48rem, a phone). Server rendering and hydration see false, so a layout that
+ * switches on it renders the desktop markup first and swaps after hydration.
+ */
+export function useNarrow(): boolean {
+  return useSyncExternalStore(subscribeNarrow, narrowNow, () => false);
+}
 
 /** State that a parent may control (`value` given) or leave to the component (`defaultValue`). */
 export function useControllable<T>(

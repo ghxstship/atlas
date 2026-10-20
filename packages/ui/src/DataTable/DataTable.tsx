@@ -21,6 +21,7 @@ import type {
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
 import { useT } from "../lib/context.tsx";
+import { useNarrow } from "../lib/hooks.ts";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Money } from "../Forms/Forms.tsx";
 import { StateIcon } from "../StateIcon/StateIcon.tsx";
@@ -46,6 +47,13 @@ export type DataTableProps = Omit<ReferenceDataTableProps, "columns"> & {
   height?: string;
   /** Enter on a cell, or a double click, activates its row. */
   onRowActivate?: (row: Record<string, unknown>, index: number) => void;
+  /**
+   * Below md the table becomes stacked cards with the three most important fields (Section 11.6):
+   * these column keys, in order, the first as the card's title. By default the title is the first
+   * text column among the first four (a name rather than a code) and the other two of the first
+   * three follow. Pass false to keep the grid.
+   */
+  cardFields?: string[] | false;
 };
 
 /** A column as the grid lays it out: its id and label, current width and pinned position. */
@@ -212,6 +220,90 @@ const cellClass = cx(
   "px-12 border-b border-border-subtle whitespace-nowrap overflow-hidden text-ellipsis box-border",
 );
 
+/** A card's title (a plain-text column, so a name leads rather than a code) and two more fields. */
+function defaultCardFields(columns: DataTableColumn[]): DataTableColumn[] {
+  const title =
+    columns.slice(0, 4).find((c) => (c.type ?? "text") === "text") ?? columns[0] ?? null;
+  if (!title) return [];
+  return [title, ...columns.slice(0, 3).filter((c) => c !== title)].slice(0, 3);
+}
+
+/**
+ * The table as stacked cards below md (Section 11.6, A59-013): one card per row with its most
+ * important fields, the first as the card's title. A row that opens is a button, so a tap or Enter
+ * opens it as Enter on the grid does.
+ */
+function DataTableCards({
+  label,
+  caption,
+  fields,
+  rows,
+  totals,
+  totalsLabel,
+  onRowActivate,
+}: {
+  label: string;
+  caption: string | undefined;
+  fields: DataTableColumn[];
+  rows: Record<string, unknown>[];
+  totals: Record<string, unknown> | undefined;
+  totalsLabel: string;
+  onRowActivate: ((row: Record<string, unknown>, index: number) => void) | undefined;
+}): ReactElement {
+  const [first, ...rest] = fields;
+  const details = (values: Record<string, unknown>, columns: DataTableColumn[]) =>
+    columns.length > 0 ? (
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-12 gap-y-2 m-0 text-text-12">
+        {columns.map((c) => (
+          <div key={c.key} className="contents">
+            <dt className="text-text-secondary">{c.label}</dt>
+            <dd className="m-0 min-w-0 truncate" title={cellTitle(c, values[c.key])}>
+              <CellValue column={c} value={values[c.key]} />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    ) : null;
+  return (
+    <section aria-label={label} className="flex flex-col gap-8 min-w-0">
+      {caption ? <p className="m-0 text-text-13 font-semibold">{caption}</p> : null}
+      <ul className="flex flex-col gap-8 m-0 p-0 list-none">
+        {rows.map((row, index) => {
+          const title = first ? <CellValue column={first} value={row[first.key]} /> : null;
+          return (
+            <li
+              key={index}
+              className="flex flex-col gap-6 p-12 rounded-card border border-border-subtle bg-bg-surface"
+            >
+              {onRowActivate ? (
+                <button
+                  type="button"
+                  onClick={() => onRowActivate(row, index)}
+                  className="p-0 border-0 bg-transparent text-start text-text-14 font-medium text-text-primary cursor-pointer underline-offset-2 hover:underline pointer-coarse:min-h-target-coarse"
+                >
+                  {title}
+                </button>
+              ) : (
+                <span className="text-text-14 font-medium text-text-primary">{title}</span>
+              )}
+              {details(row, rest)}
+            </li>
+          );
+        })}
+      </ul>
+      {totals ? (
+        <div className="flex flex-col gap-4 px-12">
+          <p className="m-0 text-text-13 font-semibold">{totalsLabel}</p>
+          {details(
+            totals,
+            fields.filter((c) => c.key in totals),
+          )}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 /**
  * The table inside a ScrollRegion, virtualized with TanStack Virtual: a keyboard grid (arrow keys,
  * Home and End, Ctrl+Home and Ctrl+End, Page Up and Page Down, Enter activates the row), with
@@ -235,8 +327,10 @@ export function DataTable({
   virtualizeAbove = 100,
   height = "60vh",
   onRowActivate,
+  cardFields,
 }: DataTableProps): ReactElement {
   const t = useT();
+  const narrow = useNarrow();
   const dir = Direction.useDirection();
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cellRefs = useRef(new Map<string, HTMLTableCellElement>());
@@ -412,6 +506,25 @@ export function DataTable({
 
   const pinnedClass = (column: LaidColumn) => (column.pinned ? "z-sticky bg-bg-canvas" : undefined);
 
+  if (narrow && cardFields !== false) {
+    const fields = cardFields
+      ? cardFields
+          .map((key) => columns.find((c) => c.key === key))
+          .filter((c): c is DataTableColumn => c !== undefined)
+      : defaultCardFields(columns);
+    return (
+      <DataTableCards
+        label={label ?? caption ?? t("scroll.region")}
+        caption={caption}
+        fields={fields}
+        rows={rows}
+        totals={totals}
+        totalsLabel={totalsLabel ?? t("table.total")}
+        onRowActivate={onRowActivate}
+      />
+    );
+  }
+
   return (
     <ScrollRegion
       ref={scrollRef}
@@ -496,7 +609,11 @@ export function DataTable({
               <tr
                 key={item.index}
                 aria-rowindex={item.index + 2}
-                className={cx(ROW_CLASS[density], "hover:[&>td]:bg-bg-hover")}
+                className={cx(
+                  ROW_CLASS[density],
+                  "hover:[&>td]:bg-bg-hover",
+                  onRowActivate && "cursor-pointer",
+                )}
                 onDoubleClick={onRowActivate ? () => onRowActivate(row, item.index) : undefined}
               >
                 {leafColumns.map((cell, ci) => {
