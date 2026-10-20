@@ -1543,6 +1543,12 @@
             "maxLength": 300,
             "description": "Rendered summary key arguments.",
             "example": "Moved to Scheduled"
+          },
+          "domain_event_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the domain event the activity row shows, as webhooks and the outbox name it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -1557,7 +1563,8 @@
           "subject_urn",
           "project_id",
           "occurred_at",
-          "summary"
+          "summary",
+          "domain_event_id"
         ],
         "description": "A user-facing activity feed entry, separate from the compliance audit ledger."
       },
@@ -2385,7 +2392,38 @@
             "description": "Identifier of the standard operating procedure that governs the work.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           },
-          "team_code": { "anyOf": [{ "$ref": "#/components/schemas/TeamId" }, { "type": "null" }] }
+          "team_code": { "anyOf": [{ "$ref": "#/components/schemas/TeamId" }, { "type": "null" }] },
+          "assignee_membership_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the membership assigned to the record.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "description": "Memberships assigned to the record (app.record_assignments), oldest first.",
+            "example": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"]
+          },
+          "progress_pct": {
+            "type": ["number", "null"],
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Progress of a task record, as a percentage.",
+            "example": 40
+          },
+          "permit_identifier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Permit identifier the authority issued, on a permit record.",
+            "example": "BP-2027-0611"
+          },
+          "inspection_result_enum_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Inspection Result enumeration row (Standard Library) of an inspection record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
         },
         "required": [
           "id",
@@ -2417,7 +2455,11 @@
           "wbs_code",
           "description",
           "sop_id",
-          "team_code"
+          "team_code",
+          "assignee_membership_ids",
+          "progress_pct",
+          "permit_identifier",
+          "inspection_result_enum_id"
         ],
         "description": "A record of any of the 26 kinds. Kind-specific attributes live in 1:1 extension tables keyed by `record_id`."
       },
@@ -12522,6 +12564,18 @@
             "type": "boolean",
             "description": "Whether the entry was closed automatically and awaits review.",
             "example": false
+          },
+          "meal_out_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Effective time of the entry's first Break Start punch (meal out).",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "meal_in_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Effective time of the entry's last Break End punch (meal in).",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -12541,7 +12595,9 @@
           "engagement_id",
           "source",
           "auto_closed_at",
-          "needs_review"
+          "needs_review",
+          "meal_out_at",
+          "meal_in_at"
         ],
         "description": "A time entry. Entries cannot overlap for one person; forgotten clock-outs close at 16 hours and are flagged."
       },
@@ -16523,6 +16579,15 @@
           },
           "tier_code": {
             "anyOf": [{ "$ref": "#/components/schemas/TierCode" }, { "type": "null" }]
+          },
+          "actual_minor": {
+            "type": ["integer", "null"],
+            "description": "Approved and paid expenses posted to the line (app.budget_line_facts); null when unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 480000,
+            "format": "int64"
+          },
+          "account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
           }
         },
         "required": [
@@ -16547,7 +16612,9 @@
           "line_total_minor",
           "line_number",
           "phase_code",
-          "tier_code"
+          "tier_code",
+          "actual_minor",
+          "account_code"
         ],
         "description": "A budget line. A blank unit price is unpriced; zero is a claim. Fee and Contingency are line types."
       },
@@ -16562,6 +16629,12 @@
         "pattern": "^[0-9]000\\.[0-9]{2}\\.[0-9]{2}-[A-Z0-9]+-[0-9]+$",
         "description": "Catalog item identifier `{URID}-{ORG}-{SEQ}` (Section 3.6).",
         "example": "4000.01.01-XPMS-001"
+      },
+      "GlAccountCode": {
+        "type": "string",
+        "pattern": "^[0-9]{4}$",
+        "description": "GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).",
+        "example": "5400"
       },
       "BudgetLineCreate": {
         "type": "object",
@@ -17157,6 +17230,18 @@
             "maxLength": 500,
             "description": "Effect of the change on the client, as stated.",
             "example": "Adds a second stage to the run of show."
+          },
+          "approved_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the change order moved to Approved, from its transition ledger.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "approved_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who moved the change order to Approved.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -17177,7 +17262,9 @@
           "order_type_enum_id",
           "priced_by",
           "schedule_impact_days",
-          "client_impact"
+          "client_impact",
+          "approved_at",
+          "approved_by"
         ],
         "description": "A change order. An unpriced change order cannot be stored at zero; its requester cannot price and approve it alone."
       },
@@ -17388,6 +17475,15 @@
             "type": "boolean",
             "description": "Whether the line is deliberately free of charge.",
             "example": false
+          },
+          "account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
+          },
+          "cost_center_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the cost center (dimension 1) of the budget line the change revises.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -17403,7 +17499,9 @@
           "description",
           "quantity",
           "unit_price_minor",
-          "is_no_cost"
+          "is_no_cost",
+          "account_code",
+          "cost_center_id"
         ],
         "description": "A line of a change order."
       },
@@ -17957,12 +18055,6 @@
           "unit_basis"
         ],
         "description": "A line of a journal entry."
-      },
-      "GlAccountCode": {
-        "type": "string",
-        "pattern": "^[0-9]{4}$",
-        "description": "GL account code from the fixed chart in `xpms.dim_gl_account` (Section 3.11).",
-        "example": "5400"
       },
       "JournalLineCreate": {
         "type": "object",
@@ -20441,6 +20533,24 @@
             "description": "Shipping charged on the order. Integer minor units of the resource currency; null means unpriced, never zero.",
             "example": 15000,
             "format": "int64"
+          },
+          "sent_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the order moved to Sent (its issue date), from its transition ledger.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "invoiced_minor": {
+            "type": ["integer", "null"],
+            "description": "Subtotal of the invoices matched to the order; null when none is matched or one is unpriced. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 1250000,
+            "format": "int64"
+          },
+          "paid_minor": {
+            "type": ["integer", "null"],
+            "description": "Payments applied to the invoices matched to the order; null when none is matched. Integer minor units of the resource currency; null means unpriced, never zero.",
+            "example": 600000,
+            "format": "int64"
           }
         },
         "required": [
@@ -20459,7 +20569,10 @@
           "delivery_due_on",
           "payment_terms_days",
           "tax_minor",
-          "shipping_minor"
+          "shipping_minor",
+          "sent_at",
+          "invoiced_minor",
+          "paid_minor"
         ],
         "description": "A purchase order. Its creator cannot approve it; spend authority applies inside the approval RPC."
       },
@@ -21802,6 +21915,14 @@
             "format": "uuid",
             "description": "Identifier of the cost center (dimension 1) the vendor's costs post to unless a line says otherwise.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "bank_account_last4": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 4,
+            "pattern": "^[0-9]{4}$",
+            "description": "Last four digits of the vendor's most recent bank account; null when none is on file.",
+            "example": "4321"
           }
         },
         "required": [
@@ -21817,7 +21938,8 @@
           "payment_terms_days",
           "default_currency_code",
           "default_account_code",
-          "default_cost_center_id"
+          "default_cost_center_id",
+          "bank_account_last4"
         ],
         "description": "An organization in the vendor relationship with this org, with its counterparty type."
       },
@@ -23886,6 +24008,12 @@
             "format": "date-time",
             "description": "When the reporter filed it on the device, for a report queued offline.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "closed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the incident moved to Closed, from its transition ledger.",
+            "example": "2026-10-08T14:30:00Z"
           }
         },
         "required": [
@@ -23907,7 +24035,8 @@
           "reported_by",
           "closed_signed_off_by",
           "accuracy_m",
-          "device_reported_at"
+          "device_reported_at",
+          "closed_at"
         ],
         "description": "An incident with dispatch. A critical incident cannot be relabeled and closed in one statement; closing requires sign-off."
       },
@@ -27154,6 +27283,12 @@
             "format": "date",
             "description": "Last day of the engagement; defaults to the offer's or the opportunity's.",
             "example": "2026-10-08"
+          },
+          "counterparty_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the counterparty (vendor) the holder is engaged through; null when direct.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
           }
         },
         "required": [
@@ -27176,7 +27311,8 @@
           "pay_basis",
           "arrangement",
           "start_date",
-          "end_date"
+          "end_date",
+          "counterparty_id"
         ],
         "description": "An external relationship: a person or external account working for an org. It cannot become Active until every blocking onboarding item passes."
       },
@@ -30266,9 +30402,38 @@
             "maxLength": 20000,
             "description": "Note from the Bible.",
             "example": "Environment replaces the 3.0 label."
+          },
+          "executive_lead": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Executive lead of the department.",
+            "example": "Executive Producer"
+          },
+          "core_function": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Core function of the department.",
+            "example": "Governance, master project control & compliance"
+          },
+          "scope": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Scope of the department.",
+            "example": "Master operations & overall accountability"
           }
         },
-        "required": ["dept_code", "department", "source", "note"],
+        "required": [
+          "dept_code",
+          "department",
+          "source",
+          "note",
+          "executive_lead",
+          "core_function",
+          "scope"
+        ],
         "description": "A department class. Ten classes, always in numeric order."
       },
       "DeptCode": {
@@ -30356,9 +30521,10 @@
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
             "description": "Canon source of the row.",
             "example": "canon"
-          }
+          },
+          "xyz": { "anyOf": [{ "$ref": "#/components/schemas/Xyz" }, { "type": "null" }] }
         },
-        "required": ["cat_urid", "disc_code", "category", "source"],
+        "required": ["cat_urid", "disc_code", "category", "source", "xyz"],
         "description": "A category, the finest URID grain."
       },
       "CanonActPage": {
@@ -31641,9 +31807,39 @@
             "maxLength": 20000,
             "description": "Definition, in sentence case.",
             "example": "Designs and installs audiovisual systems."
+          },
+          "classification_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Classification code.",
+            "example": "CP-AVINT"
+          },
+          "vendor_class": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Vendor class.",
+            "example": "Class B"
+          },
+          "clearance_tier": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Clearance tier.",
+            "example": "Tier 2 - Technical Lead"
+          },
+          "default_account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
           }
         },
-        "required": ["counterparty_type", "definition"],
+        "required": [
+          "counterparty_type",
+          "definition",
+          "classification_code",
+          "vendor_class",
+          "clearance_tier",
+          "default_account_code"
+        ],
         "description": "A vendor counterparty type."
       },
       "CanonGlAccountPage": {
@@ -31688,9 +31884,22 @@
             "maxLength": 20000,
             "description": "Account description.",
             "example": "Environment class costs."
+          },
+          "normal_balance": {
+            "type": ["string", "null"],
+            "enum": ["Debit", "Credit", null],
+            "description": "Normal balance of the account's type: Debit or Credit.",
+            "example": "Debit"
           }
         },
-        "required": ["account_code", "account_name", "account_type", "tax_type", "description"],
+        "required": [
+          "account_code",
+          "account_name",
+          "account_type",
+          "tax_type",
+          "description",
+          "normal_balance"
+        ],
         "description": "A GL account in the fixed 23-account chart. Tenants cannot add accounts."
       },
       "CanonCostCenterTemplatePage": {
@@ -31772,9 +31981,12 @@
             "maxLength": 300,
             "description": "Default cost center (dimension 1) of the category.",
             "example": "Production"
+          },
+          "account_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
           }
         },
-        "required": ["cat_urid", "default_cost_center"],
+        "required": ["cat_urid", "default_cost_center", "account_code"],
         "description": "The GL account each category posts to."
       },
       "CanonUnitAliasPage": {
@@ -32054,6 +32266,22 @@
             "pattern": "^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$",
             "description": "Lifecycle state from the shared vocabulary.",
             "example": "Active"
+          },
+          "purchase_account": {
+            "anyOf": [{ "$ref": "#/components/schemas/GlAccountCode" }, { "type": "null" }]
+          },
+          "default_cost_center": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Default cost center (dimension 1) of the element.",
+            "example": "CC-CORP"
+          },
+          "external_ref": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "External reference of the element.",
+            "example": "TECH-VIDO-CAMR-001 · 5000.050.00"
           }
         },
         "required": [
@@ -32072,7 +32300,10 @@
           "lead_time_hours",
           "crew",
           "unspsc",
-          "lifecycle_state"
+          "lifecycle_state",
+          "purchase_account",
+          "default_cost_center",
+          "external_ref"
         ],
         "description": "A catalog element, the unit of the catalog."
       },
@@ -32476,6 +32707,34 @@
             "maxLength": 20000,
             "description": "Notes in the sheet.",
             "example": "Primary life safety and incident response"
+          },
+          "organization": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Organization as the sheet names it.",
+            "example": "GHXSTSHIP"
+          },
+          "project": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Project as the sheet names it.",
+            "example": "CSMIA26"
+          },
+          "file_size": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "File size as the sheet gives it.",
+            "example": "48.5 MB"
+          },
+          "storage_url": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Where the file is stored, as the sheet gives it.",
+            "example": "https://files.example/doc-001.pdf"
           }
         },
         "required": [
@@ -32491,7 +32750,11 @@
           "category",
           "sub_category",
           "status",
-          "notes"
+          "notes",
+          "organization",
+          "project",
+          "file_size",
+          "storage_url"
         ],
         "description": "A document and asset library entry. Standard Library row, copied into each new org as editable org data."
       },
@@ -33157,6 +33420,20 @@
             "maxLength": 20000,
             "description": "Notes in the sheet.",
             "example": "Primary life safety and incident response"
+          },
+          "organization": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Organization as the sheet names it.",
+            "example": "GHXSTSHIP"
+          },
+          "project": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Project as the sheet names it.",
+            "example": "CSMIA26"
           }
         },
         "required": [
@@ -33176,7 +33453,9 @@
           "category",
           "sub_category",
           "status",
-          "notes"
+          "notes",
+          "organization",
+          "project"
         ],
         "description": "A standard operating procedure. Standard Library row, copied into each new org as editable org data."
       },
@@ -35911,6 +36190,13 @@
             "format": "date-time",
             "description": "When the handle last changed; null until the first change. Set by the database.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "preferred_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Name the person goes by.",
+            "example": "Alex"
           }
         },
         "required": [
@@ -35926,7 +36212,8 @@
           "visibility",
           "search_indexing",
           "handle",
-          "handle_changed_at"
+          "handle_changed_at",
+          "preferred_name"
         ],
         "description": "A person's profile page, owned by the person. New profiles start Private."
       },
@@ -36037,6 +36324,13 @@
             "pattern": "^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$",
             "description": "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
             "example": "northwind-live"
+          },
+          "preferred_name": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Name the person goes by.",
+            "example": "Alex"
           }
         },
         "description": "Fields accepted when updating a PersonProfile. Omitted fields are unchanged."
@@ -36109,6 +36403,18 @@
             "format": "date-time",
             "description": "When the handle last changed; null until the first change. Set by the database.",
             "example": "2026-10-08T14:30:00Z"
+          },
+          "website_url": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Website of the organization; https only.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
+          },
+          "contact_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Contact email of the organization, stored in lowercase.",
+            "example": "alex.rivera@northwindlive.example"
           }
         },
         "required": [
@@ -36120,7 +36426,9 @@
           "visibility",
           "search_indexing",
           "handle",
-          "handle_changed_at"
+          "handle_changed_at",
+          "website_url",
+          "contact_email"
         ],
         "description": "An organization's profile page. New organizations start Network."
       },
@@ -36171,6 +36479,18 @@
             "pattern": "^[a-z0-9]([a-z0-9-]{1,38}[a-z0-9])$",
             "description": "Unique handle for /u/{handle} or /c/{handle}: 3 to 40 lowercase letters, digits and single hyphens. Changeable once every 30 days; the old handle redirects for 90 days.",
             "example": "northwind-live"
+          },
+          "website_url": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "Website of the organization; https only.",
+            "example": "https://northwindlive.example/files/site-plan.pdf"
+          },
+          "contact_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Contact email of the organization, stored in lowercase.",
+            "example": "alex.rivera@northwindlive.example"
           }
         },
         "description": "Fields accepted when updating a OrganizationProfile. Omitted fields are unchanged."
@@ -47013,6 +47333,191 @@
         "required": ["template_id", "project_key", "name"],
         "description": "Fields accepted when creating a TemplateApplication."
       },
+      "ProjectAuthorityPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectAuthority" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectAuthority": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "service": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Responder service the agency provides.",
+            "example": "fire"
+          },
+          "agency": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Agency having jurisdiction.",
+            "example": "Miami-Dade Fire Rescue"
+          },
+          "contact": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "How to reach the agency.",
+            "example": "911"
+          }
+        },
+        "required": ["project_id", "service", "agency", "contact"],
+        "description": "An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none."
+      },
+      "CueCallPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CueCall" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "CueCall": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the cue call.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "cue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the cue the call belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "call_kind": {
+            "type": "string",
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+            "description": "Department making the call.",
+            "example": "Lighting"
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the department does on the cue.",
+            "example": "LX 14 GO, house to half."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "cue_id",
+          "call_kind",
+          "instruction"
+        ],
+        "description": "A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department."
+      },
+      "CueCallCreate": {
+        "type": "object",
+        "properties": {
+          "cue_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the cue the call belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "call_kind": {
+            "type": "string",
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+            "description": "Department making the call.",
+            "example": "Lighting"
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the department does on the cue.",
+            "example": "LX 14 GO, house to half."
+          }
+        },
+        "required": ["cue_id", "call_kind", "instruction"],
+        "description": "Fields accepted when creating a CueCall."
+      },
+      "CueCallUpdate": {
+        "type": "object",
+        "properties": {
+          "call_kind": {
+            "type": "string",
+            "enum": ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
+            "description": "Department making the call.",
+            "example": "Lighting"
+          },
+          "instruction": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What the department does on the cue.",
+            "example": "LX 14 GO, house to half."
+          }
+        },
+        "description": "Fields accepted when updating a CueCall. Omitted fields are unchanged."
+      },
       "GuestListEntryPage": {
         "type": "object",
         "properties": {
@@ -47612,6 +48117,103 @@
           }
         },
         "description": "Fields accepted when updating a RequiredAdditionalInsured. Omitted fields are unchanged."
+      },
+      "CanonStdEmergencyProtocolPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CanonStdEmergencyProtocol" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "CanonStdEmergencyProtocol": {
+        "type": "object",
+        "properties": {
+          "record_key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Record identifier of the protocol.",
+            "example": "EMG-001"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Radio code the protocol answers (xpms.emergency_code).",
+            "example": "CODE_RED"
+          },
+          "domain": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Operational domain the protocol applies to.",
+            "example": "Site Operations"
+          },
+          "department": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Department as the sheet names it.",
+            "example": "Security & Safety"
+          },
+          "category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Category as the sheet names it.",
+            "example": "Emergency Protocols"
+          },
+          "sub_category": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Sub-category as the sheet names it.",
+            "example": "Incident Response"
+          },
+          "steps": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CanonEmergencyProtocolStep" },
+            "description": "The protocol's steps (xpms.emergency_protocol_step), in order."
+          }
+        },
+        "required": [
+          "record_key",
+          "code",
+          "domain",
+          "department",
+          "category",
+          "sub_category",
+          "steps"
+        ],
+        "description": "An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps."
+      },
+      "CanonEmergencyProtocolStep": {
+        "type": "object",
+        "properties": {
+          "step_no": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Step number, from 1.",
+            "example": 1
+          },
+          "body": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "What to do; responder services appear as tokens such as {fire} (ruling D15).",
+            "example": "Contact {fire}."
+          }
+        },
+        "required": ["step_no", "body"],
+        "description": "One numbered step of an emergency protocol."
       },
       "ReportScheduleRecipientPage": {
         "type": "object",
@@ -58520,7 +59122,8 @@
                       "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "occurred_at": "2026-10-08T14:30:00Z",
-                      "summary": "Moved to Scheduled"
+                      "summary": "Moved to Scheduled",
+                      "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -58582,7 +59185,8 @@
                   "subject_urn": "urn:xpms:record:0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "occurred_at": "2026-10-08T14:30:00Z",
-                  "summary": "Moved to Scheduled"
+                  "summary": "Moved to Scheduled",
+                  "domain_event_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ActivityEvent" }
               }
@@ -59819,7 +60423,11 @@
                       "wbs_code": "1.2.1",
                       "description": "Rig the downstage truss.",
                       "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                      "team_code": "4000-T01"
+                      "team_code": "4000-T01",
+                      "assignee_membership_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                      "progress_pct": 40,
+                      "permit_identifier": "BP-2027-0611",
+                      "inspection_result_enum_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -59908,7 +60516,11 @@
                   "wbs_code": "1.2.1",
                   "description": "Rig the downstage truss.",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_code": "4000-T01"
+                  "team_code": "4000-T01",
+                  "assignee_membership_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "progress_pct": 40,
+                  "permit_identifier": "BP-2027-0611",
+                  "inspection_result_enum_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -59987,7 +60599,11 @@
                   "wbs_code": "1.2.1",
                   "description": "Rig the downstage truss.",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_code": "4000-T01"
+                  "team_code": "4000-T01",
+                  "assignee_membership_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "progress_pct": 40,
+                  "permit_identifier": "BP-2027-0611",
+                  "inspection_result_enum_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -60092,7 +60708,11 @@
                   "wbs_code": "1.2.1",
                   "description": "Rig the downstage truss.",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_code": "4000-T01"
+                  "team_code": "4000-T01",
+                  "assignee_membership_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "progress_pct": 40,
+                  "permit_identifier": "BP-2027-0611",
+                  "inspection_result_enum_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -60217,7 +60837,11 @@
                   "wbs_code": "1.2.1",
                   "description": "Rig the downstage truss.",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_code": "4000-T01"
+                  "team_code": "4000-T01",
+                  "assignee_membership_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "progress_pct": 40,
+                  "permit_identifier": "BP-2027-0611",
+                  "inspection_result_enum_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -60297,7 +60921,11 @@
                   "wbs_code": "1.2.1",
                   "description": "Rig the downstage truss.",
                   "sop_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
-                  "team_code": "4000-T01"
+                  "team_code": "4000-T01",
+                  "assignee_membership_ids": ["0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"],
+                  "progress_pct": 40,
+                  "permit_identifier": "BP-2027-0611",
+                  "inspection_result_enum_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Record" }
               }
@@ -75906,7 +76534,9 @@
                       "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "source": "Web",
                       "auto_closed_at": "2026-10-08T14:30:00Z",
-                      "needs_review": false
+                      "needs_review": false,
+                      "meal_out_at": "2026-10-08T14:30:00Z",
+                      "meal_in_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -75973,7 +76603,9 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "source": "Web",
                   "auto_closed_at": "2026-10-08T14:30:00Z",
-                  "needs_review": false
+                  "needs_review": false,
+                  "meal_out_at": "2026-10-08T14:30:00Z",
+                  "meal_in_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/TimeEntry" }
               }
@@ -76044,7 +76676,9 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "source": "Web",
                   "auto_closed_at": "2026-10-08T14:30:00Z",
-                  "needs_review": false
+                  "needs_review": false,
+                  "meal_out_at": "2026-10-08T14:30:00Z",
+                  "meal_in_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/TimeEntry" }
               }
@@ -76110,7 +76744,9 @@
                   "engagement_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "source": "Web",
                   "auto_closed_at": "2026-10-08T14:30:00Z",
-                  "needs_review": false
+                  "needs_review": false,
+                  "meal_out_at": "2026-10-08T14:30:00Z",
+                  "meal_in_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/TimeEntry" }
               }
@@ -82504,7 +83140,9 @@
                       "line_total_minor": 108000,
                       "line_number": 1,
                       "phase_code": "SCP",
-                      "tier_code": "04"
+                      "tier_code": "04",
+                      "actual_minor": 480000,
+                      "account_code": "5400"
                     }
                   ],
                   "next_cursor": null
@@ -82585,7 +83223,9 @@
                   "line_total_minor": 108000,
                   "line_number": 1,
                   "phase_code": "SCP",
-                  "tier_code": "04"
+                  "tier_code": "04",
+                  "actual_minor": 480000,
+                  "account_code": "5400"
                 },
                 "schema": { "$ref": "#/components/schemas/BudgetLine" }
               }
@@ -82656,7 +83296,9 @@
                   "line_total_minor": 108000,
                   "line_number": 1,
                   "phase_code": "SCP",
-                  "tier_code": "04"
+                  "tier_code": "04",
+                  "actual_minor": 480000,
+                  "account_code": "5400"
                 },
                 "schema": { "$ref": "#/components/schemas/BudgetLine" }
               }
@@ -82748,7 +83390,9 @@
                   "line_total_minor": 108000,
                   "line_number": 1,
                   "phase_code": "SCP",
-                  "tier_code": "04"
+                  "tier_code": "04",
+                  "actual_minor": 480000,
+                  "account_code": "5400"
                 },
                 "schema": { "$ref": "#/components/schemas/BudgetLine" }
               }
@@ -83399,7 +84043,9 @@
                       "order_type_enum_id": "ENM-092",
                       "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "schedule_impact_days": 2,
-                      "client_impact": "Adds a second stage to the run of show."
+                      "client_impact": "Adds a second stage to the run of show.",
+                      "approved_at": "2026-10-08T14:30:00Z",
+                      "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -83468,7 +84114,9 @@
                   "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "schedule_impact_days": 2,
-                  "client_impact": "Adds a second stage to the run of show."
+                  "client_impact": "Adds a second stage to the run of show.",
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -83535,7 +84183,9 @@
                   "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "schedule_impact_days": 2,
-                  "client_impact": "Adds a second stage to the run of show."
+                  "client_impact": "Adds a second stage to the run of show.",
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -83614,7 +84264,9 @@
                   "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "schedule_impact_days": 2,
-                  "client_impact": "Adds a second stage to the run of show."
+                  "client_impact": "Adds a second stage to the run of show.",
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -83696,7 +84348,9 @@
                   "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "schedule_impact_days": 2,
-                  "client_impact": "Adds a second stage to the run of show."
+                  "client_impact": "Adds a second stage to the run of show.",
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -83764,7 +84418,9 @@
                   "order_type_enum_id": "ENM-092",
                   "priced_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "schedule_impact_days": 2,
-                  "client_impact": "Adds a second stage to the run of show."
+                  "client_impact": "Adds a second stage to the run of show.",
+                  "approved_at": "2026-10-08T14:30:00Z",
+                  "approved_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrder" }
               }
@@ -83821,7 +84477,9 @@
                       "description": "Bar build and dressing",
                       "quantity": 24,
                       "unit_price_minor": 1200000,
-                      "is_no_cost": false
+                      "is_no_cost": false,
+                      "account_code": "5400",
+                      "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -83885,7 +84543,9 @@
                   "description": "Bar build and dressing",
                   "quantity": 24,
                   "unit_price_minor": 1200000,
-                  "is_no_cost": false
+                  "is_no_cost": false,
+                  "account_code": "5400",
+                  "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrderLine" }
               }
@@ -83947,7 +84607,9 @@
                   "description": "Bar build and dressing",
                   "quantity": 24,
                   "unit_price_minor": 1200000,
-                  "is_no_cost": false
+                  "is_no_cost": false,
+                  "account_code": "5400",
+                  "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrderLine" }
               }
@@ -84022,7 +84684,9 @@
                   "description": "Bar build and dressing",
                   "quantity": 24,
                   "unit_price_minor": 1200000,
-                  "is_no_cost": false
+                  "is_no_cost": false,
+                  "account_code": "5400",
+                  "cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/ChangeOrderLine" }
               }
@@ -88638,7 +89302,10 @@
                       "delivery_due_on": "2026-10-08",
                       "payment_terms_days": 30,
                       "tax_minor": 4200,
-                      "shipping_minor": 15000
+                      "shipping_minor": 15000,
+                      "sent_at": "2026-10-08T14:30:00Z",
+                      "invoiced_minor": 1250000,
+                      "paid_minor": 600000
                     }
                   ],
                   "next_cursor": null
@@ -88706,7 +89373,10 @@
                   "delivery_due_on": "2026-10-08",
                   "payment_terms_days": 30,
                   "tax_minor": 4200,
-                  "shipping_minor": 15000
+                  "shipping_minor": 15000,
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "invoiced_minor": 1250000,
+                  "paid_minor": 600000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -88771,7 +89441,10 @@
                   "delivery_due_on": "2026-10-08",
                   "payment_terms_days": 30,
                   "tax_minor": 4200,
-                  "shipping_minor": 15000
+                  "shipping_minor": 15000,
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "invoiced_minor": 1250000,
+                  "paid_minor": 600000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -88848,7 +89521,10 @@
                   "delivery_due_on": "2026-10-08",
                   "payment_terms_days": 30,
                   "tax_minor": 4200,
-                  "shipping_minor": 15000
+                  "shipping_minor": 15000,
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "invoiced_minor": 1250000,
+                  "paid_minor": 600000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -88924,7 +89600,10 @@
                   "delivery_due_on": "2026-10-08",
                   "payment_terms_days": 30,
                   "tax_minor": 4200,
-                  "shipping_minor": 15000
+                  "shipping_minor": 15000,
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "invoiced_minor": 1250000,
+                  "paid_minor": 600000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -89003,7 +89682,10 @@
                   "delivery_due_on": "2026-10-08",
                   "payment_terms_days": 30,
                   "tax_minor": 4200,
-                  "shipping_minor": 15000
+                  "shipping_minor": 15000,
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "invoiced_minor": 1250000,
+                  "paid_minor": 600000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -89069,7 +89751,10 @@
                   "delivery_due_on": "2026-10-08",
                   "payment_terms_days": 30,
                   "tax_minor": 4200,
-                  "shipping_minor": 15000
+                  "shipping_minor": 15000,
+                  "sent_at": "2026-10-08T14:30:00Z",
+                  "invoiced_minor": 1250000,
+                  "paid_minor": 600000
                 },
                 "schema": { "$ref": "#/components/schemas/PurchaseOrder" }
               }
@@ -90951,7 +91636,8 @@
                       "payment_terms_days": 30,
                       "default_currency_code": "USD",
                       "default_account_code": "5400",
-                      "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "bank_account_last4": "4321"
                     }
                   ],
                   "next_cursor": null
@@ -91013,7 +91699,8 @@
                   "payment_terms_days": 30,
                   "default_currency_code": "USD",
                   "default_account_code": "5400",
-                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "bank_account_last4": "4321"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -91075,7 +91762,8 @@
                   "payment_terms_days": 30,
                   "default_currency_code": "USD",
                   "default_account_code": "5400",
-                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "bank_account_last4": "4321"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -91148,7 +91836,8 @@
                   "payment_terms_days": 30,
                   "default_currency_code": "USD",
                   "default_account_code": "5400",
-                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "bank_account_last4": "4321"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -91255,7 +91944,8 @@
                   "payment_terms_days": 30,
                   "default_currency_code": "USD",
                   "default_account_code": "5400",
-                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "default_cost_center_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "bank_account_last4": "4321"
                 },
                 "schema": { "$ref": "#/components/schemas/Vendor" }
               }
@@ -94545,7 +95235,8 @@
                       "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "accuracy_m": 8,
-                      "device_reported_at": "2026-10-08T14:30:00Z"
+                      "device_reported_at": "2026-10-08T14:30:00Z",
+                      "closed_at": "2026-10-08T14:30:00Z"
                     }
                   ],
                   "next_cursor": null
@@ -94617,7 +95308,8 @@
                   "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "accuracy_m": 8,
-                  "device_reported_at": "2026-10-08T14:30:00Z"
+                  "device_reported_at": "2026-10-08T14:30:00Z",
+                  "closed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -94685,7 +95377,8 @@
                   "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "accuracy_m": 8,
-                  "device_reported_at": "2026-10-08T14:30:00Z"
+                  "device_reported_at": "2026-10-08T14:30:00Z",
+                  "closed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -94768,7 +95461,8 @@
                   "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "accuracy_m": 8,
-                  "device_reported_at": "2026-10-08T14:30:00Z"
+                  "device_reported_at": "2026-10-08T14:30:00Z",
+                  "closed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -94851,7 +95545,8 @@
                   "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "accuracy_m": 8,
-                  "device_reported_at": "2026-10-08T14:30:00Z"
+                  "device_reported_at": "2026-10-08T14:30:00Z",
+                  "closed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -94929,7 +95624,8 @@
                   "reported_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "closed_signed_off_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "accuracy_m": 8,
-                  "device_reported_at": "2026-10-08T14:30:00Z"
+                  "device_reported_at": "2026-10-08T14:30:00Z",
+                  "closed_at": "2026-10-08T14:30:00Z"
                 },
                 "schema": { "$ref": "#/components/schemas/Incident" }
               }
@@ -99582,7 +100278,8 @@
                       "pay_basis": "Day Rate",
                       "arrangement": "Per Engagement",
                       "start_date": "2026-10-08",
-                      "end_date": "2026-10-08"
+                      "end_date": "2026-10-08",
+                      "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                     }
                   ],
                   "next_cursor": null
@@ -99652,7 +100349,8 @@
                   "pay_basis": "Day Rate",
                   "arrangement": "Per Engagement",
                   "start_date": "2026-10-08",
-                  "end_date": "2026-10-08"
+                  "end_date": "2026-10-08",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Engagement" }
               }
@@ -99721,7 +100419,8 @@
                   "pay_basis": "Day Rate",
                   "arrangement": "Per Engagement",
                   "start_date": "2026-10-08",
-                  "end_date": "2026-10-08"
+                  "end_date": "2026-10-08",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Engagement" }
               }
@@ -99802,7 +100501,8 @@
                   "pay_basis": "Day Rate",
                   "arrangement": "Per Engagement",
                   "start_date": "2026-10-08",
-                  "end_date": "2026-10-08"
+                  "end_date": "2026-10-08",
+                  "counterparty_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/Engagement" }
               }
@@ -104140,13 +104840,19 @@
                       "dept_code": "0000",
                       "department": "Executive",
                       "source": "canon",
-                      "note": "Environment replaces the 3.0 label."
+                      "note": "Environment replaces the 3.0 label.",
+                      "executive_lead": "Executive Producer",
+                      "core_function": "Governance, master project control & compliance",
+                      "scope": "Master operations & overall accountability"
                     },
                     {
                       "dept_code": "4000",
                       "department": "Environment",
                       "source": "canon",
-                      "note": "Environment replaces the 3.0 label."
+                      "note": "Environment replaces the 3.0 label.",
+                      "executive_lead": "Executive Producer",
+                      "core_function": "Governance, master project control & compliance",
+                      "scope": "Master operations & overall accountability"
                     }
                   ],
                   "next_cursor": null
@@ -104195,7 +104901,10 @@
                   "dept_code": "4000",
                   "department": "Environment",
                   "source": "canon",
-                  "note": "Environment replaces the 3.0 label."
+                  "note": "Environment replaces the 3.0 label.",
+                  "executive_lead": "Executive Producer",
+                  "core_function": "Governance, master project control & compliance",
+                  "scope": "Master operations & overall accountability"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonDepartment" }
               }
@@ -104342,13 +105051,15 @@
                       "cat_urid": "0000.01.01",
                       "disc_code": "0000.01",
                       "category": "Production Leadership",
-                      "source": "canon"
+                      "source": "canon",
+                      "xyz": "X"
                     },
                     {
                       "cat_urid": "0000.02.01",
                       "disc_code": "0000.02",
                       "category": "Production Accounting",
-                      "source": "canon"
+                      "source": "canon",
+                      "xyz": "X"
                     }
                   ],
                   "next_cursor": null
@@ -104397,7 +105108,8 @@
                   "cat_urid": "4000.01.01",
                   "disc_code": "4000.01",
                   "category": "Production Leadership",
-                  "source": "canon"
+                  "source": "canon",
+                  "xyz": "X"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonCategory" }
               }
@@ -106729,7 +107441,11 @@
                   "data": [
                     {
                       "counterparty_type": "AV Integrator",
-                      "definition": "Designs and installs audiovisual systems."
+                      "definition": "Designs and installs audiovisual systems.",
+                      "classification_code": "CP-AVINT",
+                      "vendor_class": "Class B",
+                      "clearance_tier": "Tier 2 - Technical Lead",
+                      "default_account_code": "5400"
                     }
                   ],
                   "next_cursor": null
@@ -106776,7 +107492,11 @@
               "application/json": {
                 "example": {
                   "counterparty_type": "AV Integrator",
-                  "definition": "Designs and installs audiovisual systems."
+                  "definition": "Designs and installs audiovisual systems.",
+                  "classification_code": "CP-AVINT",
+                  "vendor_class": "Class B",
+                  "clearance_tier": "Tier 2 - Technical Lead",
+                  "default_account_code": "5400"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonCounterpartyType" }
               }
@@ -106823,14 +107543,16 @@
                       "account_name": "Cash and Bank",
                       "account_type": "Asset",
                       "tax_type": "None",
-                      "description": "Environment class costs."
+                      "description": "Environment class costs.",
+                      "normal_balance": "Debit"
                     },
                     {
                       "account_code": "5400",
                       "account_name": "Environment",
                       "account_type": "Expense",
                       "tax_type": "Tax on Purchases",
-                      "description": "Environment class costs."
+                      "description": "Environment class costs.",
+                      "normal_balance": "Debit"
                     }
                   ],
                   "next_cursor": null
@@ -106880,7 +107602,8 @@
                   "account_name": "Environment",
                   "account_type": "Expense",
                   "tax_type": "Tax on Purchases",
-                  "description": "Environment class costs."
+                  "description": "Environment class costs.",
+                  "normal_balance": "Debit"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonGlAccount" }
               }
@@ -107019,8 +107742,16 @@
               "application/json": {
                 "example": {
                   "data": [
-                    { "cat_urid": "0000.01.01", "default_cost_center": "Production" },
-                    { "cat_urid": "0000.02.01", "default_cost_center": "Production" }
+                    {
+                      "cat_urid": "0000.01.01",
+                      "default_cost_center": "Production",
+                      "account_code": "5400"
+                    },
+                    {
+                      "cat_urid": "0000.02.01",
+                      "default_cost_center": "Production",
+                      "account_code": "5400"
+                    }
                   ],
                   "next_cursor": null
                 },
@@ -107064,7 +107795,11 @@
             },
             "content": {
               "application/json": {
-                "example": { "cat_urid": "4000.01.01", "default_cost_center": "Production" },
+                "example": {
+                  "cat_urid": "4000.01.01",
+                  "default_cost_center": "Production",
+                  "account_code": "5400"
+                },
                 "schema": { "$ref": "#/components/schemas/CanonCategoryGl" }
               }
             }
@@ -107497,7 +108232,10 @@
                       "lead_time_hours": 48,
                       "crew": "2 audio technicians",
                       "unspsc": "52161512",
-                      "lifecycle_state": "Active"
+                      "lifecycle_state": "Active",
+                      "purchase_account": "5400",
+                      "default_cost_center": "CC-CORP",
+                      "external_ref": "TECH-VIDO-CAMR-001 · 5000.050.00"
                     },
                     {
                       "element_id": "4000.01.01-XPMS-001",
@@ -107515,7 +108253,10 @@
                       "lead_time_hours": 48,
                       "crew": "2 audio technicians",
                       "unspsc": "52161512",
-                      "lifecycle_state": "Active"
+                      "lifecycle_state": "Active",
+                      "purchase_account": "5400",
+                      "default_cost_center": "CC-CORP",
+                      "external_ref": "TECH-VIDO-CAMR-001 · 5000.050.00"
                     }
                   ],
                   "next_cursor": null
@@ -107576,7 +108317,10 @@
                   "lead_time_hours": 48,
                   "crew": "2 audio technicians",
                   "unspsc": "52161512",
-                  "lifecycle_state": "Active"
+                  "lifecycle_state": "Active",
+                  "purchase_account": "5400",
+                  "default_cost_center": "CC-CORP",
+                  "external_ref": "TECH-VIDO-CAMR-001 · 5000.050.00"
                 },
                 "schema": { "$ref": "#/components/schemas/CanonElement" }
               }
@@ -108127,7 +108871,11 @@
                       "category": "5000.05.02",
                       "sub_category": "Overhead Rigging",
                       "status": "Active",
-                      "notes": "Primary life safety and incident response"
+                      "notes": "Primary life safety and incident response",
+                      "organization": "GHXSTSHIP",
+                      "project": "CSMIA26",
+                      "file_size": "48.5 MB",
+                      "storage_url": "https://files.example/doc-001.pdf"
                     }
                   ],
                   "next_cursor": null
@@ -108185,7 +108933,11 @@
                   "category": "5000.05.02",
                   "sub_category": "Overhead Rigging",
                   "status": "Active",
-                  "notes": "Primary life safety and incident response"
+                  "notes": "Primary life safety and incident response",
+                  "organization": "GHXSTSHIP",
+                  "project": "CSMIA26",
+                  "file_size": "48.5 MB",
+                  "storage_url": "https://files.example/doc-001.pdf"
                 },
                 "schema": { "$ref": "#/components/schemas/StdDocument" }
               }
@@ -108820,7 +109572,9 @@
                       "category": "5000.05.02",
                       "sub_category": "Overhead Rigging",
                       "status": "Active",
-                      "notes": "Primary life safety and incident response"
+                      "notes": "Primary life safety and incident response",
+                      "organization": "GHXSTSHIP",
+                      "project": "CSMIA26"
                     }
                   ],
                   "next_cursor": null
@@ -108882,7 +109636,9 @@
                   "category": "5000.05.02",
                   "sub_category": "Overhead Rigging",
                   "status": "Active",
-                  "notes": "Primary life safety and incident response"
+                  "notes": "Primary life safety and incident response",
+                  "organization": "GHXSTSHIP",
+                  "project": "CSMIA26"
                 },
                 "schema": { "$ref": "#/components/schemas/StdSop" }
               }
@@ -113364,7 +114120,8 @@
                       "visibility": "Private",
                       "search_indexing": false,
                       "handle": "northwind-live",
-                      "handle_changed_at": "2026-10-08T14:30:00Z"
+                      "handle_changed_at": "2026-10-08T14:30:00Z",
+                      "preferred_name": "Alex"
                     }
                   ],
                   "next_cursor": null
@@ -113429,7 +114186,8 @@
                   "visibility": "Private",
                   "search_indexing": false,
                   "handle": "northwind-live",
-                  "handle_changed_at": "2026-10-08T14:30:00Z"
+                  "handle_changed_at": "2026-10-08T14:30:00Z",
+                  "preferred_name": "Alex"
                 },
                 "schema": { "$ref": "#/components/schemas/PersonProfile" }
               }
@@ -113491,7 +114249,8 @@
                   "visibility": "Private",
                   "search_indexing": false,
                   "handle": "northwind-live",
-                  "handle_changed_at": "2026-10-08T14:30:00Z"
+                  "handle_changed_at": "2026-10-08T14:30:00Z",
+                  "preferred_name": "Alex"
                 },
                 "schema": { "$ref": "#/components/schemas/PersonProfile" }
               }
@@ -113538,7 +114297,8 @@
                 "country": "US",
                 "visibility": "Private",
                 "search_indexing": false,
-                "handle": "northwind-live"
+                "handle": "northwind-live",
+                "preferred_name": "Alex"
               },
               "schema": { "$ref": "#/components/schemas/PersonProfileUpdate" }
             }
@@ -113568,7 +114328,8 @@
                   "visibility": "Private",
                   "search_indexing": false,
                   "handle": "northwind-live",
-                  "handle_changed_at": "2026-10-08T14:30:00Z"
+                  "handle_changed_at": "2026-10-08T14:30:00Z",
+                  "preferred_name": "Alex"
                 },
                 "schema": { "$ref": "#/components/schemas/PersonProfile" }
               }
@@ -113622,7 +114383,9 @@
                       "visibility": "Private",
                       "search_indexing": false,
                       "handle": "northwind-live",
-                      "handle_changed_at": "2026-10-08T14:30:00Z"
+                      "handle_changed_at": "2026-10-08T14:30:00Z",
+                      "website_url": "https://northwindlive.example/files/site-plan.pdf",
+                      "contact_email": "alex.rivera@northwindlive.example"
                     }
                   ],
                   "next_cursor": null
@@ -113679,7 +114442,9 @@
                   "visibility": "Private",
                   "search_indexing": false,
                   "handle": "northwind-live",
-                  "handle_changed_at": "2026-10-08T14:30:00Z"
+                  "handle_changed_at": "2026-10-08T14:30:00Z",
+                  "website_url": "https://northwindlive.example/files/site-plan.pdf",
+                  "contact_email": "alex.rivera@northwindlive.example"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationProfile" }
               }
@@ -113737,7 +114502,9 @@
                   "visibility": "Private",
                   "search_indexing": false,
                   "handle": "northwind-live",
-                  "handle_changed_at": "2026-10-08T14:30:00Z"
+                  "handle_changed_at": "2026-10-08T14:30:00Z",
+                  "website_url": "https://northwindlive.example/files/site-plan.pdf",
+                  "contact_email": "alex.rivera@northwindlive.example"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationProfile" }
               }
@@ -113780,7 +114547,9 @@
                 "about": "Live event production for waterfront venues.",
                 "visibility": "Private",
                 "search_indexing": false,
-                "handle": "northwind-live"
+                "handle": "northwind-live",
+                "website_url": "https://northwindlive.example/files/site-plan.pdf",
+                "contact_email": "alex.rivera@northwindlive.example"
               },
               "schema": { "$ref": "#/components/schemas/OrganizationProfileUpdate" }
             }
@@ -113806,7 +114575,9 @@
                   "visibility": "Private",
                   "search_indexing": false,
                   "handle": "northwind-live",
-                  "handle_changed_at": "2026-10-08T14:30:00Z"
+                  "handle_changed_at": "2026-10-08T14:30:00Z",
+                  "website_url": "https://northwindlive.example/files/site-plan.pdf",
+                  "contact_email": "alex.rivera@northwindlive.example"
                 },
                 "schema": { "$ref": "#/components/schemas/OrganizationProfile" }
               }
@@ -130543,6 +131314,316 @@
         }
       }
     },
+    "/project-authorities": {
+      "get": {
+        "operationId": "projectAuthorities.list",
+        "tags": ["Projects"],
+        "x-xos-table": "app.project_authority",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["project_id", "service", "agency"], "numeric": false },
+        "summary": "List project authority rows",
+        "description": "An authority having jurisdiction over a project: a responder agency of the jurisdiction of the project's venue (xpms.jurisdiction_agency), one row per service and agency. A project without a venue has none. Returns a cursor page of project authority rows the caller may see. The default order is `project_id`, then `service`, then `agency` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project authority rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "service": "fire",
+                      "agency": "Miami-Dade Fire Rescue",
+                      "contact": "911"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectAuthorityPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/cue-calls": {
+      "get": {
+        "operationId": "cueCalls.list",
+        "tags": ["Show"],
+        "x-xos-table": "app.cue_calls",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List cue call rows",
+        "description": "A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns a cursor page of cue call rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of cue call rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "call_kind": "Lighting",
+                      "instruction": "LX 14 GO, house to half."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/CueCallPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "cueCalls.create",
+        "tags": ["Show"],
+        "x-xos-table": "app.cue_calls",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Create a cue call",
+        "description": "A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Creates a cue call. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "call_kind": "Lighting",
+                "instruction": "LX 14 GO, house to half."
+              },
+              "schema": { "$ref": "#/components/schemas/CueCallCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The created cue call.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "call_kind": "Lighting",
+                  "instruction": "LX 14 GO, house to half."
+                },
+                "schema": { "$ref": "#/components/schemas/CueCall" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/cue-calls/{id}": {
+      "get": {
+        "operationId": "cueCalls.get",
+        "tags": ["Show"],
+        "x-xos-table": "app.cue_calls",
+        "x-xos-capability": "show.run_of_show.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Get a cue call",
+        "description": "A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Returns one cue call with its `ETag`. A cue call the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the cue call.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the cue call.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cue call.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "call_kind": "Lighting",
+                  "instruction": "LX 14 GO, house to half."
+                },
+                "schema": { "$ref": "#/components/schemas/CueCall" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "patch": {
+        "operationId": "cueCalls.update",
+        "tags": ["Show"],
+        "x-xos-table": "app.cue_calls",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Update a cue call",
+        "description": "A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the cue call.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the cue call.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IfMatch" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "call_kind": "Lighting", "instruction": "LX 14 GO, house to half." },
+              "schema": { "$ref": "#/components/schemas/CueCallUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The updated cue call.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "cue_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "call_kind": "Lighting",
+                  "instruction": "LX 14 GO, house to half."
+                },
+                "schema": { "$ref": "#/components/schemas/CueCall" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "412": { "$ref": "#/components/responses/PreconditionFailed" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "428": { "$ref": "#/components/responses/PreconditionRequired" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "cueCalls.delete",
+        "tags": ["Show"],
+        "x-xos-table": "app.cue_calls",
+        "x-xos-capability": "show.run_of_show.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["show"] }],
+        "summary": "Delete a cue call",
+        "description": "A department's call on a cue (1180): the audio, lighting, video, special effects or stage instruction given when the cue fires. The Run of Show sheet holds one column per department. Soft-deletes the cue call: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the cue call.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the cue call.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The cue call moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/guest-list-entries": {
       "get": {
         "operationId": "guestListEntries.list",
@@ -131585,6 +132666,112 @@
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/canon/std/emergency-protocols": {
+      "get": {
+        "operationId": "canonStdEmergencyProtocols.list",
+        "tags": ["Canon"],
+        "x-xos-table": "xpms.emergency_protocol",
+        "x-xos-capability": "canon.taxonomy.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
+        "x-xos-order": { "by": ["record_key"], "numeric": false },
+        "summary": "List emergency protocol rows",
+        "description": "An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns a cursor page of emergency protocol rows the caller may see. The default order is `record_key` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of emergency protocol rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "record_key": "EMG-001",
+                      "code": "CODE_RED",
+                      "domain": "Site Operations",
+                      "department": "Security & Safety",
+                      "category": "Emergency Protocols",
+                      "sub_category": "Incident Response",
+                      "steps": [{ "step_no": 1, "body": "Contact {fire}." }]
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/CanonStdEmergencyProtocolPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/canon/std/emergency-protocols/{record_key}": {
+      "get": {
+        "operationId": "canonStdEmergencyProtocols.get",
+        "tags": ["Canon"],
+        "x-xos-table": "xpms.emergency_protocol",
+        "x-xos-capability": "canon.taxonomy.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["canon"] }],
+        "summary": "Get an emergency protocol",
+        "description": "An emergency protocol of the Standard Library (Emergency Codes sheet): what one operational domain does when a radio code is called, in numbered steps. Returns one emergency protocol with its `ETag`. A emergency protocol the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+              "description": "Record identifier of the protocol.",
+              "example": "EMG-001"
+            },
+            "required": true,
+            "description": "Record identifier of the protocol.",
+            "name": "record_key",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The emergency protocol.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "record_key": "EMG-001",
+                  "code": "CODE_RED",
+                  "domain": "Site Operations",
+                  "department": "Security & Safety",
+                  "category": "Emergency Protocols",
+                  "sub_category": "Incident Response",
+                  "steps": [{ "step_no": 1, "body": "Contact {fire}." }]
+                },
+                "schema": { "$ref": "#/components/schemas/CanonStdEmergencyProtocol" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
       }

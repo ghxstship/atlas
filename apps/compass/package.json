@@ -15,15 +15,18 @@
     "build": "tsc --noEmit",
     "test": "vitest run --coverage",
     "generate:navigation": "XOS_WRITE_GENERATED=1 vitest run test/navigation.test.ts",
+    "generate:help": "XOS_WRITE_GENERATED=1 vitest run test/help.test.ts",
     "e2e": "maestro test .maestro"
   },
   "dependencies": {
     "@bacons/apple-targets": "5.0.0",
     "@op-engineering/op-sqlite": "18.2.5",
     "@powersync/react-native": "2.3.1",
+    "@react-native-google-signin/google-signin": "16.1.5",
     "@supabase/supabase-js": "2.117.3",
     "@xos/ai": "workspace:*",
     "@xos/data": "workspace:*",
+    "@xos/help": "workspace:*",
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/sync": "workspace:*",

@@ -366,6 +366,8 @@ describe("Safety incidents contract", () => {
         ok(incident),
         hidden,
       ],
+      // closed_at reads the transition ledger once per full read (A54-002).
+      "from:incident_state_transitions": [ok([]), ok([]), ok([]), ok([]), ok([])],
       "rpc:report_incident": [
         ok([{ id: id(10), incident_number: 142, incident_state: "Reported", replayed: false }]),
       ],
@@ -418,6 +420,10 @@ describe("Safety incidents contract", () => {
         ok({ id: id(10) }),
         ok(closed),
       ],
+      "from:incident_state_transitions": [
+        ok([]),
+        ok([{ incident_id: id(10), created_at: T, created_by: id(201) }]),
+      ],
       "rpc:transition_incident": [ok(id(50))],
       "rpc:close_incident": [refusal("sod_approval_requester"), ok(id(51))],
     });
@@ -451,7 +457,8 @@ describe("Safety incidents contract", () => {
       `/incidents/${id(10)}/close`,
       post({ note: "Inspected and safe." }),
     );
-    await expectContract(signed, "incidents.close");
+    const signedBody = (await expectContract(signed, "incidents.close")) as { closed_at: string };
+    expect(signedBody.closed_at).toBe(T);
     const missing = await api.request(`/incidents/${id(10)}/close`, post({}));
     expect(missing.status).toBe(422);
   });

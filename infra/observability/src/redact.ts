@@ -147,6 +147,13 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
     replace: (_m, scheme) => `${scheme} ${REDACTED}`,
   },
   { pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g, replace: "[api-key]" },
+  // A69-008: bearer links carry their token in the path (/advance/xadv_..., /sign/xdoc_...,
+  // /auth/invite/xinv_...), and request logs keep the path. Calendar feeds, join links, agreements
+  // and SCIM tokens share the shape.
+  {
+    pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    replace: "[token]",
+  },
   { pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g, replace: "[api-key]" },
   {
     pattern:

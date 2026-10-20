@@ -11,7 +11,7 @@ import { formatDate, formatDateRange, formatDateTime, formatMoney, todayIso } fr
 import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor, type Tone } from "@/lib/states";
-import { RowList, TabEmpty } from "./rows";
+import { AreaClosed, RowList, TabEmpty } from "./rows";
 import { GuestRequestForm, SettlementResponseForm } from "./party-forms";
 import { DocumentsTab } from "./tabs-common";
 import type { TabProps } from "./tab-context";
@@ -66,14 +66,7 @@ export async function RiderTab({ view, t, engagementKey }: TabProps) {
 
 export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.operationalClosed")}
-        actionLabel={t("gateway.engagement.onboardingAction")}
-        href={tabHref(engagementKey, "engagement.overview")}
-      />
-    );
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
   const [cues, sheets] = await Promise.all([
     readView(view.ctx.db, "cues", { eq: { is_my_set: true }, order: ["planned_at", "asc"] }),
@@ -135,14 +128,7 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
 
 export async function HospitalityTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.operationalClosed")}
-        actionLabel={t("gateway.engagement.onboardingAction")}
-        href={tabHref(engagementKey, "engagement.overview")}
-      />
-    );
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
   const [hospitality, lodging] = await Promise.all([
     readView(view.ctx.db, "hospitality", {
@@ -194,14 +180,7 @@ export async function HospitalityTab({ view, t, locale, engagementKey }: TabProp
  */
 export async function GuestListTab({ view, t, locale, engagementKey }: TabProps) {
   if (!hasArea(view, "operational")) {
-    return (
-      <TabEmpty
-        icon="Lock"
-        sentence={t("gateway.engagement.operationalClosed")}
-        actionLabel={t("gateway.engagement.onboardingAction")}
-        href={tabHref(engagementKey, "engagement.overview")}
-      />
-    );
+    return <AreaClosed view={view} t={t} engagementKey={engagementKey} />;
   }
   const guests = await listEngagedGuests(view.ctx.db, view.engagement.id);
   if (!guests.ok) return <RegionError />;

@@ -69,7 +69,8 @@ for (const person of PEOPLE) {
     const ctx = {
       role: person.standing,
       roleType: person.roleType,
-      conditions: ["desktop" as const],
+      // Both sweep people are paid (crew and vendor), so the paid-work pages are theirs (A59-033).
+      conditions: ["desktop" as const, "paid-work" as const],
     };
     const params = {
       ...SHARED_PARAMS,

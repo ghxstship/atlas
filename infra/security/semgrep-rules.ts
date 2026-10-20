@@ -36,3 +36,30 @@ export function search(filter: { query: string }, input: { search: string }, id:
   // ok: xos-pg-query-interpolated
   pg.query("select * from xpms.elements where element_id = $1", [id]);
 }
+
+declare function csvField(value: string): string;
+
+export function exportCell(value: string, name: string) {
+  // ruleid: xos-csv-quoting-outside-csv-field
+  const quoted = /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  // ruleid: xos-csv-quoting-outside-csv-field
+  const again = `"${name.replaceAll('"', '""')}"`;
+  // ok: xos-csv-quoting-outside-csv-field
+  const safe = csvField(value);
+  // ok: xos-csv-quoting-outside-csv-field
+  const escaped = value.replace(/'/g, "''");
+  return [quoted, again, safe, escaped];
+}
+
+export function callerAddress(headers: Headers, clientAddress: (h: Headers) => string | null) {
+  // ruleid: xos-forwarded-for-first-entry
+  const first = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const forwarded = headers.get("x-forwarded-for");
+  // ruleid: xos-forwarded-for-first-entry
+  const alsoFirst = forwarded?.split(",")[0];
+  // ok: xos-forwarded-for-first-entry
+  const trusted = clientAddress(headers);
+  // ok: xos-forwarded-for-first-entry
+  const real = headers.get("x-real-ip");
+  return [first, alsoFirst, trusted, real];
+}

@@ -3,7 +3,7 @@ import { listFavorites } from "@xos/data/settings";
 import { flattenRoutes, getNode, isNodeVisible } from "@xos/ia";
 import type { ReactNode } from "react";
 import { cookies } from "next/headers";
-import { getLocale } from "next-intl/server";
+import { negotiatedLocale } from "@/i18n/request";
 import { selectableLocales } from "@/i18n/negotiate";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { buildShellNav, NAV_ICONS, type NavLinkModel } from "@/lib/shell/nav-model";
@@ -23,7 +23,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
     getTranslate(),
     getMyOrganizations(),
     listWorkspaces(ctx.viewer.db, ctx.org.id),
-    getLocale(),
+    negotiatedLocale(),
     cookies(),
     ctx.viewer.person
       ? listFavorites(ctx.viewer.db, { orgId: ctx.org.id, personId: ctx.viewer.person.id })

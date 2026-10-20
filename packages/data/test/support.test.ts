@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   getSupportTicket,
+  listMyAccountSupportRequests,
   listSupportTickets,
+  openAccountSupportRequest,
   openSupportTicket,
   postSupportMessage,
   transitionSupportTicket,
@@ -190,5 +192,72 @@ describe("support tickets", () => {
     };
     expect((await transitionSupportTicket(db, move)).ok).toBe(true);
     expect((await transitionSupportTicket(db, move)).ok).toBe(false);
+  });
+});
+
+describe("account support requests", () => {
+  it("sends a request with consented diagnostics and returns its number", async () => {
+    const { db, calls } = fakeClient({
+      "rpc:open_account_support_request": [
+        okResponse("ACC-000001"),
+        okResponse("ACC-000002"),
+        errorResponse("XR001", "account_support_limit: five a day", "account_support_limit"),
+      ],
+    });
+    const base = { category: "Access" as const, subject: "Link", body: "No email arrives." };
+    expect(
+      await openAccountSupportRequest(db, {
+        ...base,
+        diagnostics: { route: "/settings/account", recentErrors: "boom" },
+      }),
+    ).toEqual({ ok: true, data: "ACC-000001" });
+    expect(calls[0]?.steps[0]?.[1][0]).toMatchObject({
+      p_category: "Access",
+      p_diagnostics: {
+        consent: true,
+        route: "/settings/account",
+        recent_errors: "boom",
+        device: null,
+      },
+    });
+    expect((await openAccountSupportRequest(db, base)).ok).toBe(true);
+    expect(calls[1]?.steps[0]?.[1][0]).not.toHaveProperty("p_diagnostics");
+    const refused = await openAccountSupportRequest(db, base);
+    expect(refused.ok ? null : refused.error).toMatchObject({
+      kind: "refusal",
+      rule: "account_support_limit",
+    });
+  });
+
+  it("lists the person's own requests", async () => {
+    const { db } = fakeClient({
+      "rpc:my_account_support_requests": [
+        okResponse([
+          {
+            request_number: "ACC-000001",
+            category: "Access",
+            subject: "Link",
+            request_state: "Open",
+            created_at: "2026-10-20T10:00:00Z",
+          },
+        ]),
+        okResponse(null),
+        errorResponse("42501", "no"),
+      ],
+    });
+    expect(await listMyAccountSupportRequests(db)).toEqual({
+      ok: true,
+      data: [
+        {
+          number: "ACC-000001",
+          category: "Access",
+          subject: "Link",
+          state: "Open",
+          createdAt: "2026-10-20T10:00:00Z",
+        },
+      ],
+    });
+    expect(await listMyAccountSupportRequests(db)).toEqual({ ok: true, data: [] });
+    expect((await listMyAccountSupportRequests(db)).ok).toBe(false);
   });
 });

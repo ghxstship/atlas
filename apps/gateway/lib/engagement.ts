@@ -120,3 +120,5 @@ export function tabHref(engagementKey: string, tab: string): string {
 export function hasArea(view: EngagementView, area: string): boolean {
   return view.engagement.areas.includes(area as never);
 }
+
+export { closedArea, isLiveEngagement, type ClosedArea } from "./engagement-state";

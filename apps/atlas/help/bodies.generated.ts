@@ -1784,6 +1784,18 @@ export const HELP_BODIES: HelpBodies = {
           },
         ],
       },
+      { t: "h2", v: "Signing in" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Sign in with a link sent to your email, with " },
+          { t: "strong", v: "Continue with Google" },
+          {
+            t: "text",
+            v: ", or with a password. Google uses the account you pick on Google's screen. When its email address is the one on your account, you sign in to that account, with all your organizations; a Google account with another email address creates a new account. Compass works the same way. On a shared phone, sign out of Compass so that it asks which Google account to use next time.",
+          },
+        ],
+      },
       { t: "h2", v: "Security" },
       {
         t: "p",
@@ -2045,7 +2057,7 @@ export const HELP_BODIES: HelpBodies = {
         c: [
           {
             t: "text",
-            v: "Cada escaneo en una zona se registra con su resultado: permitido o denegado, y por qué. Los escaneos sin conexión se vuelven a verificar en el servidor al reconectar, y se conservan ambas respuestas.",
+            v: "Cada escaneo en una zona se registra con su resultado: permitido o denegado, y por qué. Los escaneos hechos sin conexión en Compass se vuelven a verificar en el servidor cuando el dispositivo se reconecta, y se conservan ambas respuestas.",
           },
         ],
       },
@@ -3542,6 +3554,18 @@ export const HELP_BODIES: HelpBodies = {
           {
             t: "text",
             v: "Elija qué muestra su perfil y a quién. Puede ocultar sus tarifas, mostrar su perfil solo a colaboradores anteriores o compartirlo completo con una organización al postularse.",
+          },
+        ],
+      },
+      { t: "h2", v: "Inicio de sesión" },
+      {
+        t: "p",
+        c: [
+          { t: "text", v: "Inicie sesión con un enlace enviado a su correo, con " },
+          { t: "strong", v: "Continuar con Google" },
+          {
+            t: "text",
+            v: " o con una contraseña. Google usa la cuenta que usted elija en la pantalla de Google. Si su correo es el de su cuenta, entra a esa cuenta, con todas sus organizaciones; una cuenta de Google con otro correo crea una cuenta nueva. Compass funciona igual. En un teléfono compartido, cierre la sesión de Compass para que la próxima vez le pregunte qué cuenta de Google usar.",
           },
         ],
       },

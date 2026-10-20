@@ -80,7 +80,14 @@
     "scheduleAction": "See schedule",
     "scopeAction": "See scope",
     "advanceAction": "Open the advance",
-    "operationalClosed": "This opens once the engagement is Active. Finish onboarding to get there.",
+    "overviewAction": "See overview",
+    "closed": {
+      "beforeActive": "This opens once the engagement is Active. Finish onboarding to get there.",
+      "beforeActiveOrg": "This opens once the engagement is Active. The organization makes it Active when the work starts.",
+      "complete": "This engagement is Complete, so this section has closed. Invoices and documents stay open for 18 months.",
+      "canceled": "This engagement was canceled, so this section has closed. Its documents stay open for 18 months.",
+      "notOpen": "This section is not open to you on this engagement. Message the organization if you expected it."
+    },
     "due": "Due {date}",
     "overview": {
       "next": "Your next steps",
@@ -95,6 +102,15 @@
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
+      "engagement": "Engagement",
+      "package": "Package",
+      "contractValue": "Contract value",
+      "billingBasis": "Billing basis",
+      "sponsorshipFee": "Sponsorship fee",
+      "approvalsWaiting": "Approvals waiting",
+      "approvalsCount": "{n, plural, =0 {None} other {#}}",
+      "entitlements": "Entitlements",
+      "entitlementsCount": "{done} of {total} delivered",
       "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days."
     },
     "documents": {
@@ -122,7 +138,6 @@
       "new": "Start a conversation"
     },
     "invoices": {
-      "closed": "Invoices open once money is open on this engagement, at Active.",
       "empty": "No invoices yet. Submit one below when your work is done.",
       "submitTitle": "Submit an invoice",
       "selfBilling": "Self-billing",
@@ -998,6 +1013,7 @@
   "money": {
     "overview": {
       "empty": "Nothing earned or pending yet. Payments for your engagements show up here.",
+      "emptyUnpaid": "No invoices yet. Invoices the organization sends you for your engagements show up here.",
       "emptyAction": "See engagements",
       "earned": "Earned",
       "pending": "Pending",
@@ -1411,14 +1427,6 @@
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)"
     },
-    "help": {
-      "title": "Help",
-      "body": "Questions about an engagement go to the organization that engaged you. Open Messages to reach them; they answer there.",
-      "messages": "Open Messages",
-      "ranking": "How ranking works",
-      "account": "Platform support helps only with your own account: sign-in, email and account deletion.",
-      "close": "Close"
-    },
     "switchOrg": {
       "title": "Switch org",
       "body": "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
@@ -1458,6 +1466,8 @@
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
     },
     "or": "or",
+    "usePassword": "Use a password",
+    "useLink": "Use a link",
     "signIn": {
       "title": "Sign in to Gateway",
       "lead": "Find work, get onboarded and get paid with one account for every organization.",
@@ -1470,8 +1480,14 @@
       "title": "Create your Gateway account",
       "lead": "One account works in Gateway, Atlas and Compass. Your profile stays yours.",
       "submit": "Create account",
+      "terms": "I agree to the <terms>Worker Terms</terms> and have read the <privacy>Privacy Policy</privacy>.",
       "haveAccount": "Already have an account?",
       "toSignIn": "Sign in"
+    },
+    "terms": {
+      "title": "Accept the Worker Terms",
+      "lead": "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
+      "submit": "Continue"
     },
     "providers": {
       "continueWith": "Continue with {provider}",
@@ -1508,11 +1524,17 @@
       "over_request_rate_limit": "Too many attempts. Wait a minute, then try again.",
       "provider_disabled": "That sign-in method is not turned on for Gateway yet. Use email instead.",
       "link_invalid": "This link expired or was already used. Request a new one.",
+      "oauth_cancelled": "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      "oauth_expired": "This sign-in expired or was started in another browser. Start again on this page.",
+      "provider_error": "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      "email_not_verified": "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      "sso_required": "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       "unexpected": "Something went wrong on our side. Try again in a moment.",
       "fullName": "Enter your full name.",
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
-      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway."
+      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
+      "terms": "Accept the Worker Terms to create your account: tick the box above the button."
     }
   },
   "work": {
@@ -1535,7 +1557,7 @@
       "empty": "No engagements yet. When an organization engages you, it shows up here.",
       "emptyAction": "Explore opportunities",
       "current": "Current",
-      "past": "Past",
+      "closed": "Complete or canceled",
       "role": "Role",
       "org": "Organization",
       "project": "Project",
@@ -1582,5 +1604,9 @@
         }
       }
     }
+  },
+  "legal": {
+    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "back": "Go to Gateway"
   }
 }

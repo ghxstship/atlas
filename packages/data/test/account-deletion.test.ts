@@ -12,10 +12,15 @@ interface Rpc {
   error: { code?: string; message: string; hint?: string | null } | null;
 }
 
-/** A client whose RPCs answer from queues and whose storage holds the given objects. */
+/**
+ * A client whose RPCs answer from queues and whose storage holds the given objects: profile-media paths,
+ * or `upload-staging:<name>` for a staged upload.
+ */
 function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = false) {
   const calls: string[] = [];
   const stored = new Set(objects);
+  const key = (bucket: string, path: string) =>
+    bucket === "profile-media" ? path : `${bucket}:${path}`;
   const client = {
     rpc(name: string, args?: unknown) {
       calls.push(`rpc:${name}:${JSON.stringify(args ?? null)}`);
@@ -28,9 +33,10 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
         list: (folder: string) => {
           calls.push(`list:${bucket}:${folder}`);
           const names = new Map<string, boolean>();
+          const prefix = key(bucket, `${folder}/`);
           for (const path of stored) {
-            if (!path.startsWith(`${folder}/`)) continue;
-            const rest = path.slice(folder.length + 1);
+            if (!path.startsWith(prefix)) continue;
+            const rest = path.slice(prefix.length);
             const [head, ...tail] = rest.split("/");
             names.set(head ?? "", tail.length > 0 || names.get(head ?? "") === true);
           }
@@ -43,7 +49,7 @@ function fake(rpcs: Record<string, Rpc[]>, objects: string[] = [], failRemove = 
           calls.push(`remove:${bucket}:${paths.join(",")}`);
           if (failRemove)
             return Promise.resolve({ data: null, error: { message: "storage down" } });
-          for (const p of paths) stored.delete(p);
+          for (const p of paths) stored.delete(key(bucket, p));
           return Promise.resolve({ data: paths.map((name) => ({ name })), error: null });
         },
       }),
@@ -199,6 +205,21 @@ describe("account deletion", () => {
     const result = await deleteMyAccount(client, "tech@example.com");
     expect(result).toEqual({ ok: false, error: { kind: "unexpected", message: "storage down" } });
     expect(calls.some((c) => c.startsWith("rpc:delete_my_account"))).toBe(false);
+  });
+
+  it("removes uploads still staged for the folder too (1265)", async () => {
+    const { client, calls, stored } = fake({}, [
+      "p1/photo.jpg",
+      "upload-staging:profile-media/p1/new-photo.jpg",
+      "upload-staging:profile-media/other/photo.jpg",
+      "upload-staging:org-brand/o1/logo.png",
+    ]);
+    expect(await removeProfileMedia(client, "p1")).toEqual({ ok: true, data: 2 });
+    expect([...stored]).toEqual([
+      "upload-staging:profile-media/other/photo.jpg",
+      "upload-staging:org-brand/o1/logo.png",
+    ]);
+    expect(calls).toContain("remove:upload-staging:profile-media/p1/new-photo.jpg");
   });
 
   it("removes nothing from an empty folder", async () => {

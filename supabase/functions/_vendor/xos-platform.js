@@ -914,43 +914,90 @@ async function verifyWebhook(header, body, secret, options = {}) {
 }
 //#endregion
 //#region src/webhooks/dispatch.ts
-var PRIVATE_V4 = [
+/**
+ * IPv4 blocks that are not the public internet (IANA special-purpose registry, RFC 6890 and later):
+ * this network, private, shared, loopback, link-local, protocol assignments, documentation, the
+ * 6to4 relay, benchmarking, multicast and reserved (with the limited broadcast).
+ */
+var NON_PUBLIC_V4 = [
+  [0, 8],
   [167772160, 8],
-  [2886729728, 12],
-  [3232235520, 16],
+  [1681915904, 10],
   [2130706432, 8],
   [2851995648, 16],
-  [1681915904, 10],
-  [0, 8],
+  [2886729728, 12],
+  [3221225472, 24],
+  [3221225984, 24],
+  [3227017984, 24],
+  [3232235520, 16],
+  [3323068416, 15],
+  [3325256704, 24],
+  [3405803776, 24],
+  [3758096384, 4],
+  [4026531840, 4],
 ];
-/** True for an address on the public internet; false for private, loopback, link-local and unique local ranges. */
-function isPublicAddress(address) {
-  const v4 = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(address);
-  if (v4 !== null) {
-    const octets = v4.slice(1).map(Number);
-    if (octets.some((o) => o > 255)) return false;
-    const value =
-      ((octets[0] ?? 0) * 2 ** 24 +
-        (octets[1] ?? 0) * 2 ** 16 +
-        (octets[2] ?? 0) * 256 +
-        (octets[3] ?? 0)) >>>
-      0;
-    return !PRIVATE_V4.some(([base, bits]) => value >>> (32 - bits) === base >>> (32 - bits));
+/** Dotted-quad IPv4 as an unsigned 32-bit number, or null. */
+function parseIpv4(address) {
+  const parts = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(address);
+  if (parts === null) return null;
+  const octets = parts.slice(1).map(Number);
+  if (octets.some((o) => o > 255)) return null;
+  return octets.reduce((value, octet) => value * 256 + octet, 0);
+}
+function publicV4(value) {
+  return !NON_PUBLIC_V4.some(
+    ([base, bits]) => Math.floor(value / 2 ** (32 - bits)) === Math.floor(base / 2 ** (32 - bits)),
+  );
+}
+/**
+ * An IPv6 address as its eight 16-bit groups, or null. Accepts `::` compression and a dotted IPv4
+ * tail (`::ffff:10.0.0.1`); refuses zone ids and anything malformed.
+ */
+function parseIpv6(address) {
+  if (!/^[0-9a-f:.]+$/i.test(address) || !address.includes(":")) return null;
+  let text = address.toLowerCase();
+  const tail = /^(.*:)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/.exec(text);
+  if (tail !== null) {
+    const v4 = parseIpv4(tail[2]);
+    if (v4 === null) return null;
+    text = `${tail[1]}${Math.floor(v4 / 65536).toString(16)}:${(v4 % 65536).toString(16)}`;
   }
-  const v6 = address.toLowerCase();
-  if (v6 === "::1" || v6 === "::") return false;
-  if (
-    v6.startsWith("fc") ||
-    v6.startsWith("fd") ||
-    v6.startsWith("fe8") ||
-    v6.startsWith("fe9") ||
-    v6.startsWith("fea") ||
-    v6.startsWith("feb")
-  )
-    return false;
-  const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v6);
-  if (mapped?.[1] !== void 0) return isPublicAddress(mapped[1]);
-  return v6.includes(":");
+  const halves = text.split("::");
+  if (halves.length > 2) return null;
+  const groups = (part) => (part === "" ? [] : part.split(":"));
+  const head = groups(halves[0]);
+  const rest = halves.length === 2 ? groups(halves[1]) : [];
+  const missing = 8 - head.length - rest.length;
+  if (halves.length === 2 ? missing < 1 : missing !== 0) return null;
+  const all = [...head, ...Array(halves.length === 2 ? missing : 0).fill("0"), ...rest];
+  if (all.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return null;
+  return all.map((g) => parseInt(g, 16));
+}
+/**
+ * True for an address on the public internet. Refuses every special-purpose IPv4 block, and for
+ * IPv6 anything outside global unicast (2000::/3) or inside its special blocks (protocol
+ * assignments and Teredo, documentation, 6to4, SRv6). IPv4 written in IPv6 (mapped `::ffff:`,
+ * compatible `::`, NAT64 `64:ff9b::`) is judged by its IPv4 address, in hex as well as dotted
+ * form, so `::ffff:7f00:1` is loopback (A69-004).
+ */
+function isPublicAddress(address) {
+  const v4 = parseIpv4(address);
+  if (v4 !== null) return publicV4(v4);
+  const g = parseIpv6(address);
+  if (g === null) return false;
+  const [g0, g1, g2, g3, g4, g5, g6, g7] = g;
+  const embedded = g6 * 65536 + g7;
+  const zeroHead = g0 === 0 && g1 === 0 && g2 === 0 && g3 === 0 && g4 === 0;
+  if (zeroHead && g5 === 65535) return publicV4(embedded);
+  if (zeroHead && g5 === 0) return embedded > 1 && publicV4(embedded);
+  if (g0 === 100 && g1 === 65435 && g2 === 0 && g3 === 0 && g4 === 0 && g5 === 0)
+    return publicV4(embedded);
+  if (g0 < 8192 || g0 > 16383) return false;
+  if (g0 === 8193 && g1 < 512) return false;
+  if (g0 === 8193 && g1 === 3512) return false;
+  if (g0 === 8194) return false;
+  if (g0 === 16383 && g1 < 4096) return false;
+  return true;
 }
 /**
  * Posts claimed deliveries. Each host is resolved first and refused if any address is private (SSRF,
@@ -2612,6 +2659,17 @@ var compass_default$1 = {
     sendLink: "Email Me a Link",
     usePassword: "Use Password",
     useLink: "Use Email Link",
+    google: "Continue with Google",
+    or: "or",
+    googleCancelled:
+      "You left the Google sign-in before it finished. Try again, or use an email link.",
+    googleUnavailable:
+      "Google sign-in needs Google Play services on this device. Update them, or use an email link.",
+    googleFailed: "Google could not sign you in. Try again in a moment, or use an email link.",
+    emailNotVerified:
+      "The email address on that Google account is not verified yet. Open the confirmation link we sent to it, then try again.",
+    ssoRequired:
+      "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
     submit: "Sign In",
     linkSent: "Check {email} for a sign-in link. It opens Compass.",
     invalid: "That email and password do not match. Check both, or use an email link.",
@@ -2824,8 +2882,6 @@ var compass_default$1 = {
         "You have no accepted shift on this project today. Accept a shift in Schedule first.",
     },
     live: {
-      shift: "Current shift",
-      ends: "Ends {time}",
       since: "Since",
       worked: "Worked",
       lockScreenFailed:
@@ -2843,14 +2899,22 @@ var compass_default$1 = {
     title: "Schedule",
     myShifts: "My Shifts",
     openShifts: "Open Shifts",
-    empty: "No upcoming shifts. Open shifts you can claim appear here.",
+    emptyClaim: "No shifts assigned to you yet. Claim one of the open shifts below.",
+    emptyAsk: "No shifts assigned to you yet. Ask your crew lead for one.",
+    emptyExternal:
+      "No shifts booked yet. The organization books them on your engagement in Gateway.",
+    findOpen: "Find Open Shifts",
+    messageTeammate: "Message a Teammate",
     openEmpty: "No open shifts right now.",
     accept: "Accept",
     claim: "Claim",
     accepted: "Accepted",
     published: "Waiting for you",
+    open: "Open",
     canceled: "Canceled",
     startsIn: "Starts in {time}",
+    startsInDaysOne: "Starts in {count} day",
+    startsInDaysOther: "Starts in {count} days",
     timeRange: "{start} to {end}",
     noPlace: "Venue to be confirmed",
     claimOverlap:
@@ -3046,6 +3110,8 @@ var compass_default$1 = {
   },
   more: {
     title: "More",
+    inGateway: "In Gateway",
+    inAtlas: "In Atlas",
     pendingTitle: "{page} is in Gateway",
     pending: "Open Gateway to see {page}. Compass shows it here in a later release.",
     aurora: "Assistant",
@@ -3072,12 +3138,16 @@ var compass_default$1 = {
     title: "Profile",
     role: "Role",
     engagements: "Engagements",
-    certifications: "Certifications are in Gateway.",
+    certificationsTitle: "Certifications",
+    certificationsAtlas:
+      "Your certifications are kept on your profile in Atlas, where your organization checks them.",
+    certificationsGateway:
+      "Your certifications are kept on your Gateway profile, where organizations check them.",
   },
   settings: {
     title: "Settings",
     theme: "Theme",
-    themeSystem: "Device",
+    themeSystem: "System",
     themeDark: "Dark",
     themeLight: "Light",
     themeSunlight: "Sunlight",
@@ -3282,6 +3352,57 @@ var compass_default$1 = {
     denied:
       "Notifications are off for Compass. Turn them on in Settings to approve from the alert.",
     turnOn: "Turn On Notifications",
+  },
+  help: {
+    title: "Help",
+    entry: "Help",
+    entryHelp: "Articles for each screen, and Contact Support",
+    search: "Search help",
+    results: "Articles matching {query}",
+    searchEmpty: "No articles match {query}. Try another word, or contact support below.",
+    forScreen: "For the screen you were on",
+    general: "Everywhere in Compass",
+    all: "All help for your role",
+    offline: "Help is saved on this phone, so it works offline.",
+    missing: "This article is not available. Go back to Help for the others.",
+    back: "Back to Help",
+    contact: {
+      open: "Contact Support",
+      title: "Contact Support",
+      orgTitle: "Your organization",
+      orgBody:
+        "Ask your organization's teams, such as operations, IT, HR or facilities, in the Help Desk. They answer there.",
+      orgAction: "Open Help Desk",
+      workTitle: "Your work with an organization",
+      workBody:
+        "Questions about an engagement, a payment, a schedule or a document go to the organization that engaged you, in Messages in Gateway.",
+      workAction: "Open Messages in Gateway",
+      accountTitle: "Your account",
+      accountBody:
+        "Platform support helps only with your own account: signing in, your email and deleting your account. It answers by email.",
+      category: "Category",
+      categories: {
+        Account: "Account",
+        Access: "Sign-In",
+        Problem: "Problem",
+        Question: "Question",
+      },
+      subject: "Subject",
+      body: "What happened, and what do you need?",
+      diagnostics: "Attach Diagnostics",
+      diagnosticsHelp:
+        "Sends the screen you were on ({screen}), the app version ({version}) and your device ({device}).",
+      send: "Send Request",
+      required: "Fill in the subject and the message to send the request.",
+      offline: "Sending a request needs a connection. Connect, then try again.",
+      sent: "Request {number} sent. Platform support answers by email.",
+      errors: {
+        limit:
+          "You sent five requests in the last day. Platform support answers each by email; wait for those answers first.",
+        invalid: "The request is missing something. Check the subject and the message.",
+        unexpected: "The request could not be sent. Try again in a moment.",
+      },
+    },
   },
 };
 var credentials_default$1 = {
@@ -4217,7 +4338,7 @@ var docs_default$1 = {
   help: {
     title: "Help center",
     sentence:
-      "How Atlas works, page by page. These are the articles the help panel shows inside the app.",
+      "How Atlas, Gateway and Compass work, page by page. These are the articles each app's help panel shows.",
     searchLabel: "Search help",
     searchButton: "Search",
     results: "{count} articles match {query}.",
@@ -4225,6 +4346,21 @@ var docs_default$1 = {
     whatsNew: "What's new",
     related: "Open the related article",
     back: "All help articles",
+    shells: {
+      atlas: {
+        title: "Atlas",
+        sentence: "For members of an organization, page by page.",
+      },
+      gateway: {
+        title: "Gateway",
+        sentence:
+          "For the people and companies organizations engage: opportunities, engagements, pay and settings.",
+      },
+      compass: {
+        title: "Compass",
+        sentence: "The field app for members and everyone they engage, screen by screen.",
+      },
+    },
   },
   notFound: {
     title: "This page does not exist",
@@ -5640,7 +5776,7 @@ var gateway_default$1 = {
     clearFilter: "Show every organization",
   },
   engagement: /* @__PURE__ */ JSON.parse(
-    '{"tabs":"Engagement sections","representing":"Acting for {artist}","messagesAction":"Message the organization","onboardingAction":"See onboarding","trainingAction":"See training","shiftsAction":"See shifts","invoicesAction":"See invoices","documentsAction":"See documents","poAction":"See purchase orders","changeOrdersAction":"See change orders","scheduleAction":"See schedule","scopeAction":"See scope","advanceAction":"Open the advance","operationalClosed":"This opens once the engagement is Active. Finish onboarding to get there.","due":"Due {date}","overview":{"next":"Your next steps","stages":"Where this engagement is","stage":{"offer":"Offer","onboarding":"Onboarding","engaged":"Engaged","closeOut":"Close-out"},"blocked":"This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.","rate":"Your rate","rateHidden":"Shown while money is open on this engagement","payBasis":"Pay basis","rated":"Thanks. Both ratings appear once the organization rates too, or after 14 days."},"documents":{"empty":"No documents yet. Contracts and forms the organization shares appear here.","emptyKind":"Nothing of this kind has been shared yet. Ask the organization if you expected it.","expires":"Expires {date}"},"onboarding":{"empty":"No onboarding steps. The organization adds any it needs before you start.","progress":"{n} of {total} verified","blocking":"Required before you start","standing":{"verified":"Verified","review":"In review","todo":"To do","expired":"Expired"},"signHint":"Sign it under Documents; the step completes when the organization countersigns.","backgroundHint":"The organization\'s screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.","payoutHint":"Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown."},"messages":{"empty":"No conversations yet. Start one below; the organization answers here.","org":"The organization","new":"Start a conversation"},"invoices":{"closed":"Invoices open once money is open on this engagement, at Active.","empty":"No invoices yet. Submit one below when your work is done.","submitTitle":"Submit an invoice","selfBilling":"Self-billing","selfBillingBody":"With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.","selfBillingOn":"Self-billing on","selfBillingAgree":"Agree to self-billing","selfBillingStop":"Stop self-billing"},"shifts":{"empty":"No shifts yet. Published shifts appear here for you to accept.","accept":"Accept shift"},"positions":{"empty":"No positions assigned yet. They follow once training is done."},"timesheets":{"empty":"No timesheets yet. Your clocked shifts collect into timesheets here.","hours":"{n} hours","submitted":"Submitted {date}","submit":"Submit","entries":"Time entries"},"time":{"empty":"No time recorded yet. Clock in from Compass when you start.","out":"Out {time}","open":"Still clocked in","break":"{n} min break"},"travel":{"empty":"No travel or lodging arranged yet. Message the organization if you need it.","lodging":"Lodging","travel":"Travel","itinerary":"Itinerary","route":"{from} to {to}","departs":"Departs {time}","arrives":"Arrives {time}","confirmation":"Confirmation {code}"},"perDiem":{"empty":"No per diem or allowances listed yet. They appear here once the organization sets them.","quantity":"{n} per day","allowances":"Allowances","amenities":"Amenities","total":"Total: {amount}"},"credentials":{"empty":"No credentials issued yet. They are issued once onboarding passes.","valid":"Valid","revoked":"Revoked"},"training":{"empty":"No training to complete. Briefings and acknowledgments show here when assigned.","sessions":"Training sessions"},"bid":{"empty":"You have no bid with this organization. Purchase orders arrive once a bid wins.","summary":"Sealed bid sent {date}, total {total}","quantity":"Quantity {n}"},"po":{"empty":"No purchase orders yet. They arrive here when the organization sends one.","number":"PO {n}","sent":"Sent {date}","acknowledged":"Acknowledged {date}","acknowledge":"Acknowledge","line":"{n}. {description}"},"deliveries":{"empty":"No deliveries or dock slots yet. Your dock times appear here once booked.","docks":"Dock slots","shipments":"Shipments"},"submittals":{"empty":"No submittals requested yet. Requests for drawings and specs appear here."},"advance":{"empty":"No advance packet yet. When the organization sends one, answer each section here.","awaitingReview":"Awaiting review"},"compliance":{"empty":"No compliance items yet. Insurance and prequalification appear here.","insurance":"Insurance certificates","noInsurance":"No insurance certificate on file. Upload one under Onboarding.","current":"Current","expired":"Expired","prequalification":"Prequalification","validTo":"Valid to {date}","items":"Compliance steps","insureds":"Additional insureds named","noInsureds":"This certificate names no additional insureds on file. If the organization requires some, send a certificate that names them.","insuredLine":"{name}, {endorsement}"},"approvals":{"empty":"Nothing waits for your approval. Requests from the organization appear here.","requested":"Requested {date}","waiting":"Waiting for you"},"changeOrders":{"empty":"No change orders yet. Changes to scope or cost appear here for review.","noCost":"No cost"},"schedule":{"empty":"Nothing on the shared schedule yet. Dates appear once the organization shares them."},"reports":{"empty":"No reports shared yet. Reports the organization shares appear here.","shared":"Shared reports","ranAt":"Run {time}","rows":"{n} rows","unpriced":"{n} rows still unpriced","expires":"Shared until {date}","noRecords":"No report records shared yet. Ask the organization if you expect one."},"activation":{"empty":"No activation dates shared yet. They appear once the organization schedules them."},"runOfShow":{"empty":"No run of show shared yet. It appears here once the organization shares it.","called":"Called {time}","mySet":"Your set"},"scope":{"statement":"Statement of work","noStatement":"No statement of work shared yet. Ask the organization for it in Messages.","milestones":"Milestones","noMilestones":"No milestones shared yet."},"deliverables":{"empty":"No deliverables yet. They come from your scope once the organization adds them.","submitted":"Submitted {date}"},"entitlements":{"empty":"No entitlements listed yet. Your package\'s entitlements appear here.","quantity":"Quantity {n}","fulfilled":"Fulfilled {date}","done":"Fulfilled","overdue":"Overdue","open":"Open"},"rider":{"empty":"No rider yet. Send your rider through the advance.","quantity":"Quantity {n}","fulfilled":"Confirmed","pending":"Pending"},"setTimes":{"empty":"No set times yet. They appear once the run of show is shared.","daySheets":"Day sheets"},"hospitality":{"empty":"No hospitality arranged yet. Ask for what you need in the advance."},"guestList":{"empty":"No guests on your list yet. Add a guest below, and the production confirms each one before the show.","request":"Add a guest","listLabel":"Guest list, {n} people in total","plusOnes":"Plus {n}","checkedIn":"Checked in {time}"},"roster":{"empty":"You do not represent any artists yet. Propose a representation from Company settings.","action":"Representation settings","noEngagements":"No engagements for this artist yet."},"forms":{"errors":{"answer":"Write an answer before sending.","decision":"Choose approve or reject.","reason":"Say why you reject it, so the organization can fix it.","deliverable":"Choose the document and write a short message.","header":"Fill in the invoice number and both dates.","dates":"The due date must be on or after the issue date.","lines":"Each line needs an item, a quantity above zero and a unit price.","file":"Choose a file to upload.","fileType":"Upload a PDF, JPEG, PNG, HEIC or WebP file.","fileSize":"The file is larger than 25 MB. Upload a smaller scan or photo.","tin":"Enter the tax identifier with 4 to 30 letters and digits.","subject":"Give the conversation a subject.","guestName":"Write the guest\'s name before adding them.","plusOnes":"Plus-ones run from 0 to 20.","settlementReason":"Write a short note or reason before answering.","asset":"Choose approve, return or resubmit.","assetReason":"Say what to change, so the organization can revise the asset."},"advance":{"answer":"Your answer","submit":"Send answer","done":"Answer sent. The organization reviews it next."},"approval":{"decision":"Decision","approve":"Approve","reject":"Reject","reason":"Why you reject it","note":"Note to the organization","done":"Decision sent."},"deliverable":{"document":"Document","message":"Message","submit":"Submit deliverable","done":"Submitted. The organization accepts or returns it.","noDocuments":"Share the file in Messages first; it then becomes a document you can submit here."},"invoice":{"title":"Invoice","number":"Invoice number","issuedOn":"Issue date","dueOn":"Due date","currency":"Amounts in {currency}","description":"Item or service","quantity":"Quantity","unitPrice":"Unit price","addLine":"Add line","removeLine":"Remove line {n}","submit":"Submit invoice","done":"Invoice submitted. Follow it on the payment tracker."},"upload":{"file":"File or photo","help":"PDF or photo up to 25 MB. On a phone you can take the photo now.","submit":"Upload","done":"Uploaded. The organization verifies it next."},"tax":{"title":"Tax form","kind":"Form","tin":"Taxpayer identification number","tinHelp":"Stored encrypted. Only the last four characters are ever shown.","withholding":"I am a foreign performer subject to withholding","submit":"Submit tax form","done":"Tax form submitted."},"thread":{"title":"New conversation","subject":"Subject","submit":"Start conversation","done":"Conversation started."},"message":{"label":"Reply","body":"Message","send":"Send"},"rating":{"title":"Rate {org}","score":"Score","stars":"{n, plural, one {# star} other {# stars}}","comment":"Public comment","release":"Both ratings appear together once both sides rate, or after 14 days.","submit":"Send rating","done":"Rating sent. It appears when the organization rates too, or after 14 days."},"reply":{"label":"Public reply","submit":"Reply","done":"Reply posted."},"guest":{"title":"Add a guest","name":"Guest name","plusOnes":"Plus-ones","note":"Note for the production (optional)","submit":"Add guest","done":"Guest added. The production confirms them before the show."},"settlement":{"decision":"Your answer","accept":"Accept settlement","dispute":"Dispute settlement","note":"Note","reason":"What should change","done":"Answer sent. The organization sees it now."},"asset":{"decision":"Your answer","approve":"Approve","return":"Return for changes","resubmit":"Resubmit","reason":"What to change","note":"Note to the organization","done":"Answer sent."}},"settlement":{"submitted":"Sent to you {date}","lines":"Lines of {title}","unpriced":"Amount to be confirmed","less":"Less {amount}","net":"Net to you: {amount}","netUnpriced":"The net shows once every line has an amount.","none":"No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."},"assets":{"empty":"No brand assets to review yet. The organization submits banners, artwork and copy here for your approval.","due":"Needed by {date}","revision":"Revision {n}","awaiting":"Awaiting your approval"}}',
+    '{"tabs":"Engagement sections","representing":"Acting for {artist}","messagesAction":"Message the organization","onboardingAction":"See onboarding","trainingAction":"See training","shiftsAction":"See shifts","invoicesAction":"See invoices","documentsAction":"See documents","poAction":"See purchase orders","changeOrdersAction":"See change orders","scheduleAction":"See schedule","scopeAction":"See scope","advanceAction":"Open the advance","overviewAction":"See overview","closed":{"beforeActive":"This opens once the engagement is Active. Finish onboarding to get there.","beforeActiveOrg":"This opens once the engagement is Active. The organization makes it Active when the work starts.","complete":"This engagement is Complete, so this section has closed. Invoices and documents stay open for 18 months.","canceled":"This engagement was canceled, so this section has closed. Its documents stay open for 18 months.","notOpen":"This section is not open to you on this engagement. Message the organization if you expected it."},"due":"Due {date}","overview":{"next":"Your next steps","stages":"Where this engagement is","stage":{"offer":"Offer","onboarding":"Onboarding","engaged":"Engaged","closeOut":"Close-out"},"blocked":"This engagement is blocked until every required onboarding step passes. Open Onboarding to see what is left.","rate":"Your rate","rateHidden":"Shown while money is open on this engagement","payBasis":"Pay basis","engagement":"Engagement","package":"Package","contractValue":"Contract value","billingBasis":"Billing basis","sponsorshipFee":"Sponsorship fee","approvalsWaiting":"Approvals waiting","approvalsCount":"{n, plural, =0 {None} other {#}}","entitlements":"Entitlements","entitlementsCount":"{done} of {total} delivered","rated":"Thanks. Both ratings appear once the organization rates too, or after 14 days."},"documents":{"empty":"No documents yet. Contracts and forms the organization shares appear here.","emptyKind":"Nothing of this kind has been shared yet. Ask the organization if you expected it.","expires":"Expires {date}"},"onboarding":{"empty":"No onboarding steps. The organization adds any it needs before you start.","progress":"{n} of {total} verified","blocking":"Required before you start","standing":{"verified":"Verified","review":"In review","todo":"To do","expired":"Expired"},"signHint":"Sign it under Documents; the step completes when the organization countersigns.","backgroundHint":"The organization\'s screening provider emails you a secure link for consent and details. Nothing about the check is stored here except the result.","payoutHint":"Add your payout details under Settings, Payout and tax. Only the last four digits are ever shown."},"messages":{"empty":"No conversations yet. Start one below; the organization answers here.","org":"The organization","new":"Start a conversation"},"invoices":{"empty":"No invoices yet. Submit one below when your work is done.","submitTitle":"Submit an invoice","selfBilling":"Self-billing","selfBillingBody":"With self-billing on, the organization raises your invoices from approved timesheets. You can stop it at any time.","selfBillingOn":"Self-billing on","selfBillingAgree":"Agree to self-billing","selfBillingStop":"Stop self-billing"},"shifts":{"empty":"No shifts yet. Published shifts appear here for you to accept.","accept":"Accept shift"},"positions":{"empty":"No positions assigned yet. They follow once training is done."},"timesheets":{"empty":"No timesheets yet. Your clocked shifts collect into timesheets here.","hours":"{n} hours","submitted":"Submitted {date}","submit":"Submit","entries":"Time entries"},"time":{"empty":"No time recorded yet. Clock in from Compass when you start.","out":"Out {time}","open":"Still clocked in","break":"{n} min break"},"travel":{"empty":"No travel or lodging arranged yet. Message the organization if you need it.","lodging":"Lodging","travel":"Travel","itinerary":"Itinerary","route":"{from} to {to}","departs":"Departs {time}","arrives":"Arrives {time}","confirmation":"Confirmation {code}"},"perDiem":{"empty":"No per diem or allowances listed yet. They appear here once the organization sets them.","quantity":"{n} per day","allowances":"Allowances","amenities":"Amenities","total":"Total: {amount}"},"credentials":{"empty":"No credentials issued yet. They are issued once onboarding passes.","valid":"Valid","revoked":"Revoked"},"training":{"empty":"No training to complete. Briefings and acknowledgments show here when assigned.","sessions":"Training sessions"},"bid":{"empty":"You have no bid with this organization. Purchase orders arrive once a bid wins.","summary":"Sealed bid sent {date}, total {total}","quantity":"Quantity {n}"},"po":{"empty":"No purchase orders yet. They arrive here when the organization sends one.","number":"PO {n}","sent":"Sent {date}","acknowledged":"Acknowledged {date}","acknowledge":"Acknowledge","line":"{n}. {description}"},"deliveries":{"empty":"No deliveries or dock slots yet. Your dock times appear here once booked.","docks":"Dock slots","shipments":"Shipments"},"submittals":{"empty":"No submittals requested yet. Requests for drawings and specs appear here."},"advance":{"empty":"No advance packet yet. When the organization sends one, answer each section here.","awaitingReview":"Awaiting review"},"compliance":{"empty":"No compliance items yet. Insurance and prequalification appear here.","insurance":"Insurance certificates","noInsurance":"No insurance certificate on file. Upload one under Onboarding.","current":"Current","expired":"Expired","prequalification":"Prequalification","validTo":"Valid to {date}","items":"Compliance steps","insureds":"Additional insureds named","noInsureds":"This certificate names no additional insureds on file. If the organization requires some, send a certificate that names them.","insuredLine":"{name}, {endorsement}"},"approvals":{"empty":"Nothing waits for your approval. Requests from the organization appear here.","requested":"Requested {date}","waiting":"Waiting for you"},"changeOrders":{"empty":"No change orders yet. Changes to scope or cost appear here for review.","noCost":"No cost"},"schedule":{"empty":"Nothing on the shared schedule yet. Dates appear once the organization shares them."},"reports":{"empty":"No reports shared yet. Reports the organization shares appear here.","shared":"Shared reports","ranAt":"Run {time}","rows":"{n} rows","unpriced":"{n} rows still unpriced","expires":"Shared until {date}","noRecords":"No report records shared yet. Ask the organization if you expect one."},"activation":{"empty":"No activation dates shared yet. They appear once the organization schedules them."},"runOfShow":{"empty":"No run of show shared yet. It appears here once the organization shares it.","called":"Called {time}","mySet":"Your set"},"scope":{"statement":"Statement of work","noStatement":"No statement of work shared yet. Ask the organization for it in Messages.","milestones":"Milestones","noMilestones":"No milestones shared yet."},"deliverables":{"empty":"No deliverables yet. They come from your scope once the organization adds them.","submitted":"Submitted {date}"},"entitlements":{"empty":"No entitlements listed yet. Your package\'s entitlements appear here.","quantity":"Quantity {n}","fulfilled":"Fulfilled {date}","done":"Fulfilled","overdue":"Overdue","open":"Open"},"rider":{"empty":"No rider yet. Send your rider through the advance.","quantity":"Quantity {n}","fulfilled":"Confirmed","pending":"Pending"},"setTimes":{"empty":"No set times yet. They appear once the run of show is shared.","daySheets":"Day sheets"},"hospitality":{"empty":"No hospitality arranged yet. Ask for what you need in the advance."},"guestList":{"empty":"No guests on your list yet. Add a guest below, and the production confirms each one before the show.","request":"Add a guest","listLabel":"Guest list, {n} people in total","plusOnes":"Plus {n}","checkedIn":"Checked in {time}"},"roster":{"empty":"You do not represent any artists yet. Propose a representation from Company settings.","action":"Representation settings","noEngagements":"No engagements for this artist yet."},"forms":{"errors":{"answer":"Write an answer before sending.","decision":"Choose approve or reject.","reason":"Say why you reject it, so the organization can fix it.","deliverable":"Choose the document and write a short message.","header":"Fill in the invoice number and both dates.","dates":"The due date must be on or after the issue date.","lines":"Each line needs an item, a quantity above zero and a unit price.","file":"Choose a file to upload.","fileType":"Upload a PDF, JPEG, PNG, HEIC or WebP file.","fileSize":"The file is larger than 25 MB. Upload a smaller scan or photo.","tin":"Enter the tax identifier with 4 to 30 letters and digits.","subject":"Give the conversation a subject.","guestName":"Write the guest\'s name before adding them.","plusOnes":"Plus-ones run from 0 to 20.","settlementReason":"Write a short note or reason before answering.","asset":"Choose approve, return or resubmit.","assetReason":"Say what to change, so the organization can revise the asset."},"advance":{"answer":"Your answer","submit":"Send answer","done":"Answer sent. The organization reviews it next."},"approval":{"decision":"Decision","approve":"Approve","reject":"Reject","reason":"Why you reject it","note":"Note to the organization","done":"Decision sent."},"deliverable":{"document":"Document","message":"Message","submit":"Submit deliverable","done":"Submitted. The organization accepts or returns it.","noDocuments":"Share the file in Messages first; it then becomes a document you can submit here."},"invoice":{"title":"Invoice","number":"Invoice number","issuedOn":"Issue date","dueOn":"Due date","currency":"Amounts in {currency}","description":"Item or service","quantity":"Quantity","unitPrice":"Unit price","addLine":"Add line","removeLine":"Remove line {n}","submit":"Submit invoice","done":"Invoice submitted. Follow it on the payment tracker."},"upload":{"file":"File or photo","help":"PDF or photo up to 25 MB. On a phone you can take the photo now.","submit":"Upload","done":"Uploaded. The organization verifies it next."},"tax":{"title":"Tax form","kind":"Form","tin":"Taxpayer identification number","tinHelp":"Stored encrypted. Only the last four characters are ever shown.","withholding":"I am a foreign performer subject to withholding","submit":"Submit tax form","done":"Tax form submitted."},"thread":{"title":"New conversation","subject":"Subject","submit":"Start conversation","done":"Conversation started."},"message":{"label":"Reply","body":"Message","send":"Send"},"rating":{"title":"Rate {org}","score":"Score","stars":"{n, plural, one {# star} other {# stars}}","comment":"Public comment","release":"Both ratings appear together once both sides rate, or after 14 days.","submit":"Send rating","done":"Rating sent. It appears when the organization rates too, or after 14 days."},"reply":{"label":"Public reply","submit":"Reply","done":"Reply posted."},"guest":{"title":"Add a guest","name":"Guest name","plusOnes":"Plus-ones","note":"Note for the production (optional)","submit":"Add guest","done":"Guest added. The production confirms them before the show."},"settlement":{"decision":"Your answer","accept":"Accept settlement","dispute":"Dispute settlement","note":"Note","reason":"What should change","done":"Answer sent. The organization sees it now."},"asset":{"decision":"Your answer","approve":"Approve","return":"Return for changes","resubmit":"Resubmit","reason":"What to change","note":"Note to the organization","done":"Answer sent."}},"settlement":{"submitted":"Sent to you {date}","lines":"Lines of {title}","unpriced":"Amount to be confirmed","less":"Less {amount}","net":"Net to you: {amount}","netUnpriced":"The net shows once every line has an amount.","none":"No settlement has been sent to you yet. The organization sends it after the show; settlement documents appear below."},"assets":{"empty":"No brand assets to review yet. The organization submits banners, artwork and copy here for your approval.","due":"Needed by {date}","revision":"Revision {n}","awaiting":"Awaiting your approval"}}',
   ),
   enums: {
     externalRoleType: {
@@ -6230,6 +6366,8 @@ var gateway_default$1 = {
   money: {
     overview: {
       empty: "Nothing earned or pending yet. Payments for your engagements show up here.",
+      emptyUnpaid:
+        "No invoices yet. Invoices the organization sends you for your engagements show up here.",
       emptyAction: "See engagements",
       earned: "Earned",
       pending: "Pending",
@@ -6673,15 +6811,6 @@ var gateway_default$1 = {
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)",
     },
-    help: {
-      title: "Help",
-      body: "Questions about an engagement go to the organization that engaged you. Open Messages to reach them; they answer there.",
-      messages: "Open Messages",
-      ranking: "How ranking works",
-      account:
-        "Platform support helps only with your own account: sign-in, email and account deletion.",
-      close: "Close",
-    },
     switchOrg: {
       title: "Switch org",
       body: "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
@@ -6722,6 +6851,8 @@ var gateway_default$1 = {
         "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
     },
     or: "or",
+    usePassword: "Use a password",
+    useLink: "Use a link",
     signIn: {
       title: "Sign in to Gateway",
       lead: "Find work, get onboarded and get paid with one account for every organization.",
@@ -6734,8 +6865,15 @@ var gateway_default$1 = {
       title: "Create your Gateway account",
       lead: "One account works in Gateway, Atlas and Compass. Your profile stays yours.",
       submit: "Create account",
+      terms:
+        "I agree to the <terms>Worker Terms</terms> and have read the <privacy>Privacy Policy</privacy>.",
       haveAccount: "Already have an account?",
       toSignIn: "Sign in",
+    },
+    terms: {
+      title: "Accept the Worker Terms",
+      lead: "Your Gateway account was created when you signed in. Accept the Worker Terms to finish setting it up.",
+      submit: "Continue",
     },
     providers: {
       continueWith: "Continue with {provider}",
@@ -6776,12 +6914,23 @@ var gateway_default$1 = {
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
       provider_disabled: "That sign-in method is not turned on for Gateway yet. Use email instead.",
       link_invalid: "This link expired or was already used. Request a new one.",
+      oauth_cancelled:
+        "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      oauth_expired:
+        "This sign-in expired or was started in another browser. Start again on this page.",
+      provider_error:
+        "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      email_not_verified:
+        "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      sso_required:
+        "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
       password: "Enter a password of at least 12 characters with letters and numbers.",
       passwordContext:
         "Choose a password that does not contain your name, your email or a product name such as Gateway.",
+      terms: "Accept the Worker Terms to create your account: tick the box above the button.",
     },
   },
   work: {
@@ -6804,7 +6953,7 @@ var gateway_default$1 = {
       empty: "No engagements yet. When an organization engages you, it shows up here.",
       emptyAction: "Explore opportunities",
       current: "Current",
-      past: "Past",
+      closed: "Complete or canceled",
       role: "Role",
       org: "Organization",
       project: "Project",
@@ -6852,6 +7001,11 @@ var gateway_default$1 = {
         },
       },
     },
+  },
+  legal: {
+    inReview:
+      "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    back: "Go to Gateway",
   },
 };
 var gatewayOnboarding_default$1 = {
@@ -7055,6 +7209,66 @@ var help_default$1 = {
       "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
     screenshotNeedsConsent: "Tick the diagnostics box above to attach a screenshot.",
     screenshotTooBig: "That image is larger than 5 MB. Choose a smaller one.",
+  },
+  gateway: {
+    general: "Everywhere in Gateway",
+    shortcuts: { search: "Search Gateway" },
+    whatsNew: {
+      "contextual-help": {
+        title: "Help for every page",
+        body: "Press ? or choose Help for the articles of the page you are on, the shortcuts and Contact Support.",
+      },
+      "continue-on-phone": {
+        title: "Continue on your phone",
+        body: "Every engagement has Continue on phone: scan the code to open the same engagement in Compass.",
+      },
+      "delete-account": {
+        title: "Delete your account in Settings",
+        body: "Settings, Account shows what would stop a deletion and what is kept, then deletes your account when you confirm.",
+      },
+      "asset-approvals": {
+        title: "Sponsors approve brand assets",
+        body: "Approve or return the banners, artwork and copy an organization submits for your entitlements.",
+      },
+      "invoice-updates": {
+        title: "Every invoice step on Home",
+        body: "Home shows when an organization receives, approves, schedules and pays your invoice. Choose email or push in Settings, Notifications.",
+      },
+      "self-billing": {
+        title: "Self-billing for individuals",
+        body: "Crew, staff and contractors can agree to self-billing, so the organization raises their invoices from approved timesheets.",
+      },
+    },
+    contact: {
+      workTitle: "About your work",
+      workBody:
+        "Questions about an engagement, a payment, a schedule or a document go to the organization that engaged you. Message them and they answer in Messages.",
+      messageOrg: "Message the organization",
+      openMessages: "Open Messages",
+      accountTitle: "About your account",
+      accountBody:
+        "Platform support helps only with your own Gateway account: signing in, your email and deleting your account. It answers by email.",
+      categories: {
+        Account: "My account",
+        Access: "Signing in",
+        Problem: "Something is not working",
+        Question: "A question",
+      },
+      subjectHint: "The sign-in link never arrives",
+      body: "What happened, and what do you need?",
+      bodyHint: "What you tried, what you expected and what you saw",
+      required: "Fill in the subject and the message to send the request.",
+      sent: "Request {number} sent. Platform support answers by email at {email}.",
+      errors: {
+        denied: "Sign in again, then send the request.",
+        invalid: "The request is missing something. Check the subject and the message.",
+        category:
+          "Platform support helps only with your own account. Ask the organization about anything else in Messages.",
+        limit:
+          "You sent five requests in the last day. Platform support answers each by email; wait for those answers first.",
+        unexpected: "The request could not be sent. Try again in a moment.",
+      },
+    },
   },
 };
 var home_default$1 = {
@@ -12408,6 +12622,8 @@ var settings_default$1 = {
     ip_allowlist_empty: "Add at least one network before turning the allow-list on.",
     plan_feature_ip_allowlist:
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
+    setting_not_enforced:
+      "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
   },
   fields: {
     legalName: {
@@ -12436,15 +12652,15 @@ var settings_default$1 = {
     },
     mfaPolicy: {
       label: "Multi-factor authentication",
-      help: "Who must use a second factor to sign in.",
+      help: "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional.",
     },
     sessionHours: {
       label: "Session length in hours",
-      help: "How long a sign-in lasts before the person signs in again, from 1 to 720 hours.",
+      help: "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours.",
     },
     idleTimeout: {
       label: "Idle timeout in minutes",
-      help: "Sign out after this many minutes without activity, from 5 to 1,440.",
+      help: "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes.",
     },
     ipAllowlist: {
       label: "Enforce the IP allow-list",
@@ -12711,6 +12927,7 @@ var settings_default$1 = {
     assetCurrent: "Current file: {name}",
     assetNone: "No file yet. The platform mark is used.",
     assetHelp: "PNG, WebP or ICO, up to 2 MB. Logos at least 256 pixels wide.",
+    assetScanning: "Being checked for viruses. It replaces the current mark once the check passes.",
     upload: "Upload",
   },
   domains: {
@@ -13211,6 +13428,16 @@ var shell_default$1 = {
       over_request_rate_limit: "Too many attempts. Wait a minute, then try again.",
       provider_disabled: "That sign-in method is not turned on for Atlas yet. Use email instead.",
       link_invalid: "This link expired or was already used. Request a new one.",
+      oauth_cancelled:
+        "You left the sign-in before it finished. Choose a way to sign in to try again.",
+      oauth_expired:
+        "This sign-in expired or was started in another browser. Start again on this page.",
+      provider_error:
+        "Your sign-in could not be completed. Try again in a moment, or use an email link instead.",
+      email_not_verified:
+        "The email address on that account is not verified yet. Open the confirmation link we sent to it, then try again.",
+      sso_required:
+        "Your organization signs its members in through its own identity provider. Ask an Admin of your organization how to sign in.",
       unexpected: "Something went wrong on our side. Try again in a moment.",
       fullName: "Enter your full name.",
       email: "Enter an email address like name@company.com.",
@@ -18579,6 +18806,18 @@ var compass_default = {
     sendLink: "Enviarme un enlace",
     usePassword: "Usar contraseña",
     useLink: "Usar enlace",
+    google: "Continuar con Google",
+    or: "o",
+    googleCancelled:
+      "Saliste del inicio de sesión con Google antes de terminar. Vuelve a intentarlo o usa un enlace por correo.",
+    googleUnavailable:
+      "Para iniciar sesión con Google, este dispositivo necesita los servicios de Google Play. Actualízalos o usa un enlace por correo.",
+    googleFailed:
+      "Google no pudo iniciar tu sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+    emailNotVerified:
+      "El correo de esa cuenta de Google aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+    ssoRequired:
+      "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
     submit: "Iniciar sesión",
     linkSent: "Revisa {email}: te enviamos un enlace que abre Compass.",
     invalid: "El correo y la contraseña no coinciden. Revisa ambos o usa un enlace por correo.",
@@ -18794,8 +19033,6 @@ var compass_default = {
         "No tienes un turno aceptado hoy en este proyecto. Acepta uno en Agenda primero.",
     },
     live: {
-      shift: "Turno actual",
-      ends: "Termina a las {time}",
       since: "Desde",
       worked: "Trabajado",
       lockScreenFailed:
@@ -18814,14 +19051,22 @@ var compass_default = {
     title: "Agenda",
     myShifts: "Mis turnos",
     openShifts: "Turnos abiertos",
-    empty: "No hay turnos próximos. Aquí aparecen los turnos abiertos que puedes tomar.",
+    emptyClaim: "Aún no tienes turnos asignados. Toma uno de los turnos abiertos de abajo.",
+    emptyAsk: "Aún no tienes turnos asignados. Pídele uno a tu jefe de equipo.",
+    emptyExternal:
+      "Aún no hay turnos reservados. La organización los reserva en tu contratación en Gateway.",
+    findOpen: "Ver turnos abiertos",
+    messageTeammate: "Escribir al equipo",
     openEmpty: "No hay turnos abiertos ahora.",
     accept: "Aceptar",
     claim: "Tomar",
     accepted: "Aceptado",
     published: "Esperando tu respuesta",
+    open: "Abierto",
     canceled: "Cancelado",
     startsIn: "Empieza en {time}",
+    startsInDaysOne: "Empieza en {count} día",
+    startsInDaysOther: "Empieza en {count} días",
     timeRange: "{start} a {end}",
     noPlace: "Lugar por confirmar",
     claimOverlap:
@@ -19020,6 +19265,8 @@ var compass_default = {
   },
   more: {
     title: "Más",
+    inGateway: "En Gateway",
+    inAtlas: "En Atlas",
     pendingTitle: "{page} está en Gateway",
     pending: "Abre Gateway para ver {page}. Compass lo mostrará aquí en una versión próxima.",
     aurora: "Asistente",
@@ -19048,12 +19295,16 @@ var compass_default = {
     title: "Perfil",
     role: "Rol",
     engagements: "Contrataciones",
-    certifications: "Las certificaciones están en Gateway.",
+    certificationsTitle: "Certificaciones",
+    certificationsAtlas:
+      "Tus certificaciones se guardan en tu perfil de Atlas, donde tu organización las revisa.",
+    certificationsGateway:
+      "Tus certificaciones se guardan en tu perfil de Gateway, donde las organizaciones las revisan.",
   },
   settings: {
     title: "Ajustes",
     theme: "Tema",
-    themeSystem: "Dispositivo",
+    themeSystem: "Sistema",
     themeDark: "Oscuro",
     themeLight: "Claro",
     themeSunlight: "Sol",
@@ -19265,6 +19516,58 @@ var compass_default = {
     denied:
       "Las notificaciones de Compass están desactivadas. Actívalas en Ajustes para aprobar desde la alerta.",
     turnOn: "Activar notificaciones",
+  },
+  help: {
+    title: "Ayuda",
+    entry: "Ayuda",
+    entryHelp: "Artículos para cada pantalla, y Contactar a soporte",
+    search: "Buscar en la ayuda",
+    results: "Artículos que coinciden con {query}",
+    searchEmpty:
+      "Ningún artículo coincide con {query}. Prueba con otra palabra o contacta a soporte abajo.",
+    forScreen: "Para la pantalla donde estabas",
+    general: "En todo Compass",
+    all: "Toda la ayuda para tu rol",
+    offline: "La ayuda se guarda en este teléfono, así que funciona sin conexión.",
+    missing: "Este artículo no está disponible. Vuelve a Ayuda para ver los demás.",
+    back: "Volver a Ayuda",
+    contact: {
+      open: "Contactar a soporte",
+      title: "Contactar a soporte",
+      orgTitle: "Tu organización",
+      orgBody:
+        "Pregunta a los equipos de tu organización, como operaciones, TI, recursos humanos o instalaciones, en la Mesa de ayuda. Responden ahí.",
+      orgAction: "Abrir Mesa de ayuda",
+      workTitle: "Tu trabajo con una organización",
+      workBody:
+        "Las preguntas sobre una contratación, un pago, un horario o un documento van a la organización que te contrató, en Mensajes de Gateway.",
+      workAction: "Abrir Mensajes en Gateway",
+      accountTitle: "Tu cuenta",
+      accountBody:
+        "El soporte de la plataforma solo ayuda con tu propia cuenta: el acceso, tu correo y la eliminación de tu cuenta. Responde por correo.",
+      category: "Categoría",
+      categories: {
+        Account: "Cuenta",
+        Access: "Acceso",
+        Problem: "Problema",
+        Question: "Pregunta",
+      },
+      subject: "Asunto",
+      body: "¿Qué ocurrió y qué necesitas?",
+      diagnostics: "Adjuntar diagnósticos",
+      diagnosticsHelp:
+        "Envía la pantalla donde estabas ({screen}), la versión de la aplicación ({version}) y tu dispositivo ({device}).",
+      send: "Enviar solicitud",
+      required: "Completa el asunto y el mensaje para enviar la solicitud.",
+      offline: "Para enviar una solicitud necesitas conexión. Conéctate y vuelve a intentarlo.",
+      sent: "Se envió la solicitud {number}. El soporte de la plataforma responde por correo.",
+      errors: {
+        limit:
+          "Enviaste cinco solicitudes en el último día. El soporte de la plataforma responde cada una por correo; espera esas respuestas primero.",
+        invalid: "Falta información en la solicitud. Revisa el asunto y el mensaje.",
+        unexpected: "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento.",
+      },
+    },
   },
 };
 var credentials_default = {
@@ -20232,7 +20535,7 @@ var docs_default = {
   help: {
     title: "Centro de ayuda",
     sentence:
-      "Cómo funciona Atlas, página por página. Son los artículos que muestra el panel de ayuda dentro de la aplicación.",
+      "Cómo funcionan Atlas, Gateway y Compass, página por página. Son los artículos que muestra el panel de ayuda de cada aplicación.",
     searchLabel: "Buscar en la ayuda",
     searchButton: "Buscar",
     results: "{count} artículos coinciden con {query}.",
@@ -20241,6 +20544,22 @@ var docs_default = {
     whatsNew: "Novedades",
     related: "Abrir el artículo relacionado",
     back: "Todos los artículos de ayuda",
+    shells: {
+      atlas: {
+        title: "Atlas",
+        sentence: "Para los miembros de una organización, página por página.",
+      },
+      gateway: {
+        title: "Gateway",
+        sentence:
+          "Para las personas y empresas que contratan las organizaciones: oportunidades, contrataciones, pagos y configuración.",
+      },
+      compass: {
+        title: "Compass",
+        sentence:
+          "La aplicación de campo para los miembros y todas las personas que contratan, pantalla por pantalla.",
+      },
+    },
   },
   notFound: {
     title: "Esta página no existe",
@@ -21548,7 +21867,7 @@ var gateway_default = {
     clearFilter: "Mostrar todas las organizaciones",
   },
   engagement: /* @__PURE__ */ JSON.parse(
-    '{"tabs":"Secciones de la contratación","representing":"Actuando por {artist}","messagesAction":"Escribir a la organización","onboardingAction":"Ver incorporación","trainingAction":"Ver capacitación","shiftsAction":"Ver turnos","invoicesAction":"Ver facturas","documentsAction":"Ver documentos","poAction":"Ver órdenes de compra","changeOrdersAction":"Ver órdenes de cambio","scheduleAction":"Ver calendario","scopeAction":"Ver alcance","advanceAction":"Abrir el avance","operationalClosed":"Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.","due":"Vence {date}","overview":{"next":"Tus próximos pasos","stages":"En qué etapa está","stage":{"offer":"Oferta","onboarding":"Incorporación","engaged":"En curso","closeOut":"Cierre"},"blocked":"Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.","rate":"Tu tarifa","rateHidden":"Se muestra mientras el área de pagos esté abierta","payBasis":"Base de pago","rated":"Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."},"documents":{"empty":"Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.","emptyKind":"Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.","expires":"Vence {date}"},"onboarding":{"empty":"No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.","progress":"{n} de {total} verificados","blocking":"Obligatorio antes de empezar","standing":{"verified":"Verificado","review":"En revisión","todo":"Pendiente","expired":"Vencido"},"signHint":"Fírmalo en Documentos; el paso se completa cuando la organización firme.","backgroundHint":"El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.","payoutHint":"Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."},"messages":{"empty":"Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.","org":"La organización","new":"Iniciar una conversación"},"invoices":{"closed":"Las facturas se abren cuando el área de pagos esté abierta, al quedar activa.","empty":"Aún no hay facturas. Envía una abajo cuando termines tu trabajo.","submitTitle":"Enviar una factura","selfBilling":"Autofacturación","selfBillingBody":"Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.","selfBillingOn":"Autofacturación activa","selfBillingAgree":"Aceptar autofacturación","selfBillingStop":"Detener autofacturación"},"shifts":{"empty":"Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.","accept":"Aceptar turno"},"positions":{"empty":"Aún no tienes puestos asignados. Llegan cuando termines la capacitación."},"timesheets":{"empty":"Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.","hours":"{n} horas","submitted":"Enviada el {date}","submit":"Enviar","entries":"Registros de tiempo"},"time":{"empty":"Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.","out":"Salida {time}","open":"Aún con entrada marcada","break":"{n} min de descanso"},"travel":{"empty":"Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.","lodging":"Hospedaje","travel":"Viaje","itinerary":"Itinerario","route":"{from} a {to}","departs":"Sale {time}","arrives":"Llega {time}","confirmation":"Confirmación {code}"},"perDiem":{"empty":"Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.","quantity":"{n} por día","allowances":"Viáticos","amenities":"Comodidades","total":"Total: {amount}"},"credentials":{"empty":"Aún no hay credenciales. Se emiten cuando pasa la incorporación.","valid":"Vigente","revoked":"Revocada"},"training":{"empty":"No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.","sessions":"Sesiones de capacitación"},"bid":{"empty":"No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.","summary":"Oferta sellada enviada el {date}, total {total}","quantity":"Cantidad {n}"},"po":{"empty":"Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.","number":"OC {n}","sent":"Enviada el {date}","acknowledged":"Confirmada el {date}","acknowledge":"Confirmar recepción","line":"{n}. {description}"},"deliveries":{"empty":"Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.","docks":"Turnos de muelle","shipments":"Envíos"},"submittals":{"empty":"Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."},"advance":{"empty":"Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.","awaitingReview":"En espera de revisión"},"compliance":{"empty":"Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.","insurance":"Certificados de seguro","noInsurance":"No hay certificado de seguro registrado. Súbelo en Incorporación.","current":"Vigente","expired":"Vencido","prequalification":"Precalificación","validTo":"Vigente hasta {date}","items":"Pasos de cumplimiento","insureds":"Asegurados adicionales nombrados","noInsureds":"Este certificado no nombra asegurados adicionales registrados. Si la organización exige alguno, envíe un certificado que los nombre.","insuredLine":"{name}, {endorsement}"},"approvals":{"empty":"Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.","requested":"Solicitada el {date}","waiting":"Te espera"},"changeOrders":{"empty":"Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.","noCost":"Sin costo"},"schedule":{"empty":"Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."},"reports":{"empty":"Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí.","shared":"Informes compartidos","ranAt":"Generado {time}","rows":"{n} filas","unpriced":"{n} filas aún sin precio","expires":"Compartido hasta el {date}","noRecords":"Aún no hay registros de informes compartidos. Pregunta a la organización si esperas uno."},"activation":{"empty":"Aún no hay fechas de activación. Aparecen cuando la organización las programe."},"runOfShow":{"empty":"Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.","called":"Llamado {time}","mySet":"Tu presentación"},"scope":{"statement":"Declaración de trabajo","noStatement":"Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.","milestones":"Hitos","noMilestones":"Aún no hay hitos compartidos."},"deliverables":{"empty":"Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.","submitted":"Entregado el {date}"},"entitlements":{"empty":"Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.","quantity":"Cantidad {n}","fulfilled":"Cumplido el {date}","done":"Cumplido","overdue":"Atrasado","open":"Abierto"},"rider":{"empty":"Aún no hay rider. Envía tu rider mediante el avance.","quantity":"Cantidad {n}","fulfilled":"Confirmado","pending":"Pendiente"},"setTimes":{"empty":"Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.","daySheets":"Hojas del día"},"hospitality":{"empty":"Aún no hay hospitalidad. Pide lo que necesites en el avance."},"guestList":{"empty":"Aún no hay invitados en tu lista. Agrega un invitado abajo y la producción confirma a cada uno antes del show.","request":"Agregar un invitado","listLabel":"Lista de invitados, {n} personas en total","plusOnes":"Más {n}","checkedIn":"Registrado {time}"},"roster":{"empty":"Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.","action":"Configuración de representación","noEngagements":"Aún no hay contrataciones para este artista."},"forms":{"errors":{"answer":"Escribe una respuesta antes de enviar.","decision":"Elige aprobar o rechazar.","reason":"Di por qué lo rechazas para que la organización pueda corregirlo.","deliverable":"Elige el documento y escribe un mensaje breve.","header":"Completa el número de factura y ambas fechas.","dates":"La fecha de vencimiento debe ser igual o posterior a la de emisión.","lines":"Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.","file":"Elige un archivo para subir.","fileType":"Sube un archivo PDF, JPEG, PNG, HEIC o WebP.","fileSize":"El archivo supera 25 MB. Sube un escaneo o foto más pequeño.","tin":"Escribe el identificador fiscal con 4 a 30 letras y dígitos.","subject":"Ponle un asunto a la conversación.","guestName":"Escribe el nombre del invitado antes de agregarlo.","plusOnes":"Los acompañantes van de 0 a 20.","settlementReason":"Escribe una nota o un motivo breve antes de responder.","asset":"Elija aprobar, devolver o volver a enviar.","assetReason":"Indique qué cambiar para que la organización pueda revisar el recurso."},"advance":{"answer":"Tu respuesta","submit":"Enviar respuesta","done":"Respuesta enviada. La organización la revisa después."},"approval":{"decision":"Decisión","approve":"Aprobar","reject":"Rechazar","reason":"Por qué lo rechazas","note":"Nota para la organización","done":"Decisión enviada."},"deliverable":{"document":"Documento","message":"Mensaje","submit":"Entregar","done":"Entregado. La organización lo acepta o lo devuelve.","noDocuments":"Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."},"invoice":{"title":"Factura","number":"Número de factura","issuedOn":"Fecha de emisión","dueOn":"Fecha de vencimiento","currency":"Montos en {currency}","description":"Artículo o servicio","quantity":"Cantidad","unitPrice":"Precio unitario","addLine":"Agregar línea","removeLine":"Quitar línea {n}","submit":"Enviar factura","done":"Factura enviada. Síguela en el rastreador de pagos."},"upload":{"file":"Archivo o foto","help":"PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.","submit":"Subir","done":"Subido. La organización lo verifica después."},"tax":{"title":"Formulario fiscal","kind":"Formulario","tin":"Número de identificación fiscal","tinHelp":"Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.","withholding":"Soy artista extranjero sujeto a retención","submit":"Enviar formulario fiscal","done":"Formulario fiscal enviado."},"thread":{"title":"Nueva conversación","subject":"Asunto","submit":"Iniciar conversación","done":"Conversación iniciada."},"message":{"label":"Responder","body":"Mensaje","send":"Enviar"},"rating":{"title":"Califica a {org}","score":"Puntuación","stars":"{n, plural, one {# estrella} other {# estrellas}}","comment":"Comentario público","release":"Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.","submit":"Enviar calificación","done":"Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."},"reply":{"label":"Respuesta pública","submit":"Responder","done":"Respuesta publicada."},"guest":{"title":"Agregar un invitado","name":"Nombre del invitado","plusOnes":"Acompañantes","note":"Nota para la producción (opcional)","submit":"Agregar invitado","done":"Invitado agregado. La producción lo confirma antes del show."},"settlement":{"decision":"Tu respuesta","accept":"Aceptar liquidación","dispute":"Disputar liquidación","note":"Nota","reason":"Qué debe cambiar","done":"Respuesta enviada. La organización ya la ve."},"asset":{"decision":"Su respuesta","approve":"Aprobar","return":"Devolver con cambios","resubmit":"Volver a enviar","reason":"Qué cambiar","note":"Nota para la organización","done":"Respuesta enviada."}},"settlement":{"submitted":"Enviada el {date}","lines":"Líneas de {title}","unpriced":"Monto por confirmar","less":"Menos {amount}","net":"Neto para ti: {amount}","netUnpriced":"El neto aparece cuando cada línea tiene un monto.","none":"Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."},"assets":{"empty":"Aún no hay recursos de marca para revisar. La organización envía aquí pancartas, arte y textos para su aprobación.","due":"Se necesita el {date}","revision":"Revisión {n}","awaiting":"Espera su aprobación"}}',
+    '{"tabs":"Secciones de la contratación","representing":"Actuando por {artist}","messagesAction":"Escribir a la organización","onboardingAction":"Ver incorporación","trainingAction":"Ver capacitación","shiftsAction":"Ver turnos","invoicesAction":"Ver facturas","documentsAction":"Ver documentos","poAction":"Ver órdenes de compra","changeOrdersAction":"Ver órdenes de cambio","scheduleAction":"Ver calendario","scopeAction":"Ver alcance","advanceAction":"Abrir el avance","overviewAction":"Ver resumen","closed":{"beforeActive":"Esto se abre cuando la contratación está activa. Termina la incorporación para llegar ahí.","beforeActiveOrg":"Esto se abre cuando la contratación está activa. La organización la activa cuando empieza el trabajo.","complete":"Esta contratación está completa, así que esta sección se cerró. Las facturas y los documentos siguen abiertos durante 18 meses.","canceled":"Esta contratación se canceló, así que esta sección se cerró. Sus documentos siguen abiertos durante 18 meses.","notOpen":"Esta sección no está abierta para ti en esta contratación. Escribe a la organización si la esperabas."},"due":"Vence {date}","overview":{"next":"Tus próximos pasos","stages":"En qué etapa está","stage":{"offer":"Oferta","onboarding":"Incorporación","engaged":"En curso","closeOut":"Cierre"},"blocked":"Esta contratación está bloqueada hasta que pasen todos los pasos obligatorios de incorporación. Abre Incorporación para ver lo pendiente.","rate":"Tu tarifa","rateHidden":"Se muestra mientras el área de pagos esté abierta","payBasis":"Base de pago","engagement":"Contratación","package":"Paquete","contractValue":"Valor del contrato","billingBasis":"Base de facturación","sponsorshipFee":"Cuota de patrocinio","approvalsWaiting":"Aprobaciones pendientes","approvalsCount":"{n, plural, =0 {Ninguna} other {#}}","entitlements":"Beneficios","entitlementsCount":"{done} de {total} entregados","rated":"Gracias. Ambas calificaciones aparecen cuando la organización también califique, o después de 14 días."},"documents":{"empty":"Aún no hay documentos. Los contratos y formularios que comparta la organización aparecen aquí.","emptyKind":"Aún no se compartió nada de este tipo. Pregunta a la organización si lo esperabas.","expires":"Vence {date}"},"onboarding":{"empty":"No hay pasos de incorporación. La organización agrega los que necesite antes de que empieces.","progress":"{n} de {total} verificados","blocking":"Obligatorio antes de empezar","standing":{"verified":"Verificado","review":"En revisión","todo":"Pendiente","expired":"Vencido"},"signHint":"Fírmalo en Documentos; el paso se completa cuando la organización firme.","backgroundHint":"El proveedor de verificación de la organización te envía un enlace seguro para tu consentimiento y datos. Aquí solo se guarda el resultado.","payoutHint":"Agrega tus datos de pago en Configuración, Pagos e impuestos. Solo se muestran los últimos cuatro dígitos."},"messages":{"empty":"Aún no hay conversaciones. Empieza una abajo; la organización responde aquí.","org":"La organización","new":"Iniciar una conversación"},"invoices":{"empty":"Aún no hay facturas. Envía una abajo cuando termines tu trabajo.","submitTitle":"Enviar una factura","selfBilling":"Autofacturación","selfBillingBody":"Con la autofacturación activa, la organización genera tus facturas a partir de las hojas de horas aprobadas. Puedes detenerla cuando quieras.","selfBillingOn":"Autofacturación activa","selfBillingAgree":"Aceptar autofacturación","selfBillingStop":"Detener autofacturación"},"shifts":{"empty":"Aún no hay turnos. Los turnos publicados aparecen aquí para que los aceptes.","accept":"Aceptar turno"},"positions":{"empty":"Aún no tienes puestos asignados. Llegan cuando termines la capacitación."},"timesheets":{"empty":"Aún no hay hojas de horas. Tus turnos registrados se reúnen aquí.","hours":"{n} horas","submitted":"Enviada el {date}","submit":"Enviar","entries":"Registros de tiempo"},"time":{"empty":"Aún no hay tiempo registrado. Marca tu entrada desde Compass al empezar.","out":"Salida {time}","open":"Aún con entrada marcada","break":"{n} min de descanso"},"travel":{"empty":"Aún no hay viaje ni hospedaje. Escribe a la organización si lo necesitas.","lodging":"Hospedaje","travel":"Viaje","itinerary":"Itinerario","route":"{from} a {to}","departs":"Sale {time}","arrives":"Llega {time}","confirmation":"Confirmación {code}"},"perDiem":{"empty":"Aún no hay viáticos ni asignaciones. Aparecen aquí cuando la organización los defina.","quantity":"{n} por día","allowances":"Viáticos","amenities":"Comodidades","total":"Total: {amount}"},"credentials":{"empty":"Aún no hay credenciales. Se emiten cuando pasa la incorporación.","valid":"Vigente","revoked":"Revocada"},"training":{"empty":"No hay capacitación pendiente. Las sesiones y confirmaciones aparecen aquí al asignarse.","sessions":"Sesiones de capacitación"},"bid":{"empty":"No tienes ofertas con esta organización. Las órdenes de compra llegan cuando una oferta gana.","summary":"Oferta sellada enviada el {date}, total {total}","quantity":"Cantidad {n}"},"po":{"empty":"Aún no hay órdenes de compra. Llegan aquí cuando la organización envía una.","number":"OC {n}","sent":"Enviada el {date}","acknowledged":"Confirmada el {date}","acknowledge":"Confirmar recepción","line":"{n}. {description}"},"deliveries":{"empty":"Aún no hay entregas ni turnos de muelle. Tus horarios aparecen aquí al reservarse.","docks":"Turnos de muelle","shipments":"Envíos"},"submittals":{"empty":"Aún no hay entregables técnicos solicitados. Las solicitudes de planos y especificaciones aparecen aquí."},"advance":{"empty":"Aún no hay paquete de avance. Cuando la organización envíe uno, responde cada sección aquí.","awaitingReview":"En espera de revisión"},"compliance":{"empty":"Aún no hay elementos de cumplimiento. Los seguros y la precalificación aparecen aquí.","insurance":"Certificados de seguro","noInsurance":"No hay certificado de seguro registrado. Súbelo en Incorporación.","current":"Vigente","expired":"Vencido","prequalification":"Precalificación","validTo":"Vigente hasta {date}","items":"Pasos de cumplimiento","insureds":"Asegurados adicionales nombrados","noInsureds":"Este certificado no nombra asegurados adicionales registrados. Si la organización exige alguno, envíe un certificado que los nombre.","insuredLine":"{name}, {endorsement}"},"approvals":{"empty":"Nada espera tu aprobación. Las solicitudes de la organización aparecen aquí.","requested":"Solicitada el {date}","waiting":"Te espera"},"changeOrders":{"empty":"Aún no hay órdenes de cambio. Los cambios de alcance o costo aparecen aquí para revisión.","noCost":"Sin costo"},"schedule":{"empty":"Aún no hay nada en el calendario compartido. Las fechas aparecen cuando la organización las comparte."},"reports":{"empty":"Aún no hay informes compartidos. Los informes que comparta la organización aparecen aquí.","shared":"Informes compartidos","ranAt":"Generado {time}","rows":"{n} filas","unpriced":"{n} filas aún sin precio","expires":"Compartido hasta el {date}","noRecords":"Aún no hay registros de informes compartidos. Pregunta a la organización si esperas uno."},"activation":{"empty":"Aún no hay fechas de activación. Aparecen cuando la organización las programe."},"runOfShow":{"empty":"Aún no se comparte el guion del show. Aparece aquí cuando la organización lo comparta.","called":"Llamado {time}","mySet":"Tu presentación"},"scope":{"statement":"Declaración de trabajo","noStatement":"Aún no se comparte la declaración de trabajo. Pídela a la organización en Mensajes.","milestones":"Hitos","noMilestones":"Aún no hay hitos compartidos."},"deliverables":{"empty":"Aún no hay entregables. Salen de tu alcance cuando la organización los agregue.","submitted":"Entregado el {date}"},"entitlements":{"empty":"Aún no hay beneficios. Los beneficios de tu paquete aparecen aquí.","quantity":"Cantidad {n}","fulfilled":"Cumplido el {date}","done":"Cumplido","overdue":"Atrasado","open":"Abierto"},"rider":{"empty":"Aún no hay rider. Envía tu rider mediante el avance.","quantity":"Cantidad {n}","fulfilled":"Confirmado","pending":"Pendiente"},"setTimes":{"empty":"Aún no hay horarios de presentación. Aparecen cuando se comparte el guion del show.","daySheets":"Hojas del día"},"hospitality":{"empty":"Aún no hay hospitalidad. Pide lo que necesites en el avance."},"guestList":{"empty":"Aún no hay invitados en tu lista. Agrega un invitado abajo y la producción confirma a cada uno antes del show.","request":"Agregar un invitado","listLabel":"Lista de invitados, {n} personas en total","plusOnes":"Más {n}","checkedIn":"Registrado {time}"},"roster":{"empty":"Aún no representas a ningún artista. Propón una representación desde Configuración de empresa.","action":"Configuración de representación","noEngagements":"Aún no hay contrataciones para este artista."},"forms":{"errors":{"answer":"Escribe una respuesta antes de enviar.","decision":"Elige aprobar o rechazar.","reason":"Di por qué lo rechazas para que la organización pueda corregirlo.","deliverable":"Elige el documento y escribe un mensaje breve.","header":"Completa el número de factura y ambas fechas.","dates":"La fecha de vencimiento debe ser igual o posterior a la de emisión.","lines":"Cada línea necesita un artículo, una cantidad mayor que cero y un precio unitario.","file":"Elige un archivo para subir.","fileType":"Sube un archivo PDF, JPEG, PNG, HEIC o WebP.","fileSize":"El archivo supera 25 MB. Sube un escaneo o foto más pequeño.","tin":"Escribe el identificador fiscal con 4 a 30 letras y dígitos.","subject":"Ponle un asunto a la conversación.","guestName":"Escribe el nombre del invitado antes de agregarlo.","plusOnes":"Los acompañantes van de 0 a 20.","settlementReason":"Escribe una nota o un motivo breve antes de responder.","asset":"Elija aprobar, devolver o volver a enviar.","assetReason":"Indique qué cambiar para que la organización pueda revisar el recurso."},"advance":{"answer":"Tu respuesta","submit":"Enviar respuesta","done":"Respuesta enviada. La organización la revisa después."},"approval":{"decision":"Decisión","approve":"Aprobar","reject":"Rechazar","reason":"Por qué lo rechazas","note":"Nota para la organización","done":"Decisión enviada."},"deliverable":{"document":"Documento","message":"Mensaje","submit":"Entregar","done":"Entregado. La organización lo acepta o lo devuelve.","noDocuments":"Primero comparte el archivo en Mensajes; luego será un documento que puedes entregar aquí."},"invoice":{"title":"Factura","number":"Número de factura","issuedOn":"Fecha de emisión","dueOn":"Fecha de vencimiento","currency":"Montos en {currency}","description":"Artículo o servicio","quantity":"Cantidad","unitPrice":"Precio unitario","addLine":"Agregar línea","removeLine":"Quitar línea {n}","submit":"Enviar factura","done":"Factura enviada. Síguela en el rastreador de pagos."},"upload":{"file":"Archivo o foto","help":"PDF o foto de hasta 25 MB. En el teléfono puedes tomar la foto ahora.","submit":"Subir","done":"Subido. La organización lo verifica después."},"tax":{"title":"Formulario fiscal","kind":"Formulario","tin":"Número de identificación fiscal","tinHelp":"Se guarda cifrado. Solo se muestran los últimos cuatro caracteres.","withholding":"Soy artista extranjero sujeto a retención","submit":"Enviar formulario fiscal","done":"Formulario fiscal enviado."},"thread":{"title":"Nueva conversación","subject":"Asunto","submit":"Iniciar conversación","done":"Conversación iniciada."},"message":{"label":"Responder","body":"Mensaje","send":"Enviar"},"rating":{"title":"Califica a {org}","score":"Puntuación","stars":"{n, plural, one {# estrella} other {# estrellas}}","comment":"Comentario público","release":"Ambas calificaciones aparecen juntas cuando ambas partes califiquen, o después de 14 días.","submit":"Enviar calificación","done":"Calificación enviada. Aparece cuando la organización también califique, o después de 14 días."},"reply":{"label":"Respuesta pública","submit":"Responder","done":"Respuesta publicada."},"guest":{"title":"Agregar un invitado","name":"Nombre del invitado","plusOnes":"Acompañantes","note":"Nota para la producción (opcional)","submit":"Agregar invitado","done":"Invitado agregado. La producción lo confirma antes del show."},"settlement":{"decision":"Tu respuesta","accept":"Aceptar liquidación","dispute":"Disputar liquidación","note":"Nota","reason":"Qué debe cambiar","done":"Respuesta enviada. La organización ya la ve."},"asset":{"decision":"Su respuesta","approve":"Aprobar","return":"Devolver con cambios","resubmit":"Volver a enviar","reason":"Qué cambiar","note":"Nota para la organización","done":"Respuesta enviada."}},"settlement":{"submitted":"Enviada el {date}","lines":"Líneas de {title}","unpriced":"Monto por confirmar","less":"Menos {amount}","net":"Neto para ti: {amount}","netUnpriced":"El neto aparece cuando cada línea tiene un monto.","none":"Aún no te han enviado una liquidación. La organización la envía después del show; los documentos de liquidación aparecen abajo."},"assets":{"empty":"Aún no hay recursos de marca para revisar. La organización envía aquí pancartas, arte y textos para su aprobación.","due":"Se necesita el {date}","revision":"Revisión {n}","awaiting":"Espera su aprobación"}}',
   ),
   enums: {
     externalRoleType: {
@@ -22148,6 +22467,8 @@ var gateway_default = {
   money: {
     overview: {
       empty: "Aún no hay ingresos ni pendientes. Los pagos de tus contrataciones aparecen aquí.",
+      emptyUnpaid:
+        "Aún no hay facturas. Las facturas que la organización te envía por tus contrataciones aparecen aquí.",
       emptyAction: "Ver contrataciones",
       earned: "Cobrado",
       pending: "Pendiente",
@@ -22602,15 +22923,6 @@ var gateway_default = {
       "en-XA": "Pseudolocal (acentos)",
       "ar-XB": "Pseudolocal (derecha a izquierda)",
     },
-    help: {
-      title: "Ayuda",
-      body: "Las preguntas sobre una contratación van a la organización que te contrató. Abre Mensajes para escribirles; responden ahí.",
-      messages: "Abrir mensajes",
-      ranking: "Cómo funciona el orden",
-      account:
-        "El soporte de la plataforma solo ayuda con tu propia cuenta: acceso, correo y eliminación de la cuenta.",
-      close: "Cerrar",
-    },
     switchOrg: {
       title: "Cambiar de organización",
       body: "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
@@ -22651,6 +22963,8 @@ var gateway_default = {
         "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
     },
     or: "o",
+    usePassword: "Usar contraseña",
+    useLink: "Usar un enlace",
     signIn: {
       title: "Inicia sesión en Gateway",
       lead: "Encuentra trabajo, completa tu incorporación y cobra con una sola cuenta para todas las organizaciones.",
@@ -22663,8 +22977,15 @@ var gateway_default = {
       title: "Crea tu cuenta de Gateway",
       lead: "Una cuenta sirve en Gateway, Atlas y Compass. Tu perfil sigue siendo tuyo.",
       submit: "Crear cuenta",
+      terms:
+        "Acepto los <terms>Términos para trabajadores</terms> y leí la <privacy>Política de privacidad</privacy>.",
       haveAccount: "¿Ya tienes una cuenta?",
       toSignIn: "Iniciar sesión",
+    },
+    terms: {
+      title: "Acepta los Términos para trabajadores",
+      lead: "Tu cuenta de Gateway se creó al iniciar sesión. Acepta los Términos para trabajadores para terminar de configurarla.",
+      submit: "Continuar",
     },
     providers: {
       continueWith: "Continuar con {provider}",
@@ -22707,12 +23028,24 @@ var gateway_default = {
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       provider_disabled: "Ese método de acceso aún no está activado en Gateway. Usa tu correo.",
       link_invalid: "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      oauth_cancelled:
+        "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      oauth_expired:
+        "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      provider_error:
+        "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      email_not_verified:
+        "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      sso_required:
+        "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
       password: "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       passwordContext:
         "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
+      terms:
+        "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
     },
   },
   work: {
@@ -22735,7 +23068,7 @@ var gateway_default = {
       empty: "Aún no tienes contrataciones. Cuando una organización te contrate, aparecerá aquí.",
       emptyAction: "Explorar oportunidades",
       current: "Actuales",
-      past: "Anteriores",
+      closed: "Completadas o canceladas",
       role: "Rol",
       org: "Organización",
       project: "Proyecto",
@@ -22783,6 +23116,11 @@ var gateway_default = {
         },
       },
     },
+  },
+  legal: {
+    inReview:
+      "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
+    back: "Ir a Gateway",
   },
 };
 var gatewayOnboarding_default = {
@@ -22990,6 +23328,66 @@ var help_default = {
     screenshotNeedsConsent:
       "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     screenshotTooBig: "Esa imagen supera los 5 MB. Elija una más pequeña.",
+  },
+  gateway: {
+    general: "En todo Gateway",
+    shortcuts: { search: "Buscar en Gateway" },
+    whatsNew: {
+      "contextual-help": {
+        title: "Ayuda en cada página",
+        body: "Pulsa ? o elige Ayuda para ver los artículos de la página donde estás, los atajos y Contactar a soporte.",
+      },
+      "continue-on-phone": {
+        title: "Continúa en tu teléfono",
+        body: "Cada contratación tiene Continuar en teléfono: escanea el código para abrir la misma contratación en Compass.",
+      },
+      "delete-account": {
+        title: "Elimina tu cuenta en Configuración",
+        body: "Configuración, Cuenta muestra lo que impediría la eliminación y lo que se conserva, y elimina tu cuenta cuando confirmas.",
+      },
+      "asset-approvals": {
+        title: "Los patrocinadores aprueban materiales de marca",
+        body: "Aprueba o devuelve los banners, artes y textos que una organización envía para tus beneficios.",
+      },
+      "invoice-updates": {
+        title: "Cada paso de tus facturas en Inicio",
+        body: "Inicio muestra cuándo una organización recibe, aprueba, programa y paga tu factura. Elige correo o notificación push en Configuración, Notificaciones.",
+      },
+      "self-billing": {
+        title: "Autofacturación para personas",
+        body: "El equipo técnico, el personal y los contratistas pueden aceptar la autofacturación, y la organización genera sus facturas a partir de las hojas de horas aprobadas.",
+      },
+    },
+    contact: {
+      workTitle: "Sobre tu trabajo",
+      workBody:
+        "Las preguntas sobre una contratación, un pago, un horario o un documento van a la organización que te contrató. Escríbeles y te responden en Mensajes.",
+      messageOrg: "Escribir a la organización",
+      openMessages: "Abrir Mensajes",
+      accountTitle: "Sobre tu cuenta",
+      accountBody:
+        "El soporte de la plataforma solo ayuda con tu propia cuenta de Gateway: el acceso, tu correo y la eliminación de tu cuenta. Responde por correo.",
+      categories: {
+        Account: "Mi cuenta",
+        Access: "Acceso",
+        Problem: "Algo no funciona",
+        Question: "Una pregunta",
+      },
+      subjectHint: "El enlace de acceso nunca llega",
+      body: "¿Qué ocurrió y qué necesitas?",
+      bodyHint: "Lo que intentaste, lo que esperabas y lo que viste",
+      required: "Completa el asunto y el mensaje para enviar la solicitud.",
+      sent: "Se envió la solicitud {number}. El soporte de la plataforma responde por correo a {email}.",
+      errors: {
+        denied: "Vuelve a iniciar sesión y envía la solicitud.",
+        invalid: "Falta información en la solicitud. Revisa el asunto y el mensaje.",
+        category:
+          "El soporte de la plataforma solo ayuda con tu propia cuenta. Pregunta a la organización por todo lo demás en Mensajes.",
+        limit:
+          "Enviaste cinco solicitudes en el último día. El soporte de la plataforma responde cada una por correo; espera esas respuestas primero.",
+        unexpected: "No se pudo enviar la solicitud. Inténtalo de nuevo en un momento.",
+      },
+    },
   },
 };
 var home_default = {
@@ -28506,6 +28904,8 @@ var settings_default = {
     ip_allowlist_empty: "Agregue al menos una red antes de activar la lista de IP permitidas.",
     plan_feature_ip_allowlist:
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
+    setting_not_enforced:
+      "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
   },
   fields: {
     legalName: {
@@ -28534,15 +28934,15 @@ var settings_default = {
     },
     mfaPolicy: {
       label: "Autenticación multifactor",
-      help: "Quién debe usar un segundo factor para iniciar sesión.",
+      help: "Quién debe usar un segundo factor para iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en Opcional.",
     },
     sessionHours: {
       label: "Duración de la sesión en horas",
-      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas.",
+      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en 336 horas.",
     },
     idleTimeout: {
       label: "Tiempo de inactividad en minutos",
-      help: "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440.",
+      help: "Cerrar la sesión tras estos minutos sin actividad. Aún no disponible: XOS no lo aplica, así que sigue en 60 minutos.",
     },
     ipAllowlist: {
       label: "Aplicar la lista de IP permitidas",
@@ -28811,6 +29211,8 @@ var settings_default = {
     assetCurrent: "Archivo actual: {name}",
     assetNone: "Aún no hay archivo. Se usa la marca de la plataforma.",
     assetHelp: "PNG, WebP o ICO, hasta 2 MB. Logotipos de al menos 256 píxeles de ancho.",
+    assetScanning:
+      "Se está revisando en busca de virus. Reemplaza la marca actual cuando pase la revisión.",
     upload: "Subir",
   },
   domains: {
@@ -29318,6 +29720,16 @@ var shell_default = {
       over_request_rate_limit: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
       provider_disabled: "Ese método de acceso aún no está activado en Atlas. Usa tu correo.",
       link_invalid: "Este enlace venció o ya se usó. Solicita uno nuevo.",
+      oauth_cancelled:
+        "Saliste del inicio de sesión antes de terminar. Elige una forma de iniciar sesión para volver a intentarlo.",
+      oauth_expired:
+        "Este inicio de sesión venció o empezó en otro navegador. Vuelve a empezar en esta página.",
+      provider_error:
+        "No se pudo completar tu inicio de sesión. Vuelve a intentarlo en un momento o usa un enlace por correo.",
+      email_not_verified:
+        "El correo de esa cuenta aún no está verificado. Abre el enlace de confirmación que te enviamos y vuelve a intentarlo.",
+      sso_required:
+        "Tu organización inicia la sesión de sus miembros con su propio proveedor de identidad. Pregunta a un administrador de tu organización cómo iniciar sesión.",
       unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       fullName: "Escribe tu nombre completo.",
       email: "Escribe un correo como nombre@empresa.com.",
@@ -35505,16 +35917,39 @@ function checkContent(input) {
  *
  * - Attachments: the A18 job `attachment.scan` (migration 0590), claimed from the job queue; the
  *   verdict goes to `app.record_attachment_scan`, so a Clean version becomes downloadable.
- * - The field-media, onboarding-uploads, profile-media and org-brand buckets: `app.claim_object_scans`
- *   and `app.record_object_scan` (migration 1041).
+ * - The field-media, onboarding-uploads, imports, support-screenshots and upload-staging buckets (and
+ *   any service-role write to profile-media or org-brand): `app.claim_object_scans` and
+ *   `app.record_object_scan` (migrations 1041, 1240, 1265).
+ * - Files for the public buckets profile-media and org-brand are uploaded to the private upload-staging
+ *   bucket as `<bucket>/<name>` (1265). A staged file that scans Clean is published: written to its
+ *   public bucket, recorded Clean, and removed from staging. Nothing reaches a public bucket unscanned.
  *
- * An infected or refused file is removed from storage after its verdict is recorded. When the scanner
+ * An infected or refused file is removed from storage after its verdict is recorded; a staged one is
+ * never published, and its verdict stays for the uploader (app.my_upload_scan_status). When the scanner
  * or storage cannot answer, the scan is retried with backoff and recorded as Scan Failed after
  * `MAX_SCAN_ATTEMPTS`, so a file never stays in Scanning for ever and is never served unscanned.
  */
 var ATTACHMENT_SCAN_JOB = "attachment.scan";
 /** Matches private.job_kinds.max_attempts for attachment.scan and app.release_object_scan. */
 var MAX_SCAN_ATTEMPTS = 5;
+/** The private bucket files for the public buckets are uploaded to first (migration 1265). */
+var UPLOAD_STAGING_BUCKET = "upload-staging";
+/** The public buckets a staged upload may be published to. */
+var PUBLIC_UPLOAD_BUCKETS = ["org-brand", "profile-media"];
+/**
+ * Where a staged upload is published: `org-brand/<org id>/logo.png` goes to org-brand as
+ * `<org id>/logo.png`. Null for a name that names no public bucket.
+ */
+function stagedUploadTarget(stagedName) {
+  const slash = stagedName.indexOf("/");
+  if (slash <= 0 || slash === stagedName.length - 1) return null;
+  const bucket = stagedName.slice(0, slash);
+  if (!PUBLIC_UPLOAD_BUCKETS.includes(bucket)) return null;
+  return {
+    bucket,
+    name: stagedName.slice(slash + 1),
+  };
+}
 /** Storage could not return or delete an object; the scan is retried. */
 var StorageUnavailableError = class extends Error {
   constructor(message, options) {
@@ -35558,7 +35993,10 @@ async function judge(options, file) {
     };
   const verdict = await options.scanner.scan(bytes);
   return verdict.clean
-    ? { result: "clean" }
+    ? {
+        result: "clean",
+        bytes,
+      }
     : {
         result: "infected",
         detail: verdict.signature,
@@ -35666,12 +36104,45 @@ async function scanObject(options, scan) {
       detail,
     };
   }
+  const staged = scan.bucketId === UPLOAD_STAGING_BUCKET;
+  const target = staged ? stagedUploadTarget(scan.objectName) : null;
+  if (staged && target === null && verdict.result === "clean")
+    verdict = {
+      result: "refused",
+      detail: "A staged upload must name the public bucket it is for.",
+    };
   if (verdict.result === "clean") {
+    if (target !== null)
+      try {
+        await options.storage.upload(target.bucket, target.name, verdict.bytes, scan.contentType);
+      } catch (error) {
+        const detail = describe(
+          new StorageUnavailableError(`could not publish to ${target.bucket}`, { cause: error }),
+        );
+        return {
+          kind: "object",
+          id,
+          result:
+            (await options.store.releaseObjectScan(id, detail)) === "Scan Failed"
+              ? "failed"
+              : "retrying",
+          detail,
+        };
+      }
     await options.store.recordObjectScan(id, true, null);
+    if (target === null)
+      return {
+        kind: "object",
+        id,
+        result: "clean",
+      };
     return {
       kind: "object",
       id,
-      result: "clean",
+      result: "published",
+      detail:
+        (await removeQuietly(options, scan.bucketId, scan.objectName)) ??
+        `Published to ${target.bucket}.`,
     };
   }
   await options.store.recordObjectScan(
@@ -35827,6 +36298,13 @@ function supabaseStorage(client) {
       const { data, error } = await client.storage.from(bucket).download(name);
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
       return new Uint8Array(await data.arrayBuffer());
+    },
+    async upload(bucket, name, bytes, contentType) {
+      const { error } = await client.storage.from(bucket).upload(name, bytes, {
+        upsert: true,
+        ...(contentType === null ? {} : { contentType }),
+      });
+      if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
     },
     async remove(bucket, name) {
       const { error } = await client.storage.from(bucket).remove([name]);
@@ -36079,6 +36557,10 @@ var VALUE_PATTERNS = [
   {
     pattern: /\bxos_(?:live|test)_[A-Za-z0-9_]+/g,
     replace: "[api-key]",
+  },
+  {
+    pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
+    replace: "[token]",
   },
   {
     pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g,
@@ -36883,6 +37365,30 @@ function observeEdgeFunction(handler, options) {
   );
 }
 //#endregion
+//#region ../data/src/csv.ts
+/**
+ * CSV fields that are safe to open in a spreadsheet (finding A69-005, CWE-1236).
+ *
+ * Excel, Numbers, LibreOffice and Google Sheets run a cell that starts with `=`, `+`, `-` or `@`
+ * (or a tab or carriage return before one) as a formula, so a vendor name such as
+ * `=HYPERLINK("https://evil.example","Invoice")` in an export became a live link or a DDE call on
+ * the finance team's machine. Every field therefore passes `csvField`: a text value that starts
+ * with one of those characters gets a leading apostrophe, the OWASP neutralization, and a plain
+ * number such as `-12.50` stays a number. Fields with a quote, comma or line break are quoted as
+ * RFC 4180 says.
+ */
+var FORMULA_START = /^[=+\-@\t\r]/;
+var PLAIN_NUMBER = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/;
+/** The value with a leading apostrophe when a spreadsheet would run it as a formula. */
+function neutralizeFormula(value) {
+  return FORMULA_START.test(value) && !PLAIN_NUMBER.test(value) ? `'${value}` : value;
+}
+/** One CSV field: neutralized, then quoted when it holds a quote, comma or line break. */
+function csvField(value) {
+  const safe = neutralizeFormula(value);
+  return /[",\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+}
+//#endregion
 //#region ../data/src/result.ts
 function ok(data) {
   return {
@@ -37353,7 +37859,7 @@ function unpricedRows(preview) {
 }
 /** The preview as CSV, money in major units of its currency (its own decimals), blanks left blank. */
 function previewCsv(preview, headers, groupHeader) {
-  const escape = (v) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+  const escape = csvField;
   const cell = (c) => {
     if (c.kind === "value") return c.value === null ? "" : String(c.value);
     if (c.totalMinor === null) return "";
@@ -38164,6 +38670,7 @@ export {
   MAX_EXTRA_SEATS,
   MAX_SCAN_ATTEMPTS,
   NotSelfServeError,
+  PUBLIC_UPLOAD_BUCKETS,
   PUNCH_KINDS,
   PlatformDbError,
   PriceNotFoundError,
@@ -38173,6 +38680,7 @@ export {
   ScannerUnavailableError,
   StorageUnavailableError,
   StripeSignatureError,
+  UPLOAD_STAGING_BUCKET,
   ZIP_LIMITS,
   addonForLookupKey,
   billingEnvSchema,
@@ -38231,6 +38739,7 @@ export {
   setExtraSeats,
   signWebhook,
   sniffFamilies,
+  stagedUploadTarget,
   stripQuotedText,
   supabaseDb,
   supabaseReportDeliveryStore,

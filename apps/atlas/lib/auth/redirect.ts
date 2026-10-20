@@ -15,9 +15,28 @@ export function safeNext(next: unknown, fallback = "/"): string {
   }
 }
 
-/** An absolute URL on the Atlas site for links sent by email or handed to OAuth providers. */
-export function siteUrl(site: string, path: string, next?: string): string {
+/**
+ * An absolute URL on the Atlas site for links sent by email or handed to OAuth providers. `extra`
+ * adds query parameters the return leg reads, such as the OAuth provider.
+ */
+export function siteUrl(
+  site: string,
+  path: string,
+  next?: string,
+  extra: Readonly<Record<string, string>> = {},
+): string {
   const url = new URL(path, site);
   if (next !== undefined && next !== "/") url.searchParams.set("next", next);
+  for (const [name, value] of Object.entries(extra)) url.searchParams.set(name, value);
   return url.toString();
+}
+
+/**
+ * The sign-in page showing an auth error. It keeps `next`, so a person who retries still lands on
+ * the invitation or org page they started from.
+ */
+export function signInErrorPath(error: string, next: string, fallback = "/"): string {
+  const params = new URLSearchParams({ error });
+  if (next !== fallback) params.set("next", next);
+  return `/auth/sign-in?${params.toString()}`;
 }

@@ -7,6 +7,7 @@ import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { CompassProvider, useCompass } from "../src/runtime/CompassProvider";
 import { playHaptic } from "../src/runtime/haptics";
+import { HelpScreenTracker } from "../src/runtime/help";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { useActionableNotifications } from "../src/runtime/notifications";
@@ -22,6 +23,7 @@ import {
   ThemeProvider,
   useTheme,
 } from "../src/ui";
+import { NativeHeaderContext } from "../src/ui/layout";
 
 initI18n();
 
@@ -100,27 +102,36 @@ function Gatekeeper(): ReactElement {
     <View style={{ flex: 1, backgroundColor: theme.color.bgCanvas }}>
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <NotificationActions />
+      <HelpScreenTracker />
       <BiometricLock enabled={settings.biometric}>
-        <Stack
-          screenOptions={{
-            // Pushed screens keep the native header for its back button alone (each Screen draws its own
-            // title), so they can be left by keyboard, Switch Control and VoiceOver, not only by an edge
-            // swipe.
-            headerShown: true,
-            title: "",
-            headerBackButtonDisplayMode: "minimal",
-            headerShadowVisible: false,
-            headerStyle: { backgroundColor: theme.color.bgCanvas },
-            headerTintColor: theme.color.textPrimary,
-            contentStyle: { backgroundColor: theme.color.bgCanvas },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="kiosk"
-            options={{ headerShown: false, gestureEnabled: settings.kioskDeviceKey === null }}
-          />
-        </Stack>
+        <NativeHeaderContext.Provider value={true}>
+          <Stack
+            screenOptions={{
+              // Pushed screens use the native large-title header: the back button, so they can be left by
+              // keyboard, Switch Control and VoiceOver, and the title, which collapses into the bar on
+              // scroll. Each Screen sets its title there instead of drawing it under an empty bar
+              // (finding A59-031).
+              headerShown: true,
+              title: "",
+              headerLargeTitle: true,
+              headerLargeTitleShadowVisible: false,
+              headerBackButtonDisplayMode: "minimal",
+              headerShadowVisible: false,
+              headerStyle: { backgroundColor: theme.color.bgCanvas },
+              headerLargeStyle: { backgroundColor: theme.color.bgCanvas },
+              headerTitleStyle: { color: theme.color.textPrimary },
+              headerLargeTitleStyle: { color: theme.color.textPrimary },
+              headerTintColor: theme.color.textPrimary,
+              contentStyle: { backgroundColor: theme.color.bgCanvas },
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="kiosk"
+              options={{ headerShown: false, gestureEnabled: settings.kioskDeviceKey === null }}
+            />
+          </Stack>
+        </NativeHeaderContext.Provider>
       </BiometricLock>
     </View>
   );

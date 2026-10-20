@@ -26,6 +26,14 @@ const EnvSchema = z.object({
    */
   COMPASS_APPLE_TEAM_IDS: z.string().optional(),
   COMPASS_ANDROID_CERT_SHA256: z.string().optional(),
+  /**
+   * Trusted proxies in front of the one that appends the client address to X-Forwarded-For
+   * (A69-003). Unset (0) on Vercel and behind one proxy; 1 behind a CDN and a proxy, and so on.
+   */
+  XOS_TRUSTED_PROXY_HOPS: z
+    .string()
+    .regex(/^\d{1,2}$/)
+    .optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

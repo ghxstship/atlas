@@ -84,3 +84,7 @@ A52 (unbuilt spec features: legal entities, IP allow-list, access reviews, break
 ## Amendment (2026-10-19): A56 to A58
 
 A56 (canon rulings, decision 25) takes 1230 to 1239. A57 (platform decisions: ClamAV, licenses, Spanish, .xls) takes 1240 to 1249. A58 (plan pricing, decision 18) takes 1250 to 1259.
+
+## Amendment (2026-10-20): A60 to A73
+
+A62 takes 1260 to 1264, A63 1265 to 1269, A64 1270 to 1274, A61 1275 to 1279, A65 1280 to 1289, A66 1290 to 1294, A69 1295 to 1299, A70 1300 to 1304, A71 1305 to 1309, A72 (Google sign-in) 1310 to 1314 and A73 (machine translation) 1315 to 1319. A60, A67 and A68 have no range.

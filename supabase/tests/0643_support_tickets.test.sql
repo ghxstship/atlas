@@ -105,7 +105,10 @@ select lives_ok($$select app.transition_support_ticket((select id from k where k
   'a requester closes their ticket');
 select throws_ok($$select app.post_support_message((select id from k where key = 'org_ticket'), 'One more thing.')$$,
   'XR001', null, 'a closed ticket takes no messages');
-select throws_ok($$select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Closed', 'Open', 'Again.')$$, 'XR001', null, 'a closed ticket is final');
+-- A responder may make any move the rules hold, so the refusal comes from the rules, not the requester guard (A54-003).
+select pg_temp.as_user('bob');
+select throws_ok($$select app.transition_support_ticket((select id from k where key = 'org_ticket'), 'Closed', 'Open', 'Again.')$$,
+  'XR001', 'support_ticket_transition_not_allowed: A support ticket cannot move from Closed to Open.', 'a closed ticket is final');
 select is((select count(*)::integer from app.support_ticket_state_transitions where support_ticket_id = (select id from k where key = 'org_ticket')), 6,
   'every state change is in the ledger');
 

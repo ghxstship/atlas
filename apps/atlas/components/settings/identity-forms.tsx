@@ -16,6 +16,7 @@ import {
 import type { AccentCheck } from "@/lib/brand/contrast";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { ScanNotice } from "@/components/platform/scan-notice";
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 /** Catalog lookups with keys built at run time (refusal rules, choices); next-intl types only literals. */
@@ -261,11 +262,14 @@ export function BrandAssetForm({
   slot,
   label,
   current,
+  scan = null,
 }: {
   org: string;
   slot: "logoLight" | "logoDark" | "favicon" | "appIcon";
   label: string;
   current: string | null;
+  /** The uploader's view of the current file's virus scan while it is staged (migration 1265). */
+  scan?: string | null;
 }) {
   const t = useCopy("settings.brand");
   const tErr = useCopy("settings.errors");
@@ -286,6 +290,13 @@ export function BrandAssetForm({
           ? t("assetCurrent", { name: current.split("/").pop() ?? current })
           : t("assetNone")}
       </p>
+      {scan === "Scanning" ? (
+        <p role="status" className="m-0 text-text-12 text-text-secondary">
+          {t("assetScanning")}
+        </p>
+      ) : (
+        <ScanNotice status={scan} />
+      )}
       <input
         id={`asset-${slot}`}
         name="file"

@@ -14,6 +14,8 @@ Related runbooks: `progressive-delivery.md` (rollout stages and flags), `backup-
 | Staging     | Supabase project `xos-atlas-staging`                                          | Preview deployments of `atlas`, `gateway` and `docs` against staging | Staging project            |
 | Production  | **OWNER** creates the production Supabase project (region, plan, PITR add-on) | Production deployments of `atlas`, `gateway` and `docs`              | Production project         |
 
+Decision 1 of ADR 0033 replaces the production row: `xos-atlas-staging` itself becomes production once its demo data is removed, and staging moves to a Supabase branch. The steps, with their checks and rollbacks, are in `promote-to-production.md`.
+
 The Vercel project `atlas` exists. **OWNER** creates `gateway` and `docs` (no cost on the current plan) and chooses the production domains; buying a domain is a stop point.
 
 ## Deploy order
@@ -135,13 +137,15 @@ None. The site is built from the repository and the OpenAPI document.
 
 ### Compass (EAS environment `production`)
 
-| Variable                        | Value                                           |
-| ------------------------------- | ----------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`      | The production Supabase API URL                 |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | The production anon key (public)                |
-| `EXPO_PUBLIC_ATLAS_URL`         | `https://<atlas domain>`                        |
-| `EXPO_PUBLIC_GATEWAY_URL`       | `https://<gateway domain>`                      |
-| `XOS_UNIVERSAL_LINK_HOSTS`      | `atlas:<atlas domain>,gateway:<gateway domain>` |
+| Variable                           | Value                                                                  |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The production Supabase API URL                                        |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The production anon key (public)                                       |
+| `EXPO_PUBLIC_ATLAS_URL`            | `https://<atlas domain>`                                               |
+| `EXPO_PUBLIC_GATEWAY_URL`          | `https://<gateway domain>`                                             |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<atlas domain>,gateway:<gateway domain>`                        |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | The Google Web client ID (public), "Sign in with Google (OWNER)" below |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | The Google iOS client ID (public), the same section                    |
 
 ### GitHub Actions (repository secrets and variables)
 
@@ -155,6 +159,10 @@ None. The site is built from the repository and the OpenAPI document.
 | `XOS_ALERT_WEBHOOK_URL`                         | Secret   | `synthetics.yml`, alerts to on-call                                 |
 | `ANTHROPIC_API_KEY`                             | Secret   | `ai-evals` (gate 21)                                                |
 | `XOS_STAGING_*` URLs and the staging anon key   | Variable | `synthetics.yml`                                                    |
+| `GOOGLE_CLOUD_PROJECT`                          | Variable | `translate.yml`, machine translation (ADR 0037); not a secret       |
+| `GOOGLE_TRANSLATE_GLOSSARY_BUCKET`              | Variable | `translate.yml`, the glossary upload; not a secret                  |
+| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER`             | Variable | `translate.yml`, Workload Identity Federation; no key               |
+| `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`              | Variable | `translate.yml`, the account CI impersonates; no key                |
 
 ## Upload scanning (ClamAV)
 
@@ -227,6 +235,172 @@ How it behaves:
 - It refuses live mode keys. Creating the live catalogue is a separate owner decision, made when billing opens.
 - It exits 2 and writes nothing when Stripe already holds a price, coupon or promotion code that differs from `plans.yaml`. Stripe prices cannot be edited. To change a price, give it a new versioned lookup key in `plans.yaml` (for example `_v5`), regenerate the plan seed, and run the script again.
 - The webhook endpoint (`STRIPE_WEBHOOK_SECRET`) must send `customer.subscription.*`, `checkout.session.completed` and `checkout.session.async_payment_succeeded` to the `stripe-webhook` function. Those events carry extra seats and Aurora pack payments.
+
+## Machine translation (OWNER, Google Cloud Translation)
+
+Google Cloud Translation reviews es-US and produces every other translation (ADR 0037). The owner sets it up once and runs it. Authentication is Application Default Credentials: a gcloud login on the owner's machine, and Workload Identity Federation in GitHub Actions. No service account key, API key or other secret is created or stored anywhere.
+
+These are the names the pipeline reads. **Every value in this section is an example**; use your own.
+
+| Name                                | What it is                                                                   | Example value (not real)                                                              |
+| ----------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `GOOGLE_CLOUD_PROJECT`              | The Google Cloud project id that is billed for translation                   | `xos-translate-123456`                                                                |
+| `GOOGLE_TRANSLATE_GLOSSARY_BUCKET`  | The Cloud Storage bucket Google reads the glossary from                      | `xos-translate-123456-glossaries`                                                     |
+| `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` | CI only: the full resource name of the Workload Identity Federation provider | `projects/123456789012/locations/global/workloadIdentityPools/github/providers/atlas` |
+| `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`  | CI only: the service account GitHub Actions impersonates                     | `xos-translate@xos-translate-123456.iam.gserviceaccount.com`                          |
+
+Locally they are shell variables. In GitHub they are repository variables (Settings, Secrets and variables, Actions, Variables), not secrets.
+
+### 1. Project, billing and API
+
+1. Create or choose a project at https://console.cloud.google.com/projectcreate, or `gcloud projects create xos-translate-123456 --name="XOS Translate"` (example id). Note the project id and the project number (Dashboard, Project info).
+2. Link a billing account (Billing, Link a billing account). Translation is pay as you go; the first full es-US review is estimated at USD 9.76 (ADR 0037, section 10).
+3. Enable the APIs:
+   `gcloud services enable translate.googleapis.com storage.googleapis.com --project=xos-translate-123456`
+4. Create the glossary bucket in the glossary's region:
+   `gcloud storage buckets create gs://xos-translate-123456-glossaries --project=xos-translate-123456 --location=us-central1 --uniform-bucket-level-access`
+
+### 2. Roles
+
+A project Owner already has every role below. Otherwise grant them to the person who runs the pipeline (`--member="user:<your Google account>"`):
+
+| Role                                                         | Needed for                                                                                |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `roles/cloudtranslate.user` (Cloud Translation API User)     | `translate`, `translate:review` (translateText with the glossary)                         |
+| `roles/cloudtranslate.editor` (Cloud Translation API Editor) | `translate:glossary` (creating and deleting glossaries); Google has no glossary-only role |
+| `roles/storage.objectAdmin` on the glossary bucket           | `translate:glossary` (copying `glossary.csv` there for Google to read)                    |
+| `roles/serviceusage.serviceUsageConsumer`                    | Billing calls to the project (`x-goog-user-project`)                                      |
+
+For example:
+`gcloud projects add-iam-policy-binding xos-translate-123456 --member="user:owner@example.com" --role=roles/cloudtranslate.editor`
+
+### 3. Log in on your machine
+
+1. Install the gcloud CLI (https://cloud.google.com/sdk/docs/install).
+2. `gcloud auth application-default login`, then sign in in the browser. This stores Application Default Credentials for your user; nothing goes in the repository.
+3. `gcloud auth application-default set-quota-project xos-translate-123456` (example id).
+
+### 4. First run: glossary, translate and review
+
+From the repository root:
+
+```bash
+export GOOGLE_CLOUD_PROJECT=xos-translate-123456                      # example
+export GOOGLE_TRANSLATE_GLOSSARY_BUCKET=xos-translate-123456-glossaries  # example
+pnpm --filter @xos/i18n translate:all --dry-run   # counts and prices it; no network, no files
+pnpm --filter @xos/i18n translate:all             # glossary upload, translate, then the es-US review
+```
+
+`translate:all` uploads `packages/i18n/translation/glossary.csv` as `xos-glossary-<hash>` (a no-op when that version exists), fills missing and stale strings in every target locale, then translates every en-US string and file fresh and applies Google's version to es-US except where a string is locked, keeps a glossary term Google dropped, or Google's version fails the checks. The steps also run on their own: `translate:glossary`, `translate`, `translate:review` (add `--no-apply` to only write the report).
+
+### 5. Review and commit the output
+
+1. Read `docs/i18n/review/es-US/README.md`: counts per catalog, then one file per catalog or surface with every changed string (en-US, the previous es-US, Google's version and the decision).
+2. To keep a previous wording, put it back in the catalog or file and lock it: `pnpm --filter @xos/i18n translate:lock email.common.greeting help/gates.md`. A locked string is never overwritten.
+3. Update the tests listed under "Test expectations to update" (or lock those keys), and grep `apps/*/e2e` for any other Spanish text you changed by hand.
+4. Run `pnpm verify`. The translation check runs inside it. The commands have already regenerated the generated catalogs and Atlas's help modules.
+5. Commit the catalogs, help articles, guides, `packages/i18n/translation/memory/es-US.json` and `docs/i18n/`, with a `Part of RRR-118` trailer.
+
+Later runs: `pnpm --filter @xos/i18n translate` re-translates only strings whose en-US changed since the last run; the translation memory answers everything else, so an unchanged run calls nothing.
+
+### 6. CI with Workload Identity Federation (optional)
+
+The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the same commands in GitHub Actions and uploads the result as a patch. It needs no key:
+
+1. Create the service account and give it the translation roles (`roles/cloudtranslate.editor` too if CI should upload the glossary, and `roles/storage.objectAdmin` on the bucket):
+   `gcloud iam service-accounts create xos-translate --project=xos-translate-123456 --display-name="XOS translation (GitHub Actions)"`
+   `gcloud projects add-iam-policy-binding xos-translate-123456 --member="serviceAccount:xos-translate@xos-translate-123456.iam.gserviceaccount.com" --role=roles/cloudtranslate.user`
+   `gcloud projects add-iam-policy-binding xos-translate-123456 --member="serviceAccount:xos-translate@xos-translate-123456.iam.gserviceaccount.com" --role=roles/serviceusage.serviceUsageConsumer`
+2. Create the pool and the GitHub provider, limited to this repository:
+   `gcloud iam workload-identity-pools create github --project=xos-translate-123456 --location=global --display-name="GitHub Actions"`
+   `gcloud iam workload-identity-pools providers create-oidc atlas --project=xos-translate-123456 --location=global --workload-identity-pool=github --issuer-uri="https://token.actions.githubusercontent.com" --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository" --attribute-condition="assertion.repository=='ghxstship/atlas'"`
+3. Let workflows of this repository impersonate the service account (123456789012 is the example project number):
+   `gcloud iam service-accounts add-iam-policy-binding xos-translate@xos-translate-123456.iam.gserviceaccount.com --project=xos-translate-123456 --role=roles/iam.workloadIdentityUser --member="principalSet://iam.googleapis.com/projects/123456789012/locations/global/workloadIdentityPools/github/attribute.repository/ghxstship/atlas"`
+4. Add the four repository variables from the table above. `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` is `projects/<project number>/locations/global/workloadIdentityPools/github/providers/atlas`.
+
+### Troubleshooting
+
+- `403 PERMISSION_DENIED`: the API is not enabled, a role is missing, or the quota project is not set (step 3.3).
+- `404` or `NOT_FOUND` naming `glossaries/xos-glossary-...`: run `pnpm --filter @xos/i18n translate:glossary` (it runs first in `translate:all`).
+- `400` about the language code `es-US`: switch to NMT as ADR 0037, section 2 describes (`general/nmt` and the code `es`).
+- `400` about contextual translation: set `google.contextualGlossary` to `false` in `packages/i18n/translation/config.json` and run again.
+- Many strings failed with "Google's markup did not survive": the model is dropping the masking spans. Switch to NMT as above; failed strings are retried and nothing broken was written.
+- Strings listed as failed in `docs/i18n/translate-<locale>.md` kept their value (or the en-US text where they had none) and are retried on the next run.
+
+## Sign in with Google (OWNER)
+
+Atlas, Gateway and Compass offer "Continue with Google" once Google is turned on in the Supabase project (ADR 0036). The code is in place; the owner creates three Google OAuth clients and enters them in Supabase and EAS. Atlas and Gateway need nothing in Vercel: they show the button when Supabase reports Google enabled. Until then no Google button appears in production.
+
+**Every value in the table below is an example of the format; none is real.** Values are kept in the owner's secret store and entered only in the dashboards named; they are never committed, pasted in tickets or logged. Only the Web client secret is a secret; client IDs are public.
+
+| Value                     | Where it comes from                                       | Example of the format (not real)                                                                    |
+| ------------------------- | --------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Web client ID             | Google Cloud, Clients, the Web application client         | `<12 digits>-<32 letters and digits>.apps.googleusercontent.com`                                    |
+| Web client secret         | Google Cloud, the same client (shown once; can be reset)  | `GOCSPX-` followed by 28 letters, digits, `-` or `_`                                                |
+| iOS client ID             | Google Cloud, Clients, the iOS client                     | `<12 digits>-<32 letters and digits>.apps.googleusercontent.com`                                    |
+| Android client ID         | Google Cloud, Clients, the Android client (one per SHA-1) | `<12 digits>-<32 letters and digits>.apps.googleusercontent.com`                                    |
+| Android SHA-1 fingerprint | EAS credentials, and Play Console App integrity           | 20 colon-separated hex pairs, such as `AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD` |
+| Supabase callback URL     | Supabase, Authentication, Sign In / Providers, Google     | `https://fquuqnzlpobaawucczgq.supabase.co/auth/v1/callback` (the real one)                          |
+
+### 1. OAuth consent screen (Google Auth Platform, Branding and Audience)
+
+1. In the Google Cloud project that will own sign-in (it can be the machine translation project), open Google Auth Platform at https://console.cloud.google.com/auth/overview and start the setup.
+2. App name `XOS`, the support email, and the developer contact email.
+3. Audience: **External**. Publish the app (Audience, Publish app) so it is "In production"; while it is "Testing", only listed test users can sign in.
+4. Branding: the home page and the privacy policy and terms links on the Atlas domain (`https://<atlas domain>/legal/privacy-policy`, `https://<atlas domain>/legal/terms-of-service`), and the logo if you want Google to show it (a logo needs Google's brand verification).
+5. Authorized domains: the production domain (`<domain>`) and `supabase.co`, which hosts the redirect URI.
+6. Data Access (scopes): `openid`, `.../auth/userinfo.email` and `.../auth/userinfo.profile`. They are non-sensitive, so no further verification is needed.
+
+### 2. The Web client (Atlas, Gateway, and the ID token audience for Compass)
+
+1. Google Auth Platform, Clients, Create client, application type **Web application**, name `XOS Supabase Auth`.
+2. Authorized redirect URI: `https://fquuqnzlpobaawucczgq.supabase.co/auth/v1/callback`. When staging moves to a Supabase branch (`promote-to-production.md`, step 14), add that branch's own `https://<branch ref>.supabase.co/auth/v1/callback`.
+3. No JavaScript origins are needed: the browser never talks to Google from Atlas or Gateway pages.
+4. Create, then copy the client ID and the client secret into the owner's secret store.
+
+For local development, create a separate Web client with the redirect URI `http://127.0.0.1:55421/auth/v1/callback` (the local stack's callback) and use it only on your machine; never put the production client on a laptop.
+
+### 3. The iOS client (Compass)
+
+1. Create client, application type **iOS**, name `Compass iOS`, bundle ID `pro.ghxstship.compass`. The App Store ID and Team ID are optional.
+2. Copy the client ID. Its reversed form (`com.googleusercontent.apps.<the part before .apps>`) is the URL scheme; `apps/compass/app.config.ts` adds it to the build from `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`, so nothing is entered by hand.
+
+### 4. The Android clients (Compass)
+
+1. Get the SHA-1 of every key that signs a Compass build: `eas credentials --platform android` (the upload key EAS holds), and Play Console, Test and release, App integrity, App signing (the key Google Play signs store installs with). A development build signed with another keystore needs its SHA-1 too.
+2. For each SHA-1, Create client, application type **Android**, name `Compass Android (<which key>)`, package name `pro.ghxstship.compass`, and the SHA-1.
+3. Copy each client ID. Android does not read it in the app; Google matches the app by package and certificate, and Supabase must accept it (step 5).
+
+### 5. Supabase (Authentication, Sign In / Providers, Google) (OWNER CONFIRMS)
+
+| Setting                    | Value                                                                                                    |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Enable Sign in with Google | On                                                                                                       |
+| Client IDs                 | The Web client ID first, then the iOS client ID, then each Android client ID, comma-separated, no spaces |
+| Client Secret (for OAuth)  | The Web client secret                                                                                    |
+| Skip nonce checks          | On. Google's iOS SDK puts a nonce in the ID token that Compass cannot read (ADR 0036, decision 9)        |
+| Allow users without email  | Off                                                                                                      |
+
+The callback URL this page shows is the one entered in step 2. The redirect URLs back to Atlas and Gateway are the ones in `promote-to-production.md`, step 5; Google needs nothing more. Manual linking stays off (step 8 there).
+
+### 6. Compass (EAS) and a new build
+
+1. In EAS (expo.dev, the project, Environment variables), add to the `production` and `preview` environments, visibility Plain text (they are public):
+   - `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`: the Web client ID.
+   - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`: the iOS client ID.
+2. Build Compass again (`eas build --platform all --profile production`, "Compass releases" below). The values are read at build time, and the Google SDK is a native module, so an over-the-air update is not enough.
+
+Without `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` Compass shows no Google button; without the iOS client ID it shows none on iOS.
+
+### 7. Verify
+
+1. Atlas: sign in with Google using a Google account that has no XOS account. You land on "Create your organization"; the new person has the Google account's name.
+2. Gateway: sign in with Google using another new Google account. You are asked to accept the Worker Terms, then land on Home.
+3. Sign in with Google using the email of an existing XOS account. You land in that account (same organizations), not a new one.
+4. Compass on iOS and Android: Continue with Google, pick the account, and Compass loads your work.
+5. Cancel on Google's account picker: the sign-in page says you left before it finished.
+
+Rollback: turn "Enable Sign in with Google" off. The buttons disappear within five minutes (Atlas and Gateway cache the provider list); accounts keep their google identity and can still sign in by email.
 
 ## Monitoring and alerting
 

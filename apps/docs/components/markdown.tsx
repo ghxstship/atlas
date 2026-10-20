@@ -1,11 +1,17 @@
 /** Renders the parsed Markdown tree with design-system styles; no HTML strings. */
 import type { ReactElement, ReactNode } from "react";
 import type { Locale } from "@/lib/i18n.ts";
-import { resolveHref } from "@/lib/links.ts";
+import { isAppPath, resolveHref } from "@/lib/links.ts";
 import type { Block, Inline } from "@/lib/markdown.ts";
 import { InlineAlert, Link } from "./ui.tsx";
 
-function inlines(items: readonly Inline[], locale: Locale): ReactNode[] {
+/** Where a page's links lead: its locale, and the help its `help:` links name. */
+interface LinkContext {
+  readonly locale: Locale;
+  readonly helpBase: string | undefined;
+}
+
+function inlines(items: readonly Inline[], { locale, helpBase }: LinkContext): ReactNode[] {
   return items.map((item, i) => {
     switch (item.t) {
       case "strong":
@@ -20,7 +26,9 @@ function inlines(items: readonly Inline[], locale: Locale): ReactNode[] {
           </code>
         );
       case "link": {
-        const { href, external } = resolveHref(item.href, locale);
+        // A Gateway or Compass article's path into its own app has no page here.
+        if (helpBase !== undefined && isAppPath(item.href, locale)) return item.v;
+        const { href, external } = resolveHref(item.href, locale, helpBase);
         return (
           <Link key={i} href={href} external={external}>
             {item.v}
@@ -49,11 +57,15 @@ export function Markdown({
   body,
   locale,
   codeLabel,
+  helpBase,
 }: {
   body: readonly Block[];
   locale: Locale;
   codeLabel: string;
+  /** For a Gateway or Compass article: the path its `help:` links resolve under. */
+  helpBase?: string;
 }): ReactElement {
+  const links: LinkContext = { locale, helpBase };
   return (
     <>
       {body.map((block, i) => {
@@ -81,13 +93,13 @@ export function Markdown({
           case "p":
             return (
               <p key={i} className="m-0 text-text-14">
-                {inlines(block.c, locale)}
+                {inlines(block.c, links)}
               </p>
             );
           case "note":
             return (
               <InlineAlert key={i} tone="info">
-                {inlines(block.c, locale)}
+                {inlines(block.c, links)}
               </InlineAlert>
             );
           case "ul":
@@ -99,7 +111,7 @@ export function Markdown({
                 className={`m-0 ps-20 flex flex-col gap-4 text-text-14 ${block.t === "ul" ? "list-disc" : "list-decimal"}`}
               >
                 {block.items.map((item, j) => (
-                  <li key={j}>{inlines(item, locale)}</li>
+                  <li key={j}>{inlines(item, links)}</li>
                 ))}
               </List>
             );
@@ -124,7 +136,7 @@ export function Markdown({
                           scope="col"
                           className="text-start font-semibold p-8 border-b border-border-strong"
                         >
-                          {inlines(cell, locale)}
+                          {inlines(cell, links)}
                         </th>
                       ))}
                     </tr>
@@ -134,7 +146,7 @@ export function Markdown({
                       <tr key={j}>
                         {row.map((cell, k) => (
                           <td key={k} className="p-8 align-top border-b border-border-subtle">
-                            {inlines(cell, locale)}
+                            {inlines(cell, links)}
                           </td>
                         ))}
                       </tr>

@@ -17,6 +17,9 @@ and then to production, and record the date and who applied it in the release no
 | WebAuthn MFA and passkeys  | Authentication > Multi-Factor, and Passkeys            | Enroll and verify on                                                       |
 | WebAuthn relying party id  | Authentication > Passkeys (WebAuthn)                   | The production registrable domain, for example the Atlas apex domain       |
 | WebAuthn origins           | Authentication > Passkeys (WebAuthn)                   | The https origins of Atlas and Gateway, including custom Gateway domains   |
+| Google provider            | Authentication > Sign In / Providers > Google          | On, with the clients from `production.md`, "Sign in with Google (OWNER)"   |
+| Google skip nonce checks   | Authentication > Sign In / Providers > Google          | On: native iOS sign-in cannot send the nonce (ADR 0036, decision 9)        |
+| Manual identity linking    | Authentication > Sign In / Providers (User Signups)    | Off: Google links only to an account with the same verified email          |
 
 Notes:
 
@@ -27,6 +30,9 @@ Notes:
   127.0.0.1, and the WebAuthn `rp_id` is `localhost`). Set the hosted values in the dashboard.
 - Atlas and Gateway also refuse passwords that contain a product name, the email's local part or a
   part of the person's name. That check runs in the sign-up server actions and needs no setting.
+- Skipping the nonce check affects only ID token sign-in (Compass). It still checks Google's signature,
+  the issuer, the expiry and that the audience is one of the configured client IDs; a captured ID
+  token could be replayed within its hour. The web flow exchanges the code with Google itself.
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 
@@ -55,6 +61,26 @@ calling that endpoint directly with their session token. No setting closes this.
 The planned fix is routing all data access through the API, so that the Supabase endpoint no longer
 accepts end-user tokens directly (owner decision 33, ADR 0034). Until then, say so to any customer who
 relies on the allow-list. `legal/security-overview.md` states it publicly.
+
+## The client address behind proxies (A69-002, A69-003)
+
+Every proxy appends the address it saw to `X-Forwarded-For`, so the first entry is whatever the client
+sent. XOS reads the entry the trusted proxy appended, counted from the right:
+
+- **Atlas and the API** (IP allow-list, legal acceptances): `XOS_TRUSTED_PROXY_HOPS`, the number of
+  trusted proxies in front of the one that appends the client address. Leave it unset on Vercel, which
+  replaces the header with the one address it saw. Set `1` when a CDN sits in front of your own proxy.
+- **The database** (per-address failure limits, the audit ledger, consent records): the setting
+  `xos.trusted_proxy_hops`, 0 by default, which is right for the Supabase Kong gateway of the local
+  and self-hosted stacks.
+
+Check the hosted project once, on staging, before relying on per-address limits there:
+
+1. Create a throwaway function that returns `current_setting('request.headers', true)`, call it once
+   through the project URL with `X-Forwarded-For: 203.0.113.77`, and drop it.
+2. The chain looks like `203.0.113.77, <your address>, ...`. Count the entries after your own address.
+3. If there are any, set that count: `alter database postgres set xos.trusted_proxy_hops = '1';` (then
+   reconnect). With 0 the database would count a proxy's address and share one limit among callers.
 
 ## Report runs (A35)
 

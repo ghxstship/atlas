@@ -1,8 +1,6 @@
 "use client";
 
 import { Button, CommandMenu, Dialog, Drawer } from "@xos/ui";
-import type { Route } from "next";
-import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
@@ -15,8 +13,6 @@ export interface ShellOverlaysProps {
   readonly setCommandOpen: (open: boolean) => void;
   readonly accountOpen: boolean;
   readonly setAccountOpen: (open: boolean) => void;
-  readonly helpOpen: boolean;
-  readonly setHelpOpen: (open: boolean) => void;
   readonly switchOpen: boolean;
   readonly setSwitchOpen: (open: boolean) => void;
   readonly commands: readonly FrameLink[];
@@ -39,8 +35,8 @@ export interface ShellOverlaysProps {
 }
 
 /**
- * The Gateway shell's overlays: search (the command menu), the account panel, help and the
- * organization switcher. They render nothing until opened, so they load the first time one opens
+ * The Gateway shell's overlays: search (the command menu), the account panel and the organization
+ * switcher. They render nothing until opened, so they load the first time one opens
  * (A24-009, ADR 0027): cmdk and the Radix dialog stay out of every page's JavaScript. The frame
  * keeps the open state and the shortcuts.
  */
@@ -171,40 +167,6 @@ export function ShellOverlays(props: ShellOverlaysProps) {
           </fieldset>
         </div>
       </Drawer>
-
-      <Dialog
-        open={props.helpOpen}
-        onOpenChange={props.setHelpOpen}
-        title={t("gateway.shell.help.title")}
-        description={t("gateway.shell.help.body")}
-        actions={
-          <>
-            <Button variant="ghost" onClick={() => props.setHelpOpen(false)}>
-              {t("gateway.shell.help.close")}
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                props.setHelpOpen(false);
-                go("/messages");
-              }}
-            >
-              {t("gateway.shell.help.messages")}
-            </Button>
-          </>
-        }
-      >
-        <div className="flex flex-col gap-8 text-text-13 text-text-secondary">
-          <p className="m-0">{t("gateway.shell.help.account")}</p>
-          <NextLink
-            href={"/explore/how-ranking-works" as Route}
-            className="text-accent-text underline"
-            onClick={() => props.setHelpOpen(false)}
-          >
-            {t("gateway.shell.help.ranking")}
-          </NextLink>
-        </div>
-      </Dialog>
 
       <Dialog
         open={props.switchOpen}

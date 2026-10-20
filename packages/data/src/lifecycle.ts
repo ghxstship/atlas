@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { csvField } from "./csv.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { num, rows, rpc, str, strOrNull, type Raw } from "./platform-common.ts";
 import { untyped } from "./untyped.ts";
@@ -123,11 +124,13 @@ export async function listOrgExports(
 
 function csvCell(value: unknown): string {
   if (value === null || value === undefined) return "";
-  const text = typeof value === "object" ? JSON.stringify(value) : String(value);
-  return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  return csvField(typeof value === "object" ? JSON.stringify(value) : String(value));
 }
 
-/** RFC 4180 CSV of rows with a header line, in the given column order. */
+/**
+ * RFC 4180 CSV of rows with a header line, in the given column order. Cells a spreadsheet would run
+ * as formulas are neutralized (A69-005); the archive's JSON keeps every value exactly.
+ */
 export function toCsv(columns: readonly string[], data: readonly Raw[]): string {
   const lines = [columns.map(csvCell).join(",")];
   for (const row of data) lines.push(columns.map((c) => csvCell(row[c])).join(","));

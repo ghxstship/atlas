@@ -1,6 +1,7 @@
 import {
   getCurrentPerson,
   listMyAccounts,
+  listMyEngagementRoleTypes,
   type ExternalAccount,
   type XosClient,
 } from "@xos/data/gateway";
@@ -10,6 +11,7 @@ import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
 import { resolveBrand, type GatewayBrand } from "@/lib/brand/brand";
 import { env, platformHosts } from "@/lib/env";
+import { doesPaidWork } from "@/lib/engagement-state";
 import { createServerSupabase } from "@/lib/supabase/server";
 import {
   ACTING_COOKIE,
@@ -65,9 +67,10 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
   const { data } = await db.auth.getUser();
   const user = data.user;
   if (!user) return null;
-  const [person, accounts, cookieStore, facts] = await Promise.all([
+  const [person, accounts, roleTypes, cookieStore, facts] = await Promise.all([
     getCurrentPerson(db, user.id),
     listMyAccounts(db),
+    listMyEngagementRoleTypes(db),
     cookies(),
     getRequestFacts(),
   ]);
@@ -93,6 +96,8 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
       companyAccount: acting.account !== null,
       platformDomain: facts.platformDomain,
       desktop: facts.desktop,
+      // A failed read keeps the paid-work pages: hiding a person's payout settings by mistake is worse.
+      paidWork: roleTypes.ok ? doesPaidWork(roleTypes.data) : true,
     }),
     platformDomain: facts.platformDomain,
     brand: facts.brand,

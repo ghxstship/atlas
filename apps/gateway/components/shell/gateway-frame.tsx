@@ -22,11 +22,12 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
+import { HelpEntry } from "@/components/help/help-entry";
 import type { ThemePreference } from "@/lib/theme";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
 
-/** Search, the account panel, help and the organization switcher load when one first opens. */
+/** Search, the account panel and the organization switcher load when one first opens. */
 const overlays = onDemand(() => import("./shell-overlays"));
 const preloadOverlays = () => void overlays.load().catch(() => undefined);
 
@@ -80,9 +81,11 @@ function activeLabel(links: readonly FrameLink[], pathname: string): string {
 /**
  * The Gateway shell (Section 11.6, Gateway shell; Section 4.5.8): the org or platform brand, the five
  * destinations in the top bar on desktop and the bottom tab bar on phones, search (Cmd or Ctrl+K),
- * help, and the account panel with the avatar menu, the acting account, theme and language. Every
- * destination comes from ia/sitemap.yaml through the server-built navigation model. The overlays
- * (shell-overlays.tsx) load on first use; pointing at or focusing the header fetches them early.
+ * help (the Help button, the avatar menu's Help and the `?` key open the contextual help panel,
+ * Section 11.16), and the account panel with the avatar menu, the acting account, theme and
+ * language. Every destination comes from ia/sitemap.yaml through the server-built navigation model.
+ * Search, the account panel and the organization switcher (shell-overlays.tsx) load on first use;
+ * pointing at or focusing the header fetches them early. Help loads its own panel (HelpEntry).
  */
 export function GatewayFrame(props: GatewayFrameProps) {
   const router = useRouter();
@@ -93,7 +96,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [switchOpen, setSwitchOpen] = useState(false);
   const signOutForm = useRef<HTMLFormElement>(null);
-  const loaded = useOnDemand(overlays, commandOpen || accountOpen || helpOpen || switchOpen);
+  const loaded = useOnDemand(overlays, commandOpen || accountOpen || switchOpen);
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
 
@@ -235,8 +238,6 @@ export function GatewayFrame(props: GatewayFrameProps) {
           setCommandOpen={setCommandOpen}
           accountOpen={accountOpen}
           setAccountOpen={setAccountOpen}
-          helpOpen={helpOpen}
-          setHelpOpen={setHelpOpen}
           switchOpen={switchOpen}
           setSwitchOpen={setSwitchOpen}
           commands={props.commands}
@@ -254,6 +255,8 @@ export function GatewayFrame(props: GatewayFrameProps) {
           refresh={refresh}
         />
       ) : null}
+
+      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} />
 
       <form ref={signOutForm} method="post" action="/auth/sign-out" className="hidden" />
       <SessionWatcher email={props.email} />

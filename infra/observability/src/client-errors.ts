@@ -62,10 +62,17 @@ export function createRateLimiter(options: {
   };
 }
 
-/** The caller's address from the platform's forwarding headers, used only as a limiter key. */
+/**
+ * The caller's address from the platform's forwarding headers, used only as a limiter key: the last
+ * X-Forwarded-For entry, which the platform's proxy appended. The first entry is the client's own
+ * text, so keying on it let one client take a fresh limit on every report (A69-003).
+ */
 export function clientKey(headers: Headers): string {
-  const forwarded = headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || headers.get("x-real-ip") || "unknown";
+  const chain = (headers.get("x-forwarded-for") ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== "");
+  return chain.at(-1) || headers.get("x-real-ip")?.trim() || "unknown";
 }
 
 export interface ClientErrorHandlerOptions {

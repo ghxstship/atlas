@@ -16,6 +16,19 @@ The owner was given every open decision blocking the release, each with its opti
    - Before it serves real users, the demo seed data (the demo tenant with its shared password) is removed. Its auth URLs, keys and secrets move to production values.
    - Staging moves to Supabase branching, available on Pro.
    - Removing the demo data is irreversible, so it runs only after the owner confirms the exact step.
+   - _Amended 2026-10-19:_ the plan is prepared and proven locally (A64, RRR-109). Nothing has run against the hosted project. The steps, checks and rollbacks are in `infra/runbooks/promote-to-production.md`. In summary:
+     - **Removal.** `infra/production/remove-demo-data.sh` runs `infra/production/remove-demo-data.sql` in one transaction, with dry-run, rehearse and execute modes. Execute needs `--confirm fquuqnzlpobaawucczgq`.
+     - **What counts as demo data.** Nothing is listed by hand. The script starts from markers generated out of `supabase/seeds` and the load-test fixtures: the seed-namespace ids and the reserved email domains. It removes everything that hangs off those markers: rows of the marked orgs, rows that reference marked rows through a blocking or cascading foreign key, and orgs made up only of demo people. The demo orgs' storage objects go through the Storage API, and their integration credentials leave Vault.
+     - **What stays.** Canon, the registries, reference data, buckets, cron jobs, the migration-created Vault keys and migration history.
+     - **Safety checks.** The script refuses to run when the closure reaches canon or a row of an org that stays. It commits only when every table lost exactly its marked rows and a fresh closure finds nothing.
+     - **Guards.** Migration 1270 adds the tenant purge, `private.begin_tenant_purge(org ids)`. It is a per-transaction mark, scoped to named orgs. Under it, the append-only, audit, sole-Owner and retained-record guards let deletes of those orgs' rows through; updates stay refused, and every other org keeps every rule. No trigger or foreign key is disabled. No append-only history of a removed org is kept, because it references the org. The same seam serves the Section 14.7 day-90 deletion.
+     - **Local proof** (all migrations and seeds, plus load-test tenants, storage objects and a Vault credential):
+       - 19 orgs, 30 sign-ins and 2,655 rows in 347 tables were removed.
+       - Canon was unchanged: 41,749 rows in 94 tables.
+       - Every data table matched a no-seed build.
+       - `supabase test db` on the cleaned database passed except 3 assertions that need demo data.
+     - **Settings.** Production settings follow the removal: Site URL and redirects (the domain is still to come), Resend SMTP, leaked-password protection, MFA as in `config.toml`, function and Vault secrets, optional network restrictions, then a JWT secret rotation that renews the anon and service keys, with the Vercel and Vault updates it forces.
+     - **Staging.** Staging becomes a persistent Supabase branch, seeded from `supabase/seeds` on the branch only. Production gets `[remotes.production.db.seed] enabled = false`. Vercel previews and `STAGING_DB_URL` point at the branch.
 2. **Backups:** Pro daily backups plus the PITR add-on. The release restore drill (`infra/drills/release-drill.sh`) runs quarterly as the verified drill.
 3. **Leaked-password protection:** turn on Supabase's built-in check against Have I Been Pwned once on Pro.
 4. **App hosting:** Vercel for Atlas, Gateway and docs.
@@ -65,6 +78,7 @@ The owner was given every open decision blocking the release, each with its opti
     - The CSMIA26 template rows stay private (RRR-67).
     - Bible inconsistencies (RRR-66) remain owner rulings, one by one.
 27. **Spanish:** a native reviewer is hired (RRR-68). A project gate is "compuerta" ("puerta" stays for physical doors).
+    - _Amended 2026-10-20:_ no reviewer is hired. Google Cloud Translation reviews es-US and produces every other translation, and a project gate stays "compuerta" (ADR 0037, RRR-118).
 28. **Legacy .xls import:** dropped. .xlsx and .csv remain.
 
 ### Human testing and launch
@@ -98,3 +112,4 @@ The owner was given every open decision blocking the release, each with its opti
   - Staging data must not carry over into production.
   - The orchestrator prepares the cleanup of the demo tenant and the production settings.
   - The orchestrator asks the owner to confirm before running anything irreversible on the hosted project.
+  - _Amended 2026-10-19:_ A64 (RRR-109) prepared the cleanup and the settings checklist (`infra/runbooks/promote-to-production.md`). The owner confirms each step it marks OWNER CONFIRMS (1 and 4 to 14) before the orchestrator runs it; step 4, the removal, and step 12, the key rotation, cannot be undone.

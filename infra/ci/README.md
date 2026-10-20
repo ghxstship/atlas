@@ -9,6 +9,7 @@
 | `synthetics.sh`      | Synthetic checks against staging, the status history and the status page                                                                                               | Its own scheduled workflow; a failed run notifies on-call        |
 | `backup-weekly.sh`   | Encrypted weekly logical backup of staging                                                                                                                             | Its own scheduled workflow; needs the owner's public key first   |
 | `oasdiff.sh`         | Gate 20: breaking changes in the OpenAPI document since the latest `v*` tag                                                                                            | Yes; passes with a notice until the first tag                    |
+| `supabase-images.sh` | Pulls the Supabase CLI's images from GHCR before every `supabase start` and `supabase db start` in `ci.yml` and `nightly.yml` (section 7)                              | No; warns and leaves the pull to the CLI                         |
 
 `@xos/infra`'s lint, typecheck and tests already run in the `checks` job through `pnpm verify`, since `infra` is in the workspace.
 
@@ -304,6 +305,119 @@ Before the first tag, the owner confirms the names are theirs. Publishing under 
 | Settings, Variables (Actions)             | `XOS_STAGING_ATLAS_URL`, `XOS_STAGING_GATEWAY_URL`, `XOS_STAGING_SUPABASE_URL`, `XOS_STAGING_SUPABASE_ANON_KEY` (public by design), `XOS_STAGING_POWERSYNC_URL` once it exists |
 | Settings, Secrets (Actions)               | `XOS_SYNTHETIC_EMAIL`, `XOS_SYNTHETIC_PASSWORD`, `XOS_ALERT_WEBHOOK_URL`, `STAGING_DB_URL`                                                                                     |
 | Branch protection                         | Leave `status-data` and `gh-pages` unprotected so the workflow can force-push them; `main` is untouched                                                                        |
+
+## 7. Supabase stack images: GHCR first
+
+Every job that runs `supabase start` or `supabase db start` first runs `infra/ci/supabase-images.sh start` (or `db`). Both workflows already do; new jobs copy the pair:
+
+```yaml
+# Services no test uses stay off; the images come from GHCR first (infra/ci/README.md).
+- run: infra/ci/supabase-images.sh start
+- run: supabase start -x studio,imgproxy,logflare,vector,postgres-meta,supavisor
+```
+
+**The problem.** The pinned CLI (2.120.0) pulls from `public.ecr.aws/supabase` first. Anonymous ECR Public pulls from GitHub's shared runner addresses answer `toomanyrequests: Rate exceeded` or `Data limit exceeded` when a dozen jobs start at once (the first nightly, run 39353210193, and `ci.yml` on `main`). The CLI retries each image after 4 and 8 seconds, then falls back to `ghcr.io/supabase` and then Docker Hub (`apps/cli/src/command-internal/docker-registry.ts` and `docker-image-resolve.ts` in the CLI source at `v2.120.0`). In those runs every image eventually came from GHCR, so the rate limit cost time on each job but failed none; the failures were elsewhere (below). A bad hour can still exhaust all three registries.
+
+**The fix.** The script pulls the images the job needs straight from GHCR, in parallel, retrying after 5, 15 and 30 seconds, then tries ECR. Before pulling anything, the CLI looks for a local copy under each registry name it would try, so it starts the stack from the `ghcr.io/supabase/<name>:<tag>` copies without a pull. Versions come from `supabase services`, so they follow the CLI pin; Kong, Mailpit and pg_prove are not listed there, and their tags in the script match the CLI's service Dockerfile at 2.120.0 (the script warns when the CLI version changes). A failed pull warns and leaves the image to the CLI's own fallback, so the step never fails a job.
+
+| Profile | Images (CLI 2.120.0)                                                                                                                                |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `start` | postgres 17.11.0.004, gotrue v2.197.0, postgrest v16.4, realtime v2.140.10, storage-api v1.79.36, edge-runtime v1.77.4, kong 2.8.1, mailpit v1.31.3 |
+| `db`    | postgres, gotrue, realtime, storage-api (what `supabase db start` migrates with), pg_prove 3.36 (`supabase test db`)                                |
+
+**Options not taken.**
+
+- `SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io` makes the CLI use GHCR only, but it also turns off the CLI's fallback, so one GHCR hiccup would fail the job. The pre-pull gets GHCR first and keeps the fallback.
+- `SUPABASE_USE_SLIM_IMAGES` switches to the CLI's slim images on GHCR, but they are different builds from the ones development and staging run.
+- Caching `docker save` tarballs with `actions/cache` would add about 1.5 GB per key to the repository's 10 GB cache, shared with the pnpm stores, and evict them. Restoring and `docker load` take about as long as a GHCR pull inside GitHub's network, and parallel jobs on a new key all miss the cache at once anyway.
+- Fewer services per job: `-x` already leaves out Studio, imgproxy, Logflare, Vector, postgres-meta and Supavisor. What remains is what the tests use.
+
+Verified locally (A67): all nine images pull from GHCR at these tags, and with every `public.ecr.aws` image hidden from the CLI and ECR pulls refused, `supabase start -x ...` started the whole stack from the GHCR copies without a single pull.
+
+## 8. Compass Maestro jobs (nightly, gate 7)
+
+**iOS on `macos-15-intel` with Colima.** GitHub's Apple Silicon macOS runners (`macos-15`, `macos-latest`) have no Docker and cannot run it, because they do not support nested virtualization, so `supabase start` failed there. The Intel image can: Colima's own integration tests start a Docker VM on `macos-15-intel` on every push. The job installs `docker` and `colima` with Homebrew, starts a 2 CPU, 6 GB VM, and runs the same stack as the Linux jobs; Colima forwards the stack's ports to the Mac, so the simulator reaches it at `127.0.0.1:55421`. It then builds Compass for the simulator with Xcode 26.3 for x86_64 only. GitHub supports `macos-15-intel` until August 2027, as its last Intel image. Before then, the job moves to the hosted staging branch (ADR 0033 decision 1, `infra/runbooks/promote-to-production.md`) on an Apple Silicon runner. That needs the owner's staging URL, anon key and a seeded demo tenant as secrets, so it is not used today.
+
+Approaches considered: running the stack in a Linux job and tunnelling to it from the macOS job needs a public tunnel and two jobs alive at once, which GitHub does not coordinate. Pointing at hosted staging is the fallback above. The Intel runner works today with no new secrets.
+
+**Android on `ubuntu-24.04`.** The first run never reached Maestro. The runner user could not open `/dev/kvm`, so the emulator ran with `-accel off`. It took 13 minutes to boot, and then `adb` lost it (`Broken pipe`) while the action turned animations off. The job now adds the udev rule GitHub documents for hardware acceleration. The release APK is built for x86_64 only, since the emulator is x86_64; the four-ABI build took 23 minutes. The CI build also allows cleartext HTTP, because release builds refuse `http://10.0.2.2:55421`; store builds keep Android's default.
+
+**Both.** `apps/compass/scripts/maestro-ci-env.sh` gives the flows what they read: `SUPABASE_URL` and `SUPABASE_ANON_KEY` for their helper scripts, and a kiosk registered as the Demo Admin with the Demo Field Tech's kiosk PIN, for `supervisor-kiosk`. `apps/compass/scripts/maestro-ci.sh` installs Maestro at `MAESTRO_VERSION` and runs the flows with a JUnit report, uploaded as the job's artifact. iOS skips `field-clock-offline` (tag `airplane-mode`), because Maestro sets airplane mode only on Android.
+
+## 9. Workflow `.github/workflows/translate.yml` (manual, ADR 0037)
+
+This workflow runs the machine translation pipeline with Google Cloud Translation when the owner starts it. It uploads the changed files as a patch to apply and review locally.
+
+- **No stored key.** It authenticates through Workload Identity Federation. First set up the provider, the service account and the four repository variables (`infra/runbooks/production.md`, Machine translation, step 6).
+- **One new action.** It needs `google-github-actions/auth` v3.0.0, pinned by SHA. That is an ADR 0001 amendment, recorded in ADR 0037. The workflow is in the repository since 2026-10-20 (the orchestrator checked that the SHA is the v3.0.0 tag).
+- **The offline check needs nothing here.** It already runs in the `checks` job through `pnpm verify`.
+
+```yaml
+name: Translate
+
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "translate (missing and stale), review (es-US), or all (glossary, translate, review)"
+        type: choice
+        options: [translate, review, all]
+        default: translate
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  translate:
+    name: Machine translation (${{ inputs.command }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: google
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ vars.GOOGLE_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GOOGLE_TRANSLATE_SERVICE_ACCOUNT }}
+          token_format: access_token
+          create_credentials_file: false
+      - name: Translate
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ vars.GOOGLE_CLOUD_PROJECT }}
+          GOOGLE_TRANSLATE_GLOSSARY_BUCKET: ${{ vars.GOOGLE_TRANSLATE_GLOSSARY_BUCKET }}
+          GOOGLE_OAUTH_ACCESS_TOKEN: ${{ steps.google.outputs.access_token }}
+          COMMAND: ${{ inputs.command }}
+        run: |
+          case "$COMMAND" in
+            translate) pnpm --filter @xos/i18n translate ;;
+            review) pnpm --filter @xos/i18n translate:review ;;
+            all) pnpm --filter @xos/i18n translate:all ;;
+          esac
+      - name: Offline check on the result
+        run: pnpm --filter @xos/i18n test
+      - name: Changes as a patch
+        if: always()
+        run: git add -A && git diff --cached --binary > translation.patch
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: translation-${{ inputs.command }}
+          path: translation.patch
+```
+
+To apply the result:
+
+1. Download the artifact.
+2. Run `git apply translation.patch` on a branch.
+3. Read `docs/i18n/review/es-US/README.md`.
+4. Follow step 5 of the runbook section.
 
 ## Frequency and regions
 

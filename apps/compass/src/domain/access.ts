@@ -232,6 +232,67 @@ export function moreMenu(audience: Audience): MenuEntry[] {
   );
 }
 
+/** More entries Compass renders itself; the others live in Gateway (external) or Atlas (internal). */
+export const NATIVE_MORE: ReadonlySet<string> = new Set([
+  "incidents",
+  "inspections",
+  "logistics",
+  "show",
+  "run-of-show",
+  "reference",
+  "offline-queue",
+  "profile",
+  "settings",
+]);
+
+export interface MoreSections {
+  /** Entries Compass opens as its own screens, in the sitemap's order. */
+  readonly native: readonly MenuEntry[];
+  /** Entries whose screens are not in Compass yet, gathered behind one link out. */
+  readonly elsewhere: readonly MenuEntry[];
+}
+
+/**
+ * The More menu split for the phone (finding A59-026): Compass's own screens, then everything it
+ * does not render yet gathered behind one row that opens the right app, instead of one "this is in
+ * Gateway" page per entry.
+ */
+export function moreSections(audience: Audience): MoreSections {
+  const items = moreMenu(audience);
+  return {
+    native: items.filter((m) => NATIVE_MORE.has(m.id)),
+    elsewhere: items.filter((m) => !NATIVE_MORE.has(m.id)),
+  };
+}
+
+/**
+ * Where the gathered entries open: an external person's engagements in Gateway, whose tabs hold
+ * timesheets, per diem, travel, onboarding, purchase orders and the rest (Section 4.5.8); an
+ * internal member's Atlas, which opens on their organization.
+ */
+export function elsewhereLink(
+  audience: Audience,
+  urls: { readonly atlasUrl: string; readonly gatewayUrl: string },
+): { readonly app: "atlas" | "gateway"; readonly url: string } {
+  const trim = (u: string) => u.replace(/\/+$/, "");
+  return isInternal(audience)
+    ? { app: "atlas", url: `${trim(urls.atlasUrl)}/` }
+    : { app: "gateway", url: `${trim(urls.gatewayUrl)}/work/engagements` };
+}
+
+/**
+ * Where a person keeps their certifications (finding A59-026): an external person on their Gateway
+ * profile; an internal member in Atlas, which opens on their organization, never Gateway.
+ */
+export function certificationsUrl(
+  audience: Audience,
+  urls: { readonly atlasUrl: string; readonly gatewayUrl: string },
+): string {
+  return isInternal(audience)
+    ? elsewhereLink(audience, urls).url
+    : `${urls.gatewayUrl.replace(/\/+$/, "")}/profile`;
+}
+
 /** Today's content blocks for the audience, with their message keys. */
 export function todayBlocks(audience: Audience): { id: string; label: string }[] {
   const labels: Readonly<Record<string, string>> = navigation.contentLabels;

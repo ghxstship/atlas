@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { MagicLinkForm, PasswordSignInForm } from "@/components/auth/forms";
-import { Divider, ProviderButtons } from "@/components/auth/providers";
+import { SignInForm } from "@/components/auth/forms";
+import { ProviderButtons } from "@/components/auth/providers";
 import { InlineAlert } from "@/components/ui";
-import { authErrorKey } from "@/lib/auth/errors";
+import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,7 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
-/** Sign in: OAuth providers and the magic link first, password last (Section 11.10, rule 12). */
+/**
+ * Sign in: OAuth providers, then one Email field with the sign-in link as the primary action and a
+ * password on request (Section 11.10, rule 12). `?method=password` opens on the password.
+ */
 export default async function SignInPage({ searchParams }: PageProps<"/auth/sign-in">) {
   const query = await searchParams;
   const next = safeNext(query["next"], "/home");
@@ -26,12 +29,12 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
         <p className="m-0 text-text-13 text-text-secondary">{t("signIn.lead")}</p>
       </div>
       {query["signedOut"] === undefined && error ? (
-        <InlineAlert tone="danger">{t(`errors.${error}`)}</InlineAlert>
+        <InlineAlert tone={isAuthNotice(error) ? "info" : "danger"}>
+          {t(`errors.${error}`)}
+        </InlineAlert>
       ) : null}
       <ProviderButtons next={next} />
-      <MagicLinkForm next={next} intent="sign-in" />
-      <Divider />
-      <PasswordSignInForm next={next} />
+      <SignInForm next={next} initial={query["method"] === "password" ? "password" : "link"} />
       <p className="m-0 text-text-13 text-text-secondary">
         {t("signIn.noAccount")}{" "}
         <Link href={signUpHref as "/auth/sign-up"} className="text-accent-text underline">

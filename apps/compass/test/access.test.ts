@@ -2,7 +2,10 @@ import { EXTERNAL_AUDIENCES, type Audience } from "@xos/sync";
 import { describe, expect, it } from "vitest";
 import {
   access,
+  certificationsUrl,
+  elsewhereLink,
   moreMenu,
+  moreSections,
   operationalEngagements,
   scanModes,
   tabBar,
@@ -176,6 +179,34 @@ describe("navigation from the sitemap", () => {
     ).toEqual(["purchase-orders", "deliveries", "submittals"]);
     const client = moreMenu("client");
     expect(client.find((m) => m.id === "run-of-show")?.readOnly).toBe(true);
+  });
+
+  it("gathers the entries Compass does not render behind one link out (A59-026)", () => {
+    const crew = moreSections("crew");
+    expect(crew.native.map((m) => m.id)).toEqual(["offline-queue", "profile", "settings"]);
+    expect(crew.elsewhere.map((m) => m.id)).toEqual([
+      "timesheets",
+      "per-diem",
+      "travel-and-lodging",
+      "onboarding",
+    ]);
+    expect(moreSections("field").elsewhere.map((m) => m.id)).toEqual(["expenses"]);
+    expect(moreSections("client").native.map((m) => m.id)).toContain("run-of-show");
+    for (const audience of ["field", "crew", "vendor", "sponsor", "artist"] as const) {
+      const { native, elsewhere } = moreSections(audience);
+      expect([...native, ...elsewhere]).toHaveLength(moreMenu(audience).length);
+    }
+    const urls = { atlasUrl: "https://atlas.test/", gatewayUrl: "https://gateway.test" };
+    expect(elsewhereLink("crew", urls)).toEqual({
+      app: "gateway",
+      url: "https://gateway.test/work/engagements",
+    });
+    expect(elsewhereLink("field-supervisor", urls)).toEqual({
+      app: "atlas",
+      url: "https://atlas.test/",
+    });
+    expect(certificationsUrl("crew", urls)).toBe("https://gateway.test/profile");
+    expect(certificationsUrl("field", urls)).toBe("https://atlas.test/");
   });
 
   it("reads scan modes and Today blocks per role", () => {
