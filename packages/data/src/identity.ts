@@ -569,3 +569,23 @@ export async function hasClientOrganizations(
   if (error) return fail(toDataError(error));
   return ok((count ?? 0) > 0);
 }
+
+/**
+ * Whether an org is a partner agency (Section 4.6.1, A59-020): the platform recorded a partner
+ * agreement for it, or it already has client orgs. A new agency has an agreement before its first
+ * client org, which is the first thing the Partner console is for, so the agreement alone counts.
+ * Partner staff with org.partner.manage read the agreement (policy partner_agreements_read).
+ */
+export async function isPartnerOrganization(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<boolean>> {
+  const { count, error } = await db
+    .from("partner_agreements")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  if ((count ?? 0) > 0) return ok(true);
+  return hasClientOrganizations(db, orgId);
+}

@@ -1,6 +1,6 @@
 import {
   getMyOrganization,
-  hasClientOrganizations,
+  isPartnerOrganization,
   listRoleCapabilities,
   systemRoleForBand,
   type MyOrganization,
@@ -57,7 +57,7 @@ export async function resolveMembership(
       db,
       org.data.roles.map((r) => r.id),
     ),
-    hasClientOrganizations(db, org.data.id),
+    isPartnerOrganization(db, org.data.id),
     listDisabledModules(db, org.data.id),
     getPersona(db, org.data.id),
   ]);

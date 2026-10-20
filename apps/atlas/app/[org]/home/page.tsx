@@ -36,6 +36,7 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   // The setup checklist and the plan card ask for actions only an Owner or Admin can take, so only
   // they see them (Section 11.7, A59-014); everyone else starts on the tiles.
   const setsUp = ctx.role === "owner" || ctx.role === "admin";
+  const partnerConsole = setsUp && [...(ctx.nav.conditions ?? [])].includes("partner-org");
   const [members, invites, subscription] = await Promise.all([
     listMembers(db, ctx.org.id),
     ctx.capabilities.has("org.members.read")
@@ -64,6 +65,25 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   return (
     <>
       <PageHeader title={translate("nav.atlas.items.home")} />
+      {partnerConsole ? (
+        // A partner agency's Owners and Admins start from the Partner console (A59-020).
+        <section
+          aria-labelledby="home-partner"
+          className="mb-16 flex flex-col gap-8 rounded-card border border-border-subtle bg-bg-surface p-16"
+        >
+          <h2 id="home-partner" className="m-0 text-heading-16 font-semibold">
+            {translate("shell.settings.partnerConsole.title")}
+          </h2>
+          <p className="m-0 text-text-13 text-text-secondary">
+            {translate("shell.settings.partnerConsole.lead", { org: ctx.org.name })}
+          </p>
+          <div>
+            <ButtonLink href={`/partner/${ctx.org.slug}`} variant="primary">
+              {translate("shell.settings.partnerConsole.open")}
+            </ButtonLink>
+          </div>
+        </section>
+      ) : null}
       {setsUp ? (
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-12">
           <section

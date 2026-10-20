@@ -1165,6 +1165,34 @@
         "sole_owner": "Eres el único propietario de {org}. Nombra a otra persona propietaria antes de salir.",
         "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
       }
+    },
+    "partnerConsole": {
+      "title": "Consola de socio",
+      "lead": "{org} es una agencia socia. Cree organizaciones cliente y defina sus planes, deles una marca predeterminada y consulte el uso y la facturación mayorista en la Consola de socio.",
+      "clientOrgs": "Organizaciones cliente",
+      "discount": "Descuento mayorista",
+      "createFirst": "Crear su primera organización cliente",
+      "open": "Abrir la Consola de socio"
+    },
+    "usagePanel": {
+      "title": "Uso actual",
+      "lead": "Lo que {org} usa hoy frente al plan {plan}.",
+      "leadNoPlan": "Lo que {org} usa hoy.",
+      "seats": "Asientos",
+      "field": "Miembros de campo",
+      "projects": "Proyectos activos",
+      "engagements": "Contrataciones externas activas",
+      "unlimited": "{used} (sin límite en este plan)",
+      "ofLimit": "{used} de {limit}",
+      "members": "Ver miembros",
+      "billing": "Facturación y plan"
+    },
+    "templatesPanel": {
+      "title": "Plantillas de proyecto",
+      "lead": "Plantillas con las que la organización inicia proyectos. Créelas, versiónelas y aplíquelas en Proyectos, Plantillas.",
+      "empty": "Aún no hay plantillas de proyecto. Guarde una a partir de un proyecto que quiera repetir.",
+      "line": "Versión {version} · {items, plural, one {# elemento} other {# elementos}} · {projects, plural, =0 {aún sin proyectos} one {# proyecto} other {# proyectos}}",
+      "open": "Abrir plantillas de proyecto"
     }
   },
   "refusalOutcome": {

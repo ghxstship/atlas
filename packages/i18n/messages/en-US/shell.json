@@ -1165,6 +1165,34 @@
         "sole_owner": "You are the only Owner of {org}. Make someone else Owner before you leave.",
         "unexpected": "Something went wrong on our side. Try again in a moment."
       }
+    },
+    "partnerConsole": {
+      "title": "Partner console",
+      "lead": "{org} is a partner agency. Create client orgs and set their plans, give them a default brand, and see usage and wholesale billing in the Partner console.",
+      "clientOrgs": "Client orgs",
+      "discount": "Wholesale discount",
+      "createFirst": "Create your first client org",
+      "open": "Open the Partner console"
+    },
+    "usagePanel": {
+      "title": "Usage now",
+      "lead": "What {org} uses today against the {plan} plan.",
+      "leadNoPlan": "What {org} uses today.",
+      "seats": "Seats",
+      "field": "Field members",
+      "projects": "Active projects",
+      "engagements": "Active external engagements",
+      "unlimited": "{used} (no limit on this plan)",
+      "ofLimit": "{used} of {limit}",
+      "members": "View members",
+      "billing": "Billing and plan"
+    },
+    "templatesPanel": {
+      "title": "Project templates",
+      "lead": "Templates the org starts projects from. Create, version and apply them on Projects, Templates.",
+      "empty": "No project templates yet. Save one from a project you want to repeat.",
+      "line": "Version {version} · {items, plural, one {# item} other {# items}} · {projects, plural, =0 {no projects yet} one {# project} other {# projects}}",
+      "open": "Open project templates"
     }
   },
   "refusalOutcome": {
