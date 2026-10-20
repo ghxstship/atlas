@@ -72,8 +72,22 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
   };
 }
 
-export default ({ config }: ConfigContext): ExpoConfig =>
-  withUniversalLinks(
+/**
+ * Refuses test-only switches in a build meant for people. EXPO_PUBLIC_XOS_FAKE_RECORDER (A66) swaps the
+ * voice-note microphone for a silent fake in Maestro test builds (src/runtime/voiceRecorder.ts); EAS
+ * builds are the ones that reach TestFlight, Play and the stores (ADR 0033), so they never carry it.
+ */
+export function refuseTestOnlySwitches(env: Readonly<Record<string, string | undefined>>): void {
+  if (env["EXPO_PUBLIC_XOS_FAKE_RECORDER"] === "1" && env["EAS_BUILD"] === "true")
+    throw new Error(
+      "EXPO_PUBLIC_XOS_FAKE_RECORDER is for local and CI Maestro builds only; unset it for EAS builds.",
+    );
+}
+
+export default ({ config }: ConfigContext): ExpoConfig => {
+  refuseTestOnlySwitches(process.env);
+  return withUniversalLinks(
     config as ExpoConfig,
     universalLinkHosts(process.env["XOS_UNIVERSAL_LINK_HOSTS"]),
   );
+};

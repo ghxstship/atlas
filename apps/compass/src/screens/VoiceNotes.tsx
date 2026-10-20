@@ -5,18 +5,16 @@
  * VoiceOver users double-tap to start and double-tap again to stop, since a hold is not available to them.
  */
 import {
-  RecordingPresets,
   requestRecordingPermissionsAsync,
   setAudioModeAsync,
   useAudioPlayer,
   useAudioPlayerStatus,
-  useAudioRecorder,
-  useAudioRecorderState,
 } from "expo-audio";
 import { useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
 import { formatNoteLength, keepVoiceNote, type VoiceNote } from "../domain/incidents";
+import { useVoiceRecorder } from "../runtime/voiceRecorder";
 import { Icon, IconButton, InlineAlert, Text, useTheme } from "../ui";
 
 function message(error: unknown): string {
@@ -52,8 +50,7 @@ export function VoiceNotes({
 }): ReactElement {
   const { t } = useTranslation();
   const theme = useTheme();
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
-  const recording = useAudioRecorderState(recorder, 250);
+  const { recorder, state: recording } = useVoiceRecorder();
   const player = useAudioPlayer(null);
   const playback = useAudioPlayerStatus(player);
   const [playingId, setPlayingId] = useState<string | null>(null);
