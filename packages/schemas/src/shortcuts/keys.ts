@@ -167,8 +167,9 @@ function eventKey(event: KeyEventLike): string | null {
 
 /**
  * The chord a key press makes on a platform, in the canonical form, or null for a lone modifier, a
- * dead key or a key outside the grammar. Elsewhere than macOS the Windows or Super key is left to the
- * operating system, so a press holding it makes no chord.
+ * dead key or a key outside the grammar. Elsewhere than macOS, Control is Mod, and so is the Windows or
+ * Super key when a browser passes it on: a Mac whose browser reports another platform (emulation, a
+ * changed user agent) still reaches Mod shortcuts with Command.
  */
 export function chordOf(event: KeyEventLike, platform: Platform): string | null {
   const key = eventKey(event);
@@ -177,9 +178,8 @@ export function chordOf(event: KeyEventLike, platform: Platform): string | null 
   if (platform === "mac") {
     if (event.metaKey) modifiers.push("Mod");
     if (event.ctrlKey) modifiers.push("Ctrl");
-  } else {
-    if (event.metaKey) return null;
-    if (event.ctrlKey) modifiers.push("Mod");
+  } else if (event.ctrlKey || event.metaKey) {
+    modifiers.push("Mod");
   }
   if (event.altKey) modifiers.push("Alt");
   if (event.shiftKey && takesShift(key)) modifiers.push("Shift");
