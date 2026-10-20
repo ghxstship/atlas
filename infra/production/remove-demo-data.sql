@@ -19,9 +19,11 @@
 --          delete (ON DELETE NO ACTION, RESTRICT or CASCADE); SET NULL references are left to the database
 --        * every org whose members are all demo people
 --      so an org a demo user created, its contents, and every row a demo person created are included.
+-- Outside the tables: the demo orgs' storage objects (through the Storage API, by the wrapper) and the Vault
+-- secrets of their integration connections (xos_integration_<connection id>) go too.
 -- What stays: every row the closure does not reach. Canon (xpms), the plan, capability, role and settings
--- registries, reference data, storage buckets, cron jobs and Vault secrets carry no demo org or person and
--- are never touched. The script refuses to run when the closure reaches xpms or migration history, and
+-- registries, reference data, storage buckets, cron jobs and the migration-created Vault keys carry no demo
+-- org or person and are never touched. The script refuses to run when the closure reaches xpms or migration history, and
 -- refuses to commit when it would delete a row of an org that is not itself being removed.
 --
 -- Guards. Tenant tables refuse hard deletes in several places (append-only ledgers, the audit ledger, the
@@ -765,6 +767,27 @@ where split_part(o.name, '/', 1) in (
     union all select user_id::text from demo_users)
   or o.owner_id in (select user_id::text from demo_users);
 
+-- Vault secrets of the demo orgs' integration connections ------------------------------------------------------
+-- app.store_integration_credential keeps each connection's secret in Vault as xos_integration_<connection id>,
+-- linked from private.integration_credentials without a foreign key. The migration-created keys stay.
+
+create temp table demo_vault (id uuid primary key, name text);
+insert into demo_vault (id, name)
+select s.id, s.name from vault.secrets s
+where s.name in (select 'xos_integration_' || (m.key ->> 'id') from demo_marks m
+                 where m.rel = 'app.integration_connections'::regclass)
+on conflict do nothing;
+insert into demo_vault (id, name)
+select s.id, s.name from vault.secrets s
+join private.integration_credentials c on c.vault_secret_id = s.id
+where c.integration_connection_id in (select (m.key ->> 'id')::uuid from demo_marks m
+                                      where m.rel = 'app.integration_connections'::regclass)
+on conflict do nothing;
+
+\echo
+\echo '== Vault secrets to remove (integration credentials of the demo orgs)'
+select count(*) as secrets from demo_vault;
+
 \echo
 \echo '== Storage objects to remove through the Storage API (the wrapper does this before the SQL run)'
 select bucket_id, count(*) as objects from demo_storage group by 1 order by 1;
@@ -881,6 +904,9 @@ $$;
 
 select private.end_tenant_purge() as orgs_unmarked;
 
+with gone as (delete from vault.secrets s where s.id in (select id from demo_vault) returning 1)
+select count(*) as vault_secrets_deleted from gone;
+
 -- Verify -------------------------------------------------------------------------------------------------------
 -- 1. Every table lost exactly its marked rows: nothing else was deleted, and no trigger wrote new rows.
 -- 2. A fresh closure from the seed markers finds nothing.
@@ -927,6 +953,9 @@ begin
   if exists (select 1 from auth.users u where u.id in (select user_id from pg_temp.demo_users))
      or exists (select 1 from app.people p where p.id in (select person_id from pg_temp.demo_people)) then
     raise exception 'Verification failed: demo sign-ins or people remain.';
+  end if;
+  if exists (select 1 from vault.secrets s where s.id in (select id from pg_temp.demo_vault)) then
+    raise exception 'Verification failed: integration credentials of removed orgs remain in Vault.';
   end if;
   if exists (select 1 from private.tenant_purge_scope s where s.xact_id = pg_current_xact_id()) then
     raise exception 'Verification failed: the tenant purge mark is still set.';
