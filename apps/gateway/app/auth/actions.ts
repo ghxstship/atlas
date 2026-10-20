@@ -12,8 +12,13 @@ import {
   signUpAcceptances,
 } from "@/lib/auth/legal";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
-import { isOAuthProvider } from "@/lib/auth/providers";
-import { safeNext, siteUrl } from "@/lib/auth/redirect";
+import {
+  enabledProviders,
+  isOAuthProvider,
+  offersProviders,
+  providerQueryParams,
+} from "@/lib/auth/providers";
+import { safeNext, signInErrorPath, siteUrl } from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -104,21 +109,34 @@ export async function sendMagicLink(_: FormState, form: FormData): Promise<FormS
   redirect(`/auth/check-email?email=${encodeURIComponent(parsed.data)}`);
 }
 
+/**
+ * Starts an OAuth sign-in (Sign in with Google, ADR 0036). The server client from @supabase/ssr
+ * uses the PKCE flow: signInWithOAuth stores the code verifier in an httpOnly cookie and returns
+ * Supabase Auth's /authorize URL with the code challenge. The return leg is /auth/callback, which
+ * carries `next` (kept on this site by safeNext) and the provider. Providers are offered on the
+ * platform hosts only: the return leg is GATEWAY_SITE_URL, where a custom domain's verifier cookie
+ * does not reach. Signing up and signing in are the same step.
+ */
 export async function signInWithProvider(form: FormData): Promise<void> {
+  const next = safeNext(form.get("next"), HOME);
   const provider = form.get("provider");
-  if (!isOAuthProvider(provider)) redirect("/auth/sign-in?error=provider_disabled");
+  const refused = signInErrorPath("provider_disabled", next, HOME) as Route;
+  if (
+    !isOAuthProvider(provider) ||
+    !(await offersProviders()) ||
+    !(await enabledProviders()).includes(provider)
+  ) {
+    redirect(refused);
+  }
   const db = await createServerSupabase();
   const { data, error } = await db.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: siteUrl(
-        env().GATEWAY_SITE_URL,
-        "/auth/callback",
-        safeNext(form.get("next"), HOME),
-      ),
+      redirectTo: siteUrl(env().GATEWAY_SITE_URL, "/auth/callback", next, { provider }),
+      queryParams: providerQueryParams(provider),
     },
   });
-  if (error || !data.url) redirect("/auth/sign-in?error=provider_disabled");
+  if (error || !data.url) redirect(refused);
   redirect(data.url as Route);
 }
 

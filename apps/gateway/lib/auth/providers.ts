@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import { cache } from "react";
-import { env } from "@/lib/env";
+import { env, platformHosts } from "@/lib/env";
+import { isPlatformHost } from "@/lib/shell/standing";
 
 /**
  * OAuth providers Section 9 names (Google, Apple, Microsoft). Gateway offers a provider only when
@@ -12,6 +14,24 @@ export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number];
 
 export function isOAuthProvider(value: unknown): value is OAuthProvider {
   return typeof value === "string" && (OAUTH_PROVIDERS as readonly string[]).includes(value);
+}
+
+/**
+ * Extra authorization parameters per provider. Google is asked to show its account chooser, so a
+ * person signed in to several Google accounts picks the one a request was sent to instead of
+ * being signed in silently with another.
+ */
+export function providerQueryParams(provider: OAuthProvider): Record<string, string> {
+  return provider === "google" ? { prompt: "select_account" } : {};
+}
+
+/**
+ * Whether this request may offer OAuth providers: only on the platform Gateway hosts. The provider
+ * returns to GATEWAY_SITE_URL, the one return address Supabase Auth allows, so a sign-in started on
+ * an org's custom domain would come back to another host without its PKCE verifier cookie.
+ */
+export async function offersProviders(): Promise<boolean> {
+  return isPlatformHost((await headers()).get("host"), platformHosts(env()));
 }
 
 export function parseEnabledProviders(settings: unknown): OAuthProvider[] {
