@@ -3,6 +3,7 @@ import {
   WORK_DETAIL_CATEGORIES,
   addEmergencyContact,
   addLoyaltyProgram,
+  getMyNameParts,
   getMyWorkDetails,
   getSharedWorkDetails,
   listMyEmergencyContacts,
@@ -15,11 +16,14 @@ import {
   revealMyPassportNumber,
   revealSharedPassportNumber,
   revokeWorkDetailShare,
+  saveMyNameParts,
   saveMyWorkDetails,
   setMyPassportNumber,
   shareWorkDetails,
   updateEmergencyContact,
   updateLoyaltyProgram,
+  workDetailLabelKey,
+  workDetailLogKey,
 } from "../src/work-details.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
@@ -345,5 +349,41 @@ describe("sharing", () => {
     expect(calls[0]?.steps).toContainEqual(["limit", [10]]);
     const failed = await listMyWorkDetailEvents(db, "p1");
     expect(!failed.ok && failed.error.kind).toBe("unexpected");
+  });
+});
+
+describe("labels", () => {
+  it("keys enum labels and log actions for the catalogs", () => {
+    expect(workDetailLabelKey("Emergency Contacts")).toBe("emergencyContacts");
+    expect(workDetailLabelKey("Step-Free Access")).toBe("stepFreeAccess");
+    expect(workDetailLabelKey("Passport")).toBe("passport");
+    expect(workDetailLogKey("work_details.viewed")).toBe("viewed");
+    expect(workDetailLogKey("person_emergency_contacts.delete")).toBe("contactRemoved");
+    expect(workDetailLogKey("something.else")).toBe("other");
+  });
+});
+
+describe("name parts (Section 15)", () => {
+  it("reads and saves the given and family names", async () => {
+    const { db, calls } = fakeClient({
+      "from:people": [
+        okResponse({ full_name: "Ivy Marchetti", given_name: "Ivy", family_name: "Marchetti" }),
+        okResponse(null),
+        okResponse([{ id: "p1" }]),
+        okResponse([]),
+      ],
+    });
+    const read = await getMyNameParts(db, "p1");
+    expect(read.ok && read.data).toEqual({
+      fullName: "Ivy Marchetti",
+      givenName: "Ivy",
+      familyName: "Marchetti",
+    });
+    const missing = await getMyNameParts(db, "p9");
+    expect(!missing.ok && missing.error.kind).toBe("not-found");
+    expect((await saveMyNameParts(db, "p1", { givenName: "Ivy", familyName: null })).ok).toBe(true);
+    expect(calls[2]?.steps).toContainEqual(["update", [{ given_name: "Ivy", family_name: null }]]);
+    const gone = await saveMyNameParts(db, "p9", { givenName: null, familyName: null });
+    expect(!gone.ok && gone.error.kind).toBe("not-found");
   });
 });

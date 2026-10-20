@@ -46,6 +46,41 @@ export const WORK_DETAIL_RULES = [
   "org_read_only",
 ] as const;
 
+/**
+ * The catalog key of an enum label, in camel case: "Emergency Contacts" is `emergencyContacts`,
+ * "Step-Free Access" is `stepFreeAccess`. The apps label categories, needs and kinds with it.
+ */
+export function workDetailLabelKey(label: string): string {
+  return label
+    .replace(/[^A-Za-z0-9]+(.)?/g, (_, next: string | undefined) => (next ? next.toUpperCase() : ""))
+    .replace(/^./, (first) => first.toLowerCase());
+}
+
+const LOG_KEYS: Readonly<Record<string, string>> = {
+  "person_work_details.insert": "detailsCreated",
+  "person_work_details.update": "detailsChanged",
+  "person_work_details.delete": "detailsRemoved",
+  "person_emergency_contacts.insert": "contactAdded",
+  "person_emergency_contacts.update": "contactChanged",
+  "person_emergency_contacts.delete": "contactRemoved",
+  "person_loyalty_programs.insert": "programAdded",
+  "person_loyalty_programs.update": "programChanged",
+  "person_loyalty_programs.delete": "programRemoved",
+  "passport.number_set": "passportSet",
+  "passport.number_cleared": "passportCleared",
+  "passport.revealed": "passportRevealed",
+  "work_details.shared": "shared",
+  "work_details.share_changed": "shareChanged",
+  "work_details.share_revoked": "shareRevoked",
+  "work_details.viewed": "viewed",
+  "work_details.erased": "erased",
+};
+
+/** The `workDetails.log.actions.*` key of an access log action; unknown actions are `other`. */
+export function workDetailLogKey(action: string): string {
+  return LOG_KEYS[action] ?? "other";
+}
+
 // Work details --------------------------------------------------------------------------------------
 
 export interface UniformSizes {
@@ -693,4 +728,39 @@ export async function listMyWorkDetailEvents(
       createdAt: r.created_at,
     })),
   );
+}
+
+// Section 15 names --------------------------------------------------------------------------------------
+
+export interface NameParts {
+  readonly fullName: string | null;
+  readonly givenName: string | null;
+  readonly familyName: string | null;
+}
+
+/** The signed-in person's full name and optional given and family names. */
+export async function getMyNameParts(db: XosClient, personId: string): Promise<Result<NameParts>> {
+  const { data, error } = await db
+    .from("people")
+    .select("full_name, given_name, family_name")
+    .eq("id", personId)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (!data) return fail({ kind: "not-found" });
+  return ok({ fullName: data.full_name, givenName: data.given_name, familyName: data.family_name });
+}
+
+/** Sets or clears (null) the signed-in person's given and family names; the full name is untouched. */
+export async function saveMyNameParts(
+  db: XosClient,
+  personId: string,
+  parts: { readonly givenName: string | null; readonly familyName: string | null },
+): Promise<Result<null>> {
+  const { data, error } = await db
+    .from("people")
+    .update({ given_name: parts.givenName, family_name: parts.familyName })
+    .eq("id", personId)
+    .select("id");
+  if (error) return fail(toDataError(error));
+  return data.length === 0 ? fail({ kind: "not-found" }) : ok(null);
 }
