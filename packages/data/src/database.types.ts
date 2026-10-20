@@ -40528,6 +40528,68 @@ export type Database = {
           },
         ];
       };
+      shortcut_bindings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          keys: string | null;
+          person_id: string;
+          shell: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          keys?: string | null;
+          person_id: string;
+          shell: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          keys?: string | null;
+          person_id?: string;
+          shell?: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shortcut_bindings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shortcut_bindings_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shortcut_bindings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shortlists: {
         Row: {
           application_id: string;
@@ -40614,6 +40676,78 @@ export type Database = {
           },
           {
             foreignKeyName: "shortlists_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sidebar_item_preferences: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          hidden: boolean;
+          id: string;
+          node_id: string;
+          org_id: string;
+          person_id: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hidden?: boolean;
+          id?: string;
+          node_id: string;
+          org_id: string;
+          person_id: string;
+          sort_order: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hidden?: boolean;
+          id?: string;
+          node_id?: string;
+          org_id?: string;
+          person_id?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sidebar_item_preferences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -54198,6 +54332,11 @@ export type Database = {
       };
       request_import_commit: { Args: { p_import_job_id: string }; Returns: string };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
+      reset_shortcut_bindings: {
+        Args: { p_shell: Database["app"]["Enums"]["shortcut_shell"]; p_shortcut_id?: string };
+        Returns: number;
+      };
+      reset_sidebar_layout: { Args: { p_org_id: string }; Returns: number };
       resolve_asset_code: {
         Args: { p_code: string; p_org_id: string };
         Returns: {
@@ -54329,6 +54468,7 @@ export type Database = {
         };
         Returns: string;
       };
+      save_sidebar_layout: { Args: { p_items: Json; p_org_id: string }; Returns: number };
       scim_provider_for_token: { Args: { p_token: string }; Returns: string };
       scim_provision: {
         Args: {
@@ -54417,6 +54557,14 @@ export type Database = {
           p_value_boolean?: boolean;
           p_value_integer?: number;
           p_value_text?: string;
+        };
+        Returns: string;
+      };
+      set_shortcut_binding: {
+        Args: {
+          p_keys: string;
+          p_shell: Database["app"]["Enums"]["shortcut_shell"];
+          p_shortcut_id: string;
         };
         Returns: string;
       };
@@ -55435,6 +55583,7 @@ export type Database = {
       settlement_state: "Proposed" | "Submitted" | "Accepted" | "Disputed" | "Paid" | "Canceled";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
+      shortcut_shell: "Atlas" | "Gateway";
       sms_consent_action: "Opt In" | "Opt Out" | "Help";
       sort_direction: "Ascending" | "Descending";
       spend_document_type:
@@ -61832,6 +61981,7 @@ export const Constants = {
       settlement_state: ["Proposed", "Submitted", "Accepted", "Disputed", "Paid", "Canceled"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
+      shortcut_shell: ["Atlas", "Gateway"],
       sms_consent_action: ["Opt In", "Opt Out", "Help"],
       sort_direction: ["Ascending", "Descending"],
       spend_document_type: [
