@@ -21,15 +21,7 @@ import type {
 import { announce, useReducedMotion } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import { useEffect, type ReactElement } from "react";
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  View,
-} from "react-native";
+import { Modal, Pressable, RefreshControl, ScrollView, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
 
@@ -58,22 +50,13 @@ export function Screen({
       {children}
     </View>
   );
-  // The keyboard never covers the field being typed into (A66: the scan tab's "Type a code" sat under
-  // it, so a typed badge number could not be seen and Look Up could not be reached). A scrolling screen
-  // insets itself and scrolls the field into view, and a tap on a button while the keyboard is up
-  // presses it instead of only closing the keyboard; a screen that fills the display (the scan sheet)
-  // shrinks above the keyboard.
   return (
-    <KeyboardAvoidingView
+    <View
       testID={testID}
-      behavior={!scroll && Platform.OS === "ios" ? "padding" : undefined}
-      enabled={!scroll}
       style={{ flex: 1, backgroundColor: theme.color.bgCanvas, paddingTop: insets.top }}
     >
       {scroll ? (
         <ScrollView
-          automaticallyAdjustKeyboardInsets
-          keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: theme.space["32"] }}
           refreshControl={
             onRefresh ? (
@@ -102,7 +85,7 @@ export function Screen({
           {footer}
         </View>
       ) : null}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
