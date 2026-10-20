@@ -17,6 +17,9 @@ export const SESSION_ENDED_PATH = "/auth/session-ended";
 /** The device's last request, for the org idle timeout: an httpOnly epoch-milliseconds cookie. */
 export const LAST_SEEN_COOKIE = "xos-last-seen";
 
+/** The page a request is for, as the proxy forwards it, so a page context can return there after verifying. */
+export const PATH_HEADER = "x-xos-path";
+
 /** Paths a session that owes a second factor may still open: signing in or out, and the auth returns. */
 const OPEN_PATHS = new Set([
   MFA_PATH,

@@ -103,21 +103,25 @@ export function tokenAal(accessToken: string | null | undefined): AssuranceLevel
   }
 }
 
-export interface StepUpStatus {
+export interface SecondFactorStatus {
+  /** Step-up as the database asks for it (Restricted exports, break-glass): the session passed a second factor. */
   readonly steppedUp: boolean;
   readonly secondFactorAt: string | null;
-  readonly expiresAt: string | null;
+  /** The second factor passed in the last 15 minutes: enough to change one's own sign-in methods. */
+  readonly recent: boolean;
+  readonly recentUntil: string | null;
 }
 
-/** Whether the session counts as stepped up for sensitive actions now, and until when (migration 1330). */
-export async function getStepUpStatus(db: XosClient): Promise<Result<StepUpStatus>> {
-  const { data, error } = await db.rpc("my_step_up_status");
+/** The session's second-factor standing (migration 1330). */
+export async function getSecondFactorStatus(db: XosClient): Promise<Result<SecondFactorStatus>> {
+  const { data, error } = await db.rpc("my_second_factor_status");
   if (error) return fail(toDataError(error));
   const row = data[0];
   return ok({
-    steppedUp: row?.stepped_up === true,
+    steppedUp: row?.session_aal === "aal2",
     secondFactorAt: row?.second_factor_at ?? null,
-    expiresAt: row?.expires_at ?? null,
+    recent: row?.recent === true,
+    recentUntil: row?.recent_until ?? null,
   });
 }
 

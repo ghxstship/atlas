@@ -5,7 +5,7 @@ import {
   finishPasskeyRegistration,
   finishPasskeySignIn,
   getAssurance,
-  getStepUpStatus,
+  getSecondFactorStatus,
   listPasskeys,
   listSecondFactors,
   needsSecondFactor,
@@ -77,7 +77,10 @@ describe.skipIf(!url || !anonKey)("authentication assurance on the local stack",
     });
     unwrap(await verifyTotp(db, enrollment.factorId, totp(enrollment.secret)));
     expect(unwrap(await getAssurance(db))).toEqual({ current: "aal2", next: "aal2" });
-    expect(unwrap(await getStepUpStatus(db)).steppedUp).toBe(true);
+    expect(unwrap(await getSecondFactorStatus(db))).toMatchObject({
+      steppedUp: true,
+      recent: true,
+    });
     unwrap(await renameSecondFactor(db, enrollment.factorId, "Work phone"));
     expect(unwrap(await listSecondFactors(db))).toMatchObject([
       { id: enrollment.factorId, type: "totp", label: "Work phone", verified: true },
@@ -88,7 +91,10 @@ describe.skipIf(!url || !anonKey)("authentication assurance on the local stack",
     const signedIn = await again.auth.signInWithPassword({ email, password });
     expect(signedIn.error).toBeNull();
     expect(needsSecondFactor(unwrap(await getAssurance(again)))).toBe(true);
-    expect(unwrap(await getStepUpStatus(again)).steppedUp).toBe(false);
+    expect(unwrap(await getSecondFactorStatus(again))).toMatchObject({
+      steppedUp: false,
+      recent: false,
+    });
     expect(await removeSecondFactor(again, enrollment.factorId)).toMatchObject({
       ok: false,
       error: { rule: "step_up_required" },
@@ -130,7 +136,10 @@ describe.skipIf(!url || !anonKey)("authentication assurance on the local stack",
         rp,
       }),
     );
-    expect(unwrap(await getStepUpStatus(db)).steppedUp).toBe(true);
+    expect(unwrap(await getSecondFactorStatus(db))).toMatchObject({
+      steppedUp: true,
+      recent: true,
+    });
   }, 30_000);
 
   it("registers a passkey, signs in with it and removes it", async () => {

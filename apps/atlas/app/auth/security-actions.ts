@@ -4,7 +4,7 @@ import type { DataError, XosClient } from "@xos/data";
 import {
   finishPasskeyRegistration,
   finishPasskeySignIn,
-  getStepUpStatus,
+  getSecondFactorStatus,
   listSecondFactors,
   removePasskey,
   removeSecondFactor,
@@ -95,9 +95,9 @@ async function stepUpGate(db: XosClient, always: boolean): Promise<string | null
     if (!factors.ok) return errorKey(factors.error);
     if (!factors.data.some((f) => f.verified)) return null;
   }
-  const status = await getStepUpStatus(db);
+  const status = await getSecondFactorStatus(db);
   if (!status.ok) return errorKey(status.error);
-  return status.data.steppedUp ? null : "step_up_required";
+  return status.data.recent ? null : "step_up_required";
 }
 
 const id = z.uuid();
@@ -128,6 +128,14 @@ export interface StepUpOptions {
   readonly factors: readonly { id: string; type: SecondFactorType; label: string }[];
   /** Whether security keys work here (the relying party is configured). */
   readonly securityKeys: boolean;
+}
+
+/** Whether the session is stepped up now, so a link can ask for step-up before it navigates. */
+export async function stepUpStatusAction(): Promise<ActionResult<{ steppedUp: boolean }>> {
+  const db = await session();
+  const status = await getSecondFactorStatus(db);
+  if (!status.ok) return { ok: false, error: errorKey(status.error) };
+  return { ok: true, data: { steppedUp: status.data.steppedUp } };
 }
 
 /** The caller's verified second factors, for the sign-in challenge and the step-up dialog. */

@@ -27,7 +27,7 @@
   },
   "stepUp": {
     "title": "Confirma que eres tú",
-    "sentence": "Esta acción necesita un segundo factor usado en los últimos 15 minutos.",
+    "sentence": "Confirma con tu segundo factor para continuar.",
     "enrollSentence": "Esta acción necesita un segundo factor. Configura una app de autenticación ahora y úsala para acciones como esta.",
     "cancel": "Cancelar",
     "verified": "Verificado. Continuando."
@@ -51,7 +51,7 @@
   },
   "factors": {
     "title": "Verificación en dos pasos",
-    "description": "Un segundo factor protege tu cuenta si tu contraseña o tu correo quedan expuestos. Lo usas al iniciar sesión y antes de acciones delicadas, como exportaciones Restricted o el acceso de emergencia.",
+    "description": "Un segundo factor protege tu cuenta si tu contraseña o tu correo quedan expuestos. Lo usas al iniciar sesión, y las exportaciones Restricted y el acceso de emergencia lo necesitan. Quitar un factor pide un código de los últimos 15 minutos.",
     "none": "Aún no tienes un segundo factor.",
     "added": "Agregado el {date}",
     "pending": "Configuración sin terminar",

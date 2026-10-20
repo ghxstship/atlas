@@ -14,6 +14,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-out": "Route handler: ends the session (POST only).",
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
+  "/auth/mfa": "Auth template: the second factor after the first, when the person holds one (A77).",
   "/explore/how-ranking-works": "Public page: the marketplace ranking factors (Section 4.4.3).",
   "/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",

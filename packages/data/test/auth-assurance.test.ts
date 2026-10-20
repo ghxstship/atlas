@@ -5,7 +5,7 @@ import {
   finishPasskeyRegistration,
   getAssurance,
   getOrgAuthStatus,
-  getStepUpStatus,
+  getSecondFactorStatus,
   listSecondFactors,
   needsSecondFactor,
   orgAuthDecision,
@@ -82,27 +82,29 @@ describe("assurance", () => {
     expect(tokenAal(null)).toBe("aal1");
   });
 
-  it("reads the step-up window", async () => {
+  it("reads the step-up and whether the second factor is recent", async () => {
     const { db } = client({
       rpc: {
-        my_step_up_status: {
+        my_second_factor_status: {
           data: [
             {
-              stepped_up: true,
+              session_aal: "aal2",
               second_factor_at: "2026-10-20T10:00:00Z",
-              expires_at: "2026-10-20T10:15:00Z",
+              recent: false,
+              recent_until: "2026-10-20T10:15:00Z",
             },
           ],
           error: null,
         },
       },
     });
-    expect(await getStepUpStatus(db)).toEqual({
+    expect(await getSecondFactorStatus(db)).toEqual({
       ok: true,
       data: {
         steppedUp: true,
         secondFactorAt: "2026-10-20T10:00:00Z",
-        expiresAt: "2026-10-20T10:15:00Z",
+        recent: false,
+        recentUntil: "2026-10-20T10:15:00Z",
       },
     });
   });

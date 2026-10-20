@@ -27,8 +27,7 @@ begin
 end $$;
 
 create function pg_temp.step_up() returns void language sql as $$
-  select set_config('request.jwt.claims', (current_setting('request.jwt.claims')::jsonb || jsonb_build_object('aal', 'aal2',
-    'amr', jsonb_build_array(jsonb_build_object('method', 'totp', 'timestamp', extract(epoch from now())::bigint))))::text, true);
+  select set_config('request.jwt.claims', (current_setting('request.jwt.claims')::jsonb || '{"aal": "aal2"}')::text, true);
 $$;
 
 -- World: ivy and art are individual independent contractors of org_a; acct_v is a vendor account (VENDOR_SUPPLIED).

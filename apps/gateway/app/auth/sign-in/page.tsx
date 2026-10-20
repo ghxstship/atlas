@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { MagicLinkForm, PasswordSignInForm } from "@/components/auth/forms";
 import { Divider, ProviderButtons } from "@/components/auth/providers";
+import { PasskeySignInButton } from "@/components/auth/security/passkey-sign-in";
 import { InlineAlert } from "@/components/ui";
 import { authErrorKey } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
@@ -29,6 +30,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
         <InlineAlert tone="danger">{t(`errors.${error}`)}</InlineAlert>
       ) : null}
       <ProviderButtons next={next} />
+      <PasskeySignInButton next={next} />
       <MagicLinkForm next={next} intent="sign-in" />
       <Divider />
       <PasswordSignInForm next={next} />

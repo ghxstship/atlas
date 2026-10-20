@@ -27,7 +27,7 @@
   },
   "stepUp": {
     "title": "Confirm it's you",
-    "sentence": "This action needs a second factor you used in the last 15 minutes.",
+    "sentence": "Confirm with your second factor to continue.",
     "enrollSentence": "This action needs a second factor. Set up an authenticator app now and use it for actions like this one.",
     "cancel": "Cancel",
     "verified": "Verified. Continuing."
@@ -51,7 +51,7 @@
   },
   "factors": {
     "title": "Two-step verification",
-    "description": "A second factor keeps your account safe if your password or email is exposed. You use it when you sign in, and again before sensitive actions such as Restricted exports or emergency access.",
+    "description": "A second factor keeps your account safe if your password or email is exposed. You use it when you sign in, and Restricted exports and emergency access need it. Removing a factor asks for a code from the last 15 minutes.",
     "none": "No second factor yet.",
     "added": "Added {date}",
     "pending": "Setup not finished",

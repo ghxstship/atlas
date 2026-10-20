@@ -9,6 +9,7 @@ import {
   opensWithoutSecondFactor,
   orgAuthRedirect,
   parseLastSeen,
+  PATH_HEADER,
   secondFactorRedirect,
 } from "@/lib/auth/assurance";
 import { env } from "@/lib/env";
@@ -71,6 +72,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     const headers = new Headers(request.headers);
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", csp);
+    headers.set(PATH_HEADER, `${request.nextUrl.pathname}${request.nextUrl.search}`);
     return headers;
   };
   const secure = <T extends NextResponse>(response: T): T => {

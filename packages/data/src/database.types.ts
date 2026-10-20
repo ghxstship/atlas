@@ -53557,12 +53557,13 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
-      my_step_up_status: {
+      my_second_factor_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
-          expires_at: string;
+          recent: boolean;
+          recent_until: string;
           second_factor_at: string;
-          stepped_up: boolean;
+          session_aal: string;
         }[];
       };
       my_subscribable_accounts: {

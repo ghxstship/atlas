@@ -6,8 +6,12 @@ import {
   type Person,
   type XosClient,
 } from "@xos/data";
+import type { OrgAuthDecision } from "@xos/data/auth-assurance";
+import type { Route } from "next";
 import { cookies, headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { cache } from "react";
+import { orgAuthRedirect, PATH_HEADER } from "@/lib/auth/assurance";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
 import { applyViewAs, type ViewAsPreview } from "@/lib/access/view-as";
@@ -68,11 +72,34 @@ export const getMyOrganizations = cache(async (): Promise<MyOrganization[]> => {
 /**
  * The viewer's context in an org by slug, or null when the org does not exist, the viewer is not
  * signed in, or holds no active membership there. Callers answer 404 for null (ADR 0003).
+ *
+ * When the org's security settings ask more of the session (A77: a second factor its MFA policy
+ * requires, or a sign-in its session lifetime or idle timeout ended), this redirects to verify or
+ * to sign in again, as the proxy does; that covers a page that re-renders after an action changed
+ * the policy, and a server action that names another org than its page.
  */
 export const getOrgContext = cache(async (slug: string): Promise<OrgContext | null> => {
   const viewer = await getViewer();
   if (!viewer?.person) return null;
-  const membership = await resolveMembership(viewer.db, viewer.person.id, slug, await headers());
+  const requestHeaders = await headers();
+  const owed: { decision: OrgAuthDecision | null } = { decision: null };
+  const membership = await resolveMembership(
+    viewer.db,
+    viewer.person.id,
+    slug,
+    requestHeaders,
+    undefined,
+    {
+      onRequired: (decision) => {
+        owed.decision = decision;
+      },
+    },
+  );
+  if (!membership && owed.decision !== null) {
+    const here = requestHeaders.get(PATH_HEADER) ?? `/${slug}/home`;
+    const to = orgAuthRedirect(owed.decision, slug, here, "");
+    if (to !== null) redirect(to as Route);
+  }
   if (!membership) return null;
   const previewed = await applyViewAs(
     viewer.db,

@@ -1,39 +1,30 @@
 -- 1330_auth_assurance.sql
--- A77 Authentication and step-up (RRR-122; findings A65-002, A65-001 and A59-019). Section 9: "MFA: TOTP and passkeys.
--- Orgs can enforce MFA per role. Session lifetime is configurable per org. Step-up authentication is required for
--- billing, data export, role changes and API key creation." Section 8.4: break-glass requires MFA.
+-- A77 Authentication and step-up (RRR-122; findings A65-002, A65-001, A59-019 and A69-007). Section 9: "MFA: TOTP and
+-- passkeys. Orgs can enforce MFA per role. Session lifetime is configurable per org. Step-up authentication is required
+-- for billing, data export, role changes and API key creation." Section 8.4: break-glass requires MFA.
 --
 -- Second factors and passkeys live in Supabase Auth (auth.mfa_factors and its passkey tables), never in our tables. These
--- functions read the session JWT Supabase Auth issues: `aal` (aal2 once a second factor passed in the session) and `amr`,
--- the methods the session used, each with the time it was last used. A passkey sign-in is a first factor (aal1, amr
--- `passkey`); TOTP (`totp`) and a security key or passkey enrolled as a second factor (`mfa/webauthn`) raise it to aal2.
+-- functions read the session JWT Supabase Auth issues: `aal` (aal2 once a second factor passed in the session, read by
+-- private.session_aal since 0530) and `amr`, the methods the session used, each with the time it was last used. A passkey
+-- sign-in is a first factor (aal1, amr `passkey`); TOTP (`totp`) and a security key or passkey enrolled as a second factor
+-- (`mfa/webauthn`) raise the session to aal2.
 --
---   * private.session_aal() becomes step-up assurance: aal2 only while the session's last second factor is under 15
---     minutes old (private.step_up_window). Its callers keep their refusal, step_up_required: Restricted exports (0530),
---     payroll exports (0461), SCIM tokens (0638), the 1099-NEC file (1124) and break-glass (1203). Atlas and Gateway answer
---     the refusal with the step-up dialog, which asks for a code or the security key and resumes the action.
+--   * Step-up stays private.session_aal() = 'aal2' (Restricted exports 0530, payroll exports 0461, SCIM tokens 0638, the
+--     1099-NEC file 1124, break-glass 1203 and its whole hour 1298). Atlas and Gateway now produce aal2 sessions: the
+--     challenge after sign-in, and the step-up dialog that answers step_up_required and resumes the action.
+--   * Changing one's own sign-in methods (removing a second factor, adding or removing a passkey) asks for a second
+--     factor passed in the last 15 minutes (private.reverify_window), read through app.my_second_factor_status.
 --   * private.mfa_required(person, org) reads security.mfa_policy: optional, admins (roles in band 1 or 2, the Owner and
 --     Admin system roles and custom roles at their level) or everyone.
 --   * app.my_org_auth_status(org) tells the Atlas proxy, the API runtime and Compass what the org asks of the caller's
---     session: a second factor (security.mfa_policy, checked against the caller's roles on every request, so a role
---     change applies at once) and a sign-in no older than security.session_hours. They send the person to verify or to
---     sign in again. API-key sessions are exempt: a key is a machine credential bounded by its scopes and expiry.
---   * app.my_step_up_status() tells the interface whether the session is stepped up and until when.
+--     session: a second factor (security.mfa_policy, against the caller's roles on every request, so a role change
+--     applies at once), a sign-in no older than security.session_hours, and security.idle_timeout_minutes. They send the
+--     person to verify, to set a factor up or to sign in again. API-key sessions are exempt: a key is a machine
+--     credential bounded by its scopes and expiry.
+--   * With all three enforced, the A69-007 guard that pinned them to their defaults (1299) is lifted.
 -- Row level security does not read these settings; the guards above enforce them (hosted-security-settings.md).
 
 -- Session claims -----------------------------------------------------------------------------------------------------------
-
-create or replace function private.jwt_aal()
-returns text
-language sql
-stable
-set search_path = ''
-as $$
-  select coalesce(nullif(current_setting('request.jwt.claims', true), '')::jsonb ->> 'aal', 'aal1');
-$$;
-
-comment on function private.jwt_aal() is 'The aal claim of the session JWT as Supabase Auth issued it: aal2 once a second factor passed in the session, otherwise aal1.';
-revoke all on function private.jwt_aal() from public, anon, authenticated;
 
 create or replace function private.session_amr_at(p_methods text[])
 returns timestamptz
@@ -80,7 +71,7 @@ $$;
 comment on function private.session_signed_in_at() is 'When the session signed in: the earliest method in its amr claim. Token refreshes keep it; a new sign-in starts a new session. NULL when the JWT names no method.';
 revoke all on function private.session_signed_in_at() from public, anon, authenticated;
 
-create or replace function private.step_up_window()
+create or replace function private.reverify_window()
 returns interval
 language sql
 immutable
@@ -89,23 +80,25 @@ as $$
   select interval '15 minutes';
 $$;
 
-comment on function private.step_up_window() is 'How long a second factor counts as step-up after it passes: 15 minutes, the re-authentication window for sensitive actions (NIST SP 800-63B, ASVS V6).';
-revoke all on function private.step_up_window() from public, anon, authenticated;
+comment on function private.reverify_window() is 'How long a second factor counts as recent for changing one''s own sign-in methods: 15 minutes (re-authentication before changing authenticators, NIST SP 800-63B and ASVS V6).';
+revoke all on function private.reverify_window() from public, anon, authenticated;
 
-create or replace function private.session_aal()
-returns text
+create or replace function app.my_second_factor_status()
+returns table (session_aal text, second_factor_at timestamptz, recent boolean, recent_until timestamptz)
 language sql
 stable
+security definer
 set search_path = ''
 as $$
-  select case
-    when private.jwt_aal() = 'aal2' and private.second_factor_at() > now() - private.step_up_window() then 'aal2'
-    else 'aal1'
-  end;
+  select private.session_aal(),
+         private.second_factor_at(),
+         coalesce(private.session_aal() = 'aal2' and private.second_factor_at() > now() - private.reverify_window(), false),
+         case when private.session_aal() = 'aal2' then private.second_factor_at() + private.reverify_window() end;
 $$;
 
-comment on function private.session_aal() is 'Step-up assurance of the session (Section 9): aal2 while the session JWT is aal2 and its last second factor passed within private.step_up_window(), otherwise aal1. Callers refuse with step_up_required, which Atlas and Gateway answer with the step-up dialog. private.jwt_aal() is the claim as issued.';
-revoke all on function private.session_aal() from public, anon, authenticated;
+comment on function app.my_second_factor_status() is 'The caller''s session assurance (aal2 is the step-up the database asks for), when it last passed a second factor, and whether that was recent enough (private.reverify_window) to change the person''s own sign-in methods, and until when.';
+revoke all on function app.my_second_factor_status() from public, anon;
+grant execute on function app.my_second_factor_status() to authenticated;
 
 -- MFA policy ----------------------------------------------------------------------------------------------------------------
 
@@ -204,7 +197,7 @@ begin
   v_signed_in := private.session_signed_in_at();
   return query select
     private.mfa_required(v_person, p_org_id),
-    private.jwt_aal() = 'aal2',
+    private.session_aal() = 'aal2',
     v_signed_in,
     v_hours,
     v_signed_in + make_interval(hours => v_hours),
@@ -217,18 +210,10 @@ comment on function app.my_org_auth_status(uuid) is 'What an org asks of the cal
 revoke all on function app.my_org_auth_status(uuid) from public, anon;
 grant execute on function app.my_org_auth_status(uuid) to authenticated;
 
-create or replace function app.my_step_up_status()
-returns table (stepped_up boolean, second_factor_at timestamptz, expires_at timestamptz)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select private.session_aal() = 'aal2',
-         private.second_factor_at(),
-         case when private.jwt_aal() = 'aal2' then private.second_factor_at() + private.step_up_window() end;
-$$;
+-- A69-007: the settings are enforced now ----------------------------------------------------------------------------------
+-- 1299 kept security.mfa_policy, security.session_hours and security.idle_timeout_minutes at their defaults while nothing
+-- enforced them. Atlas (proxy and every org context), the API runtime and Compass now read them through
+-- app.my_org_auth_status, so any registered value may be saved again.
 
-comment on function app.my_step_up_status() is 'Whether the caller''s session counts as stepped up for sensitive actions (private.session_aal), when it last passed a second factor and when that step-up lapses.';
-revoke all on function app.my_step_up_status() from public, anon;
-grant execute on function app.my_step_up_status() to authenticated;
+drop trigger if exists t43_guard_unenforced_security_settings on app.setting_values;
+drop function if exists private.guard_unenforced_security_settings();
