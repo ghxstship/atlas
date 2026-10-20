@@ -16,6 +16,7 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { saveInvoiceLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
@@ -298,7 +299,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
           org={ctx.org.slug}
           invoiceId={peek.id}
           currency={peek.currency}
-          today={new Date().toISOString().slice(0, 10)}
+          today={await orgToday(ctx)}
         />
       </FormSheet>
     );

@@ -7,6 +7,7 @@ import {
   shiftMinutes,
   type Shift,
 } from "@xos/data/crew";
+import { startOfDayIn, todayIn } from "@xos/data/calendar";
 import Link from "next/link";
 import type { Route } from "next";
 import { getFormatter } from "next-intl/server";
@@ -32,7 +33,8 @@ import {
   type SearchParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/lib/crew/time";
+import { addDays, dayIn, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/lib/crew/time";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { CrewFrame, resolveView } from "./frame";
@@ -63,7 +65,12 @@ export async function ShiftsCollection(props: {
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, params) ?? "/";
-  const today = new Date().toISOString().slice(0, 10);
+  const [projects, roles] = await Promise.all([getProjects(crew.ctx), getRoleTitles(crew.ctx)]);
+  const projectFilter = crew.project ?? projects.find((p) => p.key === search["project"]) ?? null;
+  // The week and its bounds are on the project's calendar, or the org's across projects (A71): in UTC,
+  // Sunday evening in New York already showed next week and a Sunday night shift left its week.
+  const zone = projectFilter?.timeZone ?? (await getOrgTimeZone(crew.ctx));
+  const today = todayIn(zone);
   const week = mondayOf(isIsoDate(search["week"]) ? search["week"] : today);
   const monthStart = `${week.slice(0, 7)}-01`;
   const from = view === "calendar" ? monthStart : week;
@@ -72,15 +79,13 @@ export async function ShiftsCollection(props: {
       ? addDays(`${addDays(monthStart, 32).slice(0, 7)}-01`, 0)
       : addDays(week, 7);
 
-  const [projects, roles] = await Promise.all([getProjects(crew.ctx), getRoleTitles(crew.ctx)]);
-  const projectFilter = crew.project ?? projects.find((p) => p.key === search["project"]) ?? null;
   const stateFilter = ["Draft", "Published", "Accepted", "Canceled"].find(
     (s) => s === search["state"],
   );
   const result = await listShifts(db, {
     orgId: crew.orgId,
-    from: `${from}T00:00:00Z`,
-    to: `${to}T00:00:00Z`,
+    from: startOfDayIn(from, zone),
+    to: startOfDayIn(to, zone),
     ...(projectFilter ? { projectId: projectFilter.id } : {}),
     ...(stateFilter ? { states: [stateFilter as Shift["state"]] } : {}),
   });
@@ -531,7 +536,7 @@ export async function ShiftsCollection(props: {
         today={today}
         events={shifts.map((s) => ({
           id: s.id,
-          date: s.startsAt.slice(0, 10),
+          date: dayIn(s.startsAt, s.timeZone),
           label: `${format.dateTime(new Date(s.startsAt), { timeZone: s.timeZone, timeStyle: "short" })} ${personName(s)}`,
           state: stateIcon("shift", s.state),
         }))}

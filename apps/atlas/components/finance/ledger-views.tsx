@@ -14,6 +14,7 @@ import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
 import { JournalForm } from "./forms-journal-form";
@@ -215,7 +216,7 @@ export async function JournalView({ page }: { page: FinancePage }) {
               }))}
               currencies={[...c.exponents.keys()].sort()}
               defaultCurrency="USD"
-              today={new Date().toISOString().slice(0, 10)}
+              today={await orgToday(ctx)}
             />
           </FormSheet>
         ) : null
@@ -224,15 +225,21 @@ export async function JournalView({ page }: { page: FinancePage }) {
   );
 }
 
-/** The day after a period ends and the last day of that month, for the next period's defaults. */
-function nextPeriod(periods: readonly AccountingPeriod[]): { startsOn: string; endsOn: string } {
+/**
+ * The day after a period ends and the last day of that month, for the next period's defaults; with no
+ * period yet, this month on the org's calendar (`today`, A71).
+ */
+function nextPeriod(
+  periods: readonly AccountingPeriod[],
+  today: string,
+): { startsOn: string; endsOn: string } {
   const latest = periods
     .map((p) => p.endsOn)
     .sort()
     .at(-1);
   const start = latest
     ? new Date(`${latest}T00:00:00Z`)
-    : new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), 0));
+    : new Date(Date.parse(`${today.slice(0, 7)}-01T00:00:00Z`) - 86_400_000);
   start.setUTCDate(start.getUTCDate() + 1);
   const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0));
   return { startsOn: start.toISOString().slice(0, 10), endsOn: end.toISOString().slice(0, 10) };
@@ -352,7 +359,7 @@ export async function PeriodsView({ page }: { page: FinancePage }) {
     };
   }
 
-  const defaults = nextPeriod(periods.data);
+  const defaults = nextPeriod(periods.data, await orgToday(ctx));
   return (
     <FinanceCollection
       {...base}
