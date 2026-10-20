@@ -105,6 +105,20 @@ export async function listMyEngagements(db: XosClient): Promise<Result<Engagemen
   return ok(data.map(toEngagement));
 }
 
+/**
+ * The distinct role types of the engagements open to the caller, for navigation that depends on
+ * whether the person is ever paid (Gateway's paid-work condition, finding A59-033).
+ */
+export async function listMyEngagementRoleTypes(
+  db: XosClient,
+): Promise<Result<Engagement["roleType"][]>> {
+  const { data, error } = await external(db).from("engagements").select("role_type");
+  if (error) return fail(toDataError(error));
+  const types = new Set<Engagement["roleType"]>();
+  for (const row of data) if (row.role_type) types.add(row.role_type);
+  return ok([...types]);
+}
+
 /** One engagement, or not-found when it is not open to the caller. */
 export async function getEngagement(db: XosClient, id: string): Promise<Result<Engagement>> {
   const { data, error } = await external(db)

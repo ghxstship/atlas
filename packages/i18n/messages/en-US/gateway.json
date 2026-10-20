@@ -80,7 +80,14 @@
     "scheduleAction": "See schedule",
     "scopeAction": "See scope",
     "advanceAction": "Open the advance",
-    "operationalClosed": "This opens once the engagement is Active. Finish onboarding to get there.",
+    "overviewAction": "See overview",
+    "closed": {
+      "beforeActive": "This opens once the engagement is Active. Finish onboarding to get there.",
+      "beforeActiveOrg": "This opens once the engagement is Active. The organization makes it Active when the work starts.",
+      "complete": "This engagement is Complete, so this section has closed. Invoices and documents stay open for 18 months.",
+      "canceled": "This engagement was canceled, so this section has closed. Its documents stay open for 18 months.",
+      "notOpen": "This section is not open to you on this engagement. Message the organization if you expected it."
+    },
     "due": "Due {date}",
     "overview": {
       "next": "Your next steps",
@@ -95,6 +102,15 @@
       "rate": "Your rate",
       "rateHidden": "Shown while money is open on this engagement",
       "payBasis": "Pay basis",
+      "engagement": "Engagement",
+      "package": "Package",
+      "contractValue": "Contract value",
+      "billingBasis": "Billing basis",
+      "sponsorshipFee": "Sponsorship fee",
+      "approvalsWaiting": "Approvals waiting",
+      "approvalsCount": "{n, plural, =0 {None} other {#}}",
+      "entitlements": "Entitlements",
+      "entitlementsCount": "{done} of {total} delivered",
       "rated": "Thanks. Both ratings appear once the organization rates too, or after 14 days."
     },
     "documents": {
@@ -122,7 +138,6 @@
       "new": "Start a conversation"
     },
     "invoices": {
-      "closed": "Invoices open once money is open on this engagement, at Active.",
       "empty": "No invoices yet. Submit one below when your work is done.",
       "submitTitle": "Submit an invoice",
       "selfBilling": "Self-billing",
@@ -998,6 +1013,7 @@
   "money": {
     "overview": {
       "empty": "Nothing earned or pending yet. Payments for your engagements show up here.",
+      "emptyUnpaid": "No invoices yet. Invoices the organization sends you for your engagements show up here.",
       "emptyAction": "See engagements",
       "earned": "Earned",
       "pending": "Pending",
@@ -1458,6 +1474,8 @@
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names."
     },
     "or": "or",
+    "usePassword": "Use a password",
+    "useLink": "Use a link",
     "signIn": {
       "title": "Sign in to Gateway",
       "lead": "Find work, get onboarded and get paid with one account for every organization.",
@@ -1470,6 +1488,7 @@
       "title": "Create your Gateway account",
       "lead": "One account works in Gateway, Atlas and Compass. Your profile stays yours.",
       "submit": "Create account",
+      "terms": "I agree to the <terms>Worker Terms</terms> and have read the <privacy>Privacy Policy</privacy>.",
       "haveAccount": "Already have an account?",
       "toSignIn": "Sign in"
     },
@@ -1512,7 +1531,8 @@
       "fullName": "Enter your full name.",
       "email": "Enter an email address like name@company.com.",
       "password": "Enter a password of at least 12 characters with letters and numbers.",
-      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway."
+      "passwordContext": "Choose a password that does not contain your name, your email or a product name such as Gateway.",
+      "terms": "Accept the Worker Terms to create your account: tick the box above the button."
     }
   },
   "work": {
@@ -1535,7 +1555,7 @@
       "empty": "No engagements yet. When an organization engages you, it shows up here.",
       "emptyAction": "Explore opportunities",
       "current": "Current",
-      "past": "Past",
+      "closed": "Complete or canceled",
       "role": "Role",
       "org": "Organization",
       "project": "Project",
@@ -1582,5 +1602,9 @@
         }
       }
     }
+  },
+  "legal": {
+    "inReview": "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
+    "back": "Go to Gateway"
   }
 }

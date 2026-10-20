@@ -39,6 +39,7 @@ export function FormShell({
   children,
   action,
   label,
+  row = false,
 }: {
   state: FormResult;
   pending: boolean;
@@ -47,6 +48,9 @@ export function FormShell({
   children: ReactNode;
   action: (form: FormData) => void;
   label: string;
+  /** One of several forms in a list (an answer per section, a decision per row): its submit is
+   *  secondary, so the screen keeps one primary action (Section 11.10; finding A59-029). */
+  row?: boolean;
 }) {
   const t = useCopy();
   const router = useRouter();
@@ -72,7 +76,13 @@ export function FormShell({
       <OutcomeAlert outcome={state.outcome} />
       {children}
       <div>
-        <Button type="submit" variant="primary" size="sm" disabled={pending} aria-busy={pending}>
+        <Button
+          type="submit"
+          variant={row ? "secondary" : "primary"}
+          size="sm"
+          disabled={pending}
+          aria-busy={pending}
+        >
           {submitLabel}
         </Button>
       </div>
@@ -89,6 +99,7 @@ export function AdvanceAnswerForm(props: {
   const [state, action, pending] = useActionState<FormResult, FormData>(answerAdvanceAction, {});
   return (
     <FormShell
+      row
       state={state}
       pending={pending}
       action={action}
@@ -116,6 +127,7 @@ export function ApprovalForm(props: { requestId: string; subject: string }) {
   const [decision, setDecision] = useState<"Approved" | "Rejected">("Approved");
   return (
     <FormShell
+      row
       state={state}
       pending={pending}
       action={action}
@@ -166,6 +178,7 @@ export function DeliverableForm(props: {
     return <p className="m-0 text-text-13 text-text-secondary">{t("deliverable.noDocuments")}</p>;
   return (
     <FormShell
+      row
       state={state}
       pending={pending}
       action={action}
@@ -317,6 +330,7 @@ export function OnboardingUploadForm(props: {
   const [state, action, pending] = useActionState<FormResult, FormData>(uploadOnboardingAction, {});
   return (
     <FormShell
+      row
       state={state}
       pending={pending}
       action={action}

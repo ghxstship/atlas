@@ -31,6 +31,7 @@ export function SponsorAssetForm(props: {
         : t("asset.resubmit");
   return (
     <FormShell
+      row
       state={result}
       pending={pending}
       action={action}
