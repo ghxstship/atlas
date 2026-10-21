@@ -298,7 +298,7 @@ describe("the Apple pass", () => {
     const pkcs1 = raw(privateKey, at(children(privateKey, readElement(privateKey, 0)), 2));
     const inner = pkcs1.subarray(readElement(pkcs1, 0).contentStart);
     expect(pkcs8Of(pem("RSA PRIVATE KEY", inner))).toEqual(privateKey);
-    // The settings read from the function's secrets, and refuse placeholders.
+    // The settings read from the function's secrets, and refuse values not yet filled in.
     expect(
       readAppleWalletEnv({
         APPLE_PASS_TYPE_ID: "pass.example.test",

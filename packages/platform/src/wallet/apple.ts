@@ -263,7 +263,7 @@ export interface AppleWalletEnv {
 /**
  * The Apple Wallet settings from the Edge Function's secrets (owner steps: APPLE_PASS_TYPE_ID,
  * APPLE_TEAM_ID, APPLE_PASS_CERT_PEM, APPLE_PASS_KEY_PEM, APPLE_WWDR_CERT_PEM), or null while any is
- * missing or still a placeholder.
+ * missing or is not yet the real value (a sample such as `<10 characters>`).
  */
 export function readAppleWalletEnv(
   env: Readonly<Record<string, string | undefined>>,
