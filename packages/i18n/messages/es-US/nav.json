@@ -525,5 +525,18 @@
     "routes": {
       "record": "Registro"
     }
+  },
+  "console": {
+    "group": "Consola de operaciones",
+    "tenants": "Organizaciones",
+    "tenant": "Organización",
+    "flags": "Indicadores de funciones",
+    "support": "Sesiones de soporte",
+    "supportSession": "Sesión de soporte",
+    "moderation": "Moderación",
+    "listing": "Anuncio denunciado",
+    "banners": "Avisos del sistema",
+    "team": "Equipo de la plataforma",
+    "activity": "Actividad"
   }
 }

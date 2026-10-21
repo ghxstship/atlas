@@ -166,6 +166,24 @@
         "subject": "Acceso de emergencia en {orgName}",
         "body": "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}"
       }
+    },
+    "listing": {
+      "moderated": {
+        "subject": "{action, select, Removed {Retiramos tu anuncio {title}} Restricted {Restringimos tu anuncio {title}} Restored {Restablecimos tu anuncio {title}} other {Revisamos tu anuncio {title}}}",
+        "body": "{action, select, Removed {{statement} Puedes apelar esta decisión en un plazo de seis meses desde Oportunidades, Configuración del mercado en Atlas.} Restricted {{statement} Puedes apelar esta decisión en un plazo de seis meses desde Oportunidades, Configuración del mercado en Atlas.} other {{statement}}}"
+      }
+    },
+    "listing_report": {
+      "decided": {
+        "subject": "Revisamos el anuncio {title} que denunciaste",
+        "body": "{action, select, Removed {Retiramos el anuncio.} Restricted {Restringimos el anuncio.} Restored {Restablecimos el anuncio.} other {No tomamos ninguna medida sobre el anuncio.}} {statement} Puedes apelar esta decisión en un plazo de seis meses."
+      }
+    },
+    "moderation_appeal": {
+      "decided": {
+        "subject": "{outcome, select, Reversed {Revertimos nuestra decisión sobre {title}} other {Mantuvimos nuestra decisión sobre {title}}}",
+        "body": "{outcome, select, Reversed {Otra persona revisó tu apelación, estuvo de acuerdo y revirtió la decisión.} other {Otra persona revisó tu apelación y mantuvo la decisión.}} {statement}"
+      }
     }
   },
   "notification": {

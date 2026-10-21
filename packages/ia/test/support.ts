@@ -5,7 +5,7 @@ import type { Sitemap } from "../src/schema.ts";
 
 export const messages = getMessages("en-US");
 
-export function loadApp(app: "atlas" | "gateway" | "compass"): Sitemap {
+export function loadApp(app: "atlas" | "gateway" | "compass" | "console"): Sitemap {
   return loadSitemapFile(new URL(`../../../apps/${app}/ia/sitemap.yaml`, import.meta.url));
 }
 
