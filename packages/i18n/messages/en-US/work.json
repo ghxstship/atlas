@@ -417,7 +417,7 @@
   "recurrence": {
     "title": "Repeats",
     "none": "This record does not repeat.",
-    "rule": "Repeats by the rule {rule}.",
+    "rule": "Repeats: {rule}.",
     "frequency": "Repeat",
     "never": "Never",
     "daily": "Daily",
@@ -437,7 +437,14 @@
     "zone": "Occurrences are counted in {zone}.",
     "save": "Save rule",
     "clear": "Stop repeating",
-    "next": "Next: {dates}"
+    "next": "Next: {dates}",
+    "summary": {
+      "daily": "{interval, plural, one {Daily} other {Every # days}}",
+      "weekly": "{interval, plural, one {Weekly} other {Every # weeks}}",
+      "monthly": "{interval, plural, one {Monthly} other {Every # months}}",
+      "on": "{summary} on {days}",
+      "custom": "Custom rule"
+    }
   },
   "history": {
     "title": "State history",

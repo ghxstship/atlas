@@ -24,6 +24,8 @@ export {
   createAddonCheckoutSession,
   createCheckoutSession,
   createPortalSession,
+  stripeTrialEnd,
+  MIN_STRIPE_TRIAL_MS,
   resolvePriceId,
   setExtraSeats,
   type AddonCheckoutRequest,

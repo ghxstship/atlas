@@ -3,18 +3,12 @@
 import "./chunks/data-result.js";
 import { StoreError, asDbClient, unwrap } from "./chunks/integrations-framework-db.js";
 import {
-  IntegrationError,
   ItemTally,
-  asIntegrationError,
-  callJson,
-  callRaw,
   chatConnectors,
   connectorRegistry,
   contentHash,
   credentialField,
   decimalToMinor,
-  errorForStatus,
-  httpFromFetch,
   integrationsTranslator,
   minorToDecimal,
   mintChatSession,
@@ -24,6 +18,14 @@ import {
   supabaseCommunicationSource,
   unfurlLinks,
 } from "./chunks/integrations-inbound-session.js";
+import {
+  IntegrationError,
+  asIntegrationError,
+  callJson,
+  callRaw,
+  errorForStatus,
+  httpFromFetch,
+} from "./chunks/integrations-framework-http.js";
 import { csvField } from "./chunks/data-csv.js";
 import { isPublicAddress } from "./chunks/platform-webhooks-dispatch.js";
 import { createHash, createHmac } from "node:crypto";

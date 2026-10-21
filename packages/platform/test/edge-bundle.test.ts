@@ -49,6 +49,10 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
     boot: ["intl-messageformat", "zod"],
     lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
   },
+  "org-lifecycle": {
+    boot: ["@supabase/supabase-js", "zod"],
+    lazy: ["exceljs", "pdfkit", "resend"],
+  },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
@@ -71,6 +75,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   "integration-worker": 290,
   "kiosk-punch": 64,
   "notification-dispatch": 160,
+  "org-lifecycle": 210,
   "report-run": 128,
   scim: 92,
   "sms-webhook": 128,
@@ -130,7 +135,9 @@ describe("Edge Function bundles", () => {
     for (const [path, text] of committedEdgeFiles()) {
       expect(text, path).not.toContain("i18n/src/catalogs.generated");
       for (const match of text.matchAll(/i18n\/messages\/[^/]+\/([A-Za-z]+)\.json/g)) {
-        expect(["email", "integrations", "reporting", "workflow"], path).toContain(match[1]);
+        expect(["documents", "email", "integrations", "reporting", "workflow"], path).toContain(
+          match[1],
+        );
       }
     }
   });

@@ -40,3 +40,28 @@ test("a key for no readable record names the problem and closes", async ({ page 
   await expect(missing).toBeHidden();
   await expect(page).toHaveURL(new RegExp(`/${ORG}/home$`));
 });
+
+test("the command menu finds a record by key and opens it in the side peek (A59-015)", async ({
+  page,
+}) => {
+  await signIn(page, "producer@example.com");
+  await page.goto(`/${ORG}/home`);
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
+  await settled(page);
+  await page.keyboard.press("ControlOrMeta+k");
+  const menu = page.getByRole("dialog").filter({ has: page.getByRole("combobox") });
+  await expect(menu).toBeVisible({ timeout: 15_000 });
+
+  // The common actions arrive from the server; one that opens a page shows that page's G shortcut.
+  const openInbox = menu.getByRole("option", { name: /Open Inbox/ });
+  await expect(openInbox).toBeVisible();
+  await expect(openInbox.locator("kbd")).toHaveText(["G", "I"]);
+
+  await page.keyboard.type("NWS-12");
+  const hit = menu.getByRole("option", { name: /Production Meeting/ });
+  await expect(hit).toBeVisible();
+  await expect(hit).toContainText("NWS-12");
+  await hit.click();
+  await expect(page.getByRole("dialog", { name: /Production Meeting/ })).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`/${ORG}/home\\?peek=NWS-12$`));
+});

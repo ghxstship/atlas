@@ -40,6 +40,7 @@ export default async function CustodyLedgerPage({
   const rows: CollectionRow[] = visible.map((e) => ({
     key: e.custodyId,
     peek: e.custodyId,
+    recordKey: e.assetTag,
     title: t("assets.custody.line", { tag: e.assetTag, holder: holder(e) }),
     meta: [when(e.since), e.projectKey, e.note].filter(Boolean).join(" · "),
     cells: {
