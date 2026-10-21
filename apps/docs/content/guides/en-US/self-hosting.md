@@ -101,6 +101,7 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `COMPASS_ANDROID_CERT_SHA256` | Optional | Optional | Compass signing certificate fingerprints, for Android App Links                          |
 | `XOS_TRUSTED_PROXY_HOPS`      | Optional | Optional | Trusted proxies in front of the one that appends the client address; `0` by default      |
 | `XOS_INBOUND_DOMAIN`          | Optional |          | The domain project inbox mail is received on, so Project Settings shows full addresses   |
+| `XOS_READ_REPLICA_URL`        | Optional |          | A read replica's Data API origin; the full org export reads there, then the primary      |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
@@ -125,6 +126,7 @@ For a self-hosted stack, mount `supabase/functions` into the Compose stack's fun
 | `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email and project inboxes                                        |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, only if you bill through Stripe                                                |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, the ClamAV daemon; the port defaults to 3310 (see Upload scanning below)          |
+| `XOS_READ_REPLICA_URL`                                    | `report-run`, which reads report definitions and rows from a read replica, then the primary      |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Optional error reporting and log level                                                           |
 
 ### Schedule the workers
