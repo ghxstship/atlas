@@ -9,6 +9,8 @@ import {
 } from "../i18n/negotiate";
 import { isPseudoLocale, pseudoCatalog, pseudoMessage, transformMessage } from "../i18n/pseudo";
 
+const BETA = ["fr-FR", "de-DE", "it-IT", "pt-BR", "ja-JP"];
+
 describe("locale negotiation", () => {
   it("orders Accept-Language by quality", () => {
     expect(parseAcceptLanguage("fr;q=0.2, es-MX;q=0.9, en")).toEqual(["en", "es-MX", "fr"]);
@@ -22,7 +24,7 @@ describe("locale negotiation", () => {
     );
     expect(negotiateLocale({ acceptLanguage: "es-MX,en;q=0.5", production: true })).toBe("es-US");
     expect(negotiateLocale({ acceptLanguage: "es", production: true })).toBe("es-US");
-    expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
+    expect(negotiateLocale({ cookie: "en-GB", acceptLanguage: "ja", production: true })).toBe(
       "en-US",
     );
   });
@@ -30,8 +32,28 @@ describe("locale negotiation", () => {
   it("accepts pseudo-locales in development only", () => {
     expect(negotiateLocale({ cookie: "en-XA", production: false })).toBe("en-XA");
     expect(negotiateLocale({ cookie: "en-XA", production: true })).toBe("en-US");
-    expect(selectableLocales(true)).toEqual(["en-US", "es-US"]);
-    expect(selectableLocales(false)).toEqual(["en-US", "es-US", "en-XA", "ar-XB"]);
+    expect(selectableLocales(true)).toEqual(["en-US", "es-US", ...BETA]);
+    expect(selectableLocales(false)).toEqual(["en-US", "es-US", ...BETA, "en-XA", "ar-XB"]);
+  });
+
+  it("offers the Beta locales when chosen, but never guesses one from the browser (ADR 0053)", () => {
+    expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
+      "fr-FR",
+    );
+    expect(negotiateLocale({ acceptLanguage: "ja-JP,de;q=0.8", production: true })).toBe("en-US");
+    expect(negotiateLocale({ acceptLanguage: "pt-BR,es;q=0.5", production: true })).toBe("es-US");
+    expect(formattingLocale("de-DE")).toBe("de-DE");
+    expect(localeDirection("ja-JP")).toBe("ltr");
+  });
+
+  it("labels every picker locale and marks the Beta ones in both catalogs", () => {
+    for (const locale of ["en-US", "es-US"] as const) {
+      const shell = getMessages(locale).shell.chrome;
+      for (const l of selectableLocales(true)) {
+        expect(shell.locales[l as keyof typeof shell.locales], `${locale} ${l}`).toBeTruthy();
+      }
+      expect(shell.betaLocale).toContain("{language}");
+    }
   });
 
   it("knows direction and formatting locale", () => {

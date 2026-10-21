@@ -1,6 +1,7 @@
 import { generateDocument } from "@xos/data/documents/generate";
 import { isDocumentKind, isPaper } from "@xos/data/documents/model";
-import { getMessages, isLocale } from "@xos/i18n";
+import { isLocale } from "@xos/i18n";
+import { loadMessages } from "@xos/i18n/load";
 import { getLocale } from "next-intl/server";
 import { atlasRecordPath } from "@/lib/documents/links";
 import { env } from "@/lib/env";
@@ -31,7 +32,7 @@ export async function GET(
     kind,
     id,
     locale,
-    messages: getMessages(locale).documents,
+    messages: (await loadMessages(locale)).documents,
     paper,
     recordUrl: (record) =>
       new URL(atlasRecordPath(ctx.org.slug, kind, { id, ...record }), site).toString(),

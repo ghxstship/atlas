@@ -427,6 +427,17 @@ pnpm --filter @xos/i18n translate:all             # glossary upload, translate, 
 
 Later runs: `pnpm --filter @xos/i18n translate` re-translates only strings whose en-US changed since the last run; the translation memory answers everything else, so an unchanged run calls nothing.
 
+### 5a. Beta locales: fr-FR, de-DE, it-IT, pt-BR and ja-JP (ADR 0053)
+
+The five Beta locales ship in the language picker marked Beta. They are targets of the same pipeline, so the first `translate` (inside `translate:all`) writes their catalogs; until then every key reads en-US.
+
+1. Price it first: `pnpm --filter @xos/i18n translate --dry-run` prints each locale's strings, characters and estimated cost. A full fill of one locale costs about the same as the first es-US review (USD 9.76 on 2026-10-20), so about USD 49 for all five.
+2. Run `pnpm --filter @xos/i18n translate` (or one locale: `--locale fr-FR`). Beta locales cover only the app catalogs (`surfaces: ["catalogs"]` in `translation/config.json`); help articles and guides stay in en-US for them.
+3. Commit `packages/i18n/messages/<locale>/`, `packages/i18n/translation/memory/<locale>.json`, the regenerated `packages/i18n/src/beta/<locale>.generated.ts` and `docs/i18n/translate-<locale>.md`, with a `Part of RRR-142` trailer.
+4. Optional: fill the Beta columns of `packages/i18n/translation/glossary.csv` (`fr`, `de`, `it`, `pt`, `ja`) with the terms a person chose, then run `translate:glossary`. Until then those columns hold only the product names.
+
+A Beta locale becomes general when a native reviewer signs it off in `packages/i18n/REVIEW.md` (the steps are there).
+
 ### 6. CI with Workload Identity Federation (optional)
 
 The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the same commands in GitHub Actions and uploads the result as a patch. It needs no key:

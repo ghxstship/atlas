@@ -205,11 +205,15 @@
     },
     "language": {
       "label": "Idioma",
-      "help": "El idioma de menús, correos y documentos."
+      "help": "El idioma de menús, correos y documentos. Los idiomas en beta son traducciones automáticas; lo que aún no está traducido se muestra en inglés."
     },
     "timeZone": {
       "label": "Zona horaria",
       "help": "Las horas se muestran e introducen en esta zona."
+    },
+    "timeZoneDisplay": {
+      "label": "Mostrar los horarios en",
+      "help": "Los horarios se muestran en la zona horaria del evento, con su abreviatura. Elige tu propia zona horaria, la de arriba, para verlos como marca tu reloj."
     },
     "dateFormat": {
       "label": "Formato de fecha",
@@ -217,7 +221,7 @@
     },
     "units": {
       "label": "Unidades",
-      "help": "Unidades de distancia, peso y superficie."
+      "help": "Unidades de longitud, distancia, peso, temperatura y superficie. Por defecto siguen la jurisdicción del proyecto: imperiales en Estados Unidos y métricas en el resto."
     },
     "theme": {
       "label": "Tema"
@@ -315,15 +319,25 @@
     },
     "locale_language": {
       "en-US": "Inglés (Estados Unidos)",
-      "es-US": "Español (Estados Unidos)"
+      "es-US": "Español (Estados Unidos)",
+      "fr-FR": "Francés (Francia), beta",
+      "de-DE": "Alemán (Alemania), beta",
+      "it-IT": "Italiano (Italia), beta",
+      "pt-BR": "Portugués (Brasil), beta",
+      "ja-JP": "Japonés (Japón), beta"
     },
     "locale_date_format": {
       "locale": "Seguir el idioma",
       "iso": "Año-mes-día"
     },
     "locale_units": {
+      "jurisdiction": "Según la jurisdicción del proyecto",
       "imperial": "Imperiales",
       "metric": "Métricas"
+    },
+    "me_time_zone_display": {
+      "event": "La zona horaria del evento",
+      "viewer": "Mi zona horaria"
     },
     "me_theme": {
       "system": "Igual que el dispositivo",

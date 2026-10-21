@@ -466,7 +466,8 @@ settings:
   # Localization ------------------------------------------------------------------------------------------------------
   - key: locale.language
     type: choice
-    choices: [en-US, es-US]
+    # Section 15: the launch locales, then the five Beta locales (ADR 0053), machine translated and marked Beta.
+    choices: [en-US, es-US, fr-FR, de-DE, it-IT, pt-BR, ja-JP]
     default: en-US
     scopes: [organization, personal]
     lockable: true
@@ -505,8 +506,10 @@ settings:
         test: packages/ui/test/preferences.test.tsx
   - key: locale.units
     type: choice
-    choices: [imperial, metric]
-    default: imperial
+    # Section 15: the project's jurisdiction decides (imperial for the US, metric otherwise) unless the org or the
+    # person chooses a system (ADR 0053).
+    choices: [jurisdiction, imperial, metric]
+    default: jurisdiction
     scopes: [organization, personal]
     capability: org.localization.write
     label: settings.fields.units.label

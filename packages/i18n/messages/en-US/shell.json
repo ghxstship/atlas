@@ -1064,9 +1064,15 @@
     "locales": {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)"
     },
+    "betaLocale": "{language} (Beta)",
     "mainNav": "Main"
   },
   "settings": {

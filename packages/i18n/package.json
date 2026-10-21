@@ -8,7 +8,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./locales": "./src/locales.ts",
+    "./load": "./src/load.ts",
     "./formats": "./src/formats/index.ts",
+    "./units": "./src/formats/units.ts",
     "./extracts": "./src/extracts.generated.ts",
     "./messages/*": "./messages/*"
   },

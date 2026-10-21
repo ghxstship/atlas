@@ -31,6 +31,7 @@ import {
   type ReactNode,
 } from "react";
 import { clientSitemap } from "@/ia/sitemap.client.generated";
+import { isBetaLocale } from "@xos/i18n/locales";
 import type { AtlasLocale } from "@/i18n/negotiate";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
@@ -181,7 +182,10 @@ export function ShellFrame(props: ShellFrameProps) {
     { separator: true },
     { heading: t("shell.chrome.language") },
     ...props.locales.map((l) => ({
-      label: t(`shell.chrome.locales.${l}`),
+      // A Beta locale (Section 15) says so in its name, so screen readers announce it too.
+      label: isBetaLocale(l)
+        ? t("shell.chrome.betaLocale", { language: t(`shell.chrome.locales.${l}`) })
+        : t(`shell.chrome.locales.${l}`),
       active: l === props.locale,
       onSelect: async () => {
         await setLocale(l);

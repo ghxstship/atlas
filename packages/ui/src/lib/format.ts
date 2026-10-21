@@ -35,6 +35,48 @@ export function formatNumber(locale: string, value: number): string {
   return numberFormat(locale).format(value);
 }
 
+/**
+ * A date and time in a given IANA zone, always labeled with the zone's abbreviation (Section 15: schedule
+ * times "always labeled with the zone abbreviation"), for example "Oct 21, 2026, 7:30 PM EDT". `timeZoneName`
+ * cannot be combined with dateStyle or timeStyle, so the parts are spelled out.
+ */
+export function formatZonedDateTime(
+  locale: string,
+  iso: string | Date,
+  timeZone: string,
+  parts: "dateTime" | "time" = "dateTime",
+): string {
+  const options: Intl.DateTimeFormatOptions =
+    parts === "time"
+      ? { hour: "numeric", minute: "2-digit", timeZone, timeZoneName: "short" }
+      : {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          timeZone,
+          timeZoneName: "short",
+        };
+  return dateTimeFormat(locale, options).format(typeof iso === "string" ? new Date(iso) : iso);
+}
+
+/** Whether a schedule shows times in the event's zone or the viewer's own (me.time_zone_display). */
+export type TimeZoneDisplay = "event" | "viewer";
+
+/**
+ * The zone a schedule time is shown in (Section 15): the event's (the venue's or project's) by default, or
+ * the viewer's own when they chose that (me.time_zone_display) and their zone is known.
+ */
+export function displayTimeZone(
+  eventZone: string | null | undefined,
+  display: TimeZoneDisplay,
+  viewerZone: string | null | undefined,
+): string | undefined {
+  if (display === "viewer" && viewerZone) return viewerZone;
+  return eventZone ?? viewerZone ?? undefined;
+}
+
 export function formatCurrency(locale: string, value: number, currency = "USD"): string {
   return numberFormat(locale, { style: "currency", currency }).format(value);
 }
