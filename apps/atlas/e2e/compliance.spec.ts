@@ -9,8 +9,8 @@ import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } f
 /**
  * A82 compliance journeys (RRR-127, findings A65-014 and A65-016): the cookie banner and Global
  * Privacy Control (Section 14.3), "16 or older" at sign-up (Sections 14.3 and 14.9), and share links
- * with the Section 8.6 rules and watermark, and the Subprocessor List change notice subscription
- * (Section 14.4). The config sends Global Privacy Control so the banner stays out of other journeys;
+ * with the Section 8.6 rules and watermark, the Subprocessor List change notice subscription and
+ * re-acceptance after a material change (Section 14.4). The config sends Global Privacy Control so the banner stays out of other journeys;
  * these tests open their own contexts without it.
  */
 
@@ -330,5 +330,51 @@ test.describe("subprocessor change notices", () => {
     await panel.getByRole("button", { name: "Save" }).click();
     await page.reload();
     await slow(box).toBeChecked();
+  });
+});
+
+test.describe("re-acceptance", () => {
+  test("an Owner is prompted on every page until the org accepts an announced change", async ({
+    page,
+  }) => {
+    // The platform team announces a change 30 days ahead (migration 1383). The notice applies to
+    // every org until it is withdrawn, so this test withdraws it at the end whatever happens.
+    const version = `9.${Date.now() % 100000}.0`;
+    const [announced] = await localSql<{ id: string }>(
+      `select app.announce_legal_change('terms-of-service', $1, 'Org',
+         'Clearer limits of liability and a new venue for disputes.', current_date + 30) as id`,
+      [version],
+    );
+    expect(announced?.id).toBeTruthy();
+    try {
+      await signIn(page);
+      const banner = page.getByTestId("reacceptance-banner");
+      await expect(banner).toContainText("Terms of Service: a new version takes effect on");
+      await expect(banner).toContainText("Accept it for Demo Productions before then.");
+      await expectAccessible(page);
+      await page.goto(`/${ORG}/projects`);
+      await expect(banner).toBeVisible();
+
+      await banner.getByRole("link", { name: "Review and accept in Settings, Legal" }).click();
+      await page.waitForURL(`**/${ORG}/settings/legal`);
+      const panel = page.getByRole("region", { name: "Changes to accept" });
+      await expect(panel.getByText(`Terms of Service ${version}`, { exact: true })).toBeVisible();
+      await expect(
+        panel.getByText("Clearer limits of liability and a new venue for disputes."),
+      ).toBeVisible();
+      await expectAccessible(page);
+      await panel.getByRole("button", { name: `Accept Terms of Service ${version}` }).click();
+      await slow(page.getByRole("region", { name: "Changes to accept" })).toHaveCount(0);
+      await expect(page.getByTestId("reacceptance-banner")).toHaveCount(0);
+      const [recorded] = await localSql<{ n: number }>(
+        `select count(*)::int as n from app.legal_acceptances a
+          join app.organizations o on o.id = a.org_id
+         where o.slug = $1 and a.document_slug = 'terms-of-service' and a.document_version = $2`,
+        [ORG, version],
+      );
+      expect(recorded?.n).toBe(1);
+    } finally {
+      await localSql("select app.withdraw_legal_change('terms-of-service', $1)", [version]);
+    }
   });
 });

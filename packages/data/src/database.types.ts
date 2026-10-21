@@ -53035,6 +53035,16 @@ export type Database = {
         };
         Returns: string;
       };
+      announce_legal_change: {
+        Args: {
+          p_acceptance: string;
+          p_document_slug: string;
+          p_document_version: string;
+          p_effective_on: string;
+          p_summary: string;
+        };
+        Returns: string;
+      };
       answer_help_desk_request: { Args: { p_body: string; p_ticket_id: string }; Returns: string };
       apply_asset_scan: {
         Args: {
@@ -54315,6 +54325,17 @@ export type Database = {
           pay_period_start: string;
           payroll_export_id: string;
           provider: string;
+        }[];
+      };
+      pending_legal_reacceptances: {
+        Args: { p_org_id?: string };
+        Returns: {
+          document_slug: string;
+          document_version: string;
+          effective_on: string;
+          noticed_at: string;
+          required: boolean;
+          summary: string;
         }[];
       };
       point_in_geofence: {
@@ -55730,6 +55751,10 @@ export type Database = {
       };
       vote_in_poll: { Args: { p_option_ids: string[]; p_poll_id: string }; Returns: number };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };
+      withdraw_legal_change: {
+        Args: { p_document_slug: string; p_document_version: string };
+        Returns: boolean;
+      };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       work_order_display_key: {
         Args: {

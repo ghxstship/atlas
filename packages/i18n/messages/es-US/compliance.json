@@ -171,5 +171,25 @@
       "label": "Enviarme un correo sobre cambios en la Lista de subencargados",
       "save": "Guardar"
     }
+  },
+  "reacceptance": {
+    "banner": {
+      "upcoming": "{title}: una nueva versión entra en vigor el {date}. Acéptala para {org} antes de esa fecha.",
+      "required": "{title}: una nueva versión entró en vigor el {date}. Acéptala para {org}.",
+      "review": "Revisa y acepta en Configuración, Legal"
+    },
+    "personal": {
+      "upcoming": "{title}: una nueva versión entra en vigor el {date}",
+      "required": "{title}: una nueva versión entró en vigor el {date}"
+    },
+    "settings": {
+      "title": "Cambios por aceptar",
+      "lead": "Cambiamos estos documentos. Lee qué cambia y acepta la nueva versión para {org}.",
+      "item": "{title} {version}",
+      "takesEffect": "Entra en vigor el {date}. Anunciado el {noticed}.",
+      "inEffect": "En vigor desde el {date}. Anunciado el {noticed}.",
+      "accept": "Aceptar {title} {version}",
+      "read": "Leer la nueva versión"
+    }
   }
 }

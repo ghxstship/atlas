@@ -171,5 +171,25 @@
       "label": "Email me about Subprocessor List changes",
       "save": "Save"
     }
+  },
+  "reacceptance": {
+    "banner": {
+      "upcoming": "{title}: a new version takes effect on {date}. Accept it for {org} before then.",
+      "required": "{title}: a new version took effect on {date}. Accept it for {org}.",
+      "review": "Review and accept in Settings, Legal"
+    },
+    "personal": {
+      "upcoming": "{title}: a new version takes effect on {date}",
+      "required": "{title}: a new version took effect on {date}"
+    },
+    "settings": {
+      "title": "Changes to accept",
+      "lead": "We changed these documents. Read what changes and accept the new version for {org}.",
+      "item": "{title} {version}",
+      "takesEffect": "Takes effect {date}. Announced {noticed}.",
+      "inEffect": "In effect since {date}. Announced {noticed}.",
+      "accept": "Accept {title} {version}",
+      "read": "Read the new version"
+    }
   }
 }
