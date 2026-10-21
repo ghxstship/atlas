@@ -10,7 +10,7 @@ import { getMessages } from "@xos/i18n";
 import { parse } from "yaml";
 import { packNodes } from "./client-sitemap-codec";
 import { IMPLEMENTED } from "./implemented";
-import { DELEGATED } from "./routes.config";
+import { DELEGATED, ROUTE_HANDLER_FILES } from "./routes.config";
 
 /**
  * Pure generation for the Atlas route tree (Section 3.15). `scripts/generate-routes.ts` writes the
@@ -85,10 +85,17 @@ export default async function Page({ params }: PageProps<"${routeKey(route)}">) 
 `;
 }
 
-/** Nodes that get a generated page: routed, served by Atlas, not delegated, not hand-written. */
+/**
+ * Nodes that get a generated page: routed, served by Atlas, not delegated, not served by a route
+ * handler, not hand-written.
+ */
 export function generatedNodes(sitemap: Sitemap) {
   return flattenRoutes(sitemap).filter(
-    (r) => r.servedBy === undefined && !(r.id in DELEGATED) && !IMPLEMENTED.has(r.id),
+    (r) =>
+      r.servedBy === undefined &&
+      !(r.id in DELEGATED) &&
+      !(r.id in ROUTE_HANDLER_FILES) &&
+      !IMPLEMENTED.has(r.id),
   );
 }
 

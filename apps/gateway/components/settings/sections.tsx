@@ -18,6 +18,7 @@ import {
   listSectionVisibility,
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
+import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
 import { listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
 import { getNode } from "@xos/ia";
@@ -50,6 +51,7 @@ import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settin
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
+import { AddPersonFeedForm, PersonFeedActions } from "./calendar-feeds-forms";
 import { DeleteAccountSection } from "./delete-account";
 import { NotificationPreferences } from "./notification-preferences";
 import { PersonalSetting } from "./personal-setting";
@@ -694,6 +696,48 @@ function NoteSection(
 }
 
 /**
+ * The person's own calendar feeds across every org they work with (Section 4.5.8 Work, Upcoming
+ * "with a calendar feed"; Section 4.6.5; A84, migration 1410): each with the last four characters
+ * of its link, a new link and revoke, and a form to add one. Links are shown once, when made.
+ */
+async function CalendarFeedsSection(props: SectionProps) {
+  const { ctx, t, locale } = props;
+  const C = "gateway.settings.calendarFeeds";
+  const feeds = await listMyPersonCalendarFeeds(ctx.db);
+  return (
+    <>
+      <Header t={t} node={props.node} />
+      <p className="m-0 text-text-13 text-text-secondary">{t(`${C}.description`)}</p>
+      <p className="m-0 text-text-13 text-text-secondary">{t(`${C}.secret`)}</p>
+      {!feeds.ok ? (
+        <RegionError />
+      ) : feeds.data.length === 0 ? (
+        <p className="m-0 text-text-13 text-text-secondary">{t(`${C}.none`)}</p>
+      ) : (
+        <RowList
+          label={t(`${C}.listLabel`)}
+          items={feeds.data.map((feed) => ({
+            id: feed.id,
+            title: t(`${C}.feedName`),
+            meta: [
+              t(`${C}.hint`, { hint: feed.tokenHint }),
+              feed.rotatedAt
+                ? t(`${C}.rotated`, { date: formatDate(locale, feed.rotatedAt) })
+                : t(`${C}.created`, { date: formatDate(locale, feed.createdAt) }),
+              feed.lastAccessedAt
+                ? t(`${C}.lastFetched`, { date: formatDate(locale, feed.lastAccessedAt) })
+                : t(`${C}.neverFetched`),
+            ],
+            action: <PersonFeedActions id={feed.id} hint={feed.tokenHint} />,
+          }))}
+        />
+      )}
+      <AddPersonFeedForm />
+    </>
+  );
+}
+
+/**
  * The person's own notification choices as an external party (migration 1131, finding A38-002):
  * Email and Push per category.
  */
@@ -982,13 +1026,7 @@ export async function SettingsSection({ node, ctx }: { node: string; ctx: Gatewa
         </>
       );
     case "settings.calendar-feeds":
-      return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.calendarFeeds")}
-          action={{ label: t("gateway.settings.notes.toUpcoming"), href: "/work/upcoming" }}
-        />
-      );
+      return <CalendarFeedsSection {...props} />;
     case "settings.connected-apps":
       return (
         <NoteSection

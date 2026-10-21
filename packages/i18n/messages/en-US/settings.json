@@ -450,7 +450,8 @@
   "descriptions": {
     "teams": "Teams group members who share work. Each team lists its members.",
     "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
-    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled."
+    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app."
   },
   "accessControls": {
     "saved": "Saved.",

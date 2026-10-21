@@ -368,6 +368,9 @@ from .resources import (
     TemplateItemsResource,
     SupportSessionsResource,
     WholesaleStatementsResource,
+    PersonCalendarFeedsResource,
+    ProjectInboxesResource,
+    InboundMessagesResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -779,6 +782,9 @@ class XosClient(XosClientCore):
     template_items: TemplateItemsResource
     support_sessions: SupportSessionsResource
     wholesale_statements: WholesaleStatementsResource
+    person_calendar_feeds: PersonCalendarFeedsResource
+    project_inboxes: ProjectInboxesResource
+    inbound_messages: InboundMessagesResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1178,6 +1184,9 @@ class XosClient(XosClientCore):
         self.template_items = TemplateItemsResource(self)
         self.support_sessions = SupportSessionsResource(self)
         self.wholesale_statements = WholesaleStatementsResource(self)
+        self.person_calendar_feeds = PersonCalendarFeedsResource(self)
+        self.project_inboxes = ProjectInboxesResource(self)
+        self.inbound_messages = InboundMessagesResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

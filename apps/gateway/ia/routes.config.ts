@@ -22,6 +22,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
+  "/ical/{feedFile}":
+    "Route handler: a calendar subscription feed, <token>.ics only (Section 4.5.8, Section 4.6.5, ADR 0040).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":

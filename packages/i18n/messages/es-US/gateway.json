@@ -1362,8 +1362,6 @@
       "proposeNote": "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."
     },
     "notes": {
-      "calendarFeeds": "Agrega cada turno, horario y fecha límite a tu calendario desde Próximos.",
-      "toUpcoming": "Abrir Próximos",
       "connectedApps": "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
       "toOrganizations": "Ver tus cuentas",
       "notifications": "Las organizaciones te contactan por correo y notificaciones para ofertas, documentos por firmar, pagos y mensajes. Las horas de silencio y el idioma siguen tus preferencias.",
@@ -1398,6 +1396,38 @@
       "confirmTitle": "¿Eliminar su cuenta ahora?",
       "confirmBody": "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
       "cancel": "Conservar mi cuenta"
+    },
+    "calendarFeeds": {
+      "title": "Calendarios suscritos",
+      "description": "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver sus turnos publicados y las reuniones, hitos y fechas límite compartidos con usted, en todas las organizaciones con las que trabaja. Las aplicaciones lo actualizan aproximadamente cada hora.",
+      "secret": "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
+      "none": "Todavía no tiene calendarios suscritos.",
+      "listLabel": "Sus calendarios suscritos",
+      "feedName": "Mi trabajo",
+      "hint": "Enlace que termina en {hint}",
+      "created": "Agregado el {date}",
+      "lastFetched": "Última consulta el {date}",
+      "neverFetched": "Ninguna aplicación lo ha consultado todavía",
+      "rotated": "Enlace nuevo emitido el {date}",
+      "add": "Agregar un calendario",
+      "rotate": "Obtener un enlace nuevo",
+      "rotateLabel": "Obtener un enlace nuevo para el calendario que termina en {hint}",
+      "rotateConfirm": "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
+      "revoke": "Revocar",
+      "revokeLabel": "Revocar el calendario que termina en {hint}",
+      "revokeConfirm": "El enlace deja de funcionar de inmediato y no se puede volver a activar.",
+      "linkTitle": "El enlace de su calendario",
+      "linkHelp": "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
+      "linkLabel": "Enlace de suscripción",
+      "copy": "Copiar enlace",
+      "copied": "Enlace copiado.",
+      "openInCalendar": "Abrir en mi aplicación de calendario",
+      "subscribe": "Suscribirse en una aplicación de calendario",
+      "errors": {
+        "calendar_feed_limit": "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
+        "denied": "Ese calendario no está disponible para usted.",
+        "unexpected": "Algo salió mal. Inténtelo de nuevo."
+      }
     }
   },
   "shell": {

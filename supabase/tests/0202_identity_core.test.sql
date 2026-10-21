@@ -54,6 +54,8 @@ select is(
        'blocks',
        -- person-owned Work Details keyed by person_id, readable only by the person (A78, migration 1340)
        'person_work_details', 'person_emergency_contacts', 'person_loyalty_programs',
+       -- a person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410)
+       'person_calendar_feeds',
        -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
        'work_detail_events')
      and (select count(*) from information_schema.columns c

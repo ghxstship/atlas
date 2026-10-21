@@ -62,6 +62,17 @@ const EnvSchema = z.object({
     .optional(),
   /** Public origin of the docs site, for help center and API reference links. Unset, none show. */
   DOCS_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
+  /**
+   * The domain project inbox mail is received on (Section 4.6.5, ADR 0040), the same value the
+   * inbound-email Edge Function reads. Unset, Atlas shows each inbox's local part and says the
+   * receiving domain is not set up yet.
+   */
+  XOS_INBOUND_DOMAIN: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(HOST_NAME, "Use a domain such as inbound.example.com, without @ or a scheme.")
+    .optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
