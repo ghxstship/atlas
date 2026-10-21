@@ -351,3 +351,13 @@ $$;
 comment on function app.osha_employment_estimate(uuid, integer) is 'The Form 300A worksheet figures from XOS data for a year: total hours worked from time entries (breaks removed, rounded up) and the average number of people paid per pay period (rounded up). A starting point for the summary, which the org confirms. Needs safety.incident.close.';
 revoke all on function app.osha_employment_estimate(uuid, integer) from public, anon;
 grant execute on function app.osha_employment_estimate(uuid, integer) to authenticated, service_role;
+
+-- Retention ------------------------------------------------------------------------------------------------------------------
+-- 29 CFR 1904.33 keeps the log, the summary and the incident reports for five years following the year they cover; a
+-- soft-deleted record is kept seven years, past that whatever its year.
+
+insert into private.retention_policies (table_name, basis, time_column, retention, purge_method, rationale) values
+  ('app.osha_establishments', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete', 'OSHA records are kept five years after the year they cover (29 CFR 1904.33).'),
+  ('app.osha_cases', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete', 'OSHA records are kept five years after the year they cover (29 CFR 1904.33).'),
+  ('app.osha_annual_summaries', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete', 'OSHA records are kept five years after the year they cover (29 CFR 1904.33).')
+on conflict (table_name) do nothing;

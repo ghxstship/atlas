@@ -123,8 +123,9 @@ grant execute on function app.request_export(uuid, app.export_format, text, text
 alter table app.attachments add column classification app.data_classification not null default 'Internal';
 comment on column app.attachments.classification is 'Classification of the file (Section 8.6): Public, Internal (the default), Confidential or Restricted. It decides who may download it, whether it may be shared by link and whether the copy carries a watermark. Anyone who can read the file may raise it; lowering it needs the uploader or data.classification.write.';
 
--- Any reader may raise a file's classification; the uploader keeps the rename the 0590 policy gave them.
-create policy attachments_classify on app.attachments for update to authenticated
+-- Any reader may raise a file's classification, so the one update policy admits every reader; the guard below keeps
+-- every other change, such as the rename 0590 gave the uploader, to the uploader (one permissive policy per action, 1221).
+alter policy attachments_update on app.attachments
   using (private.can_read_subject(subject_table, subject_id))
   with check (private.can_read_subject(subject_table, subject_id));
 
@@ -141,7 +142,7 @@ begin
   if v_trusted then
     return new;
   end if;
-  -- A reader who did not add the file reaches the row only through the classify policy: any other change is skipped,
+  -- A reader who did not add the file may change only the classification: any other change of theirs is skipped,
   -- exactly as the uploader-only policy of 0590 skipped it before.
   if old.created_by is distinct from v_person
      and (to_jsonb(new) - array['classification', 'updated_at', 'updated_by'])

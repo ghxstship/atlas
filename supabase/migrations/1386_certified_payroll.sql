@@ -271,3 +271,12 @@ $$;
 comment on function app.certified_payroll(uuid, date, boolean) is 'The WH-347 rows of a project for the week ending on the given date: per worker and labor classification, straight and overtime hours of each day (overtime split over all of the worker''s approved work that week), rates and gross pay on the project and for all work. Numbers the week''s Certified Payroll No. (kept when issued again) and records the final-submission mark. A Restricted export: needs crew.payroll.export, data.restricted.read.payroll, data.export.restricted and step-up authentication, and is written to the audit log.';
 revoke all on function app.certified_payroll(uuid, date, boolean) from public, anon;
 grant execute on function app.certified_payroll(uuid, date, boolean) to authenticated, service_role;
+
+-- Retention ----------------------------------------------------------------------------------------------------------------------
+-- 29 CFR 5.5(a)(3)(i) keeps payroll records for three years after the work is completed; kept seven years once soft deleted.
+
+insert into private.retention_policies (table_name, basis, time_column, retention, purge_method, rationale) values
+  ('app.certified_payroll_projects', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete', 'Davis-Bacon payroll records are kept at least three years after the work (29 CFR 5.5(a)(3)(i)).'),
+  ('app.registered_apprentices', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete', 'Davis-Bacon payroll records are kept at least three years after the work (29 CFR 5.5(a)(3)(i)).'),
+  ('app.certified_payroll_submissions', 'Soft Deleted', 'deleted_at', interval '7 years', 'Delete', 'Davis-Bacon payroll records are kept at least three years after the work (29 CFR 5.5(a)(3)(i)).')
+on conflict (table_name) do nothing;
