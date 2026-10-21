@@ -17,7 +17,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * Subprocessor List change notices (Section 14.4, finding A65-014; migration 1382). Plain forms on
  * /legal/subprocessors, so they work before any script loads. The emailed confirmation and
  * unsubscribe links open a page with a button; only the button's POST reaches the database, so a mail
- * scanner that fetches the link changes nothing. Each action ends on the page without the token.
+ * scanner that fetches the link changes nothing. The confirm and unsubscribe actions end on the page
+ * without the token; the subscription form answers in place.
  */
 
 const PAGE = "/legal/subprocessors";
@@ -26,12 +27,20 @@ function done(notice: string): never {
   redirect(`${PAGE}?notice=${notice}#notices` as Route);
 }
 
-export async function subscribeSubprocessorAction(form: FormData): Promise<void> {
+export interface SubscribeState {
+  readonly notice?: "subscribed" | "invalid" | "failed";
+}
+
+/** The subscription form's answer, shown in place so a refused address keeps what was typed. */
+export async function subscribeSubprocessorAction(
+  _: SubscribeState,
+  form: FormData,
+): Promise<SubscribeState> {
   const email = String(form.get("email") ?? "");
   const locale = (await getLocale()) === "es-US" ? "es-US" : "en-US";
   const result = await subscribeSubprocessorNotices(await createServerSupabase(), email, locale);
-  if (!result.ok) done("failed");
-  done(result.data ? "subscribed" : "invalid");
+  if (!result.ok) return { notice: "failed" };
+  return { notice: result.data ? "subscribed" : "invalid" };
 }
 
 export async function confirmSubprocessorAction(form: FormData): Promise<void> {

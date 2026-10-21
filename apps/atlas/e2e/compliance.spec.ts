@@ -273,7 +273,6 @@ test.describe("subprocessor change notices", () => {
     await notices.getByLabel("Email").fill(email);
     await notices.getByRole("button", { name: "Subscribe" }).click();
     await slow(page.getByText("Check your email and confirm within 7 days")).toBeVisible();
-    expect(new URL(page.url()).search).toBe("?notice=subscribed");
 
     const [queued] = await localSql<{ token: string }>(
       `select args ->> 'confirm_token' as token from private.platform_emails

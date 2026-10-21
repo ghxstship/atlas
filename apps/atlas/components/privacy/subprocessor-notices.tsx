@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
-import { Button, InlineAlert, Input } from "@/components/ui";
+import { SubprocessorSubscribeForm } from "@/components/privacy/subprocessor-subscribe-form";
+import { Button, InlineAlert } from "@/components/ui";
 import {
   confirmSubprocessorAction,
-  subscribeSubprocessorAction,
   unsubscribeSubprocessorAction,
 } from "@/lib/privacy/subprocessor-actions";
 
@@ -74,24 +74,14 @@ export async function SubprocessorNotices({
       {isNotice(notice) ? (
         <InlineAlert tone={NOTICES[notice]}>{t(`notices.${notice}`)}</InlineAlert>
       ) : null}
-      <form action={subscribeSubprocessorAction} className="flex flex-col gap-12">
-        <Input
-          id="subprocessor-email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          maxLength={320}
-          label={t("email")}
-          help={t("emailHelp")}
-          width="100%"
-        />
-        <div>
-          <Button type="submit" variant="primary">
-            {t("subscribe")}
-          </Button>
-        </div>
-      </form>
+      <SubprocessorSubscribeForm
+        labels={{ email: t("email"), emailHelp: t("emailHelp"), subscribe: t("subscribe") }}
+        notices={{
+          subscribed: t("notices.subscribed"),
+          invalid: t("notices.invalid"),
+          failed: t("notices.failed"),
+        }}
+      />
       <p className="m-0 text-text-13 text-text-secondary">{t("members")}</p>
     </section>
   );

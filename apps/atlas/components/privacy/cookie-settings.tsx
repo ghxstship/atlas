@@ -37,7 +37,11 @@ export async function CookieSettings() {
               performance: t(choice.performance ? "current.on" : "current.off"),
             })}
       </p>
-      <form action={saveCookieChoice} className="flex flex-col gap-12">
+      <form
+        action={saveCookieChoice}
+        data-keep-input="not-refusable"
+        className="flex flex-col gap-12"
+      >
         <input type="hidden" name="choice" value="save" />
         <fieldset className="m-0 flex flex-col gap-8 border-0 p-0">
           <legend className="mb-4 text-label-14 font-medium">{t("categories")}</legend>

@@ -44,7 +44,11 @@ export async function CookieBanner() {
         </form>
         <details className="text-text-13">
           <summary className="cursor-pointer text-accent-text underline">{t("choose")}</summary>
-          <form action={saveCookieChoice} className="mt-8 flex flex-col gap-8">
+          <form
+            action={saveCookieChoice}
+            data-keep-input="not-refusable"
+            className="mt-8 flex flex-col gap-8"
+          >
             <input type="hidden" name="choice" value="save" />
             <p className="m-0 text-text-12 text-text-secondary">{t("necessary")}</p>
             <label className="flex items-start gap-8">
