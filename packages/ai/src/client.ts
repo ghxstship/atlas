@@ -202,19 +202,19 @@ export interface AuroraClient {
     media_type: "application/pdf" | "text/plain" | "image/png" | "image/jpeg" | "image/webp";
     content_base64: string;
     file_name: string;
-  }): Promise<AuroraCall<AuroraApiResult>>;
+  }): Promise<AuroraCall<AuroraApiResult<AuroraExtraction>>>;
   draft(input: {
     kind: "sop" | "advance_packet" | "email" | "day_sheet" | "change_order_description";
     instructions: string;
     context?: readonly { collection: string; id: string }[];
     verbiage?: readonly { term: string; preferred: string }[];
-  }): Promise<AuroraCall<AuroraApiResult>>;
+  }): Promise<AuroraCall<AuroraApiResult<AuroraDraft>>>;
   summarize(input: {
     kind: "record_activity" | "project_week" | "gate_readiness";
     subject_collection: string;
     subject_id: string;
     items: readonly { collection: string; id: string }[];
-  }): Promise<AuroraCall<AuroraApiResult>>;
+  }): Promise<AuroraCall<AuroraApiResult<AuroraSummary>>>;
   /** Import column suggestions (aurora.mapColumns): a target field or null per column, with a confidence. */
   mapColumns(input: {
     collection: string;

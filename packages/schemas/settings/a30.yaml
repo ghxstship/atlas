@@ -509,6 +509,9 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      # Aurora's relative dates ("overdue", "this month") resolve on this calendar (A95).
+      - consumer: packages/data/src/settings.ts#readOrgTimeZone
+        test: packages/data/test/settings.test.ts
   - key: locale.date_format
     type: choice
     choices: [locale, iso]

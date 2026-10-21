@@ -76,7 +76,8 @@
       "done": "Marcar como hecho el elemento enfocado",
       "snooze": "Posponer el elemento enfocado hasta mañana"
     },
-    "customize": "Cambiar atajos"
+    "customize": "Cambiar atajos",
+    "askFilter": "Filtrar en lenguaje natural"
   },
   "whatsNew": {
     "title": "Novedades",

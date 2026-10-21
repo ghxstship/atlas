@@ -1,5 +1,6 @@
 import type { DataTableColumn, RecordState } from "@xos/ui";
 import type { ReactNode } from "react";
+import type { AskCatalog } from "@/lib/aurora/ask";
 import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { BackToList } from "./kit-back-to-list";
 import { CollectionBoard } from "./kit-collection-board";
@@ -49,8 +50,11 @@ export function FinanceCollection({
   detail,
   sheet,
   above,
+  ask,
 }: {
   page: FinancePage;
+  /** The page's filters for Ask in plain language (A95). */
+  ask?: AskCatalog;
   title: string;
   createLabel?: string;
   canCreate: boolean;
@@ -131,8 +135,15 @@ export function FinanceCollection({
     ? undefined
     : page.projects.map((p) => ({ value: p.key, label: `${p.key} · ${p.name}` }));
   let body: ReactNode;
+  // The page's own filters a plain-language filter may set count as filters too (A95).
+  const askFilters = (ask?.fields ?? []).map((f) => f.name);
   if (rows.length === 0) {
-    const filtered = Boolean(query.q || query.state || (query.project && !page.inProject));
+    const filtered = Boolean(
+      query.q ||
+      query.state ||
+      (query.project && !page.inProject) ||
+      askFilters.some((name) => query.extra[name] !== undefined),
+    );
     body = (
       <EmptyPanel
         icon={empty.icon ?? "Inbox"}
@@ -141,6 +152,7 @@ export function FinanceCollection({
         href={
           filtered
             ? withQuery(page, {
+                ...Object.fromEntries(askFilters.map((name) => [name, null])),
                 q: null,
                 state: null,
                 ...(page.inProject ? {} : { project: null }),
@@ -168,6 +180,7 @@ export function FinanceCollection({
           states={states}
           state={query.state}
           q={query.q}
+          ask={ask}
         />
       }
       peek={

@@ -40,6 +40,7 @@ import {
   updateSectionAction,
   type AdvancingState,
 } from "./actions";
+import { DraftEntry } from "@/components/aurora/entry/draft-entry";
 import { useCopy } from "./use-copy";
 import { useQueryHref } from "./views";
 
@@ -492,12 +493,15 @@ export function SectionList({
   sections,
   canEdit,
   sent,
+  draftContext = [],
 }: {
   org: string;
   packetId: string;
   sections: readonly SectionItem[];
   canEdit: boolean;
   sent: boolean;
+  /** Records a section drafted with Aurora is written from: the packet and its project (A95). */
+  draftContext?: readonly { collection: string; id: string; label: string }[];
 }) {
   const t = useCopy("advancing.sections");
   const [editing, setEditing] = useState<string | null>(null);
@@ -567,7 +571,9 @@ export function SectionList({
           ))}
         </ol>
       )}
-      {canEdit && !sent ? <AddSectionForm org={org} packetId={packetId} /> : null}
+      {canEdit && !sent ? (
+        <AddSectionForm org={org} packetId={packetId} draftContext={draftContext} />
+      ) : null}
       {canEdit && sent ? (
         <p className="m-0 text-text-12 text-text-tertiary">{t("fixedAfterSend")}</p>
       ) : null}
@@ -575,7 +581,15 @@ export function SectionList({
   );
 }
 
-function AddSectionForm({ org, packetId }: { org: string; packetId: string }) {
+function AddSectionForm({
+  org,
+  packetId,
+  draftContext,
+}: {
+  org: string;
+  packetId: string;
+  draftContext: readonly { collection: string; id: string; label: string }[];
+}) {
   const t = useCopy("advancing.sections");
   const [state, action, pending, key] = useResettingAction(addSectionAction);
   const id = useId();
@@ -584,6 +598,13 @@ function AddSectionForm({ org, packetId }: { org: string; packetId: string }) {
       <input type="hidden" name="org" value={org} />
       <input type="hidden" name="packetId" value={packetId} />
       <ErrorNotice state={state} />
+      <DraftEntry
+        kind="advance_packet"
+        fields={{ title: "title", body: "prompt" }}
+        context={draftContext}
+        instructionsFrom="title"
+        maxBody={2000}
+      />
       <Input
         id={`${id}-title`}
         name="title"
