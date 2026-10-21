@@ -1,4 +1,4 @@
--- 1368_notification_kind_seed.test.sql
+-- 1469_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -46,7 +46,9 @@ select set_eq(
   ('reports', false, 9),
   ('imports', false, 10),
   ('messages', false, 40),
-  ('feed', false, 41)$$,
+  ('feed', false, 41),
+  ('opportunities', false, 50),
+  ('expiry_reminders', false, 51)$$,
   'notification categories match notification-kinds.yaml');
 
 select set_eq(
@@ -163,7 +165,22 @@ select set_eq(
   ('help_request.assigned', 'In App', 'assignments', null::text),
   ('help_request.assigned', 'Email', 'assignments', 'notification'),
   ('help_request.assigned', 'SMS', 'assignments', null::text),
-  ('help_request.assigned', 'Push', 'assignments', null::text)$$,
+  ('help_request.assigned', 'Push', 'assignments', null::text),
+  ('opportunity.matched', 'In App', 'opportunities', null::text),
+  ('opportunity.matched', 'Email', 'opportunities', 'notification'),
+  ('opportunity.matched', 'Push', 'opportunities', null::text),
+  ('onboarding.item_expiring', 'In App', 'expiry_reminders', null::text),
+  ('onboarding.item_expiring', 'Email', 'expiry_reminders', 'notification'),
+  ('onboarding.item_expiring', 'SMS', 'expiry_reminders', null::text),
+  ('onboarding.item_expiring', 'Push', 'expiry_reminders', null::text),
+  ('certification.expiring', 'In App', 'expiry_reminders', null::text),
+  ('certification.expiring', 'Email', 'expiry_reminders', 'notification'),
+  ('certification.expiring', 'SMS', 'expiry_reminders', null::text),
+  ('certification.expiring', 'Push', 'expiry_reminders', null::text),
+  ('document.expiring', 'In App', 'expiry_reminders', null::text),
+  ('document.expiring', 'Email', 'expiry_reminders', 'notification'),
+  ('document.expiring', 'SMS', 'expiry_reminders', null::text),
+  ('document.expiring', 'Push', 'expiry_reminders', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
 
 select set_eq(
