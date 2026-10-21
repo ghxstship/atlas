@@ -3,6 +3,7 @@
 import { Button, Select, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useActionState, useId, useState } from "react";
+import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import { triageFeedbackAction } from "@/lib/help/triage-actions";
 
 type Translate = (key: string) => string;
@@ -28,7 +29,7 @@ export function TriageForm({
     null,
   );
   return (
-    <form action={action} className="flex flex-col gap-8">
+    <form action={action} onSubmit={keepInputOnSubmit(action)} className="flex flex-col gap-8">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="state" value={next} />
       <input type="hidden" name="note" value={text} />
