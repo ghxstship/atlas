@@ -5032,6 +5032,33 @@ var email_default$1 = {
         body: "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}",
       },
     },
+    opportunity: {
+      matched: {
+        subject:
+          "{count, plural, one {New match for {searchName}: {title}} other {# new matches for {searchName}}}",
+        body: "{count, plural, one {{orgName} published {title}, which matches your saved search {searchName}.} other {{orgName} published # opportunities that match your saved search {searchName}, including {title}.}}",
+      },
+    },
+    onboarding: {
+      item_expiring: {
+        subject: "{title} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        body: "Your {title} for {orgName} expires on {expiresOn}. Renew it before then to keep your onboarding complete.",
+      },
+    },
+    certification: {
+      expiring: {
+        subject:
+          "Your {title} certification expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        body: "Your {title} certification expires on {expiresOn}. Renew it and update your profile so organizations see it is current.",
+      },
+    },
+    document: {
+      expiring: {
+        subject:
+          "{kind, select, passport {Your passport} insurance {Your {title} insurance certificate} other {{title}}} expires {days, plural, =0 {today} one {in # day} other {in # days}}",
+        body: "{kind, select, passport {Your passport expires on {expiresOn}. Renew it before you travel for work.} insurance {Your {title} certificate of insurance on file with {orgName} expires on {expiresOn}. Send the renewed certificate before then.} other {{title} for {orgName} expires on {expiresOn}. Check whether it needs renewing.}}",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -5976,6 +6003,10 @@ var gateway_default$1 = {
       slug_reserved: "That web address is reserved. Choose another.",
       cross_org_reference:
         "That document belongs to another organization. Upload it again for this one.",
+      supplier_diversity_no_program:
+        "That organization does not run a supplier diversity program, so it takes no diversity certifications.",
+      time_zone_unknown:
+        "That time zone is not recognized. Choose one from the list, for example America/New_York.",
     },
   },
   common: {
@@ -6350,10 +6381,21 @@ var gateway_default$1 = {
       returned: "Returned",
       canceled: "Canceled",
     },
+    supplierDiversityKind: {
+      minorityOwned: "Minority-owned business",
+      womenOwned: "Women-owned business",
+      veteranOwned: "Veteran-owned business",
+      serviceDisabledVeteranOwned: "Service-disabled veteran-owned business",
+      disabilityOwned: "Disability-owned business",
+      lgbtqOwned: "LGBTQ+-owned business",
+      smallDisadvantagedBusiness: "Small disadvantaged business",
+      hubzone: "HUBZone business",
+      other: "Other certification",
+    },
   },
   explore: {
     title: "Explore",
-    lead: "Opportunities open to you, soonest deadline first. Pay is always shown before you apply.",
+    lead: "Opportunities open to you, best match first. Pay is always shown before you apply.",
     searchLabel: "Search opportunities",
     searchHint: "Search roles, skills or organizations",
     search: "Search",
@@ -6396,7 +6438,7 @@ var gateway_default$1 = {
     },
     alerts: {
       title: "Alerts",
-      lead: "Saved searches. Each sends an email and a push notification when a new opportunity matches.",
+      lead: "New opportunities your saved searches matched, then the searches themselves. Each match sends an email and a push notification, as you set in Settings, Notifications.",
       empty: "No saved searches yet. Search in Explore, then save the search to get alerts.",
       emptyAction: "Search opportunities",
       on: "Alerts on",
@@ -6406,6 +6448,12 @@ var gateway_default$1 = {
       remove: "Remove",
       run: "Run search",
       any: "Any role type",
+      matches: "Recent matches",
+      noMatches:
+        "No matches yet. When an organization publishes an opportunity that matches a saved search, it appears here.",
+      matchedBy: "Matched {name} on {date}",
+      searches: "Saved searches",
+      within: "Within {km} km of {place}",
     },
     detail: {
       pay: "Pay",
@@ -6514,13 +6562,41 @@ var gateway_default$1 = {
     },
     ranking: {
       title: "How ranking works",
-      lead: "Explore orders opportunities by two public factors only. No organization can pay for placement.",
+      lead: "Explore lists only opportunities organizations made visible to you, in one of two orders you choose. No organization can pay for placement.",
       factor1: "The application deadline: the soonest deadline comes first, so you never miss one.",
       factor2: "The start date: among equal deadlines, the work that starts first comes first.",
       visibility:
         "You see an opportunity only when the organization made it visible to you: by invitation, through its talent or vendor pools, to people who completed work with it, or to the whole marketplace.",
       filters: "Your filters narrow the list; they never reorder it.",
       back: "Back to Explore",
+      recommendedTitle: "Best match",
+      recommendedLead:
+        "Each opportunity gets a score out of 100 from your own profile. Nothing an organization pays for counts.",
+      factors: {
+        skills: {
+          title: "Skills, up to {points} points.",
+          body: "Full points when the opportunity's category is one of your profile skills, 25 when it is in the same discipline, and 10 when it is in the same department.",
+        },
+        certifications: {
+          title: "Certifications, up to {points} points.",
+          body: "The share of required certifications you hold, on a current organization record or listed on your profile with the same name. An opportunity that requires none has nothing missing. The organization still checks certifications during onboarding.",
+        },
+        location: {
+          title: "Location, up to {points} points.",
+          body: "When you search near a place: full points within 50 km and 10 within 150 km. Otherwise: full points when the venue is in your profile's city, 5 when it is in your country.",
+        },
+        availability: {
+          title: "Availability, up to {points} points.",
+          body: "Full points when none of your unavailable days fall on the work dates, half when the opportunity has no dates yet.",
+        },
+      },
+      ties: "Equal scores keep the soonest deadline first, then the earliest start.",
+      soonestTitle: "Soonest deadline",
+      neverTitle: "What never counts",
+      never:
+        "Payment, plan, ads or anything else an organization pays for. Your protected characteristics. Who passed on or saved an opportunity.",
+      passed:
+        "Opportunities you pass on leave your results until you undo the pass. Organizations never see who passed.",
     },
     organizations: {
       tab: "Organizations",
@@ -6531,6 +6607,45 @@ var gateway_default$1 = {
       emptyAction: "Back to opportunities",
       listLabel: "Organizations",
       open: "{n, plural, =0 {No open opportunities} one {# open opportunity} other {# open opportunities}}",
+    },
+    sortLabel: "Order",
+    sort: {
+      recommended: "Best match",
+      soonest: "Soonest deadline",
+    },
+    discipline: "Discipline",
+    disciplineAny: "Any discipline",
+    category: "Category",
+    categoryAny: "Any category in the discipline",
+    certification: "Required certification",
+    certificationHelp: "Shows opportunities that require it, for example ETCP Rigger.",
+    near: "Near",
+    nearAny: "Anywhere",
+    nearHelp: "Places with opportunities open to you. Venues without a location are left out.",
+    radius: "Within",
+    radiusOption: "{km} km",
+    showPassed: "Show opportunities you passed on",
+    distance: "{km} km away",
+    why: {
+      label: "Why it matches",
+      skills: "Matches your skills",
+      discipline: "Close to your skills",
+      certifications: "You meet the certifications",
+      near: "Near you",
+      available: "Fits your availability",
+    },
+    swipe: {
+      actions: "Actions for {title}",
+      save: "Save",
+      saved: "Saved. Find it under Saved.",
+      unsave: "Unsave",
+      unsaved: "Removed from Saved.",
+      pass: "Pass",
+      passed: "You passed on {title}.",
+      restored: "Back in your results.",
+      removed: "Removed {title}.",
+      undo: "Undo",
+      failed: "That did not go through. Reload the page and try again.",
     },
   },
   home: {
@@ -6688,6 +6803,18 @@ var gateway_default$1 = {
         bio: "Next: write a short bio",
         languages: "Next: add the languages you speak",
         links: "Next: add a link to your work",
+      },
+      missingTitle: "{n, plural, one {One thing missing} other {# things missing}}",
+      missing: {
+        headline: "Add a headline",
+        skills: "Add your skills",
+        city: "Add your city",
+        certifications: "Add a certification",
+        rate: "Set your rate",
+        availability: "Mark your availability",
+        bio: "Write a short bio",
+        languages: "Add the languages you speak",
+        links: "Add a link to your work",
       },
     },
     certifications: {
@@ -7010,6 +7137,14 @@ var gateway_default$1 = {
           label: "Invoices and payments",
           help: "Each step of your invoices: received, approved, payment scheduled and paid. Updates always show on Home.",
         },
+        opportunities: {
+          label: "Opportunities",
+          help: "New opportunities that match your saved searches, as Explore Alerts lists them.",
+        },
+        expiry_reminders: {
+          label: "Expiry reminders",
+          help: "Certifications, documents, your passport and onboarding items that expire in 30, 7 and 1 days.",
+        },
       },
       errors: {
         denied: "These preferences could not be saved for your account. Sign in again and retry.",
@@ -7056,6 +7191,23 @@ var gateway_default$1 = {
         calendar_feed_limit: "You have 20 feeds. Revoke one before you add another.",
         denied: "That feed is not available to you.",
         unexpected: "Something went wrong. Try again.",
+      },
+    },
+    quietHours: {
+      title: "Quiet hours",
+      help: "Push notifications from organizations you are not a member of wait until your quiet hours end. Safety alerts and changes to a shift starting within 12 hours still reach you. Email is never held.",
+      start: "Start",
+      end: "End",
+      zone: "Time zone",
+      save: "Save quiet hours",
+      saved: "Saved. Pushes wait out these hours.",
+      errors: {
+        zone: "Choose your time zone, for example America/New_York.",
+        pair: "Set both a start and an end, or leave both blank to turn quiet hours off.",
+        time: "Enter the start and end as times, for example 22:00.",
+        same: "Choose an end time different from the start.",
+        denied: "Quiet hours could not be saved for your account. Sign in again and retry.",
+        unexpected: "Something went wrong saving your quiet hours. Try again in a moment.",
       },
     },
   },
@@ -7279,6 +7431,43 @@ var gateway_default$1 = {
     inReview:
       "Version {version} is in review and not yet in effect. The published text appears here when it takes effect.",
     back: "Go to Gateway",
+  },
+  diversity: {
+    title: "Supplier diversity",
+    lead: "Optional and self-declared. Each certification is shared only with an organization you choose that runs a supplier diversity program, by separate consent you can revoke here at any time.",
+    empty: "No supplier diversity certifications yet.",
+    noPrograms:
+      "None of the organizations you work with or applied to runs a supplier diversity program yet.",
+    numberLast4: "Number ending {last4}",
+    remove: "Remove",
+    sharedWith: "Shared with",
+    sharedOn: "Shared on {date}",
+    notShared: "Not shared with any organization.",
+    revoke: "Revoke",
+    shareLabel: "Share this certification",
+    shareWith: "Share with",
+    share: "Share",
+    shared: "Shared.",
+    consent:
+      "You consent to this organization reading this certification for its supplier diversity program. Revoke at any time.",
+    add: "Add certification",
+    added: "Added.",
+    kind: "Certification",
+    certifyingBody: "Certified by",
+    certifyingBodyHelp:
+      "For example a state DBE program or the SBA. Write Self-declared when nobody certified it.",
+    number: "Certificate number",
+    numberHelp: "Optional. Stored as restricted data: only its last four characters show here.",
+    issuedOn: "Issued",
+    expiresOn: "Expires",
+    errors: {
+      kind: "Choose the kind of certification.",
+      certifyingBody: "Enter who certified it, or Self-declared.",
+      certificateNumber: "Keep the certificate number under 100 characters.",
+      issuedOn: "Enter the issue date as a date.",
+      expiresOn: "Choose an expiry date on or after the issue date.",
+      orgId: "Choose the organization to share with.",
+    },
   },
 };
 var gatewayOnboarding_default$1 = {
@@ -13474,6 +13663,10 @@ var settings_default$1 = {
       label: "Translate chat messages",
       help: "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default.",
     },
+    supplierDiversityProgram: {
+      label: "Supplier diversity program",
+      help: "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden.",
+    },
   },
   choices: {
     shell_start_page: {
@@ -14015,6 +14208,14 @@ var settings_default$1 = {
       feed: {
         label: "Feed",
         help: "Announcements, surveys and recognition.",
+      },
+      opportunities: {
+        label: "Opportunities",
+        help: "New opportunities that match your saved searches.",
+      },
+      expiry_reminders: {
+        label: "Expiry reminders",
+        help: "Certifications, documents and onboarding items that expire in 30, 7 and 1 days.",
       },
     },
   },
@@ -15657,6 +15858,32 @@ var vendors_default$1 = {
     requiredNameHelp: "The party vendors must name, for example the venue owner.",
     project: "Project",
     everyProject: "Every project",
+  },
+  diversity: {
+    title: "Supplier diversity",
+    lead: "Certifications vendors and freelancers shared with your organization for its supplier diversity program. Each was shared by separate consent and can be revoked; every view is logged.",
+    off: "Your organization runs no supplier diversity program, so nobody can share diversity certifications with it.",
+    turnOn: "Turn it on in Settings",
+    empty: "Nobody has shared a supplier diversity certification yet.",
+    what: "supplier diversity certifications",
+    owner: "Shared by",
+    kind: "Certification",
+    certifyingBody: "Certified by",
+    number: "Certificate number",
+    expires: "Expires",
+    masked: "Masked: needs government identifier access",
+    none: "None",
+    kinds: {
+      minorityOwned: "Minority-owned business",
+      womenOwned: "Women-owned business",
+      veteranOwned: "Veteran-owned business",
+      serviceDisabledVeteranOwned: "Service-disabled veteran-owned business",
+      disabilityOwned: "Disability-owned business",
+      lgbtqOwned: "LGBTQ+-owned business",
+      smallDisadvantagedBusiness: "Small disadvantaged business",
+      hubzone: "HUBZone business",
+      other: "Other certification",
+    },
   },
 };
 var views_default$1 = {
@@ -22344,6 +22571,33 @@ var email_default = {
         body: "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}",
       },
     },
+    opportunity: {
+      matched: {
+        subject:
+          "{count, plural, one {Nueva coincidencia para {searchName}: {title}} other {# nuevas coincidencias para {searchName}}}",
+        body: "{count, plural, one {{orgName} publicó {title}, que coincide con su búsqueda guardada {searchName}.} other {{orgName} publicó # oportunidades que coinciden con su búsqueda guardada {searchName}, entre ellas {title}.}}",
+      },
+    },
+    onboarding: {
+      item_expiring: {
+        subject: "{title} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        body: "Su {title} para {orgName} vence el {expiresOn}. Renuévelo antes de esa fecha para mantener completa su incorporación.",
+      },
+    },
+    certification: {
+      expiring: {
+        subject:
+          "Su certificación {title} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        body: "Su certificación {title} vence el {expiresOn}. Renuévela y actualice su perfil para que las organizaciones vean que está vigente.",
+      },
+    },
+    document: {
+      expiring: {
+        subject:
+          "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence {days, plural, =0 {hoy} one {en # día} other {en # días}}",
+        body: "{kind, select, passport {Su pasaporte vence el {expiresOn}. Renuévelo antes de viajar por trabajo.} insurance {Su certificado de seguro {title} registrado con {orgName} vence el {expiresOn}. Envíe el certificado renovado antes de esa fecha.} other {{title} para {orgName} vence el {expiresOn}. Revise si necesita renovarlo.}}",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -23179,6 +23433,10 @@ var gateway_default = {
       slug_reserved: "Esa dirección web está reservada. Elige otra.",
       cross_org_reference:
         "Ese documento pertenece a otra organización. Vuelve a subirlo para esta.",
+      supplier_diversity_no_program:
+        "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
+      time_zone_unknown:
+        "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York.",
     },
   },
   common: {
@@ -23553,196 +23811,22 @@ var gateway_default = {
       returned: "Devuelto",
       canceled: "Cancelado",
     },
-  },
-  explore: {
-    title: "Explorar",
-    lead: "Oportunidades abiertas para ti, con la fecha límite más cercana primero. El pago siempre se muestra antes de postular.",
-    searchLabel: "Buscar oportunidades",
-    searchHint: "Busca roles, habilidades u organizaciones",
-    search: "Buscar",
-    filters: "Filtros",
-    roleTypes: "Tipos de rol",
-    startsAfter: "Empieza a partir de",
-    endsBefore: "Termina a más tardar",
-    minPay: "Pago mínimo",
-    minPayHelp:
-      "En dólares estadounidenses. Las publicaciones con tarifa a consultar siguen en los resultados.",
-    apply: "Aplicar filtros",
-    clear: "Quitar filtros",
-    results: "{n, plural, =0 {Ninguna oportunidad} one {# oportunidad} other {# oportunidades}}",
-    empty:
-      "Ninguna oportunidad coincide con estos filtros. Quita un filtro o guarda la búsqueda para recibir una alerta.",
-    emptyAction: "Quitar filtros",
-    deadline: "Postula antes del {date}",
-    rankingLink: "Cómo funciona el orden",
-    verified: "Organización verificada",
-    saveSearch: {
-      title: "Guardar esta búsqueda",
-      name: "Nombre de la búsqueda",
-      nameHelp: "Recibes un correo y una notificación cuando una nueva oportunidad coincida.",
-      submit: "Guardar búsqueda",
-      saved: "Búsqueda guardada. Adminístrala en Alertas.",
-    },
-    table: {
-      title: "Oportunidad",
-      org: "Organización",
-      pay: "Pago",
-      dates: "Fechas",
-      place: "Lugar",
-      deadline: "Fecha límite",
-    },
-    saved: {
-      title: "Guardadas",
-      lead: "Oportunidades que guardaste para volver a ellas.",
-      empty: "Aún no guardaste nada. Guarda una oportunidad desde su página para volver a ella.",
-      emptyAction: "Explorar oportunidades",
-      closed: "Ya no recibe postulaciones",
-    },
-    alerts: {
-      title: "Alertas",
-      lead: "Búsquedas guardadas. Cada una envía un correo y una notificación cuando una nueva oportunidad coincide.",
-      empty:
-        "Aún no tienes búsquedas guardadas. Busca en Explorar y guarda la búsqueda para recibir alertas.",
-      emptyAction: "Buscar oportunidades",
-      on: "Alertas activas",
-      off: "Alertas desactivadas",
-      turnOff: "Desactivar",
-      turnOn: "Activar",
-      remove: "Quitar",
-      run: "Buscar",
-      any: "Cualquier tipo de rol",
-    },
-    detail: {
-      pay: "Pago",
-      rateType: "Tipo de tarifa",
-      dates: "Fechas",
-      place: "Lugar",
-      positions: "Puestos",
-      deadline: "Fecha límite",
-      visibility: "Quién la ve",
-      minimumAge: "Edad mínima",
-      minimumAgeValue: "{n} años o más",
-      roleType: "Tipo de rol",
-      role: "Rol",
-      about: "Sobre el trabajo",
-      requirements: "Requisitos",
-      requirementsNone: "No se requieren certificaciones, seguros ni equipo.",
-      requirementsCheck:
-        "Revisa cada requisito con tu perfil antes de postular; la organización los verifica durante la incorporación.",
-      insuranceMinimum: "Seguro de al menos {amount}",
-      schedule: "Llamados",
-      closed: "Esta oportunidad ya no recibe postulaciones.",
-      closedAction: "Buscar oportunidades abiertas",
-      applied: "Postulaste el {date}. Síguela en Postulaciones.",
-      appliedAction: "Ver postulación",
-      applyNow: "Postular",
-      report: "Reportar publicación",
-      save: "Guardar",
-      unsave: "Quitar de guardadas",
-      qualified: "Cumples todos los requisitos de certificación.",
-      missing: "Te falta: {list}.",
-      missingAction: "Agrega certificaciones a tu perfil",
-      holds: "Lo tienes",
-      lacks: "Aún no lo tienes",
-    },
-    applyForm: {
-      title: "Postula a {role}",
-      shared: "{org} recibe estos datos de tu perfil",
-      sharedHelp:
-        "Puedes revocar el permiso en cualquier momento en Configuración. La organización conserva lo que la ley le exige.",
-      fieldName: "Tu nombre",
-      fieldEmail: "Tu correo",
-      questions: "Preguntas de {org}",
-      coverNote: "Nota para la organización",
-      available: "Estoy disponible en estas fechas",
-      availableHelp: "Confirma tu disponibilidad para postular.",
-      asAccount: "Postular como",
-      submit: "Enviar postulación",
-      fee: "Tu tarifa",
-      feeHelp: "Déjalo en blanco para aceptar la tarifa publicada.",
-      feeRequestHelp:
-        "No hay tarifa publicada. Propón una o déjalo en blanco para hablarlo con la organización.",
-      epk: "Tu kit de prensa",
-      epkHelp: "La organización ve el EPK de tu perfil cuando postulas.",
-      bidTitle: "Oferta sellada",
-      bidHelp:
-        "Las ofertas quedan selladas hasta la fecha límite. Ningún otro oferente ve la tuya.",
-      bidLine: "Línea {n}",
-      bidDescription: "Artículo o servicio",
-      bidQuantity: "Cantidad",
-      bidUnitPrice: "Precio unitario",
-      bidUnitPriceHelp:
-        "Déjalo en blanco si aún no puedes cotizar esta línea; queda sin precio, nunca en cero.",
-      bidAddLine: "Agregar línea",
-      bidRemoveLine: "Quitar línea {n}",
-      bidTotal: "Total",
-      bidValidUntil: "Válida hasta",
-      bidCurrency: "Precios en {currency}",
-      bidNeedsAccount:
-        "Las ofertas salen de una cuenta de empresa. Crea una en Configuración y actúa como ella para ofertar.",
-      bidNeedsAccountAction: "Configuración de empresa",
-      slateTitle: "Tu propuesta de personal",
-      slateHelp:
-        "Elige a los miembros de tu equipo que propones. Cada uno debe ser miembro de tu cuenta.",
-      slateEmpty:
-        "Tu cuenta aún no tiene otros miembros. Agrega a tu personal en Configuración de empresa y arma la propuesta.",
-      sent: "Postulación enviada. Síguela en Postulaciones.",
-      errors: {
-        available: "Confirma tu disponibilidad para enviar la postulación.",
-        answer: "Responde todas las preguntas obligatorias.",
-        fee: "Escribe la tarifa como número o déjala en blanco.",
-        bidLines: "Agrega al menos una línea con un artículo y una cantidad mayor que cero.",
-        slate: "Elige al menos un miembro del equipo para la propuesta.",
-      },
-      profileSections: "Compartir también de su perfil con {org}",
-      profileSectionsHelp:
-        "Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.",
-      sections: {
-        headline: "Titular",
-        bio: "Acerca de",
-        pronouns: "Pronombres",
-        location: "Ubicación",
-        skills: "Habilidades",
-        certifications: "Certificaciones",
-        rates: "Tarifas",
-        languages: "Idiomas",
-        links: "Enlaces",
-      },
-    },
-    reportForm: {
-      title: "Reportar esta publicación",
-      body: "La plataforma revisa cada reporte y envía a la organización una declaración de motivos por cualquier medida que tome.",
-      reason: "Motivo",
-      details: "Lo que viste",
-      submit: "Enviar reporte",
-      sent: "Reporte enviado. Gracias.",
-      cancel: "Cancelar",
-    },
-    ranking: {
-      title: "Cómo funciona el orden",
-      lead: "Explorar ordena las oportunidades solo por dos factores públicos. Ninguna organización puede pagar por posición.",
-      factor1:
-        "La fecha límite de postulación: la más cercana va primero para que no te pierdas ninguna.",
-      factor2:
-        "La fecha de inicio: con fechas límite iguales, va primero el trabajo que empieza antes.",
-      visibility:
-        "Ves una oportunidad solo cuando la organización la hizo visible para ti: por invitación, mediante sus grupos de talento o proveedores, para quienes ya trabajaron con ella, o para todo el mercado.",
-      filters: "Tus filtros acotan la lista; nunca la reordenan.",
-      back: "Volver a Explorar",
-    },
-    organizations: {
-      tab: "Organizaciones",
-      lead: "Organizaciones que publican un perfil público: qué hacen, si están verificadas y qué tienen abierto.",
-      searchLabel: "Buscar organizaciones",
-      results:
-        "{n, plural, =0 {Ninguna organización} one {# organización} other {# organizaciones}}",
-      empty:
-        "Ningún perfil público de organización coincide. Borre la búsqueda para ver todas las organizaciones.",
-      emptyAction: "Volver a oportunidades",
-      listLabel: "Organizaciones",
-      open: "{n, plural, =0 {Sin oportunidades abiertas} one {# oportunidad abierta} other {# oportunidades abiertas}}",
+    supplierDiversityKind: {
+      minorityOwned: "Empresa de propiedad de minorías",
+      womenOwned: "Empresa de propiedad de mujeres",
+      veteranOwned: "Empresa de propiedad de veteranos",
+      serviceDisabledVeteranOwned:
+        "Empresa de propiedad de veteranos con discapacidad por servicio",
+      disabilityOwned: "Empresa de propiedad de personas con discapacidad",
+      lgbtqOwned: "Empresa de propiedad LGBTQ+",
+      smallDisadvantagedBusiness: "Pequeña empresa en desventaja",
+      hubzone: "Empresa HUBZone",
+      other: "Otra certificación",
     },
   },
+  explore: /* @__PURE__ */ JSON.parse(
+    '{"title":"Explorar","lead":"Oportunidades abiertas para usted, la más adecuada primero. El pago siempre se muestra antes de postularse.","searchLabel":"Buscar oportunidades","searchHint":"Busca roles, habilidades u organizaciones","search":"Buscar","filters":"Filtros","roleTypes":"Tipos de rol","startsAfter":"Empieza a partir de","endsBefore":"Termina a más tardar","minPay":"Pago mínimo","minPayHelp":"En dólares estadounidenses. Las publicaciones con tarifa a consultar siguen en los resultados.","apply":"Aplicar filtros","clear":"Quitar filtros","results":"{n, plural, =0 {Ninguna oportunidad} one {# oportunidad} other {# oportunidades}}","empty":"Ninguna oportunidad coincide con estos filtros. Quita un filtro o guarda la búsqueda para recibir una alerta.","emptyAction":"Quitar filtros","deadline":"Postula antes del {date}","rankingLink":"Cómo funciona el orden","verified":"Organización verificada","saveSearch":{"title":"Guardar esta búsqueda","name":"Nombre de la búsqueda","nameHelp":"Recibes un correo y una notificación cuando una nueva oportunidad coincida.","submit":"Guardar búsqueda","saved":"Búsqueda guardada. Adminístrala en Alertas."},"table":{"title":"Oportunidad","org":"Organización","pay":"Pago","dates":"Fechas","place":"Lugar","deadline":"Fecha límite"},"saved":{"title":"Guardadas","lead":"Oportunidades que guardaste para volver a ellas.","empty":"Aún no guardaste nada. Guarda una oportunidad desde su página para volver a ella.","emptyAction":"Explorar oportunidades","closed":"Ya no recibe postulaciones"},"alerts":{"title":"Alertas","lead":"Nuevas oportunidades que coincidieron con sus búsquedas guardadas y, después, las búsquedas. Cada coincidencia envía un correo y una notificación push, según lo que configuró en Ajustes, Notificaciones.","empty":"Aún no tienes búsquedas guardadas. Busca en Explorar y guarda la búsqueda para recibir alertas.","emptyAction":"Buscar oportunidades","on":"Alertas activas","off":"Alertas desactivadas","turnOff":"Desactivar","turnOn":"Activar","remove":"Quitar","run":"Buscar","any":"Cualquier tipo de rol","matches":"Coincidencias recientes","noMatches":"Aún no hay coincidencias. Cuando una organización publique una oportunidad que coincida con una búsqueda guardada, aparecerá aquí.","matchedBy":"Coincidió con {name} el {date}","searches":"Búsquedas guardadas","within":"A menos de {km} km de {place}"},"detail":{"pay":"Pago","rateType":"Tipo de tarifa","dates":"Fechas","place":"Lugar","positions":"Puestos","deadline":"Fecha límite","visibility":"Quién la ve","minimumAge":"Edad mínima","minimumAgeValue":"{n} años o más","roleType":"Tipo de rol","role":"Rol","about":"Sobre el trabajo","requirements":"Requisitos","requirementsNone":"No se requieren certificaciones, seguros ni equipo.","requirementsCheck":"Revisa cada requisito con tu perfil antes de postular; la organización los verifica durante la incorporación.","insuranceMinimum":"Seguro de al menos {amount}","schedule":"Llamados","closed":"Esta oportunidad ya no recibe postulaciones.","closedAction":"Buscar oportunidades abiertas","applied":"Postulaste el {date}. Síguela en Postulaciones.","appliedAction":"Ver postulación","applyNow":"Postular","report":"Reportar publicación","save":"Guardar","unsave":"Quitar de guardadas","qualified":"Cumples todos los requisitos de certificación.","missing":"Te falta: {list}.","missingAction":"Agrega certificaciones a tu perfil","holds":"Lo tienes","lacks":"Aún no lo tienes"},"applyForm":{"title":"Postula a {role}","shared":"{org} recibe estos datos de tu perfil","sharedHelp":"Puedes revocar el permiso en cualquier momento en Configuración. La organización conserva lo que la ley le exige.","fieldName":"Tu nombre","fieldEmail":"Tu correo","questions":"Preguntas de {org}","coverNote":"Nota para la organización","available":"Estoy disponible en estas fechas","availableHelp":"Confirma tu disponibilidad para postular.","asAccount":"Postular como","submit":"Enviar postulación","fee":"Tu tarifa","feeHelp":"Déjalo en blanco para aceptar la tarifa publicada.","feeRequestHelp":"No hay tarifa publicada. Propón una o déjalo en blanco para hablarlo con la organización.","epk":"Tu kit de prensa","epkHelp":"La organización ve el EPK de tu perfil cuando postulas.","bidTitle":"Oferta sellada","bidHelp":"Las ofertas quedan selladas hasta la fecha límite. Ningún otro oferente ve la tuya.","bidLine":"Línea {n}","bidDescription":"Artículo o servicio","bidQuantity":"Cantidad","bidUnitPrice":"Precio unitario","bidUnitPriceHelp":"Déjalo en blanco si aún no puedes cotizar esta línea; queda sin precio, nunca en cero.","bidAddLine":"Agregar línea","bidRemoveLine":"Quitar línea {n}","bidTotal":"Total","bidValidUntil":"Válida hasta","bidCurrency":"Precios en {currency}","bidNeedsAccount":"Las ofertas salen de una cuenta de empresa. Crea una en Configuración y actúa como ella para ofertar.","bidNeedsAccountAction":"Configuración de empresa","slateTitle":"Tu propuesta de personal","slateHelp":"Elige a los miembros de tu equipo que propones. Cada uno debe ser miembro de tu cuenta.","slateEmpty":"Tu cuenta aún no tiene otros miembros. Agrega a tu personal en Configuración de empresa y arma la propuesta.","sent":"Postulación enviada. Síguela en Postulaciones.","errors":{"available":"Confirma tu disponibilidad para enviar la postulación.","answer":"Responde todas las preguntas obligatorias.","fee":"Escribe la tarifa como número o déjala en blanco.","bidLines":"Agrega al menos una línea con un artículo y una cantidad mayor que cero.","slate":"Elige al menos un miembro del equipo para la propuesta."},"profileSections":"Compartir también de su perfil con {org}","profileSectionsHelp":"Solo se comparten las secciones que marque, tal como están hoy, incluidas las que su perfil mantiene privadas. Puede revocar el acceso en cualquier momento en Configuración.","sections":{"headline":"Titular","bio":"Acerca de","pronouns":"Pronombres","location":"Ubicación","skills":"Habilidades","certifications":"Certificaciones","rates":"Tarifas","languages":"Idiomas","links":"Enlaces"}},"reportForm":{"title":"Reportar esta publicación","body":"La plataforma revisa cada reporte y envía a la organización una declaración de motivos por cualquier medida que tome.","reason":"Motivo","details":"Lo que viste","submit":"Enviar reporte","sent":"Reporte enviado. Gracias.","cancel":"Cancelar"},"ranking":{"title":"Cómo funciona el orden","lead":"Explorar muestra solo las oportunidades que las organizaciones hicieron visibles para usted, en uno de dos órdenes que usted elige. Ninguna organización puede pagar por su posición.","factor1":"La fecha límite de postulación: la más cercana va primero para que no te pierdas ninguna.","factor2":"La fecha de inicio: con fechas límite iguales, va primero el trabajo que empieza antes.","visibility":"Ves una oportunidad solo cuando la organización la hizo visible para ti: por invitación, mediante sus grupos de talento o proveedores, para quienes ya trabajaron con ella, o para todo el mercado.","filters":"Tus filtros acotan la lista; nunca la reordenan.","back":"Volver a Explorar","recommendedTitle":"Más adecuada","recommendedLead":"Cada oportunidad recibe una puntuación sobre 100 a partir de su propio perfil. Nada que pague una organización cuenta.","factors":{"skills":{"title":"Habilidades, hasta {points} puntos.","body":"Todos los puntos cuando la categoría de la oportunidad es una de las habilidades de su perfil, 25 cuando está en la misma disciplina y 10 cuando está en el mismo departamento."},"certifications":{"title":"Certificaciones, hasta {points} puntos.","body":"La proporción de certificaciones requeridas que usted tiene, en un registro vigente de una organización o en su perfil con el mismo nombre. Una oportunidad que no requiere ninguna no tiene nada pendiente. La organización igual verifica las certificaciones durante la incorporación."},"location":{"title":"Ubicación, hasta {points} puntos.","body":"Si busca cerca de un lugar: todos los puntos a menos de 50 km y 10 a menos de 150 km. Si no: todos los puntos cuando el recinto está en la ciudad de su perfil y 5 cuando está en su país."},"availability":{"title":"Disponibilidad, hasta {points} puntos.","body":"Todos los puntos cuando ninguno de sus días no disponibles coincide con las fechas del trabajo, la mitad cuando la oportunidad aún no tiene fechas."}},"ties":"Con la misma puntuación, primero va la fecha límite más próxima y luego el inicio más temprano.","soonestTitle":"Fecha límite más próxima","neverTitle":"Lo que nunca cuenta","never":"Pagos, planes, anuncios o cualquier otra cosa que pague una organización. Sus características protegidas. Quién descartó o guardó una oportunidad.","passed":"Las oportunidades que descarta salen de sus resultados hasta que deshaga el descarte. Las organizaciones nunca ven quién descartó."},"organizations":{"tab":"Organizaciones","lead":"Organizaciones que publican un perfil público: qué hacen, si están verificadas y qué tienen abierto.","searchLabel":"Buscar organizaciones","results":"{n, plural, =0 {Ninguna organización} one {# organización} other {# organizaciones}}","empty":"Ningún perfil público de organización coincide. Borre la búsqueda para ver todas las organizaciones.","emptyAction":"Volver a oportunidades","listLabel":"Organizaciones","open":"{n, plural, =0 {Sin oportunidades abiertas} one {# oportunidad abierta} other {# oportunidades abiertas}}"},"sortLabel":"Orden","sort":{"recommended":"Más adecuada","soonest":"Fecha límite más próxima"},"discipline":"Disciplina","disciplineAny":"Cualquier disciplina","category":"Categoría","categoryAny":"Cualquier categoría de la disciplina","certification":"Certificación requerida","certificationHelp":"Muestra las oportunidades que la requieren, por ejemplo ETCP Rigger.","near":"Cerca de","nearAny":"Cualquier lugar","nearHelp":"Lugares con oportunidades abiertas para usted. Se omiten los recintos sin ubicación.","radius":"Dentro de","radiusOption":"{km} km","showPassed":"Mostrar las oportunidades que descartó","distance":"A {km} km","why":{"label":"Por qué coincide","skills":"Coincide con sus habilidades","discipline":"Cercana a sus habilidades","certifications":"Cumple las certificaciones","near":"Cerca de usted","available":"Encaja con su disponibilidad"},"swipe":{"actions":"Acciones para {title}","save":"Guardar","saved":"Guardada. Encuéntrela en Guardadas.","unsave":"Quitar","unsaved":"Se quitó de Guardadas.","pass":"Descartar","passed":"Descartó {title}.","restored":"De nuevo en sus resultados.","removed":"Se quitó {title}.","undo":"Deshacer","failed":"No se completó. Vuelva a cargar la página e inténtelo de nuevo."}}',
+  ),
   home: {
     greeting: "Hola, {name}",
     searchLabel: "Buscar oportunidades",
@@ -23902,6 +23986,18 @@ var gateway_default = {
         bio: "Siguiente: escribe una biografía breve",
         languages: "Siguiente: agrega los idiomas que hablas",
         links: "Siguiente: agrega un enlace a tu trabajo",
+      },
+      missingTitle: "{n, plural, one {Falta una cosa} other {Faltan # cosas}}",
+      missing: {
+        headline: "Agregue un titular",
+        skills: "Agregue sus habilidades",
+        city: "Agregue su ciudad",
+        certifications: "Agregue una certificación",
+        rate: "Fije su tarifa",
+        availability: "Marque su disponibilidad",
+        bio: "Escriba una biografía breve",
+        languages: "Agregue los idiomas que habla",
+        links: "Agregue un enlace a su trabajo",
       },
     },
     certifications: {
@@ -24068,221 +24164,9 @@ var gateway_default = {
         "Este enlace no es válido. Usa el enlace más reciente que envió la organización.",
     },
   },
-  settings: {
-    remove: "Quitar",
-    leads: {
-      profile: "Lo que ven las organizaciones cuando postulas o compartes tu perfil.",
-      profilePrivacy: "Quién ve tu perfil y cada sección, y los perfiles que compartiste.",
-      account: "Tu nombre y el correo con el que inicias sesión.",
-      security: "Cómo inicias sesión y cómo cerrar sesiones.",
-      organizations: "Las cuentas de empresa a las que perteneces, y cómo crear una.",
-      preferences: "Idioma, zona horaria, página de inicio y otras preferencias personales.",
-      accessibility: "Preferencias de movimiento, contraste y lectura.",
-      notifications: "Cómo te contactan las organizaciones.",
-      outOfOffice: "Cuándo no estás y qué ven las organizaciones en ese tiempo.",
-      workDetails:
-        "Contactos de emergencia, tallas, necesidades y datos de viaje, y qué contrataciones los ven.",
-      payoutAndTax: "Dónde te pagan las organizaciones y los formularios fiscales que les diste.",
-      calendarFeeds: "Tu trabajo en tu propio calendario.",
-      connectedApps: "Aplicaciones conectadas a tu cuenta.",
-      keyboardShortcuts: "Atajos de teclado.",
-      developer: "Acceso personal para tus propias herramientas.",
-      companyCompanyProfileAndPrivacy: "El perfil público de tu empresa y quién lo ve.",
-      companyTeamAndAccountRoles: "Quién está en la cuenta de tu empresa y sus roles.",
-      companyServiceRegionsAndCapabilities: "Dónde trabaja tu empresa y qué hace.",
-      companyInsuranceAndComplianceDocuments:
-        "Certificados de seguro y precalificación registrados.",
-      companyPayoutAndTax:
-        "Dónde pagan las organizaciones a tu empresa y sus formularios fiscales.",
-      companyRepresentation: "Artistas que representa tu agencia.",
-      companyNotifications: "Cómo contactan las organizaciones a tu empresa.",
-      companyDangerZone: "Propiedad y cierre de la cuenta de empresa.",
-    },
-    profile: {
-      facts: "Datos del perfil",
-      handle: "Usuario",
-      handleHelp:
-        "La dirección de tu perfil. Los usuarios anteriores siguen funcionando 90 días tras un cambio.",
-      preferredName: "Nombre preferido",
-      pronouns: "Pronombres",
-      headline: "Titular",
-      city: "Ciudad",
-      country: "Código de país",
-      rate: "Tu tarifa en {currency}",
-      rateHelp:
-        "Déjala en blanco para no mostrar tarifa. Una tarifa en blanco nunca aparece como cero.",
-      about: "Acerca de ti",
-      bio: "Biografía",
-      skills: "Habilidades",
-      skill: "Habilidad",
-      addSkill: "Agregar habilidad",
-      certifications: "Certificaciones",
-      addCertification: "Agregar certificación",
-      certName: "Certificación",
-      certBody: "Emitida por",
-      certIssued: "Emitida el",
-      certExpires: "Vence el",
-      languages: "Idiomas",
-      addLanguage: "Agregar idioma",
-      languageTag: "Código de idioma",
-      languageHelp: "Por ejemplo en, es o pt-BR.",
-      proficiency: "Nivel",
-      links: "Enlaces",
-      addLink: "Agregar enlace",
-      linkLabel: "Etiqueta",
-      linkUrl: "Dirección web",
-    },
-    privacy: {
-      title: "Privacidad del perfil",
-      visibility: "Quién ve tu perfil",
-      visibilityHelp:
-        "Privado: solo tú. Red: personas y organizaciones con las que has trabajado. Público: todos.",
-      discoverable: "Permitir que las organizaciones me encuentren en el mercado",
-      indexing: "Permitir que los buscadores indexen mi perfil público",
-      inherit: "Igual que el perfil",
-      sharesBody:
-        "Cada perfil compartido envió los campos que elegiste a una organización. Revocar detiene las actualizaciones futuras; la organización conserva lo que exige la ley.",
-      sections: {
-        photo: "Foto",
-        pronouns: "Pronombres",
-        headline: "Titular",
-        bio: "Acerca de",
-        location: "Ubicación",
-        skills: "Habilidades",
-        certifications: "Certificaciones",
-        portfolio: "Portafolio",
-        rates: "Tarifas",
-        availability: "Disponibilidad",
-        languages: "Idiomas",
-        references: "Referencias",
-        links: "Enlaces",
-        organizations: "Organizaciones",
-      },
-    },
-    account: {
-      name: "Nombre completo",
-      email: "Correo de acceso: {email}",
-      oneAccount:
-        "Esta única cuenta sirve en Gateway, Atlas y Compass para todas las organizaciones.",
-    },
-    security: {
-      passwordless:
-        "Gateway te da acceso primero con un enlace por correo o tu proveedor conectado; la contraseña es opcional. Cada dispositivo tiene su propia sesión.",
-      signOut: "Cerrar sesión en este dispositivo",
-    },
-    organizations: {
-      accounts: "Cuentas de empresa",
-      none: "No perteneces a ninguna cuenta de empresa. Crea una abajo si trabajas como empresa.",
-      leave: "Salir",
-      create: "Crear una cuenta de empresa",
-      createBody:
-        "Proveedores, agencias, firmas contratistas y patrocinadores ofertan y facturan como empresa. Serás su propietario.",
-      name: "Nombre de la empresa",
-      slug: "Dirección web",
-      slugHelp: "De 2 a 48 letras minúsculas, números y guiones.",
-      createSubmit: "Crear cuenta",
-      created: "Cuenta de empresa creada. Actúa como ella desde el menú de cuenta.",
-    },
-    payout: {
-      body: "Los datos de pago se ingresan mediante el proveedor de pagos de cada organización; aquí solo se muestran los últimos cuatro dígitos.",
-    },
-    company: {
-      profile: "Perfil de la empresa",
-      publicLink: "Perfil público en /c/{handle}",
-      about: "Acerca de",
-      website: "Sitio web",
-      email: "Correo de contacto",
-      profileUnavailable:
-        "El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.",
-      remove: "Quitar",
-      inviteNote:
-        "Para agregar a alguien al equipo, pídele que cree una cuenta de Gateway; luego un propietario o administrador lo agrega por su cuenta.",
-      noInsurance:
-        "No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.",
-      toEngagements: "Ver contrataciones",
-      noRepresentation: "Tu agencia aún no representa a ningún artista.",
-      proposeNote:
-        "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",
-    },
-    notes: {
-      connectedApps:
-        "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
-      toOrganizations: "Ver tus cuentas",
-      notifications:
-        "Las organizaciones te contactan por correo y notificaciones para ofertas, documentos por firmar, pagos y mensajes. Las horas de silencio y el idioma siguen tus preferencias.",
-      toPreferences: "Abrir preferencias",
-      developer:
-        "Los tokens de acceso personal solo están disponibles donde una organización los permite.",
-      toSecurity: "Abrir seguridad",
-      regions: "Las regiones de servicio y capacidades forman parte del perfil de tu empresa.",
-      toCompanyProfile: "Abrir perfil de empresa",
-      dangerZone:
-        "Transferir la propiedad o cerrar una cuenta de empresa se hace con el soporte de la plataforma para conservar los registros que exige la ley. El último propietario no puede salir.",
-      toTeam: "Abrir equipo",
-    },
-    notifications: {
-      formLabel: "Preferencias de notificaciones",
-      save: "Guardar preferencias",
-      saved: "Guardado. Las nuevas notificaciones siguen estas opciones.",
-      channels: {
-        Email: "Correo electrónico",
-        Push: "Aviso en Compass",
-      },
-      categories: {
-        finance: {
-          label: "Facturas y pagos",
-          help: "Cada paso de sus facturas: recibida, aprobada, pago programado y pagada. Las novedades siempre aparecen en Inicio.",
-        },
-      },
-      errors: {
-        denied:
-          "No se pudieron guardar estas preferencias en su cuenta. Inicie sesión de nuevo e intente otra vez.",
-        unexpected: "Algo salió mal al guardar sus preferencias. Inténtelo de nuevo en un momento.",
-      },
-    },
-    deleteAccount: {
-      confirmTitle: "¿Eliminar su cuenta ahora?",
-      confirmBody:
-        "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
-      cancel: "Conservar mi cuenta",
-    },
-    calendarFeeds: {
-      title: "Calendarios suscritos",
-      description:
-        "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver sus turnos publicados y las reuniones, hitos y fechas límite compartidos con usted, en todas las organizaciones con las que trabaja. Las aplicaciones lo actualizan aproximadamente cada hora.",
-      secret:
-        "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
-      none: "Todavía no tiene calendarios suscritos.",
-      listLabel: "Sus calendarios suscritos",
-      feedName: "Mi trabajo",
-      hint: "Enlace que termina en {hint}",
-      created: "Agregado el {date}",
-      lastFetched: "Última consulta el {date}",
-      neverFetched: "Ninguna aplicación lo ha consultado todavía",
-      rotated: "Enlace nuevo emitido el {date}",
-      add: "Agregar un calendario",
-      rotate: "Obtener un enlace nuevo",
-      rotateLabel: "Obtener un enlace nuevo para el calendario que termina en {hint}",
-      rotateConfirm:
-        "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
-      revoke: "Revocar",
-      revokeLabel: "Revocar el calendario que termina en {hint}",
-      revokeConfirm: "El enlace deja de funcionar de inmediato y no se puede volver a activar.",
-      linkTitle: "El enlace de su calendario",
-      linkHelp:
-        "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
-      linkLabel: "Enlace de suscripción",
-      copy: "Copiar enlace",
-      copied: "Enlace copiado.",
-      openInCalendar: "Abrir en mi aplicación de calendario",
-      subscribe: "Suscribirse en una aplicación de calendario",
-      errors: {
-        calendar_feed_limit: "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
-        denied: "Ese calendario no está disponible para usted.",
-        unexpected: "Algo salió mal. Inténtelo de nuevo.",
-      },
-    },
-  },
+  settings: /* @__PURE__ */ JSON.parse(
+    '{"remove":"Quitar","leads":{"profile":"Lo que ven las organizaciones cuando postulas o compartes tu perfil.","profilePrivacy":"Quién ve tu perfil y cada sección, y los perfiles que compartiste.","account":"Tu nombre y el correo con el que inicias sesión.","security":"Cómo inicias sesión y cómo cerrar sesiones.","organizations":"Las cuentas de empresa a las que perteneces, y cómo crear una.","preferences":"Idioma, zona horaria, página de inicio y otras preferencias personales.","accessibility":"Preferencias de movimiento, contraste y lectura.","notifications":"Cómo te contactan las organizaciones.","outOfOffice":"Cuándo no estás y qué ven las organizaciones en ese tiempo.","workDetails":"Contactos de emergencia, tallas, necesidades y datos de viaje, y qué contrataciones los ven.","payoutAndTax":"Dónde te pagan las organizaciones y los formularios fiscales que les diste.","calendarFeeds":"Tu trabajo en tu propio calendario.","connectedApps":"Aplicaciones conectadas a tu cuenta.","keyboardShortcuts":"Atajos de teclado.","developer":"Acceso personal para tus propias herramientas.","companyCompanyProfileAndPrivacy":"El perfil público de tu empresa y quién lo ve.","companyTeamAndAccountRoles":"Quién está en la cuenta de tu empresa y sus roles.","companyServiceRegionsAndCapabilities":"Dónde trabaja tu empresa y qué hace.","companyInsuranceAndComplianceDocuments":"Certificados de seguro y precalificación registrados.","companyPayoutAndTax":"Dónde pagan las organizaciones a tu empresa y sus formularios fiscales.","companyRepresentation":"Artistas que representa tu agencia.","companyNotifications":"Cómo contactan las organizaciones a tu empresa.","companyDangerZone":"Propiedad y cierre de la cuenta de empresa."},"profile":{"facts":"Datos del perfil","handle":"Usuario","handleHelp":"La dirección de tu perfil. Los usuarios anteriores siguen funcionando 90 días tras un cambio.","preferredName":"Nombre preferido","pronouns":"Pronombres","headline":"Titular","city":"Ciudad","country":"Código de país","rate":"Tu tarifa en {currency}","rateHelp":"Déjala en blanco para no mostrar tarifa. Una tarifa en blanco nunca aparece como cero.","about":"Acerca de ti","bio":"Biografía","skills":"Habilidades","skill":"Habilidad","addSkill":"Agregar habilidad","certifications":"Certificaciones","addCertification":"Agregar certificación","certName":"Certificación","certBody":"Emitida por","certIssued":"Emitida el","certExpires":"Vence el","languages":"Idiomas","addLanguage":"Agregar idioma","languageTag":"Código de idioma","languageHelp":"Por ejemplo en, es o pt-BR.","proficiency":"Nivel","links":"Enlaces","addLink":"Agregar enlace","linkLabel":"Etiqueta","linkUrl":"Dirección web"},"privacy":{"title":"Privacidad del perfil","visibility":"Quién ve tu perfil","visibilityHelp":"Privado: solo tú. Red: personas y organizaciones con las que has trabajado. Público: todos.","discoverable":"Permitir que las organizaciones me encuentren en el mercado","indexing":"Permitir que los buscadores indexen mi perfil público","inherit":"Igual que el perfil","sharesBody":"Cada perfil compartido envió los campos que elegiste a una organización. Revocar detiene las actualizaciones futuras; la organización conserva lo que exige la ley.","sections":{"photo":"Foto","pronouns":"Pronombres","headline":"Titular","bio":"Acerca de","location":"Ubicación","skills":"Habilidades","certifications":"Certificaciones","portfolio":"Portafolio","rates":"Tarifas","availability":"Disponibilidad","languages":"Idiomas","references":"Referencias","links":"Enlaces","organizations":"Organizaciones"}},"account":{"name":"Nombre completo","email":"Correo de acceso: {email}","oneAccount":"Esta única cuenta sirve en Gateway, Atlas y Compass para todas las organizaciones."},"security":{"passwordless":"Gateway te da acceso primero con un enlace por correo o tu proveedor conectado; la contraseña es opcional. Cada dispositivo tiene su propia sesión.","signOut":"Cerrar sesión en este dispositivo"},"organizations":{"accounts":"Cuentas de empresa","none":"No perteneces a ninguna cuenta de empresa. Crea una abajo si trabajas como empresa.","leave":"Salir","create":"Crear una cuenta de empresa","createBody":"Proveedores, agencias, firmas contratistas y patrocinadores ofertan y facturan como empresa. Serás su propietario.","name":"Nombre de la empresa","slug":"Dirección web","slugHelp":"De 2 a 48 letras minúsculas, números y guiones.","createSubmit":"Crear cuenta","created":"Cuenta de empresa creada. Actúa como ella desde el menú de cuenta."},"payout":{"body":"Los datos de pago se ingresan mediante el proveedor de pagos de cada organización; aquí solo se muestran los últimos cuatro dígitos."},"company":{"profile":"Perfil de la empresa","publicLink":"Perfil público en /c/{handle}","about":"Acerca de","website":"Sitio web","email":"Correo de contacto","profileUnavailable":"El perfil de la empresa lo administran los administradores de Atlas de la organización. Pide a un propietario de la cuenta que lo configure.","remove":"Quitar","inviteNote":"Para agregar a alguien al equipo, pídele que cree una cuenta de Gateway; luego un propietario o administrador lo agrega por su cuenta.","noInsurance":"No hay certificados de seguro registrados. Las organizaciones los piden durante la incorporación; súbelos ahí.","toEngagements":"Ver contrataciones","noRepresentation":"Tu agencia aún no representa a ningún artista.","proposeNote":"Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway."},"notes":{"connectedApps":"No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.","toOrganizations":"Ver tus cuentas","notifications":"Las organizaciones te contactan por correo y notificaciones para ofertas, documentos por firmar, pagos y mensajes. Las horas de silencio y el idioma siguen tus preferencias.","toPreferences":"Abrir preferencias","developer":"Los tokens de acceso personal solo están disponibles donde una organización los permite.","toSecurity":"Abrir seguridad","regions":"Las regiones de servicio y capacidades forman parte del perfil de tu empresa.","toCompanyProfile":"Abrir perfil de empresa","dangerZone":"Transferir la propiedad o cerrar una cuenta de empresa se hace con el soporte de la plataforma para conservar los registros que exige la ley. El último propietario no puede salir.","toTeam":"Abrir equipo"},"notifications":{"formLabel":"Preferencias de notificaciones","save":"Guardar preferencias","saved":"Guardado. Las nuevas notificaciones siguen estas opciones.","channels":{"Email":"Correo electrónico","Push":"Aviso en Compass"},"categories":{"finance":{"label":"Facturas y pagos","help":"Cada paso de sus facturas: recibida, aprobada, pago programado y pagada. Las novedades siempre aparecen en Inicio."},"opportunities":{"label":"Oportunidades","help":"Nuevas oportunidades que coinciden con sus búsquedas guardadas, como las muestra Explorar, Alertas."},"expiry_reminders":{"label":"Recordatorios de vencimiento","help":"Certificaciones, documentos, su pasaporte y elementos de incorporación que vencen en 30, 7 y 1 días."}},"errors":{"denied":"No se pudieron guardar estas preferencias en su cuenta. Inicie sesión de nuevo e intente otra vez.","unexpected":"Algo salió mal al guardar sus preferencias. Inténtelo de nuevo en un momento."}},"deleteAccount":{"confirmTitle":"¿Eliminar su cuenta ahora?","confirmBody":"No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.","cancel":"Conservar mi cuenta"},"calendarFeeds":{"title":"Calendarios suscritos","description":"Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver sus turnos publicados y las reuniones, hitos y fechas límite compartidos con usted, en todas las organizaciones con las que trabaja. Las aplicaciones lo actualizan aproximadamente cada hora.","secret":"Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.","none":"Todavía no tiene calendarios suscritos.","listLabel":"Sus calendarios suscritos","feedName":"Mi trabajo","hint":"Enlace que termina en {hint}","created":"Agregado el {date}","lastFetched":"Última consulta el {date}","neverFetched":"Ninguna aplicación lo ha consultado todavía","rotated":"Enlace nuevo emitido el {date}","add":"Agregar un calendario","rotate":"Obtener un enlace nuevo","rotateLabel":"Obtener un enlace nuevo para el calendario que termina en {hint}","rotateConfirm":"El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.","revoke":"Revocar","revokeLabel":"Revocar el calendario que termina en {hint}","revokeConfirm":"El enlace deja de funcionar de inmediato y no se puede volver a activar.","linkTitle":"El enlace de su calendario","linkHelp":"Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.","linkLabel":"Enlace de suscripción","copy":"Copiar enlace","copied":"Enlace copiado.","openInCalendar":"Abrir en mi aplicación de calendario","subscribe":"Suscribirse en una aplicación de calendario","errors":{"calendar_feed_limit":"Tiene 20 calendarios. Revoque uno antes de agregar otro.","denied":"Ese calendario no está disponible para usted.","unexpected":"Algo salió mal. Inténtelo de nuevo."}},"quietHours":{"title":"Horas de silencio","help":"Las notificaciones push de organizaciones de las que usted no es miembro esperan a que terminen sus horas de silencio. Las alertas de seguridad y los cambios en un turno que empieza en menos de 12 horas le llegan igual. El correo nunca se retiene.","start":"Inicio","end":"Fin","zone":"Zona horaria","save":"Guardar horas de silencio","saved":"Guardado. Las notificaciones push esperan durante estas horas.","errors":{"zone":"Elija su zona horaria, por ejemplo America/New_York.","pair":"Indique un inicio y un fin, o deje ambos en blanco para desactivar las horas de silencio.","time":"Escriba el inicio y el fin como horas, por ejemplo 22:00.","same":"Elija una hora de fin distinta de la de inicio.","denied":"No se pudieron guardar las horas de silencio de su cuenta. Inicie sesión de nuevo e inténtelo otra vez.","unexpected":"Algo salió mal al guardar sus horas de silencio. Inténtelo de nuevo en un momento."}}}',
+  ),
   shell: {
     skip: "Saltar al contenido",
     search: "Buscar",
@@ -24506,6 +24390,44 @@ var gateway_default = {
     inReview:
       "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
     back: "Ir a Gateway",
+  },
+  diversity: {
+    title: "Diversidad de proveedores",
+    lead: "Opcional y autodeclarada. Cada certificación se comparte solo con una organización que usted elija y que tenga un programa de diversidad de proveedores, con un consentimiento aparte que puede revocar aquí en cualquier momento.",
+    empty: "Aún no tiene certificaciones de diversidad de proveedores.",
+    noPrograms:
+      "Ninguna de las organizaciones con las que trabaja o a las que se postuló tiene todavía un programa de diversidad de proveedores.",
+    numberLast4: "Número terminado en {last4}",
+    remove: "Quitar",
+    sharedWith: "Compartida con",
+    sharedOn: "Compartida el {date}",
+    notShared: "No se ha compartido con ninguna organización.",
+    revoke: "Revocar",
+    shareLabel: "Compartir esta certificación",
+    shareWith: "Compartir con",
+    share: "Compartir",
+    shared: "Compartida.",
+    consent:
+      "Usted consiente que esta organización lea esta certificación para su programa de diversidad de proveedores. Puede revocarlo en cualquier momento.",
+    add: "Agregar certificación",
+    added: "Agregada.",
+    kind: "Certificación",
+    certifyingBody: "Certificada por",
+    certifyingBodyHelp:
+      "Por ejemplo, un programa DBE estatal o la SBA. Escriba Autodeclarada si nadie la certificó.",
+    number: "Número de certificado",
+    numberHelp:
+      "Opcional. Se guarda como dato restringido: aquí solo se muestran sus últimos cuatro caracteres.",
+    issuedOn: "Emitida",
+    expiresOn: "Vence",
+    errors: {
+      kind: "Elija el tipo de certificación.",
+      certifyingBody: "Indique quién la certificó, o Autodeclarada.",
+      certificateNumber: "El número de certificado debe tener menos de 100 caracteres.",
+      issuedOn: "Escriba la fecha de emisión como una fecha.",
+      expiresOn: "Elija una fecha de vencimiento igual o posterior a la de emisión.",
+      orgId: "Elija la organización con la que compartirá.",
+    },
   },
 };
 var gatewayOnboarding_default = {
@@ -30875,6 +30797,10 @@ var settings_default = {
       label: "Traducir mensajes del chat",
       help: "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada.",
     },
+    supplierDiversityProgram: {
+      label: "Programa de diversidad de proveedores",
+      help: "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas.",
+    },
   },
   choices: {
     shell_start_page: {
@@ -31427,6 +31353,14 @@ var settings_default = {
       feed: {
         label: "Noticias",
         help: "Anuncios, encuestas y reconocimientos.",
+      },
+      opportunities: {
+        label: "Oportunidades",
+        help: "Nuevas oportunidades que coinciden con sus búsquedas guardadas.",
+      },
+      expiry_reminders: {
+        label: "Recordatorios de vencimiento",
+        help: "Certificaciones, documentos y elementos de incorporación que vencen en 30, 7 y 1 días.",
       },
     },
   },
@@ -33104,6 +33038,33 @@ var vendors_default = {
       "La parte que los proveedores deben nombrar, por ejemplo el propietario del recinto.",
     project: "Proyecto",
     everyProject: "Todos los proyectos",
+  },
+  diversity: {
+    title: "Diversidad de proveedores",
+    lead: "Certificaciones que proveedores y profesionales independientes compartieron con su organización para su programa de diversidad de proveedores. Cada una se compartió con un consentimiento aparte y puede revocarse; cada consulta queda registrada.",
+    off: "Su organización no tiene un programa de diversidad de proveedores, así que nadie puede compartirle certificaciones de diversidad.",
+    turnOn: "Actívelo en Ajustes",
+    empty: "Nadie ha compartido todavía una certificación de diversidad de proveedores.",
+    what: "certificaciones de diversidad de proveedores",
+    owner: "Compartida por",
+    kind: "Certificación",
+    certifyingBody: "Certificada por",
+    number: "Número de certificado",
+    expires: "Vence",
+    masked: "Oculto: requiere acceso a identificadores oficiales",
+    none: "Ninguno",
+    kinds: {
+      minorityOwned: "Empresa de propiedad de minorías",
+      womenOwned: "Empresa de propiedad de mujeres",
+      veteranOwned: "Empresa de propiedad de veteranos",
+      serviceDisabledVeteranOwned:
+        "Empresa de propiedad de veteranos con discapacidad por servicio",
+      disabilityOwned: "Empresa de propiedad de personas con discapacidad",
+      lgbtqOwned: "Empresa de propiedad LGBTQ+",
+      smallDisadvantagedBusiness: "Pequeña empresa en desventaja",
+      hubzone: "Empresa HUBZone",
+      other: "Otra certificación",
+    },
   },
 };
 var views_default = {
@@ -37783,6 +37744,54 @@ var NOTIFICATION_KINDS = [
       body: "kinds.help_request.assigned.body",
     },
   },
+  {
+    kind: "opportunity.matched",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.opportunity.matched.subject",
+      body: "kinds.opportunity.matched.body",
+    },
+  },
+  {
+    kind: "onboarding.item_expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.onboarding.item_expiring.subject",
+      body: "kinds.onboarding.item_expiring.body",
+    },
+  },
+  {
+    kind: "certification.expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.certification.expiring.subject",
+      body: "kinds.certification.expiring.body",
+    },
+  },
+  {
+    kind: "document.expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.document.expiring.subject",
+      body: "kinds.document.expiring.body",
+    },
+  },
 ];
 //#endregion
 //#region ../schemas/src/notifications/model.ts
@@ -37835,7 +37844,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1368_notification_kind_seed.sql"
+"supabase/migrations/1469_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
