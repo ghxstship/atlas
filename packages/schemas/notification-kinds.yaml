@@ -153,6 +153,27 @@ kinds:
     category: account
   - kind: access.break_glass_started
     category: account
+  # Org lifecycle: trial, deletion and recovery, ownership, white label, partners (A79, 1350 to 1355)
+  - kind: billing.trial_ending
+    category: account
+  - kind: billing.trial_ended
+    category: account
+  - kind: organization.deletion_requested
+    category: account
+  - kind: organization.deletion_recovered
+    category: account
+  - kind: organization.ownership_offered
+    category: account
+  - kind: organization.ownership_accepted
+    category: account
+  - kind: organization.ownership_declined
+    category: account
+  - kind: organization.white_label_reverting
+    category: account
+  - kind: organization.white_label_reverted
+    category: account
+  - kind: partner.client_left
+    category: account
   # Marketplace moderation (A90, 1473): the statement of reasons to the affected party, the outcome to the
   # reporter, and the decision on an appeal (EU Digital Services Act articles 16, 17 and 20)
   - kind: listing.moderated

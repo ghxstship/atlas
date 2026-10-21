@@ -1,4 +1,4 @@
-import { listActivity } from "@xos/data/activity";
+import { labelActivity, listActivity } from "@xos/data/activity";
 import { getNode } from "@xos/ia";
 import { getTranslations } from "next-intl/server";
 import { LoadError } from "@/components/projects/load-error";
@@ -58,7 +58,7 @@ export async function ActivityPage({
       <PageHeader title={t("title")} />
       <ActivityFeed
         label={project ? t("projectLabel", { key: project.key }) : t("label")}
-        entries={page.data.entries}
+        entries={await labelActivity(ctx.viewer.db, page.data.entries)}
         views={views}
         view={view}
         next={page.data.next}

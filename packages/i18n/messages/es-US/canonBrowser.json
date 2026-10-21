@@ -118,7 +118,18 @@
     "qualifier": "Calificador",
     "source": "Fuente",
     "jurisdiction": "Jurisdicción",
-    "provenance": "Procedencia"
+    "provenance": "Procedencia",
+    "domains": {
+      "capacity": "Capacidad",
+      "crew_logistics": "Logística del equipo",
+      "metric_tag_roadmap": "Hoja de ruta de etiquetas de métricas",
+      "power": "Energía",
+      "restrooms_ada": "Sanitarios accesibles (ADA)",
+      "safety_staffing": "Personal de seguridad",
+      "site_services": "Servicios del sitio",
+      "space_program": "Programa de espacios",
+      "tech_network": "Tecnología y red"
+    }
   },
   "extensions": {
     "title": "Extensiones de la organización",

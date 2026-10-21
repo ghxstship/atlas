@@ -289,6 +289,7 @@ describe("inbox repository", () => {
       kind: "message.received",
       section,
       read: false,
+      actorPersonId: null,
       subjectTable: null,
       subjectId: null,
       projectId: null,

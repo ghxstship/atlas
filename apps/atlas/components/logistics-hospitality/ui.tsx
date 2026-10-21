@@ -14,10 +14,10 @@ export {
   PageHeader,
   PropertyChip,
   PropertyList,
-  RefusalNotice,
   Skeleton,
   StateChip,
   StateIcon,
   TemplateCollection,
   TemplateRecord,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";

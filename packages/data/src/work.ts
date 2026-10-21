@@ -1,4 +1,5 @@
 import type { Database, XosClient } from "./client.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 import { untyped } from "./untyped.ts";
 
@@ -373,7 +374,22 @@ export async function listRecords(
     .order("record_number")
     .limit(query.limit ?? 500);
   if (error) return fail(toDataError(error));
-  return ok((data as unknown as RecordRow[]).map(toRecordSummary));
+  return ok(await namedOwners(db, (data as unknown as RecordRow[]).map(toRecordSummary)));
+}
+
+/** Owner names through the one name resolution (A59-011): an engaged owner is named. */
+function namedOwners(db: XosClient, list: readonly RecordSummary[]): Promise<RecordSummary[]> {
+  return fillPersonNames(
+    db,
+    list,
+    (r) => r.ownerId,
+    (r) => r.ownerName,
+    (r, ownerName) => ({ ...r, ownerName }),
+  );
+}
+
+async function namedOwner(db: XosClient, record: RecordSummary): Promise<RecordSummary> {
+  return (await namedOwners(db, [record]))[0] ?? record;
 }
 
 /** The next date that matters for a record: its start while ahead, else its due or end time. */
@@ -449,7 +465,7 @@ export async function getRecordByKey(
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok(toRecordSummary(data as unknown as RecordRow));
+  return ok(await namedOwner(db, toRecordSummary(data as unknown as RecordRow)));
 }
 
 /** One record by id, or not-found. */
@@ -461,7 +477,7 @@ export async function getRecord(db: XosClient, id: string): Promise<Result<Recor
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok(toRecordSummary(data as unknown as RecordRow));
+  return ok(await namedOwner(db, toRecordSummary(data as unknown as RecordRow)));
 }
 
 export interface RecordInput {

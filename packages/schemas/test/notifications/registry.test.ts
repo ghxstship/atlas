@@ -53,8 +53,8 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "safety",
       "account",
     ]);
-    // 28 kinds, plus the three marketplace moderation kinds of A90 (1473).
-    expect(registry.kinds).toHaveLength(31);
+    // 38 kinds (A79's org lifecycle among them), plus the three marketplace moderation kinds of A90 (1473).
+    expect(registry.kinds).toHaveLength(41);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

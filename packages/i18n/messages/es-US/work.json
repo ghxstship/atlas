@@ -417,7 +417,7 @@
   "recurrence": {
     "title": "Se repite",
     "none": "Este registro no se repite.",
-    "rule": "Se repite según la regla {rule}.",
+    "rule": "Se repite: {rule}.",
     "frequency": "Repetir",
     "never": "Nunca",
     "daily": "Diario",
@@ -437,7 +437,14 @@
     "zone": "Las repeticiones se cuentan en {zone}.",
     "save": "Guardar regla",
     "clear": "Dejar de repetir",
-    "next": "Próximas: {dates}"
+    "next": "Próximas: {dates}",
+    "summary": {
+      "daily": "{interval, plural, one {A diario} other {Cada # días}}",
+      "weekly": "{interval, plural, one {Semanal} other {Cada # semanas}}",
+      "monthly": "{interval, plural, one {Mensual} other {Cada # meses}}",
+      "on": "{summary}, los {days}",
+      "custom": "Regla personalizada"
+    }
   },
   "history": {
     "title": "Historial de estados",

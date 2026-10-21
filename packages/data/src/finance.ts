@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, XosClient } from "./client.ts";
 import { csvField } from "./csv.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
@@ -1626,8 +1627,16 @@ export async function listInvoices(
   );
   if (!totals.ok) return totals;
   const byId = new Map(totals.data.map((t) => [str(t["invoice_id"]), t]));
+  // The individual payee's name through the one name resolution (A59-011), never "Individual".
+  const named = await fillPersonNames(
+    db,
+    invoices.data,
+    (i) => strOrNull(i["payee_person_id"]),
+    (i) => strOrNull(obj(i["payee"])?.["full_name"]),
+    (i, full_name) => ({ ...i, payee: { full_name } }),
+  );
   return ok(
-    invoices.data.map((i) => {
+    named.map((i) => {
       const t = byId.get(str(i["id"])) ?? {};
       const subtotal = numOrNull(t["subtotal_minor"]);
       const tax = numOrNull(t["tax_minor"]);
@@ -1841,7 +1850,7 @@ export interface PaymentApplication {
 
 /** Payments of the org, newest first, with the amount applied to invoices. */
 export async function listPayments(db: XosClient, orgId: string): Promise<Result<Payment[]>> {
-  return rows(
+  const result = await rows(
     db
       .from("payments")
       .select(
@@ -1869,6 +1878,16 @@ export async function listPayments(db: XosClient, orgId: string): Promise<Result
         createdAt: str(r["created_at"]),
       };
     },
+  );
+  if (!result.ok) return result;
+  return ok(
+    await fillPersonNames(
+      db,
+      result.data,
+      (p) => p.payeePersonId,
+      (p) => p.payeeName,
+      (p, payeeName) => ({ ...p, payeeName }),
+    ),
   );
 }
 

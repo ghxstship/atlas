@@ -7,6 +7,7 @@ import {
   createProject,
   createScopeNode,
   endProjectMember,
+  listGateCriteria,
   passGate,
   removeScopeNode,
   setProjectArchived,
@@ -384,9 +385,31 @@ async function passGateActionImpl(_: ActionState, form: FormData): Promise<Actio
     expectedPhase: field(form, "expectedPhase"),
     reason: why.data,
   });
-  if (!result.ok) return errorState(result.error);
+  if (!result.ok) {
+    const state = errorState(result.error);
+    return state.error === "gate_criteria_unmet" ? await namedCriteria(ctx, state) : state;
+  }
   refresh(ctx);
   return { ok: true };
+}
+
+/**
+ * The refusal names each missing criterion by its plain sentence, the code after it (Section 11.10
+ * item 2, A59-017): "Go or no-go decision recorded (G1.GONOGO)", never the code alone.
+ */
+async function namedCriteria(ctx: ProjectContext, state: ActionState): Promise<ActionState> {
+  const codes = String(state.values?.["criteria"] ?? "")
+    .split(",")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (codes.length === 0) return state;
+  const criteria = await listGateCriteria(ctx.org.viewer.db);
+  const statement = new Map(criteria.ok ? criteria.data.map((c) => [c.id, c.statement]) : []);
+  const named = codes.map((code) => {
+    const sentence = statement.get(code);
+    return sentence ? `${sentence.replace(/\.$/, "")} (${code})` : code;
+  });
+  return { ...state, values: { ...state.values, criteria: named.join("; ") } };
 }
 
 // Members ----------------------------------------------------------------------------------------------
