@@ -12,7 +12,6 @@ export {
   PageHeader,
   Money,
   PropertyList,
-  RefusalNotice,
   StateChip,
   StateIcon,
   Tag,
@@ -20,3 +19,4 @@ export {
   TemplateRecord,
   TemplateSplitView,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";

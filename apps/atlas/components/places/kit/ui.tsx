@@ -15,7 +15,6 @@ export {
   PageHeader,
   PropertyList,
   ReconciliationTable,
-  RefusalNotice,
   Skeleton,
   StalenessIndicator,
   StateChip,
@@ -24,3 +23,4 @@ export {
   TemplateRecord,
   URIDChip,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";

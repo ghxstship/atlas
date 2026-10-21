@@ -1,6 +1,7 @@
 "use client";
 
-import { EmptyState, ErrorState, RefusalNotice } from "@xos/ui";
+import { EmptyState, ErrorState } from "@xos/ui";
+import { RefusalNotice } from "@/components/refusal-notice";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useFinanceT } from "./kit-use-finance-t";

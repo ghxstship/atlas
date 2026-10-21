@@ -643,6 +643,9 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
   const title = t("metrics.title");
   if (!metrics.ok) return failed(title, t);
   const rows = metrics.data.map((m, i) => ({ ...m, id: `metric-${i + 1}` }));
+  // The domain by its plain name; its code stays in the key slot beside it (A59-017).
+  const domainName = (code: string) =>
+    t.has(`metrics.domains.${code}`) ? t(`metrics.domains.${code}`) : code.replaceAll("_", " ");
   return (
     <CanonCollection
       today={await orgToday(ctx)}
@@ -664,7 +667,7 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
         title: m.item,
         meta: String(m.value),
         cells: {
-          domain: m.domain,
+          domain: domainName(m.domain),
           item: m.item,
           value: String(m.value),
           qualifier: m.qualifier,
@@ -678,6 +681,7 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
           key: m.domain,
           title: m.item,
           properties: [
+            { label: t("metrics.domain"), value: domainName(m.domain) },
             { label: t("metrics.value"), value: String(m.value) },
             { label: t("metrics.qualifier"), value: m.qualifier ?? t("none") },
             { label: t("metrics.source"), value: m.source ?? t("none") },

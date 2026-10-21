@@ -45,6 +45,7 @@ import {
 } from "./actions";
 import { fromLocalInput, toLocalInput } from "./format";
 import { duplicateRecordAction } from "./work-order-actions";
+import { describeRrule } from "@/lib/work/recurrence-text";
 
 /*
  * The interactive parts of a record's peek and full page (Record template, Section 11.6): state
@@ -588,7 +589,13 @@ export function RecurrenceForm({
       <ActionErrorAlert error={error} />
       {!canEdit ? (
         <p className="m-0 text-text-13 text-text-secondary">
-          {recurrence ? t("recurrence.rule", { rule: recurrence.rrule }) : t("recurrence.none")}
+          {recurrence
+            ? t("recurrence.rule", {
+                rule: describeRrule(recurrence.rrule, (key, values) =>
+                  t(`recurrence.${key}`, values),
+                ),
+              })
+            : t("recurrence.none")}
         </p>
       ) : (
         <form

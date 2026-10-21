@@ -101,7 +101,7 @@ export function RecurringCollection({
           { key: "key", label: t("columns.key"), type: "code" },
           { key: "title", label: t("columns.title"), wrap: true },
           { key: "state", label: t("columns.state"), type: "state" },
-          { key: "rule", label: t("columns.rule"), type: "code" },
+          { key: "rule", label: t("columns.rule") },
           { key: "next", label: t("columns.next"), wrap: true },
         ]}
         rows={items.map((i) => ({
