@@ -297,7 +297,7 @@ function OrgReport({ page, c, t, locale, catalog, rows, preference, canExport }:
   ]);
   const projectTable = (
     <SimpleTable
-      caption={t("report.byProject")}
+      caption={t("report.byProjectCaption")}
       head={projectHead}
       rows={projectRows}
       numeric={[1, 2, 3, 4, 5]}
@@ -332,7 +332,7 @@ function OrgReport({ page, c, t, locale, catalog, rows, preference, canExport }:
         </Section>
         <Section id="report-by-metric" title={t("report.byMetric")}>
           <SimpleTable
-            caption={t("report.byMetric")}
+            caption={t("report.byMetricCaption")}
             head={[
               t("summary.metric"),
               t("report.orgFigure"),

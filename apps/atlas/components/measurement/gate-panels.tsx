@@ -201,7 +201,7 @@ export async function ObjectivesPanel({
         <p className="m-0 text-text-13 text-text-secondary">{t("objectives.empty")}</p>
       ) : (
         <SimpleTable
-          caption={t("objectives.title")}
+          caption={t("objectives.caption")}
           head={[
             t("fields.metric"),
             t("fields.target"),
@@ -325,7 +325,7 @@ export async function MeasurementPanel({
           <p className="m-0 text-text-13 text-text-secondary">{t("figures.empty")}</p>
         ) : (
           <SimpleTable
-            caption={t("figures.title")}
+            caption={t("figures.caption")}
             head={[
               t("fields.measuredOn"),
               t("fields.metric"),

@@ -23,7 +23,7 @@ export function CoverageTable({
 }) {
   return (
     <SimpleTable
-      caption={t("coverage.title")}
+      caption={t("coverage.caption")}
       head={[
         t("fields.publishedOn"),
         t("fields.headline"),

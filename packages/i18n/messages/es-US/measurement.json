@@ -92,7 +92,7 @@
     "restored": "Restaurada"
   },
   "fields": {
-    "metric": "Cifra",
+    "metric": "Medida",
     "direction": "Dirección",
     "target": "Meta",
     "unit": "Unidad",
@@ -128,7 +128,8 @@
     "withdrawDescription": "La compuerta 8 deja de medir frente a él.",
     "attest": "Registrar los objetivos como evidencia de la compuerta 1",
     "attestNote": "{count, plural, one {# objetivo medible registrado.} other {# objetivos medibles registrados.}}",
-    "attested": "Los objetivos son evidencia del criterio G1.OBJECTIVES_STATED de la compuerta 1."
+    "attested": "Los objetivos son evidencia del criterio G1.OBJECTIVES_STATED de la compuerta 1.",
+    "caption": "Objetivos de este proyecto"
   },
   "gate8": {
     "title": "Medición",
@@ -141,7 +142,7 @@
   "summary": {
     "caption": "Objetivos frente a cifras medidas",
     "family": "Familia",
-    "metric": "Cifra",
+    "metric": "Medida",
     "objective": "Objetivo",
     "measured": "Medido",
     "unmeasuredCount": "Entradas sin medir",
@@ -168,7 +169,8 @@
     "withdrawDescription": "La cifra sale de los totales. El retiro queda en el registro de correcciones.",
     "withdrawReason": "Motivo (opcional)",
     "historyEntry": "{kind} por {name}, {date}: de {before} a {after}.",
-    "historyReason": "Motivo: {reason}"
+    "historyReason": "Motivo: {reason}",
+    "caption": "Cifras registradas"
   },
   "coverage": {
     "title": "Medios ganados",
@@ -179,7 +181,8 @@
     "added": "Cobertura agregada.",
     "tones": "Tono: {positive} positivas, {neutral} neutrales, {negative} negativas, {unrated} sin calificar.",
     "withdrawFor": "Retirar {title}",
-    "withdrawDescription": "La pieza sale de la cantidad de cobertura y del alcance. Puede restaurarla desde la Papelera."
+    "withdrawDescription": "La pieza sale de la cantidad de cobertura y del alcance. Puede restaurarla desde la Papelera.",
+    "caption": "Piezas de cobertura"
   },
   "report": {
     "summary": "Resumen",
@@ -199,7 +202,9 @@
     "projectsMeasured": "Proyectos medidos",
     "projectsUnmeasured": "Proyectos sin medir",
     "empty": "Aún no hay objetivos ni cifras. Fije los objetivos en la pestaña Compuertas de un proyecto, en la compuerta 1.",
-    "emptyAction": "Ver proyectos"
+    "emptyAction": "Ver proyectos",
+    "byProjectCaption": "Objetivos por proyecto",
+    "byMetricCaption": "Cifras entre proyectos"
   },
   "errors": {
     "invalid": "Revise los campos marcados.",

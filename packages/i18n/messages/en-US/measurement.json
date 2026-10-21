@@ -92,7 +92,7 @@
     "restored": "Restored"
   },
   "fields": {
-    "metric": "Figure",
+    "metric": "Measure",
     "direction": "Direction",
     "target": "Target",
     "unit": "Unit",
@@ -128,7 +128,8 @@
     "withdrawDescription": "Gate 8 stops measuring against it.",
     "attest": "Record objectives as gate 1 evidence",
     "attestNote": "{count, plural, one {# measurable objective recorded.} other {# measurable objectives recorded.}}",
-    "attested": "The objectives are evidence for gate 1 criterion G1.OBJECTIVES_STATED."
+    "attested": "The objectives are evidence for gate 1 criterion G1.OBJECTIVES_STATED.",
+    "caption": "Objectives of this project"
   },
   "gate8": {
     "title": "Measurement",
@@ -141,7 +142,7 @@
   "summary": {
     "caption": "Objectives against measured figures",
     "family": "Family",
-    "metric": "Figure",
+    "metric": "Measure",
     "objective": "Objective",
     "measured": "Measured",
     "unmeasuredCount": "Unmeasured entries",
@@ -168,7 +169,8 @@
     "withdrawDescription": "The figure leaves the totals. The withdrawal goes in the correction log.",
     "withdrawReason": "Reason (optional)",
     "historyEntry": "{kind} by {name}, {date}: {before} to {after}.",
-    "historyReason": "Reason: {reason}"
+    "historyReason": "Reason: {reason}",
+    "caption": "Recorded figures"
   },
   "coverage": {
     "title": "Earned media",
@@ -179,7 +181,8 @@
     "added": "Coverage added.",
     "tones": "Tone: {positive} positive, {neutral} neutral, {negative} negative, {unrated} unrated.",
     "withdrawFor": "Withdraw {title}",
-    "withdrawDescription": "The piece leaves the coverage count and reach. You can restore it from Trash."
+    "withdrawDescription": "The piece leaves the coverage count and reach. You can restore it from Trash.",
+    "caption": "Coverage pieces"
   },
   "report": {
     "summary": "Summary",
@@ -199,7 +202,9 @@
     "projectsMeasured": "Projects measured",
     "projectsUnmeasured": "Projects unmeasured",
     "empty": "No objectives or figures yet. Set objectives on a project's Gates tab at gate 1.",
-    "emptyAction": "Browse projects"
+    "emptyAction": "Browse projects",
+    "byProjectCaption": "Objectives by project",
+    "byMetricCaption": "Figures across projects"
   },
   "errors": {
     "invalid": "Check the highlighted fields.",
