@@ -3,11 +3,14 @@ import type { NotificationKindRegistry } from "./model.ts";
 /**
  * Repository-relative path of the current generated seed migration of the notification kind registry.
  * Applied migrations are never edited (ADR 0004): when notification-kinds.yaml changes after this seed
- * has shipped, move it to the next number in the range of the agent changing it. Each seed is a complete
- * idempotent upsert, so the latest one decides the rows.
+ * has shipped, move it to the next number in the range of the agent changing it, delete the old seed's
+ * drift test (the new seed's test replaces it) and keep the old seed as history. Each seed is a complete
+ * idempotent upsert, so the latest one decides the rows. 1360 was the first; 1368 adds the quiet-hours
+ * bypass list (ADR 0033 decision 35); 1369 adds A79's org lifecycle kinds. A79's range (1350 to 1359) runs
+ * before 1367, which creates the bypass table this seed fills, so its seed takes the next number after 1368.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/1360_notification_kind_seed.sql";
+  "supabase/migrations/1369_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(
@@ -30,6 +33,7 @@ interface Rows {
   readonly templates: string[][];
   readonly categories: string[][];
   readonly kinds: string[][];
+  readonly bypass: string[][];
 }
 
 function rows(registry: NotificationKindRegistry): Rows {
@@ -56,7 +60,31 @@ function rows(registry: NotificationKindRegistry): Rows {
         channel === "Email" ? literal(k.emailTemplate) : "null",
       ]),
     ),
+    bypass: registry.kinds.flatMap((k) =>
+      k.quietHoursBypass === null
+        ? []
+        : [
+            [
+              literal(k.kind),
+              k.quietHoursBypass.startsWithinHours === null
+                ? "null::interval"
+                : `interval '${k.quietHoursBypass.startsWithinHours} hours'`,
+            ],
+          ],
+    ),
   };
+}
+
+/** The bypass list as SQL: replaced as a set, since only the registry writes it. */
+function bypassSql(bypass: readonly (readonly string[])[]): string {
+  if (bypass.length === 0) return "delete from private.notification_quiet_hours_bypass;\n";
+  return `delete from private.notification_quiet_hours_bypass
+where kind not in (${bypass.map((b) => b[0]).join(", ")});
+
+insert into private.notification_quiet_hours_bypass (kind, starts_within) values
+${valuesBlock(bypass)}
+on conflict (kind) do update set starts_within = excluded.starts_within;
+`;
 }
 
 /**
@@ -73,9 +101,10 @@ export function renderNotificationSeedSql(registry: NotificationKindRegistry): s
 -- @xos/schemas unit tests fail when this file differs from the generator output.
 --
 -- Notification kind registry version ${registry.version} (Section 3.15, A65-021): ${r.channels.length} channel defaults,
--- ${r.templates.length} email templates, ${r.categories.length} categories, ${registry.kinds.length} kinds (${r.kinds.length} kind and channel rows).
+-- ${r.templates.length} email templates, ${r.categories.length} categories, ${registry.kinds.length} kinds (${r.kinds.length} kind and channel rows),
+-- ${r.bypass.length} kinds that bypass quiet hours (ADR 0033 decision 35).
 -- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
--- drift test (${fileName(NOTIFICATION_KIND_DRIFT_TEST)}).
+-- drift test (${fileName(NOTIFICATION_KIND_DRIFT_TEST)}); the quiet-hours bypass list is replaced as a set.
 
 -- Channel defaults ------------------------------------------------------------
 
@@ -105,8 +134,11 @@ ${valuesBlock(r.kinds)}
 on conflict (kind, channel) do update
   set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
 
+-- Kinds that bypass quiet hours (replaced as a set) -------------------------
+
+${bypassSql(r.bypass)}
 comment on table private.notification_templates is 'Which category each notification kind belongs to and which email template renders it, seeded from packages/schemas/notification-kinds.yaml (Section 3.15). Copy for every channel comes from the i18n catalogs keyed by kind.';
-comment on table private.notification_categories is 'Notification categories a person sets preferences for, by channel, seeded from packages/schemas/notification-kinds.yaml. Urgent categories bypass quiet hours and digests. Labels come from the i18n catalogs keyed by code.';
+comment on table private.notification_categories is 'Notification categories a person sets preferences for, by channel, seeded from packages/schemas/notification-kinds.yaml. Urgent categories skip the email digest; only the kinds in private.notification_quiet_hours_bypass skip quiet hours (ADR 0033 decision 35). Labels come from the i18n catalogs keyed by code.';
 `;
 }
 
@@ -120,13 +152,13 @@ export function renderNotificationDriftTest(registry: NotificationKindRegistry):
 -- \`pnpm --filter @xos/schemas generate:notifications\`. Never edit by hand.
 --
 -- pgTAP drift test of the notification kind registry (Section 3.15, A65-021): the database holds exactly
--- the channel defaults, email templates, categories and kinds the registry declares. A kind added in SQL
--- without the registry, or a registry change without a regenerated seed, fails here.
+-- the channel defaults, email templates, categories, kinds and quiet-hours bypass list the registry declares.
+-- A kind added in SQL without the registry, or a registry change without a regenerated seed, fails here.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(4);
+select plan(5);
 
 select set_eq(
   $$select channel::text, enabled_by_default from private.channel_defaults$$,
@@ -151,6 +183,16 @@ select set_eq(
   $$values
 ${valuesBlock(asText(r.kinds).map((cols) => [cols[0] ?? "", cols[1] ?? "", cols[2] ?? "", cols[3] === "null" ? "null::text" : (cols[3] ?? "")]))}$$,
   'notification kinds by channel match notification-kinds.yaml');
+
+${
+  r.bypass.length === 0
+    ? "select is_empty($$select kind from private.notification_quiet_hours_bypass$$, 'no kind bypasses quiet hours');"
+    : `select set_eq(
+  $$select kind, starts_within from private.notification_quiet_hours_bypass$$,
+  $$values
+${valuesBlock(r.bypass)}$$,
+  'the kinds that bypass quiet hours match notification-kinds.yaml (ADR 0033 decision 35)');`
+}
 
 select * from finish();
 rollback;

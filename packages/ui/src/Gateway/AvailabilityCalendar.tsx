@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
-import { useLocale, useT } from "../lib/context.tsx";
+import { useLocale, usePreferences, useT } from "../lib/context.tsx";
 import { monthCells, monthTitle, parseIso, toIso, weekdayNames } from "../lib/format.ts";
 import { type AvailabilityCalendarProps } from "./Gateway.types.ts";
 
@@ -12,6 +12,7 @@ export function AvailabilityCalendar({
 }: AvailabilityCalendarProps): ReactElement {
   const t = useT();
   const locale = useLocale();
+  const { weekStart: firstDay } = usePreferences();
   const { y, m } = parseIso(month);
   const title = monthTitle(locale, y, m);
   return (
@@ -20,7 +21,7 @@ export function AvailabilityCalendar({
       <table aria-label={title} className="border-collapse">
         <thead>
           <tr>
-            {weekdayNames(locale).map((d) => (
+            {weekdayNames(locale, firstDay).map((d) => (
               <th
                 key={d}
                 scope="col"
@@ -32,7 +33,7 @@ export function AvailabilityCalendar({
           </tr>
         </thead>
         <tbody>
-          {monthCells(locale, y, m).map((week, wi) => (
+          {monthCells(locale, y, m, firstDay).map((week, wi) => (
             <tr key={wi}>
               {week.map((d, di) => {
                 if (d === null) return <td key={di} />;

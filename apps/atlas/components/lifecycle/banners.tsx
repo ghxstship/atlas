@@ -8,11 +8,9 @@ import {
 } from "@xos/data/org-lifecycle";
 import type { Route } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { getTranslations } from "next-intl/server";
+import { OwnershipOfferActions } from "@/components/lifecycle/ownership-offer";
 import { Banner } from "@/components/platform/client/banner";
-import { acceptOwnershipFormAction, declineOwnershipFormAction } from "@/lib/lifecycle/actions";
-import { OWNERSHIP_OUTCOME_COOKIE, ownershipRefusal } from "@/lib/lifecycle/outcome";
 import { getFormatters } from "@/lib/platform/format";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
@@ -39,8 +37,6 @@ const OFFER_REFUSALS = new Set([
   "seat_limit_upgrade",
   "org_read_only",
 ]);
-const buttonClass =
-  "inline-flex h-control-sm items-center rounded-control px-12 text-label-13 font-medium focus-visible:outline-2";
 
 export async function LifecycleBanners({
   ctx,
@@ -129,10 +125,10 @@ export async function LifecycleBanners({
   }
 
   if (status.ownershipOffer) {
-    const refusal = ownershipRefusal(
-      (await cookies()).get(OWNERSHIP_OUTCOME_COOKIE)?.value,
-      status.ownershipOffer.transferId,
-    );
+    const refusals = Object.fromEntries([
+      ...[...OFFER_REFUSALS].map((rule) => [rule, t(`refusals.${rule}`)]),
+      ["other", t("refusals.other")],
+    ]);
     banners.push(
       <Banner key="ownership" tone="info" icon="Handshake">
         <span data-testid="ownership-offer-banner" className="flex flex-col gap-8">
@@ -143,38 +139,13 @@ export async function LifecycleBanners({
               date: date(windowLastDay(status.ownershipOffer.expiresAt, zone)),
             })}
           </span>
-          <span className="flex flex-wrap items-center gap-8">
-            <form action={acceptOwnershipFormAction}>
-              <input type="hidden" name="org" value={slug} />
-              <input type="hidden" name="transfer" value={status.ownershipOffer.transferId} />
-              <button
-                type="submit"
-                className={`${buttonClass} bg-accent-default text-accent-text-on`}
-              >
-                {t("banners.ownershipAccept")}
-              </button>
-            </form>
-            <form action={declineOwnershipFormAction}>
-              <input type="hidden" name="org" value={slug} />
-              <input type="hidden" name="transfer" value={status.ownershipOffer.transferId} />
-              <button
-                type="submit"
-                className={`${buttonClass} border border-border-control text-text-primary`}
-              >
-                {t("banners.ownershipDecline")}
-              </button>
-            </form>
-          </span>
-          {refusal ? (
-            <span role="alert" className="text-text-13">
-              {t(OFFER_REFUSALS.has(refusal) ? `refusals.${refusal}` : "refusals.other")}{" "}
-              {refusal === "step_up_required" ? (
-                <Link href={`/${slug}/me/security` as Route} className={linkClass}>
-                  {t("stepUp.action")}
-                </Link>
-              ) : null}
-            </span>
-          ) : null}
+          <OwnershipOfferActions
+            org={slug}
+            transfer={status.ownershipOffer.transferId}
+            acceptLabel={t("banners.ownershipAccept")}
+            declineLabel={t("banners.ownershipDecline")}
+            refusals={refusals}
+          />
         </span>
       </Banner>,
     );

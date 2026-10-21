@@ -37,9 +37,6 @@
     "invalid": "Uno de los valores no se acepta.",
     "unexpected": "Algo salió mal. Vuelva a intentarlo en un momento."
   },
-  "stepUp": {
-    "action": "Abrir la configuración de seguridad"
-  },
   "banners": {
     "trial": "{days, plural, =0 {Su prueba de Pro termina hoy.} one {Queda # día de su prueba de Pro.} other {Quedan # días de su prueba de Pro.}} Agregue una tarjeta para conservar Pro. Si no, {org} pasa al plan Access el {date} y no se elimina ningún dato.",
     "trialAction": "Agregar una tarjeta",

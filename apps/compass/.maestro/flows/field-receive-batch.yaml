@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Journeys 5 and 53, receive a batch in continuous mode, review it, save
+# Journeys 5 and 53, receive a batch in continuous mode, review it, save.
+# Named after its file: config.yaml orders flows by name.
+name: field-receive-batch
 ---
 # The simulator has no camera, so the codes are typed into the manual entry, as at a worn label; typing
 # cannot show the 30-items-in-60-seconds pace, which needs a camera. The batch review is the same.

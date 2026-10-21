@@ -8,8 +8,16 @@
 export const DELEGATED: Readonly<Record<string, string>> = {
   "advance-form": "Served by Gateway (servedBy: gateway, ADR 0006 item 5).",
   "agreement-signing": "Served by Gateway (servedBy: gateway, ADR 0006 item 5).",
-  "calendar-feed":
-    "A route handler at /ical/{feedToken}.ics owned by A18 (calendar feeds, Section 4.6.5).",
+};
+
+/**
+ * Sitemap nodes Atlas serves with a route handler whose file cannot mirror the route, because a
+ * Next segment cannot carry a fixed suffix (ADR 0040 item 1). `/ical/{feedToken}.ics` is served by
+ * `app/ical/[feedFile]/route.ts`, which takes the whole file name and answers 404 unless it is
+ * `<token>.ics`. Gate 15 checks each file exists and counts it as the node's route file.
+ */
+export const ROUTE_HANDLER_FILES: Readonly<Record<string, string>> = {
+  "calendar-feed": "app/ical/[feedFile]/route.ts",
 };
 
 /**
@@ -30,6 +38,11 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/mfa":
+    "Auth template: the second factor after the first, or setting one up an org requires (A77).",
+  "/auth/session-ended":
+    "Auth template: an org's session lifetime or idle timeout ended the session; sign in again (A77).",
+  "/auth/sso": "Auth template: Enterprise single sign-on by work email domain (A77).",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":

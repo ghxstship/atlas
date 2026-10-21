@@ -194,6 +194,14 @@ export async function sentPurchaseOrder(): Promise<{ id: string; number: number 
 /** A current certificate of insurance on file for the demo vendor; the policy number is unique. */
 export async function vendorCertificate(): Promise<{ id: string; policy: string }> {
   const policy = `GL-${suffix()}-2027`;
+  // Journey 43 has an earlier run's certificate name the org as additional insured; still current for a
+  // year, it satisfied the next run's requirement before the run checked it (A71). Each run starts from
+  // the vendor's seeded certificates (GL-2027-0042) and its own.
+  await sql(
+    `update app.insurance_certificates set deleted_at = now()
+      where vendor_id = $1 and policy_identifier like 'GL-%-2027' and deleted_at is null`,
+    [await demoVendorId()],
+  );
   const [row] = await sql<{ id: string }>(
     `insert into app.insurance_certificates (vendor_id, insurer, policy_identifier, coverage_type, coverage_limit_minor,
        currency_code, valid_from, valid_to)
@@ -635,11 +643,12 @@ export async function workedShift(
   shiftId: string,
   person: string,
 ): Promise<{ timesheetId: string }> {
-  // app.record_punch is what Compass calls on a phone: In, then Out, as the person.
+  // app.record_punch is what Compass calls on a phone: In, then Out, as the person, standing inside the demo
+  // project's Pier Site geofence (seed 0109), since the project requires the geofence (time.geofence_required).
   for (const kind of ["In", "Out"] as const) {
     await asPerson(
       person,
-      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, null, null, null, null,
+      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, 25.7752, -80.1855, 10, null,
          'Mobile', null, null, null, $4)`,
       [PROJECT, kind, shiftId, engagementId],
     );

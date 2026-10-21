@@ -37,9 +37,6 @@
     "invalid": "One of the values is not accepted.",
     "unexpected": "Something went wrong. Try again in a moment."
   },
-  "stepUp": {
-    "action": "Open security settings"
-  },
   "banners": {
     "trial": "{days, plural, =0 {Your Pro trial ends today.} one {# day left in your Pro trial.} other {# days left in your Pro trial.}} Add a card to keep Pro. Otherwise {org} moves to the Access plan on {date}, and no data is deleted.",
     "trialAction": "Add a card",

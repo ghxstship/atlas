@@ -257,6 +257,7 @@ describe("Gateway documents read the api_external views", () => {
       [v("projects")]: [project],
       [v("engagements")]: [engagement],
       "from:org_brands": [okResponse(null)],
+      "from:setting_values": [okResponse(null)],
     });
     const r = await generateExternalDocument({
       db,

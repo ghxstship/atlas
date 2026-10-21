@@ -108,6 +108,26 @@ export function ProjectPicker(): ReactElement | null {
   );
 }
 
+/**
+ * Said once, after the offline storage could not be read and was replaced (src/data/localDatabase.ts):
+ * changes made offline that had not uploaded are gone. Stays until dismissed, across launches.
+ */
+export function StorageResetNotice(): ReactElement | null {
+  const { t } = useTranslation();
+  const { storageNotice, dismissStorageNotice } = useCompass();
+  if (!storageNotice) return null;
+  return (
+    <Banner
+      testID="storage-reset-notice"
+      tone="warning"
+      icon="triangle-alert"
+      message={t("compass.startup.storageReset")}
+      onDismiss={dismissStorageNotice}
+      dismissLabel={t("ui.action.dismiss")}
+    />
+  );
+}
+
 /** Offline state, queue count and decisions waiting, always visible at the top of the tabs. */
 export function SyncBanner(): ReactElement | null {
   const { t } = useTranslation();

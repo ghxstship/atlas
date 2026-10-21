@@ -1,30 +1,22 @@
 import type { XosClient } from "@xos/data";
+import { requireSecondFactor, type StepUpCheck } from "@xos/data/auth-assurance";
 
 /**
- * The step-up seam of Atlas server actions (A79; Section 9 and Section 14.7: "Org deletion requires the Owner,
- * step-up authentication and typing the org name"; "the new Owner must accept and pass MFA").
+ * Step-up for A79's server actions (Section 9 and Section 14.7: "Org deletion requires the Owner, step-up
+ * authentication and typing the org name"; "the new Owner must accept and pass MFA").
  *
- * The database is the gate: every RPC that needs step-up calls private.require_step_up, which refuses
- * step_up_required unless the session passed a second factor recently. This seam lets an action answer
- * before it calls the RPC, with the same rule, so the form can offer the step-up flow at once.
- *
- * A77 (RRR-122) owns step-up: second factors, passkeys, the 15-minute window (migration 1330) and the
- * step-up dialog. Until its server check lands, this reads the assurance level of the session's tokens from
- * Supabase Auth. When it lands, replace the body of `requireStepUp` with A77's check and keep the signature;
- * every caller in Atlas goes through it (lib/lifecycle/actions.ts).
+ * The database is the gate: every RPC that needs step-up calls private.require_step_up, which runs A77's
+ * private.require_second_factor (migration 1356). This answers first with A77's same rule, requireSecondFactor
+ * from @xos/data/auth-assurance (a second factor in the last 15 minutes), so the form opens the step-up dialog
+ * at once. Every caller in Atlas goes through it (lib/lifecycle/actions.ts).
  */
 
-export type StepUpResult =
-  { readonly ok: true } | { readonly ok: false; readonly rule: "step_up_required" };
+export type StepUpResult = StepUpCheck;
 
-/** What the action is, for logs and the refusal; for example "delete the organization". */
+/** What the action is; for example "delete the organization". The refusal from the database names it too. */
 export type StepUpAction = "delete the organization" | "transfer ownership" | "accept ownership";
 
-export async function requireStepUp(db: XosClient, action: StepUpAction): Promise<StepUpResult> {
-  const { data, error } = await db.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (error || data?.currentLevel !== "aal2") {
-    return { ok: false, rule: "step_up_required" };
-  }
+export function requireStepUp(db: XosClient, action: StepUpAction): Promise<StepUpResult> {
   void action;
-  return { ok: true };
+  return requireSecondFactor(db);
 }

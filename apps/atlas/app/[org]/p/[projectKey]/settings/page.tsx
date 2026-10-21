@@ -4,6 +4,7 @@ import { isNodeVisible } from "@xos/ia";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { ProjectAccess } from "@/components/projects/project-access";
+import { ProjectInboxSettings } from "@/components/projects/project-inbox";
 import { ProjectSettings } from "@/components/projects/project-settings";
 import { projectFormOptions } from "@/components/projects/projects-page";
 import { PageHeader } from "@/components/projects/ui";
@@ -14,7 +15,8 @@ import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 
 /**
  * Project Settings (Section 4.5.4): key, jurisdiction, region, tier, members, lifecycle, archive, and
- * (A52) extra project roles per member and the partner orgs the project is shared with.
+ * (A52) extra project roles per member and the partner orgs the project is shared with, and (A84)
+ * the project inbox address (Section 4.6.5).
  */
 export default async function SettingsPage({
   params,
@@ -60,6 +62,7 @@ export default async function SettingsPage({
         }
       />
       <ProjectAccess ctx={ctx} members={current} roles={PROJECT_ROLE_ORDER} />
+      <ProjectInboxSettings ctx={ctx} />
     </>
   );
 }

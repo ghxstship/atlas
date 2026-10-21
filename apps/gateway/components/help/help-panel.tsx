@@ -9,6 +9,7 @@ import {
   type HelpBodies,
 } from "@xos/help";
 import { findRoute } from "@xos/ia";
+import { displayKeys, platformOf, SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import { Button, Drawer, InlineAlert, Input, Keys, Skeleton } from "@xos/ui";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
@@ -25,12 +26,21 @@ type View =
   | { readonly kind: "article"; readonly slug: string }
   | { readonly kind: "contact" };
 
-/** Shortcuts Gateway answers everywhere: search, help and closing what is open. */
-const SHORTCUTS = [
-  { keys: "Mod+K", label: "gateway.shortcuts.search" },
-  { keys: "?", label: "shortcuts.help" },
-  { keys: "Esc", label: "shortcuts.close" },
-] as const;
+/**
+ * The shortcuts Gateway answers everywhere (search, help, closing what is open), from the shortcut
+ * registry (packages/schemas/shortcuts.yaml), written for the person's platform.
+ */
+function gatewayShortcuts(): {
+  readonly id: string;
+  readonly label: string;
+  readonly keys: string;
+}[] {
+  const platform = typeof navigator === "undefined" ? "other" : platformOf(navigator);
+  return SHORTCUT_REGISTRY.shells.gateway.shortcuts.flatMap((s) => {
+    const keys = platform === "mac" && s.mac !== null ? s.mac : s.keys;
+    return keys === null ? [] : [{ id: s.id, label: s.label, keys: displayKeys(keys, platform) }];
+  });
+}
 
 /**
  * The Gateway help panel (Section 11.16), loaded the first time Help opens: the articles for the
@@ -49,6 +59,7 @@ export function HelpPanel({
   readonly docsUrl: string | null;
 }) {
   const t = useTranslations("help") as unknown as Translate;
+  const tRoot = useTranslations() as unknown as Translate;
   const lang = helpLocale(useLocale());
   const pathname = usePathname();
   const match = useMemo(() => findRoute(sitemap, pathname), [pathname]);
@@ -198,9 +209,9 @@ export function HelpPanel({
           {section(
             t("shortcuts.title"),
             <dl className="m-0 flex flex-col gap-4">
-              {SHORTCUTS.map((s) => (
-                <div key={s.label} className="flex items-center justify-between gap-8">
-                  <dt>{t(s.label)}</dt>
+              {gatewayShortcuts().map((s) => (
+                <div key={s.id} className="flex items-center justify-between gap-8">
+                  <dt>{tRoot(s.label)}</dt>
                   <dd className="m-0">
                     <Keys keys={s.keys} />
                   </dd>

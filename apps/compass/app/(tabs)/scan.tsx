@@ -21,6 +21,7 @@ import {
   ContinuousScan,
   custodyBlocked,
   decideGate,
+  gateScanTitle,
   resolveAsset,
   type AccessGridRow,
   type AssetIdentifierRow,
@@ -295,8 +296,8 @@ function LiveScan({
         ok: decision.result === "Granted",
         title:
           decision.result === "Granted"
-            ? `${t("compass.scan.granted")} · ${decision.credential.holder_name ?? ""}`
-            : `${t("compass.scan.denied")} · ${t(DENY_KEY[decision.reason])}`,
+            ? gateScanTitle(t("compass.scan.granted"), decision.credential.holder_name)
+            : gateScanTitle(t("compass.scan.denied"), t(DENY_KEY[decision.reason])),
         code: code.credentialNumber,
       });
       if (decision.credential)
@@ -386,6 +387,10 @@ function LiveScan({
   };
   return (
     <View style={{ flex: 1 }}>
+      {/* First under the mode chips, above the access points and the camera, so the keyboard never
+          covers what is typed: it hid the field below the sheet, and then (A66) below the access points
+          once a project's grid named five of them. */}
+      <ManualEntry onCode={onCode} theme={theme} />
       {grant.mode === "credential" ? (
         <View style={{ padding: theme.space["16"], gap: theme.space["8"] }}>
           <Text variant="label13" tone="secondary">
@@ -400,8 +405,6 @@ function LiveScan({
           />
         </View>
       ) : null}
-      {/* Above the camera, so the keyboard never covers what is typed (it hid the field below the sheet). */}
-      <ManualEntry onCode={onCode} theme={theme} />
       <View style={{ flex: 1 }}>
         <ScanSheet
           testID="scan-sheet"

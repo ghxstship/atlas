@@ -372,6 +372,9 @@ from .resources import (
     OrgDeletionRequestsResource,
     DeletionCertificatesResource,
     PartnerStandingGrantsResource,
+    PersonCalendarFeedsResource,
+    ProjectInboxesResource,
+    InboundMessagesResource,
     WorkforceGroupsResource,
     WorkforceGroupMembersResource,
     ConversationsResource,
@@ -787,6 +790,9 @@ class XosClient(XosClientCore):
     org_deletion_requests: OrgDeletionRequestsResource
     deletion_certificates: DeletionCertificatesResource
     partner_standing_grants: PartnerStandingGrantsResource
+    person_calendar_feeds: PersonCalendarFeedsResource
+    project_inboxes: ProjectInboxesResource
+    inbound_messages: InboundMessagesResource
     workforce_groups: WorkforceGroupsResource
     workforce_group_members: WorkforceGroupMembersResource
     conversations: ConversationsResource
@@ -1190,6 +1196,9 @@ class XosClient(XosClientCore):
         self.org_deletion_requests = OrgDeletionRequestsResource(self)
         self.deletion_certificates = DeletionCertificatesResource(self)
         self.partner_standing_grants = PartnerStandingGrantsResource(self)
+        self.person_calendar_feeds = PersonCalendarFeedsResource(self)
+        self.project_inboxes = ProjectInboxesResource(self)
+        self.inbound_messages = InboundMessagesResource(self)
         self.workforce_groups = WorkforceGroupsResource(self)
         self.workforce_group_members = WorkforceGroupMembersResource(self)
         self.conversations = ConversationsResource(self)

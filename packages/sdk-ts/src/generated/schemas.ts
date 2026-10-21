@@ -39651,6 +39651,291 @@ export interface PartnerStandingGrantRecordRequest {
 /**
  * One page of results with a cursor to the next page.
  */
+export interface PersonCalendarFeedPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<PersonCalendarFeed>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good.
+ */
+export interface PersonCalendarFeed {
+  /**
+   * Identifier of the person calendar feed.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who owns the feed; always the caller.
+   * Format: `uuid`.
+   */
+  readonly person_id: string;
+  /**
+   * Last four characters of the token.
+   * Length: 1 to 4.
+   */
+  readonly token_hint: string;
+  /**
+   * Last time a calendar fetched the feed.
+   * Format: `date-time`.
+   */
+  readonly last_accessed_at: string | null;
+  /**
+   * When the token was last replaced.
+   * Format: `date-time`.
+   */
+  readonly rotated_at: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface ProjectInboxPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<ProjectInbox>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled.
+ */
+export interface ProjectInbox {
+  /**
+   * Identifier of the project inbox.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the project the inbox belongs to.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+  /**
+   * Part before the @ of the receiving domain: the project key and a random suffix.
+   * Length: 1 to 63.
+   */
+  readonly local_part: string;
+  /**
+   * When the address stopped accepting mail.
+   * Format: `date-time`.
+   */
+  readonly disabled_at: string | null;
+}
+
+/**
+ * The project to give an inbox.
+ */
+export interface ProjectInboxCreate {
+  /**
+   * Identifier of the project the inbox is for.
+   * Format: `uuid`.
+   */
+  readonly project_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface InboundMessagePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<InboundMessage>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason.
+ */
+export interface InboundMessage {
+  /**
+   * Identifier of the inbound message.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * What the mail was sent to.
+   */
+  readonly purpose: "Project Inbox" | "Reply";
+  /**
+   * Identifier of the project inbox the mail was sent to.
+   * Format: `uuid`.
+   */
+  readonly inbound_address_id: string | null;
+  /**
+   * Sender address.
+   * Length: 1 to 320.
+   */
+  readonly from_address: string;
+  /**
+   * Subject.
+   * Length: 1 to 998.
+   */
+  readonly subject_line: string | null;
+  /**
+   * Plain-text body with quoted text stripped.
+   * Length: 1 to 20000.
+   */
+  readonly body_text: string | null;
+  /**
+   * True when the sender's DKIM signature verified.
+   */
+  readonly dkim_verified: boolean;
+  /**
+   * Processing status.
+   */
+  readonly inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
+  /**
+   * Why the mail was rejected.
+   * Length: 1 to 500.
+   */
+  readonly rejection_reason: string | null;
+  /**
+   * When the mail arrived.
+   * Format: `date-time`.
+   */
+  readonly received_at: string;
+  /**
+   * Identifier of the document the mail was filed as.
+   * Format: `uuid`.
+   */
+  readonly filed_document_id: string | null;
+  /**
+   * Identifier of the record of the project the mail was filed to.
+   * Format: `uuid`.
+   */
+  readonly filed_record_id: string | null;
+  /**
+   * Identifier of the person who filed the mail.
+   * Format: `uuid`.
+   */
+  readonly filed_by: string | null;
+  /**
+   * When the mail was filed.
+   * Format: `date-time`.
+   */
+  readonly filed_at: string | null;
+  /**
+   * When the mail was discarded.
+   * Format: `date-time`.
+   */
+  readonly discarded_at: string | null;
+  /**
+   * Identifier of the person who discarded the mail.
+   * Format: `uuid`.
+   */
+  readonly discarded_by: string | null;
+  /**
+   * Why the mail was discarded.
+   * Length: 1 to 500.
+   */
+  readonly discard_reason: string | null;
+}
+
+/**
+ * How to file the mail.
+ */
+export interface InboundMessageFileRequest {
+  /**
+   * Document title; the subject when omitted.
+   * Length: 1 to 200.
+   */
+  readonly title?: string;
+  /**
+   * Identifier of the record of the project to file the mail to.
+   * Format: `uuid`.
+   */
+  readonly record_id?: string;
+}
+
+/**
+ * Why the mail is discarded.
+ */
+export interface InboundMessageDiscardRequest {
+  /**
+   * Why the mail is discarded.
+   * Length: 1 to 500.
+   */
+  readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
 export interface WorkforceGroupPage {
   /**
    * Items on this page, in the documented default order.

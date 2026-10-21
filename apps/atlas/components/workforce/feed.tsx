@@ -11,6 +11,8 @@ import {
   type Survey,
 } from "@xos/data/workforce-feed";
 import { getFormatter } from "next-intl/server";
+import { resolveSettings } from "@xos/data/settings";
+import { feedSwitchDefaults } from "@/lib/shell/org-settings";
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import {
@@ -122,6 +124,11 @@ async function PostsSection({
   const feedView = search["view"] === undefined || search["view"] === "feed";
   const state = collectionState(search, VIEWS, await orgToday(ctx));
   const mine = [ctx.org.membershipId];
+  // New posts start from the org's reaction and comment defaults (communication.feed_*_default).
+  const resolvedDefaults = await resolveSettings(ctx.viewer.db, { orgId: ctx.org.id });
+  const orgDefaults = new Map<string, unknown>(
+    resolvedDefaults.ok ? [...resolvedDefaults.data].map(([k, v]) => [k, v.value]) : [],
+  );
   const [format, feed, pickers] = await Promise.all([
     getFormatter(),
     listFeed(ctx.viewer.db, ctx.org.id, mine),
@@ -378,7 +385,7 @@ async function PostsSection({
                 { value: "reactionsEnabled", label: t("feed.reactionsOption") },
                 { value: "commentsEnabled", label: t("feed.commentsOption") },
               ],
-              defaultValues: ["reactionsEnabled", "commentsEnabled"],
+              defaultValues: feedSwitchDefaults((key) => orgDefaults.get(key)),
             },
           ]}
         />

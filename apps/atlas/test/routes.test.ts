@@ -14,7 +14,7 @@ import { packNodes, unpackNodes } from "../ia/client-sitemap-codec";
 import { clientSitemap, listNodeIds, pageFile } from "../ia/generate";
 import { appRoot, renderGeneratedFiles, routeFiles, stampedFiles } from "../ia/generate-node";
 import { IMPLEMENTED } from "../ia/implemented";
-import { DELEGATED, SHELL_ROUTES } from "../ia/routes.config";
+import { DELEGATED, ROUTE_HANDLER_FILES, SHELL_ROUTES } from "../ia/routes.config";
 
 /**
  * The route generator and gate 15. `pnpm --filter @xos/atlas generate:routes` runs this file with
@@ -69,9 +69,16 @@ describe("gate 15: sitemap and routes", () => {
   it("gives every sitemap node a route file, unless another shell or agent serves it", () => {
     const missing = routed
       .filter((r) => r.servedBy === undefined && !(r.id in DELEGATED))
-      .filter((r) => !existsSync(join(appRoot, pageFile(r.route))))
+      .filter((r) => !existsSync(join(appRoot, ROUTE_HANDLER_FILES[r.id] ?? pageFile(r.route))))
       .map((r) => r.id);
     expect(missing).toEqual([]);
+    for (const id of Object.keys(ROUTE_HANDLER_FILES)) {
+      expect(
+        routed.some((r) => r.id === id && r.servedBy === undefined),
+        id,
+      ).toBe(true);
+      expect(id in DELEGATED, id).toBe(false);
+    }
     for (const r of routed.filter((n) => n.servedBy !== undefined)) {
       expect(DELEGATED[r.id], r.id).toBeDefined();
     }
@@ -79,7 +86,9 @@ describe("gate 15: sitemap and routes", () => {
 
   it("maps every route file to a sitemap node or a declared shell route", () => {
     const patterns = [...routed.map((r) => r.route), ...Object.keys(SHELL_ROUTES)];
+    const handlerFiles = new Set(Object.values(ROUTE_HANDLER_FILES));
     const orphans = routeFiles().filter((file) => {
+      if (handlerFiles.has(file)) return false;
       const pattern =
         `/${file
           .replace(/^app\//, "")

@@ -139,6 +139,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "mentions",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.mention.created.subject",
@@ -150,6 +151,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "assignments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.assignment.created.subject",
@@ -161,6 +163,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "approvals",
     emailTemplate: "notification",
     pushCategory: "approval_request",
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.approval.requested.subject",
@@ -172,6 +175,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "approvals",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.approval.decided.subject",
@@ -183,6 +187,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "comments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.comment.created.subject",
@@ -194,6 +199,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.assigned.subject",
@@ -205,6 +211,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: 12,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.shift.changed.subject",
@@ -216,6 +225,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "schedule",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.event.invited.subject",
@@ -227,6 +237,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.approved.subject",
@@ -238,6 +249,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.submitted.subject",
@@ -249,6 +261,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.scheduled.subject",
@@ -260,6 +273,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "finance",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.invoice.paid.subject",
@@ -271,6 +285,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "safety",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.incident.reported.subject",
@@ -282,6 +299,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "safety",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.occupancy.threshold.subject",
@@ -293,6 +313,9 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "safety",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: {
+      startsWithinHours: null,
+    },
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.weather.alert.subject",
@@ -304,6 +327,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.account.security_changed.subject",
@@ -315,6 +339,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.billing.payment_failed.subject",
@@ -326,6 +351,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.billing.read_only.subject",
@@ -337,6 +363,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.access.break_glass_started.subject",
@@ -348,6 +375,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.billing.trial_ending.subject",
@@ -359,6 +387,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.billing.trial_ended.subject",
@@ -370,6 +399,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.deletion_requested.subject",
@@ -381,6 +411,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.deletion_recovered.subject",
@@ -392,6 +423,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.ownership_offered.subject",
@@ -403,6 +435,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.ownership_accepted.subject",
@@ -414,6 +447,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.ownership_declined.subject",
@@ -425,6 +459,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.white_label_reverting.subject",
@@ -436,6 +471,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.organization.white_label_reverted.subject",
@@ -447,6 +483,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "account",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.partner.client_left.subject",
@@ -458,6 +495,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "reports",
     emailTemplate: "report_delivery",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.report.delivered.subject",
@@ -469,6 +507,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "imports",
     emailTemplate: "import_finished",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.import.finished.subject",
@@ -480,6 +519,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "imports",
     emailTemplate: "export_ready",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.export.ready.subject",
@@ -491,6 +531,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "messages",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.message.received.subject",
@@ -502,6 +543,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "feed",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.announcement.posted.subject",
@@ -513,6 +555,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "feed",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.survey.opened.subject",
@@ -524,6 +567,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "feed",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.recognition.received.subject",
@@ -535,6 +579,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "assignments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.training.assigned.subject",
@@ -546,6 +591,7 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     category: "assignments",
     emailTemplate: "notification",
     pushCategory: null,
+    quietHoursBypass: null,
     channels: ["In App", "Email", "SMS", "Push"],
     copy: {
       subject: "kinds.help_request.assigned.subject",

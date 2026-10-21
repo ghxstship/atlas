@@ -1,11 +1,10 @@
 "use client";
 
 import { Button, InlineAlert, Input, Select, Textarea, type ButtonProps } from "@xos/ui";
-import type { Route } from "next";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
 import {
   cancelOwnershipAction,
@@ -21,9 +20,8 @@ import { INITIAL_PLATFORM_STATE, type PlatformActionState } from "@/lib/platform
 
 /**
  * A79's client forms (Section 4.6.1, Section 12, Section 14.7): each posts to a server action in
- * lib/lifecycle/actions.ts and shows the outcome from the `orgLifecycle` catalog. A step-up refusal links
- * to Personal settings, Security, where the second factor is set up and used (A77's step-up dialog takes
- * this place when it lands).
+ * lib/lifecycle/actions.ts and shows the outcome from the `orgLifecycle` catalog. A step-up refusal opens
+ * A77's step-up dialog (useStepUpForm), rendered outside the form, and verifying submits the form again.
  */
 
 type T = ((key: string, values?: Record<string, string | number>) => string) & {
@@ -46,32 +44,15 @@ export function useLifecycleT(): T {
 
 type Action = (state: PlatformActionState, form: FormData) => Promise<PlatformActionState>;
 
-function Outcome({
-  state,
-  success,
-  org,
-}: {
-  state: PlatformActionState;
-  success?: string | undefined;
-  org: string;
-}) {
+const stepUpRefused = (state: PlatformActionState) => state.rule === "step_up_required";
+
+function Outcome({ state, success }: { state: PlatformActionState; success?: string | undefined }) {
   const t = useLifecycleT();
   if (state.rule) {
     const key = `refusals.${state.rule}`;
     return (
       <InlineAlert tone="warning" title={t("refusedTitle")}>
         {t.has(key) ? t(key) : t("refusals.other")}
-        {state.rule === "step_up_required" ? (
-          <>
-            {" "}
-            <Link
-              href={`/${org}/me/security` as Route}
-              className="font-medium text-accent-text underline"
-            >
-              {t("stepUp.action")}
-            </Link>
-          </>
-        ) : null}
         <span className="block font-mono text-text-11 text-text-tertiary">{state.rule}</span>
       </InlineAlert>
     );
@@ -106,6 +87,7 @@ function LifecycleForm({
   const ref = useRef<HTMLFormElement>(null);
   const seen = useRef<number | undefined>(undefined);
   const router = useRouter();
+  const stepUp = useStepUpForm(state, stepUpRefused, ref);
   useEffect(() => {
     if (state.ok && state.at !== seen.current) {
       seen.current = state.at;
@@ -114,27 +96,30 @@ function LifecycleForm({
     }
   }, [state, router]);
   return (
-    <form
-      ref={ref}
-      action={formAction}
-      onSubmit={keepInputOnSubmit(formAction)}
-      aria-label={label}
-      className={inline ? "flex flex-wrap items-center gap-8" : "flex flex-col gap-12"}
-    >
-      <input type="hidden" name="org" value={org} />
-      {Object.entries(hidden).map(([name, value]) => (
-        <input key={name} type="hidden" name={name} value={value} />
-      ))}
-      {children}
-      <div className="flex flex-wrap items-center gap-8">
-        <Button type="submit" variant={submitVariant} loading={pending}>
-          {submitLabel}
-        </Button>
-      </div>
-      <div aria-live="polite">
-        <Outcome state={state} success={success} org={org} />
-      </div>
-    </form>
+    <>
+      <form
+        ref={ref}
+        action={formAction}
+        onSubmit={keepInputOnSubmit(formAction)}
+        aria-label={label}
+        className={inline ? "flex flex-wrap items-center gap-8" : "flex flex-col gap-12"}
+      >
+        <input type="hidden" name="org" value={org} />
+        {Object.entries(hidden).map(([name, value]) => (
+          <input key={name} type="hidden" name={name} value={value} />
+        ))}
+        {children}
+        <div className="flex flex-wrap items-center gap-8">
+          <Button type="submit" variant={submitVariant} loading={pending}>
+            {submitLabel}
+          </Button>
+        </div>
+        <div aria-live="polite">
+          <Outcome state={state} success={success} />
+        </div>
+      </form>
+      {stepUp}
+    </>
   );
 }
 
