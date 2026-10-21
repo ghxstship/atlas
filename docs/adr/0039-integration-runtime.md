@@ -1,4 +1,4 @@
-# ADR 0038: Integration Runtime, Import Sheets and Warehouse Delivery
+# ADR 0039: Integration Runtime, Import Sheets and Warehouse Delivery
 
 - Status: Accepted
 - Date: 2026-10-20
