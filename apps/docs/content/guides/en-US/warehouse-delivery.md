@@ -10,7 +10,7 @@ Warehouse delivery puts a copy of your organization's data in a bucket you own, 
 ## Set it up
 
 1. In Atlas, open **Settings**, then **Integrations**, then **Warehouse delivery**. You need the **Schedule report delivery and warehouse delivery** capability.
-2. Add a destination: the bucket, its region, a folder, the format (Parquet or CSV) and the hour of the nightly delivery (UTC).
+2. Add a destination: the bucket, its region, a folder, the format (Parquet or CSV) and the hour of the nightly delivery, on your organization's clock (Settings, Localization).
 3. Store the bucket credential. It is kept in Vault and never shown again.
 4. Choose **Deliver now** to check it, or wait for the night.
 
@@ -26,7 +26,7 @@ Add `"session_token"` for temporary credentials.
 
 ## What arrives
 
-Each delivery writes one folder, `<folder>/<date>/<delivery id>/`:
+Each delivery writes one folder, `<folder>/<date>/<delivery id>/`, dated on your organization's calendar:
 
 | File              | What it holds                                                                                        |
 | ----------------- | ---------------------------------------------------------------------------------------------------- |

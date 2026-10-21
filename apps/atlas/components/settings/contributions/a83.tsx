@@ -1,4 +1,5 @@
 import { getSubscription } from "@xos/data";
+import { resolveSettings } from "@xos/data/settings";
 import { isProviderCode } from "@xos/integrations";
 import {
   listDeadLetters,
@@ -64,12 +65,16 @@ async function WarehousePanel({ ctx }: SettingsPanelProps) {
       </section>
     );
   }
-  const [providers, destinations, deliveries, withheld] = await Promise.all([
+  const [providers, destinations, deliveries, withheld, settings] = await Promise.all([
     listWarehouseProviders(ctx.viewer.db),
     listWarehouseDestinations(ctx.viewer.db, ctx.org.id),
     listWarehouseDeliveries(ctx.viewer.db, ctx.org.id),
     listWithheldColumns(ctx.viewer.db),
+    resolveSettings(ctx.viewer.db, { orgId: ctx.org.id }),
   ]);
+  // Nightly is the org's night: the hour is on its locale.time_zone clock, as the scheduler reads it (1401).
+  const zoneSetting = settings.ok ? settings.data.get("locale.time_zone")?.value : undefined;
+  const zone = typeof zoneSetting === "string" && zoneSetting !== "" ? zoneSetting : "UTC";
   if (!subscription.ok || !providers.ok || !destinations.ok || !deliveries.ok || !withheld.ok) {
     return (
       <section aria-labelledby="warehouse-delivery" className="flex flex-col gap-12">
@@ -106,7 +111,8 @@ async function WarehousePanel({ ctx }: SettingsPanelProps) {
                   provider: d.provider,
                   bucket: d.bucketName,
                   format: d.fileFormat,
-                  hour: String(d.deliveryHourUtc).padStart(2, "0"),
+                  hour: String(d.deliveryHour).padStart(2, "0"),
+                  zone,
                 })}
               </p>
               <p className="m-0 text-text-12 text-text-secondary">
@@ -159,6 +165,7 @@ async function WarehousePanel({ ctx }: SettingsPanelProps) {
             providers={providers.data.filter((p) => p.available).map((p) => p.provider)}
             unavailable={providers.data.filter((p) => !p.available).map((p) => p.provider)}
             canIncludeConfidential={ctx.capabilities.has("data.export.confidential")}
+            timeZone={zone}
           />
         </div>
       ) : null}

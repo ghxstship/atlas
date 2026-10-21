@@ -43,7 +43,7 @@ describe("warehouse delivery settings", () => {
             path_prefix: "xos",
             file_format: "Parquet",
             include_confidential: false,
-            delivery_hour_utc: 2,
+            delivery_hour: 2,
             destination_state: "Active",
             next_delivery_at: "t1",
             credential_stored_at: null,
@@ -102,7 +102,7 @@ describe("warehouse delivery settings", () => {
     expect(destinations.ok && destinations.data[0]).toMatchObject({
       id: "d1",
       fileFormat: "Parquet",
-      deliveryHourUtc: 2,
+      deliveryHour: 2,
       state: "Active",
     });
     const deliveries = await listWarehouseDeliveries(db, "o");
@@ -151,13 +151,13 @@ describe("warehouse delivery settings", () => {
         pathPrefix: "xos",
         fileFormat: "CSV",
         includeConfidential: false,
-        deliveryHourUtc: 4,
+        deliveryHour: 4,
       }),
     ).toEqual({ ok: true, data: "d2" });
     expect(stepsOf(calls[0], "insert")[0]?.[0]).toMatchObject({
       provider: "S3",
       file_format: "CSV",
-      delivery_hour_utc: 4,
+      delivery_hour: 4,
     });
     expect(await changeWarehouseDestination(db, "d2", { state: "Paused" })).toEqual({
       ok: true,

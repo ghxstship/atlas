@@ -40,7 +40,7 @@ export interface WarehouseDestination {
   readonly pathPrefix: string;
   readonly fileFormat: WarehouseFormat;
   readonly includeConfidential: boolean;
-  readonly deliveryHourUtc: number;
+  readonly deliveryHour: number;
   readonly state: "Active" | "Paused";
   readonly nextDeliveryAt: string | null;
   readonly credentialStoredAt: string | null;
@@ -97,7 +97,7 @@ function toDestination(r: Raw): WarehouseDestination {
     pathPrefix: str(r["path_prefix"]),
     fileFormat: str(r["file_format"]) as WarehouseFormat,
     includeConfidential: bool(r["include_confidential"]),
-    deliveryHourUtc: num(r["delivery_hour_utc"]),
+    deliveryHour: num(r["delivery_hour"]),
     state: str(r["destination_state"]) as WarehouseDestination["state"],
     nextDeliveryAt: strOrNull(r["next_delivery_at"]),
     credentialStoredAt: strOrNull(r["credential_stored_at"]),
@@ -114,7 +114,7 @@ export async function listWarehouseDestinations(
     untyped(db)
       .from("warehouse_destinations")
       .select(
-        "id, provider, display_name, bucket_name, region, endpoint_url, path_prefix, file_format, include_confidential, delivery_hour_utc, destination_state, next_delivery_at, credential_stored_at, last_delivered_at, last_error_message",
+        "id, provider, display_name, bucket_name, region, endpoint_url, path_prefix, file_format, include_confidential, delivery_hour, destination_state, next_delivery_at, credential_stored_at, last_delivered_at, last_error_message",
       )
       .eq("org_id", orgId)
       .is("deleted_at", null)
@@ -181,7 +181,7 @@ export interface NewWarehouseDestination {
   readonly pathPrefix: string;
   readonly fileFormat: WarehouseFormat;
   readonly includeConfidential: boolean;
-  readonly deliveryHourUtc: number;
+  readonly deliveryHour: number;
 }
 
 export function createWarehouseDestination(
@@ -201,7 +201,7 @@ export function createWarehouseDestination(
         path_prefix: input.pathPrefix,
         file_format: input.fileFormat,
         include_confidential: input.includeConfidential,
-        delivery_hour_utc: input.deliveryHourUtc,
+        delivery_hour: input.deliveryHour,
       })
       .select("id"),
   );

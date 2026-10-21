@@ -63,7 +63,7 @@ test("warehouse delivery: an Enterprise org adds a bucket, stores its credential
     await form.getByLabel("Name").fill(`Analytics Lake ${id}`);
     await form.getByLabel("Bucket").fill(`northwind-lake-${id}`.toLowerCase().slice(0, 60));
     await form.getByLabel("Region").fill("us-east-1");
-    await form.getByLabel("Delivery hour (UTC)").fill("3");
+    await form.getByLabel("Delivery hour").fill("3");
     await form.getByRole("button", { name: "Add destination" }).click();
     await expect(page.getByText("Destination added. Store its credential next.")).toBeVisible();
 

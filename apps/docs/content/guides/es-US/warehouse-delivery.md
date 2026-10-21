@@ -10,7 +10,7 @@ La entrega al almacén de datos deja cada noche una copia de los datos de su org
 ## Configuración
 
 1. En Atlas, abra **Configuración**, luego **Integraciones** y luego **Entrega al almacén de datos**. Necesita la capacidad **Programar la entrega de informes y al almacén de datos**.
-2. Agregue un destino: el bucket, su región, una carpeta, el formato (Parquet o CSV) y la hora de la entrega nocturna (UTC).
+2. Agregue un destino: el bucket, su región, una carpeta, el formato (Parquet o CSV) y la hora de la entrega nocturna, según el reloj de su organización (Configuración, Idioma y región).
 3. Guarde la credencial del bucket. Se conserva en Vault y no se vuelve a mostrar.
 4. Elija **Entregar ahora** para probarla, o espere a la noche.
 
@@ -26,7 +26,7 @@ Agregue `"session_token"` para credenciales temporales.
 
 ## Qué llega
 
-Cada entrega escribe una carpeta, `<carpeta>/<fecha>/<id de la entrega>/`:
+Cada entrega escribe una carpeta, `<carpeta>/<fecha>/<id de la entrega>/`, con la fecha del calendario de su organización:
 
 | Archivo           | Contenido                                                                                                |
 | ----------------- | -------------------------------------------------------------------------------------------------------- |

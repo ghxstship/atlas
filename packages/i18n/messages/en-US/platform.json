@@ -729,15 +729,15 @@
       "prefix": "Folder",
       "prefixHelp": "Folder inside the bucket. Each delivery writes a dated folder under it.",
       "format": "Format",
-      "hour": "Delivery hour (UTC)",
-      "hourHelp": "A whole hour from 0 to 23.",
+      "hour": "Delivery hour",
+      "hourHelp": "A whole hour from 0 to 23 on your organization's clock ({zone}), set in Settings, Localization.",
       "confidential": "Also deliver Confidential columns",
       "confidentialHelp": "Restricted columns are never delivered.",
       "submit": "Add destination",
       "added": "Destination added. Store its credential next."
     },
     "destinations": "Destinations",
-    "line": "{provider}, bucket {bucket}, {format}, every night at {hour}:00 UTC",
+    "line": "{provider}, bucket {bucket}, {format}, every night at {hour}:00 ({zone})",
     "states": {
       "Active": "Active",
       "Paused": "Paused"

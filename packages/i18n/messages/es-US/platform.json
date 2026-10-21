@@ -729,15 +729,15 @@
       "prefix": "Carpeta",
       "prefixHelp": "Carpeta dentro del bucket. Cada entrega escribe una carpeta con fecha dentro de ella.",
       "format": "Formato",
-      "hour": "Hora de entrega (UTC)",
-      "hourHelp": "Una hora entera de 0 a 23.",
+      "hour": "Hora de entrega",
+      "hourHelp": "Una hora entera de 0 a 23 según el reloj de su organización ({zone}), definido en Configuración, Idioma y región.",
       "confidential": "Entregar también las columnas confidenciales",
       "confidentialHelp": "Las columnas restringidas nunca se entregan.",
       "submit": "Agregar destino",
       "added": "Destino agregado. Ahora guarde su credencial."
     },
     "destinations": "Destinos",
-    "line": "{provider}, bucket {bucket}, {format}, cada noche a las {hour}:00 UTC",
+    "line": "{provider}, bucket {bucket}, {format}, cada noche a las {hour}:00 ({zone})",
     "states": {
       "Active": "Activo",
       "Paused": "En pausa"

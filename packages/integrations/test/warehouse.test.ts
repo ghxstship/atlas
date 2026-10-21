@@ -333,7 +333,10 @@ function claimed(overrides: Partial<ClaimedDelivery> = {}): ClaimedDelivery {
     format: "Parquet",
     includeConfidential: false,
     attempt: 1,
-    snapshotAt: "2027-06-30T02:00:00.000000+00:00",
+    snapshotAt: "2027-07-01T02:00:00.000000+00:00",
+    // 02:00 UTC on 1 July is still 30 June in New York: the folder carries the org's date.
+    snapshotDate: "2027-06-30",
+    timeZone: "America/New_York",
     ...overrides,
   };
 }
@@ -451,6 +454,7 @@ describe("warehouse delivery worker", () => {
     };
     expect(manifest.files).toHaveLength(2);
     expect(manifest.schema_version).toBe("1");
+    expect(manifest).toMatchObject({ snapshot_date: "2027-06-30", time_zone: "America/New_York" });
     expect(w.events).toEqual(["complete xos/2027-06-30/del-1 v1"]);
     expect(q.finished).toEqual([["job-0", true]]);
   });
@@ -612,6 +616,8 @@ describe("warehouse store", () => {
             include_confidential: true,
             attempt: 2,
             snapshot_at: "2027-06-30T02:00:00+00:00",
+            snapshot_date: "2027-06-29",
+            time_zone: "America/Los_Angeles",
           },
         ]),
         okData([]),
@@ -643,6 +649,8 @@ describe("warehouse store", () => {
     expect(await store.claim("d")).toMatchObject({
       id: "d",
       format: "CSV",
+      snapshotDate: "2027-06-29",
+      timeZone: "America/Los_Angeles",
       target: { region: "auto", endpointUrl: "https://e.test" },
       attempt: 2,
     });

@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(56);
+select plan(57);
 
 -- Plan gate --------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -17,16 +17,25 @@ select throws_ok($$insert into app.warehouse_destinations (org_id, provider, dis
 
 select pg_temp.as_platform();
 update app.subscriptions set plan_code = 'enterprise' where org_id = pg_temp.id('org_a');
+-- "Nightly" is the org's night: the org keeps its calendar in Pacific/Auckland, far from UTC.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'locale.time_zone', 'Organization', pg_temp.id('org_a'), 'Pacific/Auckland', null, null, true);
+select pg_temp.as_platform();
 
 -- Destinations -------------------------------------------------------------------------------------------------------
 select pg_temp.as_user('carol');
-with d as (insert into app.warehouse_destinations (org_id, provider, display_name, bucket_name, region, delivery_hour_utc, credential_stored_at, last_delivered_at)
+with d as (insert into app.warehouse_destinations (org_id, provider, display_name, bucket_name, region, delivery_hour, credential_stored_at, last_delivered_at)
   values (pg_temp.id('org_a'), 'S3', 'Northwind Lake', 'northwind-lake', 'us-east-1', 3, now(), now()) returning id) insert into world select 'dest', id from d;
 select ok((select credential_stored_at is null and last_delivered_at is null from app.warehouse_destinations where id = pg_temp.id('dest')),
   'credential and delivery details sent on insert are discarded');
 select ok((select next_delivery_at > now() and next_delivery_at <= now() + interval '1 day'
-                  and extract(hour from next_delivery_at at time zone 'UTC') = 3 and extract(minute from next_delivery_at at time zone 'UTC') = 0
-           from app.warehouse_destinations where id = pg_temp.id('dest')), 'the next delivery is the chosen hour (UTC), within a day');
+                  and extract(hour from next_delivery_at at time zone 'Pacific/Auckland') = 3
+                  and extract(minute from next_delivery_at at time zone 'Pacific/Auckland') = 0
+           from app.warehouse_destinations where id = pg_temp.id('dest')), 'the next delivery is the chosen hour on the org''s calendar, within a day');
+select pg_temp.as_platform();
+select is(private.next_warehouse_slot(1::smallint, '2027-06-30 12:00:00+00', 'Pacific/Auckland'), '2027-06-30 13:00:00+00'::timestamptz,
+  '01:00 in Auckland (UTC+12 in winter) after noon UTC is 13:00 UTC the same day');
+select pg_temp.as_user('carol');
 select throws_ok($$insert into app.warehouse_destinations (org_id, provider, display_name, bucket_name)
   values ((select id from world where key = 'org_a'), 'BigQuery', 'Warehouse', 'northwind-bq')$$,
   'XR001', 'warehouse_provider_unavailable: Delivery to BigQuery is not available yet. Use S3 or an S3-compatible bucket.', 'an unavailable provider is refused');

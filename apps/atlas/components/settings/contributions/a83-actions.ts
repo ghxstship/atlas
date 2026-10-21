@@ -72,7 +72,7 @@ export async function addWarehouseDestinationAction(
     pathPrefix: field(form, "prefix").replace(/^\/+|\/+$/g, "") || "xos",
     fileFormat: format,
     includeConfidential: form.get("confidential") === "on",
-    deliveryHourUtc: hour,
+    deliveryHour: hour,
   });
   if (!result.ok) return fromDataError(result.error);
   refresh(ctx.org.slug);

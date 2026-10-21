@@ -9,8 +9,9 @@
 --   * private.warehouse_providers: S3 (any S3-compatible service) is available; Google Cloud Storage, Azure Blob,
 --     BigQuery and Snowflake are named and refused until their providers are built (packages/integrations warehouse).
 --   * app.warehouse_destinations: a customer bucket, its credential in Supabase Vault, the format (Parquet or CSV)
---     and the hour of the nightly delivery. Enterprise plan only, behind the reports.warehouse_delivery flag, managed
---     by holders of reports.schedule.write ("Schedule report delivery and warehouse delivery", 0203).
+--     and the hour of the nightly delivery on the org's own calendar (private.org_time_zone, A71's 1305), so
+--     "nightly" is the org's night, not UTC's. Enterprise plan only, behind the reports.warehouse_delivery flag,
+--     managed by holders of reports.schedule.write ("Schedule report delivery and warehouse delivery", 0203).
 --   * app.warehouse_deliveries and app.warehouse_delivery_files: every delivery and every file it wrote, audited.
 --     The integration worker claims warehouse.deliver jobs, reads rows through app.warehouse_table_rows (the org's
 --     own rows, delivered columns only) and records each file.
@@ -199,21 +200,34 @@ $$;
 comment on function private.warehouse_delivery_allowed(uuid) is 'Warehouse delivery is an Enterprise feature (Section 4.6.4): true when the org is on the Enterprise plan and the reports.warehouse_delivery flag is on for it.';
 revoke all on function private.warehouse_delivery_allowed(uuid) from public, anon, authenticated;
 
-create or replace function private.next_warehouse_slot(p_hour smallint, p_after timestamptz)
+create or replace function private.next_warehouse_slot(p_hour smallint, p_after timestamptz, p_zone text)
 returns timestamptz
 language sql
 stable
 set search_path = ''
 as $$
   select case
-    when date_trunc('day', p_after at time zone 'UTC') + make_interval(hours => p_hour) > (p_after at time zone 'UTC')
-      then (date_trunc('day', p_after at time zone 'UTC') + make_interval(hours => p_hour)) at time zone 'UTC'
-    else (date_trunc('day', p_after at time zone 'UTC') + interval '1 day' + make_interval(hours => p_hour)) at time zone 'UTC'
+    when date_trunc('day', p_after at time zone p_zone) + make_interval(hours => p_hour) > (p_after at time zone p_zone)
+      then (date_trunc('day', p_after at time zone p_zone) + make_interval(hours => p_hour)) at time zone p_zone
+    else (date_trunc('day', p_after at time zone p_zone) + interval '1 day' + make_interval(hours => p_hour)) at time zone p_zone
   end;
 $$;
 
-comment on function private.next_warehouse_slot(smallint, timestamptz) is 'The next nightly delivery time after a moment: the given hour (UTC) today if it is still ahead, else tomorrow.';
-revoke all on function private.next_warehouse_slot(smallint, timestamptz) from public, anon, authenticated;
+comment on function private.next_warehouse_slot(smallint, timestamptz, text) is 'The next nightly delivery time after a moment: the given hour on the calendar of the zone today if it is still ahead, else tomorrow. Daylight saving changes follow the zone.';
+revoke all on function private.next_warehouse_slot(smallint, timestamptz, text) from public, anon, authenticated;
+
+create or replace function private.next_warehouse_delivery(p_org_id uuid, p_hour smallint, p_after timestamptz)
+returns timestamptz
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select private.next_warehouse_slot(p_hour, p_after, private.org_time_zone(p_org_id));
+$$;
+
+comment on function private.next_warehouse_delivery(uuid, smallint, timestamptz) is 'The next nightly delivery of an org''s destination: the destination''s hour on the org''s calendar (private.org_time_zone, UTC when the org set none).';
+revoke all on function private.next_warehouse_delivery(uuid, smallint, timestamptz) from public, anon, authenticated;
 
 create table app.warehouse_destinations (
   id uuid primary key default private.uuid_v7(),
@@ -226,7 +240,7 @@ create table app.warehouse_destinations (
   path_prefix text not null default 'xos',
   file_format app.warehouse_file_format not null default 'Parquet',
   include_confidential boolean not null default false,
-  delivery_hour_utc smallint not null default 2,
+  delivery_hour smallint not null default 2,
   destination_state app.warehouse_destination_state not null default 'Active',
   next_delivery_at timestamptz,
   credential_stored_at timestamptz,
@@ -238,7 +252,7 @@ create table app.warehouse_destinations (
   constraint warehouse_destinations_region_format check (region is null or region ~ '^[a-z0-9][a-z0-9-]{1,40}$'),
   constraint warehouse_destinations_endpoint_format check (endpoint_url is null or (endpoint_url ~ '^https://[A-Za-z0-9.-]+(:[0-9]{2,5})?/?$' and char_length(endpoint_url) <= 300)),
   constraint warehouse_destinations_prefix_format check (path_prefix ~ '^[A-Za-z0-9_-]+(/[A-Za-z0-9_-]+){0,5}$' and char_length(path_prefix) <= 200),
-  constraint warehouse_destinations_hour_range check (delivery_hour_utc between 0 and 23),
+  constraint warehouse_destinations_hour_range check (delivery_hour between 0 and 23),
   constraint warehouse_destinations_error_length check (last_error_message is null or char_length(last_error_message) <= 2000)
 );
 
@@ -255,7 +269,7 @@ call private.describe('app.warehouse_destinations', 'A customer''s own bucket th
   'path_prefix', 'Folder inside the bucket; each delivery writes <prefix>/<date>/<delivery id>/.',
   'file_format', 'Parquet or CSV.',
   'include_confidential', 'Whether Confidential columns are delivered; only a holder of data.export.confidential turns it on. Restricted columns are never delivered.',
-  'delivery_hour_utc', 'Hour of the nightly delivery, UTC.',
+  'delivery_hour', 'Hour of the nightly delivery on the org''s calendar (its locale.time_zone setting, UTC when unset).',
   'destination_state', 'Active or Paused.',
   'next_delivery_at', 'When the next nightly delivery is queued.',
   'credential_stored_at', 'When the bucket credential was stored in Vault, or NULL.',
@@ -311,20 +325,20 @@ begin
        or new.last_delivered_at is distinct from old.last_delivered_at
        or new.last_error_code is distinct from old.last_error_code
        or new.last_error_message is distinct from old.last_error_message
-       or new.next_delivery_at is distinct from old.next_delivery_at and new.delivery_hour_utc = old.delivery_hour_utc
+       or new.next_delivery_at is distinct from old.next_delivery_at and new.delivery_hour = old.delivery_hour
           and new.destination_state = old.destination_state then
       perform private.refuse('warehouse_fields_service_only', 'Credential and delivery details change only through the warehouse RPCs.');
     end if;
-    if tg_op = 'INSERT' or new.delivery_hour_utc <> old.delivery_hour_utc
+    if tg_op = 'INSERT' or new.delivery_hour <> old.delivery_hour
        or (new.destination_state = 'Active' and old.destination_state = 'Paused') then
-      new.next_delivery_at := private.next_warehouse_slot(new.delivery_hour_utc, now());
+      new.next_delivery_at := private.next_warehouse_delivery(new.org_id, new.delivery_hour, now());
     end if;
   end if;
   return new;
 end;
 $$;
 
-comment on function private.guard_warehouse_destination() is 'Warehouse destinations: Enterprise plan and the reports.warehouse_delivery flag; an available provider, fixed once chosen; a public HTTPS endpoint (the webhook SSRF guard); Confidential columns only by a holder of data.export.confidential; credential and delivery details only through the warehouse RPCs; the next delivery follows the chosen hour.';
+comment on function private.guard_warehouse_destination() is 'Warehouse destinations: Enterprise plan and the reports.warehouse_delivery flag; an available provider, fixed once chosen; a public HTTPS endpoint (the webhook SSRF guard); Confidential columns only by a holder of data.export.confidential; credential and delivery details only through the warehouse RPCs; the next delivery follows the chosen hour on the org''s calendar.';
 revoke all on function private.guard_warehouse_destination() from public, anon, authenticated;
 
 create trigger t40_guard_warehouse_destination before insert or update on app.warehouse_destinations
@@ -622,7 +636,7 @@ begin
     for update skip locked
   loop
     perform private.begin_trusted_operation('warehouse_delivery');
-    update app.warehouse_destinations set next_delivery_at = private.next_warehouse_slot(v_destination.delivery_hour_utc, now())
+    update app.warehouse_destinations set next_delivery_at = private.next_warehouse_delivery(v_destination.org_id, v_destination.delivery_hour, now())
     where id = v_destination.id;
     perform private.end_trusted_operation('warehouse_delivery');
     if private.warehouse_delivery_allowed(v_destination.org_id)
@@ -636,7 +650,7 @@ begin
 end;
 $$;
 
-comment on function app.queue_due_warehouse_deliveries() is 'Scheduler (service role, pg_cron hourly): queues the nightly delivery of every due Active destination with a stored credential on an eligible org, and moves its next delivery to the same hour tomorrow. Returns the deliveries queued.';
+comment on function app.queue_due_warehouse_deliveries() is 'Scheduler (service role, pg_cron hourly): queues the nightly delivery of every due Active destination with a stored credential on an eligible org, and moves its next delivery to the same hour of the org''s next day. Returns the deliveries queued.';
 
 -- Running a delivery -----------------------------------------------------------------------------------------------
 
@@ -653,7 +667,9 @@ returns table (
   file_format app.warehouse_file_format,
   include_confidential boolean,
   attempt smallint,
-  snapshot_at timestamptz
+  snapshot_at timestamptz,
+  snapshot_date date,
+  time_zone text
 )
 language plpgsql
 volatile
@@ -690,11 +706,13 @@ begin
   returning * into v_delivery;
   return query select v_delivery.id, v_delivery.org_id, v_destination.id, v_destination.provider, v_destination.bucket_name,
     v_destination.region, v_destination.endpoint_url, v_destination.path_prefix, v_delivery.file_format,
-    v_delivery.include_confidential, v_delivery.attempt, v_delivery.snapshot_at;
+    v_delivery.include_confidential, v_delivery.attempt, v_delivery.snapshot_at,
+    (v_delivery.snapshot_at at time zone private.org_time_zone(v_delivery.org_id))::date,
+    private.org_time_zone(v_delivery.org_id);
 end;
 $$;
 
-comment on function app.claim_warehouse_delivery(uuid) is 'Delivery worker: starts the next attempt of a Queued or due Retrying delivery and returns where it goes. A delivery whose destination was paused or deleted, or whose org left the Enterprise plan, is Failed instead and nothing is returned. Service role only.';
+comment on function app.claim_warehouse_delivery(uuid) is 'Delivery worker: starts the next attempt of a Queued or due Retrying delivery and returns where it goes, with the snapshot''s date on the org''s calendar, which dates the delivery''s folder. A delivery whose destination was paused or deleted, or whose org left the Enterprise plan, is Failed instead and nothing is returned. Service role only.';
 
 create or replace function app.warehouse_delivery_columns(p_delivery_id uuid)
 returns table (

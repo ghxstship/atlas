@@ -41,6 +41,9 @@ export interface ClaimedDelivery {
   readonly includeConfidential: boolean;
   readonly attempt: number;
   readonly snapshotAt: string;
+  /** The snapshot's date on the org's calendar (private.org_time_zone), which dates the delivery's folder. */
+  readonly snapshotDate: string;
+  readonly timeZone: string;
 }
 
 export interface DeliveryColumn {
@@ -133,9 +136,9 @@ function encodeFile(
   return { body: writeParquet(columns, values), contentType: "application/vnd.apache.parquet" };
 }
 
-/** `<prefix>/<snapshot date>/<delivery id>`: one folder per delivery, sorted by date. */
+/** `<prefix>/<snapshot date on the org's calendar>/<delivery id>`: one folder per delivery, sorted by the org's date. */
 export function deliveryPrefix(delivery: ClaimedDelivery): string {
-  return `${delivery.pathPrefix}/${delivery.snapshotAt.slice(0, 10)}/${delivery.id}`;
+  return `${delivery.pathPrefix}/${delivery.snapshotDate}/${delivery.id}`;
 }
 
 async function deliver(
@@ -220,6 +223,8 @@ async function deliver(
           delivery_id: delivery.id,
           org_id: delivery.orgId,
           snapshot_at: delivery.snapshotAt,
+          snapshot_date: delivery.snapshotDate,
+          time_zone: delivery.timeZone,
           format: delivery.format,
           schema_version: WAREHOUSE_SCHEMA_VERSION,
           files: files.map((f) => ({
@@ -346,6 +351,8 @@ interface ClaimRow {
   include_confidential: boolean;
   attempt: number;
   snapshot_at: string;
+  snapshot_date: string;
+  time_zone: string;
 }
 
 interface ColumnRow {
@@ -385,6 +392,8 @@ export function supabaseWarehouseStore(db: DbClient): WarehouseStore {
         includeConfidential: row.include_confidential,
         attempt: row.attempt,
         snapshotAt: row.snapshot_at,
+        snapshotDate: row.snapshot_date,
+        timeZone: row.time_zone,
       };
     },
     async columns(deliveryId) {

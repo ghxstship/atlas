@@ -22,11 +22,14 @@ export function AddWarehouseDestinationForm({
   providers,
   unavailable,
   canIncludeConfidential,
+  timeZone,
 }: {
   org: string;
   providers: readonly string[];
   unavailable: readonly string[];
   canIncludeConfidential: boolean;
+  /** The org's locale.time_zone, the clock the delivery hour is on. */
+  timeZone: string;
 }) {
   const t = usePlatformT();
   const [provider, setProvider] = useState(providers[0] ?? "S3");
@@ -110,7 +113,7 @@ export function AddWarehouseDestinationForm({
         required
         defaultValue="2"
         label={t("warehouse.add.hour")}
-        help={t("warehouse.add.hourHelp")}
+        help={t("warehouse.add.hourHelp", { zone: timeZone })}
       />
       {canIncludeConfidential ? (
         <div className="flex flex-col gap-4">
