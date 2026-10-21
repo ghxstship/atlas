@@ -50,6 +50,17 @@ describe("environment", () => {
       }),
     ).toThrow(/must differ from the host of ATLAS_SITE_URL/);
   });
+
+  it("takes an optional read replica as an http(s) URL (Section 5.1)", () => {
+    const replica = "https://abc-rr-us-east-1-x.supabase.co";
+    expect(parseEnv({ ...valid, XOS_READ_REPLICA_URL: replica }).XOS_READ_REPLICA_URL).toBe(
+      replica,
+    );
+    expect(parseEnv(valid).XOS_READ_REPLICA_URL).toBeUndefined();
+    expect(() =>
+      parseEnv({ ...valid, XOS_READ_REPLICA_URL: "postgres://replica:5432/postgres" }),
+    ).toThrow(/XOS_READ_REPLICA_URL/);
+  });
 });
 
 describe("auth cookies", () => {

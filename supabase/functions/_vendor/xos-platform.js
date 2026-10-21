@@ -41852,6 +41852,51 @@ function previewCsv(preview, headers, groupHeader) {
   return `${lines.join("\n")}\n`;
 }
 //#endregion
+//#region ../data/src/read-replica.ts
+/**
+ * Read replicas serve reports and exports (Section 5.1, A65-032).
+ *
+ * `XOS_READ_REPLICA_URL` names the Data API origin of a Supabase read replica
+ * (`https://<ref>-rr-<region>-<id>.supabase.co`, Project Settings, Infrastructure). When it is set, the
+ * heavy reads of the report worker and the full org export go to the replica; when it is not, nothing
+ * changes. A replica uses the project's JWT keys, so the same keys and the same row level security apply
+ * there as on the primary.
+ *
+ * A replica can lag the primary by a moment and accepts reads only (GET), so every replica read falls back
+ * to the primary: when the replica errors, when it answers something the caller cannot use (a row it has
+ * not received yet), or when it refuses. Writes never go to the replica.
+ */
+var READ_REPLICA_ENV = "XOS_READ_REPLICA_URL";
+/** The replica's origin from the environment, or null when it is unset, blank or not an http(s) URL. */
+function readReplicaUrl(env, warn = () => {}) {
+  const raw = env[READ_REPLICA_ENV]?.trim();
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.protocol !== "http:") throw new TypeError(url.protocol);
+    return url.origin;
+  } catch (error) {
+    if (!(error instanceof TypeError)) throw error;
+    warn(`${READ_REPLICA_ENV} is not an http(s) URL; reads stay on the primary.`);
+    return null;
+  }
+}
+/**
+ * Runs `read` against the replica when there is one, and against the primary when there is none, when
+ * the replica throws, or when its answer is not `usable`.
+ */
+async function preferReplica(primary, replica, read, options) {
+  if (replica === null || replica === void 0) return read(primary, false);
+  try {
+    const result = await read(replica, true);
+    if (options.usable === void 0 || options.usable(result)) return result;
+    options.onFallback?.(options.label, "unusable");
+  } catch (error) {
+    options.onFallback?.(options.label, error);
+  }
+  return read(primary, false);
+}
+//#endregion
 //#region ../data/src/report-files.ts
 var fractionDigits = (currency) =>
   currency
@@ -42152,8 +42197,9 @@ function text$3(row, key) {
   return value;
 }
 /** ReportRunStore over the service-role client: the 0510 queue RPCs and the 1050 run RPCs. */
-function supabaseReportRunStore(client) {
+function supabaseReportRunStore(client, options = {}) {
   const app = client.schema("app");
+  const fallback = options.onReplicaFallback;
   const call = async (fn, args) => {
     const { data, error } = await app.rpc(fn, args);
     if (error) throw new Error(`${fn}: ${error.message}`);
@@ -42191,10 +42237,20 @@ function supabaseReportRunStore(client) {
       };
     },
     async definition(id, membershipId) {
-      const result = await getReportDefinition(app, {
-        id,
-        membershipId,
-      });
+      const result = await preferReplica(
+        client,
+        options.replica,
+        (c) =>
+          getReportDefinition(c.schema("app"), {
+            id,
+            membershipId,
+          }),
+        {
+          label: "report definition",
+          usable: (r) => r.ok,
+          onFallback: fallback,
+        },
+      );
       if (result.ok) return result.data;
       if (result.error.kind === "not-found") return null;
       throw new Error(`report definition: ${JSON.stringify(result.error)}`);
@@ -42203,12 +42259,28 @@ function supabaseReportRunStore(client) {
       await call("start_report_run", { p_run_id: runId });
     },
     async rows(runId, columns, limit) {
+      const args = {
+        p_run_id: runId,
+        p_columns: columns,
+        p_limit: limit,
+      };
       return (
-        (await call("report_run_rows", {
-          p_run_id: runId,
-          p_columns: columns,
-          p_limit: limit,
-        })) ?? []
+        (await preferReplica(
+          client,
+          options.replica,
+          async (c, onReplica) => {
+            if (!onReplica) return await call("report_run_rows", args);
+            const { data, error } = await c
+              .schema("app")
+              .rpc("report_run_rows", args, { get: true });
+            if (error) throw new Error(`report_run_rows on the replica: ${error.message}`);
+            return data;
+          },
+          {
+            label: "report rows",
+            onFallback: fallback,
+          },
+        )) ?? []
       );
     },
     async finish(runId, outcome) {
@@ -50005,6 +50077,7 @@ export {
   PlatformDbError,
   PriceNotFoundError,
   PushServiceError,
+  READ_REPLICA_ENV,
   REPORT_DELIVER_JOB,
   REPORT_RESULTS_BUCKET,
   REPORT_RUN_JOB,
@@ -50085,6 +50158,7 @@ export {
   readBillingEnv,
   readEmailEnv,
   readPushEnv,
+  readReplicaUrl,
   readSmsEnv,
   readZipDirectory,
   receiveInbound,

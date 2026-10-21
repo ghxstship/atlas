@@ -73,6 +73,12 @@ const EnvSchema = z.object({
     .toLowerCase()
     .regex(HOST_NAME, "Use a domain such as inbound.example.com, without @ or a scheme.")
     .optional(),
+  /**
+   * The Data API origin of a Supabase read replica (Section 5.1, A65-032). Set, the full org export reads
+   * there as the signed-in Owner and falls back to the primary; unset, every read stays on the primary.
+   * The report-run Edge Function reads the same variable for scheduled report runs.
+   */
+  XOS_READ_REPLICA_URL: z.url({ protocol: /^https?$/ }).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
