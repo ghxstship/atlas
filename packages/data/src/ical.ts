@@ -7,6 +7,8 @@
  * - Each event keeps the IANA zone its times were typed in: DTSTART and DTEND carry TZID and local
  *   time, and the calendar carries one VTIMEZONE per zone, built from the platform's time zone data
  *   for the span the events cover (3.6.5). A zone the platform does not know falls back to UTC.
+ * - An all-day event (a milestone or deadline set at local midnight) is a DATE on the place's
+ *   calendar, computed in the project's zone by the database (A71), never the UTC date.
  * - UID is the row id, so an event keeps its identity across fetches; SEQUENCE grows with every
  *   change; a canceled shift or record stays with STATUS:CANCELLED.
  */
@@ -31,6 +33,11 @@ export interface ICalEvent {
   readonly categories?: readonly string[];
   /** Busy time (shifts, meetings) or free time (milestones and deadlines). */
   readonly transparent?: boolean;
+  /**
+   * An all-day event: its first day and the day after its last (DTEND is exclusive), as
+   * YYYY-MM-DD on the place's calendar (the project's zone, A71), never the UTC date.
+   */
+  readonly allDay?: { readonly start: string; readonly end: string } | null;
 }
 
 export interface ICalCalendar {
@@ -158,6 +165,12 @@ function localStamp(parts: LocalParts): string {
   );
 }
 
+/** A DATE value from YYYY-MM-DD: 20261021. */
+export function dateStamp(day: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) throw new Error(`Not a calendar date: ${day}`);
+  return day.replace(/-/g, "");
+}
+
 /** Local DATE-TIME of an instant in a zone: 20261021T090000. */
 export function zonedStamp(zone: string, date: Date): string {
   return localStamp(localParts(zone, date.getTime()));
@@ -262,7 +275,7 @@ export function writeICalendar(calendar: ICalCalendar): string {
   const spans = new Map<string, { start: number; end: number }>();
   for (const event of calendar.events) {
     const zone = zoneFor(event);
-    if (zone === null) continue;
+    if (zone === null || event.allDay) continue;
     const start = event.startsAt.getTime();
     const end = (event.endsAt ?? event.startsAt).getTime();
     const span = spans.get(zone);
@@ -295,10 +308,17 @@ export function writeICalendar(calendar: ICalCalendar): string {
       property("CREATED", utcStamp(event.createdAt)),
       property("LAST-MODIFIED", utcStamp(event.updatedAt)),
       property("SEQUENCE", String(Math.max(0, Math.trunc(event.sequence)))),
-      dateProperty("DTSTART", event.startsAt, zone),
     );
-    if (event.endsAt !== null && event.endsAt.getTime() > event.startsAt.getTime()) {
-      lines.push(dateProperty("DTEND", event.endsAt, zone));
+    if (event.allDay) {
+      lines.push(
+        `DTSTART;VALUE=DATE:${dateStamp(event.allDay.start)}`,
+        `DTEND;VALUE=DATE:${dateStamp(event.allDay.end)}`,
+      );
+    } else {
+      lines.push(dateProperty("DTSTART", event.startsAt, zone));
+      if (event.endsAt !== null && event.endsAt.getTime() > event.startsAt.getTime()) {
+        lines.push(dateProperty("DTEND", event.endsAt, zone));
+      }
     }
     lines.push(property("SUMMARY", escapeText(event.summary)));
     if (event.description) lines.push(property("DESCRIPTION", escapeText(event.description)));

@@ -221,6 +221,8 @@ export interface FeedEvent {
   readonly projectKey: string | null;
   readonly recordKey: string | null;
   readonly scopeNodeName: string | null;
+  /** All-day dates on the place's calendar (the project's zone, A71), or null for a timed event. */
+  readonly allDay: { readonly start: string; readonly end: string } | null;
 }
 
 export type CalendarFeedDocument =
@@ -232,6 +234,17 @@ const str = (v: unknown): string | null => (typeof v === "string" ? v : null);
 const KINDS = new Set(["shift", "meeting", "milestone", "deadline"]);
 const STATUSES = new Set(["tentative", "confirmed", "cancelled"]);
 const SCOPES = new Set(["member", "project", "person"]);
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The all-day dates of an event the database marked all day, when both are calendar dates. */
+function allDayOf(e: Record<string, unknown>): FeedEvent["allDay"] {
+  const start = str(e["start_date"]);
+  const end = str(e["end_date"]);
+  return e["all_day"] === true && start && end && DAY.test(start) && DAY.test(end)
+    ? { start, end }
+    : null;
+}
 
 /** Reads the token RPC's JSON document, refusing any shape it does not expect. */
 export function parseCalendarFeedDocument(value: unknown): CalendarFeedDocument | null {
@@ -276,6 +289,7 @@ export function parseCalendarFeedDocument(value: unknown): CalendarFeedDocument 
       projectKey: str(e["project_key"]),
       recordKey: str(e["record_key"]),
       scopeNodeName: str(e["scope_node_name"]),
+      allDay: allDayOf(e),
     });
   }
   return {
@@ -360,6 +374,7 @@ export function feedEvents(feed: FeedMeta, events: readonly FeedEvent[], links: 
       updatedAt: new Date(e.updatedAt),
       url: eventUrl(feed, e, links),
       transparent: e.kind === "milestone" || e.kind === "deadline",
+      allDay: e.allDay,
     };
   });
 }

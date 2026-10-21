@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  dateStamp,
   escapeText,
   foldLine,
   isKnownZone,
@@ -310,6 +311,36 @@ describe("iCalendar parts", () => {
     expect(isKnownZone("America/Chicago")).toBe(true);
     expect(isKnownZone("Mars/Olympus_Mons")).toBe(false);
     expect(isKnownZone(null)).toBe(false);
+  });
+
+  it("writes an all-day event as dates on the place's calendar, with no zone", () => {
+    // A deadline at midnight in New York on March 14 is 05:00 UTC; the database marks it all day
+    // with the New York dates, and the file carries those dates, not the UTC instant.
+    const calendar = parse(
+      writeICalendar({
+        name: "Deadlines",
+        timeZone: "America/New_York",
+        events: [
+          event({
+            id: "d",
+            summary: "Rider due",
+            startsAt: new Date("2027-03-14T05:00:00Z"),
+            allDay: { start: "2027-03-14", end: "2027-03-15" },
+            transparent: true,
+          }),
+        ],
+      }),
+    );
+    const vevent = calendar.components.find((c) => c.name === "VEVENT") as Component;
+    expect(one(vevent, "DTSTART")).toEqual({
+      name: "DTSTART",
+      params: { VALUE: "DATE" },
+      value: "20270314",
+    });
+    expect(one(vevent, "DTEND").value).toBe("20270315");
+    expect(calendar.components.some((c) => c.name === "VTIMEZONE")).toBe(false);
+    expect(dateStamp("2027-12-31")).toBe("20271231");
+    expect(() => dateStamp("2027-3-1")).toThrow();
   });
 
   it("writes a fixed-offset zone and an empty calendar", () => {

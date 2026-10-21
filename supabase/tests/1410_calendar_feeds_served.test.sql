@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(45);
+select plan(54);
 
 create temporary table k (key text primary key, id uuid, val text);
 grant select, insert, update on k to public;
@@ -70,7 +70,33 @@ select is(pg_temp.event('frank', pg_temp.id('milestone')) ->> 'ends_at', null, '
 select is(pg_temp.event('frank', pg_temp.id('milestone')) ->> 'record_key', 'NWL-1', 'a record event carries its display key');
 select pg_temp.as_platform();
 select is(private.calendar_feed_sequence(now() - interval '90 seconds', now()), 90, 'the sequence grows with every second between creation and change');
+
+-- Dates follow the place's calendar, never UTC (A71, 1305) -------------------------------------------------------------
+select is(private.calendar_feed_day_start('2027-03-14', 'America/New_York'), '2027-03-14 05:00+00'::timestamptz,
+  'a feed day starts at local midnight in its zone');
+select is(private.calendar_feed_dates('deadline', '2027-03-14 05:00+00', null, 'America/New_York'),
+  '{"all_day": true, "start_date": "2027-03-14", "end_date": "2027-03-15"}'::jsonb,
+  'a deadline at local midnight is an all-day event on the local date, ending the next day');
+select is(private.calendar_feed_dates('deadline', '2027-03-14 00:00+00', null, 'America/New_York') ->> 'start_date', '2027-03-13',
+  'a UTC midnight falls on the evening before in New York, so its date is New York''s, never the UTC date');
+select is((private.calendar_feed_dates('deadline', '2027-03-14 00:00+00', null, 'America/New_York') ->> 'all_day')::boolean, false,
+  'and it keeps its time');
+select is((private.calendar_feed_dates('meeting', '2027-03-14 05:00+00', null, 'America/New_York') ->> 'all_day')::boolean, false,
+  'a meeting at midnight keeps its time');
+select is(private.calendar_feed_dates('milestone', '2027-03-14 05:00+00', '2027-03-16 04:00+00', 'America/New_York') ->> 'end_date',
+  '2027-03-16', 'a two-day all-day event across a DST change ends the day after its last day');
+insert into k (key, val) values ('due_day', (private.project_today(pg_temp.id('prj_a')) + 25)::text);
+with r as (insert into app.records (project_id, record_kind, title, xyz, xyz_basis, due_at, owner_party_id)
+  values (pg_temp.id('prj_a'), 'Deadline', 'Signed rider from the band', 'Y', 'Declared',
+    private.calendar_feed_day_start((select val from k where key = 'due_day')::date,
+      (select time_zone from app.projects where id = pg_temp.id('prj_a'))), pg_temp.id('frank')) returning id)
+  insert into world select 'deadline', id from r;
 select pg_temp.as_anon();
+select is(pg_temp.event('frank', pg_temp.id('deadline')) ->> 'all_day', 'true',
+  'a deadline due at midnight on the project''s calendar is an all-day event in the feed');
+select is(pg_temp.event('frank', pg_temp.id('deadline')) ->> 'start_date', (select val from k where key = 'due_day'),
+  'on the project''s date, counted from today in the project''s zone');
+select is(pg_temp.event('frank', pg_temp.id('milestone')) ->> 'all_day', 'false', 'a milestone with a time stays timed');
 
 select pg_temp.as_user('alice');
 select app.transition_shift(pg_temp.id('frank_shift'), 'Draft', 'Published', 'Published to crew.');

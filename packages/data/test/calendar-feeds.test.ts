@@ -190,6 +190,36 @@ describe("calendarFeedResponse", () => {
 });
 
 describe("feed documents", () => {
+  it("keeps the database's all-day dates and writes them as DATE values", async () => {
+    const allDay = {
+      ...MILESTONE,
+      id: "0192a000-0000-7000-8000-00000000000c",
+      starts_at: "2027-06-01T04:00:00+00:00",
+      status: "confirmed",
+      all_day: true,
+      start_date: "2027-06-01",
+      end_date: "2027-06-02",
+    };
+    const parsed = parseCalendarFeedDocument({ status: "ok", feed: FEED, events: [allDay, EVENT] });
+    if (parsed?.status !== "ok") throw new Error("parse");
+    expect(parsed.events.map((e) => e.allDay)).toEqual([
+      { start: "2027-06-01", end: "2027-06-02" },
+      null,
+    ]);
+    const odd = parseCalendarFeedDocument({
+      status: "ok",
+      feed: FEED,
+      events: [{ ...allDay, end_date: "June 2" }],
+    });
+    expect(odd?.status === "ok" && odd.events[0]?.allDay).toBeNull();
+    const { db } = publicClient({
+      data: { status: "ok", feed: FEED, events: [allDay] },
+      error: null,
+    });
+    const body = await (await request(db, `${token("9")}.ics`)).text();
+    expect(body).toContain("DTSTART;VALUE=DATE:20270601\r\nDTEND;VALUE=DATE:20270602");
+  });
+
   it("refuses shapes it does not expect and skips unreadable events", () => {
     expect(parseCalendarFeedDocument(null)).toBeNull();
     expect(parseCalendarFeedDocument({ status: "maybe" })).toBeNull();

@@ -13,6 +13,9 @@
 --     (ok, not_found, rate_limited), the feed's name parts, time zone and locale, and its events with stable ids,
 --     times, IANA zones, a status (tentative, confirmed, cancelled) and a sequence that grows with every change, for
 --     the iCalendar writer in @xos/data. Canceled shifts and records stay in the feed as cancelled events
+--   * dates follow the place's calendar (A71, 1305), never UTC: a milestone or deadline set at local midnight in its
+--     zone (the record's, else the project's) is an all-day event on that local date, and the 90-day and 18-month
+--     window counts days from today in the feed's zone (the project's zone for a project feed)
 --   * limits (ADR 0040 item 3): 120 fetches an hour per token; 20 failed lookups per client address in 15 minutes,
 --     where the address is the one the Atlas or Gateway route relays (clientAddress(), A69-003) scoped under the
 --     address that reached PostgREST (private.request_ip(), A69-002); and 2000 failed lookups per reaching address in
@@ -276,6 +279,43 @@ $$;
 comment on function private.calendar_feed_setting(uuid, uuid, text) is 'One resolved setting (locale.language or locale.time_zone) of the person whose claims are set, in an org and project or personally when the org is null; read by api_public.calendar_feed while it acts as the feed''s owner.';
 revoke all on function private.calendar_feed_setting(uuid, uuid, text) from public, anon, authenticated;
 
+create or replace function private.calendar_feed_day_start(p_day date, p_time_zone text)
+returns timestamptz
+language plpgsql
+stable
+set search_path = ''
+as $$
+begin
+  return p_day::timestamp at time zone coalesce(nullif(btrim(p_time_zone), ''), 'UTC');
+exception when invalid_parameter_value then
+  return p_day::timestamp at time zone 'UTC';
+end;
+$$;
+
+comment on function private.calendar_feed_day_start(date, text) is 'The instant a calendar day starts in an IANA zone; UTC for a blank or unknown zone. With private.zone_date (1305) it keeps feed days on the place''s calendar (A71), never the database''s UTC date.';
+revoke all on function private.calendar_feed_day_start(date, text) from public, anon, authenticated;
+
+create or replace function private.calendar_feed_dates(p_kind text, p_start timestamptz, p_end timestamptz, p_time_zone text)
+returns jsonb
+language sql
+stable
+set search_path = ''
+as $$
+  select jsonb_build_object(
+    'all_day', x.all_day,
+    'start_date', x.day,
+    'end_date', case when x.all_day then case when x.end_day > x.day then x.end_day else x.day + 1 end end)
+  from (
+    select d.day, d.end_day,
+      p_kind in ('milestone', 'deadline') and p_start = private.calendar_feed_day_start(d.day, p_time_zone)
+        and (p_end is null or p_end = private.calendar_feed_day_start(d.end_day, p_time_zone)) as all_day
+    from (select private.zone_date(p_start, p_time_zone) as day, private.zone_date(p_end, p_time_zone) as end_day) d
+  ) x;
+$$;
+
+comment on function private.calendar_feed_dates(text, timestamptz, timestamptz, text) is 'Calendar dates of a feed event in its zone (the record''s, else its project''s; A71): a milestone or deadline set at local midnight is an all-day event on that local date, ending the day after its last day (iCalendar DTEND is exclusive); every other event keeps its times. Returns all_day, start_date and end_date.';
+revoke all on function private.calendar_feed_dates(text, timestamptz, timestamptz, text) from public, anon, authenticated;
+
 create or replace function api_public.calendar_feed(p_token text, p_client_address text default null)
 returns jsonb
 language plpgsql
@@ -292,8 +332,10 @@ declare
   v_person_feed app.person_calendar_feeds;
   v_user uuid;
   v_claims text := current_setting('request.jwt.claims', true);
-  v_from timestamptz := now() - interval '90 days';
-  v_to timestamptz := now() + interval '18 months';
+  v_zone text;
+  v_today date;
+  v_from timestamptz;
+  v_to timestamptz;
   v_meta jsonb;
   v_events jsonb;
 begin
@@ -364,6 +406,12 @@ begin
     from app.organizations o left join app.projects p on p.id = v_feed.project_id
     where o.id = v_feed.org_id;
 
+    -- The window counts days on the feed's calendar (the project's zone for a project feed; A71), never UTC.
+    v_zone := v_meta ->> 'time_zone';
+    v_today := private.zone_today(v_zone);
+    v_from := private.calendar_feed_day_start(v_today - 90, v_zone);
+    v_to := private.calendar_feed_day_start((v_today + interval '18 months')::date + 1, v_zone);
+
     with ev as (
       select s.id, 'shift'::text as kind, coalesce(ro.job_title, s.role_code, '') as title, s.starts_at, s.ends_at, s.time_zone,
         case s.shift_state when 'Canceled' then 'cancelled' when 'Draft' then 'tentative' else 'confirmed' end as status,
@@ -401,6 +449,7 @@ begin
         'status', c.status, 'sequence', private.calendar_feed_sequence(c.created_at, c.updated_at),
         'created_at', c.created_at, 'updated_at', c.updated_at, 'org_name', null, 'project_name', c.project_name,
         'project_key', c.project_key, 'record_key', c.record_key, 'scope_node_name', c.scope_node_name)
+        || private.calendar_feed_dates(c.kind, c.starts_at, c.ends_at, c.time_zone)
       order by c.starts_at, c.id), '[]'::jsonb)
     into v_events
     from capped c;
@@ -408,6 +457,12 @@ begin
     v_meta := jsonb_build_object('scope', 'person', 'org_name', null, 'org_slug', null, 'project_name', null, 'project_key', null,
       'time_zone', coalesce(private.calendar_feed_setting(null, null, 'locale.time_zone'), 'UTC'),
       'locale', coalesce(private.calendar_feed_setting(null, null, 'locale.language'), 'en-US'));
+
+    -- The window counts days on the feed's calendar (the project's zone for a project feed; A71), never UTC.
+    v_zone := v_meta ->> 'time_zone';
+    v_today := private.zone_today(v_zone);
+    v_from := private.calendar_feed_day_start(v_today - 90, v_zone);
+    v_to := private.calendar_feed_day_start((v_today + interval '18 months')::date + 1, v_zone);
 
     with ev as (
       select s.id, 'shift'::text as kind, coalesce(s.job_title, s.role_code, '') as title, s.starts_at, s.ends_at, s.time_zone,
@@ -435,6 +490,7 @@ begin
         'status', c.status, 'sequence', private.calendar_feed_sequence(c.created_at, c.updated_at),
         'created_at', c.created_at, 'updated_at', c.updated_at, 'org_name', c.org_name, 'project_name', c.project_name,
         'project_key', null, 'record_key', null, 'scope_node_name', c.scope_node_name)
+        || private.calendar_feed_dates(c.kind, c.starts_at, c.ends_at, c.time_zone)
       order by c.starts_at, c.id), '[]'::jsonb)
     into v_events
     from capped c;
