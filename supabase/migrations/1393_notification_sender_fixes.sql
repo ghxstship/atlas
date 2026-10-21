@@ -12,9 +12,10 @@
 --      created, so a change to a shift 12.5 hours away, made in quiet hours that last longer than that, waited for the
 --      end of quiet hours and could arrive after the shift started. Held texts and deferred pushes now wait no later
 --      than the shift's startsAt less the window, and the summary releases a held text whose window has opened.
---   5. Senders read the recipient's own language and time zone through app.recipient_setting. The platform read
---      personal_setting_values directly with no deleted_at filter, no org and no order, so a cleared language or
---      zone could still apply, a value kept for another org could win, and a missing zone fell back to UTC.
+--   5. Senders read the recipient's language and time zone in the org through app.recipient_setting. The platform
+--      read personal_setting_values directly with no deleted_at filter, no org and no order, so a cleared language or
+--      zone could still apply, a value kept for another org could win, the org's locale.language and its lock never
+--      applied, and a missing zone fell back to UTC.
 --   6. A sent text counts its billed segments toward the sms_segments meter, not one per text. The sender passes the
 --      count (Twilio's, else computed from the encoded body) to record_notification_delivery and record_sms_summary.
 
@@ -557,6 +558,8 @@ as $$
   select case
     when p_setting_key = 'locale.time_zone' and p_org_id is not null then
       private.recipient_time_zone(p_org_id, p_person_id, null)
+    when p_setting_key = 'locale.language' and p_org_id is not null then
+      private.setting_text(p_org_id, 'locale.language', null, null, p_person_id)
     else
       (select pv.value_text from app.personal_setting_values pv
        where pv.person_id = p_person_id and pv.setting_key = p_setting_key and pv.deleted_at is null
@@ -566,7 +569,7 @@ as $$
   end;
 $$;
 
-comment on function app.recipient_setting(uuid, uuid, text) is 'Sender API (service role): a person''s own value of a personal setting as an org renders email, push and SMS to them (1393): their live value kept for this org over the one for every org, cleared (soft-deleted) values ignored; with no org, only the value for every org. For locale.time_zone in an org it is the zone the org reaches them in (private.recipient_time_zone: their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. Null when they have none. The org''s own locale.language is not applied here.';
+comment on function app.recipient_setting(uuid, uuid, text) is 'Sender API (service role): a person''s value of a personal setting as an org renders email, push and SMS to them (1393): their live value kept for this org over the one for every org, cleared (soft-deleted) values ignored; with no org, only the value for every org. In an org, locale.language is the one the org gives them (private.setting_text: a locked organization value, else their own, else the org''s, else en-US), and locale.time_zone the zone the org reaches them in (private.recipient_time_zone: their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. Otherwise null when they have none.';
 
 -- 6. Texts count their billed segments (record_notification_delivery from 0520, record_sms_summary from 1367) -----------
 

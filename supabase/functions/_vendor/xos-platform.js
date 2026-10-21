@@ -38095,8 +38095,9 @@ function gatewayLink(claim, gatewayUrl) {
   return `${gatewayUrl.replace(/\/$/, "")}${path}`;
 }
 /**
- * A person's name, language and time zone for rendering any channel: their own `locale.language` and
- * `locale.time_zone` personal settings, else en-US and UTC.
+ * A person's name, language and time zone for rendering any channel, through app.recipient_setting (1393). In an
+ * org: the language the org gives them (its locked value, their own, its own, en-US) and the zone it reaches them
+ * in. Without an org: their own `locale.language` and `locale.time_zone` for every org, else en-US and UTC.
  */
 async function recipientProfile(db, personId, orgId) {
   const person = await db.selectOne("people", "full_name", { id: personId });

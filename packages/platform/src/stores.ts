@@ -183,8 +183,9 @@ export function gatewayLink(
 }
 
 /**
- * A person's name, language and time zone for rendering any channel: their own `locale.language` and
- * `locale.time_zone` personal settings, else en-US and UTC.
+ * A person's name, language and time zone for rendering any channel, through app.recipient_setting (1393). In an
+ * org: the language the org gives them (its locked value, their own, its own, en-US) and the zone it reaches them
+ * in. Without an org: their own `locale.language` and `locale.time_zone` for every org, else en-US and UTC.
  */
 export async function recipientProfile(
   db: PlatformDb,
@@ -192,7 +193,7 @@ export async function recipientProfile(
   orgId?: string,
 ): Promise<Recipient> {
   const person = await db.selectOne("people", "full_name", { id: personId });
-  // Live values only: one kept for this org over the one for every org, and the zone the org reaches them in (1393).
+  // Live values only, one kept for this org over the one for every org; the org's language and zone (1393).
   const setting = async (key: string) =>
     optionalText(
       {

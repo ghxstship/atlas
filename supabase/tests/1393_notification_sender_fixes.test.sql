@@ -1,14 +1,15 @@
 -- pgTAP: migration 1393, fixes to the notification dispatcher and the SMS senders (RRR-125): a Twilio status callback
 -- settles every held text a summary carried; held texts honor a category-scoped SMS suppression; every notification
--- names its actor; a held shift change goes once its bypass window opens; senders read the recipient's live language
--- and zone; texts count their billed segments. Zones are pinned with Etc/GMT offsets where it is now night (inside
--- 21:00 to 08:00) or day, or with quiet hours relative to now, so the suite never depends on the clock.
+-- names its actor; a held shift change goes once its bypass window opens; senders read the recipient's language and
+-- zone in the org, live values only; texts count their billed segments. Zones are pinned with Etc/GMT offsets where
+-- it is now night (inside 21:00 to 08:00) or day, or with quiet hours relative to now, so the suite never depends on
+-- the clock.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(29);
+select plan(32);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -167,7 +168,7 @@ select is((pg_temp.sms((select id from n where key = 'shift_window'))).message_s
 select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50) c where c.recipient_person_id = pg_temp.id('frank')), 1,
   'the sender claims it at once, inside quiet hours');
 
--- 5. A recipient's own language and zone, live values only --------------------------------------------------------------
+-- 5. A recipient's language and zone in the org, live values only -------------------------------------------------------
 create function pg_temp.profile(p_person text, p_org text) returns text
 language sql as $$
   select concat_ws('|', coalesce(app.recipient_setting(pg_temp.id(p_person), pg_temp.id(p_org), 'locale.language'), '-'),
@@ -182,15 +183,28 @@ select pg_temp.as_user('erin');
 select app.clear_personal_setting('locale.language');
 select app.clear_personal_setting('locale.time_zone');
 select pg_temp.as_platform();
-select is(pg_temp.profile('erin', 'org_a'), '-|America/New_York',
-  'cleared settings no longer apply: no language of their own, and the org''s project zone, never UTC');
+select is(pg_temp.profile('erin', 'org_a'), 'en-US|America/New_York',
+  'cleared settings no longer apply: the default language, and the org''s project zone, never UTC');
+select is(app.recipient_setting(pg_temp.id('erin'), null, 'locale.language'), null::text,
+  'outside an org a cleared language is no value at all');
+select pg_temp.as_user('bob');
+select app.set_setting(pg_temp.id('org_a'), 'locale.language', 'Organization', pg_temp.id('org_a'), 'es-US');
+select pg_temp.as_platform();
+select is(app.recipient_setting(pg_temp.id('erin'), pg_temp.id('org_a'), 'locale.language'), 'es-US',
+  'with no language of their own, the org''s applies');
 select pg_temp.as_user('erin');
 select app.set_personal_setting('locale.language', null, 'es-US');
 select app.set_personal_setting('locale.language', pg_temp.id('org_a'), 'en-US');
 select pg_temp.as_platform();
-select is(pg_temp.profile('erin', 'org_a'), 'en-US|America/New_York', 'a language kept for this org wins over the one for every org');
+select is(pg_temp.profile('erin', 'org_a'), 'en-US|America/New_York',
+  'a language kept for this org wins over the one for every org and over the org''s own');
 select is(app.recipient_setting(pg_temp.id('erin'), pg_temp.id('org_b'), 'locale.language'), 'es-US',
   'and another org sees only the one for every org');
+select pg_temp.as_user('bob');
+select app.set_setting(pg_temp.id('org_a'), 'locale.language', 'Organization', pg_temp.id('org_a'), 'es-US', p_locked => true);
+select pg_temp.as_platform();
+select is(app.recipient_setting(pg_temp.id('erin'), pg_temp.id('org_a'), 'locale.language'), 'es-US',
+  'an org that locks its language writes to everyone in it in that language');
 select ok(not has_function_privilege('authenticated', 'app.recipient_setting(uuid, uuid, text)', 'execute'),
   'only the senders read a recipient''s settings');
 
