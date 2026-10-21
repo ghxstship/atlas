@@ -371,6 +371,42 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     },
   },
   {
+    kind: "listing.moderated",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.listing.moderated.subject",
+      body: "kinds.listing.moderated.body",
+    },
+  },
+  {
+    kind: "listing_report.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.listing_report.decided.subject",
+      body: "kinds.listing_report.decided.body",
+    },
+  },
+  {
+    kind: "moderation_appeal.decided",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.moderation_appeal.decided.subject",
+      body: "kinds.moderation_appeal.decided.body",
+    },
+  },
+  {
     kind: "report.delivered",
     category: "reports",
     emailTemplate: "report_delivery",

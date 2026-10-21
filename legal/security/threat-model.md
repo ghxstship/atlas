@@ -72,7 +72,7 @@ than the database allows.
 
 Anon has USAGE only on `api_public`, `public`, `extensions` and `storage`. It reaches 21 reviewed
 SECURITY DEFINER RPCs: token documents and agreements, advance packets, public profiles, brand
-lookup, cookie consent, calendar feeds and certification verification.
+lookup, cookie consent, calendar feeds, certification verification and the live system banners (A90).
 
 | STRIDE | Threat                                                   | Control                                                                                                 | Evidence                                              |
 | ------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -81,6 +81,7 @@ lookup, cookie consent, calendar feeds and certification verification.
 | R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)   | 0361 and 0769 suites                                  |
 | I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code | 0860, 0352 and 0510 suites                            |
 | D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                  | `private.rate_limit_exceeded`                         |
+| I      | Reading platform state through system banners (A90)      | `active_system_banners` returns only live banner text, kind, severity and link, which every visitor sees | 1474 suite                                            |
 | D      | Hammering a leaked calendar feed link (ADR 0040)         | 120 fetches an hour per token; revoke or rotate ends the link; retired links answer 404                 | 1410 suite                                            |
 | S      | Locking calendar servers out with dead feed links        | Rotated and revoked token hashes are kept a year and never count as failed guesses                      | 1410 suite                                            |
 | S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row      | 1295 suite (catalog of every volatile api_public RPC) |

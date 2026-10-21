@@ -153,6 +153,14 @@ kinds:
     category: account
   - kind: access.break_glass_started
     category: account
+  # Marketplace moderation (A90, 1473): the statement of reasons to the affected party, the outcome to the
+  # reporter, and the decision on an appeal (EU Digital Services Act articles 16, 17 and 20)
+  - kind: listing.moderated
+    category: account
+  - kind: listing_report.decided
+    category: account
+  - kind: moderation_appeal.decided
+    category: account
   # Reports and imports (0520)
   - kind: report.delivered
     category: reports

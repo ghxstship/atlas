@@ -1,4 +1,4 @@
--- 1368_notification_kind_seed.test.sql
+-- 1479_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -128,6 +128,18 @@ select set_eq(
   ('access.break_glass_started', 'Email', 'account', 'notification'),
   ('access.break_glass_started', 'SMS', 'account', null::text),
   ('access.break_glass_started', 'Push', 'account', null::text),
+  ('listing.moderated', 'In App', 'account', null::text),
+  ('listing.moderated', 'Email', 'account', 'notification'),
+  ('listing.moderated', 'SMS', 'account', null::text),
+  ('listing.moderated', 'Push', 'account', null::text),
+  ('listing_report.decided', 'In App', 'account', null::text),
+  ('listing_report.decided', 'Email', 'account', 'notification'),
+  ('listing_report.decided', 'SMS', 'account', null::text),
+  ('listing_report.decided', 'Push', 'account', null::text),
+  ('moderation_appeal.decided', 'In App', 'account', null::text),
+  ('moderation_appeal.decided', 'Email', 'account', 'notification'),
+  ('moderation_appeal.decided', 'SMS', 'account', null::text),
+  ('moderation_appeal.decided', 'Push', 'account', null::text),
   ('report.delivered', 'In App', 'reports', null::text),
   ('report.delivered', 'Email', 'reports', 'report_delivery'),
   ('report.delivered', 'SMS', 'reports', null::text),
