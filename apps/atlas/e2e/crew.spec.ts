@@ -1,4 +1,4 @@
-import { expect as baseExpect, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import {
   createOrganization,
   expectAccessible,
@@ -38,6 +38,8 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settled(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
+  // Leave the page hydrated: callers act next, and a click before hydration is lost (A71, A77).
+  await settle(page);
 }
 
 interface Crew {
@@ -71,9 +73,10 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   await createProject(page, slug, "NWL", "Northwind Summer Series");
   // A New York production: the org's time zone is the project's (journey 63's setting).
   await page.goto(`/${slug}/settings/localization`);
-  const zone = page.locator("form").filter({ has: page.getByLabel("Time zone") });
+  const settings = page.getByRole("form", { name: "Settings on this page" });
+  const zone = settings.locator("li").filter({ has: page.getByLabel("Time zone") });
   await zone.getByLabel("Time zone").selectOption(NEW_PROJECT_TIME_ZONE);
-  await zone.getByRole("button", { name: "Save" }).click();
+  await settings.getByRole("button", { name: "Save", exact: true }).click();
   await expect(zone.getByText(/Set for the organization/)).toBeVisible();
   await page.goto(`/${slug}/settings/members`);
   await page.getByLabel("Email", { exact: true }).fill(fieldEmail);
