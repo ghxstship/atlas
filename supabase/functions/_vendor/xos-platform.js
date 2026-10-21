@@ -36338,7 +36338,7 @@ async function dispatchEmail(store, transport, limit = 50) {
   let failed = 0;
   for (const claim of claims)
     try {
-      const recipient = await store.recipient(claim.recipientPersonId);
+      const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
       const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
       const { code, props } = await propsFor(claim, store);
@@ -36914,7 +36914,7 @@ async function dispatchPush(store, client, options = {}) {
   const failedEarly = /* @__PURE__ */ new Map();
   for (const claim of claims)
     try {
-      const recipient = await store.recipient(claim.recipientPersonId);
+      const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const url = await store.deepLink(claim);
       for (const device of claim.devices)
         pending.push({
@@ -37379,7 +37379,7 @@ function createSmsProvider(env, options = {}) {
 }
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 async function smsBody(claim, store) {
-  const recipient = await store.recipient(claim.recipientPersonId);
+  const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
   return formatMessage(locale, "sms.message", {
@@ -37426,7 +37426,7 @@ async function dispatchSms(store, provider, limit = 50) {
  * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`).
  */
 async function smsSummaryBody(summary, store) {
-  const recipient = await store.recipient(summary.recipientPersonId);
+  const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
   const args = {
@@ -38003,10 +38003,11 @@ function gatewayLink(claim, gatewayUrl) {
   return `${gatewayUrl.replace(/\/$/, "")}${path}`;
 }
 /**
- * A person's name, language and time zone for rendering any channel: their own `locale.language` and
- * `locale.time_zone` personal settings, else en-US and UTC.
+ * A person's name, language and time zone for rendering any channel. Inside an org the language is the one
+ * app.recipient_language gives (1397): a locked org `locale.language`, the person's own, the org's, then
+ * en-US. Without an org, and for the time zone, their own personal settings, else en-US and UTC.
  */
-async function recipientProfile(db, personId) {
+async function recipientProfile(db, personId, orgId) {
   const person = await db.selectOne("people", "full_name", { id: personId });
   const setting = async (key) =>
     optionalText$2(
@@ -38016,9 +38017,19 @@ async function recipientProfile(db, personId) {
       })) ?? void 0,
       "value_text",
     );
+  const orgLanguage =
+    orgId === void 0
+      ? null
+      : await db.rpc("recipient_language", {
+          p_org_id: orgId,
+          p_person_id: personId,
+        });
   return {
     name: optionalText$2(person ?? void 0, "full_name") ?? "",
-    locale: (await setting("locale.language")) ?? "en-US",
+    locale:
+      typeof orgLanguage === "string"
+        ? orgLanguage
+        : ((await setting("locale.language")) ?? "en-US"),
     timeZone: (await setting("locale.time_zone")) ?? "UTC",
   };
 }
@@ -38057,7 +38068,7 @@ function notificationStore(db, options) {
         from: `${name} <${options.fromAddress}>`,
       };
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     async linkFor(claim) {
       const gateway = gatewayLink(claim, options.gatewayUrl);
       if (gateway !== null) return gateway;
@@ -38201,7 +38212,7 @@ function pushStore(db) {
         devices: devices(row["push_devices"]),
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     deepLink: (claim) => compassLink(db, claim),
     async recordTickets(deliveryId, tickets) {
       await db.rpc("record_push_tickets", {
@@ -38254,7 +38265,7 @@ function smsStore(db, options) {
         messageArgs: row["message_args"] ?? {},
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     async orgName(orgId) {
       return text$3(await org(orgId), "name");
     },

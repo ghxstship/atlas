@@ -265,6 +265,24 @@ describe("notification email dispatch", () => {
     expect(records[4]?.[3]).toMatch(/not sent for notifications/);
   });
 
+  it("writes in the language the claim's org gives the recipient", async () => {
+    const asked: [string, string][] = [];
+    const { s } = store([claim({ orgId: "org-es" })]);
+    const transport = new RecordingTransport();
+    await dispatchEmail(
+      {
+        ...s,
+        recipient: async (personId, orgId) => {
+          asked.push([personId, orgId]);
+          return { name: "Dave", locale: orgId === "org-es" ? "es-US" : "en-US", timeZone: "UTC" };
+        },
+      },
+      transport,
+    );
+    expect(asked).toEqual([["p1", "org-es"]]);
+    expect(transport.sent[0]?.subject).toBe("Aprobación solicitada: Rigging rental");
+  });
+
   it("records a failure when the template code is unknown", async () => {
     const { s, records } = store([claim({ emailTemplateCode: "no_such_template" })]);
     await dispatchEmail(s, new RecordingTransport());
@@ -403,6 +421,7 @@ describe("stores", () => {
         ],
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
+        recipient_language: () => "en-US",
       },
       {
         organizations: { slug: "northwind-live", name: "Northwind Live" },
@@ -422,7 +441,7 @@ describe("stores", () => {
     expect(sender.from).toBe("Northwind Live <notifications@mail.xos.test>");
     expect(sender.preferencesUrl).toBe("https://atlas.xos.test/northwind-live/me/notifications");
     expect(sender.unsubscribeUrl).toBe("https://fn.xos.test/u?o=org-1&p=p1");
-    await expect(store.recipient("p1")).resolves.toEqual({
+    await expect(store.recipient("p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
       locale: "en-US",
       timeZone: "UTC",

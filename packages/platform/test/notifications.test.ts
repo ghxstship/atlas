@@ -983,6 +983,28 @@ describe("stores over the 1361 and 1363 RPCs", () => {
     });
   });
 
+  it("writes in the language the org gives the recipient (app.recipient_language, 1397)", async () => {
+    // The org locked es-US; the person's own en-US no longer decides the language.
+    const { db, calls } = fakeDb(
+      { recipient_language: () => "es-US" },
+      {
+        people: [{ id: "p1", full_name: "Dave Lindqvist" }],
+        personal_setting_values: [
+          { person_id: "p1", setting_key: "locale.language", value_text: "en-US" },
+          { person_id: "p1", setting_key: "locale.time_zone", value_text: "America/Chicago" },
+        ],
+      },
+    );
+    await expect(recipientProfile(db, "p1", "org-1")).resolves.toEqual({
+      name: "Dave Lindqvist",
+      locale: "es-US",
+      timeZone: "America/Chicago",
+    });
+    expect(calls).toEqual([
+      { fn: "recipient_language", args: { p_org_id: "org-1", p_person_id: "p1" } },
+    ]);
+  });
+
   it("push store claims devices, records tickets, outcomes and receipts", async () => {
     const { db, calls } = fakeDb(
       {
@@ -1007,6 +1029,7 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         record_notification_delivery: () => null,
         claim_push_receipts: () => [{ ticket_id: "t-1" }],
         record_push_receipts: () => 2,
+        recipient_language: () => "es-US",
       },
       {
         records: [{ id: "r1", project_id: "prj-1", record_number: 42 }],
@@ -1024,13 +1047,14 @@ describe("stores over the 1361 and 1363 RPCs", () => {
     await store.record("d1", "Sent", "t-1", null);
     await expect(store.claimReceipts(1000)).resolves.toEqual(["t-1"]);
     await expect(store.recordReceipts([])).resolves.toBe(2);
-    await expect(store.recipient("p1")).resolves.toMatchObject({ locale: "en-US" });
+    await expect(store.recipient("p1", "org-1")).resolves.toMatchObject({ locale: "es-US" });
     expect(calls.map((c) => c.fn)).toEqual([
       "claim_notification_deliveries",
       "record_push_tickets",
       "record_notification_delivery",
       "claim_push_receipts",
       "record_push_receipts",
+      "recipient_language",
     ]);
   });
 
@@ -1069,6 +1093,7 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         record_notification_delivery: () => null,
         record_sms_keyword: () => 2,
         record_sms_status: () => true,
+        recipient_language: () => "en-US",
       },
       { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
     );
@@ -1080,7 +1105,7 @@ describe("stores over the 1361 and 1363 RPCs", () => {
       "https://atlas.xos.test/northwind-live/inbox",
     );
     await store.record("s1", "Bounced", null, "21610");
-    await expect(store.recipient("p1")).resolves.toMatchObject({ timeZone: "UTC" });
+    await expect(store.recipient("p1", "org-1")).resolves.toMatchObject({ timeZone: "UTC" });
     const inboundStore = smsInboundStore(db);
     await expect(inboundStore.recordKeyword("+15555550100", "Opt Out", "STOP")).resolves.toBe(2);
     await expect(inboundStore.recordStatus("SM-1", "delivered", null)).resolves.toBe(true);
