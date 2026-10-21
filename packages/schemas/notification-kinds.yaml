@@ -20,8 +20,14 @@
 #   email_templates: React Email templates in packages/email (transactional email carries no unsubscribe link)
 #   categories:      preference matrix rows; urgent categories bypass quiet hours and digests
 #   kinds:           kind (subject.event), its category, its email template (default notification), an
-#                    optional push category: the actionable category Compass registers (ADR 0030), and
-#                    bypasses_quiet_hours for the few kinds that reach a person even during quiet hours
+#                    optional push category: the actionable category Compass registers (ADR 0030),
+#                    bypasses_quiet_hours for the few kinds that reach a person even during quiet hours, and
+#                    either emitted_by or deferred:
+#     emitted_by:    every place that sends the kind: the migration function (or module) that calls private.notify
+#                    with it, as path#symbol at its latest definition, and the test that observes the notification.
+#                    test/notifications/emitters.test.ts checks each one, so a kind nothing sends cannot be added.
+#     deferred:      { reason, decision } for a kind nothing sends yet, naming the owner decision or work package
+#                    it waits on (RRR-125).
 #
 # Quiet hours (ADR 0033 decision 35): texts and pushes wait out the person's quiet hours, and texts also wait
 # out 21:00 to 08:00 in their time zone when they set none; held texts go out as one summary. Only the kinds
@@ -107,72 +113,158 @@ kinds:
   # Mentions, assignments, approvals and comments (0520, 1140)
   - kind: mention.created
     category: mentions
+    emitted_by:
+      - emitter: supabase/migrations/0580_comments.sql#private.after_comment_mention
+        test: supabase/tests/0580_comments.test.sql
   - kind: assignment.created
     category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_record_assignment
+        test: supabase/tests/1394_notification_kind_emitters.test.sql
   - kind: approval.requested
     category: approvals
     push_category: approval_request
+    emitted_by:
+      - emitter: supabase/migrations/1030_approvals.sql#private.notify_step_approvers
+        test: supabase/tests/1030_approvals.test.sql
   - kind: approval.decided
     category: approvals
+    emitted_by:
+      - emitter: supabase/migrations/1030_approvals.sql#app.decide_approval
+        test: supabase/tests/1030_approvals.test.sql
   - kind: comment.created
     category: comments
+    emitted_by:
+      - emitter: supabase/migrations/0580_comments.sql#private.notify_comment_subscribers
+        test: supabase/tests/0580_comments.test.sql
   # Schedule (0520, 0800)
   - kind: shift.assigned
     category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change
+        test: supabase/tests/1394_notification_kind_emitters.test.sql
   - kind: shift.changed
     category: schedule
     bypasses_quiet_hours:
       starts_within_hours: 12
+    emitted_by:
+      - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_shift_change
+        test: supabase/tests/1394_notification_kind_emitters.test.sql
   - kind: event.invited
     category: schedule
+    emitted_by:
+      - emitter: supabase/migrations/0802_workforce_events.sql#private.announce_workforce_event
+        test: supabase/tests/0802_workforce_events.test.sql
   # Finance (0520, 1131)
   - kind: invoice.approved
     category: finance
+    emitted_by:
+      - emitter: supabase/migrations/1131_external_party_notifications.sql#private.notify_invoice_step
+        test: supabase/tests/1131_external_party_notifications.test.sql
   - kind: invoice.submitted
     category: finance
+    emitted_by:
+      - emitter: supabase/migrations/1131_external_party_notifications.sql#private.notify_invoice_step
+        test: supabase/tests/1131_external_party_notifications.test.sql
   - kind: invoice.scheduled
     category: finance
+    emitted_by:
+      - emitter: supabase/migrations/1131_external_party_notifications.sql#private.notify_invoice_step
+        test: supabase/tests/1131_external_party_notifications.test.sql
   - kind: invoice.paid
     category: finance
+    emitted_by:
+      - emitter: supabase/migrations/1131_external_party_notifications.sql#private.notify_invoice_step
+        test: supabase/tests/1131_external_party_notifications.test.sql
   # Safety (0520, 0800)
   - kind: incident.reported
     category: safety
     bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/1394_notification_kind_emitters.sql#private.notify_incident_reported
+        test: supabase/tests/1394_notification_kind_emitters.test.sql
   - kind: occupancy.threshold
     category: safety
     bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/0806_workforce_site_operations.sql#app.record_occupancy_count
+        test: supabase/tests/0806_workforce_site_operations.test.sql
   - kind: weather.alert
     category: safety
     bypasses_quiet_hours: true
+    emitted_by:
+      - emitter: supabase/migrations/0806_workforce_site_operations.sql#app.record_weather_reading
+        test: supabase/tests/0806_workforce_site_operations.test.sql
   # Account (0520, 0560, 1203)
   - kind: account.security_changed
     category: account
+    deferred:
+      reason: "Security changes (password, email, phone, second factors, passkeys) happen in Supabase Auth and in A77's sign-in and step-up work, and none of those paths calls private.notify yet."
+      decision: "A77 (RRR-122, auth and step-up) emits it from its security change paths; no owner decision pending"
   - kind: billing.payment_failed
     category: account
+    emitted_by:
+      - emitter: supabase/migrations/0560_billing.sql#private.run_dunning
+        test: supabase/tests/0560_billing.test.sql
   - kind: billing.read_only
     category: account
+    emitted_by:
+      - emitter: supabase/migrations/0560_billing.sql#private.run_dunning
+        test: supabase/tests/0560_billing.test.sql
   - kind: access.break_glass_started
     category: account
+    emitted_by:
+      - emitter: supabase/migrations/1203_break_glass_sessions.sql#app.start_break_glass
+        test: supabase/tests/1203_break_glass_sessions.test.sql
   # Reports and imports (0520)
   - kind: report.delivered
     category: reports
     email_template: report_delivery
+    deferred:
+      reason: "The report.deliver worker (1127, packages/data report-deliveries.ts) emails each scheduled report itself; its report_delivery template needs an absolute download link the database cannot build, and a second email would repeat the first."
+      decision: "Owner decision pending: whether a delivered report also reaches the recipient's Inbox"
   - kind: import.finished
     category: imports
     email_template: import_finished
+    deferred:
+      reason: "The import_finished template needs the import's counts and an absolute review link (packages/platform dispatch.ts) that only the app's import worker (packages/data import-worker.ts) can build; the import pipeline (1061) notifies nobody yet."
+      decision: "The import worker emits it with the link (A83 import wizard, RRR-128); no owner decision pending"
   - kind: export.ready
     category: imports
     email_template: export_ready
+    deferred:
+      reason: "The export_ready template needs an absolute download link and its expiry (packages/platform dispatch.ts), which only the app can build once an export file is stored; export jobs (0530) notify nobody yet."
+      decision: "The export runner emits it with the signed link; no owner decision pending"
   # Workforce suite (0800)
   - kind: message.received
     category: messages
+    emitted_by:
+      - emitter: supabase/migrations/1393_notification_sender_fixes.sql#app.send_chat_message
+        test: supabase/tests/0800_workforce_groups_chat.test.sql
   - kind: announcement.posted
     category: feed
+    emitted_by:
+      - emitter: supabase/migrations/1393_notification_sender_fixes.sql#private.notify_feed_post
+        test: supabase/tests/0801_workforce_feed_polls_surveys.test.sql
   - kind: survey.opened
     category: feed
+    emitted_by:
+      - emitter: supabase/migrations/0801_workforce_feed_polls_surveys.sql#app.transition_survey
+        test: supabase/tests/0801_workforce_feed_polls_surveys.test.sql
   - kind: recognition.received
     category: feed
+    emitted_by:
+      - emitter: supabase/migrations/0805_workforce_recognition_help_desk.sql#app.recognize
+        test: supabase/tests/0805_workforce_recognition_help_desk.test.sql
   - kind: training.assigned
     category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/1306_org_calendar_dates.sql#app.assign_training
+        test: supabase/tests/0804_workforce_training_handbook.test.sql
   - kind: help_request.assigned
     category: assignments
+    emitted_by:
+      - emitter: supabase/migrations/0805_workforce_recognition_help_desk.sql#app.open_help_desk_request
+        test: supabase/tests/0805_workforce_recognition_help_desk.test.sql
+      - emitter: supabase/migrations/0805_workforce_recognition_help_desk.sql#app.assign_help_desk_request
+        test: supabase/tests/0805_workforce_recognition_help_desk.test.sql

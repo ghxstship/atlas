@@ -131,7 +131,10 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
 
   it("refuses a malformed registry and names every broken rule", () => {
     const broken = yamlText
-      .replace("  - kind: comment.created\n    category: comments\n", "")
+      .replace(
+        "  - kind: comment.created\n    category: comments\n    emitted_by:\n      - emitter: supabase/migrations/0580_comments.sql#private.notify_comment_subscribers\n        test: supabase/tests/0580_comments.test.sql\n",
+        "",
+      )
       .replace(
         "  - kind: shift.changed\n    category: schedule\n",
         "  - kind: shift.assigned\n    category: schedule\n",
