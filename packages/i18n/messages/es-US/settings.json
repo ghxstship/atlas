@@ -132,7 +132,7 @@
     },
     "recordKeyFormat": {
       "label": "Formato de la clave de registro",
-      "help": "Usa {PROJECT} y {SEQ}, por ejemplo {PROJECT}-{SEQ}."
+      "help": "Usa '{PROJECT}' y '{SEQ}', por ejemplo '{PROJECT}'-'{SEQ}'."
     },
     "numberPadding": {
       "label": "Relleno de números",
@@ -463,16 +463,16 @@
     "customFields": "Agregue los campos que necesitan sus registros a proyectos, recintos, proveedores y más.",
     "canonExtensions": "Disciplinas y categorías que su organización agrega al canon.",
     "dataAndPrivacy": "Responda solicitudes de datos, aplique retenciones legales y consulte exportaciones, clasificación y retención.",
-    "templates": "Las plantillas de proyecto con las que su organización inicia proyectos.",
-    "usage": "Puestos, solicitudes a Aurora y uso medido por mes de facturación.",
-    "partner": "Sus organizaciones cliente, la marca con la que empiezan y la facturación mayorista.",
     "auditLog": "Los últimos cambios auditados de acceso y configuración, y el acceso al registro completo.",
     "automations": "Informes programados, trabajo recurrente, políticas de aprobación y webhooks: lo que funciona sin que nadie pulse un botón.",
     "connectedApps": "Aplicaciones a las que permitió actuar en su nombre, y la forma de desconectarlas.",
     "developer": "Tokens personales de API para sus propios scripts en esta organización.",
     "payoutAndTax": "Dónde le pagan las organizaciones y los formularios fiscales que firmó.",
     "workspace": "Lo que este espacio de trabajo configura distinto de la organización, y quién trabaja en él.",
-    "team": "Quién forma parte de este equipo. Los equipos usan la configuración de su espacio de trabajo y de la organización."
+    "team": "Quién forma parte de este equipo. Los equipos usan la configuración de su espacio de trabajo y de la organización.",
+    "partner": "Las organizaciones cliente de tu agencia socia, las condiciones mayoristas y el acceso a la Consola de socio.",
+    "usage": "Lo que la organización usa frente a su plan: asientos, miembros de campo, proyectos y contrataciones.",
+    "templates": "Plantillas que la organización reutiliza para proyectos, documentos y paquetes."
   },
   "accessControls": {
     "saved": "Guardado.",

@@ -246,16 +246,6 @@
       "Category": "Categoría"
     }
   },
-  "templates": {
-    "title": "Plantillas de proyecto",
-    "description": "Las plantillas inician un proyecto con su alcance, registros y valores predeterminados. Créelas y publíquelas en la página Plantillas.",
-    "none": "Todavía no hay plantillas.",
-    "version": "Versión {number} publicada",
-    "draft": "Borrador",
-    "used": "Inició {count, plural, one {# proyecto} other {# proyectos}}",
-    "updated": "Actualizada el {date}",
-    "open": "Abrir plantillas"
-  },
   "automations": {
     "title": "Lo que funciona por sí solo",
     "description": "Trabajo que su organización configuró para que ocurra sin que nadie pulse un botón. Cada uno se administra donde está.",
@@ -306,17 +296,6 @@
     "toVenues": "Abrir recintos"
   },
   "usage": {
-    "title": "Asignaciones",
-    "description": "Cuánto usa ahora de las asignaciones de su plan.",
-    "seats": "Puestos",
-    "seatsOf": "{used} de {limit} en uso",
-    "seatsUnlimited": "{used} en uso, sin límite",
-    "aurora": "Solicitudes a Aurora este mes",
-    "auroraOf": "{used} de {limit}",
-    "auroraUnlimited": "{used}, sin límite",
-    "auroraNotInPlan": "No incluido en su plan",
-    "unavailable": "No disponible para usted",
-    "toBilling": "Facturación y plan",
     "metersTitle": "Uso medido",
     "metersDescription": "Se cuenta por mes de facturación (UTC). El mes abierto crece hasta que se cierra y se informa.",
     "metersHidden": "Solo quienes pueden ver el uso ven los medidores.",
@@ -341,21 +320,6 @@
       "byte_day": "{count, plural, one {{formatted} byte-día} other {{formatted} bytes-día}}",
       "token": "{count, plural, one {{formatted} token} other {{formatted} tokens}}"
     }
-  },
-  "partner": {
-    "title": "Socio",
-    "description": "Sus organizaciones cliente, la marca con la que empiezan y lo que la plataforma le factura al por mayor. Administre cada una en la consola de socio.",
-    "clients": "{count, plural, =0 {Ninguna organización cliente} one {# organización cliente} other {# organizaciones cliente}}",
-    "brand": "Marca predeterminada",
-    "brandNone": "Sin definir: los clientes empiezan con la marca de la plataforma.",
-    "brandOverride": "Definida; los clientes pueden cambiarla.",
-    "brandFixed": "Definida; los clientes la conservan.",
-    "billing": "Facturación mayorista",
-    "discount": "{percent} % de descuento mayorista",
-    "noAgreement": "Todavía no hay un acuerdo mayorista registrado.",
-    "latestStatement": "Último estado de cuenta: {total} por {clients, plural, one {# cliente} other {# clientes}}",
-    "manage": "Administrar",
-    "open": "Abrir la consola de socio"
   },
   "privacy": {
     "requestsTitle": "Solicitudes de datos",

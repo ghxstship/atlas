@@ -1,3 +1,4 @@
+import type { Page } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { expect as baseExpect, test } from "./engine-test";
 import { expectAccessibleInBothThemes } from "./a16-support";
@@ -39,19 +40,18 @@ const ORG_SECTIONS: readonly [string, string][] = [
   ["departments-and-disciplines", "Departments and disciplines in use"],
   ["locations-and-venues", "New venue defaults"],
   ["canon-extensions", "Your organization's extensions"],
-  ["templates", "Project templates"],
   ["custom-fields", "Custom fields"],
   ["automations", "What runs on its own"],
   ["spend-authority", "Spend limits"],
   ["separation-of-duties", "Rules every organization keeps"],
   ["api-keys-and-service-accounts", "Service accounts"],
   ["webhooks", "Webhook endpoints"],
-  ["usage", "Allowances"],
+  ["usage", "Metered usage"],
   ["data-and-privacy", "Data requests"],
   ["audit-log", "Latest audit events"],
 ];
 
-async function newOwner(page: import("@playwright/test").Page, label: string) {
+async function newOwner(page: Page, label: string) {
   const id = uniqueId();
   const slug = `${label}-${id}`;
   await signUp(page, { name: "Sasha Surfaces", email: testEmail(label, id) });
@@ -193,7 +193,9 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await enrollAuthenticator(dialog);
   await expect(dialog).toBeHidden();
   await expect(page.getByText("Copy this token now")).toBeVisible();
-  await expect(page.getByLabel("Personal API token", { exact: true })).toHaveValue(/^xos_pat_[0-9a-f]{48}$/);
+  await expect(page.getByLabel("Personal API token", { exact: true })).toHaveValue(
+    /^xos_pat_[0-9a-f]{48}$/,
+  );
   await expectAccessible(page);
   const token = page.getByRole("listitem").filter({ hasText: "Laptop scripts" });
   await token.getByRole("button", { name: "Revoke" }).click();
@@ -218,7 +220,9 @@ test("a Pro org allows personal tokens; one is created behind step-up, shown onc
   await hook.getByLabel("Endpoint URL").fill("https://hooks.example.com/xos");
   await hook.getByRole("checkbox").first().check();
   await hook.getByRole("button", { name: "Add endpoint" }).click();
-  await expect(page.getByLabel("Signing secret", { exact: true })).toHaveValue(/^whsec_[0-9a-f]{64}$/);
+  await expect(page.getByLabel("Signing secret", { exact: true })).toHaveValue(
+    /^whsec_[0-9a-f]{64}$/,
+  );
   await expect(page.getByText("https://hooks.example.com/xos")).toBeVisible();
   await expectAccessible(page);
 });

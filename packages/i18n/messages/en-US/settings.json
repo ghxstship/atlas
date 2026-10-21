@@ -132,7 +132,7 @@
     },
     "recordKeyFormat": {
       "label": "Record key format",
-      "help": "Use {PROJECT} and {SEQ}, for example {PROJECT}-{SEQ}."
+      "help": "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}'-'{SEQ}'."
     },
     "numberPadding": {
       "label": "Number padding",
@@ -463,16 +463,16 @@
     "customFields": "Add the fields your records need to projects, venues, vendors and more.",
     "canonExtensions": "Disciplines and categories your organization adds to the canon.",
     "dataAndPrivacy": "Answer data requests, place legal holds, and see exports, classification and retention.",
-    "templates": "The project templates your organization starts projects from.",
-    "usage": "Seats, Aurora requests and metered usage by billing month.",
-    "partner": "Your client organizations, the brand they start with and wholesale billing.",
     "auditLog": "The latest audited changes to access and settings, and the way to the full log.",
     "automations": "Scheduled reports, recurring work, approval policies and webhooks: what runs without anyone pressing a button.",
     "connectedApps": "Apps you allowed to act for you, and a way to disconnect them.",
     "developer": "Personal API tokens for your own scripts in this organization.",
     "payoutAndTax": "Where organizations pay you and the tax forms you signed.",
     "workspace": "What this workspace sets differently from the organization, and who works in it.",
-    "team": "Who is on this team. Teams use their workspace's and the organization's settings."
+    "team": "Who is on this team. Teams use their workspace's and the organization's settings.",
+    "partner": "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
+    "usage": "What the organization uses against its plan: seats, field members, projects and engagements.",
+    "templates": "Templates the organization reuses for projects, documents and packets."
   },
   "accessControls": {
     "saved": "Saved.",

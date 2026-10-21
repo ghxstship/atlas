@@ -1,6 +1,4 @@
-import { getSeatUsage } from "@xos/data";
 import { listAuditEvents } from "@xos/data/activity";
-import { getAiAllowance } from "@xos/data/ai";
 import { listCanonExtensionProposals, listDepartments, listDisciplines } from "@xos/data/canon";
 import {
   DATA_REQUEST_MOVES,
@@ -12,12 +10,6 @@ import {
 } from "@xos/data/data-privacy";
 import { listOrgExports } from "@xos/data/lifecycle";
 import { getDepartmentsInUse, getLocationDefaults } from "@xos/data/org-setup";
-import {
-  getDefaultBrand,
-  getPartnerAgreement,
-  listClientOrgs,
-  listWholesaleStatements,
-} from "@xos/data/partner";
 import { listJurisdictions } from "@xos/data/places";
 import { getOrgUsage } from "@xos/data/usage";
 import {
@@ -48,8 +40,7 @@ import {
  * Org setup and record panels (A86, RRR-131, finding A65-004):
  *   Departments and Disciplines in Use   which canon departments and disciplines the org works in (item 8, 1430)
  *   Locations and Venues Defaults        what a new venue starts with (item 9, 1431)
- *   Usage                                seats, Aurora requests and metered usage by billing month (item 38)
- *   Partner                              client orgs, default brand and wholesale billing (item 37)
+ *   Usage                                metered usage by billing month, after A61's usage against the plan (item 38)
  *   Data and Privacy                     data requests, legal holds, exports, retention, classification (item 39)
  *   Audit Log                            the latest audit events and the way to the full log (item 40)
  */
@@ -227,13 +218,12 @@ export async function LocationDefaultsPanel({ ctx }: SettingsPanelProps) {
   );
 }
 
-// Usage -----------------------------------------------------------------------------------------------------
+// Metered usage ---------------------------------------------------------------------------------------------
 
-export async function UsagePanel({ ctx }: SettingsPanelProps) {
-  const [f, seats, ai, usage] = await Promise.all([
+/** Settings, Usage after A61's usage against the plan: every meter by billing month (1433). */
+export async function MeteredUsagePanel({ ctx }: SettingsPanelProps) {
+  const [f, usage] = await Promise.all([
     formatters(ctx),
-    getSeatUsage(ctx.viewer.db, ctx.org.id),
-    getAiAllowance(ctx.viewer.db, ctx.org.id),
     getOrgUsage(ctx.viewer.db, ctx.org.id, 3),
   ]);
   const month = new Intl.DateTimeFormat(f.locale, {
@@ -242,157 +232,37 @@ export async function UsagePanel({ ctx }: SettingsPanelProps) {
     timeZone: "UTC",
   });
   return (
-    <>
-      <Section
-        id="usage-allowances"
-        title={f.t(`${P}.usage.title`)}
-        description={f.t(`${P}.usage.description`)}
-      >
-        <Rows
-          label={f.t(`${P}.usage.title`)}
-          rows={[
-            {
-              id: "seats",
-              title: f.t(`${P}.usage.seats`),
-              meta: [
-                seats.ok
-                  ? seats.data.limit === null
-                    ? f.t(`${P}.usage.seatsUnlimited`, { used: seats.data.used })
-                    : f.t(`${P}.usage.seatsOf`, { used: seats.data.used, limit: seats.data.limit })
-                  : f.t(`${P}.usage.unavailable`),
-              ],
-              actions: (
-                <TextLink href={`/${ctx.org.slug}/settings/billing-and-plan`}>
-                  {f.t(`${P}.usage.toBilling`)}
-                </TextLink>
-              ),
-            },
-            {
-              id: "aurora",
-              title: f.t(`${P}.usage.aurora`),
-              meta: [
-                ai.ok
-                  ? !ai.data.planIncludesAurora
-                    ? f.t(`${P}.usage.auroraNotInPlan`)
-                    : ai.data.allowance === null
-                      ? f.t(`${P}.usage.auroraUnlimited`, { used: ai.data.used })
-                      : f.t(`${P}.usage.auroraOf`, { used: ai.data.used, limit: ai.data.allowance })
-                  : f.t(`${P}.usage.unavailable`),
-              ],
-            },
-          ]}
-        />
-      </Section>
-      <Section
-        id="usage-meters"
-        title={f.t(`${P}.usage.metersTitle`)}
-        description={f.t(`${P}.usage.metersDescription`)}
-      >
-        {!usage.ok ? (
-          <Quiet>{f.t(`${P}.usage.metersHidden`)}</Quiet>
-        ) : (
-          usage.data.map((period) => (
-            <Subsection
-              key={`${period.periodStart}-${period.closed}`}
-              title={f.t(period.closed ? `${P}.usage.closedMonth` : `${P}.usage.openMonth`, {
-                month: month.format(new Date(`${period.periodStart}T00:00:00Z`)),
-              })}
-            >
-              <Rows
-                label={month.format(new Date(`${period.periodStart}T00:00:00Z`))}
-                rows={period.lines.map((line) => ({
-                  id: line.meter,
-                  title: f.t(`${P}.usage.meters.${line.meter}`),
-                  meta: [
-                    f.t(`${P}.usage.units.${line.unit}`, {
-                      count: line.quantity,
-                      formatted: f.number(line.quantity),
-                    }),
-                  ],
-                }))}
-              />
-            </Subsection>
-          ))
-        )}
-      </Section>
-    </>
-  );
-}
-
-// Partner ---------------------------------------------------------------------------------------------------
-
-export async function PartnerPanel({ ctx }: SettingsPanelProps) {
-  const [f, clients, brand, agreement, statements] = await Promise.all([
-    formatters(ctx),
-    listClientOrgs(ctx.viewer.db, ctx.org.id),
-    getDefaultBrand(ctx.viewer.db, ctx.org.id),
-    getPartnerAgreement(ctx.viewer.db, ctx.org.id),
-    listWholesaleStatements(ctx.viewer.db, ctx.org.id),
-  ]);
-  const consoleHref = `/partner/${ctx.org.slug}`;
-  const latest = statements.ok ? statements.data[0] : undefined;
-  return (
     <Section
-      id="partner"
-      title={f.t(`${P}.partner.title`)}
-      description={f.t(`${P}.partner.description`)}
+      id="usage-meters"
+      title={f.t(`${P}.usage.metersTitle`)}
+      description={f.t(`${P}.usage.metersDescription`)}
     >
-      <Rows
-        label={f.t(`${P}.partner.title`)}
-        rows={[
-          {
-            id: "clients",
-            title: f.t(`${P}.partner.clients`, { count: clients.ok ? clients.data.length : 0 }),
-            meta: clients.ok
-              ? clients.data.slice(0, 5).map((c) => c.name)
-              : [f.t(`${P}.usage.unavailable`)],
-            actions: (
-              <TextLink href={`${consoleHref}/client-orgs`}>{f.t(`${P}.partner.manage`)}</TextLink>
-            ),
-          },
-          {
-            id: "brand",
-            title: f.t(`${P}.partner.brand`),
-            meta: [
-              brand.ok && brand.data.id !== null
-                ? f.t(
-                    brand.data.allowClientOverride
-                      ? `${P}.partner.brandOverride`
-                      : `${P}.partner.brandFixed`,
-                  )
-                : f.t(`${P}.partner.brandNone`),
-            ],
-            actions: (
-              <TextLink href={`${consoleHref}/default-brand`}>
-                {f.t(`${P}.partner.manage`)}
-              </TextLink>
-            ),
-          },
-          {
-            id: "billing",
-            title: f.t(`${P}.partner.billing`),
-            meta: [
-              agreement.ok && agreement.data
-                ? f.t(`${P}.partner.discount`, {
-                    percent: f.number(agreement.data.discountBps / 100),
-                  })
-                : f.t(`${P}.partner.noAgreement`),
-              latest
-                ? f.t(`${P}.partner.latestStatement`, {
-                    total: f.money(latest.wholesaleTotalMinor, latest.currency),
-                    clients: latest.clientCount,
-                  })
-                : null,
-            ],
-            actions: (
-              <TextLink href={`${consoleHref}/wholesale-billing`}>
-                {f.t(`${P}.partner.manage`)}
-              </TextLink>
-            ),
-          },
-        ]}
-      />
-      <TextLink href={consoleHref}>{f.t(`${P}.partner.open`)}</TextLink>
+      {!usage.ok ? (
+        <Quiet>{f.t(`${P}.usage.metersHidden`)}</Quiet>
+      ) : (
+        usage.data.map((period) => (
+          <Subsection
+            key={`${period.periodStart}-${period.closed}`}
+            title={f.t(period.closed ? `${P}.usage.closedMonth` : `${P}.usage.openMonth`, {
+              month: month.format(new Date(`${period.periodStart}T00:00:00Z`)),
+            })}
+          >
+            <Rows
+              label={month.format(new Date(`${period.periodStart}T00:00:00Z`))}
+              rows={period.lines.map((line) => ({
+                id: line.meter,
+                title: f.t(`${P}.usage.meters.${line.meter}`),
+                meta: [
+                  f.t(`${P}.usage.units.${line.unit}`, {
+                    count: line.quantity,
+                    formatted: f.number(line.quantity),
+                  }),
+                ],
+              }))}
+            />
+          </Subsection>
+        ))
+      )}
     </Section>
   );
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { MagicLinkForm, SignUpForm } from "@/components/auth/forms";
-import { Divider, ProviderButtons } from "@/components/auth/providers";
+import { SignUpForm } from "@/components/auth/forms";
+import { ProviderButtons } from "@/components/auth/providers";
 import { safeNext } from "@/lib/auth/redirect";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,8 +22,6 @@ export default async function SignUpPage({ searchParams }: PageProps<"/auth/sign
     <div className="flex flex-col gap-16">
       <h1 className="text-heading-20 font-semibold">{t("signUp.title")}</h1>
       <ProviderButtons next={next} />
-      <MagicLinkForm next={next} intent="sign-up" />
-      <Divider />
       <SignUpForm next={next} />
       <p className="text-text-13 text-text-secondary">
         {t("signUp.haveAccount")}{" "}

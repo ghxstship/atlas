@@ -40,6 +40,7 @@ export async function ProviderButtons({ next }: { next: string }) {
           </form>
         );
       })}
+      <Divider />
     </div>
   );
 }

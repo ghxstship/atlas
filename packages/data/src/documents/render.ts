@@ -37,6 +37,16 @@ async function fonts(): Promise<{ regular: Buffer; semibold: Buffer }> {
   return fontCache;
 }
 
+/** Text escaped for an XML text node, for the XMP metadata packet. */
+export function xmlText(text: string): string {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+
 /** The PNG or JPEG signature, the only image formats pdfkit embeds. */
 export function isEmbeddableImage(bytes: Uint8Array): boolean {
   const png = [0x89, 0x50, 0x4e, 0x47];
@@ -112,6 +122,22 @@ export async function renderDocumentPdf(
     // to the subset, which veraPDF refuses (7.21.4.2-2). The CIDSet is optional in PDF/UA, so the part
     // number is held as text: the XMP still says pdfuaid:part 1 and no CIDSet is written.
     doc.subset = "1";
+    // pdfkit 0.20.2 writes the title, author and subject into the XMP packet without XML escaping, so a name
+    // holding "&" or "<" (a legal entity such as "R&D Rentals LLC") breaks the metadata and with it PDF/UA
+    // (dc:title, the pdfuaid schema). The Info dictionary is written before the XMP and keeps the plain text;
+    // only the XMP gets the escaped text (A79).
+    const addInfo = doc._addInfo.bind(doc);
+    doc._addInfo = () => {
+      const plain = { ...doc.info };
+      for (const key of ["Title", "Author", "Subject", "Creator", "Producer"]) {
+        if (typeof doc.info[key] === "string") doc.info[key] = xmlText(doc.info[key]);
+      }
+      try {
+        addInfo();
+      } finally {
+        doc.info = plain;
+      }
+    };
     try {
       doc.registerFont("regular", font.regular);
       doc.registerFont("semibold", font.semibold);

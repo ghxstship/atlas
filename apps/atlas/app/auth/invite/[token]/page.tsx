@@ -1,10 +1,11 @@
-import { previewInvite } from "@xos/data";
+import { inviteTokenOpen, previewInvite } from "@xos/data";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { AcceptInviteForm, errorMessage } from "@/components/auth/forms";
 import { ButtonLink, InlineAlert } from "@/components/ui";
 import { getViewer } from "@/lib/shell/context";
+import { createServerSupabase } from "@/lib/supabase/server";
 import { getTranslate } from "@/lib/shell/translate";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -22,7 +23,24 @@ export default async function InvitePage({ params }: PageProps<"/auth/invite/[to
   const { token } = await params;
   const here = `/auth/invite/${encodeURIComponent(token)}`;
   const viewer = await getViewer();
-  if (!viewer) redirect(`/auth/sign-up?next=${encodeURIComponent(here)}`);
+  if (!viewer) {
+    // A dead link says so before anyone creates an account for it (A59-024).
+    const open = await inviteTokenOpen(await createServerSupabase(), token);
+    if (!open.ok || open.data) redirect(`/auth/sign-up?next=${encodeURIComponent(here)}`);
+    const t = await getTranslations("shell.auth.invite");
+    return (
+      <div className="flex flex-col gap-16">
+        <h1 className="text-heading-20 font-semibold">{t("closedTitle")}</h1>
+        <p className="text-text-14 text-text-secondary">{t("closedBody")}</p>
+        <div className="flex flex-wrap gap-8">
+          <ButtonLink href="/auth/sign-in" variant="primary">
+            {t("signIn")}
+          </ButtonLink>
+          <ButtonLink href="/">{t("home")}</ButtonLink>
+        </div>
+      </div>
+    );
+  }
   const [t, translate, format] = await Promise.all([
     getTranslations("shell.auth.invite"),
     getTranslate(),

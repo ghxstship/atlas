@@ -11,7 +11,6 @@ import {
   SPEND_DOCUMENT_TYPES,
 } from "@xos/data/governance";
 import { listSettingValues } from "@xos/data/settings";
-import { listTemplates } from "@xos/data/workflow";
 import {
   addCustomFieldChoiceAction,
   addSpendLimitAction,
@@ -42,7 +41,6 @@ import {
  *   Separation of Duties   the rules every org is held to (item 23); none can be loosened
  *   Custom Fields          fields on built-in tables and their choices (item 16)
  *   Canon Extensions       the org's proposed and approved extensions, made on the Canon page (item 14)
- *   Templates              project templates, built on the Templates page (item 15)
  *   Automations            what runs on its own today: scheduled reports, recurring work, approval policies
  *                          and webhooks (item 20; rule-based automations are finding A65-010)
  */
@@ -407,53 +405,6 @@ export async function CanonExtensionsPanel({ ctx }: SettingsPanelProps) {
         />
       )}
       <TextLink href={`/${ctx.org.slug}/canon/org-extensions`}>{f.t(`${P}.canon.open`)}</TextLink>
-    </Section>
-  );
-}
-
-// Templates ------------------------------------------------------------------------------------------------
-
-export async function TemplatesPanel({ ctx }: SettingsPanelProps) {
-  const [f, templates] = await Promise.all([
-    formatters(ctx),
-    listTemplates(ctx.viewer.db, ctx.org.id),
-  ]);
-  if (!templates.ok) return <LoadFailed t={f.t} />;
-  return (
-    <Section
-      id="templates"
-      title={f.t(`${P}.templates.title`)}
-      description={f.t(`${P}.templates.description`)}
-    >
-      {templates.data.length === 0 ? (
-        <Quiet>{f.t(`${P}.templates.none`)}</Quiet>
-      ) : (
-        <Rows
-          label={f.t(`${P}.templates.title`)}
-          rows={templates.data.map((tpl) => {
-            const published = tpl.versions.find((v) => v.publishedAt !== null);
-            return {
-              id: tpl.id,
-              title: (
-                <>
-                  {tpl.name}
-                  <Chip tone={published ? "success" : "warning"}>
-                    {published
-                      ? f.t(`${P}.templates.version`, { number: published.number })
-                      : f.t(`${P}.templates.draft`)}
-                  </Chip>
-                </>
-              ),
-              meta: [
-                tpl.description,
-                f.t(`${P}.templates.used`, { count: tpl.applications }),
-                f.t(`${P}.templates.updated`, { date: f.day(tpl.updatedAt) }),
-              ],
-            };
-          })}
-        />
-      )}
-      <TextLink href={`/${ctx.org.slug}/projects/templates`}>{f.t(`${P}.templates.open`)}</TextLink>
     </Section>
   );
 }

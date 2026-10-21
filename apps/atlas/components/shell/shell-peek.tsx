@@ -2,6 +2,7 @@
 
 import { Button, InlineAlert } from "@xos/ui";
 import type { Route } from "next";
+import NextLink from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -29,6 +30,10 @@ export function ShellPeek({ org }: { org: string }) {
   const search = useSearchParams();
   const router = useRouter();
   const t = useTranslations("peek") as unknown as Translate;
+  const work = useTranslations("work") as unknown as Translate & { has: (k: string) => boolean };
+  const projects = useTranslations("projects") as unknown as Translate & {
+    has: (k: string) => boolean;
+  };
   const key = search.get("peek");
   const owned = pageOwnsPeek(pathname);
   // On a collection page the page's own peek opens first. When the page shows no panel for the key
@@ -93,21 +98,28 @@ export function ShellPeek({ org }: { org: string }) {
     );
   }
   const r = current.record;
+  const stamp = (iso: string) =>
+    new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short",
+      ...(r.timeZone ? { timeZone: r.timeZone } : {}),
+    }).format(new Date(iso));
+  const stateName = (state: string) =>
+    work.has(`states.${state}`) ? work(`states.${state}`) : state;
+  // The record's key properties, as on its full page (Section 11.2 item 4, A59-016).
   const properties = [
     { label: t("project"), value: `${r.projectKey} · ${r.projectName}` },
     { label: t("owner"), value: r.ownerName ?? t("unassigned") },
-    ...(r.dueAt
-      ? [
-          {
-            label: t("due"),
-            value: new Intl.DateTimeFormat(undefined, {
-              dateStyle: "medium",
-              timeStyle: "short",
-              ...(r.timeZone ? { timeZone: r.timeZone } : {}),
-            }).format(new Date(r.dueAt)),
-          },
-        ]
+    ...(r.phaseCode && projects.has(`phases.${r.phaseCode}`)
+      ? [{ label: t("phase"), value: projects(`phases.${r.phaseCode}`) }]
       : []),
+    ...(r.startsAt ? [{ label: t("starts"), value: stamp(r.startsAt) }] : []),
+    ...(r.endsAt ? [{ label: t("ends"), value: stamp(r.endsAt) }] : []),
+    ...(r.dueAt ? [{ label: t("due"), value: stamp(r.dueAt) }] : []),
+    ...(r.timeZone && (r.startsAt || r.endsAt || r.dueAt)
+      ? [{ label: t("timeZone"), value: r.timeZone }]
+      : []),
+    ...(r.blockerText ? [{ label: t("blocker"), value: r.blockerText }] : []),
   ];
   if (loaded === null) return null;
   const { RecordPeek } = loaded;
@@ -120,7 +132,36 @@ export function ShellPeek({ org }: { org: string }) {
       state={r.state}
       properties={properties}
     >
-      <p className="m-0 text-text-13 text-text-secondary">{t("openFullHint")}</p>
+      <section aria-labelledby="shell-peek-activity" className="flex flex-col gap-8">
+        <h3 id="shell-peek-activity" className="m-0 text-label-13 font-semibold">
+          {t("activity")}
+        </h3>
+        {r.history.length === 0 ? (
+          <p className="m-0 text-text-13 text-text-secondary">{t("noActivity")}</p>
+        ) : (
+          <ol className="m-0 flex list-none flex-col gap-6 p-0 text-text-13">
+            {r.history.map((h) => (
+              <li key={h.id} className="flex flex-col gap-2">
+                <span>
+                  {h.from
+                    ? t("stateChange", { from: stateName(h.from), to: stateName(h.to) })
+                    : t("stateSet", { to: stateName(h.to) })}
+                </span>
+                <span className="text-text-12 text-text-secondary">
+                  {t("byWhen", { name: h.byName ?? t("system"), when: stamp(h.at) })}
+                  {h.reason ? ` · ${h.reason}` : ""}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+        <NextLink
+          href={`/${org}/r/${encodeURIComponent(r.key)}` as Route}
+          className="text-text-13 font-medium text-accent-text no-underline hover:underline"
+        >
+          {t("openFull")}
+        </NextLink>
+      </section>
     </RecordPeek>
   );
 }

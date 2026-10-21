@@ -246,16 +246,6 @@
       "Category": "Category"
     }
   },
-  "templates": {
-    "title": "Project templates",
-    "description": "Templates start a project with its scope, records and defaults. Build and publish them on the Templates page.",
-    "none": "No templates yet.",
-    "version": "Version {number} published",
-    "draft": "Draft",
-    "used": "Started {count, plural, one {# project} other {# projects}}",
-    "updated": "Updated {date}",
-    "open": "Open templates"
-  },
   "automations": {
     "title": "What runs on its own",
     "description": "Work your organization set to happen without anyone pressing a button. Each is managed where it lives.",
@@ -306,17 +296,6 @@
     "toVenues": "Open venues"
   },
   "usage": {
-    "title": "Allowances",
-    "description": "How much of your plan's allowances you use now.",
-    "seats": "Seats",
-    "seatsOf": "{used} of {limit} used",
-    "seatsUnlimited": "{used} used, no limit",
-    "aurora": "Aurora requests this month",
-    "auroraOf": "{used} of {limit}",
-    "auroraUnlimited": "{used}, no limit",
-    "auroraNotInPlan": "Not in your plan",
-    "unavailable": "Not available to you",
-    "toBilling": "Billing and plan",
     "metersTitle": "Metered usage",
     "metersDescription": "Counted per billing month (UTC). The open month grows until it closes and is reported.",
     "metersHidden": "Only people who can read usage see the meters.",
@@ -341,21 +320,6 @@
       "byte_day": "{count, plural, one {{formatted} byte-day} other {{formatted} byte-days}}",
       "token": "{count, plural, one {{formatted} token} other {{formatted} tokens}}"
     }
-  },
-  "partner": {
-    "title": "Partner",
-    "description": "Your client organizations, the brand they start with and what the platform bills you wholesale. Manage each in the partner console.",
-    "clients": "{count, plural, =0 {No client organizations} one {# client organization} other {# client organizations}}",
-    "brand": "Default brand",
-    "brandNone": "Not set: clients start with the platform brand.",
-    "brandOverride": "Set; clients may change it.",
-    "brandFixed": "Set; clients keep it.",
-    "billing": "Wholesale billing",
-    "discount": "{percent}% wholesale discount",
-    "noAgreement": "No wholesale agreement recorded yet.",
-    "latestStatement": "Latest statement: {total} for {clients, plural, one {# client} other {# clients}}",
-    "manage": "Manage",
-    "open": "Open the partner console"
   },
   "privacy": {
     "requestsTitle": "Data requests",
