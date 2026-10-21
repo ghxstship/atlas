@@ -25763,6 +25763,17 @@ export interface CreateClientOrganizationRequest {
 }
 
 /**
+ * Confirmation of leaving the partner.
+ */
+export interface LeavePartnerRequest {
+  /**
+   * The org's name, typed exactly.
+   * Length: 1 to 200.
+   */
+  readonly confirm_name: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface MembershipPage {
@@ -26828,6 +26839,50 @@ export interface VerifiedDomain {
    * Format: `uuid`.
    */
   readonly auto_join_role_id: string | null;
+  /**
+   * Where the domain stands at its provider.
+   */
+  readonly provisioning_status:
+    "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
+  /**
+   * DNS records to publish for the provider.
+   */
+  readonly dns_records: ReadonlyArray<DomainDnsRecord>;
+  /**
+   * True once the provider issued the TLS certificate.
+   */
+  readonly tls_ready: boolean;
+  /**
+   * Why the latest provisioning step failed.
+   * Length: 1 to 2000.
+   */
+  readonly provisioning_error: string | null;
+}
+
+/**
+ * A DNS record the org publishes for a custom domain's provider.
+ */
+export interface DomainDnsRecord {
+  /**
+   * DNS record type.
+   * Length: 1 to 10.
+   */
+  readonly type: string;
+  /**
+   * Host the record is published at.
+   * Length: 1 to 253.
+   */
+  readonly name: string;
+  /**
+   * Record value.
+   * Length: 1 to 2000.
+   */
+  readonly value: string;
+  /**
+   * What the record is for: routing, verification, spf, dkim, dmarc or receiving.
+   * Length: 1 to 20.
+   */
+  readonly purpose: string;
 }
 
 /**
@@ -27518,6 +27573,11 @@ export interface Subscription {
    * Subscription status as Stripe reports it; read_only after the grace period.
    */
   readonly subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+  /**
+   * When the subscription's trial ends; null when it never had one.
+   * Format: `date-time`.
+   */
+  readonly trial_ends_at: string | null;
   /**
    * Seats bought above the plan's seat allowance.
    * Range: 0 to unbounded.
@@ -39278,6 +39338,426 @@ export interface WholesaleBillingRequest {
    * Format: `date`.
    */
   readonly period_start: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface OwnershipTransferPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OwnershipTransfer>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited.
+ */
+export interface OwnershipTransfer {
+  /**
+   * Identifier of the ownership transfer.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the Owner who offered the org.
+   * Format: `uuid`.
+   */
+  readonly from_person_id: string;
+  /**
+   * Identifier of the member the org is offered to.
+   * Format: `uuid`.
+   */
+  readonly to_person_id: string;
+  /**
+   * What happens to the Owner who offered on acceptance.
+   */
+  readonly previous_owner_outcome: "admin" | "leave";
+  /**
+   * When the offer was made.
+   * Format: `date-time`.
+   */
+  readonly offered_at: string;
+  /**
+   * When an unanswered offer lapses, 7 days after it was made.
+   * Format: `date-time`.
+   */
+  readonly expires_at: string;
+  /**
+   * When the member accepted and became an Owner.
+   * Format: `date-time`.
+   */
+  readonly accepted_at: string | null;
+  /**
+   * When the member declined.
+   * Format: `date-time`.
+   */
+  readonly declined_at: string | null;
+  /**
+   * When an Owner withdrew the offer.
+   * Format: `date-time`.
+   */
+  readonly canceled_at: string | null;
+  /**
+   * Identifier of the Owner who withdrew it.
+   * Format: `uuid`.
+   */
+  readonly canceled_by: string | null;
+  /**
+   * When the lifecycle job lapsed the unanswered offer.
+   * Format: `date-time`.
+   */
+  readonly expired_at: string | null;
+}
+
+/**
+ * An ownership offer.
+ */
+export interface OwnershipTransferOfferRequest {
+  /**
+   * Identifier of the member to offer the org to.
+   * Format: `uuid`.
+   */
+  readonly to_person_id: string;
+  /**
+   * What happens to the offering Owner on acceptance.
+   */
+  readonly previous_owner_outcome: "admin" | "leave";
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface OrgDeletionRequestPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<OrgDeletionRequest>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate.
+ */
+export interface OrgDeletionRequest {
+  /**
+   * Identifier of the org deletion request.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Why the org is deleted, in the Owner's words.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string;
+  /**
+   * When the Owner asked for deletion.
+   * Format: `date-time`.
+   */
+  readonly requested_at: string;
+  /**
+   * End of the 7-day recovery window.
+   * Format: `date-time`.
+   */
+  readonly recover_until: string;
+  /**
+   * Identifier of the Owner who asked for deletion.
+   * Format: `uuid`.
+   */
+  readonly requested_by: string;
+  /**
+   * When an Owner recovered the org.
+   * Format: `date-time`.
+   */
+  readonly recovered_at: string | null;
+  /**
+   * Identifier of the Owner who recovered it.
+   * Format: `uuid`.
+   */
+  readonly recovered_by: string | null;
+}
+
+/**
+ * A deletion request.
+ */
+export interface OrgDeletionRequestCreate {
+  /**
+   * The org's name, typed exactly.
+   * Length: 1 to 200.
+   */
+  readonly confirm_name: string;
+  /**
+   * Why the org is deleted.
+   * Length: 1 to 20000.
+   */
+  readonly reason: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface DeletionCertificatePage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<DeletionCertificate>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas.
+ */
+export interface DeletionCertificate {
+  /**
+   * Identifier of the deletion certificate.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Id the deleted org had.
+   * Format: `uuid`.
+   */
+  readonly deleted_org_id: string;
+  /**
+   * Name of the org when it was deleted.
+   * Length: 1 to 300.
+   */
+  readonly org_name: string;
+  /**
+   * Web address of the org when it was deleted.
+   * Length: 1 to 100.
+   */
+  readonly org_slug: string;
+  /**
+   * Day 90 of a cancellation, or the end of a deletion request's recovery window.
+   */
+  readonly basis: "cancellation" | "deletion_request";
+  /**
+   * When the Owner canceled or asked for deletion.
+   * Format: `date-time`.
+   */
+  readonly requested_at: string;
+  /**
+   * When the data became due for deletion.
+   * Format: `date-time`.
+   */
+  readonly due_at: string;
+  /**
+   * When every row of the org was deleted.
+   * Format: `date-time`.
+   */
+  readonly purged_at: string | null;
+  /**
+   * Tables rows were deleted from.
+   * Range: 0 to unbounded.
+   */
+  readonly tables_purged: number | null;
+  /**
+   * Rows deleted.
+   * Range: 0 to unbounded.
+   */
+  readonly rows_purged: number | null;
+  /**
+   * Stored files deleted.
+   * Range: 0 to unbounded.
+   */
+  readonly storage_objects_deleted: number;
+  /**
+   * SHA-256 of the certificate PDF.
+   * Length: 1 to 64.
+   */
+  readonly document_sha256: string | null;
+  /**
+   * When the certificate PDF was stored.
+   * Format: `date-time`.
+   */
+  readonly issued_at: string | null;
+  /**
+   * When the certificate was emailed to the former Owner.
+   * Format: `date-time`.
+   */
+  readonly delivered_at: string | null;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface PartnerStandingGrantPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<PartnerStandingGrant>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one.
+ */
+export interface PartnerStandingGrant {
+  /**
+   * Identifier of the partner standing grant.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the partner org whose staff may read.
+   * Format: `uuid`.
+   */
+  readonly partner_org_id: string;
+  /**
+   * The scope: one read capability a support session may grant.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly capability_code: string;
+  /**
+   * The clause of the agreement that provides the grant.
+   * Length: 1 to 300.
+   */
+  readonly agreement_reference: string;
+  /**
+   * When access began.
+   * Format: `date-time`.
+   */
+  readonly valid_from: string;
+  /**
+   * When access ends on its own.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string;
+  /**
+   * Identifier of the org-level record grant the standing grant issued.
+   * Format: `uuid`.
+   */
+  readonly record_grant_id: string;
+  /**
+   * When someone ended the grant early.
+   * Format: `date-time`.
+   */
+  readonly ended_at: string | null;
+  /**
+   * Identifier of the person who ended it early.
+   * Format: `uuid`.
+   */
+  readonly ended_by: string | null;
+}
+
+/**
+ * A standing grant to record.
+ */
+export interface PartnerStandingGrantRecordRequest {
+  /**
+   * The read capability the grant covers.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly capability_code: string;
+  /**
+   * When the grant ends, within a year.
+   * Format: `date-time`.
+   */
+  readonly valid_to: string;
+  /**
+   * The clause of the agreement.
+   * Length: 1 to 300.
+   */
+  readonly agreement_reference: string;
 }
 
 /**

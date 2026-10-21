@@ -7,5 +7,16 @@
   "owner": "Responsable",
   "unassigned": "Sin asignar",
   "due": "Vence",
-  "openFullHint": "Abre la página completa para ver el contenido, los comentarios y la actividad del registro."
+  "phase": "Fase",
+  "starts": "Comienza",
+  "ends": "Termina",
+  "timeZone": "Zona horaria",
+  "blocker": "Bloqueado por",
+  "activity": "Actividad reciente",
+  "noActivity": "Aún no hay cambios.",
+  "stateChange": "Pasó de {from} a {to}",
+  "stateSet": "Quedó en {to}",
+  "byWhen": "{name} · {when}",
+  "system": "Atlas",
+  "openFull": "Abrir la página completa"
 }

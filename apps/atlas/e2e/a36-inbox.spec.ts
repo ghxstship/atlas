@@ -6,7 +6,8 @@ import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
  * Journey 57 (Section 20.2, Section 11.10 rule 5): the Producer submits 21 purchase orders for
  * approval; the Finance reviewer (the Admin, the demo policy's first step) approves one through the
  * notification action a push notification calls (the server half; the device half needs a phone) and
- * 20 from the Inbox with the A key in under 60 seconds, never opening a record.
+ * 20 from the Inbox with the A key in under 60 seconds, never opening a record. Focus stays on the
+ * list as each approved item leaves (A61: the count never stalls partway).
  */
 const PROJECT = "01920000-0000-7000-8000-000000001001";
 
@@ -87,21 +88,31 @@ test("journey 57: approve from the notification action, then 20 Inbox items by k
     expect(elapsed, `20 approvals took ${elapsed} ms`).toBeLessThan(60_000);
     expect(admin.url()).toBe(startUrl);
 
-    // Every one of the 20 moved to the Owner's step, and none is left waiting on the Admin.
+    // Every one of the 20 moved to the Owner's step, and none is left waiting on the Admin. Each key
+    // press sends its decision at once and they run in parallel (A61), so the 20 are decided, not
+    // just cleared from the list, within the same 60 seconds of the first press.
     await expect
-      .poll(async () => {
-        let atOwner = 0;
-        for (const id of approvals.slice(1)) {
-          const row = (await (
-            await admin.request.get(`/api/v1/approval-instances/${id}`)
-          ).json()) as {
-            current_step: number;
-          };
-          if (row.current_step === 2) atOwner += 1;
-        }
-        return atOwner;
-      })
+      .poll(
+        async () => {
+          let atOwner = 0;
+          for (const id of approvals.slice(1)) {
+            const row = (await (
+              await admin.request.get(`/api/v1/approval-instances/${id}`)
+            ).json()) as {
+              current_step: number;
+            };
+            if (row.current_step === 2) atOwner += 1;
+          }
+          return atOwner;
+        },
+        {
+          timeout: Math.max(5_000, 60_000 - (Date.now() - started)),
+          intervals: [500, 1_000, 2_000],
+        },
+      )
       .toBe(20);
+    const decidedIn = Date.now() - started;
+    expect(decidedIn, `20 approvals were decided in ${decidedIn} ms`).toBeLessThan(60_000);
   } finally {
     // Leave the demo tenant as it was, also after a failed step (A71): the requester withdraws every
     // approval this run opened. Left waiting, a failed run's approvals stood in the Admin's Inbox and in

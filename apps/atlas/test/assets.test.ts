@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { currencyExponent, majorUnits, minorUnits } from "@/lib/assets/money";
-import { ASSET_STATE_TONE, matches, pickView, readQuery } from "@/lib/assets/views";
+import {
+  ASSET_STATE_TONE,
+  displayKey,
+  keyedTitle,
+  matches,
+  pickView,
+  readQuery,
+} from "@/lib/assets/views";
 import { monthOf } from "@/lib/assets/page";
+
+describe("assets row keys (A59-009)", () => {
+  it("shows the asset tag, never a row id, in the key column", () => {
+    const id = "01a15673-0725-7bb5-9482-0e505cbbbe98";
+    expect(displayKey({ key: id, peek: id, recordKey: "MH-004", title: "Hoist service" })).toBe(
+      "MH-004",
+    );
+    expect(displayKey({ key: id, peek: id, title: "Truss lot" })).toBe("");
+    expect(displayKey({ key: "u1", peek: "LX-001", title: "Mover" })).toBe("LX-001");
+    expect(keyedTitle({ key: id, recordKey: "MH-004", title: "Hoist service" })).toBe(
+      "MH-004 · Hoist service",
+    );
+    expect(keyedTitle({ key: id, title: "Truss lot" })).toBe("Truss lot");
+  });
+});
 
 describe("assets money", () => {
   it("converts typed amounts to minor units by the currency exponent", () => {

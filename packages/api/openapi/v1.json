@@ -34571,6 +34571,20 @@
         "required": ["name", "slug", "owner_email"],
         "description": "Creates a client organization under the caller's partner organization (Section 4.6.1)."
       },
+      "LeavePartnerRequest": {
+        "type": "object",
+        "properties": {
+          "confirm_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The org's name, typed exactly.",
+            "example": "Tidewater Events"
+          }
+        },
+        "required": ["confirm_name"],
+        "description": "Confirmation of leaving the partner."
+      },
       "MembershipPage": {
         "type": "object",
         "properties": {
@@ -35963,6 +35977,29 @@
             "format": "uuid",
             "description": "Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "provisioning_status": {
+            "type": "string",
+            "enum": ["Not Started", "Requested", "Pending DNS", "Active", "Failed", "Released"],
+            "description": "Where the domain stands at its provider.",
+            "example": "Pending DNS"
+          },
+          "dns_records": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DomainDnsRecord" },
+            "description": "DNS records to publish for the provider."
+          },
+          "tls_ready": {
+            "type": "boolean",
+            "description": "True once the provider issued the TLS certificate.",
+            "example": false
+          },
+          "provisioning_error": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the latest provisioning step failed.",
+            "example": "Vercel returned 400"
           }
         },
         "required": [
@@ -35977,9 +36014,48 @@
           "verification_state",
           "verification_token",
           "last_checked_at",
-          "auto_join_role_id"
+          "auto_join_role_id",
+          "provisioning_status",
+          "dns_records",
+          "tls_ready",
+          "provisioning_error"
         ],
         "description": "A verified email domain with automatic join and a default role."
+      },
+      "DomainDnsRecord": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10,
+            "description": "DNS record type.",
+            "example": "CNAME"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253,
+            "description": "Host the record is published at.",
+            "example": "atlas.northwindlive.example"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Record value.",
+            "example": "cname.vercel-dns.com"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "What the record is for: routing, verification, spf, dkim, dmarc or receiving.",
+            "example": "routing"
+          }
+        },
+        "required": ["type", "name", "value", "purpose"],
+        "description": "A DNS record the org publishes for a custom domain's provider."
       },
       "VerifiedDomainCreate": {
         "type": "object",
@@ -36874,6 +36950,12 @@
             "description": "Subscription status as Stripe reports it; read_only after the grace period.",
             "example": "trialing"
           },
+          "trial_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the subscription's trial ends; null when it never had one.",
+            "example": "2026-10-08T14:30:00Z"
+          },
           "extra_seats": {
             "type": "integer",
             "minimum": 0,
@@ -36895,6 +36977,7 @@
           "updated_by",
           "plan_code",
           "subscription_state",
+          "trial_ends_at",
           "extra_seats",
           "seats_grandfathered"
         ],
@@ -52756,6 +52839,583 @@
         },
         "required": ["period_start"],
         "description": "The month to bill."
+      },
+      "OwnershipTransferPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OwnershipTransfer" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "OwnershipTransfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the ownership transfer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "from_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Owner who offered the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member the org is offered to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "previous_owner_outcome": {
+            "type": "string",
+            "enum": ["admin", "leave"],
+            "description": "What happens to the Owner who offered on acceptance.",
+            "example": "admin"
+          },
+          "offered_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the offer was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When an unanswered offer lapses, 7 days after it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "accepted_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the member accepted and became an Owner.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "declined_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the member declined.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "canceled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When an Owner withdrew the offer.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "canceled_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Owner who withdrew it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expired_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the lifecycle job lapsed the unanswered offer.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "from_person_id",
+          "to_person_id",
+          "previous_owner_outcome",
+          "offered_at",
+          "expires_at",
+          "accepted_at",
+          "declined_at",
+          "canceled_at",
+          "canceled_by",
+          "expired_at"
+        ],
+        "description": "An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited."
+      },
+      "OwnershipTransferOfferRequest": {
+        "type": "object",
+        "properties": {
+          "to_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member to offer the org to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "previous_owner_outcome": {
+            "type": "string",
+            "enum": ["admin", "leave"],
+            "description": "What happens to the offering Owner on acceptance.",
+            "example": "admin"
+          }
+        },
+        "required": ["to_person_id", "previous_owner_outcome"],
+        "description": "An ownership offer."
+      },
+      "OrgDeletionRequestPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OrgDeletionRequest" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "OrgDeletionRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org deletion request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the org is deleted, in the Owner's words.",
+            "example": "We are closing down."
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the Owner asked for deletion.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "recover_until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of the 7-day recovery window.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "requested_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Owner who asked for deletion.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "recovered_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When an Owner recovered the org.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "recovered_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Owner who recovered it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "reason",
+          "requested_at",
+          "recover_until",
+          "requested_by",
+          "recovered_at",
+          "recovered_by"
+        ],
+        "description": "An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate."
+      },
+      "OrgDeletionRequestCreate": {
+        "type": "object",
+        "properties": {
+          "confirm_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The org's name, typed exactly.",
+            "example": "Harbor Lights Productions"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the org is deleted.",
+            "example": "We are closing down."
+          }
+        },
+        "required": ["confirm_name", "reason"],
+        "description": "A deletion request."
+      },
+      "DeletionCertificatePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DeletionCertificate" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "DeletionCertificate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the deletion certificate.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "deleted_org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Id the deleted org had.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name of the org when it was deleted.",
+            "example": "Harbor Lights Productions"
+          },
+          "org_slug": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Web address of the org when it was deleted.",
+            "example": "harbor-lights"
+          },
+          "basis": {
+            "type": "string",
+            "enum": ["cancellation", "deletion_request"],
+            "description": "Day 90 of a cancellation, or the end of a deletion request's recovery window.",
+            "example": "cancellation"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the Owner canceled or asked for deletion.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the data became due for deletion.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "purged_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When every row of the org was deleted.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "tables_purged": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Tables rows were deleted from.",
+            "example": 41
+          },
+          "rows_purged": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Rows deleted.",
+            "example": 1820
+          },
+          "storage_objects_deleted": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Stored files deleted.",
+            "example": 12
+          },
+          "document_sha256": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "SHA-256 of the certificate PDF.",
+            "example": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+          },
+          "issued_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the certificate PDF was stored.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "delivered_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the certificate was emailed to the former Owner.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "deleted_org_id",
+          "org_name",
+          "org_slug",
+          "basis",
+          "requested_at",
+          "due_at",
+          "purged_at",
+          "tables_purged",
+          "rows_purged",
+          "storage_objects_deleted",
+          "document_sha256",
+          "issued_at",
+          "delivered_at"
+        ],
+        "description": "The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas."
+      },
+      "PartnerStandingGrantPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PartnerStandingGrant" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "PartnerStandingGrant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the partner standing grant.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "partner_org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the partner org whose staff may read.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "capability_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "The scope: one read capability a support session may grant.",
+            "example": "org.settings.read"
+          },
+          "agreement_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The clause of the agreement that provides the grant.",
+            "example": "Partner agreement, clause 7.2"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access began.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access ends on its own.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "record_grant_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org-level record grant the standing grant issued.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "ended_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When someone ended the grant early.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ended_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who ended it early.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "partner_org_id",
+          "capability_code",
+          "agreement_reference",
+          "valid_from",
+          "valid_to",
+          "record_grant_id",
+          "ended_at",
+          "ended_by"
+        ],
+        "description": "A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one."
+      },
+      "PartnerStandingGrantRecordRequest": {
+        "type": "object",
+        "properties": {
+          "capability_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "The read capability the grant covers.",
+            "example": "org.settings.read"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the grant ends, within a year.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "agreement_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The clause of the agreement.",
+            "example": "Partner agreement, clause 7.2"
+          }
+        },
+        "required": ["capability_code", "valid_to", "agreement_reference"],
+        "description": "A standing grant to record."
       },
       "PersonCalendarFeedPage": {
         "type": "object",
@@ -112780,7 +113440,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "x-xos-rpc": "app.create_organization",
         "summary": "Create an organization",
-        "description": "Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -112988,6 +113648,58 @@
                   "invite_token": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
                 },
                 "schema": { "$ref": "#/components/schemas/CreateClientOrganizationResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/organizations/leave-partner": {
+      "post": {
+        "operationId": "organizations.leavePartner",
+        "tags": ["Identity"],
+        "x-xos-table": "app.organizations",
+        "x-xos-capability": "org.billing.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "leave_partner",
+        "summary": "Leave the partner",
+        "description": "The client Owner (org.billing.manage) types the bound org's name; the org leaves its partner and becomes a direct customer (app.leave_partner). Its rendered brand becomes its own, the partner's support sessions and standing grants end, and billing moves to the org as a 14-day trial of the same plan that stays once a card is added. Data and members are untouched. An org without a partner answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "confirm_name": "Tidewater Events" },
+              "schema": { "$ref": "#/components/schemas/LeavePartnerRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "name": "Northwind Live",
+                  "slug": "northwind-live",
+                  "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "organization_type": "For-Profit"
+                },
+                "schema": { "$ref": "#/components/schemas/Organization" }
               }
             }
           },
@@ -115661,7 +116373,18 @@
                       "verification_state": "Pending",
                       "verification_token": "xos-verify=6f1c2d",
                       "last_checked_at": "2026-10-08T14:30:00Z",
-                      "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "provisioning_status": "Pending DNS",
+                      "dns_records": [
+                        {
+                          "type": "CNAME",
+                          "name": "atlas.northwindlive.example",
+                          "value": "cname.vercel-dns.com",
+                          "purpose": "routing"
+                        }
+                      ],
+                      "tls_ready": false,
+                      "provisioning_error": "Vercel returned 400"
                     }
                   ],
                   "next_cursor": null
@@ -115720,7 +116443,18 @@
                   "verification_state": "Pending",
                   "verification_token": "xos-verify=6f1c2d",
                   "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -115781,7 +116515,18 @@
                   "verification_state": "Pending",
                   "verification_token": "xos-verify=6f1c2d",
                   "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -115848,7 +116593,18 @@
                   "verification_state": "Pending",
                   "verification_token": "xos-verify=6f1c2d",
                   "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -115889,6 +116645,80 @@
           "204": { "description": "The verified domain moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/verified-domains/{id}/check": {
+      "post": {
+        "operationId": "verifiedDomains.check",
+        "tags": ["Identity"],
+        "x-xos-table": "app.org_domains",
+        "x-xos-capability": "org.white_label.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "request_domain_check",
+        "summary": "Check a custom domain again",
+        "description": "Queues the provider worker for a custom Atlas, Gateway or sending domain (app.request_domain_check): provisioning again when it never reached the provider, otherwise checking DNS verification and TLS now. Verified domains answer 422 (domain_not_provisioned). Returns the domain. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the verified domain.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the verified domain.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "hostname": "gateway.northwindlive.example",
+                  "purpose": "Atlas",
+                  "verification_state": "Pending",
+                  "verification_token": "xos-verify=6f1c2d",
+                  "last_checked_at": "2026-10-08T14:30:00Z",
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
+                },
+                "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -117163,6 +117993,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "plan_code": "pro",
                       "subscription_state": "trialing",
+                      "trial_ends_at": "2026-10-08T14:30:00Z",
                       "extra_seats": 3,
                       "seats_grandfathered": false
                     }
@@ -117223,6 +118054,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "plan_code": "pro",
                   "subscription_state": "trialing",
+                  "trial_ends_at": "2026-10-08T14:30:00Z",
                   "extra_seats": 3,
                   "seats_grandfathered": false
                 },
@@ -140548,6 +141380,1006 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers": {
+      "get": {
+        "operationId": "ownershipTransfers.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["offered_at"], "numeric": false, "descending": true },
+        "summary": "List ownership transfer rows",
+        "description": "An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns a cursor page of ownership transfer rows the caller may see. The default order is `offered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of ownership transfer rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "previous_owner_outcome": "admin",
+                      "offered_at": "2026-10-08T14:30:00Z",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "accepted_at": "2026-10-08T14:30:00Z",
+                      "declined_at": "2026-10-08T14:30:00Z",
+                      "canceled_at": "2026-10-08T14:30:00Z",
+                      "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "expired_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransferPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}": {
+      "get": {
+        "operationId": "ownershipTransfers.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an ownership transfer",
+        "description": "An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns one ownership transfer with its `ETag`. A ownership transfer the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ownership transfer.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/offer": {
+      "post": {
+        "operationId": "ownershipTransfers.offer",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.ownership.transfer",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "offer_ownership_transfer",
+        "summary": "Offer ownership of the organization",
+        "description": "An Owner (org.ownership.transfer) with step-up offers the bound org to another active member who is not an Owner (app.offer_ownership_transfer), choosing whether they become an Admin or leave on acceptance. One open offer per org; it lapses after 7 days. Without a recent second factor the call answers 422 step_up_required; an API key answers step_up_session_only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "previous_owner_outcome": "admin"
+              },
+              "schema": { "$ref": "#/components/schemas/OwnershipTransferOfferRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}/accept": {
+      "post": {
+        "operationId": "ownershipTransfers.accept",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "accept_ownership_transfer",
+        "summary": "Accept ownership",
+        "description": "The member the org was offered to accepts with step-up, so a second factor (app.accept_ownership_transfer): they become an Owner, then the old Owner becomes an Admin (or leaves) and loses the Owner role, so the org keeps an Owner at every step (invariant 4). An answered, withdrawn or lapsed offer answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}/decline": {
+      "post": {
+        "operationId": "ownershipTransfers.decline",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "decline_ownership_transfer",
+        "summary": "Decline ownership",
+        "description": "The member the org was offered to declines (app.decline_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}/cancel": {
+      "post": {
+        "operationId": "ownershipTransfers.cancel",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.ownership.transfer",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "cancel_ownership_transfer",
+        "summary": "Withdraw an ownership offer",
+        "description": "The Owner who offered, or any Owner, withdraws an open offer (app.cancel_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests": {
+      "get": {
+        "operationId": "orgDeletionRequests.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["requested_at"], "numeric": false, "descending": true },
+        "summary": "List org deletion request rows",
+        "description": "An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns a cursor page of org deletion request rows the caller may see. The default order is `requested_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of org deletion request rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reason": "We are closing down.",
+                      "requested_at": "2026-10-08T14:30:00Z",
+                      "recover_until": "2026-10-08T14:30:00Z",
+                      "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "recovered_at": "2026-10-08T14:30:00Z",
+                      "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequestPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests/{id}": {
+      "get": {
+        "operationId": "orgDeletionRequests.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an org deletion request",
+        "description": "An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns one org deletion request with its `ETag`. A org deletion request the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the org deletion request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the org deletion request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The org deletion request.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "We are closing down.",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "recover_until": "2026-10-08T14:30:00Z",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "recovered_at": "2026-10-08T14:30:00Z",
+                  "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests/request": {
+      "post": {
+        "operationId": "orgDeletionRequests.request",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.organization.delete",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "request_org_deletion",
+        "summary": "Ask to delete the organization",
+        "description": "The Owner (org.organization.delete) with step-up types the bound org's name and a reason (app.request_org_deletion). The subscription ends, the org is read-only at once, every Owner is told, and the data is deleted after 7 days unless an Owner recovers it. A partner with clients and an org under a legal hold are refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "confirm_name": "Harbor Lights Productions",
+                "reason": "We are closing down."
+              },
+              "schema": { "$ref": "#/components/schemas/OrgDeletionRequestCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "We are closing down.",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "recover_until": "2026-10-08T14:30:00Z",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "recovered_at": "2026-10-08T14:30:00Z",
+                  "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests/{id}/recover": {
+      "post": {
+        "operationId": "orgDeletionRequests.recover",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.organization.delete",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "recover_org_deletion",
+        "summary": "Recover the organization",
+        "description": "An Owner recovers the org within the 7-day window (app.recover_org_deletion): writes work again and, unless the org is also canceled, it restarts on the Access plan. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the org deletion request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the org deletion request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "We are closing down.",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "recover_until": "2026-10-08T14:30:00Z",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "recovered_at": "2026-10-08T14:30:00Z",
+                  "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/deletion-certificates": {
+      "get": {
+        "operationId": "deletionCertificates.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.deletion_certificates",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["due_at"], "numeric": false, "descending": true },
+        "summary": "List deletion certificate rows",
+        "description": "The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns a cursor page of deletion certificate rows the caller may see. The default order is `due_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of deletion certificate rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "deleted_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_name": "Harbor Lights Productions",
+                      "org_slug": "harbor-lights",
+                      "basis": "cancellation",
+                      "requested_at": "2026-10-08T14:30:00Z",
+                      "due_at": "2026-10-08T14:30:00Z",
+                      "purged_at": "2026-10-08T14:30:00Z",
+                      "tables_purged": 41,
+                      "rows_purged": 1820,
+                      "storage_objects_deleted": 12,
+                      "document_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+                      "issued_at": "2026-10-08T14:30:00Z",
+                      "delivered_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/DeletionCertificatePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/deletion-certificates/{id}": {
+      "get": {
+        "operationId": "deletionCertificates.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.deletion_certificates",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get a deletion certificate",
+        "description": "The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns one deletion certificate with its `ETag`. A deletion certificate the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the deletion certificate.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the deletion certificate.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deletion certificate.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "deleted_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_name": "Harbor Lights Productions",
+                  "org_slug": "harbor-lights",
+                  "basis": "cancellation",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "due_at": "2026-10-08T14:30:00Z",
+                  "purged_at": "2026-10-08T14:30:00Z",
+                  "tables_purged": 41,
+                  "rows_purged": 1820,
+                  "storage_objects_deleted": 12,
+                  "document_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+                  "issued_at": "2026-10-08T14:30:00Z",
+                  "delivered_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/DeletionCertificate" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants": {
+      "get": {
+        "operationId": "partnerStandingGrants.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["valid_from"], "numeric": false, "descending": true },
+        "summary": "List partner standing grant rows",
+        "description": "A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns a cursor page of partner standing grant rows the caller may see. The default order is `valid_from` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of partner standing grant rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "capability_code": "org.settings.read",
+                      "agreement_reference": "Partner agreement, clause 7.2",
+                      "valid_from": "2026-10-08T14:30:00Z",
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "ended_at": "2026-10-08T14:30:00Z",
+                      "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrantPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants/{id}": {
+      "get": {
+        "operationId": "partnerStandingGrants.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get a partner standing grant",
+        "description": "A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns one partner standing grant with its `ETag`. A partner standing grant the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the partner standing grant.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the partner standing grant.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The partner standing grant.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "org.settings.read",
+                  "agreement_reference": "Partner agreement, clause 7.2",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants/record": {
+      "post": {
+        "operationId": "partnerStandingGrants.record",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.support_session.grant",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "record_standing_grant",
+        "summary": "Record a standing partner grant",
+        "description": "The client Owner (org.support_session.grant) records a grant the partner and client agreement provides (app.record_standing_grant): one read capability a support session may grant, an expiry within a year and the clause. A scope outside those, an expiry past a year and an org without a partner answer 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "capability_code": "org.settings.read",
+                "valid_to": "2026-10-08T14:30:00Z",
+                "agreement_reference": "Partner agreement, clause 7.2"
+              },
+              "schema": { "$ref": "#/components/schemas/PartnerStandingGrantRecordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "org.settings.read",
+                  "agreement_reference": "Partner agreement, clause 7.2",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants/{id}/end": {
+      "post": {
+        "operationId": "partnerStandingGrants.end",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.support_session.grant",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "end_standing_grant",
+        "summary": "End a standing partner grant",
+        "description": "Ends a standing grant early (app.end_standing_grant): the client's Owner or the partner's staff with org.partner.manage. An ended grant answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the partner standing grant.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the partner standing grant.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "org.settings.read",
+                  "agreement_reference": "Partner agreement, clause 7.2",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }

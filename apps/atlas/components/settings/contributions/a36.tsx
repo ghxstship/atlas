@@ -1,6 +1,7 @@
 import { listRoles } from "@xos/data";
 import { listObjectTypes } from "@xos/data/custom-objects";
 import { canExportOrg, daysUntil, getCancellation, listOrgExports } from "@xos/data/lifecycle";
+import { dayOf, purgeDay } from "@xos/data/org-lifecycle";
 import { getPartnerOf, listSupportSessions } from "@xos/data/partner";
 import type { Route } from "next";
 import Link from "next/link";
@@ -17,6 +18,7 @@ import {
   ViewAsForm,
 } from "@/components/platform/settings-forms";
 import { getFormatters } from "@/lib/platform/format";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
 
 /**
@@ -224,7 +226,10 @@ async function ViewAsPanel({ ctx }: SettingsPanelProps) {
 }
 
 async function DangerZonePanel({ ctx }: SettingsPanelProps) {
-  const { t, dateTime, date } = await getFormatters(ctx);
+  const [{ t, dateTime, date }, zone] = await Promise.all([
+    getFormatters(ctx),
+    getOrgTimeZone(ctx),
+  ]);
   const [cancellation, canExport, exports] = await Promise.all([
     getCancellation(ctx.viewer.db, ctx.org.id),
     canExportOrg(ctx.viewer.db, ctx.org.id),
@@ -245,8 +250,9 @@ async function DangerZonePanel({ ctx }: SettingsPanelProps) {
           <InlineAlert tone="warning" title={t("lifecycle.canceled.title")}>
             {t("lifecycle.canceled.body", {
               days: daysUntil(cancellation.data.readOnlyUntil),
-              until: date(cancellation.data.readOnlyUntil),
-              purge: date(cancellation.data.purgeAfter),
+              // Days on the org's calendar; data is deleted from its midnight on day 90 (A79, 1351).
+              until: date(dayOf(cancellation.data.readOnlyUntil, zone)),
+              purge: date(purgeDay(cancellation.data.canceledAt, zone)),
             })}
           </InlineAlert>
           {owner ? (

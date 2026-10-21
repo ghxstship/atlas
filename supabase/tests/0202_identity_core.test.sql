@@ -57,7 +57,9 @@ select is(
        -- a person's own calendar feed across their engagements, keyed by person_id (A84, migration 1410)
        'person_calendar_feeds',
        -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
-       'work_detail_events')
+       'work_detail_events',
+       -- the record of an org's deletion, kept after the org and its members are gone (A79, migration 1351)
+       'deletion_certificates')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),
