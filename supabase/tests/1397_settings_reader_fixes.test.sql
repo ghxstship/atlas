@@ -1,13 +1,12 @@
 -- pgTAP: migration 1397, settings readers agree with the rules the database applies (RRR-121, audit of A76).
 -- app.resolve_settings inside a project applies the project's workspace values as private.project_setting_* do;
--- Gateway Explore counts only the opportunities gateway.marketplace_visibility still lets everyone open; and
--- app.recipient_language writes to a person in the org's locked locale.language, else their own, else the org's.
+-- and Gateway Explore counts only the opportunities gateway.marketplace_visibility still lets everyone open.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(14);
+select plan(8);
 
 -- A workspace value reaches a project-only resolve ----------------------------------------------------------------------
 select pg_temp.as_platform();
@@ -57,26 +56,6 @@ select app.set_setting(pg_temp.id('org_a'), 'gateway.marketplace_visibility', 'O
 select pg_temp.as_user('ivy');
 select is((select open_opportunities from app.explore_organizations() e where e.name = 'Northwind Live'), 0,
   'and so does network, which caps the listing to the org''s network');
-
--- The language a person is written to -----------------------------------------------------------------------------------------
-select pg_temp.as_platform();
-select is(app.recipient_language(pg_temp.id('org_a'), pg_temp.id('dave')), 'en-US', 'nobody chose: en-US');
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'locale.language', 'Organization', pg_temp.id('org_a'), p_value_text => 'es-US');
-select pg_temp.as_platform();
-select is(app.recipient_language(pg_temp.id('org_a'), pg_temp.id('dave')), 'es-US', 'the org''s language reaches a member who chose none');
-select is(app.recipient_language(pg_temp.id('org_b'), pg_temp.id('mia')), 'en-US', 'and stays in its org');
-select pg_temp.as_user('dave');
-select app.set_personal_setting('locale.language', null, p_value_text => 'en-US');
-select pg_temp.as_platform();
-select is(app.recipient_language(pg_temp.id('org_a'), pg_temp.id('dave')), 'en-US', 'a person''s own language wins over an unlocked org value');
-select pg_temp.as_user('alice');
-select app.set_setting(pg_temp.id('org_a'), 'locale.language', 'Organization', pg_temp.id('org_a'), p_value_text => 'es-US', p_locked => true);
-select pg_temp.as_platform();
-select is(app.recipient_language(pg_temp.id('org_a'), pg_temp.id('dave')), 'es-US', 'a locked org language wins over it');
-select pg_temp.as_user('dave');
-select throws_ok($$select app.recipient_language((select id from world where key = 'org_a'), (select id from world where key = 'dave'))$$,
-  '42501', null, 'only the notification senders read it');
 
 select * from finish();
 rollback;

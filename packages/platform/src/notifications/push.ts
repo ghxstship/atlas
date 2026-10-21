@@ -94,8 +94,7 @@ export interface TicketReceipt {
 /** What the push sender needs from the database. */
 export interface PushStore {
   claimPush(limit: number): Promise<readonly ClaimedPush[]>;
-  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
-  recipient(personId: string, orgId: string): Promise<Recipient>;
+  recipient(personId: string): Promise<Recipient>;
   /** The Compass deep link of the notification's subject. */
   deepLink(claim: ClaimedPush): Promise<string>;
   recordTickets(deliveryId: string, tickets: readonly DeviceTicket[]): Promise<void>;
@@ -219,7 +218,7 @@ export async function dispatchPush(
   const failedEarly = new Map<string, string>();
   for (const claim of claims) {
     try {
-      const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
+      const recipient = await store.recipient(claim.recipientPersonId);
       const url = await store.deepLink(claim);
       for (const device of claim.devices)
         pending.push({ claim, device, message: pushMessage(claim, device, recipient, url) });

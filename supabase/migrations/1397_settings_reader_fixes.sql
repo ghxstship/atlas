@@ -1,5 +1,5 @@
 -- 1397_settings_reader_fixes.sql
--- Orchestrator fix (RRR-121, audit of A76 on batch-c): three settings readers agree with the rules the database
+-- Orchestrator fix (RRR-121, audit of A76 on batch-c): two settings readers agree with the rules the database
 -- applies.
 --
 --   * app.resolve_settings (0850) inside a project reads the project's workspace when the caller passes none. Compass
@@ -8,10 +8,6 @@
 --     dropped there while private.project_setting_* (1320) applied it, and the kiosk refused every punch it sent.
 --   * app.explore_organizations (1132) counts an org's open opportunities as gateway.marketplace_visibility lets them
 --     reach (1327): an org that lowers the setting no longer shows Public listings nobody can open.
---   * app.recipient_language gives the language a person is written to in an org: a locked Organization value of
---     locale.language, their own value (this org over every org), the org's value, then en-US. The notification
---     senders (packages/platform recipientProfile) read it, so an org's language and its lock reach email, push
---     and SMS.
 
 create or replace function app.resolve_settings(
   p_org_id uuid,
@@ -112,18 +108,9 @@ $$;
 
 comment on function app.explore_organizations(text, integer) is 'Public organization profiles for Gateway Explore (journey 62), signed-in only: name, about, logo, the verified badge, the verified domain and how many opportunities are open to everyone, counting a Public listing only while the org''s gateway.marketplace_visibility still allows Public (1327, 1397). indexable is the profile''s own search_indexing, off unless the org turns it on.';
 
--- The language a person is written to ---------------------------------------------------------------------------------
+-- Privileges (create or replace keeps them; restated for review) -----------------------------------------------------
 
-create or replace function app.recipient_language(p_org_id uuid, p_person_id uuid)
-returns text
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select coalesce(private.setting_text(p_org_id, 'locale.language', null, null, p_person_id), 'en-US');
-$$;
-
-comment on function app.recipient_language(uuid, uuid) is 'The language an org writes to a person in (email, push and SMS): a locked Organization value of locale.language, the person''s own value (for this org over every org), the org''s value, then en-US (1397). For the notification senders, which run as the service role.';
-revoke all on function app.recipient_language(uuid, uuid) from public, anon, authenticated;
-grant execute on function app.recipient_language(uuid, uuid) to service_role;
+revoke all on function app.resolve_settings(uuid, uuid, uuid, uuid) from public, anon;
+grant execute on function app.resolve_settings(uuid, uuid, uuid, uuid) to authenticated, service_role;
+revoke all on function app.explore_organizations(text, integer) from public, anon;
+grant execute on function app.explore_organizations(text, integer) to authenticated, service_role;

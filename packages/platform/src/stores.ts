@@ -183,15 +183,10 @@ export function gatewayLink(
 }
 
 /**
- * A person's name, language and time zone for rendering any channel. Inside an org the language is the one
- * app.recipient_language gives (1397): a locked org `locale.language`, the person's own, the org's, then
- * en-US. Without an org, and for the time zone, their own personal settings, else en-US and UTC.
+ * A person's name, language and time zone for rendering any channel: their own `locale.language` and
+ * `locale.time_zone` personal settings, else en-US and UTC.
  */
-export async function recipientProfile(
-  db: PlatformDb,
-  personId: string,
-  orgId?: string,
-): Promise<Recipient> {
+export async function recipientProfile(db: PlatformDb, personId: string): Promise<Recipient> {
   const person = await db.selectOne("people", "full_name", { id: personId });
   const setting = async (key: string) =>
     optionalText(
@@ -201,16 +196,9 @@ export async function recipientProfile(
       })) ?? undefined,
       "value_text",
     );
-  const orgLanguage =
-    orgId === undefined
-      ? null
-      : await db.rpc("recipient_language", { p_org_id: orgId, p_person_id: personId });
   return {
     name: optionalText(person ?? undefined, "full_name") ?? "",
-    locale:
-      typeof orgLanguage === "string"
-        ? orgLanguage
-        : ((await setting("locale.language")) ?? "en-US"),
+    locale: (await setting("locale.language")) ?? "en-US",
     timeZone: (await setting("locale.time_zone")) ?? "UTC",
   };
 }
@@ -250,7 +238,7 @@ export function notificationStore(
         from: `${name} <${options.fromAddress}>`,
       };
     },
-    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
+    recipient: (personId) => recipientProfile(db, personId),
     async linkFor(claim) {
       const gateway = gatewayLink(claim, options.gatewayUrl);
       if (gateway !== null) return gateway;

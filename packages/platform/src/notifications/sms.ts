@@ -257,8 +257,7 @@ export function createSmsProvider(
 /** What the SMS sender needs from the database. */
 export interface SmsStore {
   claimSms(limit: number): Promise<readonly ClaimedSms[]>;
-  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
-  recipient(personId: string, orgId: string): Promise<Recipient>;
+  recipient(personId: string): Promise<Recipient>;
   orgName(orgId: string): Promise<string>;
   /** Link that opens the notification, kept short for the text. */
   linkFor(claim: ClaimedSms): Promise<string>;
@@ -272,7 +271,7 @@ export interface SmsStore {
 
 /** The text of one SMS: the org, the kind's body, the link and the opt-out line (10DLC). */
 export async function smsBody(claim: ClaimedSms, store: SmsStore): Promise<string> {
-  const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
+  const recipient = await store.recipient(claim.recipientPersonId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(claim.kind, claim.messageArgs, locale, recipient.timeZone);
   return formatMessage(locale, "sms.message", {
@@ -337,8 +336,7 @@ export interface ClaimedSmsSummary {
 /** What the summary sender needs from the database. */
 export interface SmsSummaryStore {
   claimSummaries(limit: number): Promise<readonly ClaimedSmsSummary[]>;
-  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
-  recipient(personId: string, orgId: string): Promise<Recipient>;
+  recipient(personId: string): Promise<Recipient>;
   orgName(orgId: string): Promise<string>;
   /** The org's Inbox, where every held notification waits. */
   inboxLink(orgId: string): Promise<string>;
@@ -358,7 +356,7 @@ export async function smsSummaryBody(
   summary: ClaimedSmsSummary,
   store: SmsSummaryStore,
 ): Promise<string> {
-  const recipient = await store.recipient(summary.recipientPersonId, summary.orgId);
+  const recipient = await store.recipient(summary.recipientPersonId);
   const locale = localeOf(recipient.locale);
   const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
   const args = {
