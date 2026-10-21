@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { DataTable, type DataTableColumn } from "../src/index.ts";
+import { ContextMenu, DataTable, type DataTableColumn } from "../src/index.ts";
 import { expectAccessible } from "./a11y.ts";
 
 const columns: DataTableColumn[] = [
@@ -133,5 +133,32 @@ describe("DataTable selection", () => {
   it("is accessible with a selection", async () => {
     const { container } = render(<Selectable initial={["r1", "r3"]} />);
     await expectAccessible(container);
+  });
+});
+
+describe("ContextMenu at a point", () => {
+  it("opens at the point with the row's actions and closes on Esc", async () => {
+    const cell = document.createElement("button");
+    cell.textContent = "NWL-1";
+    document.body.append(cell);
+    const onClose = vi.fn();
+    render(
+      <ContextMenu
+        label="Actions for NWL-1"
+        at={{ x: 40, y: 80 }}
+        returnFocus={cell}
+        onClose={onClose}
+        items={[{ label: "Open" }, { separator: true }, { label: "Copy link" }]}
+      />,
+    );
+    const menu = await screen.findByRole("menu", { name: "Actions for NWL-1" });
+    expect(
+      within(menu)
+        .getAllByRole("menuitem")
+        .map((i) => i.textContent),
+    ).toEqual(["Open", "Copy link"]);
+    fireEvent.keyDown(menu, { key: "Escape" });
+    expect(onClose).toHaveBeenCalled();
+    cell.remove();
   });
 });

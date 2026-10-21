@@ -25,7 +25,9 @@ import {
 import type { Route } from "next";
 import { useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
+import type { ActionResult } from "./action-result";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import {
   addChecklistItemAction,
@@ -919,7 +921,29 @@ export function TrashControls({
 }) {
   const t = useCopy("work");
   const { pending, error, run } = useAction();
-  const [undo, setUndo] = useState(false);
+  // The undo stack entry the toast shows (Section 11.7): Cmd or Ctrl+Z and the toast's Undo restore
+  // through the same entry, and redo moves the record back to Trash.
+  const [undo, setUndo] = useState<number | null>(null);
+  useEffect(
+    () =>
+      undoStack.subscribe((event) => {
+        if (event.kind === "undone" && event.entry.id === undo) setUndo(null);
+      }),
+    [undo],
+  );
+  const asUndo = async (action: () => Promise<ActionResult>): Promise<UndoResult> => {
+    const result = await action();
+    return result.ok ? { ok: true } : { ok: false, message: t(`errors.${result.error.key}`) };
+  };
+  const trashed = () =>
+    setUndo(
+      undoStack.push({
+        label: t("trash.moved", { key: record.key }),
+        toast: false,
+        undo: () => asUndo(() => restoreRecordAction(org, record.id)),
+        redo: () => asUndo(() => trashRecordAction(org, record.id)),
+      }).id,
+    );
   return (
     <div className="flex flex-col gap-6">
       {record.deletedAt ? (
@@ -931,7 +955,7 @@ export function TrashControls({
               onClick={() =>
                 run(
                   () => restoreRecordAction(org, record.id),
-                  () => setUndo(false),
+                  () => setUndo(null),
                 )
               }
             >
@@ -945,12 +969,7 @@ export function TrashControls({
             variant="ghost"
             icon="Trash2"
             loading={pending}
-            onClick={() =>
-              run(
-                () => trashRecordAction(org, record.id),
-                () => setUndo(true),
-              )
-            }
+            onClick={() => run(() => trashRecordAction(org, record.id), trashed)}
           >
             {t("trash.move")}
           </Button>
@@ -958,17 +977,12 @@ export function TrashControls({
       )}
       <ActionErrorAlert error={error} />
       <ToastRegion label={t("trash.notifications")}>
-        {undo ? (
+        {undo !== null ? (
           <UndoToast
             message={t("trash.moved", { key: record.key })}
-            onUndo={() =>
-              run(
-                () => restoreRecordAction(org, record.id),
-                () => setUndo(false),
-              )
-            }
+            onUndo={() => void undoStack.undo(undo)}
             onExpire={() => {
-              setUndo(false);
+              setUndo(null);
               onTrashed?.();
             }}
           />

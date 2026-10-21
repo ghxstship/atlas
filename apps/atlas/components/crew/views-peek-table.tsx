@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 import { useQueryHref } from "./views.shared";
 
 /** A table whose rows open the side peek (Enter on a cell or a double click). */
@@ -25,10 +26,36 @@ export function PeekTable(props: {
     () => props.rows.map((r) => ({ id: r.id, label: String(r["label"] ?? r.id) })),
     [props.rows],
   );
-  const { selection, bar } = useBulk(props.bulk, refs);
+  const bulk = useBulk(props.bulk, refs);
+  const { selection, bar } = bulk;
+  const rowMenu = useRowMenu();
+  const activatable = props.activatable !== false;
   return (
     <>
       <DataTable
+        {...(activatable
+          ? {
+              onRowContextMenu: (
+                row: Record<string, unknown>,
+                _i: number,
+                at: { x: number; y: number } | null,
+                cell: HTMLElement,
+              ) => {
+                const id = String(row["id"]);
+                rowMenu.open(
+                  {
+                    id,
+                    label: String(row["label"] ?? id),
+                    open: () => router.push(href({ peek: id, full: null })),
+                    href: href({ peek: id, full: "1" }),
+                    bulk,
+                  },
+                  at,
+                  cell,
+                );
+              },
+            }
+          : {})}
         caption={props.caption}
         columns={props.columns}
         rows={props.rows}
@@ -43,6 +70,7 @@ export function PeekTable(props: {
         {...(selection ? { selection } : {})}
       />
       {bar}
+      {rowMenu.menu}
     </>
   );
 }

@@ -29,6 +29,8 @@ import { TransitionDialog } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useHoverCards } from "@/components/hover/use-hover-cards";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 export type RecordView = "list" | "table" | "board" | "calendar" | "timeline";
 
@@ -111,7 +113,9 @@ export function RecordCollection({
   );
 
   const bulkRows = useMemo(() => records.map((r) => ({ id: r.id, label: r.key })), [records]);
-  const { selection, bar } = useBulk(view === "table" ? bulk : null, bulkRows);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const { selection, bar } = bulkKit;
+  const rowMenu = useRowMenu();
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (key: string) =>
@@ -127,6 +131,27 @@ export function RecordCollection({
         : (r.dueAt ?? r.endsAt ?? r.startsAt);
     return when(at, r.timeZone ?? r.projectTimeZone);
   };
+  // Hover cards (Section 11.7): the key or title previews the record, the owner the person.
+  const hover = useHoverCards((index, column) => {
+    const r = records[index];
+    if (!r) return null;
+    if (column === "owner") {
+      return r.ownerId
+        ? { kind: "person", org, personId: r.ownerId, name: r.ownerName ?? "" }
+        : null;
+    }
+    if (column !== "key" && column !== "title") return null;
+    return {
+      kind: "record",
+      recordKey: r.key,
+      recordKind: r.kind as RecordKind,
+      title: r.title,
+      state: stateToken(r.state),
+      stateLabel: t(`states.${r.state}`),
+      owner: r.ownerName ?? t("values.unassigned"),
+      next: nextOf(r) ?? t("values.noDate"),
+    };
+  });
 
   const header = (
     <PageHeader
@@ -244,32 +269,51 @@ export function RecordCollection({
     );
   } else if (view === "table") {
     body = (
-      <DataTable
-        caption={label}
-        columns={[
-          { key: "key", label: t("columns.key"), type: "code" },
-          { key: "title", label: t("columns.title"), wrap: true },
-          { key: "kind", label: t("columns.kind") },
-          { key: "state", label: t("columns.state"), type: "state" },
-          { key: "owner", label: t("columns.owner") },
-          { key: "next", label: t("columns.next") },
-          { key: "project", label: t("columns.project") },
-        ]}
-        rows={records.map((r) => ({
-          id: r.id,
-          key: r.key,
-          title: r.title,
-          kind: r.subtype
-            ? `${kindLabel(r.kind)} · ${t(`subtypes.${r.kind}.${r.subtype}`)}`
-            : kindLabel(r.kind),
-          state: { state: stateToken(r.state), label: stateLabel(r.state) },
-          owner: r.ownerName ?? t("values.unassigned"),
-          next: nextOf(r) ?? t("values.noDate"),
-          project: r.projectName,
-        }))}
-        onRowActivate={(row) => open(String(row["key"]))}
-        {...(selection ? { selection } : {})}
-      />
+      <div {...hover.hoverProps}>
+        <DataTable
+          caption={label}
+          columns={[
+            { key: "key", label: t("columns.key"), type: "code" },
+            { key: "title", label: t("columns.title"), wrap: true },
+            { key: "kind", label: t("columns.kind") },
+            { key: "state", label: t("columns.state"), type: "state" },
+            { key: "owner", label: t("columns.owner") },
+            { key: "next", label: t("columns.next") },
+            { key: "project", label: t("columns.project") },
+          ]}
+          rows={records.map((r) => ({
+            id: r.id,
+            key: r.key,
+            title: r.title,
+            kind: r.subtype
+              ? `${kindLabel(r.kind)} · ${t(`subtypes.${r.kind}.${r.subtype}`)}`
+              : kindLabel(r.kind),
+            state: { state: stateToken(r.state), label: stateLabel(r.state) },
+            owner: r.ownerName ?? t("values.unassigned"),
+            next: nextOf(r) ?? t("values.noDate"),
+            project: r.projectName,
+          }))}
+          onRowActivate={(row) => open(String(row["key"]))}
+          onRowContextMenu={(_row, index, at, cell) => {
+            const r = records[index];
+            if (!r) return;
+            rowMenu.open(
+              {
+                id: r.id,
+                label: r.key,
+                open: () => open(r.key),
+                href: `/${org}/r/${encodeURIComponent(r.key)}`,
+                bulk: bulkKit,
+              },
+              at,
+              cell,
+            );
+          }}
+          {...(selection ? { selection } : {})}
+        />
+        {rowMenu.menu}
+        {hover.card}
+      </div>
     );
   } else if (view === "board") {
     const columns =

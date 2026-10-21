@@ -28,6 +28,7 @@ import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -86,7 +87,9 @@ export function CollectionView({
   const [query, setQuery] = useState(params.get("q") ?? "");
   useLiveRefresh(live ?? null);
   const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
-  const { selection, bar } = useBulk(view === "table" ? bulk : null, bulkRows);
+  const bulkKit = useBulk(view === "table" ? bulk : null, bulkRows);
+  const { selection, bar } = bulkKit;
+  const rowMenu = useRowMenu();
 
   const href = (changes: Record<string, string | null>): Route => {
     const next = new URLSearchParams(params.toString());
@@ -270,6 +273,20 @@ export function CollectionView({
         columns={columns.map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
+        onRowContextMenu={(row, _index, at, cell) => {
+          const id = String(row["id"]);
+          rowMenu.open(
+            {
+              id,
+              label: rows.find((r) => r.id === id)?.key ?? id,
+              open: () => open(id),
+              href: href({ peek: id, full: "1", create: null }),
+              bulk: bulkKit,
+            },
+            at,
+            cell,
+          );
+        }}
         {...(selection ? { selection } : {})}
       />
     );
@@ -295,6 +312,7 @@ export function CollectionView({
     >
       {body}
       {bar}
+      {rowMenu.menu}
     </TemplateCollection>
   );
 }

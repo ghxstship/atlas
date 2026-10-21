@@ -890,6 +890,7 @@ export function DataTable({
                       }}
                       role="gridcell"
                       aria-colindex={ci + 1 + lead}
+                      data-column={cell.id}
                       tabIndex={isActive ? 0 : -1}
                       onFocus={() => setActive([item.index, ci])}
                       onKeyDown={(e) => onKeyDown(e, item.index, ci)}

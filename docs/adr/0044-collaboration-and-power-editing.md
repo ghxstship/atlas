@@ -55,6 +55,55 @@ Two constraints shape every decision here:
 - **Tables.** Migration 1450 adds to the publication only the tables behind live pages: `records`, `shifts`,
   `invoices`, `asset_units` and `sops`. `cues` and `run_of_show` were already there (0412).
 
+### 2. Bulk edit: one transactional RPC per resource, all or nothing
+
+- **The driver.** `private.run_bulk` (migration 1451) takes rows as JSON (`{id, set, expect}`) and calls the
+  resource's row function on each, each row in its own subtransaction. A refusal is caught and reported against
+  its row, with the rule and sentence the database gave. Any refusal undoes every change, so the answer either
+  commits every row or none.
+- **Preview.** A preview runs the same work, triggers and capability checks included, and always undoes it. The
+  counts it shows (rows that change, rows that already hold the value, refused rows) are exactly what applying
+  would do.
+- **Capability on every row.** Row functions run with owner rights, as every RPC here does, so they check the
+  caller's capability on each row the way the table's policies do. State changes go through the lifecycle RPCs
+  (`transition_record`, `transition_shift`, `approve_invoice`, `transition_asset`). Every rule a single edit meets
+  applies in bulk too: separation of duties and spend authority for approvals, blockers for Blocked, retirement
+  approval for assets.
+  - An invoice approval that needs another approver under spend authority is refused in bulk, so the call stays
+    all or nothing.
+- **Compare-and-set.** `expect` refuses a row whose current value differs from what the caller saw
+  (`bulk_stale`).
+- **Audit.** A committed call writes one `<resource>.bulk_update` event per org to the audit ledger, with the
+  row count, the fields and the reason. Row changes reach the ledger through each table's audit trail;
+  `app.records` gains one in 1451.
+- **Resources.** Records (state, owner, accountable party, due time, phase), shifts (state, person), invoices
+  (approve, dispute, cancel) and asset units (state, home venue, condition). Adding a resource is one row
+  function, one `private.bulk_resources` row and one thin `app.bulk_update_<resource>` RPC.
+- **Selection.** DataTable selects rows with a checkbox column, Cmd or Ctrl+click, Shift+click ranges, X and
+  Shift+X, and Cmd or Ctrl+A, and Esc clears. `useBulk` (`apps/atlas/components/bulk`) loads the bar and its
+  dialog with the first selection.
+
+### 3. Undo, context menus and hover cards
+
+- **Undo.** The session's undo stack (`apps/atlas/components/undo`) holds the tab's last 50 reversible actions.
+  The registry's `undo` (Mod+Z) and `redo` (Mod+Shift+Z) shortcuts drive it; inside a text field the keys stay
+  the field's own.
+  - Every entry undoes through the server. A bulk change sends its inverse rows back through the same RPC, with
+    `expect` set to the values it wrote, so an undo never overwrites a later change by someone else. Trash undoes
+    by restoring the record.
+  - A refused undo leaves the entry where it was and says why.
+  - The shell shows the latest action's Undo toast for 8 seconds. Trash keeps its own toast, the A71 one that
+    stays visible, and points it at the same stack entry.
+- **Context menus.** Right-click, Shift+F10 or the Context Menu key on a DataTable row opens the row's actions:
+  open, open as a page, copy link, select, and the bulk properties for that row. `ContextMenu` gains a point mode
+  (`at`). The page opens it, so Radix's menu code loads on the first right-click instead of in the route.
+- **Hover cards.** Hovering a record key, or focusing it, for 400 ms shows the record's title, state, owner and
+  next date. An owner shows the person's role, membership and open records, read as the viewer. Cards load on
+  the first hover and describe their cell while they show.
+- **Shortcuts.** `undo`, `redo`, `list.select-range` (Shift+X), `list.select-all` (Mod+A) and `list.menu`
+  (Shift+F10) are registered in `packages/schemas/shortcuts.yaml`. The list keys are fixed, because DataTable
+  owns them. X obeys `singleKeyShortcutsEnabled()`.
+
 ## Consequences
 
 - The IP allow-list limit of ADR 0034 decision 5 applies to the Realtime socket as it does to PostgREST: a valid

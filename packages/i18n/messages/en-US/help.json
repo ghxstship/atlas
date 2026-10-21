@@ -76,7 +76,12 @@
       "done": "Mark the focused item done",
       "snooze": "Snooze the focused item until tomorrow"
     },
-    "customize": "Change shortcuts"
+    "customize": "Change shortcuts",
+    "undo": "Undo the last change",
+    "redo": "Redo the change you undid",
+    "selectRange": "Select the rows from the last selected one to the focused one",
+    "selectAll": "Select every loaded row",
+    "menu": "Open the focused row's actions"
   },
   "whatsNew": {
     "title": "What's new",

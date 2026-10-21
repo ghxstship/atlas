@@ -169,6 +169,18 @@ shells:
         keys: Escape
         fixed: true
         label: help.shortcuts.close
+      # Undo and redo over the session's last 50 actions (Section 11.7, ADR 0044). Inside a field the
+      # keys stay the field's own text undo.
+      - id: undo
+        scope: global
+        group: general
+        keys: Mod+Z
+        label: help.shortcuts.undo
+      - id: redo
+        scope: global
+        group: general
+        keys: Mod+Shift+Z
+        label: help.shortcuts.redo
       # Go to: G, then a letter, opens a section of the sidebar (Section 11.2). Sections without
       # default keys can be bound in Personal settings, Keyboard Shortcuts.
       - id: go.home
@@ -339,6 +351,25 @@ shells:
         keys: X
         fixed: true
         label: help.shortcuts.select
+      # Tables: DataTable owns these keys while focus is in a selectable table (Section 11.7).
+      - id: list.select-range
+        scope: list
+        group: lists
+        keys: Shift+X
+        fixed: true
+        label: help.shortcuts.selectRange
+      - id: list.select-all
+        scope: list
+        group: lists
+        keys: Mod+A
+        fixed: true
+        label: help.shortcuts.selectAll
+      - id: list.menu
+        scope: list
+        group: lists
+        keys: Shift+F10
+        fixed: true
+        label: help.shortcuts.menu
       # Inbox: the focused item. J and K move as in every list.
       - id: inbox.approve
         scope: inbox

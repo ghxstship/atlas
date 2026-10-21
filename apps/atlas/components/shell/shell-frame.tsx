@@ -37,6 +37,8 @@ import type { Theme } from "@/lib/theme";
 import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
 import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { atlasLiveSource } from "@/components/live/live-source";
+import { UndoCenter } from "@/components/undo/undo-center";
+import { undoStack } from "@/components/undo/undo-stack";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -149,6 +151,8 @@ export function ShellFrame(props: ShellFrameProps) {
           else if (id === "help") openHelpArticle("");
           else if (id === "focus-mode") setFocus((f) => !f);
           else if (id === "aurora") openAurora(true);
+          else if (id === "undo") void undoStack.undo();
+          else if (id === "redo") void undoStack.redo();
         },
       },
     };
@@ -449,6 +453,7 @@ export function ShellFrame(props: ShellFrameProps) {
           onSubmit={() => broadcast("signed-out")}
           hidden
         />
+        <UndoCenter />
         <SessionWatcher email={props.email} />
       </div>
     </ShellKeysContext.Provider>

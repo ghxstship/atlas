@@ -29,6 +29,15 @@ export type ContextMenuProps = Omit<ReferenceContextMenuProps, "items"> & {
   items: MenuItem[];
   /** The region that opens the menu on right-click, long press or Shift+F10. Without it the menu renders on its own. */
   children?: ReactNode;
+  /**
+   * Opens the menu at a viewport point instead of over `children`: where the pointer was, or a
+   * focused cell's corner from the keyboard. The page opens it (a table row's right-click or
+   * Shift+F10), so the menu code can load on demand; `onClose` runs when it closes.
+   */
+  at?: { x: number; y: number };
+  onClose?: () => void;
+  /** Takes focus back when a point menu closes; the element that opened it, such as a table cell. */
+  returnFocus?: HTMLElement | null;
 };
 
 export type OrgSwitcherProps = ReferenceOrgSwitcherProps & {

@@ -1,20 +1,11 @@
 "use client";
 
 import type { BulkOutcome, BulkRow, BulkValue } from "@xos/data/bulk";
-import {
-  BulkActionBar,
-  Button,
-  Dialog,
-  InlineAlert,
-  Input,
-  Select,
-  Toast,
-  ToastRegion,
-  UndoToast,
-} from "@xos/ui";
+import { BulkActionBar, Button, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { undoStack, type UndoResult } from "@/components/undo/undo-stack";
 import { bulkUpdateAction, type BulkActionResult } from "@/lib/bulk/actions";
 import type { BulkConfig, BulkField, BulkRowRef } from "./types";
 
@@ -24,41 +15,40 @@ type Translate = (key: string, values?: Record<string, string | number>) => stri
 const encode = (value: BulkValue) => JSON.stringify(value);
 const decode = (raw: string): BulkValue => JSON.parse(raw) as BulkValue;
 
-interface Done {
-  readonly message: string;
-  readonly inverse: readonly BulkRow[];
-}
-
 /**
  * The bulk action bar and its edit dialog (Section 11.7), loaded with the first selection. A change
  * is previewed first: how many rows it changes, how many already hold the value, and every row that
  * cannot change with the reason the database gave. Applying runs in one transaction, so a refused
- * row means nothing changed. A committed change offers Undo for 8 seconds, which sends the inverse
- * rows back through the same RPC and is itself refused for any row someone changed since.
+ * row means nothing changed. A committed change goes on the session's undo stack: Undo (the toast,
+ * or Cmd or Ctrl+Z) sends the inverse rows back through the same RPC, and redo sends the change
+ * again, each refused for any row someone changed since.
  */
 export function BulkBar({
   config,
   rows,
   selected,
+  field,
+  onField: setField,
   onClear,
 }: {
   config: BulkConfig;
   rows: readonly BulkRowRef[];
   selected: ReadonlySet<string>;
+  /** The property whose change dialog is open, if any; a row's menu opens it too. */
+  field: BulkField | null;
+  onField: (field: BulkField | null) => void;
   onClear: () => void;
 }) {
   const t = useTranslations("collab.bulk") as unknown as Translate;
   const router = useRouter();
-  const [field, setField] = useState<BulkField | null>(null);
-  const [done, setDone] = useState<Done | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
   const labels = new Map(rows.map((r) => [r.id, r.label]));
 
-  const undo = async (inverse: readonly BulkRow[]) => {
+  /** Sends rows back through the RPC for an undo or a redo; the stack reports the outcome. */
+  const send = async (batch: readonly BulkRow[]): Promise<UndoResult> => {
     const result = await bulkUpdateAction({
       org: config.org,
       resource: config.resource,
-      rows: inverse.map((r) => ({
+      rows: batch.map((r) => ({
         id: r.id,
         set: { ...r.set },
         ...(r.expect ? { expect: { ...r.expect } } : {}),
@@ -66,16 +56,19 @@ export function BulkBar({
       preview: false,
     });
     if (result.ok && result.outcome.committed) {
-      setNotice(t("undone"));
       router.refresh();
-      return;
+      return { ok: true };
     }
     const first = result.ok ? result.outcome.refused[0] : undefined;
-    setNotice(
-      t("undoRefused", {
-        message: first ? first.message : result.ok ? "" : (result.message ?? t("failed")),
-      }),
-    );
+    const row = first?.id ? labels.get(first.id) : undefined;
+    const message = first
+      ? row
+        ? t("refusedRow", { row, message: first.message })
+        : first.message
+      : result.ok
+        ? t("failed")
+        : (result.message ?? t("failed"));
+    return { ok: false, message };
   };
 
   return (
@@ -88,7 +81,7 @@ export function BulkBar({
               announce={false}
               actions={config.fields.slice(0, 4).map((f) => ({
                 label: t("change", { field: f.label }),
-                icon: "PencilLine",
+                icon: "PenLine",
                 onSelect: () => setField(f),
               }))}
               onClear={onClear}
@@ -96,7 +89,7 @@ export function BulkBar({
           </div>
         </div>
       ) : null}
-      {field ? (
+      {field && selected.size > 0 ? (
         <BulkDialog
           config={config}
           field={field}
@@ -107,28 +100,17 @@ export function BulkBar({
           onDone={(outcome) => {
             setField(null);
             onClear();
-            setNotice(null);
-            setDone({ message: t("done", { count: outcome.changed }), inverse: outcome.inverse });
+            const inverse = outcome.inverse;
+            // Redo applies the change again, expecting the values the undo put back.
+            const again = inverse.map((r) => ({ id: r.id, set: r.expect ?? {}, expect: r.set }));
+            undoStack.push({
+              label: t("done", { count: outcome.changed }),
+              undo: () => send(inverse),
+              redo: () => send(again),
+            });
           }}
         />
       ) : null}
-      <ToastRegion label={t("notifications")}>
-        {notice ? (
-          <Toast message={notice} actionLabel={t("dismiss")} onAction={() => setNotice(null)} />
-        ) : null}
-        {done ? (
-          <UndoToast
-            key={done.message + done.inverse.length}
-            message={done.message}
-            onUndo={() => {
-              const inverse = done.inverse;
-              setDone(null);
-              void undo(inverse);
-            }}
-            onExpire={() => setDone(null)}
-          />
-        ) : null}
-      </ToastRegion>
     </>
   );
 }

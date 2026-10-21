@@ -30,6 +30,7 @@ import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
 import type { BulkConfig } from "@/components/bulk/types";
 import { useBulk } from "@/components/bulk/use-bulk";
+import { useRowMenu } from "@/components/menus/use-row-menu";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
@@ -117,7 +118,30 @@ export function AssetsCollection(props: CollectionProps) {
     () => props.rows.flatMap((r) => (r.id ? [{ id: r.id, label: r.title }] : [])),
     [props.rows],
   );
-  const { selection, bar } = useBulk(NOT_TABLE.has(props.view) ? null : props.bulk, refs);
+  const bulkKit = useBulk(NOT_TABLE.has(props.view) ? null : props.bulk, refs);
+  const { selection, bar } = bulkKit;
+  const rowMenu = useRowMenu();
+  const onContext = (
+    row: Record<string, unknown>,
+    at: { x: number; y: number } | null,
+    cell: HTMLElement,
+  ) => {
+    const r = byKey.get(String(row["__key"]));
+    if (!r) return;
+    const peek = r.peek;
+    rowMenu.open(
+      {
+        id: r.id ?? r.key,
+        label: r.title,
+        ...(peek
+          ? { open: () => open(peek), href: `${pathname}?peek=${encodeURIComponent(peek)}&full=1` }
+          : {}),
+        bulk: bulkKit,
+      },
+      at,
+      cell,
+    );
+  };
 
   const header = (
     <PageHeader
@@ -221,8 +245,9 @@ export function AssetsCollection(props: CollectionProps) {
   } else {
     body = (
       <>
-        {renderView(props, t, open, byKey, selection)}
+        {renderView(props, t, open, byKey, selection, onContext)}
         {bar}
+        {rowMenu.menu}
       </>
     );
   }
@@ -271,6 +296,11 @@ function renderView(
   open: (peek: string | undefined) => void,
   byKey: Map<string, CollectionRow>,
   selection: DataTableSelection | undefined,
+  onContext: (
+    row: Record<string, unknown>,
+    at: { x: number; y: number } | null,
+    cell: HTMLElement,
+  ) => void,
 ): ReactNode {
   switch (props.view) {
     case "list":
@@ -350,6 +380,7 @@ function renderView(
           rows={props.rows.map((r) => ({ ...r.cells, __key: r.key, __id: r.id ?? r.key }))}
           rowId={(row) => String(row["__id"])}
           onRowActivate={(row) => open(byKey.get(String(row["__key"]))?.peek)}
+          onRowContextMenu={(row, _index, at, cell) => onContext(row, at, cell)}
           {...(selection ? { selection } : {})}
         />
       );
