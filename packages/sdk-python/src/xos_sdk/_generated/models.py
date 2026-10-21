@@ -1315,6 +1315,15 @@ __all__ = [
     "WholesaleStatementPage",
     "WholesaleStatement",
     "WholesaleBillingRequest",
+    "PersonCalendarFeedPage",
+    "PersonCalendarFeed",
+    "ProjectInboxPage",
+    "ProjectInbox",
+    "ProjectInboxCreate",
+    "InboundMessagePage",
+    "InboundMessage",
+    "InboundMessageFileRequest",
+    "InboundMessageDiscardRequest",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -21408,6 +21417,147 @@ class WholesaleBillingRequest(TypedDict):
 
     #: First day of the month to bill.
     period_start: str
+
+
+class PersonCalendarFeedPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PersonCalendarFeed]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PersonCalendarFeed(TypedDict):
+    """A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good."""
+
+    #: Identifier of the person calendar feed.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who owns the feed; always the caller.
+    person_id: str
+    #: Last four characters of the token.
+    token_hint: str
+    #: Last time a calendar fetched the feed.
+    last_accessed_at: Optional[str]
+    #: When the token was last replaced.
+    rotated_at: Optional[str]
+
+
+class ProjectInboxPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectInbox]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectInbox(TypedDict):
+    """A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled."""
+
+    #: Identifier of the project inbox.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the inbox belongs to.
+    project_id: str
+    #: Part before the @ of the receiving domain: the project key and a random suffix.
+    local_part: str
+    #: When the address stopped accepting mail.
+    disabled_at: Optional[str]
+
+
+class ProjectInboxCreate(TypedDict):
+    """The project to give an inbox."""
+
+    #: Identifier of the project the inbox is for.
+    project_id: str
+
+
+class InboundMessagePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[InboundMessage]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class InboundMessage(TypedDict):
+    """Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason."""
+
+    #: Identifier of the inbound message.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: What the mail was sent to.
+    purpose: Literal["Project Inbox", "Reply"]
+    #: Identifier of the project inbox the mail was sent to.
+    inbound_address_id: Optional[str]
+    #: Sender address.
+    from_address: str
+    #: Subject.
+    subject_line: Optional[str]
+    #: Plain-text body with quoted text stripped.
+    body_text: Optional[str]
+    #: True when the sender's DKIM signature verified.
+    dkim_verified: bool
+    #: Processing status.
+    inbound_status: Literal["Received", "Verified", "Filed", "Rejected"]
+    #: Why the mail was rejected.
+    rejection_reason: Optional[str]
+    #: When the mail arrived.
+    received_at: str
+    #: Identifier of the document the mail was filed as.
+    filed_document_id: Optional[str]
+    #: Identifier of the record of the project the mail was filed to.
+    filed_record_id: Optional[str]
+    #: Identifier of the person who filed the mail.
+    filed_by: Optional[str]
+    #: When the mail was filed.
+    filed_at: Optional[str]
+    #: When the mail was discarded.
+    discarded_at: Optional[str]
+    #: Identifier of the person who discarded the mail.
+    discarded_by: Optional[str]
+    #: Why the mail was discarded.
+    discard_reason: Optional[str]
+
+
+class InboundMessageFileRequest(TypedDict, total=False):
+    """How to file the mail."""
+
+    #: Document title; the subject when omitted.
+    title: str
+    #: Identifier of the record of the project to file the mail to.
+    record_id: str
+
+
+class InboundMessageDiscardRequest(TypedDict, total=False):
+    """Why the mail is discarded."""
+
+    #: Why the mail is discarded.
+    reason: str
 
 
 class WorkforceGroupPage(TypedDict):

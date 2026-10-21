@@ -249,6 +249,7 @@ describe("SCIM service provider", () => {
       identity: async (_p, id) => identities.find((i) => i.externalId === id) ?? null,
       identityByEmail: async (_p, email) => identities.find((i) => i.email === email) ?? null,
       identitiesInGroup: async (_p, group) => identities.filter((i) => i.groups.includes(group)),
+      listIdentities: async () => [...identities],
       provision: async (provider, externalId, userName, userId, active, groups) => {
         if (refuse)
           throw new StoreError({
@@ -363,7 +364,7 @@ describe("SCIM service provider", () => {
     expect((await s.request("HEAD", "/Users/okta-1")).status).toBe(405);
   });
 
-  it("deactivates by PATCH and DELETE, and refuses other user patches", async () => {
+  it("deactivates by PATCH and DELETE, keeps the email and accepts profile patches", async () => {
     const s = scim([nina]);
     const patch = (ops: unknown[]) =>
       s.request("PATCH", "/Users/okta-1", {
@@ -383,7 +384,16 @@ describe("SCIM service provider", () => {
     expect((await patch([{ op: "replace", value: { active: true } }])).body).toMatchObject({
       active: true,
     });
-    expect((await patch([{ op: "add", path: "title", value: "x" }])).status).toBe(501);
+    // Names and titles belong to the person in XOS: accepted, not stored; the email never changes.
+    expect((await patch([{ op: "add", path: "title", value: "x" }])).status).toBe(200);
+    expect(
+      (await patch([{ op: "replace", path: "userName", value: "x@y.example.com" }])).body,
+    ).toMatchObject({ scimType: "mutability" });
+    expect((await patch([{ op: "remove", path: "title" }])).status).toBe(501);
+    expect((await patch([{ op: "Replace", path: "active", value: "False" }])).body).toMatchObject({
+      active: false,
+    });
+    expect((await patch([{ op: "replace", path: "active", value: 3 }])).status).toBe(400);
     expect((await s.request("PATCH", "/Users/okta-1", { Operations: [] })).status).toBe(400);
     expect((await s.request("DELETE", "/Users/okta-1")).status).toBe(204);
     expect(s.provisioned.at(-1)?.[3]).toBe(false);
@@ -447,12 +457,15 @@ describe("SCIM service provider", () => {
     expect(s.identities[0]?.groups).toEqual(["event-finance"]);
     expect((await s.request("PUT", `/Groups/${groupId("crew")}`)).status).toBe(405);
     expect((await s.request("GET", "/Groups/!!!")).status).toBe(404);
-    expect((await s.request("GET", "/Groups")).status).toBe(404);
+    expect((await s.request("GET", "/Groups")).body).toMatchObject({
+      totalResults: 1,
+      Resources: [{ displayName: "event-finance" }],
+    });
     s.setRefuse(true);
     expect(
       (await patch("crew", [{ op: "add", path: "members", value: [{ value: "okta-1" }] }])).status,
     ).toBe(400);
-    expect((await s.request("GET", "/Schemas")).status).toBe(404);
+    expect((await s.request("GET", "/Schemas")).status).toBe(200);
     expect((await s.request("GET", "/Users/okta-1/extra")).status).toBe(404);
     expect(groupDisplay(groupId("event finance"))).toBe("event finance");
   });
@@ -463,6 +476,7 @@ describe("SCIM service provider", () => {
       identity: async () => nina,
       identityByEmail: async () => null,
       identitiesInGroup: async () => [],
+      listIdentities: async () => [],
       provision: () => Promise.reject(new StoreError({ kind: "unexpected", message: "down" })),
     };
     await expect(

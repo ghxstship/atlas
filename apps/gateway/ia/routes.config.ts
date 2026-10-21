@@ -14,6 +14,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/sign-out": "Route handler: ends the session (POST only).",
   "/auth/session": "Route handler: session expiry for the re-authentication dialog.",
   "/auth/claim": "Auth template: claim token submissions into the signed-in account.",
+  "/auth/mfa": "Auth template: the second factor after the first, when the person holds one (A77).",
   "/auth/terms": "Auth template: the Worker Terms for an account a sign-in provider created.",
   "/explore/how-ranking-works": "Public page: the marketplace ranking factors (Section 4.4.3).",
   "/legal/{document}":
@@ -21,6 +22,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
+  "/ical/{feedFile}":
+    "Route handler: a calendar subscription feed, <token>.ics only (Section 4.5.8, Section 4.6.5, ADR 0040).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":

@@ -109,6 +109,24 @@ describe("the repository's removal script", () => {
     expect(sql).not.toMatch(/disable\s+trigger/i);
     expect(sql).not.toMatch(/\btruncate\s+(app|auth|private|storage)\./i);
   });
+
+  it("removes every Vault secret a demo org's rows point to, and only from vault.secrets", () => {
+    // Integration credentials (0600), inbound webhook secrets (1400) and warehouse bucket credentials (1401).
+    for (const pointer of [
+      "private.integration_credentials",
+      "private.integration_inbound_secrets",
+      "private.warehouse_credentials",
+    ]) {
+      expect(sql).toContain(pointer);
+    }
+    for (const name of ["'xos_integration_'", "'xos_integration_inbound_'", "'xos_warehouse_'"]) {
+      expect(sql).toContain(name);
+    }
+    expect(sql).toContain("m.rel = 'app.warehouse_destinations'::regclass");
+    expect(sql).toMatch(
+      /delete from vault\.secrets s where s\.id in \(select id from demo_vault\)/,
+    );
+  });
 });
 
 describe("storage objects", () => {

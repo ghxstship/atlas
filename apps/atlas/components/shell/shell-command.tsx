@@ -26,8 +26,9 @@ export interface ShellCommandProps {
 }
 
 /**
- * The shell's command menu (Cmd or Ctrl+K, and `/`): every page the person may open and the help
- * articles. It loads the first time it opens (A24-009); the shell frame owns the shortcuts.
+ * The shell's command menu (Cmd or Ctrl+K, and `/`, by default): every page the person may open, with
+ * the keys of its navigation shortcut, and the help articles. It loads the first time it opens
+ * (A24-009); the shell frame owns the shortcuts.
  */
 export function ShellCommand({ open, onOpenChange, commands, locale, go }: ShellCommandProps) {
   const t = useTranslations();
@@ -43,6 +44,7 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
           items: g.items.map((item) => ({
             label: item.label,
             icon: item.icon,
+            ...(item.shortcut ? { shortcut: item.shortcut } : {}),
             onSelect: () => {
               onOpenChange(false);
               go(item.href);

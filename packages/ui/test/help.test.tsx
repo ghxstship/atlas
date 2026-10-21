@@ -125,10 +125,12 @@ describe("ShortcutEditor and HelpPanel", () => {
           { action: "Create record", keys: "C" },
           { action: "Go to projects", keys: "G P", conflict: "Used by Go to People", custom: true },
           { action: "Search", keys: "⌘ K", recording: true },
+          { action: "Go to safety", keys: "" },
         ]}
       />,
     );
     expect(screen.getByText("Used by Go to People")).toBeTruthy();
+    expect(screen.getByText("Not set")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Press Keys" }).getAttribute("aria-pressed")).toBe(
       "true",
     );

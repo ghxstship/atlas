@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { MagicLinkForm, PasswordSignInForm } from "@/components/auth/forms";
 import { Divider, ProviderButtons } from "@/components/auth/providers";
+import { PasskeySignInButton } from "@/components/auth/security/passkey-sign-in";
 import { InlineAlert } from "@/components/ui";
 import { authErrorKey, isAuthNotice } from "@/lib/auth/errors";
 import { safeNext } from "@/lib/auth/redirect";
@@ -17,6 +18,7 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
   const query = await searchParams;
   const next = safeNext(query["next"]);
   const t = await getTranslations("shell.auth");
+  const tSecurity = await getTranslations("authSecurity");
   const error = typeof query["error"] === "string" ? authErrorKey({ code: query["error"] }) : null;
   const signUpHref =
     next === "/" ? "/auth/sign-up" : `/auth/sign-up?next=${encodeURIComponent(next)}`;
@@ -29,9 +31,18 @@ export default async function SignInPage({ searchParams }: PageProps<"/auth/sign
         </InlineAlert>
       ) : null}
       <ProviderButtons next={next} />
+      <PasskeySignInButton next={next} />
       <MagicLinkForm next={next} intent="sign-in" />
       <Divider />
       <PasswordSignInForm next={next} />
+      <Link
+        href={
+          (next === "/" ? "/auth/sso" : `/auth/sso?next=${encodeURIComponent(next)}`) as "/auth/sso"
+        }
+        className="text-text-13 text-accent-text underline"
+      >
+        {tSecurity("sso.link")}
+      </Link>
       <p className="text-text-13 text-text-secondary">
         {t("signIn.noAccount")}{" "}
         <Link href={signUpHref as "/auth/sign-up"} className="text-accent-text underline">
