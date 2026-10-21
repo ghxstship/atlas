@@ -15927,6 +15927,112 @@ export type Database = {
           },
         ];
       };
+      feedback_submissions: {
+        Row: {
+          app_code: string;
+          app_version: string | null;
+          context_org_id: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          locale: string | null;
+          message: string;
+          person_id: string;
+          route: string | null;
+          screenshot_path: string | null;
+          submission_number: string;
+          triage_note: string | null;
+          triage_state: string;
+          triaged_at: string | null;
+          triaged_by: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          viewport: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          app_code: string;
+          app_version?: string | null;
+          context_org_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          locale?: string | null;
+          message: string;
+          person_id: string;
+          route?: string | null;
+          screenshot_path?: string | null;
+          submission_number?: string;
+          triage_note?: string | null;
+          triage_state?: string;
+          triaged_at?: string | null;
+          triaged_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          viewport?: string | null;
+        };
+        Update: {
+          app_code?: string;
+          app_version?: string | null;
+          context_org_id?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          locale?: string | null;
+          message?: string;
+          person_id?: string;
+          route?: string | null;
+          screenshot_path?: string | null;
+          submission_number?: string;
+          triage_note?: string | null;
+          triage_state?: string;
+          triaged_at?: string | null;
+          triaged_by?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          viewport?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "feedback_submissions_context_org_id_fkey";
+            columns: ["context_org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "feedback_submissions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "feedback_submissions_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "feedback_submissions_triaged_by_fkey";
+            columns: ["triaged_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "feedback_submissions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       file_access_log: {
         Row: {
           accessed_at: string;
@@ -30898,6 +31004,43 @@ export type Database = {
           },
         ];
       };
+      product_events: {
+        Row: {
+          app_code: string;
+          event_name: string;
+          id: string;
+          occurred_at: string;
+          received_at: string;
+          route_template: string | null;
+          session_key: string;
+          step: number | null;
+          workflow_code: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          app_code: string;
+          event_name: string;
+          id?: string;
+          occurred_at: string;
+          received_at?: string;
+          route_template?: string | null;
+          session_key: string;
+          step?: number | null;
+          workflow_code?: string | null;
+        };
+        Update: {
+          app_code?: string;
+          event_name?: string;
+          id?: string;
+          occurred_at?: string;
+          received_at?: string;
+          route_template?: string | null;
+          session_key?: string;
+          step?: number | null;
+          workflow_code?: string | null;
+        };
+        Relationships: [];
+      };
       production_state_transitions: {
         Row: {
           created_at: string;
@@ -32244,7 +32387,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
-          expo_push_token: string;
+          expo_push_token: string | null;
           id: string;
           last_seen_at: string;
           membership_id: string;
@@ -32253,13 +32396,17 @@ export type Database = {
           revoked_at: string | null;
           updated_at: string;
           updated_by: string | null;
+          web_app: string | null;
+          web_auth: string | null;
+          web_endpoint: string | null;
+          web_p256dh: string | null;
         };
         ComputedFields: never;
         Insert: {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
-          expo_push_token: string;
+          expo_push_token?: string | null;
           id?: string;
           last_seen_at?: string;
           membership_id: string;
@@ -32268,12 +32415,16 @@ export type Database = {
           revoked_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          web_app?: string | null;
+          web_auth?: string | null;
+          web_endpoint?: string | null;
+          web_p256dh?: string | null;
         };
         Update: {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
-          expo_push_token?: string;
+          expo_push_token?: string | null;
           id?: string;
           last_seen_at?: string;
           membership_id?: string;
@@ -32282,6 +32433,10 @@ export type Database = {
           revoked_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          web_app?: string | null;
+          web_auth?: string | null;
+          web_endpoint?: string | null;
+          web_p256dh?: string | null;
         };
         Relationships: [
           {
@@ -32327,6 +32482,7 @@ export type Database = {
           notification_created_at: string;
           notification_delivery_id: string;
           org_id: string;
+          push_service: string;
           push_subscription_id: string;
           receipt_checked_at: string | null;
           updated_at: string;
@@ -32345,6 +32501,7 @@ export type Database = {
           notification_created_at: string;
           notification_delivery_id: string;
           org_id: string;
+          push_service?: string;
           push_subscription_id: string;
           receipt_checked_at?: string | null;
           updated_at?: string;
@@ -32362,6 +32519,7 @@ export type Database = {
           notification_created_at?: string;
           notification_delivery_id?: string;
           org_id?: string;
+          push_service?: string;
           push_subscription_id?: string;
           receipt_checked_at?: string | null;
           updated_at?: string;
@@ -38571,6 +38729,75 @@ export type Database = {
           },
           {
             foreignKeyName: "run_of_show_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sandbox_orgs: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string;
+          id: string;
+          org_id: string;
+          person_id: string;
+          purge_error: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at: string;
+          id?: string;
+          org_id: string;
+          person_id: string;
+          purge_error?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string;
+          id?: string;
+          org_id?: string;
+          person_id?: string;
+          purge_error?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sandbox_orgs_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sandbox_orgs_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sandbox_orgs_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sandbox_orgs_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -52951,6 +53178,20 @@ export type Database = {
           },
         ];
       };
+      product_funnel_hourly: {
+        Row: {
+          app_code: string | null;
+          event_name: string | null;
+          events: number | null;
+          hour_start: string | null;
+          route_template: string | null;
+          sessions: number | null;
+          step: number | null;
+          workflow_code: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
       project_attendance_totals: {
         Row: {
           comps: number | null;
@@ -54254,6 +54495,7 @@ export type Database = {
         };
         Returns: string;
       };
+      am_i_platform_staff: { Args: Record<PropertyKey, never>; Returns: boolean };
       answer_help_desk_request: { Args: { p_body: string; p_ticket_id: string }; Returns: string };
       apply_asset_scan: {
         Args: {
@@ -55213,6 +55455,27 @@ export type Database = {
           person_id: string;
         }[];
       };
+      feedback_triage_list: {
+        Args: { p_limit?: number; p_state?: string };
+        Returns: {
+          app_code: string;
+          app_version: string;
+          context_org_slug: string;
+          created_at: string;
+          id: string;
+          locale: string;
+          message: string;
+          route: string;
+          screenshot_path: string;
+          screenshot_scan: string;
+          sender_name: string;
+          submission_number: string;
+          triage_note: string;
+          triage_state: string;
+          triaged_at: string;
+          viewport: string;
+        }[];
+      };
       file_inbound_message: {
         Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
         Returns: string;
@@ -55528,6 +55791,15 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
+      my_sandbox: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          expires_at: string;
+          name: string;
+          org_id: string;
+          slug: string;
+        }[];
+      };
       my_second_factor_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -55611,6 +55883,15 @@ export type Database = {
           p_subject: string;
         };
         Returns: string;
+      };
+      open_my_sandbox: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          expires_at: string;
+          name: string;
+          org_id: string;
+          slug: string;
+        }[];
       };
       open_support_ticket: {
         Args: {
@@ -55990,6 +56271,10 @@ export type Database = {
         };
         Returns: string;
       };
+      record_product_events: {
+        Args: { p_app_code: string; p_events: Json; p_session_key: string };
+        Returns: number;
+      };
       record_provider_payment: {
         Args: {
           p_amount_minor: number;
@@ -56162,6 +56447,10 @@ export type Database = {
         };
         Returns: string;
       };
+      record_web_push_tickets: {
+        Args: { p_delivery_id: string; p_tickets: Json };
+        Returns: undefined;
+      };
       record_webhook_attempt: {
         Args: { p_delivery_id: string; p_error?: string; p_response_status: number };
         Returns: Database["app"]["Enums"]["delivery_status"];
@@ -56188,6 +56477,10 @@ export type Database = {
       register_onboarding_upload: {
         Args: { p_checksum_sha256: string; p_object_name: string; p_title: string };
         Returns: string;
+      };
+      register_web_push: {
+        Args: { p_app: string; p_auth: string; p_endpoint: string; p_p256dh: string };
+        Returns: number;
       };
       reject_expense: { Args: { p_expense_id: string; p_reason: string }; Returns: string };
       reject_requisition: { Args: { p_reason: string; p_requisition_id: string }; Returns: string };
@@ -56402,6 +56695,7 @@ export type Database = {
       revoke_representation: { Args: { p_representation_id: string }; Returns: undefined };
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
+      revoke_web_push: { Args: { p_endpoint: string }; Returns: number };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
       rotate_calendar_feed: {
         Args: { p_calendar_feed_id: string };
@@ -56481,6 +56775,19 @@ export type Database = {
           p_conversation_id: string;
           p_language?: string;
           p_message_kind?: Database["app"]["Enums"]["chat_message_kind"];
+        };
+        Returns: string;
+      };
+      send_feedback: {
+        Args: {
+          p_app_code: string;
+          p_app_version?: string;
+          p_locale?: string;
+          p_message: string;
+          p_org_id?: string;
+          p_route?: string;
+          p_screenshot_path?: string;
+          p_viewport?: string;
         };
         Returns: string;
       };
@@ -56804,6 +57111,10 @@ export type Database = {
           p_stripe_subscription_id: string;
         };
         Returns: Database["app"]["Enums"]["subscription_state"];
+      };
+      sync_web_push: {
+        Args: { p_app: string; p_auth: string; p_endpoint: string; p_p256dh: string };
+        Returns: string;
       };
       take_api_rate_limit: {
         Args: { p_limit: number; p_window_seconds: number };
@@ -57134,6 +57445,10 @@ export type Database = {
           table_name: string;
         }[];
       };
+      triage_feedback: {
+        Args: { p_id: string; p_note?: string; p_state: string };
+        Returns: undefined;
+      };
       undo_import_batch: {
         Args: { p_import_batch_id: string; p_reason: string };
         Returns: {
@@ -57241,6 +57556,16 @@ export type Database = {
       warehouse_table_rows: {
         Args: { p_after: string; p_delivery_id: string; p_limit: number; p_table_key: string };
         Returns: Json[];
+      };
+      web_push_devices: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          app: string;
+          auth: string;
+          endpoint: string;
+          p256dh: string;
+          subscription_id: string;
+        }[];
       };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
