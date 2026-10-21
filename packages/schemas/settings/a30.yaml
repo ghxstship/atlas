@@ -368,6 +368,8 @@ settings:
         test: supabase/tests/1323_payroll_settings.test.sql
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgWeekStart
+        test: apps/atlas/test/org-calendar.test.ts
 
   # Gateway and marketplace -------------------------------------------------------------------------------------
   - key: gateway.marketplace_visibility
@@ -491,6 +493,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: apps/atlas/lib/shell/time-zone.ts#getOrgTimeZone
+        test: apps/atlas/test/org-calendar.test.ts
   - key: locale.date_format
     type: choice
     choices: [locale, iso]

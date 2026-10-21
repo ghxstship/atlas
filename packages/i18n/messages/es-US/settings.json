@@ -173,7 +173,7 @@
     },
     "weekStart": {
       "label": "La semana empieza el",
-      "help": "El primer día de la semana en calendarios y hojas de horas."
+      "help": "El primer día de la semana en los calendarios. La elección de la organización también marca el inicio de sus periodos de pago, hojas de horas y semanas de horas extra."
     },
     "marketplaceVisibility": {
       "label": "Visibilidad en el mercado",
