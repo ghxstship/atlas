@@ -22,6 +22,7 @@ import {
   formatDay,
   formatTime,
   ProjectPicker,
+  StorageResetNotice,
   SyncBanner,
   useRoleTitle,
 } from "../../src/screens/common";
@@ -314,6 +315,7 @@ export default function TodayScreen(): ReactElement {
       }}
     >
       <ProjectPicker />
+      <StorageResetNotice />
       <SyncBanner />
       {canClock && projectId ? <ClockCard current={workingCard} onState={setClockState} /> : null}
       {blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (

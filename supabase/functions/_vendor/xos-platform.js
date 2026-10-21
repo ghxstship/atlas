@@ -2688,6 +2688,13 @@ var compass_default$1 = {
       access: "access",
     },
   },
+  startup: {
+    title: "Compass could not start",
+    sentence:
+      "The offline storage on this device did not open. Try again. If it keeps happening, restart the phone.",
+    storageReset:
+      "Compass had to reset its offline storage on this device. Changes made offline that had not uploaded could not be recovered. Everything else downloads again.",
+  },
   denial: {
     roleTitle: "Not part of your role",
     role: "Your role does not include this in Compass. Ask your organization if you need it.",
@@ -19224,6 +19231,13 @@ var compass_default = {
       engagements: "tus contrataciones",
       access: "tu acceso",
     },
+  },
+  startup: {
+    title: "Compass no pudo iniciar",
+    sentence:
+      "El almacenamiento sin conexión de este dispositivo no se abrió. Vuelve a intentarlo. Si sigue pasando, reinicia el teléfono.",
+    storageReset:
+      "Compass tuvo que restablecer su almacenamiento sin conexión en este dispositivo. No se pudieron recuperar los cambios hechos sin conexión que no se habían subido. Todo lo demás se descarga de nuevo.",
   },
   denial: {
     roleTitle: "No es parte de tu rol",

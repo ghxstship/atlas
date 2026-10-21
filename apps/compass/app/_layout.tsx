@@ -34,7 +34,8 @@ function NotificationActions(): null {
 }
 
 function Gatekeeper(): ReactElement {
-  const { phase, retryIdentity, settings, client, signOut } = useCompass();
+  const { phase, retryIdentity, settings, client, signOut, startupError, retryStartup } =
+    useCompass();
   const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
   // The delete screen belongs to this failed sign-in only; the next sign-in starts from the error screen.
@@ -57,6 +58,20 @@ function Gatekeeper(): ReactElement {
         actionLabel={t(url ? "compass.update.action" : "compass.update.recheck")}
         onUpdate={() => void (url ? Linking.openURL(url) : update.recheck())}
       />
+    );
+  }
+  // The offline storage or the sync engine could not start: say so with a retry, never a blank screen.
+  if (startupError !== null) {
+    return (
+      <Screen testID="startup-failed">
+        <ErrorState
+          title={t("compass.startup.title")}
+          sentence={t("compass.startup.sentence")}
+          reference={startupError}
+          actionLabel={t("compass.common.retry")}
+          onRetry={retryStartup}
+        />
+      </Screen>
     );
   }
   if (phase.kind === "starting") {

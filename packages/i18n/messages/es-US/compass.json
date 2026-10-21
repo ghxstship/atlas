@@ -58,6 +58,11 @@
       "access": "tu acceso"
     }
   },
+  "startup": {
+    "title": "Compass no pudo iniciar",
+    "sentence": "El almacenamiento sin conexión de este dispositivo no se abrió. Vuelve a intentarlo. Si sigue pasando, reinicia el teléfono.",
+    "storageReset": "Compass tuvo que restablecer su almacenamiento sin conexión en este dispositivo. No se pudieron recuperar los cambios hechos sin conexión que no se habían subido. Todo lo demás se descarga de nuevo."
+  },
   "denial": {
     "roleTitle": "No es parte de tu rol",
     "role": "Tu rol no incluye esto en Compass. Pregunta a tu organización si lo necesitas.",
