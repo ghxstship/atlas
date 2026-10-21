@@ -22,7 +22,15 @@ import { announce, useReducedMotion } from "@xos/ui-native";
 import { useTheme, type XosNativeTheme } from "@xos/ui-native/theme";
 import { Stack } from "expo-router";
 import { createContext, useContext, useEffect, type ReactElement, type RefObject } from "react";
-import { Modal, Pressable, RefreshControl, ScrollView, View } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, gloveSlop, Icon, Text, tid } from "./primitives";
 
@@ -547,44 +555,51 @@ export function Sheet({
       transparent
       onRequestClose={onClose}
     >
-      <Pressable
-        accessibilityLabel={closeLabel}
-        onPress={onClose}
-        style={{ flex: 1, backgroundColor: theme.color.scrim, opacity: theme.opacity.scrimDark }}
-      />
-      <View
-        testID={testID}
-        accessibilityViewIsModal
-        style={{
-          maxHeight: "92%",
-          backgroundColor: theme.color.bgRaised,
-          borderTopLeftRadius: theme.radius.dialog,
-          borderTopRightRadius: theme.radius.dialog,
-          paddingBottom: insets.bottom + theme.space["16"],
-        }}
+      {/* A field in the sheet lifts the sheet above the keyboard on iOS, so what is typed and the button
+          after it stay in view (the NFC test tag's field, A92); Android resizes the window itself. */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        {...(Platform.OS === "ios" ? { behavior: "padding" as const } : {})}
       >
+        <Pressable
+          accessibilityLabel={closeLabel}
+          onPress={onClose}
+          style={{ flex: 1, backgroundColor: theme.color.scrim, opacity: theme.opacity.scrimDark }}
+        />
         <View
+          testID={testID}
+          accessibilityViewIsModal
           style={{
-            flexDirection: "row",
-            alignItems: "center",
-            padding: theme.space["16"],
-            gap: theme.space["12"],
+            maxHeight: "92%",
+            backgroundColor: theme.color.bgRaised,
+            borderTopLeftRadius: theme.radius.dialog,
+            borderTopRightRadius: theme.radius.dialog,
+            paddingBottom: insets.bottom + theme.space["16"],
           }}
         >
-          <View style={{ flex: 1 }}>
-            <Text variant="heading20" heading>
-              {title}
-            </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              padding: theme.space["16"],
+              gap: theme.space["12"],
+            }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text variant="heading20" heading>
+                {title}
+              </Text>
+            </View>
+            <Button label={closeLabel} variant="ghost" onPress={onClose} />
           </View>
-          <Button label={closeLabel} variant="ghost" onPress={onClose} />
+          <ScrollView
+            contentContainerStyle={{ paddingHorizontal: theme.space["16"], gap: theme.space["16"] }}
+          >
+            {children}
+          </ScrollView>
+          {footer ? <View style={{ padding: theme.space["16"] }}>{footer}</View> : null}
         </View>
-        <ScrollView
-          contentContainerStyle={{ paddingHorizontal: theme.space["16"], gap: theme.space["16"] }}
-        >
-          {children}
-        </ScrollView>
-        {footer ? <View style={{ padding: theme.space["16"] }}>{footer}</View> : null}
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

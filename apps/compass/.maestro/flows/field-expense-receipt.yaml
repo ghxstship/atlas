@@ -46,6 +46,8 @@ tags:
 - tapOn:
     id: "expense-description"
 - inputText: "Ice and water for the crew"
+# The keyboard covers the amount field; a tap there would land on a key.
+- hideKeyboard
 - tapOn:
     id: "expense-amount"
 - inputText: "42.50"

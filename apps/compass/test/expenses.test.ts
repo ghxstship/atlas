@@ -524,7 +524,14 @@ describe("saving an expense with its receipt", () => {
   it("reads in the offline queue as what was bought and the day", () => {
     const m = save();
     const summary = summarizeMutation(
-      { op: m.op, target: m.target, table: m.table, payload: m.payload, base: null, queuedAt: "" },
+      {
+        op: m.op,
+        target: m.target ?? "",
+        table: m.table,
+        payload: m.payload,
+        base: null,
+        queuedAt: "",
+      },
       {
         time: () => "",
         day: (iso, zone) => `${iso.slice(0, 10)} ${zone ?? ""}`.trim(),
