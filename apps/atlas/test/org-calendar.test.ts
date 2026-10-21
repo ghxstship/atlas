@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { formatAlert } from "@/components/home/format-alert";
 import { collectionState } from "@/lib/collection-kit/page";
 import { addDays, weekStartOf } from "@/lib/crew/time";
+import { type Alert, todayWindow } from "@/lib/home/data";
 import type { OrgContext } from "@/lib/shell/context";
 import { getOrgTimeZone, getOrgWeekStart, weekStartDay } from "@/lib/shell/time-zone";
 
@@ -89,5 +91,44 @@ describe("the org's payroll week (payroll.week_start at the org)", () => {
     // Sun 06-20, across the period boundary, and never be paid.
     const week = weekStartOf("2027-06-16", await getOrgWeekStart(orgContext({}).ctx));
     expect([week, addDays(week, 6)]).toEqual(["2027-06-13", "2027-06-19"]);
+  });
+});
+
+describe("Home alert dates", () => {
+  const t = (key: string, values?: Record<string, string | number>) =>
+    `${key}:${String(values?.["date"])}`;
+  const mediumDate = (date: Date, timeZone: string) =>
+    new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone }).format(date);
+  const alert = (kind: Alert["kind"], date: string): Alert => ({
+    id: "a1",
+    kind,
+    severity: "medium",
+    values: { key: "NWL-12", title: "Rigging plan", date },
+    projectKey: "NWL",
+    tab: "overview",
+    at: date,
+  });
+
+  it("shows an overdue record's due instant on the org's calendar", () => {
+    // Due at 22:00 in New York on Oct 21, already Oct 22 in UTC.
+    const due = alert("overdue", "2026-10-22T02:00:00.000Z");
+    expect(formatAlert(t, mediumDate, due, "America/New_York")).toBe("overdue:Oct 21, 2026");
+    expect(formatAlert(t, mediumDate, due, "UTC")).toBe("overdue:Oct 22, 2026");
+  });
+
+  it("counts records due today on the org's calendar", () => {
+    // 23:30 on Oct 21 in New York is already Oct 22 in UTC.
+    const window = todayWindow("America/New_York", new Date("2026-10-22T03:30:00Z"));
+    expect(window.from.toISOString()).toBe("2026-10-21T04:00:00.000Z");
+    expect(window.to.toISOString()).toBe("2026-10-22T04:00:00.000Z");
+    // The day the clocks go back is 25 hours long.
+    const fallBack = todayWindow("America/New_York", new Date("2026-11-01T12:00:00Z"));
+    expect(fallBack.to.getTime() - fallBack.from.getTime()).toBe(25 * 3_600_000);
+  });
+
+  it("shows a gate gap's calendar date as that date in every zone", () => {
+    const gap = alert("gateGap", "2026-11-02");
+    expect(formatAlert(t, mediumDate, gap, "Asia/Tokyo")).toBe("gateGap:Nov 2, 2026");
+    expect(formatAlert(t, mediumDate, gap, "America/Los_Angeles")).toBe("gateGap:Nov 2, 2026");
   });
 });
