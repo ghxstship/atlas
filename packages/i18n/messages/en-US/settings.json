@@ -71,7 +71,8 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone."
+    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
+    "setting_fixed": "This setting is fixed and cannot be changed."
   },
   "fields": {
     "legalName": {
@@ -80,7 +81,7 @@
     },
     "defaultWorkspace": {
       "label": "Default workspace",
-      "help": "New members start in this workspace."
+      "help": "New members join this workspace."
     },
     "startPage": {
       "label": "Start page",
@@ -96,7 +97,7 @@
     },
     "invoicePrefix": {
       "label": "Invoice number prefix",
-      "help": "Up to 12 characters placed before each invoice number, for example INV-."
+      "help": "Up to 12 characters placed before each new invoice number, for example INV-."
     },
     "mfaPolicy": {
       "label": "Multi-factor authentication",
@@ -136,7 +137,7 @@
     },
     "numberPadding": {
       "label": "Number padding",
-      "help": "Digits in each document number, from 1 to 10. Four gives 0042."
+      "help": "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed."
     },
     "rounding": {
       "label": "Punch rounding",
@@ -144,11 +145,11 @@
     },
     "photoOnPunch": {
       "label": "Photo on punch",
-      "help": "Ask for a photo at every clock-in and clock-out."
+      "help": "Ask kiosks for a photo at every clock-in and clock-out."
     },
     "geofenceRequired": {
       "label": "Require the geofence",
-      "help": "Refuse clock-ins outside the project's geofence."
+      "help": "Refuse phone and web clock-ins outside the project's geofence. Kiosks are exempt."
     },
     "kioskEnabled": {
       "label": "Kiosk clock-in",
@@ -156,7 +157,7 @@
     },
     "openShiftClaiming": {
       "label": "Open shift claiming",
-      "help": "How crew claim open shifts."
+      "help": "How crew claim open shifts: the first to claim gets it, a supervisor approves, or the most senior claimant gets it."
     },
     "allowSwaps": {
       "label": "Allow shift swaps",
@@ -164,11 +165,11 @@
     },
     "swapApproval": {
       "label": "Swaps need approval",
-      "help": "A supervisor approves each swap before it takes effect."
+      "help": "A supervisor approves each swap before it takes effect. When off, the person offered the shift accepts it."
     },
     "payPeriod": {
       "label": "Pay period",
-      "help": "How often payroll runs."
+      "help": "How often payroll runs. New pay periods follow it."
     },
     "weekStart": {
       "label": "Week starts on",
@@ -176,15 +177,15 @@
     },
     "marketplaceVisibility": {
       "label": "Marketplace visibility",
-      "help": "Who can find the organization in the Gateway marketplace."
+      "help": "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees."
     },
     "ratingsEnabled": {
-      "label": "Ratings",
-      "help": "Ask both sides to rate each other when an engagement completes."
+      "label": "Prompt members to rate parties",
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",
-      "help": "Keep messages this many days, from 30 to 3,650."
+      "help": "Delete messages older than this many days, from 30 to 3,650. A legal hold keeps them."
     },
     "autoTranslate": {
       "label": "Translate messages",
@@ -192,15 +193,15 @@
     },
     "supportEmail": {
       "label": "Internal support email",
-      "help": "Where members send questions about how your organization works."
+      "help": "Where members send questions about how your organization works. Shown in the help panel."
     },
     "supportHours": {
       "label": "Support hours",
-      "help": "For example Monday to Friday, 9 AM to 6 PM Eastern."
+      "help": "Shown in the help panel, for example Monday to Friday, 9 AM to 6 PM Eastern."
     },
     "helpLink": {
       "label": "Custom help link",
-      "help": "A page with your own guides, shown in the help menu."
+      "help": "A page with your own guides, shown in the help panel."
     },
     "language": {
       "label": "Language",
@@ -264,6 +265,10 @@
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
       "help": "Single-key shortcuts such as J, K and ? on desktop."
+    },
+    "messageTranslation": {
+      "label": "Translate chat messages",
+      "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
     }
   },
   "choices": {
@@ -626,5 +631,114 @@
       "title": "Shared with your organization",
       "entry": "Shared by {owner} · Your members act as {role}"
     }
-  }
+  },
+  "notifications": {
+    "category": "Category",
+    "channels": {
+      "inApp": "In app",
+      "email": "Email",
+      "sms": "Text (SMS)",
+      "push": "Push"
+    },
+    "cellLabel": "{category} by {channel}",
+    "urgent": "Urgent: arrives at once, even in quiet hours.",
+    "save": "Save notification settings",
+    "saved": "Notification settings saved.",
+    "loadFailed": "Notification settings could not be loaded. Reload the page to try again.",
+    "digest": {
+      "Off": "Off",
+      "Daily": "Daily",
+      "Weekly": "Weekly (Mondays)"
+    },
+    "errors": {
+      "notification_category_mandatory": "Your organization made this category mandatory on that channel, so it stays on.",
+      "time_zone_unknown": "Choose a time zone from the list.",
+      "denied": "You cannot change these settings.",
+      "invalid": "Check the highlighted fields.",
+      "unexpected": "The settings were not saved. Try again.",
+      "sms_phone_unverified": "Verify a phone number on your account before turning on texts."
+    },
+    "fieldErrors": {
+      "invalid": "Enter a valid value.",
+      "quietPair": "Set both the start and the end of quiet hours, or neither.",
+      "quietSame": "Quiet hours end at a different time than they start."
+    },
+    "mine": {
+      "formLabel": "Your notification settings",
+      "matrixTitle": "What reaches you",
+      "matrixDescription": "Choose how each kind of notification reaches you. Until you choose, your organization's defaults apply.",
+      "locked": "Required by your organization",
+      "smsNote": "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
+      "quietTitle": "Quiet hours and digest",
+      "quietDescription": "During quiet hours, texts and push notifications wait until the end, except urgent ones. Texts also wait between 21:00 and 08:00 unless you set your own quiet hours.",
+      "quietStart": "Quiet hours start",
+      "quietEnd": "Quiet hours end",
+      "timeZone": "Time zone",
+      "digest": "Email digest",
+      "digestHelp": "Gathers email that is not urgent into one message.",
+      "digestHour": "Digest time",
+      "smsNoPhone": "Add and verify a phone number on your account to receive texts.",
+      "smsConsent": "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help."
+    },
+    "org": {
+      "formLabel": "Organization notification defaults",
+      "matrixTitle": "Defaults for members",
+      "matrixDescription": "What members receive until they choose for themselves. Mark a category mandatory to keep its checked channels on for everyone.",
+      "mandatory": "Mandatory",
+      "mandatoryLabel": "{category} is mandatory",
+      "mandatoryHelp": "Mandatory categories stay on for every channel checked here. Texts still need each member's consent, and STOP still stops them.",
+      "readOnly": "You can see the defaults. Changing them needs the notification settings permission."
+    },
+    "categories": {
+      "mentions": {
+        "label": "Mentions",
+        "help": "Someone mentions you in a comment or message."
+      },
+      "assignments": {
+        "label": "Assignments",
+        "help": "Work, training or a help request is assigned to you."
+      },
+      "approvals": {
+        "label": "Approvals",
+        "help": "Requests waiting for your decision, and decisions on your requests."
+      },
+      "comments": {
+        "label": "Comments",
+        "help": "New comments on records you follow."
+      },
+      "schedule": {
+        "label": "Schedule",
+        "help": "Shifts assigned or changed, and event invitations."
+      },
+      "finance": {
+        "label": "Invoices and payments",
+        "help": "Invoices approved, received, scheduled and paid."
+      },
+      "safety": {
+        "label": "Safety",
+        "help": "Incidents, occupancy thresholds and weather alerts."
+      },
+      "account": {
+        "label": "Account and billing",
+        "help": "Security changes, break-glass access and payment problems."
+      },
+      "reports": {
+        "label": "Reports",
+        "help": "Scheduled reports ready to read."
+      },
+      "imports": {
+        "label": "Imports and exports",
+        "help": "Imports that finished and exports ready to download."
+      },
+      "messages": {
+        "label": "Messages",
+        "help": "New chat messages to you or your groups."
+      },
+      "feed": {
+        "label": "Feed",
+        "help": "Announcements, surveys and recognition."
+      }
+    }
+  },
+  "notInEffect": "Saved, but not in effect yet."
 }

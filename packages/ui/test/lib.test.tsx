@@ -169,6 +169,20 @@ describe("format", () => {
     expect(parseIso("2026-11-01")).toEqual({ y: 2026, m: 10, d: 1 });
   });
 
+  it("reuses one Intl formatter per locale and options", () => {
+    const made = vi.spyOn(Intl, "NumberFormat");
+    try {
+      const amounts = [1, 2, 3].map((n) => formatCurrency("en-GB", n * 1000, "EUR"));
+      expect(amounts).toEqual(["€1,000.00", "€2,000.00", "€3,000.00"]);
+      expect(made.mock.calls.length).toBeLessThanOrEqual(1);
+      // Other options or another locale get their own formatter, with their own output.
+      expect(formatCurrency("de-DE", 1000, "EUR")).toMatch(/^1\.000,00\s€$/);
+      expect(formatCompact("en-GB", 12500)).toBe("12.5K");
+    } finally {
+      made.mockRestore();
+    }
+  });
+
   it("formats clocks with overrun", () => {
     expect(formatClock(75)).toBe("01:15");
     expect(formatClock(-5)).toBe("+00:05");

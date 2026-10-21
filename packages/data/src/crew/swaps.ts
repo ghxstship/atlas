@@ -159,6 +159,23 @@ export async function decideSwap(
   return ok({ transitionId: data });
 }
 
+/**
+ * The person a swap offers the shift to accepts it (app.accept_shift_swap), on a project where swaps need
+ * no supervisor (scheduling.swap_requires_approval off); refused with swap_needs_approval otherwise.
+ */
+export async function acceptSwap(
+  db: XosClient,
+  id: string,
+  reason: string,
+): Promise<Result<{ transitionId: string }>> {
+  const { data, error } = await db.rpc("accept_shift_swap", {
+    p_shift_swap_id: id,
+    p_reason: reason,
+  });
+  if (error) return fail(toDataError(error));
+  return ok({ transitionId: data });
+}
+
 /** The requester withdraws a swap (app.cancel_shift_swap). */
 export async function cancelSwap(
   db: XosClient,

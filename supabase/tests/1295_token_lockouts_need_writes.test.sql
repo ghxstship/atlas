@@ -6,6 +6,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
+\ir 0300_domain_world.psql
 
 select plan(13);
 
@@ -52,14 +53,21 @@ select is(pg_temp.read_only_outcome('api_public.token_document(text, text)'::reg
 select is(pg_temp.read_only_outcome('api_public.verify_certification(text)'::regprocedure),
   '25006 this call changes data: send it with POST', 'verify_certification refuses GET');
 
--- A link with a known code. The read-only refusal happens before the token is read, so a GET with a wrong code counts
--- nothing and a GET with the right code returns nothing.
+-- A link with a known code, on the suite's own packet (0300 world), so it runs without the demo seed (A71, RRR-116).
+-- The read-only refusal happens before the token is read, so a GET with a wrong code counts nothing and a GET with the
+-- right code returns nothing.
+select pg_temp.as_user('dave');
+with x as (insert into app.advance_packets (project_id, title) values (pg_temp.id('prj_a'), 'Headliner Advance') returning id)
+insert into world select 'pkt', id from x;
+insert into app.advance_sections (advance_packet_id, position, title, prompt)
+  values (pg_temp.id('pkt'), 1, 'Arrival', 'When does the party arrive, and how many travel?');
+with x as (insert into app.advance_recipients (advance_packet_id, person_id) values (pg_temp.id('pkt'), pg_temp.id('mia')) returning id)
+insert into world select 'rcp', id from x;
+select app.send_advance_packet(pg_temp.id('pkt'));
+select pg_temp.as_platform();
 insert into app.advance_recipient_tokens (advance_recipient_id, recipient_email, token_hash, access_code_hash, expires_at)
-select r.id, 'a69-probe@example.test', private.advance_token_hash('xadv_a69test'), private.advance_code_hash('xadv_a69test', '424242'),
-  now() + interval '1 day'
-from app.advance_recipients r join app.advance_packets p on p.id = r.advance_packet_id
-where r.deleted_at is null and p.deleted_at is null
-limit 1;
+values (pg_temp.id('rcp'), 'a69-probe@example.test', private.advance_token_hash('xadv_a69test'),
+  private.advance_code_hash('xadv_a69test', '424242'), now() + interval '1 day');
 
 create function pg_temp.preview(p_code text, p_read_only boolean) returns text
 language plpgsql as $$

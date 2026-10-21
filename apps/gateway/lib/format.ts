@@ -100,13 +100,3 @@ export function formatCountdown(locale: string, iso: string, now: Date = new Dat
   if (Math.abs(hours) < 48) return rtf.format(hours, "hour");
   return rtf.format(Math.round(hours / 24), "day");
 }
-
-/** Today as an ISO date in UTC. */
-export function todayIso(now: Date = new Date()): string {
-  return now.toISOString().slice(0, 10);
-}
-
-/** The ISO date a number of days from today (UTC). */
-export function isoDaysFromToday(days: number, now: Date = new Date()): string {
-  return new Date(now.getTime() + days * 86_400_000).toISOString().slice(0, 10);
-}

@@ -7,7 +7,8 @@ import {
 import { RegionError, Section } from "@/components/page/page";
 import { Tag } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateRange, formatDateTime, formatMoney, todayIso } from "@/lib/format";
+import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
 import { toneFor, type Tone } from "@/lib/states";
@@ -322,7 +323,8 @@ export async function RosterTab({ view, t, locale }: TabProps) {
     listMyEngagements(view.ctx.db),
   ]);
   if (!representations.ok || !engagements.ok) return <RegionError />;
-  const today = todayIso();
+  // The roster spans several artists and orgs, so it follows the representative's own calendar.
+  const today = await personToday(view.ctx);
   const active = representations.data.filter((r) => r.artistPersonId !== view.ctx.personId);
   if (active.length === 0) {
     return (

@@ -21711,8 +21711,8 @@ class FeedPost(TypedDict):
     title: Optional[str]
     #: Post text.
     body: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Identifier of the project audience, or the project the row belongs to.
     project_id: Optional[str]
     #: Identifier of the team audience.
@@ -21721,6 +21721,8 @@ class FeedPost(TypedDict):
     role_id: Optional[str]
     #: Identifier of the group audience, including department groups.
     group_id: Optional[str]
+    #: Canon department code of a Department audience (xpms.dim_department).
+    department_code: Optional[str]
     #: Identifier of the member who wrote the post.
     author_membership_id: Optional[str]
     #: When the post was pinned; null when not pinned.
@@ -21746,8 +21748,8 @@ class _FeedPostCreateRequired(TypedDict):
     post_kind: Literal["Announcement", "Update", "Poll", "Recognition"]
     #: Post text.
     body: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Whether every member of the audience must acknowledge it.
     requires_acknowledgment: bool
     #: Whether members can react.
@@ -21771,6 +21773,8 @@ class FeedPostCreate(_FeedPostCreateRequired, total=False):
     role_id: Optional[str]
     #: Identifier of the group audience, including department groups.
     group_id: Optional[str]
+    #: Canon department code of a Department audience (xpms.dim_department).
+    department_code: Optional[str]
 
 
 class FeedPostUpdate(TypedDict, total=False):
@@ -21798,8 +21802,8 @@ class PollPostRequest(_PollPostRequestRequired, total=False):
 
     #: Optional headline.
     title: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Project audience.
     project_id: str
     #: Team audience.
@@ -21808,6 +21812,8 @@ class PollPostRequest(_PollPostRequestRequired, total=False):
     role_id: str
     #: Group audience.
     group_id: str
+    #: Canon department code of a Department audience (xpms.dim_department).
+    department_code: str
     #: Whether members may pick several.
     allows_multiple: bool
     #: When voting closes.
@@ -21955,8 +21961,8 @@ class Survey(TypedDict):
     title: str
     #: What the survey asks about.
     description: Optional[str]
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Identifier of the project audience, or the project the row belongs to.
     project_id: Optional[str]
     #: Identifier of the team audience.
@@ -21989,8 +21995,8 @@ class SurveyDraftRequest(_SurveyDraftRequestRequired, total=False):
 
     #: What the survey asks about.
     description: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Project audience.
     project_id: str
     #: Team audience.
@@ -22186,8 +22192,8 @@ class WorkforceEvent(TypedDict):
     venue_id: Optional[str]
     #: Identifier of the space within the venue.
     space_id: Optional[str]
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Identifier of the project audience, or the project the row belongs to.
     project_id: Optional[str]
     #: Identifier of the team audience.
@@ -22215,8 +22221,8 @@ class _WorkforceEventCreateRequired(TypedDict):
     event_kind: Literal["Briefing", "Crew Call", "Meeting"]
     #: Event title.
     title: str
-    #: Who the row reaches.
-    audience_kind: Literal["Organization", "Project", "Team", "Role", "Group"]
+    #: Who the row reaches. Department (a canon department, 1365) is for feed posts only.
+    audience_kind: Literal["Organization", "Project", "Team", "Department", "Role", "Group"]
     #: Start.
     starts_at: str
     #: End, at most seven days after the start.

@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { cx } from "../lib/cx.ts";
-import { useLocale, useT } from "../lib/context.tsx";
+import { useLocale, usePreferences, useT } from "../lib/context.tsx";
 import {
   formatDate,
   monthCells,
@@ -17,6 +17,7 @@ import { type CalendarProps } from "./Charts.types.ts";
 export function Calendar({ month, today, events, onEventSelect }: CalendarProps): ReactElement {
   const t = useT();
   const locale = useLocale();
+  const { weekStart: firstDay, dateFormat } = usePreferences();
   const [view, setView] = useState("month");
   const { y, m } = parseIso(month);
   const title = monthTitle(locale, y, m);
@@ -56,7 +57,7 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
               className="grid grid-cols-[var(--ui-props-label)_minmax(0,1fr)] items-center gap-8 min-h-row-default border-b border-border-subtle"
             >
               <time dateTime={e.date} className="text-text-secondary tabular-nums">
-                {formatDate(locale, e.date)}
+                {formatDate(locale, e.date, dateFormat)}
               </time>
               {eventButton(e, i)}
             </li>
@@ -69,7 +70,7 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
         >
           <thead>
             <tr>
-              {weekdayNames(locale).map((d) => (
+              {weekdayNames(locale, firstDay).map((d) => (
                 <th
                   key={d}
                   scope="col"
@@ -81,7 +82,7 @@ export function Calendar({ month, today, events, onEventSelect }: CalendarProps)
             </tr>
           </thead>
           <tbody>
-            {monthCells(locale, y, m).map((week, wi) => (
+            {monthCells(locale, y, m, firstDay).map((week, wi) => (
               <tr key={wi}>
                 {week.map((d, di) => {
                   const iso = d === null ? null : toIso(y, m, d);

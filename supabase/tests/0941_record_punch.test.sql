@@ -23,6 +23,9 @@ with x as (insert into app.shifts (project_id, membership_id, starts_at, ends_at
 select app.publish_shifts(array[pg_temp.id('sh_frank')]);
 select pg_temp.as_user('frank');
 select app.accept_shift(pg_temp.id('sh_frank'));
+-- The phone geofence rule (time.geofence_required, 1321) has its own suite; this one checks recording without it.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'time.geofence_required', 'Organization', pg_temp.id('org_a'), p_value_boolean => false);
 select pg_temp.as_platform();
 insert into world values ('p_in', gen_random_uuid()), ('p_bs', gen_random_uuid()), ('p_be', gen_random_uuid()), ('p_out', gen_random_uuid()),
   ('p_in2', gen_random_uuid()), ('p_out2', gen_random_uuid()), ('p_in3', gen_random_uuid());

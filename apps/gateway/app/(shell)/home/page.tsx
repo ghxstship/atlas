@@ -9,6 +9,7 @@ import {
   searchOpportunities,
   type Engagement,
 } from "@xos/data/gateway";
+import { startOfDayIn } from "@xos/data/calendar";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -217,7 +218,7 @@ function UpNextCardView({
         title={e.jobTitle}
         meta={
           <span className="font-semibold text-accent-text">
-            {formatCountdown(locale, `${e.startDate}T00:00:00Z`, now)}
+            {formatCountdown(locale, startOfDayIn(e.startDate, e.projectTimeZone), now)}
           </span>
         }
         footer={

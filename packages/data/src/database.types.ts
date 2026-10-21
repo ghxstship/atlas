@@ -751,6 +751,7 @@ export type Database = {
           person_id: string | null;
           project_id: string | null;
           project_name: string | null;
+          project_time_zone: string | null;
           rate_currency_code: string | null;
           rate_minor: number | null;
           role_code: string | null;
@@ -9700,9 +9701,85 @@ export type Database = {
           },
         ];
       };
+      chat_message_translations: {
+        Row: {
+          body: string;
+          chat_message_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          provider: string;
+          source_language: string | null;
+          target_language: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          chat_message_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          provider: string;
+          source_language?: string | null;
+          target_language: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          body?: string;
+          chat_message_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          provider?: string;
+          source_language?: string | null;
+          target_language?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_message_translations_chat_message_id_fkey";
+            columns: ["chat_message_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_message_translations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_message_translations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_message_translations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       chat_messages: {
         Row: {
           author_membership_id: string;
+          auto_reply: boolean;
           body: string | null;
           conversation_id: string;
           created_at: string;
@@ -9719,6 +9796,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           author_membership_id: string;
+          auto_reply?: boolean;
           body?: string | null;
           conversation_id: string;
           created_at?: string;
@@ -9734,6 +9812,7 @@ export type Database = {
         };
         Update: {
           author_membership_id?: string;
+          auto_reply?: boolean;
           body?: string | null;
           conversation_id?: string;
           created_at?: string;
@@ -15615,6 +15694,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          department_code: string | null;
           group_id: string | null;
           hidden_at: string | null;
           hidden_reason: string | null;
@@ -15642,6 +15722,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          department_code?: string | null;
           group_id?: string | null;
           hidden_at?: string | null;
           hidden_reason?: string | null;
@@ -15668,6 +15749,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          department_code?: string | null;
           group_id?: string | null;
           hidden_at?: string | null;
           hidden_reason?: string | null;
@@ -17276,6 +17358,7 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          department_code: string | null;
           description: string | null;
           group_kind: Database["app"]["Enums"]["group_kind"];
           id: string;
@@ -17291,6 +17374,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          department_code?: string | null;
           description?: string | null;
           group_kind: Database["app"]["Enums"]["group_kind"];
           id?: string;
@@ -17305,6 +17389,7 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          department_code?: string | null;
           description?: string | null;
           group_kind?: Database["app"]["Enums"]["group_kind"];
           id?: string;
@@ -26495,6 +26580,69 @@ export type Database = {
           },
         ];
       };
+      org_mandatory_notification_categories: {
+        Row: {
+          category_code: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          category_code: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          category_code?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_mandatory_notification_categories_category_code_fkey";
+            columns: ["category_code"];
+            isOneToOne: false;
+            referencedRelation: "notification_categories";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "org_mandatory_notification_categories_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_mandatory_notification_categories_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_mandatory_notification_categories_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       org_module_states: {
         Row: {
           created_at: string;
@@ -26554,6 +26702,75 @@ export type Database = {
           },
           {
             foreignKeyName: "org_module_states_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      org_notification_defaults: {
+        Row: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          enabled: boolean;
+          id: string;
+          org_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled: boolean;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          category_code?: string;
+          channel?: Database["app"]["Enums"]["notification_channel"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          enabled?: boolean;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "org_notification_defaults_category_code_fkey";
+            columns: ["category_code"];
+            isOneToOne: false;
+            referencedRelation: "notification_categories";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "org_notification_defaults_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_notification_defaults_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "org_notification_defaults_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -31973,6 +32190,97 @@ export type Database = {
           },
           {
             foreignKeyName: "push_subscriptions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      push_tickets: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          error_code: string | null;
+          error_message: string | null;
+          expo_ticket_id: string | null;
+          id: string;
+          message_status: Database["app"]["Enums"]["message_status"];
+          notification_created_at: string;
+          notification_delivery_id: string;
+          org_id: string;
+          push_subscription_id: string;
+          receipt_checked_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          expo_ticket_id?: string | null;
+          id?: string;
+          message_status: Database["app"]["Enums"]["message_status"];
+          notification_created_at: string;
+          notification_delivery_id: string;
+          org_id: string;
+          push_subscription_id: string;
+          receipt_checked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          expo_ticket_id?: string | null;
+          id?: string;
+          message_status?: Database["app"]["Enums"]["message_status"];
+          notification_created_at?: string;
+          notification_delivery_id?: string;
+          org_id?: string;
+          push_subscription_id?: string;
+          receipt_checked_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "push_tickets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "push_tickets_notification_delivery_id_notification_created_fkey";
+            columns: ["notification_delivery_id", "notification_created_at"];
+            isOneToOne: false;
+            referencedRelation: "notification_deliveries";
+            referencedColumns: ["id", "notification_created_at"];
+          },
+          {
+            foreignKeyName: "push_tickets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "push_tickets_push_subscription_id_fkey";
+            columns: ["push_subscription_id"];
+            isOneToOne: false;
+            referencedRelation: "push_subscriptions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "push_tickets_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -40251,6 +40559,129 @@ export type Database = {
           },
           {
             foreignKeyName: "shared_reports_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      shift_claims: {
+        Row: {
+          claim_state: Database["app"]["Enums"]["shift_claim_state"];
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          reason: string | null;
+          shift_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          claim_state?: Database["app"]["Enums"]["shift_claim_state"];
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          reason?: string | null;
+          shift_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          claim_state?: Database["app"]["Enums"]["shift_claim_state"];
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          project_id?: string;
+          reason?: string | null;
+          shift_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_claims_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -53371,6 +53802,7 @@ export type Database = {
         Returns: string;
       };
       accept_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
+      accept_shift_swap: { Args: { p_reason?: string; p_shift_swap_id: string }; Returns: string };
       accommodation_block_display_key: {
         Args: {
           p_row: Omit<
@@ -53609,6 +54041,7 @@ export type Database = {
           org_slug: string;
         }[];
       };
+      award_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       award_work_order: {
         Args: { p_bid_id: string; p_reason: string; p_work_order_id: string };
         Returns: string;
@@ -53847,11 +54280,14 @@ export type Database = {
         Args: { p_channel: Database["app"]["Enums"]["notification_channel"]; p_limit?: number };
         Returns: {
           address: string;
+          category_code: string;
           delivery_id: string;
           email_template_code: string;
           kind: string;
           message_args: Json;
+          notification_id: string;
           org_id: string;
+          push_devices: Json;
           push_tokens: string[];
           recipient_person_id: string;
           subject_id: string;
@@ -53870,6 +54306,12 @@ export type Database = {
         }[];
       };
       claim_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
+      claim_push_receipts: {
+        Args: { p_limit?: number };
+        Returns: {
+          ticket_id: string;
+        }[];
+      };
       claim_token_submissions: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -54064,6 +54506,7 @@ export type Database = {
           p_audience_kind?: Database["app"]["Enums"]["audience_kind"];
           p_body: string;
           p_comments_enabled?: boolean;
+          p_department_code?: string;
           p_group_id?: string;
           p_org_id: string;
           p_pinned?: boolean;
@@ -54086,6 +54529,7 @@ export type Database = {
           invite_token: string;
         }[];
       };
+      create_next_pay_period: { Args: { p_org_id: string }; Returns: string };
       create_occupancy_counter: {
         Args: {
           p_metric_item?: string;
@@ -54212,6 +54656,10 @@ export type Database = {
           p_valid_to?: string;
         };
         Returns: undefined;
+      };
+      decide_shift_claim: {
+        Args: { p_approved: boolean; p_reason?: string; p_shift_claim_id: string };
+        Returns: string;
       };
       decide_shift_swap: {
         Args: {
@@ -54592,6 +55040,7 @@ export type Database = {
         Args: { p_engagement_thread_id: string; p_party_thread_id: string };
         Returns: string;
       };
+      message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -54667,12 +55116,32 @@ export type Database = {
           version: number;
         }[];
       };
+      my_notification_matrix: {
+        Args: { p_org_id: string };
+        Returns: {
+          category_code: string;
+          channel: Database["app"]["Enums"]["notification_channel"];
+          chosen: boolean;
+          enabled: boolean;
+          locked: boolean;
+          org_default: boolean;
+          sort_order: number;
+          urgent: boolean;
+        }[];
+      };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
           capability_code: string;
           project_id: string;
           project_role: Database["app"]["Enums"]["project_role"];
+        }[];
+      };
+      my_sms_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          may_text: boolean;
+          phone_e164: string;
         }[];
       };
       my_subscribable_accounts: {
@@ -54710,6 +55179,13 @@ export type Database = {
           allowed: boolean;
           covered: boolean;
           enforced: boolean;
+        }[];
+      };
+      next_pay_period_dates: {
+        Args: { p_org_id: string; p_today?: string };
+        Returns: {
+          ends_on: string;
+          starts_on: string;
         }[];
       };
       object_scan_status: {
@@ -54957,6 +55433,16 @@ export type Database = {
         Returns: Database["app"]["Enums"]["scan_status"];
       };
       record_attendance: { Args: { p_rows: Json; p_run_id: string }; Returns: number };
+      record_chat_message_translation: {
+        Args: {
+          p_body: string;
+          p_chat_message_id: string;
+          p_provider: string;
+          p_source_language: string;
+          p_target_language: string;
+        };
+        Returns: string;
+      };
       record_class: {
         Args: {
           p_record: Omit<
@@ -55063,6 +55549,7 @@ export type Database = {
         };
         Returns: string;
       };
+      record_my_sms_consent: { Args: { p_consent: boolean; p_org_id: string }; Returns: undefined };
       record_notification_delivery: {
         Args: {
           p_delivery_id: string;
@@ -55169,6 +55656,8 @@ export type Database = {
           isSetofReturn: false;
         };
       };
+      record_push_receipts: { Args: { p_receipts: Json }; Returns: number };
+      record_push_tickets: { Args: { p_delivery_id: string; p_tickets: Json }; Returns: undefined };
       record_rfq_response: {
         Args: {
           p_currency_code: string;
@@ -55200,6 +55689,18 @@ export type Database = {
           zone_code: string;
           zone_id: string;
         }[];
+      };
+      record_sms_keyword: {
+        Args: {
+          p_action: Database["app"]["Enums"]["sms_consent_action"];
+          p_keyword: string;
+          p_phone_e164: string;
+        };
+        Returns: number;
+      };
+      record_sms_status: {
+        Args: { p_error?: string; p_provider_message_id: string; p_status: string };
+        Returns: boolean;
       };
       record_stripe_event: {
         Args: {
@@ -55575,9 +56076,28 @@ export type Database = {
         Args: { p_enabled: boolean; p_module_code: string; p_org_id: string };
         Returns: string;
       };
+      set_my_notification_preferences: {
+        Args: { p_org_id: string; p_preferences: Json };
+        Returns: number;
+      };
+      set_my_notification_settings: {
+        Args: {
+          p_digest_frequency: Database["app"]["Enums"]["digest_frequency"];
+          p_digest_hour: number;
+          p_org_id: string;
+          p_quiet_hours_end: string;
+          p_quiet_hours_start: string;
+          p_time_zone: string;
+        };
+        Returns: undefined;
+      };
       set_my_passport_number: { Args: { p_passport_number: string }; Returns: undefined };
       set_org_legal_entity_tax_identifier: {
         Args: { p_legal_entity_id: string; p_tax_identifier: string };
+        Returns: undefined;
+      };
+      set_org_notification_defaults: {
+        Args: { p_defaults: Json; p_mandatory: Json; p_org_id: string };
         Returns: undefined;
       };
       set_personal_setting: {
@@ -56284,6 +56804,7 @@ export type Database = {
       };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
+      withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       work_order_display_key: {
         Args: {
           p_work_order: Omit<
@@ -56361,7 +56882,7 @@ export type Database = {
         | "Damaged"
         | "Lost"
         | "Retired";
-      audience_kind: "Organization" | "Project" | "Team" | "Role" | "Group";
+      audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
       availability_kind: "Available" | "Unavailable" | "Tentative";
       availability_visibility: "Private" | "Shared on Application" | "Public";
       background_check_result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
@@ -56691,6 +57212,7 @@ export type Database = {
       settlement_line_kind:
         "Guarantee" | "Bonus" | "Split" | "Expense" | "Deduction" | "Withholding";
       settlement_state: "Proposed" | "Submitted" | "Accepted" | "Disputed" | "Paid" | "Canceled";
+      shift_claim_state: "Requested" | "Approved" | "Rejected" | "Withdrawn" | "Superseded";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
       sms_consent_action: "Opt In" | "Opt Out" | "Help";
@@ -62750,7 +63272,7 @@ export const Constants = {
         "Lost",
         "Retired",
       ],
-      audience_kind: ["Organization", "Project", "Team", "Role", "Group"],
+      audience_kind: ["Organization", "Project", "Team", "Department", "Role", "Group"],
       availability_kind: ["Available", "Unavailable", "Tentative"],
       availability_visibility: ["Private", "Shared on Application", "Public"],
       background_check_result: ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
@@ -63128,6 +63650,7 @@ export const Constants = {
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],
       settlement_line_kind: ["Guarantee", "Bonus", "Split", "Expense", "Deduction", "Withholding"],
       settlement_state: ["Proposed", "Submitted", "Accepted", "Disputed", "Paid", "Canceled"],
+      shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
       sms_consent_action: ["Opt In", "Opt Out", "Help"],

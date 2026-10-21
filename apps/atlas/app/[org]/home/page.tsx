@@ -2,11 +2,12 @@ import { getSubscription, listMembers, listPendingInvites } from "@xos/data";
 import { isNodeVisible } from "@xos/ia";
 import { CircleCheck, Circle } from "lucide-react";
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { ButtonLink, PageHeader } from "@/components/ui";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { formatAlert } from "@/components/home/format-alert";
 import { HomeTiles } from "@/components/home/home-tiles";
 import { loadHomeTiles } from "@/lib/home/data";
 
@@ -54,6 +55,25 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
     return href === undefined ? [] : [{ ...s, href, done: done[s.key] === true }];
   });
   const completed = steps.filter((s) => s.done).length;
+  // Alert texts and relative times are formatted here, not during hydration (HomeTiles).
+  const format = await getFormatter();
+  const alertT = (await getTranslations("home.alerts")) as unknown as Parameters<
+    typeof formatAlert
+  >[0];
+  const now = new Date();
+  const tileText = projectTiles
+    ? {
+        alerts: Object.fromEntries(
+          projectTiles.alerts.map((a) => [
+            a.id,
+            formatAlert(alertT, (date) => format.dateTime(date, { dateStyle: "medium" }), a),
+          ]),
+        ),
+        times: Object.fromEntries(
+          projectTiles.activity.map((e) => [e.id, format.relativeTime(new Date(e.at), now)]),
+        ),
+      }
+    : null;
   const billingHref = isNodeVisible(sitemap, "settings.billing-and-plan", ctx.nav)
     ? nodeHref("settings.billing-and-plan", routeParams)
     : undefined;
@@ -129,11 +149,11 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
           ) : null}
         </section>
       </div>
-      {projectTiles ? (
+      {projectTiles && tileText ? (
         <HomeTiles
           org={ctx.org.slug}
           tiles={projectTiles}
-          now={new Date().toISOString()}
+          text={tileText}
           links={{
             readiness: nodeHref("home.gate-readiness", routeParams) ?? "",
             alerts: nodeHref("home.alerts", routeParams) ?? "",
