@@ -71,7 +71,8 @@
     "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
     "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
     "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    "setting_not_enforced": "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie."
+    "setting_not_enforced": "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
+    "setting_fixed": "Esta configuración es fija y no se puede cambiar."
   },
   "fields": {
     "legalName": {
@@ -80,7 +81,7 @@
     },
     "defaultWorkspace": {
       "label": "Espacio de trabajo predeterminado",
-      "help": "Los miembros nuevos empiezan en este espacio de trabajo."
+      "help": "Los miembros nuevos se unen a este espacio de trabajo."
     },
     "startPage": {
       "label": "Página de inicio",
@@ -96,7 +97,7 @@
     },
     "invoicePrefix": {
       "label": "Prefijo del número de factura",
-      "help": "Hasta 12 caracteres antes de cada número de factura, por ejemplo INV-."
+      "help": "Hasta 12 caracteres antes de cada número de factura nuevo, por ejemplo INV-."
     },
     "mfaPolicy": {
       "label": "Autenticación multifactor",
@@ -136,7 +137,7 @@
     },
     "numberPadding": {
       "label": "Relleno de números",
-      "help": "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042."
+      "help": "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042. El prefijo de factura y este relleno son los números que puedes personalizar; las claves de registro como NWS-42 son fijas."
     },
     "rounding": {
       "label": "Redondeo de fichajes",
@@ -144,11 +145,11 @@
     },
     "photoOnPunch": {
       "label": "Foto al fichar",
-      "help": "Pedir una foto en cada entrada y salida."
+      "help": "Pedir una foto en cada entrada y salida en los quioscos."
     },
     "geofenceRequired": {
       "label": "Exigir la geocerca",
-      "help": "Rechazar entradas fuera de la geocerca del proyecto."
+      "help": "Rechazar entradas desde el teléfono o la web fuera de la geocerca del proyecto. Los quioscos están exentos."
     },
     "kioskEnabled": {
       "label": "Fichaje en quiosco",
@@ -156,7 +157,7 @@
     },
     "openShiftClaiming": {
       "label": "Reclamo de turnos abiertos",
-      "help": "Cómo reclama el equipo los turnos abiertos."
+      "help": "Cómo reclama el equipo los turnos abiertos: para quien reclama primero, con aprobación de un supervisor o para quien tenga más antigüedad."
     },
     "allowSwaps": {
       "label": "Permitir cambios de turno",
@@ -164,11 +165,11 @@
     },
     "swapApproval": {
       "label": "Los cambios necesitan aprobación",
-      "help": "Un supervisor aprueba cada cambio antes de que se aplique."
+      "help": "Un supervisor aprueba cada cambio antes de que se aplique. Si se desactiva, la persona a quien se ofrece el turno lo acepta."
     },
     "payPeriod": {
       "label": "Período de pago",
-      "help": "Con qué frecuencia se ejecuta la nómina."
+      "help": "Con qué frecuencia se ejecuta la nómina. Los períodos de pago nuevos la siguen."
     },
     "weekStart": {
       "label": "La semana empieza el",
@@ -176,15 +177,15 @@
     },
     "marketplaceVisibility": {
       "label": "Visibilidad en el mercado",
-      "help": "Quién puede encontrar la organización en el mercado de Gateway."
+      "help": "Quién puede encontrar tus oportunidades en el mercado de Gateway: todos, quienes trabajaron contigo o solo grupos e invitados."
     },
     "ratingsEnabled": {
-      "label": "Calificaciones",
-      "help": "Pedir a ambas partes que se califiquen al completar una contratación."
+      "label": "Pedir a los miembros que valoren a las partes",
+      "help": "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y quienes ven el mercado ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales), sea cual sea la puntuación."
     },
     "messageRetention": {
       "label": "Retención de mensajes en días",
-      "help": "Conservar los mensajes estos días, de 30 a 3.650."
+      "help": "Borrar los mensajes con más de estos días, de 30 a 3.650. Una retención legal los conserva."
     },
     "autoTranslate": {
       "label": "Traducir mensajes",
@@ -192,15 +193,15 @@
     },
     "supportEmail": {
       "label": "Correo de soporte interno",
-      "help": "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización."
+      "help": "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización. Aparece en el panel de ayuda."
     },
     "supportHours": {
       "label": "Horario de soporte",
-      "help": "Por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este."
+      "help": "Aparece en el panel de ayuda, por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este."
     },
     "helpLink": {
       "label": "Enlace de ayuda propio",
-      "help": "Una página con tus guías, que aparece en el menú de ayuda."
+      "help": "Una página con tus guías, que aparece en el panel de ayuda."
     },
     "language": {
       "label": "Idioma",
@@ -264,6 +265,10 @@
     "shortcutsEnabled": {
       "label": "Atajos de teclado",
       "help": "Atajos de una tecla como J, K y ? en el escritorio."
+    },
+    "messageTranslation": {
+      "label": "Traducir mensajes del chat",
+      "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
     }
   },
   "choices": {
@@ -627,5 +632,114 @@
       "title": "Compartido con su organización",
       "entry": "Compartido por {owner} · Sus miembros actúan como {role}"
     }
-  }
+  },
+  "notifications": {
+    "category": "Categoría",
+    "channels": {
+      "inApp": "En la app",
+      "email": "Correo electrónico",
+      "sms": "Mensaje de texto (SMS)",
+      "push": "Push"
+    },
+    "cellLabel": "{category} por {channel}",
+    "urgent": "Urgente: llega de inmediato, incluso en horas de silencio.",
+    "save": "Guardar configuración de notificaciones",
+    "saved": "Configuración de notificaciones guardada.",
+    "loadFailed": "No se pudo cargar la configuración de notificaciones. Vuelve a cargar la página para intentarlo de nuevo.",
+    "digest": {
+      "Off": "Desactivado",
+      "Daily": "Diario",
+      "Weekly": "Semanal (los lunes)"
+    },
+    "errors": {
+      "notification_category_mandatory": "Tu organización hizo obligatoria esta categoría en ese canal, así que sigue activada.",
+      "time_zone_unknown": "Elige una zona horaria de la lista.",
+      "denied": "No puedes cambiar esta configuración.",
+      "invalid": "Revisa los campos marcados.",
+      "unexpected": "No se guardó la configuración. Inténtalo de nuevo.",
+      "sms_phone_unverified": "Verifica un número de teléfono en tu cuenta antes de activar los mensajes de texto."
+    },
+    "fieldErrors": {
+      "invalid": "Escribe un valor válido.",
+      "quietPair": "Indica el inicio y el fin de las horas de silencio, o ninguno.",
+      "quietSame": "Las horas de silencio terminan a una hora distinta de la de inicio."
+    },
+    "mine": {
+      "formLabel": "Tu configuración de notificaciones",
+      "matrixTitle": "Qué te llega",
+      "matrixDescription": "Elige cómo te llega cada tipo de notificación. Mientras no elijas, se aplican los valores predeterminados de tu organización.",
+      "locked": "Obligatorio por tu organización",
+      "smsNote": "Los mensajes de texto solo van a un número de teléfono verificado en el que aceptaste recibirlos. Responde STOP a cualquier mensaje para dejar de recibirlos.",
+      "quietTitle": "Horas de silencio y resumen",
+      "quietDescription": "Durante las horas de silencio, los mensajes de texto y las notificaciones push esperan hasta el final, salvo los urgentes. Los mensajes de texto también esperan entre las 21:00 y las 08:00 si no defines tus propias horas de silencio.",
+      "quietStart": "Inicio de las horas de silencio",
+      "quietEnd": "Fin de las horas de silencio",
+      "timeZone": "Zona horaria",
+      "digest": "Resumen por correo electrónico",
+      "digestHelp": "Reúne en un solo mensaje el correo que no es urgente.",
+      "digestHour": "Hora del resumen",
+      "smsNoPhone": "Agrega y verifica un número de teléfono en tu cuenta para recibir mensajes de texto.",
+      "smsConsent": "Envíame notificaciones de esta organización por mensaje de texto al {phone}. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde STOP para detenerlos o HELP para obtener ayuda."
+    },
+    "org": {
+      "formLabel": "Valores predeterminados de notificaciones de la organización",
+      "matrixTitle": "Valores predeterminados para los miembros",
+      "matrixDescription": "Lo que reciben los miembros mientras no elijan por su cuenta. Marca una categoría como obligatoria para mantener activados sus canales marcados para todos.",
+      "mandatory": "Obligatoria",
+      "mandatoryLabel": "{category} es obligatoria",
+      "mandatoryHelp": "Las categorías obligatorias siguen activadas en cada canal marcado aquí. Los mensajes de texto siguen necesitando el consentimiento de cada miembro, y STOP sigue deteniéndolos.",
+      "readOnly": "Puedes ver los valores predeterminados. Para cambiarlos necesitas el permiso de configuración de notificaciones."
+    },
+    "categories": {
+      "mentions": {
+        "label": "Menciones",
+        "help": "Alguien te menciona en un comentario o mensaje."
+      },
+      "assignments": {
+        "label": "Asignaciones",
+        "help": "Se te asigna trabajo, una capacitación o una solicitud de ayuda."
+      },
+      "approvals": {
+        "label": "Aprobaciones",
+        "help": "Solicitudes que esperan tu decisión y decisiones sobre tus solicitudes."
+      },
+      "comments": {
+        "label": "Comentarios",
+        "help": "Comentarios nuevos en los registros que sigues."
+      },
+      "schedule": {
+        "label": "Horario",
+        "help": "Turnos asignados o cambiados e invitaciones a eventos."
+      },
+      "finance": {
+        "label": "Facturas y pagos",
+        "help": "Facturas aprobadas, recibidas, programadas y pagadas."
+      },
+      "safety": {
+        "label": "Seguridad",
+        "help": "Incidentes, umbrales de aforo y alertas meteorológicas."
+      },
+      "account": {
+        "label": "Cuenta y facturación",
+        "help": "Cambios de seguridad, acceso de emergencia y problemas de pago."
+      },
+      "reports": {
+        "label": "Informes",
+        "help": "Informes programados listos para leer."
+      },
+      "imports": {
+        "label": "Importaciones y exportaciones",
+        "help": "Importaciones terminadas y exportaciones listas para descargar."
+      },
+      "messages": {
+        "label": "Mensajes",
+        "help": "Mensajes de chat nuevos para ti o tus grupos."
+      },
+      "feed": {
+        "label": "Noticias",
+        "help": "Anuncios, encuestas y reconocimientos."
+      }
+    }
+  },
+  "notInEffect": "Se guarda, pero todavía no se aplica."
 }

@@ -24,6 +24,7 @@ import { DataTable } from "@/components/platform/client/data-table";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 /**
  * The read-only Canon browser (Section 4.2 Canon, Section 7.2): the xpms canon every tenant shares,
@@ -47,6 +48,7 @@ interface Detail {
 /** Renders one canon collection with its peek and full page, all read-only. */
 function CanonCollection({
   title,
+  today,
   views,
   search,
   path,
@@ -57,6 +59,8 @@ function CanonCollection({
   t,
 }: {
   title: string;
+  /** Today on the org's calendar (`orgToday`), for the calendar view's month. */
+  today: string;
   views: readonly ViewKind[];
   search: SearchParams;
   path: string;
@@ -66,7 +70,7 @@ function CanonCollection({
   detail: (id: string) => Detail | undefined;
   t: Copy;
 }) {
-  const state = collectionState(search, views);
+  const state = collectionState(search, views, today);
   const selected = state.peek ? detail(state.peek) : undefined;
   if (selected && state.full) {
     return (
@@ -134,6 +138,7 @@ export async function CanonDepartments({ ctx, path, search }: PageProps) {
   if (!departments.ok || !disciplines.ok) return failed(title, t);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -213,6 +218,7 @@ export async function CanonDisciplines({ ctx, path, search }: PageProps) {
   const sourceOf = (d: (typeof all)[number]) => (d.org ? t("orgExtension") : d.source);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "tree", "list"]}
@@ -304,6 +310,7 @@ export async function CanonCategories({ ctx, path, search }: PageProps) {
   const xyzLabel = (x: string | null) => (x ? t(`xyz.${x}`) : t("none"));
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "tree", "list"]}
@@ -367,6 +374,7 @@ export async function CanonPhases({ ctx, path, search }: PageProps) {
   if (!phases.ok) return failed(title, t);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -436,6 +444,7 @@ export async function CanonRecordKinds({ ctx, path, search }: PageProps) {
   const idOf = (kind: string) => kind.replace(/[^A-Za-z0-9]+/g, "-");
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -502,6 +511,7 @@ export async function CanonRoles({ ctx, path, search }: PageProps) {
       : t("roles.ratioLine", { ratio: r.staffingRatio, basis: r.ratioBasis ?? "" });
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -556,6 +566,7 @@ export async function CanonJurisdictions({ ctx, path, search }: PageProps) {
   if (!jurisdictions.ok) return failed(title, t);
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}
@@ -634,6 +645,7 @@ export async function CanonMetrics({ ctx, path, search }: PageProps) {
   const rows = metrics.data.map((m, i) => ({ ...m, id: `metric-${i + 1}` }));
   return (
     <CanonCollection
+      today={await orgToday(ctx)}
       t={t}
       title={title}
       views={["table", "list"]}

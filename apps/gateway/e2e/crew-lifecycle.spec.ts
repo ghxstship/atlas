@@ -7,6 +7,7 @@ import {
   newSignIn,
   offerToApplication,
   PEOPLE,
+  projectToday,
   publishCrewCall,
   publishedShift,
   requirements,
@@ -158,10 +159,12 @@ test("journey 41: requisition to credential loss, one crew person through every 
       [DEMO.org],
       PEOPLE.owner,
     );
+    // The billing window ends today on the project's calendar, where the worked day falls.
+    const today = await projectToday();
     const [billed] = await asPerson<{ id: string }>(
       PEOPLE.producer,
-      `select app.generate_self_billed_invoice($1, current_date - 7, current_date) as id`,
-      [id],
+      `select app.generate_self_billed_invoice($1, $2::date - 7, $2::date) as id`,
+      [id, today],
     );
     const invoiceId = billed?.id as string;
     const [invoice] = await sql<{ n: string; payee: string | null }>(

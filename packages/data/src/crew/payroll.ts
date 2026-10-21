@@ -106,6 +106,26 @@ export async function createPayPeriod(
   return ok({ id: data.id });
 }
 
+/**
+ * The next pay period an org adds (app.next_pay_period_dates): the day after its latest period, sized by
+ * payroll.pay_period and, for the first weekly or biweekly period, aligned to payroll.week_start. `today` is
+ * the org's date (orgToday), so a first period starts in the org's week, not UTC's.
+ */
+export async function nextPayPeriodDates(
+  db: XosClient,
+  orgId: string,
+  today: string,
+): Promise<Result<{ startsOn: string; endsOn: string }>> {
+  const { data, error } = await db.rpc("next_pay_period_dates", {
+    p_org_id: orgId,
+    p_today: today,
+  });
+  if (error) return fail(toDataError(error));
+  const row = data[0];
+  if (!row) return fail({ kind: "not-found" });
+  return ok({ startsOn: row.starts_on, endsOn: row.ends_on });
+}
+
 /** Changes an Open period's dates. */
 export async function updatePayPeriod(
   db: XosClient,

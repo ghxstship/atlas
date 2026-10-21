@@ -53769,8 +53769,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -53796,6 +53796,12 @@
             "format": "uuid",
             "description": "Identifier of the group audience, including department groups.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "department_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon department code of a Department audience (xpms.dim_department).",
+            "example": "5000"
           },
           "author_membership_id": {
             "type": ["string", "null"],
@@ -53865,6 +53871,7 @@
           "team_id",
           "role_id",
           "group_id",
+          "department_code",
           "author_membership_id",
           "pinned_at",
           "requires_acknowledgment",
@@ -53902,8 +53909,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -53929,6 +53936,12 @@
             "format": "uuid",
             "description": "Identifier of the group audience, including department groups.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "department_code": {
+            "type": ["string", "null"],
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon department code of a Department audience (xpms.dim_department).",
+            "example": "5000"
           },
           "requires_acknowledgment": {
             "type": "boolean",
@@ -54004,8 +54017,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -54031,6 +54044,12 @@
             "format": "uuid",
             "description": "Group audience.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "department_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "Canon department code of a Department audience (xpms.dim_department).",
+            "example": "5000"
           },
           "question": {
             "type": "string",
@@ -54383,8 +54402,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -54481,8 +54500,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -55115,8 +55134,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -55251,8 +55270,8 @@
           },
           "audience_kind": {
             "type": "string",
-            "enum": ["Organization", "Project", "Team", "Role", "Group"],
-            "description": "Who the row reaches.",
+            "enum": ["Organization", "Project", "Team", "Department", "Role", "Group"],
+            "description": "Who the row reaches. Department (a canon department, 1365) is for feed posts only.",
             "example": "Organization"
           },
           "project_id": {
@@ -142324,6 +142343,7 @@
                       "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "department_code": "5000",
                       "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "pinned_at": "2026-10-08T14:30:00Z",
                       "requires_acknowledgment": false,
@@ -142368,6 +142388,7 @@
                 "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "department_code": "5000",
                 "requires_acknowledgment": false,
                 "reactions_enabled": true,
                 "comments_enabled": true,
@@ -142403,6 +142424,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142475,6 +142497,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142557,6 +142580,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142604,6 +142628,7 @@
                 "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                 "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "department_code": "5000",
                 "question": "Which crew meal on Saturday?",
                 "options": ["Tacos", "Pasta"],
                 "allows_multiple": false,
@@ -142639,6 +142664,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142721,6 +142747,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142804,6 +142831,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142878,6 +142906,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,
@@ -142961,6 +142990,7 @@
                   "team_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "group_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "department_code": "5000",
                   "author_membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "pinned_at": "2026-10-08T14:30:00Z",
                   "requires_acknowledgment": false,

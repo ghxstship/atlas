@@ -226,7 +226,7 @@
     "endBreak": "Terminar descanso",
     "blocked": "Marcar entrada",
     "inside": "Estás en {name}",
-    "outside": "Estás a {distance} m de {name}",
+    "outside": "Estás a {distance} de {name}",
     "outsideFar": "Estás lejos del lugar",
     "locating": "Buscando tu ubicación",
     "locationCoarse": "Tu ubicación aún no es precisa. Sal al exterior o espera un momento.",
@@ -278,7 +278,8 @@
     "timeRange": "{start} a {end}",
     "noPlace": "Lugar por confirmar",
     "claimOverlap": "Ya tienes un turno que se superpone con este ({time}). Cambia o deja ese turno primero.",
-    "claimQueued": "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes."
+    "claimQueued": "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes.",
+    "claimSent": "Reclamo enviado. Un supervisor decide quién recibe el turno según la regla de reclamo del proyecto."
   },
   "scan": {
     "title": "Escanear",
@@ -446,13 +447,18 @@
     "refused": {
       "pinLocked": "Este PIN se bloqueó por demasiados intentos. Pide a tu supervisor que lo restablezca.",
       "deviceRevoked": "Este quiosco se desactivó en Atlas. Pide a tu supervisor que lo registre de nuevo.",
-      "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo."
+      "requestInvalid": "No se pudo leer esa marcación. Empieza de nuevo.",
+      "kioskDisabled": "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
+      "photoRequired": "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto."
     },
     "exit": "Salir del quiosco",
     "digit": "Dígito {digit}",
     "backspace": "Borrar dígito",
     "pinProgressOne": "{count} dígito ingresado",
-    "pinProgressOther": "{count} dígitos ingresados"
+    "pinProgressOther": "{count} dígitos ingresados",
+    "off": "Los quioscos están desactivados en esta organización. Un administrador los activa en Atlas, Configuración, Horario y asistencia.",
+    "photoFor": "Foto de {name}",
+    "photoHelp": "Este proyecto pide una foto en cada entrada y salida en el quiosco. Mira la cámara y toma la foto."
   },
   "inbox": {
     "title": "Bandeja",

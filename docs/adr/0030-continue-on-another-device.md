@@ -83,4 +83,5 @@ The production domains of Atlas and Gateway, and the Apple and Android signing i
   - Set `COMPASS_APPLE_TEAM_IDS` (and `COMPASS_ANDROID_CERT_SHA256` once Android signing exists) on Atlas and Gateway.
   - Build Compass with `XOS_UNIVERSAL_LINK_HOSTS`, a signed build with the Associated Domains capability and `ios.appleTeamId`.
   - Build the push sender that claims `Push` deliveries (`app.claim_notification_deliveries`) and posts the contract above to Expo. It needs Expo push credentials, an APNs key, and an `aps-environment` of production in release builds.
+    - Update (A80, RRR-125): the sender is built (`notification-dispatch`, migration 1361). The push category comes from `packages/schemas/notification-kinds.yaml`, and `data.url` carries the deep link. What remains for the owner is the credentials and `XOS_PUSH_TRANSPORT=expo` (`infra/runbooks/production.md`, Push and SMS).
 - Approving when Compass was terminated depends on iOS launching Compass in the background. The response is replayed from `getLastNotificationResponse` when the JavaScript starts. Long-running cold launches are not covered by the simulator run.

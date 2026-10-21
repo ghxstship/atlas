@@ -3,6 +3,7 @@
 import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
 import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
 import type { PlatformActionState } from "@/lib/platform/state";
@@ -84,6 +85,8 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
+    // Letter shortcuts follow me.shortcuts_enabled; the arrow keys always move.
+    if (event.key.length === 1 && !singleKeyShortcutsEnabled()) return;
     if (event.target instanceof HTMLButtonElement && (event.key === "Enter" || event.key === " "))
       return;
     const row = items[current];

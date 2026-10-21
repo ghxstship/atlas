@@ -30,8 +30,11 @@ above with `design-audit-allow: <reason>`.
 
 Budgets come from Section 18, gate 10 (`src/budgets.ts`): LCP under 2.5 s, CLS under 0.1, Total
 Blocking Time under 200 ms as the lab stand-in for INP, route JavaScript under 200 KB, and an
-accessibility score of 100. Signed-in pages use a session cookie the runner builds from a demo
-sign-in. Start each app with `next start` first (Atlas on 3006, Gateway on 3127, docs on 3014), then:
+accessibility score of 100. Signed-in pages get a demo session in the browser's cookie jar before
+each page (`src/lighthouse-session.cjs`, a puppeteer script lhci runs), so server actions,
+redirects and prefetches run signed in, as in a real browser. An extra Cookie header would not do:
+Chrome drops it for its own jar once a page sets a cookie. Start each app with `next start` first
+(Atlas on 3006, Gateway on 3127, docs on 3014), then:
 
 ```sh
 SUPABASE_URL=http://127.0.0.1:57421 SUPABASE_ANON_KEY=<publishable key> \
@@ -64,6 +67,28 @@ Two rules keep pages small:
   boundary file, as `apps/gateway/components/ui-chart.tsx` does.
 - A small hook or helper that lives in a module with heavy components drags them along. Give it its
   own module (`apps/atlas/components/home/alert-text.ts`, `components/activity/describe.ts`).
+
+## Test clock (late evening and month boundaries)
+
+The database runs in UTC, so its date is a day ahead of New York from 20:00 every evening, and on
+the last evening of a month it is already next month. Product dates follow the project's or the
+org's calendar (migration 1305), and tests must too. `clock/` runs pgTAP and the journeys with the
+wall clock at any instant, for example 23:30 in New York on 31 October (`2026-11-01T03:30:00Z`):
+
+- `clock/pg-clock.sh at <supabase_db_container> <UTC instant>` restarts a local stack's Postgres
+  with libfaketime preloaded at that instant (`off` restores the real clock) and prints the offset.
+  Postgres's `now()` cannot be set from SQL; the script explains how the library is loaded.
+- `NODE_OPTIONS="--require $PWD/packages/testing/clock/node-clock.cjs" E2E_CLOCK_OFFSET_MS=<offset>`
+  shifts `Date` in the Next servers and the Playwright runner by the same amount, and the journeys'
+  `engine-test.ts` moves each browser context's clock with Playwright's clock API.
+- `E2E_TIMEZONE=America/New_York` runs the browsers in that zone. Keep the servers in UTC, as
+  production is.
+
+Prefer offsets into the past for journeys: the auth server and PostgREST keep the real clock, and a
+future offset longer than the token lifetime makes clients refresh without end. pgTAP has no such
+limit. `supabase db reset` recreates the container; reset to an early migration
+(`--version 0207`), set the clock, then `supabase migration up`, so partitions and other "now"
+defaults are made at the faked time.
 
 ## Load tests (k6)
 

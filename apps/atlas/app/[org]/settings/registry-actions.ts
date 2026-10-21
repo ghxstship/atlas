@@ -15,6 +15,7 @@ import { z } from "zod";
 import { clientIp } from "@/lib/auth/legal";
 import { parseSettingValue, settingByKey, settingErrorKey } from "@/lib/settings/registry";
 import { getOrgContext } from "@/lib/shell/context";
+import { applyDevicePreference } from "@/lib/shell/actions";
 
 /**
  * Saves the changed registered settings of one settings form (Section 4.5.6, A59-018): an org,
@@ -139,8 +140,16 @@ export async function saveSettingsAction(
                 def.lockable && scopeKind === "Organization" && form.get(`locked:${key}`) === "on",
             });
     }
-    if (result.ok) saved.push(key);
-    else refuse(settingErrorKey(result.error));
+    if (!result.ok) {
+      refuse(settingErrorKey(result.error));
+      continue;
+    }
+    saved.push(key);
+    // A theme or language saved here applies on this device at once, as the shell's pickers do. The
+    // display preferences follow through the shell, which re-resolves them on the next render.
+    if (input.group === "personal" && !clears.has(key) && raw !== null) {
+      await applyDevicePreference(def.key, raw.trim());
+    }
   }
   if (saved.length > 0) revalidatePath(`/${ctx.org.slug}`, "layout");
   return { errors, values, saved, at };

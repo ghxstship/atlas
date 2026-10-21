@@ -1,3 +1,4 @@
+import { startOfDayIn, todayIn } from "@xos/data/calendar";
 import { getTimeEntry, listTimeEntries, workedMinutes, type TimeEntry } from "@xos/data/crew";
 import Link from "next/link";
 import type { Route } from "next";
@@ -25,8 +26,10 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, isIsoDate, isoToZoned, weekStartOf } from "@/lib/crew/time";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -47,15 +50,21 @@ export default async function Page({
   const db = crew.ctx.viewer.db;
   const view = resolveView(node, search["view"]);
   const base = nodeHref(node, routeParams) ?? "/";
-  const today = new Date().toISOString().slice(0, 10);
-  const week = mondayOf(isIsoDate(search["week"]) ? search["week"] : today);
+  const { preferences } = await getShellSettings(db, crew.orgId, null);
   const projects = await getProjects(crew.ctx);
   const projectFilter = projects.find((p) => p.key === search["project"]) ?? null;
   const zoneOf = (projectId: string) => projects.find((p) => p.id === projectId)?.timeZone ?? "UTC";
+  // This week on the project's calendar, or the org's across projects (A71), never UTC's, starting on the
+  // org's payroll.week_start.
+  const weekZone = projectFilter?.timeZone ?? (await getOrgTimeZone(crew.ctx));
+  const week = weekStartOf(
+    isIsoDate(search["week"]) ? search["week"] : todayIn(weekZone),
+    preferences.weekStart,
+  );
   const result = await listTimeEntries(db, {
     orgId: crew.orgId,
-    from: `${week}T00:00:00Z`,
-    to: `${addDays(week, 7)}T00:00:00Z`,
+    from: startOfDayIn(week, weekZone),
+    to: startOfDayIn(addDays(week, 7), weekZone),
     ...(projectFilter ? { projectId: projectFilter.id } : {}),
     ...(search["open"] === "1" ? { openOnly: true } : {}),
   });

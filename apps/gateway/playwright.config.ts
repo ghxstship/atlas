@@ -65,6 +65,9 @@ export default defineConfig({
     trace: "retain-on-failure",
     // A missing control fails the step in seconds instead of holding the whole test timeout.
     actionTimeout: 20_000,
+    // E2E_TIMEZONE runs the browsers in that zone, for example America/New_York with the test clock
+    // at 23:30 there (e2e/engine-test.ts, packages/testing/clock).
+    ...(process.env["E2E_TIMEZONE"] ? { timezoneId: process.env["E2E_TIMEZONE"] } : {}),
   },
   projects: [
     ...desktop
