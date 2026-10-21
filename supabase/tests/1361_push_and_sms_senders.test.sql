@@ -57,12 +57,12 @@ insert into n values ('a1', private.notify(pg_temp.id('org_a'), pg_temp.id('dave
 -- SMS: the default window at night, then consent and the verified number by day ----------------------------------
 select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50)), 0,
   'at night in the member''s time zone no SMS is claimed');
-select is(pg_temp.status(pg_temp.delivery((select id from n where key = 'a1'), 'SMS')), 'Deferred',
-  'the SMS waits for the default window to end');
+select is(pg_temp.status(pg_temp.delivery((select id from n where key = 'a1'), 'SMS')), 'Digest',
+  'the SMS is held for the morning summary (1367)');
 select ok((select (deliver_after at time zone pg_temp.zone(true))::time = time '08:00'
            from app.notification_deliveries where id = pg_temp.delivery((select id from n where key = 'a1'), 'SMS')),
   'it is due at 08:00 in the member''s time zone');
-select ok(private.sms_quiet_until(pg_temp.id('dave@org_a'), now()) is not null and private.local_quiet_until(pg_temp.id('dave@org_a'), now()) is null,
+select ok(private.sms_quiet_until(pg_temp.id('dave@org_a'), null, now()) is not null and private.local_quiet_until(pg_temp.id('dave@org_a'), now()) is null,
   'the default window applies to SMS only; push keeps the member''s own quiet hours (none)');
 
 update app.notification_settings set time_zone = pg_temp.zone(false) where membership_id = pg_temp.id('dave@org_a');
@@ -76,7 +76,7 @@ update app.notification_settings set time_zone = pg_temp.zone(true),
   quiet_hours_start = ((now() at time zone pg_temp.zone(true)) + interval '2 hours')::time,
   quiet_hours_end = ((now() at time zone pg_temp.zone(true)) + interval '3 hours')::time
 where membership_id = pg_temp.id('dave@org_a');
-select is(private.sms_quiet_until(pg_temp.id('dave@org_a'), now()), null::timestamptz,
+select is(private.sms_quiet_until(pg_temp.id('dave@org_a'), null, now()), null::timestamptz,
   'a member''s own quiet hours replace the default SMS window');
 update app.notification_settings set quiet_hours_start = null, quiet_hours_end = null, time_zone = pg_temp.zone(false)
 where membership_id = pg_temp.id('dave@org_a');

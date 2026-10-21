@@ -681,7 +681,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} by {channel}",
-    "urgent": "Urgent: arrives at once, even in quiet hours.",
+    "urgent": "Urgent: never waits for the email digest.",
     "save": "Save notification settings",
     "saved": "Notification settings saved.",
     "loadFailed": "Notification settings could not be loaded. Reload the page to try again.",
@@ -710,7 +710,7 @@
       "locked": "Required by your organization",
       "smsNote": "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
       "quietTitle": "Quiet hours and digest",
-      "quietDescription": "During quiet hours, texts and push notifications wait until the end, except urgent ones. Texts also wait between 21:00 and 08:00 unless you set your own quiet hours.",
+      "quietDescription": "During quiet hours, push notifications wait until the end and texts arrive together as one message. Texts also wait between 21:00 and 08:00 in your time zone unless you set your own quiet hours. Safety alerts and changes to a shift starting within 12 hours always arrive at once.",
       "quietStart": "Quiet hours start",
       "quietEnd": "Quiet hours end",
       "timeZone": "Time zone",

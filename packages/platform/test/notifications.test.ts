@@ -28,6 +28,7 @@ import {
   createSmsProvider,
   dispatchPush,
   dispatchSms,
+  dispatchSmsSummaries,
   expoPushClient,
   googleLanguage,
   googleMessageTranslator,
@@ -53,6 +54,7 @@ import {
   workloadIdentityToken,
   type ClaimedPush,
   type ClaimedSms,
+  type ClaimedSmsSummary,
   type DeviceTicket,
   type MessageTranslator,
   type PlatformDb,
@@ -61,6 +63,7 @@ import {
   type PushStore,
   type SmsInboundStore,
   type SmsStore,
+  type SmsSummaryStore,
   type TranslationStore,
 } from "../src/index.ts";
 
@@ -1134,5 +1137,149 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         p_provider: "google",
       },
     });
+  });
+});
+
+// Quiet hours (ADR 0033 decision 35) ---------------------------------------------------------------------------
+
+describe("texts held by quiet hours go out as one summary", () => {
+  const held = (overrides: Partial<ClaimedSmsSummary> = {}): ClaimedSmsSummary => ({
+    orgId: "org-1",
+    recipientPersonId: "p1",
+    address: "+15555550100",
+    deliveryIds: ["d1", "d2", "d3"],
+    heldCount: 3,
+    kind: "account.security_changed",
+    messageArgs: { change: "password" },
+    ...overrides,
+  });
+
+  function summaryStore(summaries: ClaimedSmsSummary[]) {
+    const records: [readonly string[], string, string | null, string | null][] = [];
+    const store: SmsSummaryStore = {
+      claimSummaries: async () => summaries,
+      recipient: async (id) => ({
+        name: "Dave",
+        locale: id === "p2" ? "es-US" : "en-US",
+        timeZone: "UTC",
+      }),
+      orgName: async () => "Northwind Live",
+      inboxLink: async () => "https://atlas.xos.test/northwind-live/inbox",
+      recordSummary: async (...args) => {
+        records.push(args);
+      },
+    };
+    return { store, records };
+  }
+
+  it("sends one text per member and org with the count and the most important line", async () => {
+    const provider = new RecordingSmsProvider();
+    const { store, records } = summaryStore([
+      held(),
+      held({ recipientPersonId: "p2", deliveryIds: ["d4", "d5"], heldCount: 2 }),
+      held({
+        deliveryIds: ["d6"],
+        heldCount: 1,
+        kind: "approval.requested",
+        messageArgs: { actorName: "Bob", title: "Catering" },
+      }),
+    ]);
+    await expect(dispatchSmsSummaries(store, provider)).resolves.toEqual({
+      attempted: 3,
+      sent: 3,
+      failed: 0,
+      bounced: 0,
+    });
+    expect(provider.sent[0]?.body).toBe(
+      "Northwind Live: 3 updates came in during your quiet hours. Most important: A security setting on your account changed: password. If this was not you, reset your password now. https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
+    );
+    expect(provider.sent[1]?.body).toMatch(
+      /^Northwind Live: 2 novedades llegaron durante tus horas de silencio\./,
+    );
+    // A single held text reads like any other notification.
+    expect(provider.sent[2]?.body).toBe(
+      "Northwind Live: Bob asked you to approve Catering. https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
+    );
+    expect(records.map((r) => [r[0], r[1], r[2]])).toEqual([
+      [["d1", "d2", "d3"], "Sent", "recorded-sms-1"],
+      [["d4", "d5"], "Sent", "recorded-sms-2"],
+      [["d6"], "Sent", "recorded-sms-3"],
+    ]);
+    expect(provider.sent).toHaveLength(3);
+  });
+
+  it("settles every held delivery with the failure: Bounced when a retry cannot fix it, Failed otherwise", async () => {
+    let n = 0;
+    const provider = {
+      name: "scripted",
+      send: async () => {
+        n += 1;
+        if (n === 1) throw new SmsSendError("unsubscribed", "21610", true);
+        throw new Error("timeout");
+      },
+    };
+    const { store, records } = summaryStore([held(), held({ deliveryIds: ["d9"], heldCount: 1 })]);
+    await expect(dispatchSmsSummaries(store, provider)).resolves.toEqual({
+      attempted: 2,
+      sent: 0,
+      failed: 1,
+      bounced: 1,
+    });
+    expect(records.map((r) => [r[0].length, r[1]])).toEqual([
+      [3, "Bounced"],
+      [1, "Failed"],
+    ]);
+  });
+
+  it("claims and records summaries through the 1367 RPCs", async () => {
+    const { db, calls } = fakeDb(
+      {
+        claim_sms_summaries: () => [
+          {
+            org_id: "org-1",
+            recipient_person_id: "p1",
+            address: "+15555550100",
+            delivery_ids: ["d1", "d2", 7],
+            held_count: 2,
+            kind: "approval.requested",
+            message_args: null,
+          },
+          {
+            org_id: "org-1",
+            recipient_person_id: "p1",
+            address: "+1",
+            delivery_ids: null,
+            held_count: null,
+            kind: "x.y",
+          },
+        ],
+        record_sms_summary: () => null,
+      },
+      { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
+    );
+    const store = smsStore(db, { appUrl: "https://atlas.xos.test" });
+    const [first, second] = await store.claimSummaries(25);
+    expect(first).toMatchObject({ deliveryIds: ["d1", "d2"], heldCount: 2, messageArgs: {} });
+    expect(second).toMatchObject({ deliveryIds: [], heldCount: 0 });
+    await expect(store.inboxLink("org-1")).resolves.toBe(
+      "https://atlas.xos.test/northwind-live/inbox",
+    );
+    await store.recordSummary(["d1", "d2"], "Sent", "SM-1", null);
+    expect(calls.at(-1)).toEqual({
+      fn: "record_sms_summary",
+      args: {
+        p_delivery_ids: ["d1", "d2"],
+        p_status: "Sent",
+        p_provider_message_id: "SM-1",
+        p_error: null,
+      },
+    });
+    expect(calls[0]?.args).toEqual({ p_limit: 25 });
+  });
+
+  it("keeps the bypass list short and in the registry", () => {
+    expect(
+      NOTIFICATION_KINDS.filter((k) => k.quietHoursBypass !== null).map((k) => k.kind),
+    ).toEqual(["shift.changed", "incident.reported", "occupancy.threshold", "weather.alert"]);
   });
 });

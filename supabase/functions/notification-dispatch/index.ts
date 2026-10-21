@@ -7,7 +7,8 @@
 //     uses enhanced push security); recorded otherwise. Receipts prune devices Expo no longer knows.
 //   * SMS through Twilio when XOS_SMS_TRANSPORT=twilio (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN,
 //     TWILIO_MESSAGING_SERVICE_SID, XOS_SMS_HELP_CONTACT), limited to XOS_SMS_ALLOWLIST unless
-//     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook.
+//     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook. Texts held by
+//     quiet hours go out as one summary per member and org when the quiet hours end (ADR 0033 decision 35).
 // One channel failing never stops the others: its error is logged and reported in the answer.
 import {
   checkPushReceipts,
@@ -18,6 +19,7 @@ import {
   dispatchEmail,
   dispatchPush,
   dispatchSms,
+  dispatchSmsSummaries,
   identityFromEnv,
   notificationStore,
   pushStore,
@@ -77,14 +79,15 @@ serve(async (request) => {
     checkPushReceipts(pushStore(db), createPushClient(readPushEnv(source))),
   );
 
-  const sms = await channel("sms", () =>
-    dispatchSms(
-      smsStore(db, { appUrl }),
-      createSmsProvider(readSmsEnv(source), {
-        statusCallbackUrl: Deno.env.get("XOS_SMS_WEBHOOK_URL") ?? `${functionsUrl}/sms-webhook`,
-      }),
-    ),
+  const smsProvider = () =>
+    createSmsProvider(readSmsEnv(source), {
+      statusCallbackUrl: Deno.env.get("XOS_SMS_WEBHOOK_URL") ?? `${functionsUrl}/sms-webhook`,
+    });
+  const sms = await channel("sms", () => dispatchSms(smsStore(db, { appUrl }), smsProvider()));
+  // Texts held by quiet hours go out as one summary per member and org when the quiet hours end.
+  const smsSummaries = await channel("sms-summaries", () =>
+    dispatchSmsSummaries(smsStore(db, { appUrl }), smsProvider()),
   );
 
-  return json(200, { email, push, receipts, sms });
+  return json(200, { email, push, receipts, sms, smsSummaries });
 });
