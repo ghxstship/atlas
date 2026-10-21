@@ -1,7 +1,9 @@
+import { tokenAal } from "@xos/data/auth-assurance";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { env, platformHosts } from "@/lib/env";
 import {
   buildCsp,
@@ -95,6 +97,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         const to = new URL(`/auth/sign-in?next=${encodeURIComponent(next)}`, request.url);
         return secure(carryCookies(NextResponse.redirect(to), response()));
       }
+      // A person who holds a verified second factor verifies it before any page (A77, Section 9).
+      if ((user.factors ?? []).some((f) => f.status === "verified")) {
+        const { data: current } = await db.auth.getSession();
+        if (tokenAal(current.session?.access_token) === "aal1") {
+          const to = new URL(secondFactorRedirect(path, request.nextUrl.search), request.url);
+          return secure(carryCookies(NextResponse.redirect(to), response()));
+        }
+      }
       const accounts = await listMyAccounts(db);
       if (!accounts.ok)
         throw new Error(`Gateway proxy could not read accounts: ${accounts.error.kind}`);
@@ -126,7 +136,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 export const config = {
   matcher: [
     {
-      source: "/((?!api/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
+      // Calendar feeds (/ical/{token}.ics, ADR 0040) answer without a session: no cookie is read,
+      // refreshed or set for them, and calendar apps get no page headers.
+      source: "/((?!api/|ical/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

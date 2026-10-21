@@ -488,8 +488,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "home.alerts.read":
     "Alerts are delivered through notifications; a dedicated alerts feed arrives with the Home module.",
   "projects.project.export": "Exports run through export jobs, which require data.export.run.",
-  "projects.settings.write":
-    "Project settings are fields of the project and its settings registry values.",
   "schedule.milestone.write":
     "Milestones are records of kind Milestone and use the record write capability.",
   "schedule.timeline.export": "Exports run through export jobs.",
