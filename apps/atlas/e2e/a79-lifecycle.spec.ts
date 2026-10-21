@@ -1,14 +1,30 @@
-import { expect, settledGoto, test } from "./engine-test";
+import type { Page } from "@playwright/test";
+import { expect as baseExpect, settledGoto, test } from "./engine-test";
 import { failPayment, stepUp } from "./a79-support";
 import { createOrganization, expectAccessible, signUp, testEmail, uniqueId } from "./support";
 
 /**
  * A79 journeys (Section 14.7 and Section 16): the trial countdown, deletion with its 7-day recovery
  * window, ownership transfer with step-up on both sides, and the dunning banner. Each runs on a fresh org so
- * the demo tenant stays live. Step-up goes through Supabase Auth (a79-support.ts) until A77's dialog lands.
+ * the demo tenant stays live. A refused step-up opens A77's step-up dialog; the journeys check it opens, cancel
+ * it, and pass the second factor through Supabase Auth (a79-support.ts).
  */
 
 const STEP_UP = "Confirm it is you with your second factor, then try again.";
+
+/**
+ * Every lifecycle step is a server action that checks the second factor, calls an RPC and renders the org's banners
+ * again; on a loaded machine one takes longer than Playwright's 5-second default, so these assertions wait 30.
+ */
+const expect = baseExpect.configure({ timeout: 30_000 });
+
+/** A77's step-up dialog, which asks a person with no second factor to set one up. */
+async function cancelStepUpDialog(page: Page) {
+  const dialog = page.getByRole("dialog", { name: "Set up a second factor" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Cancel" }).click();
+  await expect(dialog).toHaveCount(0);
+}
 
 test("a new org shows its Pro trial countdown and where to add a card", async ({ page }) => {
   const id = uniqueId();
@@ -47,7 +63,7 @@ test("deleting an org needs step-up, makes it read-only and can be recovered wit
   await form.getByLabel("Why are you deleting it?").fill("The tour is over.");
   await form.getByRole("button", { name: "Delete the organization" }).click();
   await expect(form.getByText(STEP_UP)).toBeVisible();
-  await expect(form.getByRole("link", { name: "Open security settings" })).toBeVisible();
+  await cancelStepUpDialog(page);
   await expectAccessible(page);
 
   // Pass the second factor, then ask again.
@@ -71,7 +87,7 @@ test("deleting an org needs step-up, makes it read-only and can be recovered wit
   // Recover within the window.
   await page.goto(`/${slug}/settings/danger-zone`);
   await page.getByRole("button", { name: "Recover the organization" }).click();
-  await expect(page.getByTestId("deletion-banner")).toHaveCount(0, { timeout: 30_000 });
+  await expect(page.getByTestId("deletion-banner")).toHaveCount(0);
   await expect(page.getByRole("form", { name: "Delete the organization" })).toBeVisible();
 });
 
@@ -108,6 +124,7 @@ test("ownership moves to a member who accepts with step-up; the old Owner become
   const offer = page.getByRole("form", { name: "Transfer ownership" });
   await offer.getByRole("button", { name: "Offer ownership" }).click();
   await expect(offer.getByText(STEP_UP)).toBeVisible();
+  await cancelStepUpDialog(page);
   await stepUp(page, ownerEmail);
   await page.reload();
   await page
@@ -124,13 +141,14 @@ test("ownership moves to a member who accepts with step-up; the old Owner become
   await expectAccessible(heir);
   await banner.getByRole("button", { name: "Accept ownership" }).click();
   await expect(heir.getByText(STEP_UP)).toBeVisible();
+  await cancelStepUpDialog(heir);
   await stepUp(heir, heirEmail);
   await heir.reload();
   await heir
     .getByTestId("ownership-offer-banner")
     .getByRole("button", { name: "Accept ownership" })
     .click();
-  await expect(heir.getByTestId("ownership-offer-banner")).toHaveCount(0, { timeout: 30_000 });
+  await expect(heir.getByTestId("ownership-offer-banner")).toHaveCount(0);
 
   // The new Owner reaches the Owner's controls; the old Owner is an Admin and no longer offers the org.
   await heir.goto(`/${slug}/settings/danger-zone`);
