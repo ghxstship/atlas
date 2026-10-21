@@ -46,8 +46,26 @@ call private.describe('app.expense_receipts', 'The receipt photo of an expense, 
 ]);
 
 -- Readable with the expense: the 0321 expense read rule (finance.expense.read on the budget line, or the submitter).
-call private.install_policies('app.expense_receipts',
-  $$expense_id in (select e.id from app.expenses e)$$);
+-- The helper takes the expense id as its argument and never reads app.expense_receipts (ADR 0016 item 14).
+create or replace function private.expense_readable(p_expense_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select exists (
+    select 1 from app.expenses e
+    where e.id = p_expense_id and e.deleted_at is null
+      and (e.budget_line_id in (select private.budget_line_ids_with('finance.expense.read'))
+        or e.submitter_person_id = private.current_person_id()));
+$$;
+
+comment on function private.expense_readable(uuid) is 'True when the signed-in person may read the expense: finance.expense.read on its budget line''s project, or they submitted it (the 0321 expense read rule). Policies on rows of an expense pass the expense id column.';
+revoke all on function private.expense_readable(uuid) from public, anon;
+grant execute on function private.expense_readable(uuid) to authenticated, service_role;
+
+call private.install_policies('app.expense_receipts', 'private.expense_readable(expense_id)');
 
 -- Field media ------------------------------------------------------------------------------------------------------------
 -- From 1328 (the latest), with expense receipts added.
