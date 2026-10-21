@@ -27,6 +27,14 @@ export function isDocumentKind(value: string): value is DocumentKind {
   return (DOCUMENT_KINDS as readonly string[]).includes(value);
 }
 
+/**
+ * Documents the platform issues outside any org's records (A79): the deletion certificate of an org whose
+ * data was deleted (Section 14.7). They use the same renderer and model, so they meet PDF/UA-1 too.
+ */
+export const PLATFORM_DOCUMENT_KINDS = ["deletion-certificate"] as const;
+
+export type PlatformDocumentKind = (typeof PLATFORM_DOCUMENT_KINDS)[number];
+
 /** Every document prints on US Letter and A4 (Section 11.9). */
 export type Paper = "letter" | "a4";
 
@@ -72,7 +80,7 @@ export interface DocumentLogo {
 }
 
 export interface DocumentModel {
-  readonly kind: DocumentKind;
+  readonly kind: DocumentKind | PlatformDocumentKind;
   /** BCP 47 language of every string in the model, for example en-US or es-US. */
   readonly lang: string;
   /** Document title, also the PDF title the viewer shows (for example "Purchase order PRJ-PO-12"). */

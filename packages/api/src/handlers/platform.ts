@@ -26,6 +26,7 @@ import type { ListQuery } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
 import { a36Handlers } from "./parts/a36.ts";
+import { a79PlatformHandlers } from "./parts/a79.ts";
 import { a84Handlers } from "./parts/a84.ts";
 import { automationHandlers } from "./parts/automations.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
@@ -262,6 +263,7 @@ export const handlers = defineHandlers("Platform", {
   ...(viewsHelpSupportHandlers as unknown as HandlerSet<"Platform">),
   ...(workflowHandlers as unknown as HandlerSet<"Platform">),
   ...(a36Handlers as unknown as HandlerSet<"Platform">),
+  ...(a79PlatformHandlers as unknown as HandlerSet<"Platform">),
   ...(a84Handlers as unknown as HandlerSet<"Platform">),
   ...(automationHandlers as unknown as HandlerSet<"Platform">),
 

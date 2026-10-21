@@ -436,14 +436,23 @@ describe("workspaces and subscriptions", () => {
   it("reads the current subscription", async () => {
     const { db } = fakeClient({
       "from:subscriptions": [
-        okResponse({ plan_code: "access", subscription_state: "active" }),
+        okResponse({ plan_code: "access", subscription_state: "active", trial_ends_at: null }),
+        okResponse({
+          plan_code: "pro",
+          subscription_state: "trialing",
+          trial_ends_at: "2026-11-03T12:00:00Z",
+        }),
         okResponse(null),
         errorResponse("08006", "down"),
       ],
     });
     expect(await getSubscription(db, "o1")).toEqual({
       ok: true,
-      data: { planCode: "access", state: "active" },
+      data: { planCode: "access", state: "active", trialEndsAt: null },
+    });
+    expect(await getSubscription(db, "o1")).toEqual({
+      ok: true,
+      data: { planCode: "pro", state: "trialing", trialEndsAt: "2026-11-03T12:00:00Z" },
     });
     expect(await getSubscription(db, "o1")).toEqual({ ok: false, error: { kind: "not-found" } });
     expect((await getSubscription(db, "o1")).ok).toBe(false);

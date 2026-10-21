@@ -2551,6 +2551,28 @@ export interface Components {
     capability_code?: string | null;
     reason?: string;
   };
+  DeletionCertificate: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    deleted_org_id: string;
+    org_name: string;
+    org_slug: string;
+    basis: "cancellation" | "deletion_request";
+    requested_at: string;
+    due_at: string;
+    purged_at: string | null;
+    tables_purged: number | null;
+    rows_purged: number | null;
+    storage_objects_deleted: number;
+    document_sha256: string | null;
+    issued_at: string | null;
+    delivered_at: string | null;
+  };
+  DeletionCertificatePage: {
+    data: Array<Components["DeletionCertificate"]>;
+    next_cursor: string | null;
+  };
   DeptCode: string;
   DietaryNeed:
     | "Vegetarian"
@@ -2658,6 +2680,7 @@ export interface Components {
   };
   DocumentVersionCreate: { document_id: string; storage_uri: string; checksum_sha256: string };
   DocumentVersionPage: { data: Array<Components["DocumentVersion"]>; next_cursor: string | null };
+  DomainDnsRecord: { type: string; name: string; value: string; purpose: string };
   DoorGuest: {
     guest_list_entry_id: string;
     guest_name: string;
@@ -4212,6 +4235,7 @@ export interface Components {
     rank: number;
   };
   KnowledgeSourcePage: { data: Array<Components["KnowledgeSource"]>; next_cursor: string | null };
+  LeavePartnerRequest: { confirm_name: string };
   Limit: number;
   LineType: string;
   ListingReport: {
@@ -4962,6 +4986,25 @@ export interface Components {
     legal_entity_name?: string | null;
     suppress_powered_by?: boolean;
   };
+  OrgDeletionRequest: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    reason: string;
+    requested_at: string;
+    recover_until: string;
+    requested_by: string;
+    recovered_at: string | null;
+    recovered_by: string | null;
+  };
+  OrgDeletionRequestCreate: { confirm_name: string; reason: string };
+  OrgDeletionRequestPage: {
+    data: Array<Components["OrgDeletionRequest"]>;
+    next_cursor: string | null;
+  };
   OrgExport: {
     id: string;
     org_id: string;
@@ -5121,6 +5164,57 @@ export interface Components {
     min_dt_multiplier: number | null;
   };
   OvertimeRulePage: { data: Array<Components["OvertimeRule"]>; next_cursor: string | null };
+  OwnershipTransfer: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    from_person_id: string;
+    to_person_id: string;
+    previous_owner_outcome: "admin" | "leave";
+    offered_at: string;
+    expires_at: string;
+    accepted_at: string | null;
+    declined_at: string | null;
+    canceled_at: string | null;
+    canceled_by: string | null;
+    expired_at: string | null;
+  };
+  OwnershipTransferOfferRequest: {
+    to_person_id: string;
+    previous_owner_outcome: "admin" | "leave";
+  };
+  OwnershipTransferPage: {
+    data: Array<Components["OwnershipTransfer"]>;
+    next_cursor: string | null;
+  };
+  PartnerStandingGrant: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    partner_org_id: string;
+    capability_code: string;
+    agreement_reference: string;
+    valid_from: string;
+    valid_to: string;
+    record_grant_id: string;
+    ended_at: string | null;
+    ended_by: string | null;
+  };
+  PartnerStandingGrantPage: {
+    data: Array<Components["PartnerStandingGrant"]>;
+    next_cursor: string | null;
+  };
+  PartnerStandingGrantRecordRequest: {
+    capability_code: string;
+    valid_to: string;
+    agreement_reference: string;
+  };
   PassportReveal: { passport_number: string };
   PassportRevealRequest: { reason: string };
   PayPeriod: {
@@ -7690,6 +7784,7 @@ export interface Components {
     updated_by: string | null;
     plan_code: string;
     subscription_state: "trialing" | "active" | "past_due" | "read_only" | "canceled";
+    trial_ends_at: string | null;
     extra_seats: number;
     seats_grandfathered: boolean;
   };
@@ -8726,6 +8821,11 @@ export interface Components {
     verification_token: string;
     last_checked_at: string | null;
     auto_join_role_id: string | null;
+    provisioning_status:
+      "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
+    dns_records: Array<Components["DomainDnsRecord"]>;
+    tls_ready: boolean;
+    provisioning_error: string | null;
   };
   VerifiedDomainCreate: {
     hostname: string;
@@ -18948,6 +19048,15 @@ export interface Operations {
     body: Components["CreateClientOrganizationRequest"];
     responses: { 201: Components["CreateClientOrganizationResult"] };
   };
+  "organizations.leavePartner": {
+    module: "Identity";
+    method: "post";
+    path: "/organizations/leave-partner";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["LeavePartnerRequest"];
+    responses: { 200: Components["Organization"] };
+  };
   "memberships.list": {
     module: "Identity";
     method: "get";
@@ -19523,6 +19632,15 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 204: null };
+  };
+  "verifiedDomains.check": {
+    module: "Identity";
+    method: "post";
+    path: "/verified-domains/{id}/check";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["VerifiedDomain"] };
   };
   "offboardingChecklists.list": {
     module: "Identity";
@@ -24039,6 +24157,174 @@ export interface Operations {
     body: Components["WholesaleBillingRequest"];
     responses: { 201: Components["WholesaleStatement"] };
   };
+  "ownershipTransfers.list": {
+    module: "Platform";
+    method: "get";
+    path: "/ownership-transfers";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OwnershipTransferPage"] };
+  };
+  "ownershipTransfers.get": {
+    module: "Platform";
+    method: "get";
+    path: "/ownership-transfers/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.offer": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/offer";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OwnershipTransferOfferRequest"];
+    responses: { 201: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.accept": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/accept";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.decline": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/decline";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "ownershipTransfers.cancel": {
+    module: "Platform";
+    method: "post";
+    path: "/ownership-transfers/{id}/cancel";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OwnershipTransfer"] };
+  };
+  "orgDeletionRequests.list": {
+    module: "Platform";
+    method: "get";
+    path: "/org-deletion-requests";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequestPage"] };
+  };
+  "orgDeletionRequests.get": {
+    module: "Platform";
+    method: "get";
+    path: "/org-deletion-requests/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequest"] };
+  };
+  "orgDeletionRequests.request": {
+    module: "Platform";
+    method: "post";
+    path: "/org-deletion-requests/request";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["OrgDeletionRequestCreate"];
+    responses: { 201: Components["OrgDeletionRequest"] };
+  };
+  "orgDeletionRequests.recover": {
+    module: "Platform";
+    method: "post";
+    path: "/org-deletion-requests/{id}/recover";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["OrgDeletionRequest"] };
+  };
+  "deletionCertificates.list": {
+    module: "Platform";
+    method: "get";
+    path: "/deletion-certificates";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["DeletionCertificatePage"] };
+  };
+  "deletionCertificates.get": {
+    module: "Platform";
+    method: "get";
+    path: "/deletion-certificates/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["DeletionCertificate"] };
+  };
+  "partnerStandingGrants.list": {
+    module: "Platform";
+    method: "get";
+    path: "/partner-standing-grants";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrantPage"] };
+  };
+  "partnerStandingGrants.get": {
+    module: "Platform";
+    method: "get";
+    path: "/partner-standing-grants/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrant"] };
+  };
+  "partnerStandingGrants.record": {
+    module: "Platform";
+    method: "post";
+    path: "/partner-standing-grants/record";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["PartnerStandingGrantRecordRequest"];
+    responses: { 201: Components["PartnerStandingGrant"] };
+  };
+  "partnerStandingGrants.end": {
+    module: "Platform";
+    method: "post";
+    path: "/partner-standing-grants/{id}/end";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["PartnerStandingGrant"] };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -27062,6 +27348,7 @@ export interface ModuleOperations {
     | "organizations.get"
     | "organizations.update"
     | "organizations.createClient"
+    | "organizations.leavePartner"
     | "memberships.list"
     | "memberships.get"
     | "memberships.leave"
@@ -27118,6 +27405,7 @@ export interface ModuleOperations {
     | "verifiedDomains.get"
     | "verifiedDomains.update"
     | "verifiedDomains.delete"
+    | "verifiedDomains.check"
     | "offboardingChecklists.list"
     | "offboardingChecklists.get"
     | "offboardingChecklists.update"
@@ -27321,6 +27609,22 @@ export interface ModuleOperations {
     | "wholesaleStatements.list"
     | "wholesaleStatements.get"
     | "wholesaleStatements.run"
+    | "ownershipTransfers.list"
+    | "ownershipTransfers.get"
+    | "ownershipTransfers.offer"
+    | "ownershipTransfers.accept"
+    | "ownershipTransfers.decline"
+    | "ownershipTransfers.cancel"
+    | "orgDeletionRequests.list"
+    | "orgDeletionRequests.get"
+    | "orgDeletionRequests.request"
+    | "orgDeletionRequests.recover"
+    | "deletionCertificates.list"
+    | "deletionCertificates.get"
+    | "partnerStandingGrants.list"
+    | "partnerStandingGrants.get"
+    | "partnerStandingGrants.record"
+    | "partnerStandingGrants.end"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"

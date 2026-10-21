@@ -132,7 +132,7 @@
     },
     "recordKeyFormat": {
       "label": "Formato de la clave de registro",
-      "help": "Usa {PROJECT} y {SEQ}, por ejemplo {PROJECT}-{SEQ}."
+      "help": "Usa '{PROJECT}' y '{SEQ}', por ejemplo '{PROJECT}'-'{SEQ}'."
     },
     "numberPadding": {
       "label": "Relleno de números",
@@ -451,6 +451,9 @@
     "teams": "Los equipos agrupan a los miembros que comparten trabajo. Cada equipo muestra sus miembros.",
     "workspaces": "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     "accessReviews": "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
+    "partner": "Las organizaciones cliente de tu agencia socia, las condiciones mayoristas y el acceso a la Consola de socio.",
+    "usage": "Lo que la organización usa frente a su plan: asientos, miembros de campo, proyectos y contrataciones.",
+    "templates": "Plantillas que la organización reutiliza para proyectos, documentos y paquetes.",
     "calendarFeeds": "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario."
   },
   "accessControls": {
