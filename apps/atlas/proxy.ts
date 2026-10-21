@@ -66,10 +66,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   /** Request headers for the app, rebuilt after any cookie refresh so they carry the new cookies. */
   const forwardedHeaders = () => {
     const headers = new Headers(request.headers);
-    headers.set("x-nonce", nonce);
-    headers.set("content-security-policy", csp);
     if (slug) headers.set(ROUTE_ORG_HEADER, slug);
     else headers.delete(ROUTE_ORG_HEADER);
+    headers.set("x-nonce", nonce);
+    headers.set("content-security-policy", csp);
     return headers;
   };
   const secure = <T extends NextResponse>(response: T): T => {
