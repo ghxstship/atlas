@@ -75,7 +75,7 @@
     "org_cancel_has_clients": "A partner with client orgs cannot cancel. Move each client to direct billing first.",
     "org_not_canceled": "This organization is not canceled.",
     "org_reactivation_window": "An organization can be reactivated during the 30 days after it was canceled.",
-    "org_read_only": "This organization is canceled and read-only. The Owner can reactivate it in Settings, Danger zone.",
+    "org_read_only": "This organization is read-only right now. The banner at the top of the page says why and what lifts it.",
     "inbox_action_unknown": "An Inbox item is approved, rejected or marked Done.",
     "inbox_action_not_offered": "Only an approval request is approved or rejected from the Inbox.",
     "inbox_snooze_window": "Snooze an item for up to 30 days.",
@@ -558,7 +558,9 @@
       },
       "billing": {
         "payment_failed": "Payment failed",
-        "read_only": "Organization is read-only"
+        "read_only": "Organization is read-only",
+        "trial_ending": "Trial ending soon",
+        "trial_ended": "Trial ended"
       },
       "comment": {
         "created": "New comment"
@@ -592,6 +594,18 @@
       },
       "occupancy": {
         "threshold": "Occupancy threshold reached"
+      },
+      "organization": {
+        "deletion_requested": "Organization deletion requested",
+        "deletion_recovered": "Organization recovered",
+        "ownership_offered": "Ownership offered",
+        "ownership_accepted": "Ownership accepted",
+        "ownership_declined": "Ownership declined",
+        "white_label_reverting": "White label ending",
+        "white_label_reverted": "White label ended"
+      },
+      "partner": {
+        "client_left": "Client organization left"
       },
       "recognition": {
         "received": "Recognition received"

@@ -503,20 +503,26 @@ export async function listWorkspaces(db: XosClient, orgId: string): Promise<Resu
 export interface Subscription {
   readonly planCode: string;
   readonly state: string;
+  /** When a trialing subscription's trial ends (1350, Section 14.7); null when it is not trialing. */
+  readonly trialEndsAt: string | null;
 }
 
 /** The org's current subscription: the one row that is not canceled. */
 export async function getSubscription(db: XosClient, orgId: string): Promise<Result<Subscription>> {
   const { data, error } = await db
     .from("subscriptions")
-    .select("plan_code, subscription_state")
+    .select("plan_code, subscription_state, trial_ends_at")
     .eq("org_id", orgId)
     .neq("subscription_state", "canceled")
     .is("deleted_at", null)
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok({ planCode: data.plan_code, state: data.subscription_state });
+  return ok({
+    planCode: data.plan_code,
+    state: data.subscription_state,
+    trialEndsAt: data.subscription_state === "trialing" ? (data.trial_ends_at ?? null) : null,
+  });
 }
 
 /** Seats of an org (ADR 0035): members above Field against the seat limit in force. */

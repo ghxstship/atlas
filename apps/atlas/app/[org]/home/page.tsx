@@ -1,4 +1,5 @@
 import { getSubscription, listMembers, listPendingInvites } from "@xos/data";
+import { windowLastDay } from "@xos/data/org-lifecycle";
 import { isNodeVisible } from "@xos/ia";
 import { CircleCheck, Circle } from "lucide-react";
 import Link from "next/link";
@@ -10,6 +11,7 @@ import { getTranslate } from "@/lib/shell/translate";
 import { formatAlert } from "@/components/home/format-alert";
 import { HomeTiles } from "@/components/home/home-tiles";
 import { loadHomeTiles } from "@/lib/home/data";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * Home (Dashboard template, Section 11.6). A new org sees the first-run checklist of Section 11.7
@@ -32,8 +34,11 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   const routeParams = await params;
   const ctx = await requireNode("home", routeParams);
   const t = await getTranslations("shell.home");
+  const lifecycle = await getTranslations("orgLifecycle");
+  const format = await getFormatter();
   const translate = await getTranslate();
   const db = ctx.viewer.db;
+  const zone = await getOrgTimeZone(ctx);
   const [members, invites, subscription] = await Promise.all([
     listMembers(db, ctx.org.id),
     ctx.capabilities.has("org.members.read")
@@ -56,7 +61,6 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
   });
   const completed = steps.filter((s) => s.done).length;
   // Alert texts and relative times are formatted here, not during hydration (HomeTiles).
-  const format = await getFormatter();
   const alertT = (await getTranslations("home.alerts")) as unknown as Parameters<
     typeof formatAlert
   >[0];
@@ -134,7 +138,18 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
           <h2 id="home-plan" className="text-heading-16 font-semibold">
             {t("plan.title")}
           </h2>
-          {subscription.ok ? (
+          {subscription.ok && subscription.data.trialEndsAt ? (
+            <p className="text-text-13 text-text-secondary">
+              {lifecycle("home.trial", {
+                org: ctx.org.name,
+                // The trial's last day on the org's calendar, formatted as that calendar day.
+                date: format.dateTime(
+                  new Date(`${windowLastDay(subscription.data.trialEndsAt, zone)}T00:00:00Z`),
+                  { dateStyle: "medium", timeZone: "UTC" },
+                ),
+              })}
+            </p>
+          ) : subscription.ok ? (
             <p className="text-text-13 text-text-secondary">
               {t("plan.current", {
                 org: ctx.org.name,

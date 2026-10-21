@@ -15,7 +15,8 @@
     "inspection-report": "Inspection report",
     "incident-report": "Incident report",
     "final-cost-report": "Final cost report",
-    "agreement-certificate": "Signature certificate"
+    "agreement-certificate": "Signature certificate",
+    "deletion-certificate": "Deletion certificate"
   },
   "facts": {
     "recordKey": "Record key",
@@ -248,5 +249,33 @@
       "Expired": "Expired",
       "Canceled": "Canceled"
     }
+  },
+  "deletionCertificate": {
+    "title": "Deletion certificate: {org}",
+    "issuer": "XOS",
+    "key": "Certificate",
+    "qrAlt": "QR code that opens your deletion certificates in Atlas, certificate {key}",
+    "statement": "This certifies that every record and stored file of {org} was deleted from XOS on {date}.",
+    "organization": "Organization",
+    "orgName": "Name",
+    "orgSlug": "Web address",
+    "orgId": "Organization id",
+    "issuedTo": "Issued to",
+    "formerOwner": "The former Owner",
+    "timeline": "Timeline",
+    "canceled": "Canceled",
+    "requestedDeletion": "Deletion requested",
+    "due": "Due for deletion",
+    "deleted": "Deleted",
+    "whatWasDeleted": "What was deleted",
+    "what": "What",
+    "count": "Count",
+    "rows": "Records",
+    "tables": "Kinds of record",
+    "files": "Stored files",
+    "nothing": "Nothing was stored.",
+    "backupsTitle": "Backups",
+    "backups": "Encrypted backups made before the deletion age out on their own schedule. They are kept only for disaster recovery and are not used to restore a deleted organization.",
+    "keep": "Keep this certificate for your records. Its id is {id}."
   }
 }

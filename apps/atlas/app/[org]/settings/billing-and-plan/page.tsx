@@ -1,5 +1,6 @@
 import { getSeatUsage, getSubscription } from "@xos/data";
 import { getFormatter, getTranslations } from "next-intl/server";
+import { BillingLifecycleNotice } from "@/components/lifecycle/billing-notice";
 import { SectionHeader } from "@/components/settings/section-header";
 import { requireNode } from "@/lib/shell/require-node";
 import { Button, Card, InlineAlert } from "@/components/ui";
@@ -46,6 +47,7 @@ export default async function BillingSettingsPage({
   return (
     <>
       <SectionHeader node="settings.billing-and-plan" />
+      <BillingLifecycleNotice ctx={ctx} />
       <p className="m-0 text-text-14">{t("current", { org: ctx.org.name, plan: name(current) })}</p>
       <InlineAlert tone="info">{t("notAvailable")}</InlineAlert>
       <Card>
