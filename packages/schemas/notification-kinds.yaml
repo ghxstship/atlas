@@ -144,8 +144,12 @@ kinds:
   - kind: weather.alert
     category: safety
     bypasses_quiet_hours: true
-  # Account (0520, 0560, 1203)
+  # Account (0520, 0560, 1203, 1560, 1561)
   - kind: account.security_changed
+    category: account
+  - kind: account.recovery_code_used
+    category: account
+  - kind: account.session_signed_out
     category: account
   - kind: billing.payment_failed
     category: account

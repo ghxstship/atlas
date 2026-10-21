@@ -6,10 +6,11 @@ import type { NotificationKindRegistry } from "./model.ts";
  * has shipped, move it to the next number in the range of the agent changing it, delete the old seed's
  * drift test (the new seed's test replaces it) and keep the old seed as history. Each seed is a complete
  * idempotent upsert, so the latest one decides the rows. 1360 was the first; 1368 adds the quiet-hours
- * bypass list (ADR 0033 decision 35).
+ * bypass list (ADR 0033 decision 35); 1569 adds the account notices of recovery codes and signed-out sessions
+ * (A99, ADR 0055).
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
-  "supabase/migrations/1368_notification_kind_seed.sql";
+  "supabase/migrations/1569_notification_kind_seed.sql";
 
 /** The pgTAP drift test of the seed, named for its migration. */
 export const NOTIFICATION_KIND_DRIFT_TEST = NOTIFICATION_KIND_SEED_MIGRATION.replace(

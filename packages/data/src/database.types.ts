@@ -8330,6 +8330,7 @@ export type Database = {
           org_id: string;
           project_id: string | null;
           revoked_at: string | null;
+          rotated_at: string | null;
           token_hash: string;
           token_hint: string;
           updated_at: string;
@@ -8346,6 +8347,7 @@ export type Database = {
           org_id: string;
           project_id?: string | null;
           revoked_at?: string | null;
+          rotated_at?: string | null;
           token_hash: string;
           token_hint: string;
           updated_at?: string;
@@ -8361,6 +8363,7 @@ export type Database = {
           org_id?: string;
           project_id?: string | null;
           revoked_at?: string | null;
+          rotated_at?: string | null;
           token_hash?: string;
           token_hint?: string;
           updated_at?: string;
@@ -19224,8 +19227,14 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          discard_reason: string | null;
+          discarded_at: string | null;
+          discarded_by: string | null;
           dkim_verified: boolean;
+          filed_at: string | null;
+          filed_by: string | null;
           filed_document_id: string | null;
+          filed_record_id: string | null;
           from_address: string;
           id: string;
           inbound_address_id: string | null;
@@ -19250,8 +19259,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          discard_reason?: string | null;
+          discarded_at?: string | null;
+          discarded_by?: string | null;
           dkim_verified: boolean;
+          filed_at?: string | null;
+          filed_by?: string | null;
           filed_document_id?: string | null;
+          filed_record_id?: string | null;
           from_address: string;
           id?: string;
           inbound_address_id?: string | null;
@@ -19275,8 +19290,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          discard_reason?: string | null;
+          discarded_at?: string | null;
+          discarded_by?: string | null;
           dkim_verified?: boolean;
+          filed_at?: string | null;
+          filed_by?: string | null;
           filed_document_id?: string | null;
+          filed_record_id?: string | null;
           from_address?: string;
           id?: string;
           inbound_address_id?: string | null;
@@ -19304,10 +19325,38 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "inbound_messages_discarded_by_fkey";
+            columns: ["discarded_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_by_fkey";
+            columns: ["filed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "inbound_messages_filed_document_id_fkey";
             columns: ["filed_document_id"];
             isOneToOne: false;
             referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
+            referencedRelation: "offboarding_open_records";
+            referencedColumns: ["record_id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
             referencedColumns: ["id"];
           },
           {
@@ -28945,6 +28994,74 @@ export type Database = {
           },
           {
             foreignKeyName: "permit_requirements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      person_calendar_feeds: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          last_accessed_at: string | null;
+          person_id: string;
+          revoked_at: string | null;
+          rotated_at: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          person_id: string;
+          revoked_at?: string | null;
+          rotated_at?: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          person_id?: string;
+          revoked_at?: string | null;
+          rotated_at?: string | null;
+          token_hash?: string;
+          token_hint?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_calendar_feeds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_calendar_feeds_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_calendar_feeds_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -41462,6 +41579,68 @@ export type Database = {
           },
         ];
       };
+      shortcut_bindings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          keys: string | null;
+          person_id: string;
+          shell: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          keys?: string | null;
+          person_id: string;
+          shell: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          keys?: string | null;
+          person_id?: string;
+          shell?: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shortcut_bindings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shortcut_bindings_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shortcut_bindings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shortlists: {
         Row: {
           application_id: string;
@@ -41548,6 +41727,78 @@ export type Database = {
           },
           {
             foreignKeyName: "shortlists_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sidebar_item_preferences: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          hidden: boolean;
+          id: string;
+          node_id: string;
+          org_id: string;
+          person_id: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hidden?: boolean;
+          id?: string;
+          node_id: string;
+          org_id: string;
+          person_id: string;
+          sort_order: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hidden?: boolean;
+          id?: string;
+          node_id?: string;
+          org_id?: string;
+          person_id?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sidebar_item_preferences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -54497,6 +54748,7 @@ export type Database = {
         Args: { p_delivery_id: string; p_object_prefix: string; p_schema_version: string };
         Returns: undefined;
       };
+      consent_oauth_request: { Args: { p_authorization_id: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
@@ -54637,6 +54889,13 @@ export type Database = {
         Returns: string;
       };
       create_organization: { Args: { p_name: string; p_slug: string }; Returns: string };
+      create_person_calendar_feed: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
       create_project: {
         Args: {
           p_currency_code?: string;
@@ -54789,9 +55048,15 @@ export type Database = {
         };
         Returns: string;
       };
+      decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
+      disable_project_inbox: { Args: { p_project_id: string }; Returns: undefined };
+      discard_inbound_message: {
+        Args: { p_inbound_message_id: string; p_reason?: string };
+        Returns: undefined;
+      };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;
@@ -54950,6 +55215,10 @@ export type Database = {
           person_id: string;
         }[];
       };
+      file_inbound_message: {
+        Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
+        Returns: string;
+      };
       find_chat_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
         Returns: string;
@@ -55021,6 +55290,12 @@ export type Database = {
         Returns: string;
       };
       generate_permit_requirements: { Args: { p_project_id: string }; Returns: number };
+      generate_recovery_codes: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          code: string;
+        }[];
+      };
       generate_self_billed_invoice: {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
@@ -55091,6 +55366,14 @@ export type Database = {
       issue_scim_token: { Args: { p_identity_provider_id: string }; Returns: string };
       issue_training_certification: { Args: { p_completion_id: string }; Returns: string };
       join_by_sso: { Args: { p_org_id: string }; Returns: string };
+      join_by_sso_session: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          joined: boolean;
+          org_id: string;
+          slug: string;
+        }[];
+      };
       join_by_verified_domain: { Args: { p_org_id: string }; Returns: string };
       kiosk_punch: {
         Args: {
@@ -55175,6 +55458,13 @@ export type Database = {
           submitted_at: string;
         }[];
       };
+      my_auth_factor_labels: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          factor_id: string;
+          label: string;
+        }[];
+      };
       my_blocks: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -55226,12 +55516,87 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_oauth_access: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          oauth_app_id: string;
+          org_id: string;
+          scopes: string[];
+        }[];
+      };
+      my_oauth_apps: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          app_name: string;
+          grant_id: string;
+          granted_at: string;
+          last_used_at: string;
+          oauth_app_id: string;
+          org_name: string;
+          scopes: string[];
+        }[];
+      };
+      my_org_auth_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          idle_timeout_minutes: number;
+          mfa_required: boolean;
+          mfa_verified: boolean;
+          session_ended: boolean;
+          session_expired: boolean;
+          session_expires_at: string;
+          session_hours: number;
+          signed_in_at: string;
+        }[];
+      };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
           capability_code: string;
           project_id: string;
           project_role: Database["app"]["Enums"]["project_role"];
+        }[];
+      };
+      my_recovery_code_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          created_at: string;
+          last_used_at: string;
+          remaining: number;
+          total: number;
+          usable: boolean;
+        }[];
+      };
+      my_second_factor_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          recent: boolean;
+          recent_until: string;
+          second_factor_at: string;
+          session_aal: string;
+        }[];
+      };
+      my_security_events: {
+        Args: { p_limit?: number };
+        Returns: {
+          detail: Json;
+          kind: string;
+          occurred_at: string;
+          this_session: boolean;
+        }[];
+      };
+      my_sessions: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          client_address: string;
+          is_current: boolean;
+          last_active_at: string;
+          place: string;
+          second_factor: boolean;
+          session_id: string;
+          signed_in_at: string;
+          surface: string;
+          user_agent: string;
         }[];
       };
       my_sms_status: {
@@ -55283,6 +55648,29 @@ export type Database = {
         Returns: {
           ends_on: string;
           starts_on: string;
+        }[];
+      };
+      oauth_app_client_ids: {
+        Args: { p_org_id: string };
+        Returns: {
+          auth_client_id: string;
+          oauth_app_id: string;
+        }[];
+      };
+      oauth_consent_request: {
+        Args: { p_authorization_id: string };
+        Returns: {
+          app_name: string;
+          client_id: string;
+          expires_at: string;
+          granted_scopes: string[];
+          oauth_app_id: string;
+          org_id: string;
+          org_name: string;
+          pkce_s256: boolean;
+          redirect_uri: string;
+          restricted_scopes: string[];
+          scopes: string[];
         }[];
       };
       object_scan_status: {
@@ -55460,6 +55848,7 @@ export type Database = {
         };
         Returns: string;
       };
+      prune_recovery_codes: { Args: Record<PropertyKey, never>; Returns: boolean };
       publish_form_template: {
         Args: { p_reason?: string; p_template_id: string };
         Returns: number;
@@ -55654,6 +56043,10 @@ export type Database = {
           p_provider_message_id?: string;
           p_status: Database["app"]["Enums"]["message_status"];
         };
+        Returns: undefined;
+      };
+      record_oauth_request: {
+        Args: { p_authorization_id: string; p_scopes: string[] };
         Returns: undefined;
       };
       record_object_scan: {
@@ -55863,6 +56256,13 @@ export type Database = {
         Args: { p_delivery_id: string; p_error?: string; p_response_status: number };
         Returns: Database["app"]["Enums"]["delivery_status"];
       };
+      redeem_recovery_code: {
+        Args: { p_code: string };
+        Returns: {
+          outcome: string;
+          remaining: number;
+        }[];
+      };
       refresh_file_link: {
         Args: {
           p_external_modified_at: string;
@@ -55894,6 +56294,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
@@ -55978,6 +56379,11 @@ export type Database = {
       request_import_commit: { Args: { p_import_job_id: string }; Returns: string };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
       request_warehouse_delivery: { Args: { p_destination_id: string }; Returns: string };
+      reset_shortcut_bindings: {
+        Args: { p_shell: Database["app"]["Enums"]["shortcut_shell"]; p_shortcut_id?: string };
+        Returns: number;
+      };
+      reset_sidebar_layout: { Args: { p_org_id: string }; Returns: number };
       resolve_asset_code: {
         Args: { p_code: string; p_org_id: string };
         Returns: {
@@ -56094,6 +56500,20 @@ export type Database = {
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      rotate_calendar_feed: {
+        Args: { p_calendar_feed_id: string };
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
+      rotate_person_calendar_feed: {
+        Args: { p_calendar_feed_id: string };
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
       rsvp_to_event: {
         Args: { p_event_id: string; p_response: Database["app"]["Enums"]["rsvp_response"] };
         Returns: string;
@@ -56119,6 +56539,7 @@ export type Database = {
         };
         Returns: string;
       };
+      save_sidebar_layout: { Args: { p_items: Json; p_org_id: string }; Returns: number };
       scim_provider_for_token: { Args: { p_token: string }; Returns: string };
       scim_provision: {
         Args: {
@@ -56131,6 +56552,7 @@ export type Database = {
         };
         Returns: string;
       };
+      scim_user_for_email: { Args: { p_email: string }; Returns: string };
       seat_usage: {
         Args: { p_org_id: string };
         Returns: {
@@ -56173,6 +56595,7 @@ export type Database = {
         Returns: string;
       };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
+      set_auth_factor_label: { Args: { p_factor_id: string; p_label: string }; Returns: undefined };
       set_deliverable_fee: {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;
@@ -56227,6 +56650,14 @@ export type Database = {
           p_value_boolean?: boolean;
           p_value_integer?: number;
           p_value_text?: string;
+        };
+        Returns: string;
+      };
+      set_shortcut_binding: {
+        Args: {
+          p_keys: string;
+          p_shell: Database["app"]["Enums"]["shortcut_shell"];
+          p_shortcut_id: string;
         };
         Returns: string;
       };
@@ -56342,6 +56773,8 @@ export type Database = {
         Returns: string;
       };
       sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
+      sign_out_my_other_sessions: { Args: Record<PropertyKey, never>; Returns: number };
+      sign_out_my_session: { Args: { p_session_id: string }; Returns: undefined };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {
@@ -56478,6 +56911,15 @@ export type Database = {
           remaining: number;
           reset_seconds: number;
         }[];
+      };
+      touch_my_session: {
+        Args: {
+          p_client_address: string;
+          p_place: string;
+          p_surface: string;
+          p_user_agent: string;
+        };
+        Returns: undefined;
       };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };
@@ -57321,6 +57763,7 @@ export type Database = {
       shift_claim_state: "Requested" | "Approved" | "Rejected" | "Withdrawn" | "Superseded";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
+      shortcut_shell: "Atlas" | "Gateway";
       sms_consent_action: "Opt In" | "Opt Out" | "Help";
       sort_direction: "Ascending" | "Descending";
       spend_document_type:
@@ -63759,6 +64202,7 @@ export const Constants = {
       shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
+      shortcut_shell: ["Atlas", "Gateway"],
       sms_consent_action: ["Opt In", "Opt Out", "Help"],
       sort_direction: ["Ascending", "Descending"],
       spend_document_type: [
