@@ -39,7 +39,8 @@ update app.organization_profiles set visibility = 'Public' where org_id = pg_tem
 select app.set_setting(pg_temp.id('org_a'), 'gateway.marketplace_visibility', 'Organization', pg_temp.id('org_a'), p_value_text => 'public');
 select pg_temp.as_user('carol');
 with x as (insert into app.opportunities (project_id, role_type, title, visibility, rate_type, deadline_at, starts_on, ends_on)
-  values (pg_temp.id('prj_a'), 'Vendor', 'Summer Series lighting', 'Public', 'Bid', now() + interval '7 days', '2027-06-01', '2027-06-03') returning id)
+  values (pg_temp.id('prj_a'), 'Vendor', 'Summer Series lighting', 'Public', 'Bid', now() + interval '7 days',
+    (now() + interval '30 days')::date, (now() + interval '32 days')::date) returning id)
 insert into world select 'opp_public', id from x;
 select app.transition_opportunity(pg_temp.id('opp_public'), 'Draft', 'Pending Approval', 'Ready for approval.');
 select app.transition_opportunity(pg_temp.id('opp_public'), 'Pending Approval', 'Published', 'Approved.');
