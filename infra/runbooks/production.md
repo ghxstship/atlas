@@ -477,7 +477,7 @@ The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the s
 5. **Secrets.** Set `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_MESSAGING_SERVICE_SID` and `XOS_SMS_HELP_CONTACT`, then `XOS_SMS_TRANSPORT=twilio`. On staging also set `XOS_SMS_ALLOWLIST` to test numbers in E.164 (`+1<10 digits>`); production sets `XOS_SMS_DELIVER_TO_ANY=true` once the campaign is approved.
 6. **Check.** Text HELP to the number: the reply names `XOS_SMS_HELP_CONTACT`. Text STOP: `app.suppression_list` gets a `STOP` row for every org that texts the number. Text START: it is lifted.
 
-Texts go only to verified numbers with recorded consent in the org, never in quiet hours: the member's own, or 21:00 to 08:00 in their time zone when they set none.
+Texts go only to verified numbers with recorded consent in the org, and never in quiet hours: the member's own, or 21:00 to 08:00 in their time zone when they set none (ADR 0033 decision 35). The zone falls back from the member's own to the project's, then the org's, never UTC. Texts held overnight go out at the end of quiet hours as one summary per member and org. Only the kinds flagged `bypasses_quiet_hours` in `packages/schemas/notification-kinds.yaml` go at once: safety alerts and changes to a shift starting within 12 hours.
 
 ### Chat translation (off by default)
 

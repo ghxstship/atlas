@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getMyNotificationMatrix,
   getMyNotificationSettings,
+  getMyNotificationTimeZone,
   getMySmsStatus,
   getOrgNotificationDefaults,
   recordMySmsConsent,
@@ -203,5 +204,23 @@ describe("SMS consent (1366)", () => {
     expect(calls.at(-1)?.steps).toContainEqual(["args", [{ p_org_id: "org-1", p_consent: true }]]);
     const refused = await recordMySmsConsent(db, "org-1", true);
     expect(refused.ok ? null : refused.error.kind).toBe("refusal");
+  });
+});
+
+describe("the member's time zone (1367)", () => {
+  it("reads the resolved zone, or null without one", async () => {
+    const { db } = commercialClient({
+      "rpc:my_notification_time_zone": [
+        okResponse("America/Chicago"),
+        okResponse(null),
+        errorResponse("08006", "down"),
+      ],
+    });
+    expect(await getMyNotificationTimeZone(db, "org-1")).toEqual({
+      ok: true,
+      data: "America/Chicago",
+    });
+    expect(await getMyNotificationTimeZone(db, "org-1")).toEqual({ ok: true, data: null });
+    expect((await getMyNotificationTimeZone(db, "org-1")).ok).toBe(false);
   });
 });
