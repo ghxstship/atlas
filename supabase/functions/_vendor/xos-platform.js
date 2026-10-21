@@ -2447,6 +2447,377 @@ var auroraCertificates_default$1 = {
   insuredsFailed:
     "The certificate was saved, but its additional insureds were not: {detail}. Add them on the certificate.",
 };
+var authSecurity_default$1 = {
+  factorTypes: {
+    totp: "Authenticator app",
+    webauthn: "Security key or passkey",
+    phone: "Phone",
+  },
+  challenge: {
+    title: "Verify it's you",
+    sentence: "Enter the 6-digit code from your authenticator app.",
+    keySentence: "Use your security key or passkey to finish signing in.",
+    code: "Code",
+    codeHelp: "6 digits from the app you set up for this account",
+    factor: "Second factor",
+    verify: "Verify",
+    useKey: "Use security key",
+    keyPrompt: "Follow your browser's prompt to use your security key or passkey.",
+    signOut: "Sign out",
+    lost: "Lost your phone or key? Use another second factor or one of your recovery codes. If you have neither, ask an Owner or Admin of your organization to contact XOS support, who confirm who you are before removing the factor.",
+  },
+  policy: {
+    enrollTitle: "Set up a second factor",
+    enrollSentence: "{org} requires a second factor for your role. Set one up to continue.",
+    sessionEndedTitle: "Sign in again",
+    sessionEnded:
+      "{org} asks you to sign in again every {hours, plural, one {# hour} other {# hours}}.",
+    idle: "You were inactive longer than {org} allows, so you need to sign in again.",
+    signInAgain: "Sign in again",
+    signedOut: "This session was signed out from another device. Sign in again to continue.",
+  },
+  stepUp: {
+    title: "Confirm it's you",
+    sentence: "Confirm with your second factor to continue.",
+    enrollSentence:
+      "This action needs a second factor. Set up an authenticator app now and use it for actions like this one.",
+    cancel: "Cancel",
+    verified: "Verified. Continuing.",
+  },
+  enroll: {
+    label: "Name",
+    labelHelp: "So you can tell your factors apart, for example Work phone",
+    totpDefault: "Authenticator app",
+    keyDefault: "Security key",
+    start: "Set up authenticator app",
+    scan: "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
+    qrAlt: "QR code that sets up your authenticator app",
+    showSecret: "Can't scan? Show the setup key",
+    secret: "Setup key",
+    confirm: "Verify and turn on",
+    cancel: "Cancel",
+    done: "Your authenticator app is set up.",
+    addKey: "Add security key",
+    keyDone: "Your security key is set up.",
+    recovery:
+      "Keep a second way in. Add a second authenticator app or a security key, so losing one device never locks you out.",
+  },
+  factors: {
+    title: "Two-step verification",
+    description:
+      "A second factor keeps your account safe if your password or email is exposed. You use it when you sign in, and Restricted exports and emergency access need it. Removing a factor asks for a code from the last 15 minutes.",
+    none: "No second factor yet.",
+    added: "Added {date}",
+    pending: "Setup not finished",
+    required: "{org} requires a second factor for your role.",
+    rename: "Rename",
+    renameLabel: "New name for {name}",
+    save: "Save",
+    cancel: "Cancel",
+    remove: "Remove",
+    removeTitle: "Remove {name}?",
+    removeSentence:
+      "You won't be asked for it when you sign in. If it is your only second factor, your account is protected by your password alone.",
+    removed: "Removed.",
+    renamed: "Renamed.",
+  },
+  passkeys: {
+    title: "Passkeys",
+    description:
+      "Sign in with your fingerprint, face or device PIN instead of a password. The passkey stays on your device and works only on this site, so it can't be phished.",
+    none: "No passkeys yet.",
+    add: "Add a passkey",
+    label: "Name",
+    labelDefault: "Passkey",
+    added: "Added {date}",
+    lastUsed: "Last used {date}",
+    neverUsed: "Not used yet",
+    rename: "Rename",
+    renameLabel: "New name for {name}",
+    save: "Save",
+    cancel: "Cancel",
+    remove: "Remove",
+    removeTitle: "Remove {name}?",
+    removeSentence:
+      "You won't be able to sign in with this passkey. Remove it from your device too, in its password settings.",
+    done: "Passkey added.",
+    removed: "Removed.",
+    renamed: "Renamed.",
+    unsupported: "This browser can't create passkeys.",
+    signIn: "Sign in with a passkey",
+  },
+  sso: {
+    link: "Sign in with single sign-on",
+    title: "Single sign-on",
+    sentence: "Enter your work email. You continue to your organization's sign-in page.",
+    email: "Work email",
+    continue: "Continue",
+    back: "Other ways to sign in",
+  },
+  providers: {
+    title: "Enterprise single sign-on and SCIM",
+    description:
+      "People sign in through your identity provider (SAML 2.0), and SCIM adds and removes them as your directory changes. Single sign-on and SCIM never make anyone an Owner.",
+    notInPlan: "Single sign-on and SCIM are part of the Enterprise plan.",
+    none: "No identity provider yet. XOS support connects your provider and gives you its provider ID.",
+    add: "Add identity provider",
+    name: "Name",
+    nameHelp: "For example the name of your identity provider tenant",
+    protocol: "Protocol",
+    providerId: "Provider ID",
+    providerIdHelp: "The single sign-on provider ID XOS support gave you",
+    defaultRole: "Role for new people",
+    jit: "Add people who sign in through this provider",
+    scim: "Provision people with SCIM",
+    save: "Save",
+    saved: "Saved.",
+    jitOn: "Adds people who sign in",
+    scimOn: "SCIM on",
+    scimOff: "SCIM off",
+    endpoint: "SCIM base URL",
+    token: "SCIM token",
+    tokenNone: "No token issued",
+    tokenIssued: "Token starting {prefix}",
+    issueToken: "Issue SCIM token",
+    rotateToken: "Rotate SCIM token",
+    tokenOnce:
+      "Copy this token into your identity provider now. It is shown once; issuing another replaces it.",
+    domains: "People whose verified domain is {domains} can sign in with single sign-on.",
+  },
+  errors: {
+    code_invalid: "That code didn't match. Enter the code your app shows now.",
+    code_expired: "That took too long. Try again.",
+    step_up_required: "Confirm it's you with your second factor first.",
+    factor_limit: "You have the most second factors allowed. Remove one first.",
+    factor_name_taken: "You already have a factor with that name. Choose another.",
+    factor_label_length: "Name it in 1 to 80 characters.",
+    passkey_failed: "Your device didn't confirm it. Try again.",
+    cancelled: "Canceled. Try again when you're ready.",
+    unsupported: "This browser doesn't support security keys or passkeys.",
+    sso_unavailable:
+      "No single sign-on is set up for that email domain. Sign in another way, or ask your Admin.",
+    rate_limited: "Too many attempts. Wait a minute, then try again.",
+    integration_plan_feature: "Single sign-on and SCIM need the Enterprise plan.",
+    sso_default_role_owner: "Single sign-on never makes anyone an Owner. Choose another role.",
+    conflict: "Another identity provider already uses that provider ID.",
+    invalid: "Check the highlighted fields.",
+    denied: "You can't change this.",
+    unexpected: "Something went wrong. Try again.",
+    recovery_invalid: "That recovery code didn't match, or it was already used.",
+    recovery_rate_limited: "Too many wrong codes. Wait 15 minutes, then try again.",
+    no_codes:
+      "You have no recovery codes to use. Use another second factor, or ask an Owner or Admin to contact XOS support.",
+    recovery_codes_need_factor: "Set up an authenticator app or a security key first.",
+    session_current: "To sign out of this device, use Sign out.",
+    oauth_request_expired: "This sign-in request has expired. Go back to the app and start again.",
+    oauth_request_recorded:
+      "This sign-in request was already started. Go back to the app and start again.",
+    oauth_client_unknown: "This app isn't registered with XOS.",
+    oauth_not_member: "Only members of the organization that registered this app can connect it.",
+    oauth_scope_unknown: "This app asked for an area XOS doesn't have.",
+    oauth_scope_missing: "This app didn't say which areas it needs.",
+    oauth_pkce_required: "This app must use PKCE with S256. Ask its developer to update it.",
+    api_key_scope_unknown: "Choose areas from the list.",
+    plan_feature_required: "API keys need the Pro plan or above.",
+    api_key_expiry_invalid: "Choose an expiry within a year.",
+    api_key_revoked: "This key is already revoked.",
+  },
+  recovery: {
+    title: "Recovery codes",
+    description:
+      "Single-use codes for when you can't use your authenticator app or security key. Keep them somewhere safe, away from your phone.",
+    none: "No recovery codes yet.",
+    needFactor:
+      "Set up an authenticator app or a security key first. Recovery codes stand in for it.",
+    status: "{remaining} of {total} codes left · made {date}",
+    lastUsed: "Last used {date}",
+    noneLeft: "You've used every code. Make a new set.",
+    low: "{remaining, plural, one {Only # code left.} other {Only # codes left.}} Make a new set soon.",
+    generate: "Make recovery codes",
+    regenerate: "Make new codes",
+    regenerateTitle: "Make new recovery codes?",
+    regenerateSentence: "Your current codes stop working as soon as the new ones are made.",
+    shownOnce: "Save these codes now. You won't see them again, and each one works once.",
+    listLabel: "Your recovery codes",
+    copy: "Copy codes",
+    copied: "Copied.",
+    download: "Download as text",
+    done: "I saved them",
+    fileHeading: "XOS recovery codes",
+    fileNote: "Each code works once. Made {date}.",
+    useInstead: "Use a recovery code instead",
+    useFactor: "Use your second factor instead",
+    code: "Recovery code",
+    codeHelp: "10 letters and digits from your saved codes, like abcde-23456",
+    verify: "Use code",
+    used: "Code accepted. {remaining, plural, =0 {You have no codes left. Make a new set in Security.} one {You have # code left.} other {You have # codes left.}}",
+  },
+  sessions: {
+    title: "Sessions and devices",
+    description:
+      "Where you're signed in to Atlas, Gateway and Compass. Sign out of anything you don't recognize.",
+    thisDevice: "This device",
+    device: "{browser} on {os}",
+    browsers: {
+      chrome: "Chrome",
+      edge: "Edge",
+      firefox: "Firefox",
+      safari: "Safari",
+      opera: "Opera",
+      compass: "Compass",
+      other: "A browser",
+    },
+    systems: {
+      macos: "macOS",
+      windows: "Windows",
+      ios: "iOS",
+      android: "Android",
+      linux: "Linux",
+      chromeos: "ChromeOS",
+      other: "an unknown system",
+    },
+    unknownDevice: "Unknown device",
+    surfaces: {
+      Atlas: "Atlas",
+      Gateway: "Gateway",
+      Compass: "Compass",
+      API: "API",
+    },
+    place: "Near {place}",
+    address: "From {address}",
+    lastActive: "Active {date}",
+    signedIn: "Signed in {date}",
+    secondFactor: "Second factor passed",
+    signOut: "Sign out",
+    signOutLabel: "Sign out {device}, active {date}",
+    signOutTitle: "Sign out of {device}?",
+    signOutSentence: "That session ends now. Anyone using it has to sign in again.",
+    signOutOthers: "Sign out all other sessions",
+    signOutOthersTitle: "Sign out of every other session?",
+    signOutOthersSentence:
+      "Every session except this one ends now. Apps you connected stay connected; revoke them under Connected apps.",
+    signedOut: "Signed out.",
+    signedOutOthers:
+      "{count, plural, =0 {No other session was signed in.} one {Signed out of # other session.} other {Signed out of # other sessions.}}",
+    none: "You're signed in only here.",
+    cancel: "Cancel",
+  },
+  connectedApps: {
+    title: "Connected apps",
+    description:
+      "Apps you let use XOS for you. Each one reaches only the organization that registered it and the areas you allowed.",
+    none: "You haven't connected any apps.",
+    org: "Registered by {org}",
+    scopes: "Can use: {scopes}",
+    granted: "Connected {date}",
+    lastUsed: "Last used {date}",
+    neverUsed: "Not used yet",
+    revoke: "Revoke",
+    revokeLabel: "Revoke {app}",
+    revokeTitle: "Revoke {app}?",
+    revokeSentence: "{app} loses access at once and has to ask you again.",
+    revoked: "Access revoked.",
+    cancel: "Cancel",
+  },
+  consent: {
+    title: "Allow {app} to use XOS?",
+    org: "{app} was registered by {org}. It acts as you in {org} only, and only in the areas below.",
+    scopesHeading: "It asks to use",
+    restricted: "Restricted",
+    restrictedNote:
+      "Some of these reach Restricted data or control the organization. You'll confirm it's you with your second factor.",
+    granted: "You already allowed: {scopes}",
+    redirect: "After you choose, you go back to {uri}.",
+    signedInAs: "Signed in as {email}",
+    allow: "Allow",
+    deny: "Deny",
+    expired: "This request has expired, or it isn't yours. Go back to the app and start again.",
+    pkce: "This app can't connect safely: it doesn't use PKCE with S256. Ask its developer to update it.",
+    invalid: "This sign-in request is incomplete. Go back to the app and start again.",
+    pageTitle: "Allow an app",
+  },
+  scopes: {
+    home: "Home",
+    inbox: "Inbox",
+    my_work: "My Work",
+    projects: "Projects",
+    schedule: "Schedule",
+    work: "Work records",
+    show: "Show",
+    advancing: "Advancing",
+    places: "Places",
+    logistics: "Logistics",
+    hospitality: "Hospitality",
+    assets: "Assets",
+    credentials: "Credentials",
+    safety: "Safety",
+    people: "People",
+    opportunities: "Opportunities",
+    crew: "Crew",
+    finance: "Finance",
+    procurement: "Procurement",
+    vendors: "Vendors",
+    knowledge: "Knowledge",
+    reports: "Reports",
+    canon: "Canon",
+    activity: "Activity",
+    audit: "Audit log",
+    org: "Organization settings and members",
+    data: "Data, exports and Restricted fields",
+    me: "Your own account",
+  },
+  apiKeys: {
+    title: "API keys",
+    description:
+      "Keys let your own servers call the XOS API for {org}. Each key reaches only the areas you choose and stops working when it expires. Creating one asks you to confirm it's you.",
+    notInPlan: "API keys need the Pro plan or above.",
+    none: "No API keys yet.",
+    name: "Name",
+    nameHelp: "So you can tell keys apart, for example Payroll sync",
+    scopes: "Areas this key can use",
+    scopesNone: "Choose at least one area.",
+    expires: "Expires after",
+    days: "{count, plural, one {# day} other {# days}}",
+    create: "Create API key",
+    created: "Copy this key now. You won't see it again.",
+    secret: "API key",
+    copy: "Copy key",
+    copied: "Copied.",
+    done: "I saved it",
+    prefix: "Starts with {prefix}",
+    expiresOn: "Expires {date}",
+    revokedOn: "Revoked {date}",
+    expired: "Expired",
+    revoke: "Revoke",
+    revokeLabel: "Revoke {name}",
+    revokeTitle: "Revoke {name}?",
+    revokeSentence: "Anything using this key stops working at once.",
+    cancel: "Cancel",
+    revoked: "Revoked.",
+  },
+  oauthApps: {
+    title: "OAuth apps",
+    description:
+      "Apps people in {org} can connect to their own account. They sign in with XOS and allow only the areas they see on the consent screen.",
+    none: "No apps registered yet.",
+    name: "App name",
+    redirect: "Redirect URI",
+    redirectHelp:
+      "Where XOS sends people back: an https address, or a loopback address for a native app",
+    register: "Register app",
+    clientId: "Client ID",
+    authorizeUrl: "Authorization URL",
+    tokenUrl: "Token URL",
+    pkce: 'A public client: no client secret. Apps use the authorization code flow with PKCE (S256) and ask for areas in scope, for example "projects schedule".',
+    remove: "Remove",
+    removeLabel: "Remove {name}",
+    removeTitle: "Remove {name}?",
+    removeSentence: "Everyone who connected it loses access at once.",
+    registered: "Registered.",
+    cancel: "Cancel",
+    removed: "Removed.",
+  },
+};
 var canonBrowser_default$1 = {
   what: "the canon",
   empty:
@@ -2680,6 +3051,32 @@ var compass_default$1 = {
     identityTitle: "Your access did not load",
     identity:
       "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
+    identitySteps: {
+      person: "profile",
+      memberships: "memberships",
+      roles: "roles",
+      capabilities: "permissions",
+      projects: "projects",
+      engagements: "engagements",
+      access: "access",
+    },
+  },
+  startup: {
+    title: "Compass could not start",
+    sentence:
+      "The offline storage on this device did not open. Try again. If it keeps happening, restart the phone.",
+    storageReset:
+      "Compass had to reset its offline storage on this device. Changes made offline that had not uploaded could not be recovered. Everything else downloads again.",
+  },
+  secondFactor: {
+    title: "Verify It's You",
+    sentence: "Enter the 6-digit code from your authenticator app.",
+    code: "Code",
+    verify: "Verify",
+    invalid: "That code didn't match. Enter the code your app shows now.",
+    requiredTitle: "Set Up a Second Factor",
+    required:
+      "Your organization requires a second factor for your role. Set up an authenticator app in Atlas or Gateway under Settings, Security, then try again.",
   },
   denial: {
     roleTitle: "Not part of your role",
@@ -3027,6 +3424,7 @@ var compass_default$1 = {
       tooShort: "That was too short to keep. Hold a little longer to record a voice note.",
       micDidNotStart:
         "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again.",
+      didNotSave: "The recording did not finish saving. Try again.",
     },
   },
   inspections: {
@@ -4758,6 +5156,15 @@ var email_default$1 = {
       security_changed: {
         subject: "Your account security changed",
         body: "A security setting on your account changed: {change}. If this was not you, reset your password now.",
+      },
+      recovery_code_used: {
+        subject: "A recovery code was used on your account",
+        body: "Someone signed in or confirmed an action with one of your recovery codes. {remaining, plural, =0 {You have no codes left: make a new set in Security.} one {You have # code left.} other {You have # codes left.}} If this was not you, change your password and make new codes now.",
+      },
+      session_signed_out: {
+        subject:
+          "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
+        body: "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions.",
       },
     },
     report: {
@@ -6799,8 +7206,6 @@ var gateway_default$1 = {
         "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway.",
     },
     notes: {
-      calendarFeeds: "Add every shift, set time and deadline to your calendar from Upcoming.",
-      toUpcoming: "Open Upcoming",
       connectedApps:
         "No apps are connected to your account. Organizations connect their own tools in Atlas.",
       toOrganizations: "See your accounts",
@@ -6839,6 +7244,42 @@ var gateway_default$1 = {
       confirmBody:
         "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
       cancel: "Keep my account",
+    },
+    calendarFeeds: {
+      title: "Calendar feeds",
+      description:
+        "Subscribe from Google Calendar, Apple Calendar or Outlook to see your published shifts and the meetings, milestones and deadlines shared with you, across every organization you work with. Calendars refresh it about once an hour.",
+      secret:
+        "Anyone with a feed's link can read it, so keep the link private. If it gets out, get a new link or revoke the feed.",
+      none: "You have no calendar feeds yet.",
+      listLabel: "Your calendar feeds",
+      feedName: "My work",
+      hint: "Link ending in {hint}",
+      created: "Added {date}",
+      lastFetched: "Last fetched {date}",
+      neverFetched: "No calendar has fetched it yet",
+      rotated: "New link issued {date}",
+      add: "Add a feed",
+      rotate: "Get a new link",
+      rotateLabel: "Get a new link for the feed ending in {hint}",
+      rotateConfirm:
+        "The current link stops working at once. Calendars subscribed to it stop updating until you subscribe again with the new link.",
+      revoke: "Revoke",
+      revokeLabel: "Revoke the feed ending in {hint}",
+      revokeConfirm: "The link stops working at once and cannot be turned back on.",
+      linkTitle: "Your feed link",
+      linkHelp:
+        "Copy the link now. It is shown only once; after you leave this page you can only get a new one.",
+      linkLabel: "Subscription link",
+      copy: "Copy link",
+      copied: "Link copied.",
+      openInCalendar: "Open in my calendar app",
+      subscribe: "Subscribe in a calendar app",
+      errors: {
+        calendar_feed_limit: "You have 20 feeds. Revoke one before you add another.",
+        denied: "That feed is not available to you.",
+        unexpected: "Something went wrong. Try again.",
+      },
     },
   },
   shell: {
@@ -7105,14 +7546,58 @@ var help_default$1 = {
   },
   shortcuts: {
     title: "Keyboard shortcuts",
+    groups: {
+      general: "General",
+      go: "Go to",
+      lists: "Lists",
+      inbox: "Inbox",
+    },
     command: "Open the command menu",
+    search: "Search pages and settings",
+    create: "Create something new",
     help: "Open help for this page",
     focus: "Turn focus mode on or off",
+    aurora: "Ask Aurora",
     close: "Close a menu, dialog or peek",
-    move: "Move between rows",
+    next: "Next row",
+    previous: "Previous row",
     open: "Open the focused record",
     select: "Select the focused row",
     all: "All shortcuts",
+    go: {
+      home: "Go to Home",
+      inbox: "Go to Inbox",
+      myWork: "Go to My Work",
+      projects: "Go to Projects",
+      schedule: "Go to Schedule",
+      work: "Go to Work",
+      show: "Go to Show",
+      advancing: "Go to Advancing",
+      places: "Go to Places",
+      logistics: "Go to Logistics",
+      hospitality: "Go to Hospitality",
+      assets: "Go to Assets",
+      credentials: "Go to Credentials",
+      safety: "Go to Safety",
+      people: "Go to People",
+      opportunities: "Go to Opportunities",
+      crew: "Go to Crew",
+      finance: "Go to Finance",
+      procurement: "Go to Procurement",
+      vendors: "Go to Vendors",
+      knowledge: "Go to Knowledge",
+      reports: "Go to Reports",
+      canon: "Go to Canon",
+      activity: "Go to Activity",
+      settings: "Go to Settings",
+    },
+    inbox: {
+      approve: "Approve the focused item",
+      reject: "Reject the focused item with a reason",
+      done: "Mark the focused item done",
+      snooze: "Snooze the focused item until tomorrow",
+    },
+    customize: "Change shortcuts",
   },
   whatsNew: {
     title: "What's new",
@@ -10574,6 +11059,18 @@ var platform_default$1 = {
       "You already decided a step of this approval. The next step needs another approver.",
     approval_rejection_reason: "Say why when you reject an approval.",
     sod_approval_requester: "You requested this approval, so someone else decides it.",
+    calendar_feed_limit: "You have 20 calendar feeds. Revoke one before you add another.",
+    calendar_feed_revoked: "A revoked calendar feed stays revoked. Add a new feed instead.",
+    calendar_feed_token: "A feed's link changes only when you get a new link.",
+    inbound_message_triaged: "This message was already filed or discarded.",
+    inbound_message_unverified:
+      "The sender of this message did not verify, so it cannot be filed. Discard it instead.",
+    inbound_message_record: "File the message to a record of this project that you can open.",
+    inbound_message_document: "File the message as a document of this project.",
+    inbound_message_filing: "Filing sets the document and the Filed status together.",
+    inbound_message_immutable: "Inbound mail is only filed or discarded.",
+    project_inbox_disabled: "A turned-off inbox address stays off. Create a new address instead.",
+    project_inbox_immutable: "An inbox address never changes. Replace the address instead.",
     import_google_sheets_off:
       "Importing from a Google Sheets link is turned off for this organization.",
     import_google_drive_required:
@@ -11053,7 +11550,11 @@ var platform_default$1 = {
     otherKind: "Notification",
     kinds: {
       access: { break_glass_started: "Emergency access taken" },
-      account: { security_changed: "Account security changed" },
+      account: {
+        security_changed: "Account security changed",
+        recovery_code_used: "Recovery code used",
+        session_signed_out: "Session signed out",
+      },
       announcement: { posted: "Announcement posted" },
       approval: {
         requested: "Approval requested",
@@ -11199,6 +11700,112 @@ var platform_default$1 = {
       "Our virus scan found something harmful in this file, so it was deleted. Nobody can open it. Check the file on your device and upload a clean copy.",
     scanFailed:
       "This file could not be checked for viruses, so it stays closed. Upload it again, or save it in another format first.",
+  },
+  calendarFeeds: {
+    feed: {
+      member: "My schedule at {org}",
+      project: "{project} at {org}",
+      person: "My work",
+    },
+    title: "Calendar feeds",
+    description:
+      "Subscribe from Google Calendar, Apple Calendar or Outlook to see your shifts, meetings, milestones and deadlines there. A feed shows only what you may see, and calendars refresh it about once an hour.",
+    secret:
+      "Anyone with a feed's link can read it, so keep the link private. If it gets out, get a new link or revoke the feed.",
+    none: "You have no calendar feeds in this organization yet.",
+    listLabel: "Your calendar feeds",
+    mine: "My schedule",
+    projectFeed: "Project: {project}",
+    hint: "Link ending in {hint}",
+    created: "Added {date}",
+    lastFetched: "Last fetched {date}",
+    neverFetched: "No calendar has fetched it yet",
+    rotated: "New link issued {date}",
+    addTitle: "Add a feed",
+    scopeLabel: "Feed",
+    scopeMine: "My schedule",
+    projectLabel: "Project",
+    projectHelp:
+      "A project feed shows the project's shifts, meetings, milestones and deadlines that you may see.",
+    add: "Add feed",
+    rotate: "Get a new link",
+    rotateLabel: "Get a new link for {feed}",
+    rotateTitle: "Get a new link?",
+    rotateBody:
+      "The current link stops working at once. Calendars subscribed to it stop updating until you subscribe again with the new link.",
+    revoke: "Revoke",
+    revokeLabel: "Revoke {feed}",
+    revokeTitle: "Revoke this feed?",
+    revokeBody:
+      "The link stops working at once and cannot be turned back on. Calendars subscribed to it stop updating.",
+    cancel: "Cancel",
+    linkTitle: "Your feed link",
+    linkHelp:
+      "Copy the link now. It is shown only once; after you leave this page you can only get a new one.",
+    linkLabel: "Subscription link",
+    copy: "Copy link",
+    copied: "Link copied.",
+    openInCalendar: "Open in my calendar app",
+    revoked: "Feed revoked.",
+    errors: {
+      calendar_feed_limit: "You have 20 feeds. Revoke one before you add another.",
+      calendar_feed_revoked: "This feed was revoked. Add a new feed instead.",
+      denied: "That feed or project is not available to you.",
+      invalid: "Choose a project for a project feed.",
+      unexpected: "Something went wrong. Try again.",
+    },
+  },
+  projectInbox: {
+    title: "Project inbox",
+    description:
+      "Forward mail to the project's address. Each message waits here until a coordinator files it as a document, optionally on a record, or discards it.",
+    address: "Inbox address",
+    addressPending:
+      "Address {local}. Mail starts arriving once your organization's receiving domain is set up.",
+    noAddress: "This project has no inbox address yet.",
+    noAddressReader:
+      "This project has no inbox address yet. Someone who manages project settings can create one.",
+    create: "Create inbox address",
+    replace: "Replace address",
+    replaceTitle: "Replace the inbox address?",
+    replaceBody:
+      "The current address stops accepting mail at once. Give everyone who forwards mail here the new address.",
+    disable: "Turn off inbox",
+    disableTitle: "Turn off the project inbox?",
+    disableBody: "The address stops accepting mail at once. Mail already received stays here.",
+    copy: "Copy address",
+    copied: "Address copied.",
+    listLabel: "Project inbox messages",
+    toFile: "{count, plural, one {# message to file} other {# messages to file}}",
+    nothingToFile: "Nothing to file. Mail forwarded to the inbox address lands here.",
+    showAll: "Show filed and discarded",
+    showOpen: "Show only mail to file",
+    from: "From {from}",
+    received: "Received {date}",
+    noSubject: "No subject",
+    state: {
+      open: "To file",
+      rejected: "Sender not verified",
+      filed: "Filed",
+      discarded: "Discarded",
+    },
+    rejectedHelp:
+      "The sender's domain did not confirm this message, so it may be forged. It cannot be filed; discard it, or ask the sender to send it again.",
+    filedAs: "Filed as {document} by {name} on {date}",
+    filedTo: "On record {record}",
+    discardedBy: "Discarded by {name} on {date}",
+    discardedReason: "Reason: {reason}",
+    someone: "someone",
+    file: "File",
+    fileTitle: "File as a document",
+    fileBody:
+      "The message becomes a document of this project. Its subject, sender and text are posted as a comment on the document, and on the record you choose.",
+    documentTitle: "Document title",
+    record: "Record",
+    noRecord: "No record",
+    discard: "Discard",
+    discardTitle: "Discard this message?",
+    openDocument: "Open documents",
   },
   warehouse: {
     title: "Warehouse delivery",
@@ -12906,8 +13513,6 @@ var settings_default$1 = {
     ip_allowlist_empty: "Add at least one network before turning the allow-list on.",
     plan_feature_ip_allowlist:
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    setting_not_enforced:
-      "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
     setting_fixed: "This setting is fixed and cannot be changed.",
   },
   fields: {
@@ -12937,15 +13542,15 @@ var settings_default$1 = {
     },
     mfaPolicy: {
       label: "Multi-factor authentication",
-      help: "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional.",
+      help: "Who must use a second factor. Anyone it applies to sets one up, or verifies the one they have, before opening the organization.",
     },
     sessionHours: {
       label: "Session length in hours",
-      help: "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours.",
+      help: "How long a sign-in lasts before the person signs in again, from 1 to 720 hours.",
     },
     idleTimeout: {
       label: "Idle timeout in minutes",
-      help: "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes.",
+      help: "Sign out after this many minutes without activity, from 5 to 1,440.",
     },
     ipAllowlist: {
       label: "Enforce the IP allow-list",
@@ -13284,6 +13889,8 @@ var settings_default$1 = {
       "Workspaces divide the org by office or venue group. Override settings for each one here.",
     accessReviews:
       "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    calendarFeeds:
+      "Subscribe to your schedule, or to a project you work on, from any calendar app.",
   },
   accessControls: {
     saved: "Saved.",
@@ -13474,6 +14081,53 @@ var settings_default$1 = {
       title: "Shared with your organization",
       entry: "Shared by {owner} · Your members act as {role}",
     },
+  },
+  shortcuts: {
+    title: "Change shortcuts",
+    description:
+      "Choose Change, then press the new keys. A sequence is a letter, then a second key, such as G then H. Esc cancels.",
+    table: "Shortcuts you can change",
+    recording: "Press the new keys for {action}, or Esc to cancel.",
+    saved: "{action} now uses {keys}.",
+    resetOne: "{action} uses its default keys again.",
+    resetAll: "Reset all shortcuts",
+    resetAllDone: "Every shortcut uses its default keys again.",
+    singleKeysOff:
+      "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    fixed:
+      "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
+    problems: {
+      conflict: "{keys} already does {action}. Change that shortcut first, or choose other keys.",
+      browser: "{keys} belongs to your browser or computer. Choose other keys.",
+      "screen-reader": "{keys} belongs to screen readers. Choose other keys.",
+      navigation: "{keys} moves around the page. Choose other keys.",
+      typing: "This shortcut also works while you type, so it needs Ctrl, Cmd or Alt.",
+      invalid:
+        "Those keys cannot be a shortcut. Use a letter, digit or symbol, with Ctrl, Cmd, Alt or Shift if you like.",
+      fixed: "This shortcut cannot be changed.",
+      unknown: "This shortcut no longer exists. Reload the page.",
+      failed: "The shortcut was not saved. Try again.",
+    },
+  },
+  sidebar: {
+    title: "Sidebar",
+    description:
+      "Hide the items you never use and put the groups and items in your own order. Hidden items stay in search and the command menu.",
+    group: "{group} group",
+    show: "Show {item} in the sidebar",
+    move: "Move {item}",
+    moveHelp:
+      "Drag, or press Space to pick up, the arrow keys to move, Space to drop and Esc to cancel.",
+    picked:
+      "{item} picked up, position {position} of {count}. Use the arrow keys to move it, Space to drop it.",
+    moved: "{item} moved to position {position} of {count}.",
+    dropped: "{item} dropped at position {position} of {count}.",
+    returned: "{item} put back at position {position} of {count}.",
+    save: "Save sidebar",
+    saved: "Your sidebar is saved.",
+    reset: "Reset to role default",
+    resetDone: "Your sidebar is back to the default for your role.",
+    failed: "The sidebar was not saved. Try again.",
   },
   notifications: {
     category: "Category",
@@ -14021,6 +14675,41 @@ var shell_default$1 = {
       },
     },
   },
+  create: {
+    button: "Create",
+    title: "Create",
+    prompt: "What do you want to create?",
+    here: "On this page",
+    more: "Everything else",
+    kinds: {
+      project: "Project",
+      record: "Record",
+      workOrder: "Work order",
+      punchList: "Punch list",
+      milestone: "Milestone",
+      runOfShow: "Run of show",
+      advancePacket: "Advance packet",
+      venue: "Venue",
+      shipment: "Shipment",
+      fulfillment: "Hospitality fulfillment",
+      inspection: "Inspection",
+      incident: "Incident",
+      requisition: "Requisition",
+      posting: "Opportunity posting",
+      shift: "Shift",
+      timeEntry: "Time entry",
+      budget: "Budget",
+      expense: "Expense",
+      changeOrder: "Change order",
+      invoice: "Invoice",
+      rfq: "Request for quotation",
+      purchaseOrder: "Purchase order",
+      vendor: "Vendor",
+      sop: "Standard operating procedure",
+      document: "Document",
+    },
+  },
+  keys: { goHint: "Go to: press one of these keys after {key}, or Esc to cancel." },
 };
 var shipmentTracking_default$1 = {
   title: "Carrier tracking",
@@ -14810,6 +15499,7 @@ var ui_default$1 = {
     edit: "Edit",
     press: "Press Keys",
     shortcut: "Shortcut",
+    none: "Not set",
   },
   shortcuts: { title: "Keyboard Shortcuts" },
   signature: { area: "Signature area. Draw with a finger, stylus or mouse." },
@@ -19235,6 +19925,389 @@ var auroraCertificates_default = {
   insuredsFailed:
     "El certificado se guardó, pero sus asegurados adicionales no: {detail}. Agréguelos en el certificado.",
 };
+var authSecurity_default = {
+  factorTypes: {
+    totp: "App de autenticación",
+    webauthn: "Llave de seguridad o llave de acceso",
+    phone: "Teléfono",
+  },
+  challenge: {
+    title: "Confirma que eres tú",
+    sentence: "Escribe el código de 6 dígitos de tu app de autenticación.",
+    keySentence: "Usa tu llave de seguridad o llave de acceso para terminar de iniciar sesión.",
+    code: "Código",
+    codeHelp: "6 dígitos de la app que configuraste para esta cuenta",
+    factor: "Segundo factor",
+    verify: "Verificar",
+    useKey: "Usar llave de seguridad",
+    keyPrompt:
+      "Sigue las indicaciones del navegador para usar tu llave de seguridad o llave de acceso.",
+    signOut: "Cerrar sesión",
+    lost: "¿Perdiste tu teléfono o llave? Usa otro segundo factor o uno de tus códigos de recuperación. Si no tienes ninguno, pide a un Owner o Admin de tu organización que contacte al soporte de XOS, que confirma tu identidad antes de quitar el factor.",
+  },
+  policy: {
+    enrollTitle: "Configura un segundo factor",
+    enrollSentence: "{org} exige un segundo factor para tu rol. Configura uno para continuar.",
+    sessionEndedTitle: "Inicia sesión de nuevo",
+    sessionEnded:
+      "{org} pide iniciar sesión de nuevo cada {hours, plural, one {# hora} other {# horas}}.",
+    idle: "Estuviste inactivo más tiempo del que {org} permite, así que debes iniciar sesión de nuevo.",
+    signInAgain: "Iniciar sesión de nuevo",
+    signedOut:
+      "Se cerró esta sesión desde otro dispositivo. Inicia sesión de nuevo para continuar.",
+  },
+  stepUp: {
+    title: "Confirma que eres tú",
+    sentence: "Confirma con tu segundo factor para continuar.",
+    enrollSentence:
+      "Esta acción necesita un segundo factor. Configura una app de autenticación ahora y úsala para acciones como esta.",
+    cancel: "Cancelar",
+    verified: "Verificado. Continuando.",
+  },
+  enroll: {
+    label: "Nombre",
+    labelHelp: "Para distinguir tus factores, por ejemplo Teléfono del trabajo",
+    totpDefault: "App de autenticación",
+    keyDefault: "Llave de seguridad",
+    start: "Configurar app de autenticación",
+    scan: "Escanea este código con tu app de autenticación y escribe el código de 6 dígitos que muestra.",
+    qrAlt: "Código QR que configura tu app de autenticación",
+    showSecret: "¿No puedes escanear? Muestra la clave de configuración",
+    secret: "Clave de configuración",
+    confirm: "Verificar y activar",
+    cancel: "Cancelar",
+    done: "Tu app de autenticación quedó configurada.",
+    addKey: "Agregar llave de seguridad",
+    keyDone: "Tu llave de seguridad quedó configurada.",
+    recovery:
+      "Ten una segunda forma de entrar. Agrega otra app de autenticación o una llave de seguridad, para que perder un dispositivo nunca te deje fuera.",
+  },
+  factors: {
+    title: "Verificación en dos pasos",
+    description:
+      "Un segundo factor protege tu cuenta si tu contraseña o tu correo quedan expuestos. Lo usas al iniciar sesión, y las exportaciones Restricted y el acceso de emergencia lo necesitan. Quitar un factor pide un código de los últimos 15 minutos.",
+    none: "Aún no tienes un segundo factor.",
+    added: "Agregado el {date}",
+    pending: "Configuración sin terminar",
+    required: "{org} exige un segundo factor para tu rol.",
+    rename: "Cambiar nombre",
+    renameLabel: "Nuevo nombre para {name}",
+    save: "Guardar",
+    cancel: "Cancelar",
+    remove: "Quitar",
+    removeTitle: "¿Quitar {name}?",
+    removeSentence:
+      "Ya no se te pedirá al iniciar sesión. Si es tu único segundo factor, solo tu contraseña protegerá tu cuenta.",
+    removed: "Quitado.",
+    renamed: "Nombre cambiado.",
+  },
+  passkeys: {
+    title: "Llaves de acceso",
+    description:
+      "Inicia sesión con tu huella, tu rostro o el PIN del dispositivo en lugar de una contraseña. La llave de acceso se queda en tu dispositivo y solo funciona en este sitio, así que no se puede robar con phishing.",
+    none: "Aún no tienes llaves de acceso.",
+    add: "Agregar una llave de acceso",
+    label: "Nombre",
+    labelDefault: "Llave de acceso",
+    added: "Agregada el {date}",
+    lastUsed: "Usada por última vez el {date}",
+    neverUsed: "Aún sin usar",
+    rename: "Cambiar nombre",
+    renameLabel: "Nuevo nombre para {name}",
+    save: "Guardar",
+    cancel: "Cancelar",
+    remove: "Quitar",
+    removeTitle: "¿Quitar {name}?",
+    removeSentence:
+      "Ya no podrás iniciar sesión con esta llave de acceso. Quítala también de tu dispositivo, en su configuración de contraseñas.",
+    done: "Llave de acceso agregada.",
+    removed: "Quitada.",
+    renamed: "Nombre cambiado.",
+    unsupported: "Este navegador no puede crear llaves de acceso.",
+    signIn: "Iniciar sesión con una llave de acceso",
+  },
+  sso: {
+    link: "Iniciar sesión con inicio de sesión único",
+    title: "Inicio de sesión único",
+    sentence:
+      "Escribe tu correo del trabajo. Continuarás a la página de inicio de sesión de tu organización.",
+    email: "Correo del trabajo",
+    continue: "Continuar",
+    back: "Otras formas de iniciar sesión",
+  },
+  providers: {
+    title: "Inicio de sesión único y SCIM de Enterprise",
+    description:
+      "Las personas inician sesión con tu proveedor de identidad (SAML 2.0), y SCIM las agrega y las quita a medida que cambia tu directorio. El inicio de sesión único y SCIM nunca convierten a nadie en Owner.",
+    notInPlan: "El inicio de sesión único y SCIM son parte del plan Enterprise.",
+    none: "Aún no hay proveedor de identidad. El soporte de XOS conecta tu proveedor y te da su ID de proveedor.",
+    add: "Agregar proveedor de identidad",
+    name: "Nombre",
+    nameHelp: "Por ejemplo, el nombre del inquilino de tu proveedor de identidad",
+    protocol: "Protocolo",
+    providerId: "ID de proveedor",
+    providerIdHelp: "El ID de proveedor de inicio de sesión único que te dio el soporte de XOS",
+    defaultRole: "Rol para personas nuevas",
+    jit: "Agregar a quienes inicien sesión con este proveedor",
+    scim: "Aprovisionar personas con SCIM",
+    save: "Guardar",
+    saved: "Guardado.",
+    jitOn: "Agrega a quienes inician sesión",
+    scimOn: "SCIM activado",
+    scimOff: "SCIM desactivado",
+    endpoint: "URL base de SCIM",
+    token: "Token de SCIM",
+    tokenNone: "No hay token emitido",
+    tokenIssued: "Token que empieza por {prefix}",
+    issueToken: "Emitir token de SCIM",
+    rotateToken: "Rotar token de SCIM",
+    tokenOnce:
+      "Copia este token en tu proveedor de identidad ahora. Se muestra una sola vez; emitir otro lo reemplaza.",
+    domains:
+      "Quienes tengan el dominio verificado {domains} pueden usar el inicio de sesión único.",
+  },
+  errors: {
+    code_invalid: "Ese código no coincide. Escribe el código que muestra tu app ahora.",
+    code_expired: "Tardaste demasiado. Inténtalo de nuevo.",
+    step_up_required: "Confirma que eres tú con tu segundo factor primero.",
+    factor_limit: "Tienes el máximo de segundos factores permitido. Quita uno primero.",
+    factor_name_taken: "Ya tienes un factor con ese nombre. Elige otro.",
+    factor_label_length: "Ponle un nombre de 1 a 80 caracteres.",
+    passkey_failed: "Tu dispositivo no lo confirmó. Inténtalo de nuevo.",
+    cancelled: "Cancelado. Inténtalo de nuevo cuando quieras.",
+    unsupported: "Este navegador no admite llaves de seguridad ni llaves de acceso.",
+    sso_unavailable:
+      "No hay inicio de sesión único para ese dominio de correo. Inicia sesión de otra forma o pregunta a tu Admin.",
+    rate_limited: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+    integration_plan_feature: "El inicio de sesión único y SCIM necesitan el plan Enterprise.",
+    sso_default_role_owner:
+      "El inicio de sesión único nunca convierte a nadie en Owner. Elige otro rol.",
+    conflict: "Otro proveedor de identidad ya usa ese ID de proveedor.",
+    invalid: "Revisa los campos marcados.",
+    denied: "No puedes cambiar esto.",
+    unexpected: "Algo salió mal. Inténtalo de nuevo.",
+    recovery_invalid: "Ese código de recuperación no coincide, o ya se usó.",
+    recovery_rate_limited:
+      "Demasiados códigos incorrectos. Espera 15 minutos y vuelve a intentarlo.",
+    no_codes:
+      "No tienes códigos de recuperación para usar. Usa otro segundo factor, o pide a un Owner o Admin que contacte al soporte de XOS.",
+    recovery_codes_need_factor:
+      "Primero configura una app de autenticación o una llave de seguridad.",
+    session_current: "Para cerrar la sesión de este dispositivo, usa Cerrar sesión.",
+    oauth_request_expired:
+      "Esta solicitud de inicio de sesión venció. Vuelve a la app y empieza de nuevo.",
+    oauth_request_recorded:
+      "Esta solicitud de inicio de sesión ya se inició. Vuelve a la app y empieza de nuevo.",
+    oauth_client_unknown: "Esta app no está registrada en XOS.",
+    oauth_not_member:
+      "Solo los miembros de la organización que registró esta app pueden conectarla.",
+    oauth_scope_unknown: "Esta app pidió un área que XOS no tiene.",
+    oauth_scope_missing: "Esta app no dijo qué áreas necesita.",
+    oauth_pkce_required:
+      "Esta app debe usar PKCE con S256. Pide a su desarrollador que la actualice.",
+    api_key_scope_unknown: "Elige áreas de la lista.",
+    plan_feature_required: "Las claves de API necesitan el plan Pro o superior.",
+    api_key_expiry_invalid: "Elige un vencimiento dentro de un año.",
+    api_key_revoked: "Esta clave ya está revocada.",
+  },
+  recovery: {
+    title: "Códigos de recuperación",
+    description:
+      "Códigos de un solo uso para cuando no puedas usar tu app de autenticación o tu llave de seguridad. Guárdalos en un lugar seguro, lejos de tu teléfono.",
+    none: "Aún no tienes códigos de recuperación.",
+    needFactor:
+      "Primero configura una app de autenticación o una llave de seguridad. Los códigos de recuperación la sustituyen.",
+    status: "Te quedan {remaining} de {total} códigos · creados el {date}",
+    lastUsed: "Último uso: {date}",
+    noneLeft: "Usaste todos los códigos. Crea un juego nuevo.",
+    low: "{remaining, plural, one {Solo te queda # código.} other {Solo te quedan # códigos.}} Crea un juego nuevo pronto.",
+    generate: "Crear códigos de recuperación",
+    regenerate: "Crear códigos nuevos",
+    regenerateTitle: "¿Crear códigos de recuperación nuevos?",
+    regenerateSentence: "Tus códigos actuales dejan de funcionar en cuanto se crean los nuevos.",
+    shownOnce:
+      "Guarda estos códigos ahora. No volverás a verlos, y cada uno funciona una sola vez.",
+    listLabel: "Tus códigos de recuperación",
+    copy: "Copiar códigos",
+    copied: "Copiados.",
+    download: "Descargar como texto",
+    done: "Ya los guardé",
+    fileHeading: "Códigos de recuperación de XOS",
+    fileNote: "Cada código funciona una sola vez. Creados el {date}.",
+    useInstead: "Usar un código de recuperación",
+    useFactor: "Usar tu segundo factor",
+    code: "Código de recuperación",
+    codeHelp: "10 letras y números de tus códigos guardados, como abcde-23456",
+    verify: "Usar código",
+    used: "Código aceptado. {remaining, plural, =0 {No te quedan códigos. Crea un juego nuevo en Seguridad.} one {Te queda # código.} other {Te quedan # códigos.}}",
+  },
+  sessions: {
+    title: "Sesiones y dispositivos",
+    description:
+      "Dónde tienes la sesión iniciada en Atlas, Gateway y Compass. Cierra la sesión de lo que no reconozcas.",
+    thisDevice: "Este dispositivo",
+    device: "{browser} en {os}",
+    browsers: {
+      chrome: "Chrome",
+      edge: "Edge",
+      firefox: "Firefox",
+      safari: "Safari",
+      opera: "Opera",
+      compass: "Compass",
+      other: "Un navegador",
+    },
+    systems: {
+      macos: "macOS",
+      windows: "Windows",
+      ios: "iOS",
+      android: "Android",
+      linux: "Linux",
+      chromeos: "ChromeOS",
+      other: "un sistema desconocido",
+    },
+    unknownDevice: "Dispositivo desconocido",
+    surfaces: {
+      Atlas: "Atlas",
+      Gateway: "Gateway",
+      Compass: "Compass",
+      API: "API",
+    },
+    place: "Cerca de {place}",
+    address: "Desde {address}",
+    lastActive: "Activa: {date}",
+    signedIn: "Inició sesión: {date}",
+    secondFactor: "Pasó un segundo factor",
+    signOut: "Cerrar sesión",
+    signOutLabel: "Cerrar la sesión de {device}, activa: {date}",
+    signOutTitle: "¿Cerrar la sesión de {device}?",
+    signOutSentence: "Esa sesión termina ahora. Quien la use tendrá que iniciar sesión de nuevo.",
+    signOutOthers: "Cerrar todas las demás sesiones",
+    signOutOthersTitle: "¿Cerrar todas las demás sesiones?",
+    signOutOthersSentence:
+      "Todas las sesiones menos esta terminan ahora. Las apps que conectaste siguen conectadas; revócalas en Apps conectadas.",
+    signedOut: "Sesión cerrada.",
+    signedOutOthers:
+      "{count, plural, =0 {No había otra sesión iniciada.} one {Se cerró # sesión más.} other {Se cerraron # sesiones más.}}",
+    none: "Solo tienes la sesión iniciada aquí.",
+    cancel: "Cancelar",
+  },
+  connectedApps: {
+    title: "Apps conectadas",
+    description:
+      "Apps que dejas usar XOS por ti. Cada una llega solo a la organización que la registró y a las áreas que permitiste.",
+    none: "No has conectado ninguna app.",
+    org: "Registrada por {org}",
+    scopes: "Puede usar: {scopes}",
+    granted: "Conectada el {date}",
+    lastUsed: "Último uso: {date}",
+    neverUsed: "Aún sin usar",
+    revoke: "Revocar",
+    revokeLabel: "Revocar {app}",
+    revokeTitle: "¿Revocar {app}?",
+    revokeSentence: "{app} pierde el acceso de inmediato y tendrá que pedírtelo de nuevo.",
+    revoked: "Acceso revocado.",
+    cancel: "Cancelar",
+  },
+  consent: {
+    title: "¿Permitir que {app} use XOS?",
+    org: "{app} fue registrada por {org}. Actúa como tú solo en {org}, y solo en las áreas de abajo.",
+    scopesHeading: "Pide usar",
+    restricted: "Restricted",
+    restrictedNote:
+      "Algunas llegan a datos Restricted o controlan la organización. Confirmarás que eres tú con tu segundo factor.",
+    granted: "Ya permitiste: {scopes}",
+    redirect: "Después de elegir, vuelves a {uri}.",
+    signedInAs: "Sesión iniciada como {email}",
+    allow: "Permitir",
+    deny: "Rechazar",
+    expired: "Esta solicitud venció o no es tuya. Vuelve a la app y empieza de nuevo.",
+    pkce: "Esta app no puede conectarse de forma segura: no usa PKCE con S256. Pide a su desarrollador que la actualice.",
+    invalid:
+      "Esta solicitud de inicio de sesión está incompleta. Vuelve a la app y empieza de nuevo.",
+    pageTitle: "Permitir una app",
+  },
+  scopes: {
+    home: "Inicio",
+    inbox: "Bandeja de entrada",
+    my_work: "Mi trabajo",
+    projects: "Proyectos",
+    schedule: "Calendario",
+    work: "Registros de trabajo",
+    show: "Show",
+    advancing: "Avanzada",
+    places: "Lugares",
+    logistics: "Logística",
+    hospitality: "Hospitalidad",
+    assets: "Activos",
+    credentials: "Credenciales",
+    safety: "Seguridad laboral",
+    people: "Personas",
+    opportunities: "Oportunidades",
+    crew: "Equipo",
+    finance: "Finanzas",
+    procurement: "Compras",
+    vendors: "Proveedores",
+    knowledge: "Conocimiento",
+    reports: "Informes",
+    canon: "Canon",
+    activity: "Actividad",
+    audit: "Registro de auditoría",
+    org: "Configuración y miembros de la organización",
+    data: "Datos, exportaciones y campos Restricted",
+    me: "Tu propia cuenta",
+  },
+  apiKeys: {
+    title: "Claves de API",
+    description:
+      "Las claves permiten que tus propios servidores usen la API de XOS para {org}. Cada clave llega solo a las áreas que elijas y deja de funcionar cuando vence. Crear una te pide confirmar que eres tú.",
+    notInPlan: "Las claves de API necesitan el plan Pro o superior.",
+    none: "Aún no hay claves de API.",
+    name: "Nombre",
+    nameHelp: "Para distinguir las claves, por ejemplo Sincronización de nómina",
+    scopes: "Áreas que puede usar esta clave",
+    scopesNone: "Elige al menos un área.",
+    expires: "Vence después de",
+    days: "{count, plural, one {# día} other {# días}}",
+    create: "Crear clave de API",
+    created: "Copia esta clave ahora. No volverás a verla.",
+    secret: "Clave de API",
+    copy: "Copiar clave",
+    copied: "Copiada.",
+    done: "Ya la guardé",
+    prefix: "Empieza con {prefix}",
+    expiresOn: "Vence el {date}",
+    revokedOn: "Revocada el {date}",
+    expired: "Vencida",
+    revoke: "Revocar",
+    revokeLabel: "Revocar {name}",
+    revokeTitle: "¿Revocar {name}?",
+    revokeSentence: "Todo lo que use esta clave deja de funcionar de inmediato.",
+    cancel: "Cancelar",
+    revoked: "Revocada.",
+  },
+  oauthApps: {
+    title: "Apps OAuth",
+    description:
+      "Apps que las personas de {org} pueden conectar a su propia cuenta. Inician sesión con XOS y permiten solo las áreas que ven en la pantalla de consentimiento.",
+    none: "Aún no hay apps registradas.",
+    name: "Nombre de la app",
+    redirect: "URI de redirección",
+    redirectHelp:
+      "Adónde XOS devuelve a las personas: una dirección https, o una dirección de bucle local para una app nativa",
+    register: "Registrar app",
+    clientId: "ID de cliente",
+    authorizeUrl: "URL de autorización",
+    tokenUrl: "URL de token",
+    pkce: 'Un cliente público: sin secreto de cliente. Las apps usan el flujo de código de autorización con PKCE (S256) y piden áreas en scope, por ejemplo "projects schedule".',
+    remove: "Quitar",
+    removeLabel: "Quitar {name}",
+    removeTitle: "¿Quitar {name}?",
+    removeSentence: "Todas las personas que la conectaron pierden el acceso de inmediato.",
+    registered: "Registrada.",
+    cancel: "Cancelar",
+    removed: "Quitada.",
+  },
+};
 var canonBrowser_default = {
   what: "el canon",
   empty:
@@ -19471,7 +20544,33 @@ var compass_default = {
     network: "Compass no llega al servidor. Conéctate a una red e inicia sesión.",
     identityTitle: "Tu acceso no cargó",
     identity:
-      "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+      "Compass no pudo leer {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+    identitySteps: {
+      person: "tu perfil",
+      memberships: "tus membresías",
+      roles: "tus roles",
+      capabilities: "tus permisos",
+      projects: "tus proyectos",
+      engagements: "tus contrataciones",
+      access: "tu acceso",
+    },
+  },
+  startup: {
+    title: "Compass no pudo iniciar",
+    sentence:
+      "El almacenamiento sin conexión de este dispositivo no se abrió. Vuelve a intentarlo. Si sigue pasando, reinicia el teléfono.",
+    storageReset:
+      "Compass tuvo que restablecer su almacenamiento sin conexión en este dispositivo. No se pudieron recuperar los cambios hechos sin conexión que no se habían subido. Todo lo demás se descarga de nuevo.",
+  },
+  secondFactor: {
+    title: "Confirma Que Eres Tú",
+    sentence: "Escribe el código de 6 dígitos de tu app de autenticación.",
+    code: "Código",
+    verify: "Verificar",
+    invalid: "Ese código no coincide. Escribe el código que muestra tu app ahora.",
+    requiredTitle: "Configura un Segundo Factor",
+    required:
+      "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo.",
   },
   denial: {
     roleTitle: "No es parte de tu rol",
@@ -19824,6 +20923,7 @@ var compass_default = {
         "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
       micDidNotStart:
         "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+      didNotSave: "La grabación no terminó de guardarse. Vuelve a intentarlo.",
     },
   },
   inspections: {
@@ -21603,6 +22703,14 @@ var email_default = {
       security_changed: {
         subject: "Cambió la seguridad de tu cuenta",
         body: "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora.",
+      },
+      recovery_code_used: {
+        subject: "Se usó un código de recuperación en tu cuenta",
+        body: "Alguien inició sesión o confirmó una acción con uno de tus códigos de recuperación. {remaining, plural, =0 {No te quedan códigos: crea un juego nuevo en Seguridad.} one {Te queda # código.} other {Te quedan # códigos.}} Si no fuiste tú, cambia tu contraseña y crea códigos nuevos ahora.",
+      },
+      session_signed_out: {
+        subject: "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
+        body: "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones.",
       },
     },
     report: {
@@ -23554,8 +24662,6 @@ var gateway_default = {
         "Para representar a un artista, pídele que comparta su perfil de Gateway con tu agencia; luego propones la representación y la acepta en Gateway.",
     },
     notes: {
-      calendarFeeds: "Agrega cada turno, horario y fecha límite a tu calendario desde Próximos.",
-      toUpcoming: "Abrir Próximos",
       connectedApps:
         "No hay aplicaciones conectadas a tu cuenta. Las organizaciones conectan sus herramientas en Atlas.",
       toOrganizations: "Ver tus cuentas",
@@ -23596,6 +24702,42 @@ var gateway_default = {
       confirmBody:
         "No se puede deshacer. Su inicio de sesión, su nombre y su perfil se borran de inmediato, y se avisa a cada organización con la que trabaja.",
       cancel: "Conservar mi cuenta",
+    },
+    calendarFeeds: {
+      title: "Calendarios suscritos",
+      description:
+        "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver sus turnos publicados y las reuniones, hitos y fechas límite compartidos con usted, en todas las organizaciones con las que trabaja. Las aplicaciones lo actualizan aproximadamente cada hora.",
+      secret:
+        "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
+      none: "Todavía no tiene calendarios suscritos.",
+      listLabel: "Sus calendarios suscritos",
+      feedName: "Mi trabajo",
+      hint: "Enlace que termina en {hint}",
+      created: "Agregado el {date}",
+      lastFetched: "Última consulta el {date}",
+      neverFetched: "Ninguna aplicación lo ha consultado todavía",
+      rotated: "Enlace nuevo emitido el {date}",
+      add: "Agregar un calendario",
+      rotate: "Obtener un enlace nuevo",
+      rotateLabel: "Obtener un enlace nuevo para el calendario que termina en {hint}",
+      rotateConfirm:
+        "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
+      revoke: "Revocar",
+      revokeLabel: "Revocar el calendario que termina en {hint}",
+      revokeConfirm: "El enlace deja de funcionar de inmediato y no se puede volver a activar.",
+      linkTitle: "El enlace de su calendario",
+      linkHelp:
+        "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
+      linkLabel: "Enlace de suscripción",
+      copy: "Copiar enlace",
+      copied: "Enlace copiado.",
+      openInCalendar: "Abrir en mi aplicación de calendario",
+      subscribe: "Suscribirse en una aplicación de calendario",
+      errors: {
+        calendar_feed_limit: "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
+        denied: "Ese calendario no está disponible para usted.",
+        unexpected: "Algo salió mal. Inténtelo de nuevo.",
+      },
     },
   },
   shell: {
@@ -23867,14 +25009,58 @@ var help_default = {
   },
   shortcuts: {
     title: "Atajos de teclado",
+    groups: {
+      general: "General",
+      go: "Ir a",
+      lists: "Listas",
+      inbox: "Bandeja de entrada",
+    },
     command: "Abrir el menú de comandos",
+    search: "Buscar páginas y ajustes",
+    create: "Crear algo nuevo",
     help: "Abrir la ayuda de esta página",
     focus: "Activar o desactivar el modo de enfoque",
+    aurora: "Preguntar a Aurora",
     close: "Cerrar un menú, diálogo o panel",
-    move: "Moverse entre filas",
+    next: "Fila siguiente",
+    previous: "Fila anterior",
     open: "Abrir el registro enfocado",
     select: "Seleccionar la fila enfocada",
     all: "Todos los atajos",
+    go: {
+      home: "Ir a Inicio",
+      inbox: "Ir a la Bandeja de entrada",
+      myWork: "Ir a Mi trabajo",
+      projects: "Ir a Proyectos",
+      schedule: "Ir a Cronograma",
+      work: "Ir a Trabajo",
+      show: "Ir a Show",
+      advancing: "Ir a Coordinación previa",
+      places: "Ir a Lugares",
+      logistics: "Ir a Logística",
+      hospitality: "Ir a Hospitalidad",
+      assets: "Ir a Activos",
+      credentials: "Ir a Acreditaciones",
+      safety: "Ir a Seguridad operativa",
+      people: "Ir a Personas",
+      opportunities: "Ir a Oportunidades",
+      crew: "Ir a Equipo técnico",
+      finance: "Ir a Finanzas",
+      procurement: "Ir a Compras",
+      vendors: "Ir a Proveedores",
+      knowledge: "Ir a Conocimiento",
+      reports: "Ir a Informes",
+      canon: "Ir a Canon",
+      activity: "Ir a Actividad",
+      settings: "Ir a Configuración",
+    },
+    inbox: {
+      approve: "Aprobar el elemento enfocado",
+      reject: "Rechazar el elemento enfocado con un motivo",
+      done: "Marcar como hecho el elemento enfocado",
+      snooze: "Posponer el elemento enfocado hasta mañana",
+    },
+    customize: "Cambiar atajos",
   },
   whatsNew: {
     title: "Novedades",
@@ -25629,9 +26815,9 @@ var nav_default = {
     },
     tabs: {
       today: "Hoy",
-      schedule: "Horario",
+      schedule: "Agenda",
       scan: "Escanear",
-      inbox: "Bandeja de entrada",
+      inbox: "Bandeja",
       more: "Más",
       crew: "Equipo técnico",
     },
@@ -27434,6 +28620,20 @@ var platform_default = {
       "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     approval_rejection_reason: "Diga por qué cuando rechace una aprobación.",
     sod_approval_requester: "Usted solicitó esta aprobación, así que otra persona la decide.",
+    calendar_feed_limit: "Tiene 20 calendarios suscritos. Revoque uno antes de agregar otro.",
+    calendar_feed_revoked: "Un calendario revocado sigue revocado. Agregue uno nuevo.",
+    calendar_feed_token: "El enlace de un calendario solo cambia cuando obtiene un enlace nuevo.",
+    inbound_message_triaged: "Este mensaje ya se archivó o se descartó.",
+    inbound_message_unverified:
+      "El remitente de este mensaje no se verificó, así que no se puede archivar. Descártelo.",
+    inbound_message_record:
+      "Archive el mensaje en un registro de este proyecto que usted pueda abrir.",
+    inbound_message_document: "Archive el mensaje como documento de este proyecto.",
+    inbound_message_filing: "Al archivar se asignan juntos el documento y el estado Archivado.",
+    inbound_message_immutable: "El correo recibido solo se archiva o se descarta.",
+    project_inbox_disabled:
+      "Una dirección de bandeja desactivada sigue desactivada. Cree una dirección nueva.",
+    project_inbox_immutable: "Una dirección de bandeja nunca cambia. Reemplace la dirección.",
     import_google_sheets_off:
       "La importación desde un enlace de Google Sheets está desactivada para esta organización.",
     import_google_drive_required:
@@ -27925,7 +29125,11 @@ var platform_default = {
     otherKind: "Notificación",
     kinds: {
       access: { break_glass_started: "Acceso de emergencia tomado" },
-      account: { security_changed: "Cambió la seguridad de la cuenta" },
+      account: {
+        security_changed: "Cambió la seguridad de la cuenta",
+        recovery_code_used: "Código de recuperación usado",
+        session_signed_out: "Sesión cerrada",
+      },
       announcement: { posted: "Anuncio publicado" },
       approval: {
         requested: "Aprobación solicitada",
@@ -28073,6 +29277,114 @@ var platform_default = {
       "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
     scanFailed:
       "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato.",
+  },
+  calendarFeeds: {
+    feed: {
+      member: "Mi horario en {org}",
+      project: "{project} en {org}",
+      person: "Mi trabajo",
+    },
+    title: "Calendarios suscritos",
+    description:
+      "Suscríbase desde Google Calendar, Apple Calendar u Outlook para ver allí sus turnos, reuniones, hitos y fechas límite. Un calendario muestra solo lo que usted puede ver, y las aplicaciones lo actualizan aproximadamente cada hora.",
+    secret:
+      "Cualquier persona con el enlace de un calendario puede leerlo, así que manténgalo en privado. Si se divulga, obtenga un enlace nuevo o revoque el calendario.",
+    none: "Todavía no tiene calendarios suscritos en esta organización.",
+    listLabel: "Sus calendarios suscritos",
+    mine: "Mi horario",
+    projectFeed: "Proyecto: {project}",
+    hint: "Enlace que termina en {hint}",
+    created: "Agregado el {date}",
+    lastFetched: "Última consulta el {date}",
+    neverFetched: "Ninguna aplicación lo ha consultado todavía",
+    rotated: "Enlace nuevo emitido el {date}",
+    addTitle: "Agregar un calendario",
+    scopeLabel: "Calendario",
+    scopeMine: "Mi horario",
+    projectLabel: "Proyecto",
+    projectHelp:
+      "Un calendario de proyecto muestra los turnos, reuniones, hitos y fechas límite del proyecto que usted puede ver.",
+    add: "Agregar calendario",
+    rotate: "Obtener un enlace nuevo",
+    rotateLabel: "Obtener un enlace nuevo para {feed}",
+    rotateTitle: "¿Obtener un enlace nuevo?",
+    rotateBody:
+      "El enlace actual deja de funcionar de inmediato. Los calendarios suscritos a él dejan de actualizarse hasta que se suscriba de nuevo con el enlace nuevo.",
+    revoke: "Revocar",
+    revokeLabel: "Revocar {feed}",
+    revokeTitle: "¿Revocar este calendario?",
+    revokeBody:
+      "El enlace deja de funcionar de inmediato y no se puede volver a activar. Los calendarios suscritos a él dejan de actualizarse.",
+    cancel: "Cancelar",
+    linkTitle: "El enlace de su calendario",
+    linkHelp:
+      "Copie el enlace ahora. Se muestra solo una vez; después de salir de esta página solo podrá obtener uno nuevo.",
+    linkLabel: "Enlace de suscripción",
+    copy: "Copiar enlace",
+    copied: "Enlace copiado.",
+    openInCalendar: "Abrir en mi aplicación de calendario",
+    revoked: "Calendario revocado.",
+    errors: {
+      calendar_feed_limit: "Tiene 20 calendarios. Revoque uno antes de agregar otro.",
+      calendar_feed_revoked: "Este calendario fue revocado. Agregue uno nuevo.",
+      denied: "Ese calendario o proyecto no está disponible para usted.",
+      invalid: "Elija un proyecto para un calendario de proyecto.",
+      unexpected: "Algo salió mal. Inténtelo de nuevo.",
+    },
+  },
+  projectInbox: {
+    title: "Bandeja de correo del proyecto",
+    description:
+      "Reenvíe correo a la dirección del proyecto. Cada mensaje espera aquí hasta que un coordinador lo archive como documento, opcionalmente en un registro, o lo descarte.",
+    address: "Dirección de la bandeja",
+    addressPending:
+      "Dirección {local}. El correo empezará a llegar cuando su organización configure el dominio de recepción.",
+    noAddress: "Este proyecto todavía no tiene dirección de bandeja.",
+    noAddressReader:
+      "Este proyecto todavía no tiene dirección de bandeja. Alguien que administre la configuración del proyecto puede crearla.",
+    create: "Crear dirección de bandeja",
+    replace: "Reemplazar dirección",
+    replaceTitle: "¿Reemplazar la dirección de la bandeja?",
+    replaceBody:
+      "La dirección actual deja de aceptar correo de inmediato. Dé la nueva dirección a todas las personas que reenvían correo aquí.",
+    disable: "Desactivar bandeja",
+    disableTitle: "¿Desactivar la bandeja del proyecto?",
+    disableBody:
+      "La dirección deja de aceptar correo de inmediato. El correo ya recibido se queda aquí.",
+    copy: "Copiar dirección",
+    copied: "Dirección copiada.",
+    listLabel: "Mensajes de la bandeja del proyecto",
+    toFile: "{count, plural, one {# mensaje por archivar} other {# mensajes por archivar}}",
+    nothingToFile:
+      "Nada por archivar. El correo reenviado a la dirección de la bandeja llega aquí.",
+    showAll: "Mostrar archivados y descartados",
+    showOpen: "Mostrar solo el correo por archivar",
+    from: "De {from}",
+    received: "Recibido el {date}",
+    noSubject: "Sin asunto",
+    state: {
+      open: "Por archivar",
+      rejected: "Remitente no verificado",
+      filed: "Archivado",
+      discarded: "Descartado",
+    },
+    rejectedHelp:
+      "El dominio del remitente no confirmó este mensaje, así que podría ser falso. No se puede archivar; descártelo o pida al remitente que lo envíe de nuevo.",
+    filedAs: "Archivado como {document} por {name} el {date}",
+    filedTo: "En el registro {record}",
+    discardedBy: "Descartado por {name} el {date}",
+    discardedReason: "Motivo: {reason}",
+    someone: "alguien",
+    file: "Archivar",
+    fileTitle: "Archivar como documento",
+    fileBody:
+      "El mensaje se convierte en un documento de este proyecto. Su asunto, remitente y texto se publican como comentario en el documento y en el registro que elija.",
+    documentTitle: "Título del documento",
+    record: "Registro",
+    noRecord: "Sin registro",
+    discard: "Descartar",
+    discardTitle: "¿Descartar este mensaje?",
+    openDocument: "Abrir documentos",
   },
   warehouse: {
     title: "Entrega al almacén de datos",
@@ -29836,8 +31148,6 @@ var settings_default = {
     ip_allowlist_empty: "Agregue al menos una red antes de activar la lista de IP permitidas.",
     plan_feature_ip_allowlist:
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    setting_not_enforced:
-      "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
     setting_fixed: "Esta configuración es fija y no se puede cambiar.",
   },
   fields: {
@@ -29867,15 +31177,15 @@ var settings_default = {
     },
     mfaPolicy: {
       label: "Autenticación multifactor",
-      help: "Quién debe usar un segundo factor para iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en Opcional.",
+      help: "Quién debe usar un segundo factor. A quien se aplique configura uno, o verifica el que tiene, antes de abrir la organización.",
     },
     sessionHours: {
       label: "Duración de la sesión en horas",
-      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en 336 horas.",
+      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas.",
     },
     idleTimeout: {
       label: "Tiempo de inactividad en minutos",
-      help: "Cerrar la sesión tras estos minutos sin actividad. Aún no disponible: XOS no lo aplica, así que sigue en 60 minutos.",
+      help: "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440.",
     },
     ipAllowlist: {
       label: "Aplicar la lista de IP permitidas",
@@ -30218,6 +31528,8 @@ var settings_default = {
       "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     accessReviews:
       "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
+    calendarFeeds:
+      "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
   },
   accessControls: {
     saved: "Guardado.",
@@ -30412,6 +31724,53 @@ var settings_default = {
       title: "Compartido con su organización",
       entry: "Compartido por {owner} · Sus miembros actúan como {role}",
     },
+  },
+  shortcuts: {
+    title: "Cambiar atajos",
+    description:
+      "Elige Cambiar y presiona las teclas nuevas. Una secuencia es una letra y luego otra tecla, como G y luego H. Esc cancela.",
+    table: "Atajos que puedes cambiar",
+    recording: "Presiona las teclas nuevas para {action}, o Esc para cancelar.",
+    saved: "{action} ahora usa {keys}.",
+    resetOne: "{action} vuelve a usar sus teclas predeterminadas.",
+    resetAll: "Restablecer todos los atajos",
+    resetAllDone: "Todos los atajos vuelven a usar sus teclas predeterminadas.",
+    singleKeysOff:
+      "Los atajos de una sola tecla están desactivados, así que los atajos sin Ctrl, Cmd o Alt no hacen nada. Activa Atajos de teclado arriba para usarlos.",
+    fixed:
+      "Esc, Intro y las teclas de lista J, K y X pertenecen a todas las listas y diálogos, así que no cambian. La Ayuda muestra todos los atajos.",
+    problems: {
+      conflict: "{keys} ya hace {action}. Cambia primero ese atajo o elige otras teclas.",
+      browser: "{keys} pertenece a tu navegador o computadora. Elige otras teclas.",
+      "screen-reader": "{keys} pertenece a los lectores de pantalla. Elige otras teclas.",
+      navigation: "{keys} sirve para moverse por la página. Elige otras teclas.",
+      typing: "Este atajo también funciona mientras escribes, así que necesita Ctrl, Cmd o Alt.",
+      invalid:
+        "Esas teclas no pueden ser un atajo. Usa una letra, un dígito o un símbolo, con Ctrl, Cmd, Alt o Mayús si quieres.",
+      fixed: "Este atajo no se puede cambiar.",
+      unknown: "Este atajo ya no existe. Vuelve a cargar la página.",
+      failed: "No se guardó el atajo. Inténtalo de nuevo.",
+    },
+  },
+  sidebar: {
+    title: "Barra lateral",
+    description:
+      "Oculta los elementos que nunca usas y ordena los grupos y elementos a tu manera. Los elementos ocultos siguen en la búsqueda y en el menú de comandos.",
+    group: "Grupo {group}",
+    show: "Mostrar {item} en la barra lateral",
+    move: "Mover {item}",
+    moveHelp:
+      "Arrastra, o presiona Espacio para tomar, las flechas para mover, Espacio para soltar y Esc para cancelar.",
+    picked:
+      "{item} tomado, posición {position} de {count}. Usa las flechas para moverlo y Espacio para soltarlo.",
+    moved: "{item} movido a la posición {position} de {count}.",
+    dropped: "{item} soltado en la posición {position} de {count}.",
+    returned: "{item} devuelto a la posición {position} de {count}.",
+    save: "Guardar barra lateral",
+    saved: "Tu barra lateral se guardó.",
+    reset: "Restablecer el predeterminado del rol",
+    resetDone: "Tu barra lateral volvió al predeterminado de tu rol.",
+    failed: "No se guardó la barra lateral. Inténtalo de nuevo.",
   },
   notifications: {
     category: "Categoría",
@@ -30968,6 +32327,41 @@ var shell_default = {
       },
     },
   },
+  create: {
+    button: "Crear",
+    title: "Crear",
+    prompt: "¿Qué quieres crear?",
+    here: "En esta página",
+    more: "Todo lo demás",
+    kinds: {
+      project: "Proyecto",
+      record: "Registro",
+      workOrder: "Orden de trabajo",
+      punchList: "Lista de pendientes",
+      milestone: "Hito",
+      runOfShow: "Guion del show",
+      advancePacket: "Paquete de avance",
+      venue: "Recinto",
+      shipment: "Envío",
+      fulfillment: "Servicio de hospitalidad",
+      inspection: "Inspección",
+      incident: "Incidente",
+      requisition: "Requisición",
+      posting: "Publicación de oportunidad",
+      shift: "Turno",
+      timeEntry: "Registro de tiempo",
+      budget: "Presupuesto",
+      expense: "Gasto",
+      changeOrder: "Orden de cambio",
+      invoice: "Factura",
+      rfq: "Solicitud de cotización",
+      purchaseOrder: "Orden de compra",
+      vendor: "Proveedor",
+      sop: "Procedimiento operativo estándar",
+      document: "Documento",
+    },
+  },
+  keys: { goHint: "Ir a: presiona una de estas teclas después de {key}, o Esc para cancelar." },
 };
 var shipmentTracking_default = {
   title: "Rastreo del transportista",
@@ -31765,6 +33159,7 @@ var ui_default = {
     edit: "Editar",
     press: "Presione las teclas",
     shortcut: "Atajo",
+    none: "Sin asignar",
   },
   shortcuts: { title: "Atajos de teclado" },
   signature: { area: "Área de firma. Dibuje con el dedo, un lápiz óptico o el mouse." },
@@ -35041,6 +36436,7 @@ var enUS = {
   assets: assets_default$1,
   aurora: aurora_default$1,
   auroraCertificates: auroraCertificates_default$1,
+  authSecurity: authSecurity_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
   credentials: credentials_default$1,
@@ -35096,6 +36492,7 @@ var esUS = {
   assets: assets_default,
   aurora: aurora_default,
   auroraCertificates: auroraCertificates_default,
+  authSecurity: authSecurity_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
   credentials: credentials_default,
@@ -36704,6 +38101,30 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "account.recovery_code_used",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.recovery_code_used.subject",
+      body: "kinds.account.recovery_code_used.body",
+    },
+  },
+  {
+    kind: "account.session_signed_out",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.account.session_signed_out.subject",
+      body: "kinds.account.session_signed_out.body",
+    },
+  },
+  {
     kind: "billing.payment_failed",
     category: "account",
     emailTemplate: "notification",
@@ -36899,7 +38320,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1368_notification_kind_seed.sql"
+"supabase/migrations/1569_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -39588,6 +41009,14 @@ var VALUE_PATTERNS = [
     replace: "[token]",
   },
   {
+    pattern: /(\/ical\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi,
+    replace: "[token]",
+  },
+  {
     pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g,
     replace: "[api-key]",
   },
@@ -41677,6 +43106,694 @@ function reportDeliveryCopy(locale) {
   };
 }
 //#endregion
+//#region ../integrations/src/framework/db.ts
+/** Adapts a Supabase client (any schema typing) to the structural client the stores use. */
+function asDbClient(client) {
+  return client;
+}
+/** A database outcome the store could not turn into data: a refusal, a missing row or an unexpected error. */
+var StoreError = class extends Error {
+  error;
+  constructor(error) {
+    super(error.kind === "not-found" ? "The row does not exist or is not visible." : error.message);
+    this.name = "StoreError";
+    this.error = error;
+  }
+};
+/** Returns the data of a response or throws a StoreError naming the database outcome. */
+async function unwrap(response) {
+  const { data, error } = await response;
+  if (error) throw new StoreError(toDataError(error));
+  return data;
+}
+//#endregion
+//#region ../integrations/src/identity/scim.ts
+var USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User";
+var GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group";
+var LIST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse";
+var ERROR_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:Error";
+var PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp";
+function scimError(status, detail, scimType) {
+  return {
+    status,
+    body: {
+      schemas: [ERROR_SCHEMA],
+      status: String(status),
+      detail,
+      ...(scimType ? { scimType } : {}),
+    },
+  };
+}
+function userResource(identity) {
+  return {
+    schemas: [USER_SCHEMA],
+    id: identity.externalId,
+    userName: identity.email,
+    ...(identity.displayName ? { displayName: identity.displayName } : {}),
+    emails: [
+      {
+        value: identity.email,
+        primary: true,
+      },
+    ],
+    active: identity.active,
+    groups: identity.groups.map((g) => ({
+      value: groupId(g),
+      display: g,
+    })),
+    meta: { resourceType: "User" },
+  };
+}
+function toBase64Url(text) {
+  let binary = "";
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function fromBase64Url(value) {
+  if (!/^[A-Za-z0-9_-]*$/.test(value)) return null;
+  try {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "="));
+    return new TextDecoder("utf-8", { fatal: true }).decode(
+      Uint8Array.from(binary, (c) => c.charCodeAt(0)),
+    );
+  } catch (error) {
+    if (
+      error instanceof TypeError ||
+      (error instanceof Error && error.name === "InvalidCharacterError")
+    )
+      return null;
+    throw error;
+  }
+}
+/** Groups have no table of their own; a group's SCIM id is its display name, base64url encoded. */
+function groupId(display) {
+  return toBase64Url(display);
+}
+function groupDisplay(id) {
+  const display = fromBase64Url(id);
+  return display !== null && display.length > 0 && groupId(display) === id ? display : null;
+}
+function groupResource(display, members) {
+  return {
+    schemas: [GROUP_SCHEMA],
+    id: groupId(display),
+    displayName: display,
+    members: members.map((m) => ({
+      value: m.externalId,
+      display: m.email,
+    })),
+    meta: { resourceType: "Group" },
+  };
+}
+function listResponse(resources, query) {
+  const startIndex = Math.max(1, Number.parseInt(query.get("startIndex") ?? "1", 10) || 1);
+  const requested = Number.parseInt(query.get("count") ?? String(MAX_RESULTS), 10);
+  const count = Math.min(
+    MAX_RESULTS,
+    Math.max(0, Number.isNaN(requested) ? MAX_RESULTS : requested),
+  );
+  const page = resources.slice(startIndex - 1, startIndex - 1 + count);
+  return {
+    status: 200,
+    body: {
+      schemas: [LIST_SCHEMA],
+      totalResults: resources.length,
+      startIndex,
+      itemsPerPage: page.length,
+      Resources: page,
+    },
+  };
+}
+/** `attribute eq "value"` filters, the form identity providers send (RFC 7644 3.4.2.2). */
+function equalityFilter(filter, attribute) {
+  if (filter === null || filter.trim() === "") return void 0;
+  const match = new RegExp(`^${attribute} eq "((?:[^"\\\\]|\\\\.)*)"$`, "i").exec(filter.trim());
+  return match?.[1] === void 0 ? null : match[1].replace(/\\(.)/g, "$1");
+}
+var MAX_RESULTS = 200;
+/** The discovery resources (RFC 7644 section 4): what this service provider supports. */
+var SERVICE_PROVIDER_CONFIG = {
+  schemas: ["urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
+  documentationUri: "https://docs.ghxstship.tech/guides/scim",
+  patch: { supported: true },
+  bulk: {
+    supported: false,
+    maxOperations: 0,
+    maxPayloadSize: 0,
+  },
+  filter: {
+    supported: true,
+    maxResults: MAX_RESULTS,
+  },
+  changePassword: { supported: false },
+  sort: { supported: false },
+  etag: { supported: false },
+  authenticationSchemes: [
+    {
+      type: "oauthbearertoken",
+      name: "Bearer token",
+      description:
+        "The SCIM token an Admin issues on Settings, Security, sent as Authorization: Bearer.",
+      primary: true,
+    },
+  ],
+  meta: { resourceType: "ServiceProviderConfig" },
+};
+var RESOURCE_TYPES = [
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+    id: "User",
+    name: "User",
+    endpoint: "/Users",
+    schema: USER_SCHEMA,
+    meta: { resourceType: "ResourceType" },
+  },
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
+    id: "Group",
+    name: "Group",
+    endpoint: "/Groups",
+    schema: GROUP_SCHEMA,
+    meta: { resourceType: "ResourceType" },
+  },
+];
+var attribute = (name, type, extra = {}) => ({
+  name,
+  type,
+  multiValued: false,
+  required: false,
+  caseExact: false,
+  mutability: "readWrite",
+  returned: "default",
+  uniqueness: "none",
+  ...extra,
+});
+var SCHEMAS = [
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
+    id: USER_SCHEMA,
+    name: "User",
+    attributes: [
+      attribute("userName", "string", {
+        required: true,
+        uniqueness: "server",
+        mutability: "immutable",
+      }),
+      attribute("displayName", "string"),
+      attribute("emails", "complex", {
+        multiValued: true,
+        mutability: "immutable",
+      }),
+      attribute("active", "boolean"),
+      attribute("groups", "complex", {
+        multiValued: true,
+        mutability: "readOnly",
+      }),
+    ],
+    meta: { resourceType: "Schema" },
+  },
+  {
+    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
+    id: GROUP_SCHEMA,
+    name: "Group",
+    attributes: [
+      attribute("displayName", "string", {
+        required: true,
+        mutability: "immutable",
+      }),
+      attribute("members", "complex", { multiValued: true }),
+    ],
+    meta: { resourceType: "Schema" },
+  },
+];
+function readUser(body) {
+  const user = body ?? {};
+  const primary = user.emails?.find((e) => e.primary === true) ?? user.emails?.[0];
+  const email = (
+    typeof primary?.value === "string"
+      ? primary.value
+      : typeof user.userName === "string"
+        ? user.userName
+        : ""
+  )
+    .trim()
+    .toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    return "userName or a primary email must be an email address.";
+  const formatted = typeof user.name?.formatted === "string" ? user.name.formatted : null;
+  const parts = [user.name?.givenName, user.name?.familyName].filter(
+    (p) => typeof p === "string" && p.length > 0,
+  );
+  const fullName =
+    (typeof user.displayName === "string" ? user.displayName : null) ??
+    formatted ??
+    (parts.length > 0 ? parts.join(" ") : null);
+  const groups = Array.isArray(user.groups)
+    ? user.groups
+        .map((g) =>
+          typeof g.display === "string"
+            ? g.display
+            : typeof g.value === "string"
+              ? groupDisplay(g.value)
+              : null,
+        )
+        .filter((g) => g !== null)
+    : null;
+  return {
+    email,
+    fullName,
+    active: user.active !== false,
+    groups,
+  };
+}
+function storeFailure(error) {
+  if (error instanceof StoreError && error.error.kind === "refusal")
+    return scimError(400, error.error.message, "invalidValue");
+  throw error;
+}
+async function upsertUser(store, admin, providerId, externalId, body, existing) {
+  const parsed = readUser(body);
+  if (typeof parsed === "string") return scimError(400, parsed, "invalidValue");
+  if (existing && existing.email !== parsed.email)
+    return scimError(
+      400,
+      "A provisioned user keeps its email address; deprovision it and provision the new address.",
+      "mutability",
+    );
+  const userId = existing?.userId ?? (await admin.findOrCreateUser(parsed.email, parsed.fullName));
+  const id =
+    existing?.externalId ??
+    externalId ??
+    (typeof body.externalId === "string" ? body.externalId : parsed.email);
+  const groups = parsed.groups ?? existing?.groups ?? [];
+  try {
+    await store.provision(providerId, id, parsed.email, userId, parsed.active, groups);
+  } catch (error) {
+    return storeFailure(error);
+  }
+  return {
+    status: existing ? 200 : 201,
+    body: userResource({
+      externalId: id,
+      userId,
+      email: parsed.email,
+      displayName: parsed.fullName,
+      active: parsed.active,
+      groups,
+    }),
+  };
+}
+function operations(body) {
+  const patch = body ?? {};
+  if (
+    !Array.isArray(patch.schemas) ||
+    !patch.schemas.includes(PATCH_SCHEMA) ||
+    !Array.isArray(patch.Operations)
+  )
+    return null;
+  return patch.Operations;
+}
+/** Handles one SCIM request. Unknown routes answer 404 and unsupported operations 501, in SCIM error form. */
+async function handleScimRequest(request, deps) {
+  const { store, admin } = deps;
+  const token = /^Bearer (\S+)$/.exec(request.authorization ?? "")?.[1];
+  const providerId = token === void 0 ? null : await store.providerForToken(token);
+  if (providerId === null)
+    return scimError(401, "The bearer token is not valid for SCIM provisioning.");
+  const [resource, id, extra] = request.path.replace(/^\/+|\/+$/g, "").split("/");
+  if (extra !== void 0) return scimError(404, "No such SCIM resource.");
+  const method = request.method.toUpperCase();
+  if (
+    resource === "ServiceProviderConfig" ||
+    resource === "ResourceTypes" ||
+    resource === "Schemas"
+  ) {
+    if (method !== "GET") return scimError(405, "Discovery resources are read-only.");
+    if (resource === "ServiceProviderConfig")
+      return id === void 0
+        ? {
+            status: 200,
+            body: SERVICE_PROVIDER_CONFIG,
+          }
+        : scimError(404, "No such SCIM resource.");
+    const all = resource === "ResourceTypes" ? RESOURCE_TYPES : SCHEMAS;
+    if (id === void 0) return listResponse(all, request.query);
+    const one = all.find((r) => r["id"] === id);
+    return one
+      ? {
+          status: 200,
+          body: one,
+        }
+      : scimError(404, "No such SCIM resource.");
+  }
+  if (resource === "Users") {
+    if (id === void 0 && method === "GET") {
+      const userName = equalityFilter(request.query.get("filter"), "userName");
+      if (userName === null)
+        return scimError(400, 'Filter users by userName eq "address".', "invalidFilter");
+      if (userName !== void 0) {
+        const found = await store.identityByEmail(providerId, userName.toLowerCase());
+        return listResponse(found ? [userResource(found)] : [], request.query);
+      }
+      return listResponse(
+        (await store.listIdentities(providerId)).map(userResource),
+        request.query,
+      );
+    }
+    if (id === void 0 && method === "POST") {
+      const parsed = readUser(request.body);
+      if (
+        typeof parsed !== "string" &&
+        (await store.identityByEmail(providerId, parsed.email)) !== null
+      )
+        return scimError(409, "A user with this userName is already provisioned.", "uniqueness");
+      return upsertUser(store, admin, providerId, null, request.body, null);
+    }
+    if (id === void 0) return scimError(405, "Use GET or POST on /Users.");
+    const existing = await store.identity(providerId, id);
+    if (existing === null) return scimError(404, "No such user.");
+    if (method === "GET")
+      return {
+        status: 200,
+        body: userResource(existing),
+      };
+    if (method === "PUT") return upsertUser(store, admin, providerId, id, request.body, existing);
+    if (method === "DELETE") {
+      try {
+        await store.provision(
+          providerId,
+          id,
+          existing.email,
+          existing.userId,
+          false,
+          existing.groups,
+        );
+      } catch (error) {
+        return storeFailure(error);
+      }
+      return {
+        status: 204,
+        body: null,
+      };
+    }
+    if (method === "PATCH") {
+      const ops = operations(request.body);
+      if (ops === null) return scimError(400, "Send a PatchOp with Operations.", "invalidSyntax");
+      let active = existing.active;
+      for (const op of ops) {
+        const kind = String(op.op).toLowerCase();
+        const value = op.value;
+        const path = typeof op.path === "string" ? op.path : void 0;
+        if (kind !== "replace" && kind !== "add")
+          return scimError(501, "Users take replace and add; manage groups through /Groups.");
+        const asBoolean = (v) =>
+          typeof v === "boolean" ? v : typeof v === "string" ? /^true$/i.test(v) : void 0;
+        if (path?.toLowerCase() === "active") {
+          const next = asBoolean(value);
+          if (next === void 0) return scimError(400, "active is true or false.", "invalidValue");
+          active = next;
+        } else if (path === void 0 && typeof value === "object" && value !== null) {
+          if (Object.keys(value).some((k) => /^(userName|emails)/i.test(k)))
+            return scimError(400, "A provisioned user keeps its email address.", "mutability");
+          const next = asBoolean(value["active"]);
+          if (next !== void 0) active = next;
+        } else if (path !== void 0 && /^(userName|emails)/i.test(path))
+          return scimError(400, "A provisioned user keeps its email address.", "mutability");
+      }
+      try {
+        await store.provision(
+          providerId,
+          id,
+          existing.email,
+          existing.userId,
+          active,
+          existing.groups,
+        );
+      } catch (error) {
+        return storeFailure(error);
+      }
+      return {
+        status: 200,
+        body: userResource({
+          ...existing,
+          active,
+        }),
+      };
+    }
+    return scimError(405, "That method is not allowed on a user.");
+  }
+  if (resource === "Groups") {
+    if (id === void 0 && method === "GET") {
+      const wanted = equalityFilter(request.query.get("filter"), "displayName");
+      if (wanted === null)
+        return scimError(400, 'Filter groups by displayName eq "name".', "invalidFilter");
+      const everyone = await store.listIdentities(providerId);
+      const names = [...new Set(everyone.flatMap((i) => i.groups))]
+        .filter((g) => wanted === void 0 || g === wanted)
+        .sort((a, b) => a.localeCompare(b));
+      const excludeMembers = request.query.get("excludedAttributes") === "members";
+      return listResponse(
+        names.map((g) =>
+          groupResource(g, excludeMembers ? [] : everyone.filter((i) => i.groups.includes(g))),
+        ),
+        request.query,
+      );
+    }
+    if (id === void 0 && method === "POST") {
+      const display = request.body?.displayName;
+      if (typeof display !== "string" || display.trim().length === 0)
+        return scimError(400, "A group needs a displayName.", "invalidValue");
+      return {
+        status: 201,
+        body: groupResource(display.trim(), []),
+      };
+    }
+    const display = id === void 0 ? null : groupDisplay(id);
+    if (display === null) return scimError(404, "No such group.");
+    const members = await store.identitiesInGroup(providerId, display);
+    if (method === "GET")
+      return {
+        status: 200,
+        body: {
+          schemas: [GROUP_SCHEMA],
+          id,
+          displayName: display,
+          members: members.map((m) => ({
+            value: m.externalId,
+            display: m.email,
+          })),
+        },
+      };
+    if (method === "DELETE") {
+      for (const member of members)
+        await store.provision(
+          providerId,
+          member.externalId,
+          member.email,
+          member.userId,
+          member.active,
+          member.groups.filter((g) => g !== display),
+        );
+      return {
+        status: 204,
+        body: null,
+      };
+    }
+    if (method === "PATCH") {
+      const ops = operations(request.body);
+      if (ops === null) return scimError(400, "Send a PatchOp with Operations.", "invalidSyntax");
+      for (const op of ops) {
+        const kind = String(op.op).toLowerCase();
+        const removeFilter =
+          typeof op.path === "string"
+            ? /^members\[value eq "([^"]+)"\]$/.exec(op.path)?.[1]
+            : void 0;
+        const values =
+          removeFilter !== void 0
+            ? [removeFilter]
+            : op.path === "members" && Array.isArray(op.value)
+              ? op.value.map((v) => v.value).filter((v) => typeof v === "string")
+              : null;
+        if (values === null || (kind !== "add" && kind !== "remove"))
+          return scimError(501, "Only adding and removing members is supported on groups.");
+        for (const memberId of values) {
+          const member = await store.identity(providerId, memberId);
+          if (member === null)
+            return scimError(400, `No provisioned user ${memberId}.`, "invalidValue");
+          const groups =
+            kind === "add"
+              ? [.../* @__PURE__ */ new Set([...member.groups, display])]
+              : member.groups.filter((g) => g !== display);
+          try {
+            await store.provision(
+              providerId,
+              member.externalId,
+              member.email,
+              member.userId,
+              member.active,
+              groups,
+            );
+          } catch (error) {
+            return storeFailure(error);
+          }
+        }
+      }
+      return {
+        status: 204,
+        body: null,
+      };
+    }
+    return scimError(405, "That method is not allowed on a group.");
+  }
+  return scimError(404, "No such SCIM resource.");
+}
+function toIdentity(row) {
+  if (row.people === null || row.people.user_id === null) return null;
+  return {
+    externalId: row.external_id,
+    userId: row.people.user_id,
+    email: row.user_name,
+    displayName: row.people.full_name,
+    active: row.active,
+    groups: row.groups,
+  };
+}
+var IDENTITY_COLUMNS =
+  "external_id, user_name, active, groups, people:person_id (user_id, full_name)";
+/** The SCIM store over the service-role client (the SCIM RPCs are service role only). */
+function supabaseScimStore(db) {
+  const one = async (query) => {
+    const first = (await unwrap(query))[0];
+    return first === void 0 ? null : toIdentity(first);
+  };
+  return {
+    async providerForToken(token) {
+      return unwrap(db.rpc("scim_provider_for_token", { p_token: token }));
+    },
+    async identity(providerId, externalId) {
+      return one(
+        db
+          .from("scim_identities")
+          .select(IDENTITY_COLUMNS)
+          .eq("identity_provider_id", providerId)
+          .eq("external_id", externalId)
+          .is("deleted_at", null)
+          .limit(1),
+      );
+    },
+    async identityByEmail(providerId, email) {
+      return one(
+        db
+          .from("scim_identities")
+          .select(IDENTITY_COLUMNS)
+          .eq("identity_provider_id", providerId)
+          .eq("user_name", email)
+          .is("deleted_at", null)
+          .limit(1),
+      );
+    },
+    async identitiesInGroup(providerId, group) {
+      return (
+        await unwrap(
+          db
+            .from("scim_identities")
+            .select(IDENTITY_COLUMNS)
+            .eq("identity_provider_id", providerId)
+            .is("deleted_at", null),
+        )
+      )
+        .map(toIdentity)
+        .filter((i) => i !== null && i.groups.includes(group));
+    },
+    async listIdentities(providerId) {
+      return (
+        await unwrap(
+          db
+            .from("scim_identities")
+            .select(IDENTITY_COLUMNS)
+            .eq("identity_provider_id", providerId)
+            .is("deleted_at", null)
+            .order("user_name"),
+        )
+      )
+        .map(toIdentity)
+        .filter((i) => i !== null);
+    },
+    async provision(providerId, externalId, userName, userId, active, groups) {
+      return unwrap(
+        db.rpc("scim_provision", {
+          p_identity_provider_id: providerId,
+          p_external_id: externalId,
+          p_user_name: userName,
+          p_user_id: userId,
+          p_active: active,
+          p_groups: [...groups],
+        }),
+      );
+    },
+  };
+}
+/**
+ * Finds the sign-in for an email (`app.scim_user_for_email`, migration 1332) or creates it confirmed, with no
+ * password: the person signs in through single sign-on, a magic link or a passkey. Never sends an invitation.
+ */
+function supabaseAuthAdmin(client) {
+  const existing = async (email) => unwrap(client.rpc("scim_user_for_email", { p_email: email }));
+  return {
+    async findOrCreateUser(email, fullName) {
+      const found = await existing(email);
+      if (found) return found;
+      const { data, error } = await client.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        ...(fullName ? { user_metadata: { full_name: fullName } } : {}),
+      });
+      if (data.user) return data.user.id;
+      const raced = await existing(email);
+      if (raced) return raced;
+      throw new Error(`Cannot create the sign-in for SCIM: ${error?.message ?? "no user"}`);
+    },
+  };
+}
+/**
+ * SCIM over HTTP (RFC 7644): the Edge Function's request in, the SCIM response out as application/scim+json.
+ * `basePath` is what precedes the SCIM resource in the URL path, for example /functions/v1/scim/v2.
+ */
+async function serveScim(request, deps) {
+  const url = new URL(request.url);
+  const path = url.pathname.startsWith(deps.basePath)
+    ? url.pathname.slice(deps.basePath.length)
+    : url.pathname.replace(/^.*?\/scim(\/v2)?(?=\/|$)/, "");
+  const method = request.method.toUpperCase();
+  let body = null;
+  if (method === "POST" || method === "PUT" || method === "PATCH")
+    try {
+      body = await request.json();
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      const invalid = scimError(400, "The request body is not JSON.", "invalidSyntax");
+      return new Response(JSON.stringify(invalid.body), {
+        status: invalid.status,
+        headers: { "content-type": "application/scim+json" },
+      });
+    }
+  const result = await handleScimRequest(
+    {
+      method,
+      path,
+      query: url.searchParams,
+      authorization: request.headers.get("authorization"),
+      body,
+    },
+    deps,
+  );
+  return new Response(result.body === null ? null : JSON.stringify(result.body), {
+    status: result.status,
+    headers: result.body === null ? {} : { "content-type": "application/scim+json" },
+  });
+}
+//#endregion
 //#region ../integrations/src/framework/catalog.ts
 var PROVIDERS = [
   {
@@ -41881,27 +43998,6 @@ function connectorRegistry(connectors) {
     map.set(connector.provider, connector);
   }
   return map;
-}
-//#endregion
-//#region ../integrations/src/framework/db.ts
-/** Adapts a Supabase client (any schema typing) to the structural client the stores use. */
-function asDbClient(client) {
-  return client;
-}
-/** A database outcome the store could not turn into data: a refusal, a missing row or an unexpected error. */
-var StoreError = class extends Error {
-  error;
-  constructor(error) {
-    super(error.kind === "not-found" ? "The row does not exist or is not visible." : error.message);
-    this.name = "StoreError";
-    this.error = error;
-  }
-};
-/** Returns the data of a response or throws a StoreError naming the database outcome. */
-async function unwrap(response) {
-  const { data, error } = await response;
-  if (error) throw new StoreError(toDataError(error));
-  return data;
 }
 //#endregion
 //#region ../integrations/src/framework/errors.ts
@@ -48441,6 +50537,7 @@ export {
   googleLanguage,
   googleMessageTranslator,
   handleInboundRequest,
+  handleScimRequest,
   handleStripeWebhook,
   handleTwilioWebhook,
   httpFromFetch,
@@ -48492,6 +50589,7 @@ export {
   scanStore,
   scannerChoice,
   selectVirusScanner,
+  serveScim,
   setExtraSeats,
   signWebhook,
   smsBody,
@@ -48504,6 +50602,7 @@ export {
   stagedUploadTarget,
   staticAccessToken,
   stripQuotedText,
+  supabaseAuthAdmin,
   supabaseCommunicationSource,
   supabaseDb,
   supabaseImportStore,
@@ -48512,6 +50611,7 @@ export {
   supabaseReportRunStore,
   supabaseResultFiles,
   supabaseResultStorage,
+  supabaseScimStore,
   supabaseStorage,
   translateChatMessage,
   translationEnvSchema,
