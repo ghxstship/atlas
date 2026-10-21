@@ -241,7 +241,9 @@ settings:
     help: settings.fields.numberPadding.help
     pages: { org: settings.numbering }
     enforced_by:
-      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#private.document_number
+      - consumer: supabase/migrations/1396_document_number_padding.sql#private.document_number
+        test: supabase/tests/1396_document_number_padding.test.sql
+      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#app.complete_training
         test: supabase/tests/1326_numbering_and_general_settings.test.sql
 
   # Time and attendance -----------------------------------------------------------------------------------------
