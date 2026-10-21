@@ -65,7 +65,7 @@ create temp table demo_email_domains (domain text primary key);
 create temp table demo_seed_tables (table_name text primary key);
 
 -- BEGIN GENERATED SEED MARKERS (infra/production/src/cli.ts generate)
--- Derived from 27 seed files: 224 fixed ids, 3 email domain(s), 236 seeded tables.
+-- Derived from 28 seed files: 231 fixed ids, 3 email domain(s), 241 seeded tables.
 insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000000001'::uuid),
   ('01920000-0000-7000-8000-000000000101'::uuid),
@@ -214,6 +214,13 @@ insert into pg_temp.demo_seed_ids (id) values
   ('01920000-0000-7000-8000-000000228701'::uuid),
   ('01920000-0000-7000-8000-000000228702'::uuid),
   ('01920000-0000-7000-8000-000000228801'::uuid),
+  ('01920000-0000-7000-8000-000001340001'::uuid),
+  ('01920000-0000-7000-8000-000001340002'::uuid),
+  ('01920000-0000-7000-8000-000001340101'::uuid),
+  ('01920000-0000-7000-8000-000001340102'::uuid),
+  ('01920000-0000-7000-8000-000001340201'::uuid),
+  ('01920000-0000-7000-8000-000001340301'::uuid),
+  ('01920000-0000-7000-8000-000001340401'::uuid),
   ('01920000-0000-7000-8000-000002290001'::uuid),
   ('01920000-0000-7000-8000-000002290101'::uuid),
   ('01920000-0000-7000-8000-000002290102'::uuid),
@@ -338,6 +345,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.certifications'),
   ('app.change_order_lines'),
   ('app.change_orders'),
+  ('app.consent_records'),
   ('app.contingency_draws'),
   ('app.cost_centers'),
   ('app.counterparties'),
@@ -420,10 +428,13 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.payments'),
   ('app.payroll_runs'),
   ('app.person_certifications'),
+  ('app.person_emergency_contacts'),
   ('app.person_languages'),
   ('app.person_links'),
+  ('app.person_loyalty_programs'),
   ('app.person_profiles'),
   ('app.person_skills'),
+  ('app.person_work_details'),
   ('app.personal_setting_values'),
   ('app.po_lines'),
   ('app.pool_members'),
@@ -524,6 +535,7 @@ insert into pg_temp.demo_seed_tables (table_name) values
   ('app.venues'),
   ('app.verbiage_terms'),
   ('app.weather_thresholds'),
+  ('app.work_detail_shares'),
   ('app.work_order_bids'),
   ('app.work_orders'),
   ('app.workforce_events'),

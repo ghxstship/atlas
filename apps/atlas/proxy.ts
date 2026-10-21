@@ -14,6 +14,7 @@ import {
   PATH_HEADER,
   secondFactorRedirect,
 } from "@/lib/auth/assurance";
+import { apiHostResponse, isApiHost } from "@/lib/api-host";
 import { env } from "@/lib/env";
 import {
   buildCsp,
@@ -29,6 +30,7 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
 
 /**
  * Atlas proxy (Next 16 renames middleware to proxy), run before every page and server action:
+ *   0. on the API host (XOS_API_HOST), answers as the public API and does nothing below;
  *   1. refuses cross-site state-changing requests (CSRF, Section 9);
  *   2. issues a per-request nonce and the strict Content Security Policy, HSTS and the other
  *      security headers;
@@ -49,6 +51,9 @@ const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = env();
+  // The API host (XOS_API_HOST) serves the public API only: no CSRF page check, session refresh,
+  // route guard or cookie applies there (lib/api-host.ts).
+  if (isApiHost(request.headers.get("host"), config)) return apiHostResponse(request, config);
   const development = config.NODE_ENV === "development";
   const secureSite = config.ATLAS_SITE_URL.startsWith("https:");
   if (

@@ -12,6 +12,7 @@ import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
 
@@ -29,7 +30,7 @@ export async function CanonElements({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const query = typeof search["q"] === "string" ? search["q"] : "";
   const prefix = typeof search["urid"] === "string" ? search["urid"] : "";
   const page = Math.max(

@@ -1,10 +1,16 @@
 {
   "choose": "Choose an option",
-  "lock": "Lock this value so workspaces, projects and people cannot change it",
+  "lock": "Workspaces, projects and people cannot change a locked value.",
   "save": "Save",
   "saved": "Saved.",
   "inherit": "Use the inherited value",
   "reset": "Reset to the platform default",
+  "undoReset": "Keep this value",
+  "resetPending": "Resets to the platform default when you save.",
+  "inheritPending": "Uses the inherited value when you save.",
+  "lockValue": "Lock value",
+  "discard": "Discard",
+  "unsaved": "{count, plural, one {# unsaved change} other {# unsaved changes}}",
   "loadFailed": "These settings could not be loaded. Reload the page to try again.",
   "registryHeading": "Settings on this page",
   "personalSections": "Personal settings sections",
@@ -257,6 +263,10 @@
     "shortcutsEnabled": {
       "label": "Keyboard shortcuts",
       "help": "Single-key shortcuts such as J, K and ? on desktop."
+    },
+    "messageTranslation": {
+      "label": "Translate chat messages",
+      "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
     }
   },
   "choices": {
@@ -618,6 +628,114 @@
     "sharedWithUs": {
       "title": "Shared with your organization",
       "entry": "Shared by {owner} · Your members act as {role}"
+    }
+  },
+  "notifications": {
+    "category": "Category",
+    "channels": {
+      "inApp": "In app",
+      "email": "Email",
+      "sms": "Text (SMS)",
+      "push": "Push"
+    },
+    "cellLabel": "{category} by {channel}",
+    "urgent": "Urgent: arrives at once, even in quiet hours.",
+    "save": "Save notification settings",
+    "saved": "Notification settings saved.",
+    "loadFailed": "Notification settings could not be loaded. Reload the page to try again.",
+    "digest": {
+      "Off": "Off",
+      "Daily": "Daily",
+      "Weekly": "Weekly (Mondays)"
+    },
+    "errors": {
+      "notification_category_mandatory": "Your organization made this category mandatory on that channel, so it stays on.",
+      "time_zone_unknown": "Choose a time zone from the list.",
+      "denied": "You cannot change these settings.",
+      "invalid": "Check the highlighted fields.",
+      "unexpected": "The settings were not saved. Try again.",
+      "sms_phone_unverified": "Verify a phone number on your account before turning on texts."
+    },
+    "fieldErrors": {
+      "invalid": "Enter a valid value.",
+      "quietPair": "Set both the start and the end of quiet hours, or neither.",
+      "quietSame": "Quiet hours end at a different time than they start."
+    },
+    "mine": {
+      "formLabel": "Your notification settings",
+      "matrixTitle": "What reaches you",
+      "matrixDescription": "Choose how each kind of notification reaches you. Until you choose, your organization's defaults apply.",
+      "locked": "Required by your organization",
+      "smsNote": "Texts go only to a verified phone number you agreed to receive texts on. Reply STOP to any text to stop them.",
+      "quietTitle": "Quiet hours and digest",
+      "quietDescription": "During quiet hours, texts and push notifications wait until the end, except urgent ones. Texts also wait between 21:00 and 08:00 unless you set your own quiet hours.",
+      "quietStart": "Quiet hours start",
+      "quietEnd": "Quiet hours end",
+      "timeZone": "Time zone",
+      "digest": "Email digest",
+      "digestHelp": "Gathers email that is not urgent into one message.",
+      "digestHour": "Digest time",
+      "smsNoPhone": "Add and verify a phone number on your account to receive texts.",
+      "smsConsent": "Text me notifications from this organization at {phone}. Message frequency varies. Message and data rates may apply. Reply STOP to stop or HELP for help."
+    },
+    "org": {
+      "formLabel": "Organization notification defaults",
+      "matrixTitle": "Defaults for members",
+      "matrixDescription": "What members receive until they choose for themselves. Mark a category mandatory to keep its checked channels on for everyone.",
+      "mandatory": "Mandatory",
+      "mandatoryLabel": "{category} is mandatory",
+      "mandatoryHelp": "Mandatory categories stay on for every channel checked here. Texts still need each member's consent, and STOP still stops them.",
+      "readOnly": "You can see the defaults. Changing them needs the notification settings permission."
+    },
+    "categories": {
+      "mentions": {
+        "label": "Mentions",
+        "help": "Someone mentions you in a comment or message."
+      },
+      "assignments": {
+        "label": "Assignments",
+        "help": "Work, training or a help request is assigned to you."
+      },
+      "approvals": {
+        "label": "Approvals",
+        "help": "Requests waiting for your decision, and decisions on your requests."
+      },
+      "comments": {
+        "label": "Comments",
+        "help": "New comments on records you follow."
+      },
+      "schedule": {
+        "label": "Schedule",
+        "help": "Shifts assigned or changed, and event invitations."
+      },
+      "finance": {
+        "label": "Invoices and payments",
+        "help": "Invoices approved, received, scheduled and paid."
+      },
+      "safety": {
+        "label": "Safety",
+        "help": "Incidents, occupancy thresholds and weather alerts."
+      },
+      "account": {
+        "label": "Account and billing",
+        "help": "Security changes, break-glass access and payment problems."
+      },
+      "reports": {
+        "label": "Reports",
+        "help": "Scheduled reports ready to read."
+      },
+      "imports": {
+        "label": "Imports and exports",
+        "help": "Imports that finished and exports ready to download."
+      },
+      "messages": {
+        "label": "Messages",
+        "help": "New chat messages to you or your groups."
+      },
+      "feed": {
+        "label": "Feed",
+        "help": "Announcements, surveys and recognition."
+      }
     }
   }
 }

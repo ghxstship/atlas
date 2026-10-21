@@ -47,7 +47,7 @@ The App stores data on your device in an encrypted database so it works offline.
 
 ## 5. Account Deletion
 
-You can delete your account from inside the App: Profile, then Settings, then Delete Account. You can also request deletion from our website without the App at /legal/account-deletion. Deleting your account removes your profile and sign-in. Organizations you worked with keep the engagement records the law requires them to keep, such as timesheets, payments and tax documents, as described in the Worker Terms.
+You can delete your account from inside the App: More, then Settings, then Delete Account. You can also request deletion from our website without the App at /legal/account-deletion. Deleting your account removes your profile and sign-in. Organizations you worked with keep the engagement records the law requires them to keep, such as timesheets, payments and tax documents, as described in the Worker Terms.
 
 ## 6. Updates
 

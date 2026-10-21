@@ -1,9 +1,11 @@
 import { COMPASS_AURORA_ENTRY } from "@xos/ai/conversation";
 import { articlesForNode, helpLocale, isSpecificTo, searchArticles, type Article } from "@xos/help";
 import { isInternal } from "@xos/sync";
+import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
 import { useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
+import { helpCenterUrl } from "../../src/domain/docs";
 import { articlesForAudience, helpNodeFor, helpNodesFor } from "../../src/domain/help";
 import { COMPASS_HELP } from "../../src/help/content.generated";
 import { lastHelpScreen } from "../../src/runtime/help";
@@ -19,7 +21,8 @@ import { Button, Card, ListRow, Screen, Text, TextField } from "../../src/ui";
 export default function HelpScreen(): ReactElement {
   const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { resolved } = useCompass();
+  const { resolved, config } = useCompass();
+  const helpCenter = helpCenterUrl(config.docsUrl, i18n.language);
   const params = useLocalSearchParams<{ screen?: string }>();
   const [query, setQuery] = useState("");
   const articles = COMPASS_HELP.articles[helpLocale(i18n.language)];
@@ -84,6 +87,16 @@ export default function HelpScreen(): ReactElement {
             title={t(COMPASS_AURORA_ENTRY.labelKey)}
             subtitle={t(COMPASS_AURORA_ENTRY.descriptionKey)}
             onPress={() => router.push(COMPASS_AURORA_ENTRY.route as Href)}
+          />
+        </Card>
+      ) : null}
+      {helpCenter ? (
+        <Card>
+          <ListRow
+            testID="help-center"
+            icon="external-link"
+            title={t("compass.help.helpCenter")}
+            onPress={() => void Linking.openURL(helpCenter)}
           />
         </Card>
       ) : null}

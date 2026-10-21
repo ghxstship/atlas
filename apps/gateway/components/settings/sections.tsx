@@ -44,7 +44,8 @@ import {
   savePrivacyAction,
   saveProfileAction,
 } from "@/lib/actions/profile";
-import { formatDate, formatMoney, minorDigits, todayIso } from "@/lib/format";
+import { formatDate, formatMoney, minorDigits } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settings";
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -53,6 +54,12 @@ import { DeleteAccountSection } from "./delete-account";
 import { NotificationPreferences } from "./notification-preferences";
 import { PersonalSetting } from "./personal-setting";
 import { SecurityPanels } from "./security-panels";
+import {
+  MyAccessLogPanel,
+  MySharingPanel,
+  MyWorkDetailsPanel,
+  NamePartsPanel,
+} from "./work-details";
 
 /**
  * Gateway settings sections (Section 4.5.8: account, security, notifications, payout details,
@@ -516,6 +523,7 @@ function AccountSection(props: SectionProps) {
           },
         ]}
       />
+      <NamePartsPanel ctx={ctx} />
       <p className="m-0 text-text-13">
         {t("gateway.settings.account.email", { email: ctx.email ?? "" })}
       </p>
@@ -890,7 +898,8 @@ async function RepresentationSection(props: SectionProps) {
   const { ctx, t, locale } = props;
   const reps = await listRepresentations(ctx.db);
   if (!reps.ok) return <RegionError />;
-  const today = todayIso();
+  // Representation agreements are the person's own, so their standing follows the person's calendar.
+  const today = await personToday(ctx);
   const mine = reps.data.filter((r) => r.accountId === ctx.acting?.id);
   return (
     <>
@@ -959,12 +968,14 @@ export async function SettingsSection({ node, ctx }: { node: string; ctx: Gatewa
     case "settings.company.payout-and-tax":
       return <PayoutTaxSection {...props} account />;
     case "settings.work-details":
+      // Work Details and their per-engagement sharing (A78): see ./work-details.tsx.
       return (
-        <NoteSection
-          {...props}
-          note={t("gateway.settings.notes.workDetails")}
-          action={{ label: t("gateway.settings.notes.toProfile"), href: "/settings/profile" }}
-        />
+        <>
+          <Header t={t} node={node} />
+          <MyWorkDetailsPanel ctx={ctx} />
+          <MySharingPanel ctx={ctx} />
+          <MyAccessLogPanel ctx={ctx} />
+        </>
       );
     case "settings.calendar-feeds":
       return (

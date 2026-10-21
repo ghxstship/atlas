@@ -121,6 +121,46 @@ LCP, CLS and TBT are inside budget on every page and accessibility scores 100 ev
 on every page (Atlas signed-in 889 to 1409 ms before, 835 to 948 ms now). Atlas sign-in scored 90 on
 this run with the same LCP and no blocking time; one desktop run on a loaded machine.
 
+### A75 (RRR-120, 2026-10-20): the 2026-10-19 nightly failures
+
+The nightly failed gate 10 on Total Blocking Time 253 ms on Atlas Home, CLS 0.199 on Atlas
+Projects, 202 to 215 KB of script on four pages and accessibility 0.98 on Gateway Explore. Local
+runs used the same CLI and settings on a loaded machine (load average 50 to 500), three rounds per
+app before and after.
+
+**The runner measured signed-out requests.** It sent the session as an extra Cookie header, and
+Chrome sends its own cookie jar instead once a page sets a cookie (Atlas sets `xos-last-org` on every
+org page). Server actions, redirects and prefetches then ran signed out: every saved-views and
+help-state load failed, and Gateway /work and /money were measured as the sign-in page. The runner
+now puts the session in the browser's cookie jar (`packages/testing/src/lighthouse-session.cjs`).
+That exposed two more pages over budget on a first visit, Home and Crew shifts, which loaded the
+whole help panel to offer a tour or a tip.
+
+| Page                                   | Measure       | Before             | After  | Cause and fix                                                              |
+| -------------------------------------- | ------------- | ------------------ | ------ | -------------------------------------------------------------------------- |
+| Atlas /demo-productions/projects       | CLS           | 0.088 (CI 0.199)   | 0.000  | A failed saved-views load put an alert in the page header; now in the menu |
+| Atlas /demo-productions/projects       | Script        | 202 KB             | 195 KB | SegmentedControl without Radix's toggle group                              |
+| Atlas /demo-productions/p/NWS/overview | Script        | 215 KB             | 190 KB | Project tabs prefetch on intent (18 KB); SegmentedControl                  |
+| Atlas /demo-productions/home           | Script        | 213 KB (tour card) | 187 KB | The tour card no longer loads the help drawer                              |
+| Atlas /demo-productions/crew/shifts    | Script        | 222 KB (tour, tip) | 189 KB | Same; SegmentedControl                                                     |
+| Atlas /demo-productions/home           | TBT, 4x CPU   | 141 ms             | 89 ms  | Server-formatted alert dates and activity times; cached Intl formatters    |
+| Gateway /explore                       | Accessibility | 0.98               | 1      | heading-order: the Filters disclosure is an h2                             |
+| Gateway /explore                       | Script        | 203 KB             | 183 KB | Precompiled messages, deferred shell overlays and session dialog           |
+| Gateway /home                          | Script        | 202 KB             | 171 KB | Same                                                                       |
+| Gateway /work                          | Script        | 201 KB             | 171 KB | Same (measured signed in for the first time)                               |
+| Gateway /money                         | Script        | 221 KB             | 190 KB | Same (measured signed in for the first time)                               |
+
+Lighthouse script is `resource-summary:script:size`. TBT is the median of five Lighthouse runs per
+build with `cpuSlowdownMultiplier` 4, the base and this branch alternating; at the preset's 1x both
+measure 0 to 80 ms here, so the CI runner is roughly four times slower than this machine. Route
+JavaScript (`budget:js`, gzip) after the changes: Atlas 156 to 189 KB, Gateway 163 to 179 KB, docs
+142 KB on every key page.
+
+Journey 46's WebKit failure (Gateway `expectAccessible` on the Atlas change-order peek) was the
+same tokens at 0.3 to 0.8 opacity during the peek's 80 ms reduced-motion fade, scanned before it
+ended: the drawer's text read #5c5d5f and #414347 on #131417. The same nodes pass at rest. Gateway's
+helper now waits for the resting state as Atlas's does (finding A24-008).
+
 ## API latency (A24-010)
 
 Every API response now carries `Server-Timing` (`auth`, `rate`, `validate`, `handler`). Single

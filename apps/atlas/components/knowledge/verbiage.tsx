@@ -21,6 +21,7 @@ import { PageHeader } from "@/components/collection-kit/ui";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["table", "list"];
 const REFUSALS = "knowledge.refusals";
@@ -39,7 +40,7 @@ export async function VerbiageSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, terms] = await Promise.all([getCopy("knowledge"), listVerbiageTerms(db, ctx.org.id)]);
   const title = t("verbiage.title");

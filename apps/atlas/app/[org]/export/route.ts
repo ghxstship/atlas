@@ -1,6 +1,7 @@
 import { requireSecondFactor } from "@xos/data/auth-assurance";
 import { buildOrgExport, canExportOrg, recordOrgExport } from "@xos/data/lifecycle";
 import { getOrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 /**
  * The full org export (A36, Section 14.7 and 14.8): one ZIP archive with JSON and CSV of every tenant
@@ -35,7 +36,8 @@ export async function GET(
     console.error("org export could not be logged", logged.error);
     return new Response(null, { status: 500 });
   }
-  const day = new Date().toISOString().slice(0, 10);
+  // The archive is named for the org's date, not the UTC date.
+  const day = await orgToday(ctx);
   return new Response(built.data.archive as unknown as BodyInit, {
     status: 200,
     headers: {

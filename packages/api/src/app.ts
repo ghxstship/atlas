@@ -116,7 +116,13 @@ export const DOCUMENT_INFO = {
       'Versioned REST API for XOS 4.0 (Section 10.1, ADR 0003). Cursor pagination with `limit` and `cursor`; sparse fieldsets with `fields`; filters with `filter[field][op]=value`; `Idempotency-Key` on every POST; `ETag` and `If-Match` on updates; RFC 9457 problem details; refusals as 422 with `refusal` set to NO_ANSWER, UNRATIFIED or REFUSE. Money is integer minor units with a currency; null is unpriced, never zero. Restricted fields the caller may not read stay present as `{ "masked": true, "reason": "..." }`. The active organization is bound to the credential.',
     license: { name: "AGPL-3.0-only", identifier: "AGPL-3.0-only" },
   },
-  servers: [{ url: "/api/v1", description: "This deployment." }],
+  // `servers` is document metadata, outside the frozen operations and components (ADR 0023), so
+  // adding a server is not a contract correction. The relative entry stays first: every deployment,
+  // self-hosted ones included, serves the API at its own /api/v1.
+  servers: [
+    { url: "/api/v1", description: "This deployment." },
+    { url: "https://api.ghxstship.tech/v1", description: "GHXSTSHIP hosted production." },
+  ],
   security: SECURITY_REQUIREMENT,
   tags: MODULES.map((name) => ({ name, description: TAG_DESCRIPTIONS[name] })),
 } as const;
@@ -125,29 +131,35 @@ export const DOCUMENT_INFO = {
 export interface ApiDeps extends MountOptions {
   /** Module handler sets; defaults to every file in `src/handlers`. */
   readonly handlers?: readonly AnyModuleHandlers[];
-  /** Mount prefix stripped before routing, such as `/api/v1` in Atlas. */
-  readonly basePath?: string;
+  /**
+   * Mount prefix stripped before routing, such as `/api/v1` in Atlas. A list names every prefix
+   * the app is reached under, tried in order: Atlas serves `/api/v1` on its own host and `/v1` on
+   * the API host, whose requests keep their original path after the proxy rewrites them.
+   */
+  readonly basePath?: string | readonly string[];
+}
+
+/** The path the routes see: the request path without the first mount prefix it starts with. */
+export function stripBasePath(path: string, bases: readonly string[]): string {
+  for (const base of bases) {
+    if (path === base) return "/";
+    if (path.startsWith(`${base}/`)) return path.slice(base.length);
+  }
+  return path;
 }
 
 export function createApiApp(
   deps?: ApiDeps,
   specs: readonly ResourceSpec[] = catalog,
 ): OpenAPIHono {
-  const base = deps?.basePath?.replace(/\/$/, "") ?? "";
+  const bases = (typeof deps?.basePath === "string" ? [deps.basePath] : (deps?.basePath ?? []))
+    .map((base) => base.replace(/\/$/, ""))
+    .filter((base) => base !== "");
   const app = new OpenAPIHono({
     defaultHook: validationHook,
-    ...(base === ""
+    ...(bases.length === 0
       ? {}
-      : {
-          getPath: (request: Request) => {
-            const path = new URL(request.url).pathname;
-            return path === base
-              ? "/"
-              : path.startsWith(`${base}/`)
-                ? path.slice(base.length)
-                : path;
-          },
-        }),
+      : { getPath: (request: Request) => stripBasePath(new URL(request.url).pathname, bases) }),
   });
   const registry = app.openAPIRegistry;
   registerSecuritySchemes(registry, loadCapabilityRegistry());

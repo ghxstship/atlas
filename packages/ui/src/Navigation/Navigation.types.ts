@@ -24,6 +24,11 @@ export type AccordionProps = ReferenceAccordionProps & {
    * pattern inside a form, so collapsed fields keep their values and still submit with the form.
    */
   keepMounted?: boolean;
+  /**
+   * The heading level of each section header, 3 by default. Pick the level that follows the heading
+   * above the accordion, so headings never skip a level (WCAG 1.3.1, axe heading-order).
+   */
+  headingLevel?: 2 | 3 | 4 | 5 | 6;
 };
 
 export type BreadcrumbsProps = ReferenceBreadcrumbsProps;

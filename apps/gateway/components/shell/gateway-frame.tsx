@@ -2,10 +2,6 @@
 
 import {
   BrandMark,
-  Button,
-  CommandMenu,
-  Dialog,
-  Drawer,
   IconButton,
   Avatar,
   TabBar,
@@ -27,9 +23,13 @@ import {
   type ReactNode,
 } from "react";
 import { HelpEntry } from "@/components/help/help-entry";
-import { setActing, setLocale, setTheme } from "@/lib/shell/actions";
 import type { ThemePreference } from "@/lib/theme";
+import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
+
+/** Search, the account panel and the organization switcher load when one first opens. */
+const overlays = onDemand(() => import("./shell-overlays"));
+const preloadOverlays = () => void overlays.load().catch(() => undefined);
 
 export interface FrameLink {
   readonly id: string;
@@ -65,6 +65,8 @@ export interface GatewayFrameProps {
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
+  /** The docs site origin (DOCS_SITE_URL), on the platform brand only; null hides its links. */
+  readonly docsUrl: string | null;
   readonly children: ReactNode;
 }
 
@@ -84,6 +86,8 @@ function activeLabel(links: readonly FrameLink[], pathname: string): string {
  * help (the Help button, the avatar menu's Help and the `?` key open the contextual help panel,
  * Section 11.16), and the account panel with the avatar menu, the acting account, theme and
  * language. Every destination comes from ia/sitemap.yaml through the server-built navigation model.
+ * Search, the account panel and the organization switcher (shell-overlays.tsx) load on first use;
+ * pointing at or focusing the header fetches them early. Help loads its own panel (HelpEntry).
  */
 export function GatewayFrame(props: GatewayFrameProps) {
   const router = useRouter();
@@ -94,6 +98,7 @@ export function GatewayFrame(props: GatewayFrameProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   const [switchOpen, setSwitchOpen] = useState(false);
   const signOutForm = useRef<HTMLFormElement>(null);
+  const loaded = useOnDemand(overlays, commandOpen || accountOpen || switchOpen);
 
   const go = useCallback((href: string) => router.push(href as Route), [router]);
 
@@ -122,6 +127,10 @@ export function GatewayFrame(props: GatewayFrameProps) {
       if (event.key === "?" && !typing && !event.metaKey && !event.ctrlKey) {
         event.preventDefault();
         setHelpOpen(true);
+      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        // The command menu's own Cmd or Ctrl+K arrives with its module, so the frame owns it.
+        event.preventDefault();
+        setCommandOpen((open) => !open);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -154,20 +163,26 @@ export function GatewayFrame(props: GatewayFrameProps) {
   );
 
   const topNav = (
-    <TopNav
-      brand={props.brandName}
-      label={t("gateway.shell.primaryNav")}
-      person={props.personName}
-      active={active}
-      items={props.primary.map(toItem)}
-      onSearch={() => setCommandOpen(true)}
-      onHelp={() => setHelpOpen(true)}
-      onAccount={() => setAccountOpen(true)}
-    />
+    <div className="contents" onPointerOver={preloadOverlays} onFocus={preloadOverlays}>
+      <TopNav
+        brand={props.brandName}
+        label={t("gateway.shell.primaryNav")}
+        person={props.personName}
+        active={active}
+        items={props.primary.map(toItem)}
+        onSearch={() => setCommandOpen(true)}
+        onHelp={() => setHelpOpen(true)}
+        onAccount={() => setAccountOpen(true)}
+      />
+    </div>
   );
 
   const mobileHeader = (
-    <header className="hidden max-md:flex items-center justify-between gap-8 h-(--ui-topnav) px-16 bg-bg-surface border-b border-border-subtle">
+    <header
+      className="hidden max-md:flex items-center justify-between gap-8 h-(--ui-topnav) px-16 bg-bg-surface border-b border-border-subtle"
+      onPointerOver={preloadOverlays}
+      onFocus={preloadOverlays}
+    >
       {brand}
       <div className="flex items-center gap-4">
         <IconButton
@@ -219,168 +234,31 @@ export function GatewayFrame(props: GatewayFrameProps) {
         ) : null}
       </TemplateGatewayShell>
 
-      <CommandMenu
-        open={commandOpen}
-        onOpenChange={setCommandOpen}
-        placeholder={t("gateway.shell.searchHint")}
-        groups={[
-          {
-            label: t("gateway.shell.commandGroup"),
-            items: props.commands.map((c) => ({
-              label: c.label,
-              icon: c.icon,
-              onSelect: () => {
-                setCommandOpen(false);
-                go(c.href);
-              },
-            })),
-          },
-        ]}
-      />
+      {loaded ? (
+        <loaded.ShellOverlays
+          commandOpen={commandOpen}
+          setCommandOpen={setCommandOpen}
+          accountOpen={accountOpen}
+          setAccountOpen={setAccountOpen}
+          switchOpen={switchOpen}
+          setSwitchOpen={setSwitchOpen}
+          commands={props.commands}
+          personName={props.personName}
+          email={props.email}
+          avatar={props.avatar}
+          runAvatar={runAvatar}
+          accounts={props.accounts}
+          actingId={props.actingId}
+          orgs={props.orgs}
+          theme={props.theme}
+          locale={props.locale}
+          locales={props.locales}
+          go={go}
+          refresh={refresh}
+        />
+      ) : null}
 
-      <Drawer
-        open={accountOpen}
-        onOpenChange={setAccountOpen}
-        title={props.personName}
-        onClose={() => setAccountOpen(false)}
-      >
-        <div className="flex flex-col gap-16">
-          {props.email ? (
-            <p className="m-0 text-text-13 text-text-secondary">{props.email}</p>
-          ) : null}
-          <ul className="m-0 flex list-none flex-col p-0">
-            {props.avatar.map((entry) => (
-              <li key={entry.id}>
-                <Button
-                  variant="ghost"
-                  icon={entry.icon}
-                  className="w-full justify-start"
-                  onClick={() => runAvatar(entry)}
-                >
-                  {entry.label}
-                </Button>
-              </li>
-            ))}
-          </ul>
-          {props.accounts.length > 0 ? (
-            <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-              <legend className="mb-4 text-text-12 font-medium text-text-secondary">
-                {t("gateway.shell.actingAs")}
-              </legend>
-              {[
-                {
-                  id: "self",
-                  name: t("gateway.shell.actSelf"),
-                  role: t("gateway.shell.actSelfHint"),
-                },
-                ...props.accounts,
-              ].map((a) => {
-                const current = (props.actingId ?? "self") === a.id;
-                return (
-                  <Button
-                    key={a.id}
-                    variant={current ? "secondary" : "ghost"}
-                    aria-pressed={current}
-                    className="w-full justify-between"
-                    onClick={async () => {
-                      await setActing(a.id);
-                      setAccountOpen(false);
-                      refresh();
-                      go("/home");
-                    }}
-                  >
-                    <span>{a.name}</span>
-                    <span className="text-text-12 text-text-secondary">{a.role}</span>
-                  </Button>
-                );
-              })}
-            </fieldset>
-          ) : null}
-          <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-            <legend className="mb-4 text-text-12 font-medium text-text-secondary">
-              {t("gateway.shell.theme")}
-            </legend>
-            <div className="flex flex-wrap gap-4">
-              {(["system", "dark", "light"] as const).map((pref) => (
-                <Button
-                  key={pref}
-                  size="sm"
-                  variant={props.theme === pref ? "secondary" : "ghost"}
-                  aria-pressed={props.theme === pref}
-                  onClick={async () => {
-                    await setTheme(pref);
-                    refresh();
-                  }}
-                >
-                  {t(`gateway.shell.theme${pref.charAt(0).toUpperCase()}${pref.slice(1)}`)}
-                </Button>
-              ))}
-            </div>
-          </fieldset>
-          <fieldset className="m-0 flex flex-col gap-4 border-0 p-0">
-            <legend className="mb-4 text-text-12 font-medium text-text-secondary">
-              {t("gateway.shell.language")}
-            </legend>
-            <div className="flex flex-wrap gap-4">
-              {props.locales.map((l) => (
-                <Button
-                  key={l}
-                  size="sm"
-                  variant={props.locale === l ? "secondary" : "ghost"}
-                  aria-pressed={props.locale === l}
-                  onClick={async () => {
-                    await setLocale(l);
-                    refresh();
-                  }}
-                >
-                  {t(`gateway.shell.locales.${l}`)}
-                </Button>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-      </Drawer>
-
-      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} />
-
-      <Dialog
-        open={switchOpen}
-        onOpenChange={setSwitchOpen}
-        title={t("gateway.shell.switchOrg.title")}
-        description={
-          props.orgs.length > 0
-            ? t("gateway.shell.switchOrg.body")
-            : t("gateway.shell.switchOrg.empty")
-        }
-        actions={
-          <Button
-            variant="primary"
-            onClick={() => {
-              setSwitchOpen(false);
-              go(props.orgs.length > 0 ? "/work/engagements" : "/explore");
-            }}
-          >
-            {t("gateway.shell.switchOrg.all")}
-          </Button>
-        }
-      >
-        <ul className="m-0 flex list-none flex-col p-0">
-          {props.orgs.map((o) => (
-            <li key={o.id}>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={() => {
-                  setSwitchOpen(false);
-                  go(`/work/engagements?org=${o.id}`);
-                }}
-              >
-                {o.name}
-              </Button>
-            </li>
-          ))}
-        </ul>
-      </Dialog>
+      <HelpEntry open={helpOpen} onOpenChange={setHelpOpen} docsUrl={props.docsUrl} />
 
       <form ref={signOutForm} method="post" action="/auth/sign-out" className="hidden" />
       <SessionWatcher email={props.email} />

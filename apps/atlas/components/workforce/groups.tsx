@@ -24,6 +24,7 @@ import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import { nodeHref } from "@/lib/shell/sitemap";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, memberOptions, orgPickers, workforceCopy } from "./shared";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
@@ -48,7 +49,7 @@ export async function GroupsSection({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const [t, groups, pickers] = await Promise.all([
     workforceCopy(),
     listGroups(ctx.viewer.db, ctx.org.id),

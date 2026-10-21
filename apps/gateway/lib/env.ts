@@ -40,6 +40,11 @@ const EnvSchema = z.object({
     .regex(/^[a-z0-9.-]+$/)
     .optional(),
   WEBAUTHN_RP_ORIGINS: z.string().optional(),
+  /**
+   * Public origin of the docs site (production: https://docs.ghxstship.tech), for the help center
+   * link on the platform Gateway. Custom domains never show it, so an org's brand stays its own.
+   */
+  DOCS_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;
@@ -67,6 +72,14 @@ export function platformHosts(config: Env): string[] {
     .map((h) => h.trim().toLowerCase())
     .filter((h) => h.length > 0);
   return listed.length > 0 ? listed : [new URL(config.GATEWAY_SITE_URL).hostname.toLowerCase()];
+}
+
+/**
+ * The docs site origin for the help panel's help center links (RRR-119), or null when
+ * DOCS_SITE_URL is unset. The panel adds the locale and the path.
+ */
+export function docsSiteUrl(config: Pick<Env, "DOCS_SITE_URL">): string | null {
+  return config.DOCS_SITE_URL ? config.DOCS_SITE_URL.replace(/\/+$/, "") : null;
 }
 
 let cached: Env | undefined;

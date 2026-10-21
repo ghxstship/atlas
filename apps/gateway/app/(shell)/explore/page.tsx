@@ -95,9 +95,11 @@ export default async function ExplorePage({ searchParams }: PageProps<"/explore"
           />
         </div>
         {/* Filters and, inside them, More fields are kept-mounted disclosures: collapsed controls are
-            hidden and still submit with the search (gate 27: at most seven fields before More fields). */}
+            hidden and still submit with the search (gate 27: at most seven fields before More fields).
+            The Filters header is an h2: it follows the page's h1 (heading order). */}
         <Accordion
           keepMounted
+          headingLevel={2}
           items={[
             {
               title: t("gateway.explore.filters"),

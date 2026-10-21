@@ -30,7 +30,8 @@ with e as (insert into app.engagements (project_id, person_id, counterparty_id, 
   values (pg_temp.id('prj_a'), pg_temp.id('sol'), pg_temp.id('cp_s_a'), 'Sponsor', '5000.51.02', 'INDEPENDENT_CONTRACTOR',
     'Day Rate', 'Per Engagement', '2027-06-01') returning id) insert into world select 'eng_sponsor', id from e;
 insert into app.sponsor_entitlements (project_id, counterparty_id, description, quantity, due_on) values
-  (pg_temp.id('prj_a'), pg_temp.id('cp_s_a'), 'Main stage banner placement', 2, current_date - 1),
+  (pg_temp.id('prj_a'), pg_temp.id('cp_s_a'), 'Main stage banner placement', 2,
+    (select (now() at time zone p.time_zone)::date - 1 from app.projects p where p.id = pg_temp.id('prj_a'))),
   (pg_temp.id('prj_a'), pg_temp.id('cp_v_a'), 'Vendor logo on the site map', 1, null);
 select pg_temp.as_platform();
 select is(pg_temp.n('sol', 'select 1 from api_external.sponsor_entitlements'), 0, 'Onboarding: entitlements wait for Active');

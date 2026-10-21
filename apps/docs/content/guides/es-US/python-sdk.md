@@ -13,7 +13,7 @@ order: 8
 import os
 from xos_sdk import XosClient
 
-xos = XosClient("https://atlas.example.com/api/v1", api_key=os.environ["XOS_API_KEY"])
+xos = XosClient("https://api.ghxstship.tech/v1", api_key=os.environ["XOS_API_KEY"])
 ```
 
 En lugar de `api_key`, pasa `access_token` para un token de sesión, o `get_token` para entregar un token nuevo antes de cada solicitud. Otras opciones: `max_retries` (2 de forma predeterminada) y `timeout` en segundos (30 de forma predeterminada).

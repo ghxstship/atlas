@@ -403,6 +403,62 @@ describe("the Atlas session cookie", () => {
   });
 });
 
+describe("the API host (RRR-119)", () => {
+  const atlas = "https://atlas.test/api/v1/me";
+  const api = "https://api.atlas.test/v1/me";
+  const at = (
+    authenticate: ReturnType<typeof fakeSupabase>["authenticate"],
+    url: string,
+    headers: Record<string, string>,
+    method = "GET",
+  ) => authenticate(new Request(url, { method, headers }), "req-1");
+  const summary = (c: RequestContext | null) =>
+    c && { user: c.user.id, org: c.org?.id, credential: c.credential, scopes: c.scopes };
+
+  it("decides session tokens and API keys the same on both hosts", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    for (const headers of [
+      { authorization: `Bearer ${VALID}` },
+      { authorization: "Bearer xos_live_valid" },
+      { authorization: "Bearer not-a-token" },
+      {},
+    ]) {
+      expect(summary(await at(authenticate, api, headers))).toEqual(
+        summary(await at(authenticate, atlas, headers)),
+      );
+    }
+  });
+
+  it("applies the org IP allow-list the same on both hosts", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], { allowedIps: ["203.0.113.40"] });
+    for (const url of [atlas, api]) {
+      const allowed = await at(authenticate, url, {
+        authorization: "Bearer xos_live_valid",
+        "x-forwarded-for": "203.0.113.40",
+      });
+      expect(allowed?.org?.id, url).toBe(ORG_A.id);
+      await expect(
+        at(authenticate, url, {
+          authorization: "Bearer xos_live_valid",
+          "x-forwarded-for": "198.51.100.7",
+        }),
+      ).rejects.toThrow(/allowed networks/);
+    }
+  });
+
+  it("refuses the Atlas cookie on a state-changing request from the API host's origin", async () => {
+    const { authenticate } = fakeSupabase([ORG_A]);
+    await expect(
+      at(
+        authenticate,
+        api,
+        { cookie: sessionCookie(VALID), origin: "https://api.atlas.test" },
+        "POST",
+      ),
+    ).rejects.toThrow(/cross-site/);
+  });
+});
+
 describe("helpers", () => {
   it("parses cookies and tolerates malformed escapes", () => {
     const cookies = parseCookies("a=1; b=%E0%A4%A; =x; c");

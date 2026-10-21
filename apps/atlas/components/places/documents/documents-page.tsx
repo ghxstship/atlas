@@ -7,12 +7,14 @@ import {
   type DocumentValidity,
   type Venue,
 } from "@xos/data/places";
+import { todayIn } from "@xos/data/calendar";
 import type { Route } from "next";
 import Link from "next/link";
 import { getFormatter } from "next-intl/server";
 import { freezeCapabilityDocumentAction, setPlaceArchivedAction } from "@/app/[org]/places/actions";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { heldCapabilities } from "../kit/access";
 import { ActionButton, ConfirmButton } from "../kit/buttons";
@@ -35,16 +37,6 @@ import { chooseView, matchesSearch, param, withQuery } from "../kit/views";
 import { DocumentForm } from "./document-form";
 
 const NODE = "places.capability-documents";
-
-/** Today as an ISO date in a venue's own time zone, so validity flips at the venue's midnight. */
-function todayIn(timeZone: string, now: Date = new Date()): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
-}
 
 const VALIDITY_TONE: Record<DocumentValidity, "neutral" | "success" | "warning" | "danger"> = {
   upcoming: "neutral",
@@ -82,8 +74,10 @@ export async function DocumentsPage({
   const canWrite = held.has("places.capability_document.write");
   const path = nodeHref(NODE, params) ?? "/";
   const venueById = new Map<string, Venue>(venues.data.map((v) => [v.id, v]));
+  // Validity flips at the venue's midnight; a venue without a zone follows the org's calendar (A71).
+  const orgZone = await getOrgTimeZone(ctx);
   const validityOf = (d: CapabilityDocument) =>
-    documentValidity(d, todayIn(venueById.get(d.venueId)?.timeZone ?? "UTC"));
+    documentValidity(d, todayIn(venueById.get(d.venueId)?.timeZone ?? orgZone));
   const q = param(search, "q");
   // Archived rows are loaded too, so a peek can open an archived row to restore it.
   const inArchive = (archivedAt: string | null) =>
