@@ -365,6 +365,9 @@ import {
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
+  AutomationsResource,
+  AutomationRunsResource,
+  AutomationRunStepsResource,
   WorkforceGroupsResource,
   WorkforceGroupMembersResource,
   ConversationsResource,
@@ -1229,6 +1232,12 @@ export class XosClient extends XosClientCore {
   readonly projectInboxes: ProjectInboxesResource = new ProjectInboxesResource(this);
   /** Platform: operations on `inboundMessages`. */
   readonly inboundMessages: InboundMessagesResource = new InboundMessagesResource(this);
+  /** Platform: operations on `automations`. */
+  readonly automations: AutomationsResource = new AutomationsResource(this);
+  /** Platform: operations on `automationRuns`. */
+  readonly automationRuns: AutomationRunsResource = new AutomationRunsResource(this);
+  /** Platform: operations on `automationRunSteps`. */
+  readonly automationRunSteps: AutomationRunStepsResource = new AutomationRunStepsResource(this);
   /** Workforce: operations on `workforceGroups`. */
   readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
   /** Workforce: operations on `workforceGroupMembers`. */

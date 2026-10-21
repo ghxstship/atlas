@@ -16,6 +16,11 @@ import {
 import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
 import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import {
+  automationActions,
+  automationCapabilities,
+  automationResources,
+} from "./parts/automations.ts";
+import {
   workflowActions,
   workflowCapabilities,
   workflowCorrections,
@@ -53,13 +58,20 @@ const createAnswering =
   };
 
 export const additions = defineAdditions("Platform", {
-  resources: [...viewsHelpSupportResources, ...workflowResources, ...a36Resources, ...a84Resources],
-  actions: { ...workflowActions, ...a36Actions, ...a84Actions },
+  resources: [
+    ...viewsHelpSupportResources,
+    ...workflowResources,
+    ...a36Resources,
+    ...a84Resources,
+    ...automationResources,
+  ],
+  actions: { ...workflowActions, ...a36Actions, ...a84Actions, ...automationActions },
   capabilities: {
     ...viewsHelpSupportCapabilities,
     ...workflowCapabilities,
     ...a36Capabilities,
     ...a84Capabilities,
+    ...automationCapabilities,
   },
   corrections: [
     ...workflowCorrections,

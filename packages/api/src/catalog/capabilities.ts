@@ -504,7 +504,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.view_as_role.use": "A UI preview mode with no API operation (Section 8.4).",
   "org.modules.write": "Module switches are setting values.",
   "org.numbering.write": "Numbering formats are setting values.",
-  "org.automations.write": "Automations arrive with A18 in Wave 2.",
   "org.scheduling.write": "Scheduling rules are setting values.",
   "org.notifications.write": "Org notification defaults are setting values.",
   "org.localization.write": "Localization defaults are setting values.",

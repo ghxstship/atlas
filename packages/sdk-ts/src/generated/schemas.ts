@@ -34710,6 +34710,32 @@ export interface CommentUpdate {
 }
 
 /**
+ * A comment on a subject row, posted in its main thread or the thread of an anchor.
+ */
+export interface SubjectCommentRequest {
+  /**
+   * Table of the subject, one of app.comment_subjects without its schema.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly subject_table: string;
+  /**
+   * Identifier of the row commented on.
+   * Format: `uuid`.
+   */
+  readonly subject_id: string;
+  /**
+   * Comment text.
+   * Length: 1 to 20000.
+   */
+  readonly body: string;
+  /**
+   * Part of the subject the thread is anchored to; absent for the main thread.
+   * Length: 1 to 300.
+   */
+  readonly anchor?: string;
+}
+
+/**
  * One page of results with a cursor to the next page.
  */
 export interface NotificationPage {
@@ -39451,6 +39477,731 @@ export interface InboundMessageDiscardRequest {
    * Length: 1 to 500.
    */
   readonly reason?: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AutomationPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<Automation>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422).
+ */
+export interface Automation {
+  /**
+   * Identifier of the automation.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Name shown in Settings, Automations.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * What the automation is for.
+   * Length: 1 to 500.
+   */
+  readonly description: string | null;
+  /**
+   * Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+   * Pattern: `^[a-z][a-z_]*\.[a-z][a-z_]*$`.
+   */
+  readonly trigger_event_type: string;
+  /**
+   * How the top-level conditions combine; set from the conditions document.
+   */
+  readonly condition_match: "all" | "any";
+  /**
+   * Identifier of the person the actions run as.
+   * Format: `uuid`.
+   */
+  readonly owner_person_id: string;
+  /**
+   * True while new events start runs.
+   */
+  readonly enabled: boolean;
+  /**
+   * When the engine turned the automation off because a run could not act as the owner; null otherwise. Turning it on again clears it.
+   * Format: `date-time`.
+   */
+  readonly paused_at: string | null;
+  /**
+   * Why the engine paused it: owner_left_org, owner_lost_capability, owner_cannot_sign_in or owner_access_refused.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly pause_reason: string | null;
+  readonly conditions: AutomationConditions;
+  readonly actions: AutomationActions;
+}
+
+/**
+ * An automation's conditions: {"all": [...]} or {"any": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.
+ */
+export type AutomationConditions =
+  | {
+      readonly all: ReadonlyArray<
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+            /**
+             * Value compared, as text.
+             * Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "in";
+            /**
+             * Comma-separated values, each trimmed.
+             * Pattern: `[^, ]`. Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "is_null";
+            /**
+             * true (or absent) holds for a missing value, false for a present one.
+             */
+            readonly value?: "true" | "false" | null;
+          }
+        | {
+            readonly all: ReadonlyArray<AutomationCondition>;
+          }
+        | {
+            readonly any: ReadonlyArray<AutomationCondition>;
+          }
+      >;
+    }
+  | {
+      readonly any: ReadonlyArray<
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+            /**
+             * Value compared, as text.
+             * Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "in";
+            /**
+             * Comma-separated values, each trimmed.
+             * Pattern: `[^, ]`. Length: 0 to 1000.
+             */
+            readonly value: string;
+          }
+        | {
+            /**
+             * Path into the event, such as data.record_kind.
+             * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+             */
+            readonly field: string;
+            readonly operator: "is_null";
+            /**
+             * true (or absent) holds for a missing value, false for a present one.
+             */
+            readonly value?: "true" | "false" | null;
+          }
+        | {
+            readonly all: ReadonlyArray<AutomationCondition>;
+          }
+        | {
+            readonly any: ReadonlyArray<AutomationCondition>;
+          }
+      >;
+    };
+
+/**
+ * One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.
+ */
+export type AutomationCondition =
+  | {
+      /**
+       * Path into the event, such as data.record_kind.
+       * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+       */
+      readonly field: string;
+      readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+      /**
+       * Value compared, as text.
+       * Length: 0 to 1000.
+       */
+      readonly value: string;
+    }
+  | {
+      /**
+       * Path into the event, such as data.record_kind.
+       * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+       */
+      readonly field: string;
+      readonly operator: "in";
+      /**
+       * Comma-separated values, each trimmed.
+       * Pattern: `[^, ]`. Length: 0 to 1000.
+       */
+      readonly value: string;
+    }
+  | {
+      /**
+       * Path into the event, such as data.record_kind.
+       * Pattern: `^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$`.
+       */
+      readonly field: string;
+      readonly operator: "is_null";
+      /**
+       * true (or absent) holds for a missing value, false for a present one.
+       */
+      readonly value?: "true" | "false" | null;
+    };
+
+/**
+ * An automation's 1 to 10 actions, in the order they run.
+ */
+export type AutomationActions = ReadonlyArray<AutomationAction>;
+
+/**
+ * One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook).
+ */
+export type AutomationAction =
+  | {
+      readonly type: "create_task";
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 200.
+       */
+      readonly title: string;
+      /**
+       * Project the Task goes in, under its engagement root; null for the event's project.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly project_id?: string | null;
+      /**
+       * Gated phase of the Task.
+       * Pattern: `^[A-Z]{3}$`.
+       */
+      readonly phase_code: string;
+      /**
+       * Declared XYZ tag of the Task.
+       */
+      readonly xyz: "X" | "Y" | "Z";
+      /**
+       * Due at 17:00 on the org's calendar this many days after the run.
+       * Range: 0 to 365.
+       */
+      readonly due_in_days?: number | null;
+    }
+  | {
+      readonly type: "update_status";
+      /**
+       * Record state the subject record moves to.
+       */
+      readonly to_state:
+        "Proposed" | "Ready" | "Scheduled" | "Active" | "In Review" | "Complete" | "Canceled";
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 2000.
+       */
+      readonly note?: string | null;
+    }
+  | {
+      readonly type: "update_status";
+      readonly to_state: "Blocked" | "Deferred";
+      /**
+       * The blocker (Blocked) or the replan reason (Deferred).
+       * Length: 1 to 2000.
+       */
+      readonly note: string;
+    }
+  | {
+      readonly type: "assign";
+      /**
+       * Member who becomes the subject record's owner.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly assignee_person_id: string;
+    }
+  | {
+      readonly type: "add_comment";
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 2000.
+       */
+      readonly body: string;
+    }
+  | {
+      readonly type: "notify";
+      /**
+       * Member who receives the notification.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly recipient_person_id: string;
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 200.
+       */
+      readonly title: string;
+      /**
+       * Text; event paths in double braces are filled in, such as {{data.title}}.
+       * Length: 1 to 2000.
+       */
+      readonly body?: string | null;
+    }
+  | {
+      readonly type: "call_webhook";
+      /**
+       * The org's webhook endpoint.
+       * Pattern: `^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`.
+       */
+      readonly webhook_endpoint_id: string;
+    };
+
+/**
+ * Fields accepted when creating a Automation.
+ */
+export interface AutomationCreate {
+  /**
+   * Name shown in Settings, Automations.
+   * Length: 1 to 120.
+   */
+  readonly name: string;
+  /**
+   * What the automation is for.
+   * Length: 1 to 500.
+   */
+  readonly description?: string | null;
+  /**
+   * Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+   * Pattern: `^[a-z][a-z_]*\.[a-z][a-z_]*$`.
+   */
+  readonly trigger_event_type: string;
+  /**
+   * True while new events start runs.
+   */
+  readonly enabled?: boolean;
+  readonly conditions: AutomationConditions;
+  readonly actions: AutomationActions;
+}
+
+/**
+ * Fields accepted when updating a Automation. Omitted fields are unchanged.
+ */
+export interface AutomationUpdate {
+  /**
+   * Name shown in Settings, Automations.
+   * Length: 1 to 120.
+   */
+  readonly name?: string;
+  /**
+   * What the automation is for.
+   * Length: 1 to 500.
+   */
+  readonly description?: string | null;
+  /**
+   * Domain event type that starts a run, from the catalog webhooks use (webhookEventTypes.list).
+   * Pattern: `^[a-z][a-z_]*\.[a-z][a-z_]*$`.
+   */
+  readonly trigger_event_type?: string;
+  /**
+   * True while new events start runs.
+   */
+  readonly enabled?: boolean;
+  readonly conditions?: AutomationConditions;
+  readonly actions?: AutomationActions;
+}
+
+/**
+ * A dry run of an automation's conditions: nothing runs and nothing is written.
+ */
+export interface AutomationTestResult {
+  /**
+   * Whether the conditions hold for the sample event.
+   */
+  readonly matched: boolean;
+  /**
+   * Each condition in document order.
+   */
+  readonly conditions: ReadonlyArray<AutomationConditionResult>;
+}
+
+/**
+ * One condition of a dry run.
+ */
+export interface AutomationConditionResult {
+  /**
+   * Path into the event.
+   * Length: 1 to 300.
+   */
+  readonly field: string;
+  /**
+   * Filter operator.
+   */
+  readonly operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+  /**
+   * Value compared.
+   * Length: 1 to 1000.
+   */
+  readonly value: string | null;
+  /**
+   * Value found in the event; null when missing.
+   */
+  readonly actual?: unknown;
+  /**
+   * Whether the condition held.
+   */
+  readonly matched: boolean;
+}
+
+/**
+ * A sample event to test an automation against.
+ */
+export interface AutomationTestRequest {
+  /**
+   * A sample event body, as a webhook receives it; app.sample_automation_event gives the org's latest of the trigger type.
+   */
+  readonly event: { readonly [key: string]: unknown };
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AutomationRunPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AutomationRun>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice.
+ */
+export interface AutomationRun {
+  /**
+   * Identifier of the automation run.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the automation that ran.
+   * Format: `uuid`.
+   */
+  readonly automation_id: string;
+  /**
+   * Identifier of the domain event that started the run.
+   * Format: `uuid`.
+   */
+  readonly domain_event_id: string;
+  /**
+   * Identifier of the run whose action raised the event, when an automation caused it.
+   * Format: `uuid`.
+   */
+  readonly parent_run_id: string | null;
+  /**
+   * Automation runs that led to this one; 0 for an event a person raised.
+   * Range: 0 to unbounded.
+   */
+  readonly depth: number;
+  /**
+   * Queued, Running, Retrying after a failure the job queue retries with backoff, Succeeded, Failed, or Skipped (loop_depth, rate_limited, or the automation was off).
+   */
+  readonly run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+  /**
+   * The event as webhooks send it: the run's input.
+   */
+  readonly event_payload: { readonly [key: string]: unknown };
+  /**
+   * Identifier of the person the run acted as.
+   * Format: `uuid`.
+   */
+  readonly owner_person_id: string | null;
+  /**
+   * Times the worker started the run.
+   * Range: 0 to unbounded.
+   */
+  readonly attempts: number;
+  /**
+   * Rule code of the failure or skip.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly error_code: string | null;
+  /**
+   * Why the run failed or was skipped.
+   * Length: 1 to 2000.
+   */
+  readonly error_message: string | null;
+  /**
+   * When the worker first started the run.
+   * Format: `date-time`.
+   */
+  readonly started_at: string | null;
+  /**
+   * When the run reached Succeeded, Failed or Skipped.
+   * Format: `date-time`.
+   */
+  readonly finished_at: string | null;
+  /**
+   * Milliseconds from the first start to the end.
+   * Range: 0 to unbounded.
+   */
+  readonly duration_ms: number | null;
+}
+
+/**
+ * The notification an automation sent.
+ */
+export interface AutomationNoticeResult {
+  /**
+   * Identifier of the notification created.
+   * Format: `uuid`.
+   */
+  readonly notification_id: string | null;
+}
+
+/**
+ * A notification an automation sends during a run.
+ */
+export interface AutomationNoticeRequest {
+  /**
+   * Identifier of the member who receives the notification.
+   * Format: `uuid`.
+   */
+  readonly recipient_person_id: string;
+  /**
+   * Notification title.
+   * Length: 1 to 200.
+   */
+  readonly title: string;
+  /**
+   * Message; the title is repeated when absent.
+   * Length: 1 to 2000.
+   */
+  readonly body?: string;
+}
+
+/**
+ * The delivery a run queued.
+ */
+export interface AutomationWebhookResult {
+  /**
+   * Identifier of the webhook delivery queued.
+   * Format: `uuid`.
+   */
+  readonly webhook_delivery_id: string;
+}
+
+/**
+ * The endpoint a run's event is delivered to.
+ */
+export interface AutomationWebhookRequest {
+  /**
+   * Identifier of the the org's webhook endpoint.
+   * Format: `uuid`.
+   */
+  readonly webhook_endpoint_id: string;
+}
+
+/**
+ * One page of results with a cursor to the next page.
+ */
+export interface AutomationRunStepPage {
+  /**
+   * Items on this page, in the documented default order.
+   */
+  readonly data: ReadonlyArray<AutomationRunStep>;
+  /**
+   * Opaque cursor for the next page; null on the last page.
+   */
+  readonly next_cursor: string | null;
+}
+
+/**
+ * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed.
+ */
+export interface AutomationRunStep {
+  /**
+   * Identifier of the automation run step.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+   * Format: `uuid`.
+   */
+  readonly org_id: string;
+  /**
+   * When the row was created.
+   * Format: `date-time`.
+   */
+  readonly created_at: string;
+  /**
+   * Identifier of the person who created the row.
+   * Format: `uuid`.
+   */
+  readonly created_by: string | null;
+  /**
+   * When the row was last updated.
+   * Format: `date-time`.
+   */
+  readonly updated_at: string;
+  /**
+   * Identifier of the person who last updated the row.
+   * Format: `uuid`.
+   */
+  readonly updated_by: string | null;
+  /**
+   * Identifier of the run the step belongs to.
+   * Format: `uuid`.
+   */
+  readonly automation_run_id: string;
+  /**
+   * Identifier of the action the step ran.
+   * Format: `uuid`.
+   */
+  readonly automation_action_id: string | null;
+  /**
+   * Position of the action, 1 first.
+   * Range: 1 to unbounded.
+   */
+  readonly position: number;
+  /**
+   * What the action does.
+   */
+  readonly action_type:
+    "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+  /**
+   * Public API operation called.
+   * Pattern: `^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$`.
+   */
+  readonly operation_id: string | null;
+  /**
+   * Outcome of the action.
+   */
+  readonly step_status: "Succeeded" | "Failed" | "Skipped";
+  /**
+   * Body sent, with templates filled in from the event.
+   */
+  readonly request_body: { readonly [key: string]: unknown } | null;
+  /**
+   * Identifying fields of the answer, or the problem it reported.
+   */
+  readonly response_body: { readonly [key: string]: unknown } | null;
+  /**
+   * HTTP status the API answered.
+   * Range: 100 to unbounded.
+   */
+  readonly http_status: number | null;
+  /**
+   * Rule code of the failure.
+   * Pattern: `^[a-z][a-z0-9_]*$`.
+   */
+  readonly error_code: string | null;
+  /**
+   * Why the step failed.
+   * Length: 1 to 2000.
+   */
+  readonly error_message: string | null;
+  /**
+   * When the step started.
+   * Format: `date-time`.
+   */
+  readonly started_at: string;
+  /**
+   * When the step ended.
+   * Format: `date-time`.
+   */
+  readonly finished_at: string;
+  /**
+   * Milliseconds the step took.
+   * Range: 0 to unbounded.
+   */
+  readonly duration_ms: number;
 }
 
 /**

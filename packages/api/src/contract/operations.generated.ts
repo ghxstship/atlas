@@ -910,6 +910,162 @@ export interface Components {
     subject_id: string;
     items: Array<{ collection: string; id: string }>;
   };
+  Automation: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    name: string;
+    description: string | null;
+    trigger_event_type: string;
+    condition_match: "all" | "any";
+    owner_person_id: string;
+    enabled: boolean;
+    paused_at: string | null;
+    pause_reason: string | null;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationAction:
+    | {
+        type: "create_task";
+        title: string;
+        project_id?: string | null;
+        phase_code: string;
+        xyz: "X" | "Y" | "Z";
+        due_in_days?: number | null;
+      }
+    | {
+        type: "update_status";
+        to_state:
+          "Proposed" | "Ready" | "Scheduled" | "Active" | "In Review" | "Complete" | "Canceled";
+        note?: string | null;
+      }
+    | { type: "update_status"; to_state: "Blocked" | "Deferred"; note: string }
+    | { type: "assign"; assignee_person_id: string }
+    | { type: "add_comment"; body: string }
+    | { type: "notify"; recipient_person_id: string; title: string; body?: string | null }
+    | { type: "call_webhook"; webhook_endpoint_id: string };
+  AutomationActions: Array<Components["AutomationAction"]>;
+  AutomationCondition:
+    | {
+        field: string;
+        operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+        value: string;
+      }
+    | { field: string; operator: "in"; value: string }
+    | { field: string; operator: "is_null"; value?: "true" | "false" | null };
+  AutomationConditionResult: {
+    field: string;
+    operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains";
+    value: string | null;
+    actual?: unknown;
+    matched: boolean;
+  };
+  AutomationConditions:
+    | {
+        all: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      }
+    | {
+        any: Array<
+          | {
+              field: string;
+              operator: "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "contains";
+              value: string;
+            }
+          | { field: string; operator: "in"; value: string }
+          | { field: string; operator: "is_null"; value?: "true" | "false" | null }
+          | { all: Array<Components["AutomationCondition"]> }
+          | { any: Array<Components["AutomationCondition"]> }
+        >;
+      };
+  AutomationCreate: {
+    name: string;
+    description?: string | null;
+    trigger_event_type: string;
+    enabled?: boolean;
+    conditions: Components["AutomationConditions"];
+    actions: Components["AutomationActions"];
+  };
+  AutomationNoticeRequest: { recipient_person_id: string; title: string; body?: string };
+  AutomationNoticeResult: { notification_id: string | null };
+  AutomationPage: { data: Array<Components["Automation"]>; next_cursor: string | null };
+  AutomationRun: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_id: string;
+    domain_event_id: string;
+    parent_run_id: string | null;
+    depth: number;
+    run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
+    event_payload: Record<string, unknown>;
+    owner_person_id: string | null;
+    attempts: number;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+    duration_ms: number | null;
+  };
+  AutomationRunPage: { data: Array<Components["AutomationRun"]>; next_cursor: string | null };
+  AutomationRunStep: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    automation_run_id: string;
+    automation_action_id: string | null;
+    position: number;
+    action_type:
+      "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
+    operation_id: string | null;
+    step_status: "Succeeded" | "Failed" | "Skipped";
+    request_body: Record<string, unknown> | null;
+    response_body: Record<string, unknown> | null;
+    http_status: number | null;
+    error_code: string | null;
+    error_message: string | null;
+    started_at: string;
+    finished_at: string;
+    duration_ms: number;
+  };
+  AutomationRunStepPage: {
+    data: Array<Components["AutomationRunStep"]>;
+    next_cursor: string | null;
+  };
+  AutomationTestRequest: { event: Record<string, unknown> };
+  AutomationTestResult: {
+    matched: boolean;
+    conditions: Array<Components["AutomationConditionResult"]>;
+  };
+  AutomationUpdate: {
+    name?: string;
+    description?: string | null;
+    trigger_event_type?: string;
+    enabled?: boolean;
+    conditions?: Components["AutomationConditions"];
+    actions?: Components["AutomationActions"];
+  };
+  AutomationWebhookRequest: { webhook_endpoint_id: string };
+  AutomationWebhookResult: { webhook_delivery_id: string };
   AvailabilityBlock: {
     id: string;
     created_at: string;
@@ -7519,6 +7675,12 @@ export interface Components {
     notes: string | null;
   };
   StdVerbiagePage: { data: Array<Components["StdVerbiage"]>; next_cursor: string | null };
+  SubjectCommentRequest: {
+    subject_table: string;
+    subject_id: string;
+    body: string;
+    anchor?: string;
+  };
   Subscription: {
     id: string;
     org_id: string;
@@ -22350,6 +22512,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "comments.postOnSubject": {
+    module: "Platform";
+    method: "post";
+    path: "/comments/on-subject";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["SubjectCommentRequest"];
+    responses: { 201: Components["Comment"] };
+  };
   "notifications.list": {
     module: "Platform";
     method: "get";
@@ -24011,6 +24182,141 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["InboundMessageDiscardRequest"];
     responses: { 200: Components["InboundMessage"] };
+  };
+  "automations.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automations";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationPage"] };
+  };
+  "automations.create": {
+    module: "Platform";
+    method: "post";
+    path: "/automations";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AutomationCreate"];
+    responses: { 201: Components["Automation"] };
+  };
+  "automations.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.update": {
+    module: "Platform";
+    method: "patch";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationUpdate"];
+    responses: { 200: Components["Automation"] };
+  };
+  "automations.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/automations/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "automations.test": {
+    module: "Platform";
+    method: "post";
+    path: "/automations/{id}/test";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationTestRequest"];
+    responses: { 200: Components["AutomationTestResult"] };
+  };
+  "automationRuns.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunPage"] };
+  };
+  "automationRuns.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-runs/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRuns.notify": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/notices";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationNoticeRequest"];
+    responses: { 201: Components["AutomationNoticeResult"] };
+  };
+  "automationRuns.deliverWebhook": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/webhook-deliveries";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["AutomationWebhookRequest"];
+    responses: { 201: Components["AutomationWebhookResult"] };
+  };
+  "automationRuns.retry": {
+    module: "Platform";
+    method: "post";
+    path: "/automation-runs/{id}/retry";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["AutomationRun"] };
+  };
+  "automationRunSteps.list": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStepPage"] };
+  };
+  "automationRunSteps.get": {
+    module: "Platform";
+    method: "get";
+    path: "/automation-run-steps/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["AutomationRunStep"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -26941,6 +27247,7 @@ export interface ModuleOperations {
     | "comments.get"
     | "comments.update"
     | "comments.delete"
+    | "comments.postOnSubject"
     | "notifications.list"
     | "notifications.get"
     | "notifications.update"
@@ -27027,7 +27334,20 @@ export interface ModuleOperations {
     | "inboundMessages.list"
     | "inboundMessages.get"
     | "inboundMessages.file"
-    | "inboundMessages.discard";
+    | "inboundMessages.discard"
+    | "automations.list"
+    | "automations.create"
+    | "automations.get"
+    | "automations.update"
+    | "automations.delete"
+    | "automations.test"
+    | "automationRuns.list"
+    | "automationRuns.get"
+    | "automationRuns.notify"
+    | "automationRuns.deliverWebhook"
+    | "automationRuns.retry"
+    | "automationRunSteps.list"
+    | "automationRunSteps.get";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

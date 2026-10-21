@@ -119,6 +119,17 @@ import type {
   AuroraResult,
   AuroraStatus,
   AuroraSummarizeRequest,
+  Automation,
+  AutomationCreate,
+  AutomationNoticeRequest,
+  AutomationNoticeResult,
+  AutomationRun,
+  AutomationRunStep,
+  AutomationTestRequest,
+  AutomationTestResult,
+  AutomationUpdate,
+  AutomationWebhookRequest,
+  AutomationWebhookResult,
   AvailabilityBlock,
   AvailabilityBlockCreate,
   AvailabilityBlockUpdate,
@@ -851,6 +862,7 @@ import type {
   StdVendorClass,
   StdVendorEntitlement,
   StdVerbiage,
+  SubjectCommentRequest,
   Subscription,
   SupportSession,
   SupportSessionGrantRequest,
@@ -32345,6 +32357,21 @@ export class CommentsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Comment on a subject
+   *
+   * Posts a comment on any row of app.comment_subjects by its table and id, as the caller, in the subject's main thread or the thread of an anchor, opening the thread on first use (`app.post_comment`). The subject's own read policy decides (404 when it is not visible). The add_comment action of automations calls it as the automation's owner. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /comments/on-subject` (operation `comments.postOnSubject`).
+   * Requires the capability `work.record.write`.
+   */
+  postOnSubject(
+    body: SubjectCommentRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Comment>> {
+    return this.client.request<Comment>($OPERATIONS["comments.postOnSubject"], { body }, options);
+  }
 }
 
 /**
@@ -36313,6 +36340,328 @@ export class InboundMessagesResource extends $Resource {
     return this.client.request<InboundMessage>(
       $OPERATIONS["inboundMessages.discard"],
       { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `automations`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class AutomationsResource extends $Resource {
+  /**
+   * List automation rows
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /automations` (operation `automations.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  list(params?: $ListParams<Automation>, options?: $RequestOptions): Promise<$Page<Automation>> {
+    return this.client.requestPage<Automation>(
+      $OPERATIONS["automations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List automation rows
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns a cursor page of automation rows the caller may see. The default order is `name` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /automations` (operation `automations.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  listAll(
+    params?: $ListAllParams<Automation>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<Automation, void, undefined> {
+    return this.client.paginate<Automation>(
+      $OPERATIONS["automations.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Creates an automation. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /automations` (operation `automations.create`).
+   * Requires the capability `org.automations.write`.
+   */
+  create(body: AutomationCreate, options?: $MutationOptions): Promise<$ApiResponse<Automation>> {
+    return this.client.request<Automation>($OPERATIONS["automations.create"], { body }, options);
+  }
+
+  /**
+   * Get an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Returns one automation with its `ETag`. A automation the caller may not see returns 404.
+   *
+   * `GET /automations/{id}` (operation `automations.get`).
+   * Requires the capability `org.automations.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<Automation>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<Automation>> {
+    return this.client.request<Automation>(
+      $OPERATIONS["automations.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /automations/{id}` (operation `automations.update`).
+   * Requires the capability `org.automations.write`.
+   */
+  update(
+    id: string,
+    body: AutomationUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<Automation>> {
+    return this.client.request<Automation>(
+      $OPERATIONS["automations.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an automation
+   *
+   * An automation (Section 7.3, ADR 0047): when a domain event of the trigger type happens in the org and the conditions hold, the actions run in order as the owner through public API operations, so row level security and capabilities decide every write. The owner is whoever last changed what it does or turned it on. Needs the automations plan feature (Pro and above) to create, change or turn on (plan_feature_required: 422); without it an automation can still be turned off and deleted. Saving validates the documents as automation.schema.json does (automation_conditions_invalid, automation_actions_invalid: 422) and checks the actions fit the trigger (automation_action_needs_record, automation_action_needs_commentable_subject, automation_person_not_member, automation_webhook_unknown: 422). Soft-deletes the automation: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /automations/{id}` (operation `automations.delete`).
+   * Requires the capability `org.automations.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["automations.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Test an automation against a sample event
+   *
+   * Dry run of the automation's conditions against a sample event body through `app.test_automation`: whether they match and, per condition, the value found. Nothing runs and nothing is written. Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automations/{id}/test` (operation `automations.test`).
+   * Requires the capability `org.automations.write`.
+   */
+  test(
+    id: string,
+    body: AutomationTestRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AutomationTestResult>> {
+    return this.client.request<AutomationTestResult>(
+      $OPERATIONS["automations.test"],
+      { path: { id }, body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `automationRuns`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class AutomationRunsResource extends $Resource {
+  /**
+   * List automation run rows
+   *
+   * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /automation-runs` (operation `automationRuns.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  list(
+    params?: $ListParams<AutomationRun>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AutomationRun>> {
+    return this.client.requestPage<AutomationRun>(
+      $OPERATIONS["automationRuns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List automation run rows
+   *
+   * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns a cursor page of automation run rows the caller may see. The default order is `created_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /automation-runs` (operation `automationRuns.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  listAll(
+    params?: $ListAllParams<AutomationRun>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AutomationRun, void, undefined> {
+    return this.client.paginate<AutomationRun>(
+      $OPERATIONS["automationRuns.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an automation run
+   *
+   * One run of an automation for one domain event (ADR 0047): an event never runs an automation twice. A run caused by another automation's action is one level deeper; past depth 3 it is Skipped (loop_depth), and past 1,000 runs in an hour in the org new runs are Skipped (rate_limited). A run fails closed when the owner left the org or lost org.automations.write, and the automation pauses with a notice. Returns one automation run with its `ETag`. A automation run the caller may not see returns 404.
+   *
+   * `GET /automation-runs/{id}` (operation `automationRuns.get`).
+   * Requires the capability `org.automations.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AutomationRun>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AutomationRun>> {
+    return this.client.request<AutomationRun>(
+      $OPERATIONS["automationRuns.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Notify a member from a running automation run
+   *
+   * The notify action (ADR 0047): during a run, the automation's owner notifies a member of the org (automation.notice) about the event's subject, through `app.send_automation_notice`. Only a running run of the caller's own automation (404 otherwise); the recipient must be a member (automation_person_not_member: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automation-runs/{id}/notices` (operation `automationRuns.notify`).
+   * Requires the capability `org.automations.write`.
+   */
+  notify(
+    id: string,
+    body: AutomationNoticeRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AutomationNoticeResult>> {
+    return this.client.request<AutomationNoticeResult>(
+      $OPERATIONS["automationRuns.notify"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Send a running run's event to a webhook endpoint
+   *
+   * The call_webhook action (ADR 0047): during a run, its owner queues a delivery of the run's event to one of the org's webhook endpoints through `app.queue_automation_webhook`; the webhook dispatcher signs and retries it like every webhook. Needs org.automations.write, org.webhooks.manage and the webhooks plan feature. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automation-runs/{id}/webhook-deliveries` (operation `automationRuns.deliverWebhook`).
+   * Requires the capability `org.automations.write`.
+   */
+  deliverWebhook(
+    id: string,
+    body: AutomationWebhookRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AutomationWebhookResult>> {
+    return this.client.request<AutomationWebhookResult>(
+      $OPERATIONS["automationRuns.deliverWebhook"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Retry a failed automation run
+   *
+   * Queues a failed run again through `app.retry_automation_run`; steps that succeeded are not run again. The automation must be on (automation_off: 422) and the run Failed (automation_run_not_failed: 422). Needs org.automations.write. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /automation-runs/{id}/retry` (operation `automationRuns.retry`).
+   * Requires the capability `org.automations.write`.
+   */
+  retry(id: string, options?: $MutationOptions): Promise<$ApiResponse<AutomationRun>> {
+    return this.client.request<AutomationRun>(
+      $OPERATIONS["automationRuns.retry"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `automationRunSteps`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class AutomationRunStepsResource extends $Resource {
+  /**
+   * List automation run step rows
+   *
+   * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /automation-run-steps` (operation `automationRunSteps.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  list(
+    params?: $ListParams<AutomationRunStep>,
+    options?: $RequestOptions,
+  ): Promise<$Page<AutomationRunStep>> {
+    return this.client.requestPage<AutomationRunStep>(
+      $OPERATIONS["automationRunSteps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List automation run step rows
+   *
+   * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns a cursor page of automation run step rows the caller may see. The default order is `automation_run_id`, then `position` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /automation-run-steps` (operation `automationRunSteps.list`).
+   * Requires the capability `org.automations.write`.
+   */
+  listAll(
+    params?: $ListAllParams<AutomationRunStep>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<AutomationRunStep, void, undefined> {
+    return this.client.paginate<AutomationRunStep>(
+      $OPERATIONS["automationRunSteps.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an automation run step
+   *
+   * One action of an automation run: the public API operation called as the owner, what was sent and answered, and how long it took. A retried run rewrites the step of the action that failed. Returns one automation run step with its `ETag`. A automation run step the caller may not see returns 404.
+   *
+   * `GET /automation-run-steps/{id}` (operation `automationRunSteps.get`).
+   * Requires the capability `org.automations.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<AutomationRunStep>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<AutomationRunStep>> {
+    return this.client.request<AutomationRunStep>(
+      $OPERATIONS["automationRunSteps.get"],
+      { path: { id }, query: params },
       options,
     );
   }
