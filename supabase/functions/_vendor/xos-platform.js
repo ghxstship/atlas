@@ -2445,163 +2445,6 @@ var auroraCertificates_default$1 = {
   insuredsFailed:
     "The certificate was saved, but its additional insureds were not: {detail}. Add them on the certificate.",
 };
-var authSecurity_default$1 = {
-  factorTypes: {
-    totp: "Authenticator app",
-    webauthn: "Security key or passkey",
-    phone: "Phone",
-  },
-  challenge: {
-    title: "Verify it's you",
-    sentence: "Enter the 6-digit code from your authenticator app.",
-    keySentence: "Use your security key or passkey to finish signing in.",
-    code: "Code",
-    codeHelp: "6 digits from the app you set up for this account",
-    factor: "Second factor",
-    verify: "Verify",
-    useKey: "Use security key",
-    keyPrompt: "Follow your browser's prompt to use your security key or passkey.",
-    signOut: "Sign out",
-    lost: "Lost your phone or key? Use another second factor you set up. If you have none, ask an Owner or Admin of your organization to contact XOS support, who confirm who you are before removing the factor.",
-  },
-  policy: {
-    enrollTitle: "Set up a second factor",
-    enrollSentence: "{org} requires a second factor for your role. Set one up to continue.",
-    sessionEndedTitle: "Sign in again",
-    sessionEnded:
-      "{org} asks you to sign in again every {hours, plural, one {# hour} other {# hours}}.",
-    idle: "You were inactive longer than {org} allows, so you need to sign in again.",
-    signInAgain: "Sign in again",
-  },
-  stepUp: {
-    title: "Confirm it's you",
-    sentence: "Confirm with your second factor to continue.",
-    enrollSentence:
-      "This action needs a second factor. Set up an authenticator app now and use it for actions like this one.",
-    cancel: "Cancel",
-    verified: "Verified. Continuing.",
-  },
-  enroll: {
-    label: "Name",
-    labelHelp: "So you can tell your factors apart, for example Work phone",
-    totpDefault: "Authenticator app",
-    keyDefault: "Security key",
-    start: "Set up authenticator app",
-    scan: "Scan this code with your authenticator app, then enter the 6-digit code it shows.",
-    qrAlt: "QR code that sets up your authenticator app",
-    showSecret: "Can't scan? Show the setup key",
-    secret: "Setup key",
-    confirm: "Verify and turn on",
-    cancel: "Cancel",
-    done: "Your authenticator app is set up.",
-    addKey: "Add security key",
-    keyDone: "Your security key is set up.",
-    recovery:
-      "Keep a second way in. Add a second authenticator app or a security key, so losing one device never locks you out.",
-  },
-  factors: {
-    title: "Two-step verification",
-    description:
-      "A second factor keeps your account safe if your password or email is exposed. You use it when you sign in, and Restricted exports and emergency access need it. Removing a factor asks for a code from the last 15 minutes.",
-    none: "No second factor yet.",
-    added: "Added {date}",
-    pending: "Setup not finished",
-    required: "{org} requires a second factor for your role.",
-    rename: "Rename",
-    renameLabel: "New name for {name}",
-    save: "Save",
-    cancel: "Cancel",
-    remove: "Remove",
-    removeTitle: "Remove {name}?",
-    removeSentence:
-      "You won't be asked for it when you sign in. If it is your only second factor, your account is protected by your password alone.",
-    removed: "Removed.",
-    renamed: "Renamed.",
-  },
-  passkeys: {
-    title: "Passkeys",
-    description:
-      "Sign in with your fingerprint, face or device PIN instead of a password. The passkey stays on your device and works only on this site, so it can't be phished.",
-    none: "No passkeys yet.",
-    add: "Add a passkey",
-    label: "Name",
-    labelDefault: "Passkey",
-    added: "Added {date}",
-    lastUsed: "Last used {date}",
-    neverUsed: "Not used yet",
-    rename: "Rename",
-    renameLabel: "New name for {name}",
-    save: "Save",
-    cancel: "Cancel",
-    remove: "Remove",
-    removeTitle: "Remove {name}?",
-    removeSentence:
-      "You won't be able to sign in with this passkey. Remove it from your device too, in its password settings.",
-    done: "Passkey added.",
-    removed: "Removed.",
-    renamed: "Renamed.",
-    unsupported: "This browser can't create passkeys.",
-    signIn: "Sign in with a passkey",
-  },
-  sso: {
-    link: "Sign in with single sign-on",
-    title: "Single sign-on",
-    sentence: "Enter your work email. You continue to your organization's sign-in page.",
-    email: "Work email",
-    continue: "Continue",
-    back: "Other ways to sign in",
-  },
-  providers: {
-    title: "Enterprise single sign-on and SCIM",
-    description:
-      "People sign in through your identity provider (SAML 2.0), and SCIM adds and removes them as your directory changes. Single sign-on and SCIM never make anyone an Owner.",
-    notInPlan: "Single sign-on and SCIM are part of the Enterprise plan.",
-    none: "No identity provider yet. XOS support connects your provider and gives you its provider ID.",
-    add: "Add identity provider",
-    name: "Name",
-    nameHelp: "For example the name of your identity provider tenant",
-    protocol: "Protocol",
-    providerId: "Provider ID",
-    providerIdHelp: "The single sign-on provider ID XOS support gave you",
-    defaultRole: "Role for new people",
-    jit: "Add people who sign in through this provider",
-    scim: "Provision people with SCIM",
-    save: "Save",
-    saved: "Saved.",
-    jitOn: "Adds people who sign in",
-    scimOn: "SCIM on",
-    scimOff: "SCIM off",
-    endpoint: "SCIM base URL",
-    token: "SCIM token",
-    tokenNone: "No token issued",
-    tokenIssued: "Token starting {prefix}",
-    issueToken: "Issue SCIM token",
-    rotateToken: "Rotate SCIM token",
-    tokenOnce:
-      "Copy this token into your identity provider now. It is shown once; issuing another replaces it.",
-    domains: "People whose verified domain is {domains} can sign in with single sign-on.",
-  },
-  errors: {
-    code_invalid: "That code didn't match. Enter the code your app shows now.",
-    code_expired: "That took too long. Try again.",
-    step_up_required: "Confirm it's you with your second factor first.",
-    factor_limit: "You have the most second factors allowed. Remove one first.",
-    factor_name_taken: "You already have a factor with that name. Choose another.",
-    factor_label_length: "Name it in 1 to 80 characters.",
-    passkey_failed: "Your device didn't confirm it. Try again.",
-    cancelled: "Canceled. Try again when you're ready.",
-    unsupported: "This browser doesn't support security keys or passkeys.",
-    sso_unavailable:
-      "No single sign-on is set up for that email domain. Sign in another way, or ask your Admin.",
-    rate_limited: "Too many attempts. Wait a minute, then try again.",
-    integration_plan_feature: "Single sign-on and SCIM need the Enterprise plan.",
-    sso_default_role_owner: "Single sign-on never makes anyone an Owner. Choose another role.",
-    conflict: "Another identity provider already uses that provider ID.",
-    invalid: "Check the highlighted fields.",
-    denied: "You can't change this.",
-    unexpected: "Something went wrong. Try again.",
-  },
-};
 var canonBrowser_default$1 = {
   what: "the canon",
   empty:
@@ -2836,16 +2679,6 @@ var compass_default$1 = {
     identity:
       "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
   },
-  secondFactor: {
-    title: "Verify It's You",
-    sentence: "Enter the 6-digit code from your authenticator app.",
-    code: "Code",
-    verify: "Verify",
-    invalid: "That code didn't match. Enter the code your app shows now.",
-    requiredTitle: "Set Up a Second Factor",
-    required:
-      "Your organization requires a second factor for your role. Set up an authenticator app in Atlas or Gateway under Settings, Security, then try again.",
-  },
   denial: {
     roleTitle: "Not part of your role",
     role: "Your role does not include this in Compass. Ask your organization if you need it.",
@@ -3027,7 +2860,7 @@ var compass_default$1 = {
     endBreak: "End Break",
     blocked: "Clock In",
     inside: "You're at {name}",
-    outside: "You're {distance} m from {name}",
+    outside: "You're {distance} from {name}",
     outsideFar: "You're away from the venue",
     locating: "Finding your location",
     locationCoarse: "Your location is not precise enough yet. Step outside or wait a moment.",
@@ -3088,6 +2921,8 @@ var compass_default$1 = {
       "You already hold a shift that overlaps this one ({time}). Swap or drop that shift first.",
     claimQueued:
       "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first.",
+    claimSent:
+      "Claim sent. A supervisor decides who gets the shift under this project's claiming rule.",
   },
   scan: {
     title: "Scan",
@@ -3262,12 +3097,19 @@ var compass_default$1 = {
       deviceRevoked:
         "This kiosk was turned off in Atlas. Ask your supervisor to register it again.",
       requestInvalid: "That punch could not be read. Start again.",
+      kioskDisabled: "Kiosks are off for this organization. Ask an admin to turn them on in Atlas.",
+      photoRequired:
+        "This project asks for a photo at every kiosk punch. Start again and take the photo.",
     },
     exit: "Exit Kiosk",
     digit: "Digit {digit}",
     backspace: "Delete digit",
     pinProgressOne: "{count} digit entered",
     pinProgressOther: "{count} digits entered",
+    off: "Kiosks are off for this organization. An admin turns them on in Atlas, Settings, Time and Attendance.",
+    photoFor: "Photo for {name}",
+    photoHelp:
+      "This project asks for a photo at every kiosk clock-in and clock-out. Look at the camera and take the photo.",
   },
   inbox: {
     title: "Inbox",
@@ -3978,6 +3820,20 @@ var crew_default$1 = {
       "Nobody records their own certificate. Ask another verifier to record it.",
     certification_holder_immutable:
       "A certificate record keeps its holder, verifier and code. Remove it and record it again.",
+    swap_not_allowed:
+      "This project does not allow shift swaps. Ask your supervisor to cover the shift.",
+    swap_needs_approval: "A supervisor approves swaps on this project. Wait for their decision.",
+    shift_claim_waiting: "You already claimed this shift. A supervisor decides.",
+    shift_claim_decided:
+      "This claim was already decided or withdrawn. Reload to see where it stands.",
+    shift_claim_reason: "Say why the claim is rejected.",
+    shift_claim_not_most_senior:
+      "Under the seniority rule the shift goes to the most senior claimant. Use Give to the most senior.",
+    shift_claim_none: "Nobody is waiting on this shift.",
+    sod_shift_claim_self: "You cannot approve your own claim. Another supervisor decides it.",
+    punch_location_required:
+      "This project needs your location to clock in. Clock in on site from Compass with location on.",
+    punch_outside_geofence: "You are outside the project's geofence. Clock in on site.",
   },
   states: {
     shift: {
@@ -4222,6 +4078,9 @@ var crew_default$1 = {
     emptyFiltered: "No swaps in this state. Clear the filter to see every request.",
     viewShifts: "View shifts",
     caption: "Shift swaps",
+    accept: "Accept swap",
+    acceptTitle: "Take this shift?",
+    acceptReason: "I can work this shift.",
   },
   entries: {
     title: "{name} · {day}",
@@ -4418,6 +4277,25 @@ var crew_default$1 = {
     errorBody:
       "The list could not be read just now. Your data is safe; try again, and if it keeps failing, share the reference with support.",
     retry: "Try again",
+  },
+  claims: {
+    title: "Waiting claims",
+    waiting: "Your claim is waiting for a supervisor to decide.",
+    withdraw: "Withdraw claim",
+    withdrawTitle: "Withdraw your claim on this shift?",
+    award: "Give to the most senior",
+    awardTitle: "Give this shift to the most senior claimant?",
+    awardReason: "Awarded by seniority.",
+    approve: "Approve",
+    approveTitle: "Give this shift to {name}?",
+    approveReason: "Claim approved.",
+    reject: "Reject",
+    rejectTitle: "Reject the claim from {name}?",
+    ruleHelp: {
+      approval: "A supervisor approves each claim on this project.",
+      seniority: "Claims wait, and the shift goes to the most senior claimant.",
+      "first-come": "The first person to claim the shift gets it.",
+    },
   },
 };
 var docs_default$1 = {
@@ -7387,6 +7265,13 @@ var help_default$1 = {
       "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
     screenshotNeedsConsent: "Tick the diagnostics box above to attach a screenshot.",
     screenshotTooBig: "That image is larger than 5 MB. Choose a smaller one.",
+  },
+  orgSupport: {
+    title: "Your organization's support",
+    email: "Email",
+    hours: "Hours",
+    link: "Guides",
+    linkLabel: "Open your organization's guides",
   },
   gateway: {
     general: "Everywhere in Gateway",
@@ -10455,6 +10340,7 @@ var places_default$1 = {
       space: "Within space",
       spaceHelp: "Optional. The space this zone sits in.",
       noSpace: "Not within a space",
+      areaMetric: "Floor area (m²)",
     },
   },
   documents: {
@@ -12808,6 +12694,9 @@ var settings_default$1 = {
     ip_allowlist_empty: "Add at least one network before turning the allow-list on.",
     plan_feature_ip_allowlist:
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
+    setting_not_enforced:
+      "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
+    setting_fixed: "This setting is fixed and cannot be changed.",
   },
   fields: {
     legalName: {
@@ -12816,7 +12705,7 @@ var settings_default$1 = {
     },
     defaultWorkspace: {
       label: "Default workspace",
-      help: "New members start in this workspace.",
+      help: "New members join this workspace.",
     },
     startPage: {
       label: "Start page",
@@ -12832,19 +12721,19 @@ var settings_default$1 = {
     },
     invoicePrefix: {
       label: "Invoice number prefix",
-      help: "Up to 12 characters placed before each invoice number, for example INV-.",
+      help: "Up to 12 characters placed before each new invoice number, for example INV-.",
     },
     mfaPolicy: {
       label: "Multi-factor authentication",
-      help: "Who must use a second factor. Anyone it applies to sets one up, or verifies the one they have, before opening the organization.",
+      help: "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional.",
     },
     sessionHours: {
       label: "Session length in hours",
-      help: "How long a sign-in lasts before the person signs in again, from 1 to 720 hours.",
+      help: "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours.",
     },
     idleTimeout: {
       label: "Idle timeout in minutes",
-      help: "Sign out after this many minutes without activity, from 5 to 1,440.",
+      help: "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes.",
     },
     ipAllowlist: {
       label: "Enforce the IP allow-list",
@@ -12872,7 +12761,7 @@ var settings_default$1 = {
     },
     numberPadding: {
       label: "Number padding",
-      help: "Digits in each document number, from 1 to 10. Four gives 0042.",
+      help: "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed.",
     },
     rounding: {
       label: "Punch rounding",
@@ -12880,11 +12769,11 @@ var settings_default$1 = {
     },
     photoOnPunch: {
       label: "Photo on punch",
-      help: "Ask for a photo at every clock-in and clock-out.",
+      help: "Ask kiosks for a photo at every clock-in and clock-out.",
     },
     geofenceRequired: {
       label: "Require the geofence",
-      help: "Refuse clock-ins outside the project's geofence.",
+      help: "Refuse phone and web clock-ins outside the project's geofence. Kiosks are exempt.",
     },
     kioskEnabled: {
       label: "Kiosk clock-in",
@@ -12892,7 +12781,7 @@ var settings_default$1 = {
     },
     openShiftClaiming: {
       label: "Open shift claiming",
-      help: "How crew claim open shifts.",
+      help: "How crew claim open shifts: the first to claim gets it, a supervisor approves, or the most senior claimant gets it.",
     },
     allowSwaps: {
       label: "Allow shift swaps",
@@ -12900,11 +12789,11 @@ var settings_default$1 = {
     },
     swapApproval: {
       label: "Swaps need approval",
-      help: "A supervisor approves each swap before it takes effect.",
+      help: "A supervisor approves each swap before it takes effect. When off, the person offered the shift accepts it.",
     },
     payPeriod: {
       label: "Pay period",
-      help: "How often payroll runs.",
+      help: "How often payroll runs. New pay periods follow it.",
     },
     weekStart: {
       label: "Week starts on",
@@ -12912,15 +12801,15 @@ var settings_default$1 = {
     },
     marketplaceVisibility: {
       label: "Marketplace visibility",
-      help: "Who can find the organization in the Gateway marketplace.",
+      help: "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees.",
     },
     ratingsEnabled: {
-      label: "Ratings",
-      help: "Ask both sides to rate each other when an engagement completes.",
+      label: "Prompt members to rate parties",
+      help: "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score.",
     },
     messageRetention: {
       label: "Message retention in days",
-      help: "Keep messages this many days, from 30 to 3,650.",
+      help: "Delete messages older than this many days, from 30 to 3,650. A legal hold keeps them.",
     },
     autoTranslate: {
       label: "Translate messages",
@@ -12928,15 +12817,15 @@ var settings_default$1 = {
     },
     supportEmail: {
       label: "Internal support email",
-      help: "Where members send questions about how your organization works.",
+      help: "Where members send questions about how your organization works. Shown in the help panel.",
     },
     supportHours: {
       label: "Support hours",
-      help: "For example Monday to Friday, 9 AM to 6 PM Eastern.",
+      help: "Shown in the help panel, for example Monday to Friday, 9 AM to 6 PM Eastern.",
     },
     helpLink: {
       label: "Custom help link",
-      help: "A page with your own guides, shown in the help menu.",
+      help: "A page with your own guides, shown in the help panel.",
     },
     language: {
       label: "Language",
@@ -13490,6 +13379,7 @@ var settings_default$1 = {
       },
     },
   },
+  notInEffect: "Saved, but not in effect yet.",
 };
 var shell_default$1 = {
   atlas: {
@@ -19133,167 +19023,6 @@ var auroraCertificates_default = {
   insuredsFailed:
     "El certificado se guardó, pero sus asegurados adicionales no: {detail}. Agréguelos en el certificado.",
 };
-var authSecurity_default = {
-  factorTypes: {
-    totp: "App de autenticación",
-    webauthn: "Llave de seguridad o llave de acceso",
-    phone: "Teléfono",
-  },
-  challenge: {
-    title: "Confirma que eres tú",
-    sentence: "Escribe el código de 6 dígitos de tu app de autenticación.",
-    keySentence: "Usa tu llave de seguridad o llave de acceso para terminar de iniciar sesión.",
-    code: "Código",
-    codeHelp: "6 dígitos de la app que configuraste para esta cuenta",
-    factor: "Segundo factor",
-    verify: "Verificar",
-    useKey: "Usar llave de seguridad",
-    keyPrompt:
-      "Sigue las indicaciones del navegador para usar tu llave de seguridad o llave de acceso.",
-    signOut: "Cerrar sesión",
-    lost: "¿Perdiste tu teléfono o llave? Usa otro segundo factor que hayas configurado. Si no tienes otro, pide a un Owner o Admin de tu organización que contacte al soporte de XOS, que confirma tu identidad antes de quitar el factor.",
-  },
-  policy: {
-    enrollTitle: "Configura un segundo factor",
-    enrollSentence: "{org} exige un segundo factor para tu rol. Configura uno para continuar.",
-    sessionEndedTitle: "Inicia sesión de nuevo",
-    sessionEnded:
-      "{org} pide iniciar sesión de nuevo cada {hours, plural, one {# hora} other {# horas}}.",
-    idle: "Estuviste inactivo más tiempo del que {org} permite, así que debes iniciar sesión de nuevo.",
-    signInAgain: "Iniciar sesión de nuevo",
-  },
-  stepUp: {
-    title: "Confirma que eres tú",
-    sentence: "Confirma con tu segundo factor para continuar.",
-    enrollSentence:
-      "Esta acción necesita un segundo factor. Configura una app de autenticación ahora y úsala para acciones como esta.",
-    cancel: "Cancelar",
-    verified: "Verificado. Continuando.",
-  },
-  enroll: {
-    label: "Nombre",
-    labelHelp: "Para distinguir tus factores, por ejemplo Teléfono del trabajo",
-    totpDefault: "App de autenticación",
-    keyDefault: "Llave de seguridad",
-    start: "Configurar app de autenticación",
-    scan: "Escanea este código con tu app de autenticación y escribe el código de 6 dígitos que muestra.",
-    qrAlt: "Código QR que configura tu app de autenticación",
-    showSecret: "¿No puedes escanear? Muestra la clave de configuración",
-    secret: "Clave de configuración",
-    confirm: "Verificar y activar",
-    cancel: "Cancelar",
-    done: "Tu app de autenticación quedó configurada.",
-    addKey: "Agregar llave de seguridad",
-    keyDone: "Tu llave de seguridad quedó configurada.",
-    recovery:
-      "Ten una segunda forma de entrar. Agrega otra app de autenticación o una llave de seguridad, para que perder un dispositivo nunca te deje fuera.",
-  },
-  factors: {
-    title: "Verificación en dos pasos",
-    description:
-      "Un segundo factor protege tu cuenta si tu contraseña o tu correo quedan expuestos. Lo usas al iniciar sesión, y las exportaciones Restricted y el acceso de emergencia lo necesitan. Quitar un factor pide un código de los últimos 15 minutos.",
-    none: "Aún no tienes un segundo factor.",
-    added: "Agregado el {date}",
-    pending: "Configuración sin terminar",
-    required: "{org} exige un segundo factor para tu rol.",
-    rename: "Cambiar nombre",
-    renameLabel: "Nuevo nombre para {name}",
-    save: "Guardar",
-    cancel: "Cancelar",
-    remove: "Quitar",
-    removeTitle: "¿Quitar {name}?",
-    removeSentence:
-      "Ya no se te pedirá al iniciar sesión. Si es tu único segundo factor, solo tu contraseña protegerá tu cuenta.",
-    removed: "Quitado.",
-    renamed: "Nombre cambiado.",
-  },
-  passkeys: {
-    title: "Llaves de acceso",
-    description:
-      "Inicia sesión con tu huella, tu rostro o el PIN del dispositivo en lugar de una contraseña. La llave de acceso se queda en tu dispositivo y solo funciona en este sitio, así que no se puede robar con phishing.",
-    none: "Aún no tienes llaves de acceso.",
-    add: "Agregar una llave de acceso",
-    label: "Nombre",
-    labelDefault: "Llave de acceso",
-    added: "Agregada el {date}",
-    lastUsed: "Usada por última vez el {date}",
-    neverUsed: "Aún sin usar",
-    rename: "Cambiar nombre",
-    renameLabel: "Nuevo nombre para {name}",
-    save: "Guardar",
-    cancel: "Cancelar",
-    remove: "Quitar",
-    removeTitle: "¿Quitar {name}?",
-    removeSentence:
-      "Ya no podrás iniciar sesión con esta llave de acceso. Quítala también de tu dispositivo, en su configuración de contraseñas.",
-    done: "Llave de acceso agregada.",
-    removed: "Quitada.",
-    renamed: "Nombre cambiado.",
-    unsupported: "Este navegador no puede crear llaves de acceso.",
-    signIn: "Iniciar sesión con una llave de acceso",
-  },
-  sso: {
-    link: "Iniciar sesión con inicio de sesión único",
-    title: "Inicio de sesión único",
-    sentence:
-      "Escribe tu correo del trabajo. Continuarás a la página de inicio de sesión de tu organización.",
-    email: "Correo del trabajo",
-    continue: "Continuar",
-    back: "Otras formas de iniciar sesión",
-  },
-  providers: {
-    title: "Inicio de sesión único y SCIM de Enterprise",
-    description:
-      "Las personas inician sesión con tu proveedor de identidad (SAML 2.0), y SCIM las agrega y las quita a medida que cambia tu directorio. El inicio de sesión único y SCIM nunca convierten a nadie en Owner.",
-    notInPlan: "El inicio de sesión único y SCIM son parte del plan Enterprise.",
-    none: "Aún no hay proveedor de identidad. El soporte de XOS conecta tu proveedor y te da su ID de proveedor.",
-    add: "Agregar proveedor de identidad",
-    name: "Nombre",
-    nameHelp: "Por ejemplo, el nombre del inquilino de tu proveedor de identidad",
-    protocol: "Protocolo",
-    providerId: "ID de proveedor",
-    providerIdHelp: "El ID de proveedor de inicio de sesión único que te dio el soporte de XOS",
-    defaultRole: "Rol para personas nuevas",
-    jit: "Agregar a quienes inicien sesión con este proveedor",
-    scim: "Aprovisionar personas con SCIM",
-    save: "Guardar",
-    saved: "Guardado.",
-    jitOn: "Agrega a quienes inician sesión",
-    scimOn: "SCIM activado",
-    scimOff: "SCIM desactivado",
-    endpoint: "URL base de SCIM",
-    token: "Token de SCIM",
-    tokenNone: "No hay token emitido",
-    tokenIssued: "Token que empieza por {prefix}",
-    issueToken: "Emitir token de SCIM",
-    rotateToken: "Rotar token de SCIM",
-    tokenOnce:
-      "Copia este token en tu proveedor de identidad ahora. Se muestra una sola vez; emitir otro lo reemplaza.",
-    domains:
-      "Quienes tengan el dominio verificado {domains} pueden usar el inicio de sesión único.",
-  },
-  errors: {
-    code_invalid: "Ese código no coincide. Escribe el código que muestra tu app ahora.",
-    code_expired: "Tardaste demasiado. Inténtalo de nuevo.",
-    step_up_required: "Confirma que eres tú con tu segundo factor primero.",
-    factor_limit: "Tienes el máximo de segundos factores permitido. Quita uno primero.",
-    factor_name_taken: "Ya tienes un factor con ese nombre. Elige otro.",
-    factor_label_length: "Ponle un nombre de 1 a 80 caracteres.",
-    passkey_failed: "Tu dispositivo no lo confirmó. Inténtalo de nuevo.",
-    cancelled: "Cancelado. Inténtalo de nuevo cuando quieras.",
-    unsupported: "Este navegador no admite llaves de seguridad ni llaves de acceso.",
-    sso_unavailable:
-      "No hay inicio de sesión único para ese dominio de correo. Inicia sesión de otra forma o pregunta a tu Admin.",
-    rate_limited: "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
-    integration_plan_feature: "El inicio de sesión único y SCIM necesitan el plan Enterprise.",
-    sso_default_role_owner:
-      "El inicio de sesión único nunca convierte a nadie en Owner. Elige otro rol.",
-    conflict: "Otro proveedor de identidad ya usa ese ID de proveedor.",
-    invalid: "Revisa los campos marcados.",
-    denied: "No puedes cambiar esto.",
-    unexpected: "Algo salió mal. Inténtalo de nuevo.",
-  },
-};
 var canonBrowser_default = {
   what: "el canon",
   empty:
@@ -19532,16 +19261,6 @@ var compass_default = {
     identity:
       "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
   },
-  secondFactor: {
-    title: "Confirma Que Eres Tú",
-    sentence: "Escribe el código de 6 dígitos de tu app de autenticación.",
-    code: "Código",
-    verify: "Verificar",
-    invalid: "Ese código no coincide. Escribe el código que muestra tu app ahora.",
-    requiredTitle: "Configura un Segundo Factor",
-    required:
-      "Tu organización exige un segundo factor para tu rol. Configura una app de autenticación en Atlas o Gateway, en Configuración, Seguridad, y vuelve a intentarlo.",
-  },
   denial: {
     roleTitle: "No es parte de tu rol",
     role: "Tu rol no incluye esto en Compass. Pregunta a tu organización si lo necesitas.",
@@ -19726,7 +19445,7 @@ var compass_default = {
     endBreak: "Terminar descanso",
     blocked: "Marcar entrada",
     inside: "Estás en {name}",
-    outside: "Estás a {distance} m de {name}",
+    outside: "Estás a {distance} de {name}",
     outsideFar: "Estás lejos del lugar",
     locating: "Buscando tu ubicación",
     locationCoarse: "Tu ubicación aún no es precisa. Sal al exterior o espera un momento.",
@@ -19788,6 +19507,8 @@ var compass_default = {
       "Ya tienes un turno que se superpone con este ({time}). Cambia o deja ese turno primero.",
     claimQueued:
       "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes.",
+    claimSent:
+      "Reclamo enviado. Un supervisor decide quién recibe el turno según la regla de reclamo del proyecto.",
   },
   scan: {
     title: "Escanear",
@@ -19965,12 +19686,20 @@ var compass_default = {
       deviceRevoked:
         "Este quiosco se desactivó en Atlas. Pide a tu supervisor que lo registre de nuevo.",
       requestInvalid: "No se pudo leer esa marcación. Empieza de nuevo.",
+      kioskDisabled:
+        "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
+      photoRequired:
+        "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto.",
     },
     exit: "Salir del quiosco",
     digit: "Dígito {digit}",
     backspace: "Borrar dígito",
     pinProgressOne: "{count} dígito ingresado",
     pinProgressOther: "{count} dígitos ingresados",
+    off: "Los quioscos están desactivados en esta organización. Un administrador los activa en Atlas, Configuración, Horario y asistencia.",
+    photoFor: "Foto de {name}",
+    photoHelp:
+      "Este proyecto pide una foto en cada entrada y salida en el quiosco. Mira la cámara y toma la foto.",
   },
   inbox: {
     title: "Bandeja",
@@ -20712,6 +20441,20 @@ var crew_default = {
       "Nadie registra su propio certificado. Pida a otro verificador que lo registre.",
     certification_holder_immutable:
       "Un registro de certificado conserva su titular, verificador y código. Quítelo y regístrelo de nuevo.",
+    swap_not_allowed:
+      "Este proyecto no permite cambios de turno. Pide a tu supervisor que cubra el turno.",
+    swap_needs_approval: "Un supervisor aprueba los cambios en este proyecto. Espera su decisión.",
+    shift_claim_waiting: "Ya reclamaste este turno. Un supervisor decide.",
+    shift_claim_decided:
+      "Este reclamo ya se decidió o se retiró. Vuelve a cargar para ver su estado.",
+    shift_claim_reason: "Indica por qué rechazas el reclamo.",
+    shift_claim_not_most_senior:
+      "Con la regla de antigüedad, el turno es para quien tenga más antigüedad. Usa Dar al de mayor antigüedad.",
+    shift_claim_none: "Nadie espera este turno.",
+    sod_shift_claim_self: "No puedes aprobar tu propio reclamo. Otro supervisor lo decide.",
+    punch_location_required:
+      "Este proyecto necesita tu ubicación para fichar. Ficha en el lugar desde Compass con la ubicación activada.",
+    punch_outside_geofence: "Estás fuera de la geocerca del proyecto. Ficha en el lugar.",
   },
   states: {
     shift: {
@@ -20961,6 +20704,9 @@ var crew_default = {
       "No hay intercambios en este estado. Quite el filtro para ver todas las solicitudes.",
     viewShifts: "Ver turnos",
     caption: "Intercambios de turno",
+    accept: "Aceptar cambio",
+    acceptTitle: "¿Tomar este turno?",
+    acceptReason: "Puedo cubrir este turno.",
   },
   entries: {
     title: "{name} · {day}",
@@ -21162,6 +20908,25 @@ var crew_default = {
     errorBody:
       "No se pudo leer la lista en este momento. Sus datos están seguros; inténtelo de nuevo y, si sigue fallando, comparta la referencia con soporte.",
     retry: "Intentar de nuevo",
+  },
+  claims: {
+    title: "Reclamos en espera",
+    waiting: "Tu reclamo espera la decisión de un supervisor.",
+    withdraw: "Retirar reclamo",
+    withdrawTitle: "¿Retirar tu reclamo de este turno?",
+    award: "Dar al de mayor antigüedad",
+    awardTitle: "¿Dar este turno a quien tenga más antigüedad?",
+    awardReason: "Asignado por antigüedad.",
+    approve: "Aprobar",
+    approveTitle: "¿Dar este turno a {name}?",
+    approveReason: "Reclamo aprobado.",
+    reject: "Rechazar",
+    rejectTitle: "¿Rechazar el reclamo de {name}?",
+    ruleHelp: {
+      approval: "Un supervisor aprueba cada reclamo en este proyecto.",
+      seniority: "Los reclamos esperan y el turno es para quien tenga más antigüedad.",
+      "first-come": "El turno es para la primera persona que lo reclama.",
+    },
   },
 };
 var docs_default = {
@@ -24054,6 +23819,13 @@ var help_default = {
     screenshotNeedsConsent:
       "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     screenshotTooBig: "Esa imagen supera los 5 MB. Elija una más pequeña.",
+  },
+  orgSupport: {
+    title: "Soporte de tu organización",
+    email: "Correo",
+    hours: "Horario",
+    link: "Guías",
+    linkLabel: "Abrir las guías de tu organización",
   },
   gateway: {
     general: "En todo Gateway",
@@ -27201,6 +26973,7 @@ var places_default = {
       space: "Dentro del espacio",
       spaceHelp: "Opcional. El espacio donde está esta zona.",
       noSpace: "Fuera de un espacio",
+      areaMetric: "Superficie (m²)",
     },
   },
   documents: {
@@ -29638,6 +29411,9 @@ var settings_default = {
     ip_allowlist_empty: "Agregue al menos una red antes de activar la lista de IP permitidas.",
     plan_feature_ip_allowlist:
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
+    setting_not_enforced:
+      "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
+    setting_fixed: "Esta configuración es fija y no se puede cambiar.",
   },
   fields: {
     legalName: {
@@ -29646,7 +29422,7 @@ var settings_default = {
     },
     defaultWorkspace: {
       label: "Espacio de trabajo predeterminado",
-      help: "Los miembros nuevos empiezan en este espacio de trabajo.",
+      help: "Los miembros nuevos se unen a este espacio de trabajo.",
     },
     startPage: {
       label: "Página de inicio",
@@ -29662,19 +29438,19 @@ var settings_default = {
     },
     invoicePrefix: {
       label: "Prefijo del número de factura",
-      help: "Hasta 12 caracteres antes de cada número de factura, por ejemplo INV-.",
+      help: "Hasta 12 caracteres antes de cada número de factura nuevo, por ejemplo INV-.",
     },
     mfaPolicy: {
       label: "Autenticación multifactor",
-      help: "Quién debe usar un segundo factor. A quien se aplique configura uno, o verifica el que tiene, antes de abrir la organización.",
+      help: "Quién debe usar un segundo factor para iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en Opcional.",
     },
     sessionHours: {
       label: "Duración de la sesión en horas",
-      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas.",
+      help: "Cuánto dura un inicio de sesión antes de volver a iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en 336 horas.",
     },
     idleTimeout: {
       label: "Tiempo de inactividad en minutos",
-      help: "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440.",
+      help: "Cerrar la sesión tras estos minutos sin actividad. Aún no disponible: XOS no lo aplica, así que sigue en 60 minutos.",
     },
     ipAllowlist: {
       label: "Aplicar la lista de IP permitidas",
@@ -29702,7 +29478,7 @@ var settings_default = {
     },
     numberPadding: {
       label: "Relleno de números",
-      help: "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042.",
+      help: "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042. El prefijo de factura y este relleno son los números que puedes personalizar; las claves de registro como NWS-42 son fijas.",
     },
     rounding: {
       label: "Redondeo de fichajes",
@@ -29710,11 +29486,11 @@ var settings_default = {
     },
     photoOnPunch: {
       label: "Foto al fichar",
-      help: "Pedir una foto en cada entrada y salida.",
+      help: "Pedir una foto en cada entrada y salida en los quioscos.",
     },
     geofenceRequired: {
       label: "Exigir la geocerca",
-      help: "Rechazar entradas fuera de la geocerca del proyecto.",
+      help: "Rechazar entradas desde el teléfono o la web fuera de la geocerca del proyecto. Los quioscos están exentos.",
     },
     kioskEnabled: {
       label: "Fichaje en quiosco",
@@ -29722,7 +29498,7 @@ var settings_default = {
     },
     openShiftClaiming: {
       label: "Reclamo de turnos abiertos",
-      help: "Cómo reclama el equipo los turnos abiertos.",
+      help: "Cómo reclama el equipo los turnos abiertos: para quien reclama primero, con aprobación de un supervisor o para quien tenga más antigüedad.",
     },
     allowSwaps: {
       label: "Permitir cambios de turno",
@@ -29730,11 +29506,11 @@ var settings_default = {
     },
     swapApproval: {
       label: "Los cambios necesitan aprobación",
-      help: "Un supervisor aprueba cada cambio antes de que se aplique.",
+      help: "Un supervisor aprueba cada cambio antes de que se aplique. Si se desactiva, la persona a quien se ofrece el turno lo acepta.",
     },
     payPeriod: {
       label: "Período de pago",
-      help: "Con qué frecuencia se ejecuta la nómina.",
+      help: "Con qué frecuencia se ejecuta la nómina. Los períodos de pago nuevos la siguen.",
     },
     weekStart: {
       label: "La semana empieza el",
@@ -29742,15 +29518,15 @@ var settings_default = {
     },
     marketplaceVisibility: {
       label: "Visibilidad en el mercado",
-      help: "Quién puede encontrar la organización en el mercado de Gateway.",
+      help: "Quién puede encontrar tus oportunidades en el mercado de Gateway: todos, quienes trabajaron contigo o solo grupos e invitados.",
     },
     ratingsEnabled: {
-      label: "Calificaciones",
-      help: "Pedir a ambas partes que se califiquen al completar una contratación.",
+      label: "Pedir a los miembros que valoren a las partes",
+      help: "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y quienes ven el mercado ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales), sea cual sea la puntuación.",
     },
     messageRetention: {
       label: "Retención de mensajes en días",
-      help: "Conservar los mensajes estos días, de 30 a 3.650.",
+      help: "Borrar los mensajes con más de estos días, de 30 a 3.650. Una retención legal los conserva.",
     },
     autoTranslate: {
       label: "Traducir mensajes",
@@ -29758,15 +29534,15 @@ var settings_default = {
     },
     supportEmail: {
       label: "Correo de soporte interno",
-      help: "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización.",
+      help: "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización. Aparece en el panel de ayuda.",
     },
     supportHours: {
       label: "Horario de soporte",
-      help: "Por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este.",
+      help: "Aparece en el panel de ayuda, por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este.",
     },
     helpLink: {
       label: "Enlace de ayuda propio",
-      help: "Una página con tus guías, que aparece en el menú de ayuda.",
+      help: "Una página con tus guías, que aparece en el panel de ayuda.",
     },
     language: {
       label: "Idioma",
@@ -30331,6 +30107,7 @@ var settings_default = {
       },
     },
   },
+  notInEffect: "Se guarda, pero todavía no se aplica.",
 };
 var shell_default = {
   atlas: {
@@ -34839,7 +34616,6 @@ var enUS = {
   assets: assets_default$1,
   aurora: aurora_default$1,
   auroraCertificates: auroraCertificates_default$1,
-  authSecurity: authSecurity_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
   credentials: credentials_default$1,
@@ -34895,7 +34671,6 @@ var esUS = {
   assets: assets_default,
   aurora: aurora_default,
   auroraCertificates: auroraCertificates_default,
-  authSecurity: authSecurity_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
   credentials: credentials_default,
@@ -41353,690 +41128,6 @@ function reportDeliveryCopy(locale) {
   };
 }
 //#endregion
-//#region ../integrations/src/framework/db.ts
-/** A database outcome the store could not turn into data: a refusal, a missing row or an unexpected error. */
-var StoreError = class extends Error {
-  error;
-  constructor(error) {
-    super(error.kind === "not-found" ? "The row does not exist or is not visible." : error.message);
-    this.name = "StoreError";
-    this.error = error;
-  }
-};
-/** Returns the data of a response or throws a StoreError naming the database outcome. */
-async function unwrap(response) {
-  const { data, error } = await response;
-  if (error) throw new StoreError(toDataError(error));
-  return data;
-}
-//#endregion
-//#region ../integrations/src/identity/scim.ts
-var USER_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:User";
-var GROUP_SCHEMA = "urn:ietf:params:scim:schemas:core:2.0:Group";
-var LIST_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:ListResponse";
-var ERROR_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:Error";
-var PATCH_SCHEMA = "urn:ietf:params:scim:api:messages:2.0:PatchOp";
-function scimError(status, detail, scimType) {
-  return {
-    status,
-    body: {
-      schemas: [ERROR_SCHEMA],
-      status: String(status),
-      detail,
-      ...(scimType ? { scimType } : {}),
-    },
-  };
-}
-function userResource(identity) {
-  return {
-    schemas: [USER_SCHEMA],
-    id: identity.externalId,
-    userName: identity.email,
-    ...(identity.displayName ? { displayName: identity.displayName } : {}),
-    emails: [
-      {
-        value: identity.email,
-        primary: true,
-      },
-    ],
-    active: identity.active,
-    groups: identity.groups.map((g) => ({
-      value: groupId(g),
-      display: g,
-    })),
-    meta: { resourceType: "User" },
-  };
-}
-function toBase64Url(text) {
-  let binary = "";
-  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-function fromBase64Url(value) {
-  if (!/^[A-Za-z0-9_-]*$/.test(value)) return null;
-  try {
-    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-    const binary = atob(base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "="));
-    return new TextDecoder("utf-8", { fatal: true }).decode(
-      Uint8Array.from(binary, (c) => c.charCodeAt(0)),
-    );
-  } catch (error) {
-    if (
-      error instanceof TypeError ||
-      (error instanceof Error && error.name === "InvalidCharacterError")
-    )
-      return null;
-    throw error;
-  }
-}
-/** Groups have no table of their own; a group's SCIM id is its display name, base64url encoded. */
-function groupId(display) {
-  return toBase64Url(display);
-}
-function groupDisplay(id) {
-  const display = fromBase64Url(id);
-  return display !== null && display.length > 0 && groupId(display) === id ? display : null;
-}
-function groupResource(display, members) {
-  return {
-    schemas: [GROUP_SCHEMA],
-    id: groupId(display),
-    displayName: display,
-    members: members.map((m) => ({
-      value: m.externalId,
-      display: m.email,
-    })),
-    meta: { resourceType: "Group" },
-  };
-}
-function listResponse(resources, query) {
-  const startIndex = Math.max(1, Number.parseInt(query.get("startIndex") ?? "1", 10) || 1);
-  const requested = Number.parseInt(query.get("count") ?? String(MAX_RESULTS), 10);
-  const count = Math.min(
-    MAX_RESULTS,
-    Math.max(0, Number.isNaN(requested) ? MAX_RESULTS : requested),
-  );
-  const page = resources.slice(startIndex - 1, startIndex - 1 + count);
-  return {
-    status: 200,
-    body: {
-      schemas: [LIST_SCHEMA],
-      totalResults: resources.length,
-      startIndex,
-      itemsPerPage: page.length,
-      Resources: page,
-    },
-  };
-}
-/** `attribute eq "value"` filters, the form identity providers send (RFC 7644 3.4.2.2). */
-function equalityFilter(filter, attribute) {
-  if (filter === null || filter.trim() === "") return void 0;
-  const match = new RegExp(`^${attribute} eq "((?:[^"\\\\]|\\\\.)*)"$`, "i").exec(filter.trim());
-  return match?.[1] === void 0 ? null : match[1].replace(/\\(.)/g, "$1");
-}
-var MAX_RESULTS = 200;
-/** The discovery resources (RFC 7644 section 4): what this service provider supports. */
-var SERVICE_PROVIDER_CONFIG = {
-  schemas: ["urn:ietf:params:scim:schemas:core:2.0:ServiceProviderConfig"],
-  documentationUri: "https://docs.ghxstship.tech/guides/scim",
-  patch: { supported: true },
-  bulk: {
-    supported: false,
-    maxOperations: 0,
-    maxPayloadSize: 0,
-  },
-  filter: {
-    supported: true,
-    maxResults: MAX_RESULTS,
-  },
-  changePassword: { supported: false },
-  sort: { supported: false },
-  etag: { supported: false },
-  authenticationSchemes: [
-    {
-      type: "oauthbearertoken",
-      name: "Bearer token",
-      description:
-        "The SCIM token an Admin issues on Settings, Security, sent as Authorization: Bearer.",
-      primary: true,
-    },
-  ],
-  meta: { resourceType: "ServiceProviderConfig" },
-};
-var RESOURCE_TYPES = [
-  {
-    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
-    id: "User",
-    name: "User",
-    endpoint: "/Users",
-    schema: USER_SCHEMA,
-    meta: { resourceType: "ResourceType" },
-  },
-  {
-    schemas: ["urn:ietf:params:scim:schemas:core:2.0:ResourceType"],
-    id: "Group",
-    name: "Group",
-    endpoint: "/Groups",
-    schema: GROUP_SCHEMA,
-    meta: { resourceType: "ResourceType" },
-  },
-];
-var attribute = (name, type, extra = {}) => ({
-  name,
-  type,
-  multiValued: false,
-  required: false,
-  caseExact: false,
-  mutability: "readWrite",
-  returned: "default",
-  uniqueness: "none",
-  ...extra,
-});
-var SCHEMAS = [
-  {
-    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
-    id: USER_SCHEMA,
-    name: "User",
-    attributes: [
-      attribute("userName", "string", {
-        required: true,
-        uniqueness: "server",
-        mutability: "immutable",
-      }),
-      attribute("displayName", "string"),
-      attribute("emails", "complex", {
-        multiValued: true,
-        mutability: "immutable",
-      }),
-      attribute("active", "boolean"),
-      attribute("groups", "complex", {
-        multiValued: true,
-        mutability: "readOnly",
-      }),
-    ],
-    meta: { resourceType: "Schema" },
-  },
-  {
-    schemas: ["urn:ietf:params:scim:schemas:core:2.0:Schema"],
-    id: GROUP_SCHEMA,
-    name: "Group",
-    attributes: [
-      attribute("displayName", "string", {
-        required: true,
-        mutability: "immutable",
-      }),
-      attribute("members", "complex", { multiValued: true }),
-    ],
-    meta: { resourceType: "Schema" },
-  },
-];
-function readUser(body) {
-  const user = body ?? {};
-  const primary = user.emails?.find((e) => e.primary === true) ?? user.emails?.[0];
-  const email = (
-    typeof primary?.value === "string"
-      ? primary.value
-      : typeof user.userName === "string"
-        ? user.userName
-        : ""
-  )
-    .trim()
-    .toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-    return "userName or a primary email must be an email address.";
-  const formatted = typeof user.name?.formatted === "string" ? user.name.formatted : null;
-  const parts = [user.name?.givenName, user.name?.familyName].filter(
-    (p) => typeof p === "string" && p.length > 0,
-  );
-  const fullName =
-    (typeof user.displayName === "string" ? user.displayName : null) ??
-    formatted ??
-    (parts.length > 0 ? parts.join(" ") : null);
-  const groups = Array.isArray(user.groups)
-    ? user.groups
-        .map((g) =>
-          typeof g.display === "string"
-            ? g.display
-            : typeof g.value === "string"
-              ? groupDisplay(g.value)
-              : null,
-        )
-        .filter((g) => g !== null)
-    : null;
-  return {
-    email,
-    fullName,
-    active: user.active !== false,
-    groups,
-  };
-}
-function storeFailure(error) {
-  if (error instanceof StoreError && error.error.kind === "refusal")
-    return scimError(400, error.error.message, "invalidValue");
-  throw error;
-}
-async function upsertUser(store, admin, providerId, externalId, body, existing) {
-  const parsed = readUser(body);
-  if (typeof parsed === "string") return scimError(400, parsed, "invalidValue");
-  if (existing && existing.email !== parsed.email)
-    return scimError(
-      400,
-      "A provisioned user keeps its email address; deprovision it and provision the new address.",
-      "mutability",
-    );
-  const userId = existing?.userId ?? (await admin.findOrCreateUser(parsed.email, parsed.fullName));
-  const id =
-    existing?.externalId ??
-    externalId ??
-    (typeof body.externalId === "string" ? body.externalId : parsed.email);
-  const groups = parsed.groups ?? existing?.groups ?? [];
-  try {
-    await store.provision(providerId, id, parsed.email, userId, parsed.active, groups);
-  } catch (error) {
-    return storeFailure(error);
-  }
-  return {
-    status: existing ? 200 : 201,
-    body: userResource({
-      externalId: id,
-      userId,
-      email: parsed.email,
-      displayName: parsed.fullName,
-      active: parsed.active,
-      groups,
-    }),
-  };
-}
-function operations(body) {
-  const patch = body ?? {};
-  if (
-    !Array.isArray(patch.schemas) ||
-    !patch.schemas.includes(PATCH_SCHEMA) ||
-    !Array.isArray(patch.Operations)
-  )
-    return null;
-  return patch.Operations;
-}
-/** Handles one SCIM request. Unknown routes answer 404 and unsupported operations 501, in SCIM error form. */
-async function handleScimRequest(request, deps) {
-  const { store, admin } = deps;
-  const token = /^Bearer (\S+)$/.exec(request.authorization ?? "")?.[1];
-  const providerId = token === void 0 ? null : await store.providerForToken(token);
-  if (providerId === null)
-    return scimError(401, "The bearer token is not valid for SCIM provisioning.");
-  const [resource, id, extra] = request.path.replace(/^\/+|\/+$/g, "").split("/");
-  if (extra !== void 0) return scimError(404, "No such SCIM resource.");
-  const method = request.method.toUpperCase();
-  if (
-    resource === "ServiceProviderConfig" ||
-    resource === "ResourceTypes" ||
-    resource === "Schemas"
-  ) {
-    if (method !== "GET") return scimError(405, "Discovery resources are read-only.");
-    if (resource === "ServiceProviderConfig")
-      return id === void 0
-        ? {
-            status: 200,
-            body: SERVICE_PROVIDER_CONFIG,
-          }
-        : scimError(404, "No such SCIM resource.");
-    const all = resource === "ResourceTypes" ? RESOURCE_TYPES : SCHEMAS;
-    if (id === void 0) return listResponse(all, request.query);
-    const one = all.find((r) => r["id"] === id);
-    return one
-      ? {
-          status: 200,
-          body: one,
-        }
-      : scimError(404, "No such SCIM resource.");
-  }
-  if (resource === "Users") {
-    if (id === void 0 && method === "GET") {
-      const userName = equalityFilter(request.query.get("filter"), "userName");
-      if (userName === null)
-        return scimError(400, 'Filter users by userName eq "address".', "invalidFilter");
-      if (userName !== void 0) {
-        const found = await store.identityByEmail(providerId, userName.toLowerCase());
-        return listResponse(found ? [userResource(found)] : [], request.query);
-      }
-      return listResponse(
-        (await store.listIdentities(providerId)).map(userResource),
-        request.query,
-      );
-    }
-    if (id === void 0 && method === "POST") {
-      const parsed = readUser(request.body);
-      if (
-        typeof parsed !== "string" &&
-        (await store.identityByEmail(providerId, parsed.email)) !== null
-      )
-        return scimError(409, "A user with this userName is already provisioned.", "uniqueness");
-      return upsertUser(store, admin, providerId, null, request.body, null);
-    }
-    if (id === void 0) return scimError(405, "Use GET or POST on /Users.");
-    const existing = await store.identity(providerId, id);
-    if (existing === null) return scimError(404, "No such user.");
-    if (method === "GET")
-      return {
-        status: 200,
-        body: userResource(existing),
-      };
-    if (method === "PUT") return upsertUser(store, admin, providerId, id, request.body, existing);
-    if (method === "DELETE") {
-      try {
-        await store.provision(
-          providerId,
-          id,
-          existing.email,
-          existing.userId,
-          false,
-          existing.groups,
-        );
-      } catch (error) {
-        return storeFailure(error);
-      }
-      return {
-        status: 204,
-        body: null,
-      };
-    }
-    if (method === "PATCH") {
-      const ops = operations(request.body);
-      if (ops === null) return scimError(400, "Send a PatchOp with Operations.", "invalidSyntax");
-      let active = existing.active;
-      for (const op of ops) {
-        const kind = String(op.op).toLowerCase();
-        const value = op.value;
-        const path = typeof op.path === "string" ? op.path : void 0;
-        if (kind !== "replace" && kind !== "add")
-          return scimError(501, "Users take replace and add; manage groups through /Groups.");
-        const asBoolean = (v) =>
-          typeof v === "boolean" ? v : typeof v === "string" ? /^true$/i.test(v) : void 0;
-        if (path?.toLowerCase() === "active") {
-          const next = asBoolean(value);
-          if (next === void 0) return scimError(400, "active is true or false.", "invalidValue");
-          active = next;
-        } else if (path === void 0 && typeof value === "object" && value !== null) {
-          if (Object.keys(value).some((k) => /^(userName|emails)/i.test(k)))
-            return scimError(400, "A provisioned user keeps its email address.", "mutability");
-          const next = asBoolean(value["active"]);
-          if (next !== void 0) active = next;
-        } else if (path !== void 0 && /^(userName|emails)/i.test(path))
-          return scimError(400, "A provisioned user keeps its email address.", "mutability");
-      }
-      try {
-        await store.provision(
-          providerId,
-          id,
-          existing.email,
-          existing.userId,
-          active,
-          existing.groups,
-        );
-      } catch (error) {
-        return storeFailure(error);
-      }
-      return {
-        status: 200,
-        body: userResource({
-          ...existing,
-          active,
-        }),
-      };
-    }
-    return scimError(405, "That method is not allowed on a user.");
-  }
-  if (resource === "Groups") {
-    if (id === void 0 && method === "GET") {
-      const wanted = equalityFilter(request.query.get("filter"), "displayName");
-      if (wanted === null)
-        return scimError(400, 'Filter groups by displayName eq "name".', "invalidFilter");
-      const everyone = await store.listIdentities(providerId);
-      const names = [...new Set(everyone.flatMap((i) => i.groups))]
-        .filter((g) => wanted === void 0 || g === wanted)
-        .sort((a, b) => a.localeCompare(b));
-      const excludeMembers = request.query.get("excludedAttributes") === "members";
-      return listResponse(
-        names.map((g) =>
-          groupResource(g, excludeMembers ? [] : everyone.filter((i) => i.groups.includes(g))),
-        ),
-        request.query,
-      );
-    }
-    if (id === void 0 && method === "POST") {
-      const display = request.body?.displayName;
-      if (typeof display !== "string" || display.trim().length === 0)
-        return scimError(400, "A group needs a displayName.", "invalidValue");
-      return {
-        status: 201,
-        body: groupResource(display.trim(), []),
-      };
-    }
-    const display = id === void 0 ? null : groupDisplay(id);
-    if (display === null) return scimError(404, "No such group.");
-    const members = await store.identitiesInGroup(providerId, display);
-    if (method === "GET")
-      return {
-        status: 200,
-        body: {
-          schemas: [GROUP_SCHEMA],
-          id,
-          displayName: display,
-          members: members.map((m) => ({
-            value: m.externalId,
-            display: m.email,
-          })),
-        },
-      };
-    if (method === "DELETE") {
-      for (const member of members)
-        await store.provision(
-          providerId,
-          member.externalId,
-          member.email,
-          member.userId,
-          member.active,
-          member.groups.filter((g) => g !== display),
-        );
-      return {
-        status: 204,
-        body: null,
-      };
-    }
-    if (method === "PATCH") {
-      const ops = operations(request.body);
-      if (ops === null) return scimError(400, "Send a PatchOp with Operations.", "invalidSyntax");
-      for (const op of ops) {
-        const kind = String(op.op).toLowerCase();
-        const removeFilter =
-          typeof op.path === "string"
-            ? /^members\[value eq "([^"]+)"\]$/.exec(op.path)?.[1]
-            : void 0;
-        const values =
-          removeFilter !== void 0
-            ? [removeFilter]
-            : op.path === "members" && Array.isArray(op.value)
-              ? op.value.map((v) => v.value).filter((v) => typeof v === "string")
-              : null;
-        if (values === null || (kind !== "add" && kind !== "remove"))
-          return scimError(501, "Only adding and removing members is supported on groups.");
-        for (const memberId of values) {
-          const member = await store.identity(providerId, memberId);
-          if (member === null)
-            return scimError(400, `No provisioned user ${memberId}.`, "invalidValue");
-          const groups =
-            kind === "add"
-              ? [.../* @__PURE__ */ new Set([...member.groups, display])]
-              : member.groups.filter((g) => g !== display);
-          try {
-            await store.provision(
-              providerId,
-              member.externalId,
-              member.email,
-              member.userId,
-              member.active,
-              groups,
-            );
-          } catch (error) {
-            return storeFailure(error);
-          }
-        }
-      }
-      return {
-        status: 204,
-        body: null,
-      };
-    }
-    return scimError(405, "That method is not allowed on a group.");
-  }
-  return scimError(404, "No such SCIM resource.");
-}
-function toIdentity(row) {
-  if (row.people === null || row.people.user_id === null) return null;
-  return {
-    externalId: row.external_id,
-    userId: row.people.user_id,
-    email: row.user_name,
-    displayName: row.people.full_name,
-    active: row.active,
-    groups: row.groups,
-  };
-}
-var IDENTITY_COLUMNS =
-  "external_id, user_name, active, groups, people:person_id (user_id, full_name)";
-/** The SCIM store over the service-role client (the SCIM RPCs are service role only). */
-function supabaseScimStore(db) {
-  const one = async (query) => {
-    const first = (await unwrap(query))[0];
-    return first === void 0 ? null : toIdentity(first);
-  };
-  return {
-    async providerForToken(token) {
-      return unwrap(db.rpc("scim_provider_for_token", { p_token: token }));
-    },
-    async identity(providerId, externalId) {
-      return one(
-        db
-          .from("scim_identities")
-          .select(IDENTITY_COLUMNS)
-          .eq("identity_provider_id", providerId)
-          .eq("external_id", externalId)
-          .is("deleted_at", null)
-          .limit(1),
-      );
-    },
-    async identityByEmail(providerId, email) {
-      return one(
-        db
-          .from("scim_identities")
-          .select(IDENTITY_COLUMNS)
-          .eq("identity_provider_id", providerId)
-          .eq("user_name", email)
-          .is("deleted_at", null)
-          .limit(1),
-      );
-    },
-    async identitiesInGroup(providerId, group) {
-      return (
-        await unwrap(
-          db
-            .from("scim_identities")
-            .select(IDENTITY_COLUMNS)
-            .eq("identity_provider_id", providerId)
-            .is("deleted_at", null),
-        )
-      )
-        .map(toIdentity)
-        .filter((i) => i !== null && i.groups.includes(group));
-    },
-    async listIdentities(providerId) {
-      return (
-        await unwrap(
-          db
-            .from("scim_identities")
-            .select(IDENTITY_COLUMNS)
-            .eq("identity_provider_id", providerId)
-            .is("deleted_at", null)
-            .order("user_name"),
-        )
-      )
-        .map(toIdentity)
-        .filter((i) => i !== null);
-    },
-    async provision(providerId, externalId, userName, userId, active, groups) {
-      return unwrap(
-        db.rpc("scim_provision", {
-          p_identity_provider_id: providerId,
-          p_external_id: externalId,
-          p_user_name: userName,
-          p_user_id: userId,
-          p_active: active,
-          p_groups: [...groups],
-        }),
-      );
-    },
-  };
-}
-/**
- * Finds the sign-in for an email (`app.scim_user_for_email`, migration 1332) or creates it confirmed, with no
- * password: the person signs in through single sign-on, a magic link or a passkey. Never sends an invitation.
- */
-function supabaseAuthAdmin(client) {
-  const existing = async (email) => unwrap(client.rpc("scim_user_for_email", { p_email: email }));
-  return {
-    async findOrCreateUser(email, fullName) {
-      const found = await existing(email);
-      if (found) return found;
-      const { data, error } = await client.auth.admin.createUser({
-        email,
-        email_confirm: true,
-        ...(fullName ? { user_metadata: { full_name: fullName } } : {}),
-      });
-      if (data.user) return data.user.id;
-      const raced = await existing(email);
-      if (raced) return raced;
-      throw new Error(`Cannot create the sign-in for SCIM: ${error?.message ?? "no user"}`);
-    },
-  };
-}
-/**
- * SCIM over HTTP (RFC 7644): the Edge Function's request in, the SCIM response out as application/scim+json.
- * `basePath` is what precedes the SCIM resource in the URL path, for example /functions/v1/scim/v2.
- */
-async function serveScim(request, deps) {
-  const url = new URL(request.url);
-  const path = url.pathname.startsWith(deps.basePath)
-    ? url.pathname.slice(deps.basePath.length)
-    : url.pathname.replace(/^.*?\/scim(\/v2)?(?=\/|$)/, "");
-  const method = request.method.toUpperCase();
-  let body = null;
-  if (method === "POST" || method === "PUT" || method === "PATCH")
-    try {
-      body = await request.json();
-    } catch (error) {
-      if (!(error instanceof SyntaxError)) throw error;
-      const invalid = scimError(400, "The request body is not JSON.", "invalidSyntax");
-      return new Response(JSON.stringify(invalid.body), {
-        status: invalid.status,
-        headers: { "content-type": "application/scim+json" },
-      });
-    }
-  const result = await handleScimRequest(
-    {
-      method,
-      path,
-      query: url.searchParams,
-      authorization: request.headers.get("authorization"),
-      body,
-    },
-    deps,
-  );
-  return new Response(result.body === null ? null : JSON.stringify(result.body), {
-    status: result.status,
-    headers: result.body === null ? {} : { "content-type": "application/scim+json" },
-  });
-}
-//#endregion
 //#region edge/entry.ts
 /**
  * Entry of the Edge Function bundle (supabase/functions/_vendor/xos-platform.js). The Supabase Edge
@@ -42114,7 +41205,6 @@ export {
   gatewayLink,
   googleLanguage,
   googleMessageTranslator,
-  handleScimRequest,
   handleStripeWebhook,
   handleTwilioWebhook,
   identityFromEnv,
@@ -42161,7 +41251,6 @@ export {
   scanStore,
   scannerChoice,
   selectVirusScanner,
-  serveScim,
   setExtraSeats,
   signWebhook,
   smsBody,
@@ -42173,13 +41262,11 @@ export {
   stagedUploadTarget,
   staticAccessToken,
   stripQuotedText,
-  supabaseAuthAdmin,
   supabaseDb,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,
   supabaseResultStorage,
-  supabaseScimStore,
   supabaseStorage,
   translateChatMessage,
   translationEnvSchema,

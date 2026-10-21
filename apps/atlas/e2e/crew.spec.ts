@@ -14,7 +14,8 @@ import {
  * A13 Crew journeys (Section 20.2): 10 (publish a shift, the crew member accepts and clocks in, a
  * second clock in for the same time is refused, then clocks out), 11 (a supervisor approves the
  * timesheet, the hours change and the approval is voided), 12 and 31 (payroll export is plan gated
- * and Restricted), and 66 (crew claim a published open shift). Each run signs up a new owner in a new
+ * and Restricted), and 66 (crew claim a published open shift under the org's claiming rule: approval by
+ * default, so a supervisor approves the claim). Each run signs up a new owner in a new
  * org with a project and a Field member, so runs never collide on the shared stack. Every page is
  * checked with axe in both themes.
  */
@@ -240,9 +241,24 @@ test("journey 66: crew claim a published open shift; a double booking is refused
   await expectAccessibleInBothThemes(field);
   const open = field.getByRole("link", { name: /Open shift/ });
   await expect(open).toHaveCount(2);
+  // The org keeps the default claiming rule, approval (scheduling.open_shift_claiming): the claim waits.
   await open.first().click();
   await confirm(field, "Claim shift");
+  await expect(field.getByText("Your claim is waiting for a supervisor to decide.")).toBeVisible();
+
+  // The Owner approves the waiting claim, and the shift is the field member's.
+  await owner.goto(`/${slug}/crew/shifts?view=list`);
+  await owner
+    .getByRole("link", { name: /Open shift/ })
+    .first()
+    .click();
+  await expect(owner.getByRole("heading", { name: "Waiting claims" })).toBeVisible();
+  await confirm(owner, "Approve");
+  await expectAccessible(owner);
+
+  // Claiming the other shift, which overlaps the one now held, is refused as a double booking.
   await field.goto(`/${slug}/crew/shifts?view=list`);
+  await expect(field.getByRole("link", { name: /Open shift/ })).toHaveCount(1);
   await field
     .getByRole("link", { name: /Open shift/ })
     .first()

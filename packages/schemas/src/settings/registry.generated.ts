@@ -21,6 +21,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.legal-entities-and-fiscal",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "communication.read_receipts",
@@ -40,6 +42,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.communication",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "communication.feed_reactions_default",
@@ -59,6 +63,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.communication",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "communication.feed_comments_default",
@@ -78,6 +84,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.communication",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "workforce.work_phone",
@@ -97,6 +105,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.work-details",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "org.legal_name",
@@ -116,6 +126,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.general",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "org.default_workspace",
@@ -135,6 +147,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.general",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "shell.start_page",
@@ -155,6 +169,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.general",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "org.fiscal_year_start_month",
@@ -174,6 +190,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.legal-entities-and-fiscal",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "org.base_currency",
@@ -193,6 +211,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.legal-entities-and-fiscal",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "org.invoice_number_prefix",
@@ -212,6 +232,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.legal-entities-and-fiscal",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "security.mfa_policy",
@@ -231,6 +253,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
+    deferred: true,
+    hidden: false,
   },
   {
     key: "security.session_hours",
@@ -250,6 +274,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
+    deferred: true,
+    hidden: false,
   },
   {
     key: "security.idle_timeout_minutes",
@@ -269,6 +295,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
+    deferred: true,
+    hidden: false,
   },
   {
     key: "security.ip_allowlist",
@@ -288,6 +316,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "security.auto_join_enabled",
@@ -307,6 +337,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "access_reviews.remove_unreviewed",
@@ -326,6 +358,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.access-reviews",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "access_reviews.grace_days",
@@ -345,6 +379,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.access-reviews",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "shell.density",
@@ -365,6 +401,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.views-and-defaults",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "numbering.record_key_format",
@@ -381,9 +419,9 @@ export const SETTINGS: readonly SettingDefinition[] = [
     input: "text",
     label: "settings.fields.recordKeyFormat.label",
     help: "settings.fields.recordKeyFormat.help",
-    pages: {
-      org: "settings.numbering",
-    },
+    pages: {},
+    deferred: true,
+    hidden: true,
   },
   {
     key: "numbering.document_number_padding",
@@ -403,6 +441,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.numbering",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "time.rounding_minutes",
@@ -422,6 +462,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.time-and-attendance",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "time.photo_on_punch",
@@ -441,6 +483,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.time-and-attendance",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "time.geofence_required",
@@ -460,6 +504,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.time-and-attendance",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "time.kiosk_enabled",
@@ -479,6 +525,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.time-and-attendance",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "scheduling.open_shift_claiming",
@@ -498,6 +546,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.scheduling",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "scheduling.allow_swaps",
@@ -517,6 +567,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.scheduling",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "scheduling.swap_requires_approval",
@@ -536,6 +588,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.scheduling",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "payroll.pay_period",
@@ -555,6 +609,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.payroll-and-time-off",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "payroll.week_start",
@@ -575,6 +631,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.payroll-and-time-off",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "gateway.marketplace_visibility",
@@ -594,6 +652,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.gateway-and-marketplace",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "gateway.ratings_enabled",
@@ -613,6 +673,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.gateway-and-marketplace",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "communication.message_retention_days",
@@ -632,6 +694,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.communication",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "communication.auto_translate",
@@ -652,6 +716,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.communication",
       personal: "me.preferences",
     },
+    deferred: true,
+    hidden: false,
   },
   {
     key: "help.support_email",
@@ -671,6 +737,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.help-and-support",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "help.support_hours",
@@ -690,6 +758,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.help-and-support",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "help.custom_link",
@@ -709,6 +779,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.help-and-support",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "locale.language",
@@ -729,6 +801,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.localization",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "locale.time_zone",
@@ -749,6 +823,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.localization",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "locale.date_format",
@@ -769,6 +845,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.localization",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "locale.units",
@@ -789,6 +867,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
       org: "settings.localization",
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.theme",
@@ -808,6 +888,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.persona",
@@ -836,6 +918,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.preferences",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.text_size",
@@ -855,6 +939,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.accessibility",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.high_contrast",
@@ -874,6 +960,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.accessibility",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.reduced_motion",
@@ -893,6 +981,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.accessibility",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.haptics",
@@ -912,6 +1002,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.accessibility",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.sounds",
@@ -931,6 +1023,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.accessibility",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.captions",
@@ -950,6 +1044,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.accessibility",
     },
+    deferred: true,
+    hidden: false,
   },
   {
     key: "me.out_of_office.enabled",
@@ -969,6 +1065,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.out-of-office",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.out_of_office.starts_on",
@@ -988,6 +1086,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.out-of-office",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.out_of_office.ends_on",
@@ -1007,6 +1107,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.out-of-office",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.out_of_office.auto_reply",
@@ -1026,6 +1128,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.out-of-office",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "me.shortcuts_enabled",
@@ -1045,6 +1149,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       personal: "me.keyboard-shortcuts",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "approvals.requester_may_cancel",
@@ -1064,6 +1170,8 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.approval-policies",
     },
+    deferred: false,
+    hidden: false,
   },
   {
     key: "communication.message_translation",
@@ -1083,5 +1191,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.communication",
     },
+    deferred: false,
+    hidden: false,
   },
 ];

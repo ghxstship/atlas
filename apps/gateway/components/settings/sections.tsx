@@ -113,7 +113,11 @@ async function RegistrySettings({ ctx, t, node }: SectionProps) {
               label={t(def.label)}
               help={def.help ? t(def.help) : null}
               initial={initial}
-              sourceText={t(`settings.source.personal${source}`)}
+              sourceText={
+                def.deferred
+                  ? `${t(`settings.source.personal${source}`)} ${t("settings.notInEffect")}`
+                  : t(`settings.source.personal${source}`)
+              }
               setHere={source === "Personal"}
               options={
                 def.type === "choice"

@@ -11,6 +11,13 @@ import { requireContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { THEME_COOKIE, preferenceFromCookie } from "@/lib/theme";
+import { NO_ORG } from "@/lib/settings";
+import { resolveSettings } from "@xos/data/settings";
+import {
+  PREFERENCES_COOKIE,
+  encodePreferences,
+  preferencesFromSettings,
+} from "@xos/ui/preferences";
 
 /**
  * Every signed-in Gateway page renders inside the Gateway shell. The navigation comes from the
@@ -20,12 +27,17 @@ import { THEME_COOKIE, preferenceFromCookie } from "@/lib/theme";
 export default async function ShellLayout({ children }: { children: ReactNode }) {
   const path = (await headers()).get("x-gateway-path") ?? "/home";
   const ctx = await requireContext(path);
-  const [t, locale, cookieStore, engagements] = await Promise.all([
+  const [t, locale, cookieStore, engagements, settings] = await Promise.all([
     getTranslate(),
     negotiatedLocale(),
     cookies(),
     listMyEngagements(ctx.db),
+    // The person's own settings apply in Gateway too (Section 4.5.6 personal settings, A65-001).
+    resolveSettings(ctx.db, { orgId: NO_ORG }),
   ]);
+  const preferences = encodePreferences(
+    preferencesFromSettings((key) => (settings.ok ? settings.data.get(key)?.value : undefined)),
+  );
   const nav = buildNav(sitemap, ctx.nav);
   const label = <T extends { label: string }>(item: T): T => ({ ...item, label: t(item.label) });
   const orgs = new Map<string, string>();
@@ -58,6 +70,8 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       theme={preferenceFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       locale={locale}
       locales={selectableLocales(process.env.NODE_ENV === "production")}
+      preferences={preferences}
+      storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       docsUrl={ctx.brand.kind === "org" ? null : docsSiteUrl(env())}
     >
       <ReporterUser personId={ctx.personId} />

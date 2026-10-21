@@ -6,6 +6,8 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
+import { soundsOn } from "../domain/settings";
+import { useCompass } from "../runtime/CompassProvider";
 import { processPhoto } from "../runtime/media";
 import { Button, InlineAlert, Sheet, Text, useTheme } from "../ui";
 
@@ -22,6 +24,7 @@ export function PhotoSheet({
   const theme = useTheme();
   const camera = useRef<CameraView>(null);
   const [permission, request] = useCameraPermissions();
+  const { orgSettings } = useCompass();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const take = async () => {
@@ -29,7 +32,11 @@ export function PhotoSheet({
     setBusy(true);
     setError(null);
     try {
-      const shot = await camera.current.takePictureAsync({ exif: false, quality: 0.9 });
+      const shot = await camera.current.takePictureAsync({
+        exif: false,
+        quality: 0.9,
+        shutterSound: soundsOn(orgSettings),
+      });
       onPhoto(await processPhoto(shot.uri, shot.width, shot.height));
       onClose();
     } catch (cause) {

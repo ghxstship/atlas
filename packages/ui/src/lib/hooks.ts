@@ -6,6 +6,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
+import { singleKeyShortcutsEnabled } from "./preferences.ts";
 
 /**
  * Whether a media query matches. Server rendering and hydration see false, so a layout that switches
@@ -91,6 +92,7 @@ export function useHotkey(
     const onKey = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() !== key.toLowerCase()) return;
       if (mod !== (event.metaKey || event.ctrlKey)) return;
+      if (!mod && !singleKeyShortcutsEnabled()) return;
       if (ignoreInFields && inField(event.target)) return;
       event.preventDefault();
       latest.current(event);

@@ -1,4 +1,5 @@
 import * as Linking from "expo-linking";
+import { hapticsOn, themeOptionsOf } from "../src/domain/settings";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState, type ReactElement } from "react";
@@ -142,12 +143,14 @@ function Gatekeeper(): ReactElement {
 
 function Themed(): ReactElement {
   const scheme = useColorScheme();
-  const { settings } = useCompass();
+  const { settings, orgSettings } = useCompass();
+  // me.text_size, me.high_contrast, me.reduced_motion and me.haptics (Section 4.5.6 Accessibility).
   return (
     <ThemeProvider
       preference={settings.theme}
       systemColorScheme={scheme === "light" || scheme === "dark" ? scheme : null}
-      {...(settings.haptics ? { onHaptic: playHaptic } : {})}
+      options={themeOptionsOf(orgSettings)}
+      {...(hapticsOn(settings.haptics, orgSettings) ? { onHaptic: playHaptic } : {})}
     >
       <Gatekeeper />
     </ThemeProvider>

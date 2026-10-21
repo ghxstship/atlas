@@ -30,6 +30,12 @@ import { downloadAll, type DownloadReport } from "../data/downloader";
 import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from "./assurance";
 import { IdentityError, resolveIdentity, type ResolvedIdentity } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
+import {
+  COMPASS_SETTING_KEYS,
+  NO_VALUES,
+  valuesFromRows,
+  type ResolvedValues,
+} from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
 import { fieldMediaUploader } from "./media";
 import {
@@ -61,6 +67,10 @@ const DEFAULT_SETTINGS: CompassSettings = {
   biometric: false,
 };
 const SETTINGS_KEY = "xos.compass.settings";
+/** The last resolved settings Compass applies, kept so the rules hold offline. */
+const RESOLVED_KEY = "xos.compass.resolved";
+/** resolve_settings needs an org; the nil uuid returns only the person's own values and the defaults. */
+const NO_ORG = "00000000-0000-0000-0000-000000000000";
 const PROJECT_KEY = "xos.compass.project";
 
 export type Phase =
@@ -84,6 +94,11 @@ export interface CompassContextValue {
   readonly status: SyncStatus | null;
   readonly settings: CompassSettings;
   readonly updateSettings: (patch: Partial<CompassSettings>) => void;
+  /**
+   * The registered settings for the person in their org and current project (Section 4.5.6): their own
+   * accessibility settings and the org's clock, kiosk and claiming rules. Empty until the first download.
+   */
+  readonly orgSettings: ResolvedValues;
   /** Queues a write (optimistic locally) and drains when online. Returns the mutation id. */
   readonly enqueue: (input: MutationInput) => Promise<string>;
   readonly refresh: () => Promise<DownloadReport | null>;
@@ -146,6 +161,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [network, setNetwork] = useState<NetworkState>(OFFLINE);
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [settings, setSettings] = useState<CompassSettings>(DEFAULT_SETTINGS);
+  const [resolvedSettings, setResolvedSettings] = useState<ResolvedValues>(NO_VALUES);
   const [lastRefresh, setLastRefresh] = useState<DownloadReport | null>(null);
   const [identityAttempt, setIdentityAttempt] = useState(0);
   const orgRef = useRef<string | null>(null);
@@ -159,6 +175,10 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     });
     void SecureStore.getItemAsync(PROJECT_KEY).then((id) => {
       if (id) setProjectIdState(id);
+    });
+    void SecureStore.getItemAsync(RESOLVED_KEY).then((raw) => {
+      if (raw)
+        setResolvedSettings(new Map(Object.entries(JSON.parse(raw) as Record<string, unknown>)));
     });
   }, []);
 
@@ -298,6 +318,32 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     if (phase.kind === "ready" && network.isConnected) void refresh();
   }, [phase.kind, network.isConnected, refresh]);
 
+  // The person's settings and the org's rules for the current project, refreshed when online and kept for
+  // offline use (A65-001).
+  const orgId = resolved?.identity.membershipId ? resolved.orgId : null;
+  useEffect(() => {
+    if (phase.kind !== "ready" || !network.isConnected) return;
+    let live = true;
+    void client
+      .rpc("resolve_settings", {
+        p_org_id: orgId ?? NO_ORG,
+        ...(projectId && orgId ? { p_project_id: projectId } : {}),
+      })
+      .then(({ data, error }) => {
+        if (!live || error || !Array.isArray(data)) return;
+        const values = valuesFromRows(
+          (data as Parameters<typeof valuesFromRows>[0]).filter((r) =>
+            COMPASS_SETTING_KEYS.includes(r.setting_key),
+          ),
+        );
+        setResolvedSettings(values);
+        void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(values)));
+      });
+    return () => {
+      live = false;
+    };
+  }, [client, phase.kind, network.isConnected, orgId, projectId]);
+
   const enqueue = useCallback(
     async (input: MutationInput) => {
       if (!engine) throw new Error("the local store is still opening");
@@ -330,6 +376,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     status,
     settings,
     updateSettings,
+    orgSettings: resolvedSettings,
     enqueue,
     refresh,
     refreshTables,

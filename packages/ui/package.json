@@ -10,6 +10,7 @@
   ],
   "exports": {
     ".": "./src/index.ts",
+    "./preferences": "./src/lib/preferences.ts",
     "./styles.css": "./src/styles/index.css",
     "./tailwind.config.cjs": "./tailwind.config.cjs",
     "./brand/*": "./src/brand/defaults/*"

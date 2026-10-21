@@ -13,3 +13,6 @@ settings:
     label: settings.fields.messageTranslation.label
     help: settings.fields.messageTranslation.help
     pages: { org: settings.communication }
+    enforced_by:
+      - consumer: supabase/migrations/1363_chat_message_translation.sql#app.record_chat_message_translation
+        test: supabase/tests/1363_chat_message_translation.test.sql

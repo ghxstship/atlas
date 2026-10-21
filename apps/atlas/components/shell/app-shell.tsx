@@ -10,6 +10,8 @@ import { buildShellNav, NAV_ICONS, type NavLinkModel } from "@/lib/shell/nav-mod
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { WORKSPACE_COOKIE } from "@/lib/shell/workspace";
+import { getShellSettings } from "@/lib/shell/org-settings";
+import { PREFERENCES_COOKIE } from "@xos/ui/preferences";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { ReporterUser } from "./reporter-user";
 import { ShellFrame } from "./shell-frame";
@@ -59,6 +61,12 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
   });
   const chosen = cookieStore.get(WORKSPACE_COOKIE)?.value ?? null;
   const workspace = workspaces.data.some((w) => w.slug === chosen) ? chosen : null;
+  // The person's display preferences in this org and workspace (Section 4.5.6, A65-001).
+  const settings = await getShellSettings(
+    ctx.viewer.db,
+    ctx.org.id,
+    workspaces.data.find((w) => w.slug === workspace)?.id ?? null,
+  );
   return (
     <ShellFrame
       org={{ name: ctx.org.name, slug: ctx.org.slug }}
@@ -76,6 +84,8 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       email={ctx.viewer.email}
       canManageAi={ctx.capabilities.has("org.ai.write")}
+      preferences={settings.encoded}
+      storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
     >
       <ReporterUser personId={ctx.viewer.person?.id ?? null} />
       {children}

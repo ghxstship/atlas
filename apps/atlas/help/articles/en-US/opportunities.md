@@ -33,3 +33,5 @@ An accepted offer becomes an engagement. Onboarding collects documents and check
 ## Ratings
 
 Both sides rate each other at close. Neither sees the other's rating until both have rated or 14 days pass.
+
+Ratings are always on. **Prompt members to rate parties** in Settings, Gateway and Marketplace only decides whether members see the engagements waiting for their rating. Turning it off never hides or removes a rating, and you can still rate from the engagement. Ratings are moderated only for abuse or personal data, never for their score.

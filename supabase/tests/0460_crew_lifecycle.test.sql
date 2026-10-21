@@ -63,6 +63,11 @@ select throws_ok($$select app.accept_shift((select id from world where key = 'sh
   'XR001', 'shift_state_conflict: The shift is not in the expected state Published.', 'an accepted shift is not accepted twice');
 
 -- Claiming open shifts (journey 66) ------------------------------------------------------------------------
+-- These checks run under the first-come rule; the approval and seniority rules (scheduling.open_shift_claiming)
+-- have their own suite, 1322.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'scheduling.open_shift_claiming', 'Organization', pg_temp.id('org_a'), p_value_text => 'first-come');
+select pg_temp.as_user('frank');
 select lives_ok($$select app.claim_open_shift((select id from world where key = 'open1'))$$, 'a Field member claims a published open shift');
 select is((select membership_id from app.shifts where id = pg_temp.id('open1')), pg_temp.id('frank@org_a'), 'the claimed shift is theirs');
 select is((select shift_state::text from app.shifts where id = pg_temp.id('open1')), 'Accepted', 'and Accepted');

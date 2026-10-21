@@ -4,6 +4,7 @@ import {
   BrandMark,
   IconButton,
   Avatar,
+  PreferencesProvider,
   TabBar,
   TemplateGatewayShell,
   TopNav,
@@ -23,6 +24,12 @@ import {
   type ReactNode,
 } from "react";
 import { HelpEntry } from "@/components/help/help-entry";
+import {
+  applyDocumentAttributes,
+  decodePreferences,
+  preferencesCookie,
+  singleKeyShortcutsEnabled,
+} from "@xos/ui/preferences";
 import type { ThemePreference } from "@/lib/theme";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -65,6 +72,10 @@ export interface GatewayFrameProps {
   readonly theme: ThemePreference;
   readonly locale: string;
   readonly locales: readonly string[];
+  /** The person's display preferences resolved from their settings (encoded as the cookie keeps them). */
+  readonly preferences: string;
+  /** The preferences cookie this page was rendered with. */
+  readonly storedPreferences: string;
   /** The docs site origin (DOCS_SITE_URL), on the platform brand only; null hides its links. */
   readonly docsUrl: string | null;
   readonly children: ReactNode;
@@ -124,7 +135,13 @@ export function GatewayFrame(props: GatewayFrameProps) {
       const typing =
         target?.isContentEditable ||
         ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
-      if (event.key === "?" && !typing && !event.metaKey && !event.ctrlKey) {
+      if (
+        event.key === "?" &&
+        !typing &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        singleKeyShortcutsEnabled()
+      ) {
         event.preventDefault();
         setHelpOpen(true);
       } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
@@ -136,6 +153,16 @@ export function GatewayFrame(props: GatewayFrameProps) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Settings changed in Atlas, Compass or Gateway settings reach this device: apply them now and keep the
+  // cookie in step, so the next page renders with them (A65-001).
+  const { preferences, storedPreferences } = props;
+  const displayPreferences = useMemo(() => decodePreferences(preferences), [preferences]);
+  useEffect(() => {
+    if (preferences === storedPreferences) return;
+    applyDocumentAttributes(document.documentElement, displayPreferences);
+    document.cookie = preferencesCookie(preferences, window.location.protocol === "https:");
+  }, [preferences, storedPreferences, displayPreferences]);
 
   const runAvatar = (entry: FrameAvatarEntry) => {
     setAccountOpen(false);
@@ -225,7 +252,9 @@ export function GatewayFrame(props: GatewayFrameProps) {
         }
       >
         <div id="content" className="flex flex-col gap-16 min-w-0">
-          {props.children}
+          <PreferencesProvider preferences={displayPreferences}>
+            {props.children}
+          </PreferencesProvider>
         </div>
         {props.showPoweredBy ? (
           <p className="m-0 pt-24 text-center text-text-12 text-text-tertiary">
