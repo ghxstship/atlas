@@ -20,7 +20,7 @@ import type {
   RecordState,
 } from "../types/reference";
 import { cx } from "../lib/cx.ts";
-import { useT } from "../lib/context.tsx";
+import { usePreferences, useT } from "../lib/context.tsx";
 import { useNarrow } from "../lib/hooks.ts";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { Money } from "../Forms/Forms.tsx";
@@ -231,7 +231,8 @@ function defaultCardFields(columns: DataTableColumn[]): DataTableColumn[] {
 /**
  * The table as stacked cards below md (Section 11.6, A59-013): one card per row with its most
  * important fields, the first as the card's title. A row that opens is a button, so a tap or Enter
- * opens it as Enter on the grid does.
+ * opens it as Enter on the grid does. Compact density (shell.density or the table's own) packs the cards
+ * closer, with less padding.
  */
 function DataTableCards({
   label,
@@ -241,6 +242,7 @@ function DataTableCards({
   totals,
   totalsLabel,
   onRowActivate,
+  compact,
 }: {
   label: string;
   caption: string | undefined;
@@ -249,6 +251,7 @@ function DataTableCards({
   totals: Record<string, unknown> | undefined;
   totalsLabel: string;
   onRowActivate: ((row: Record<string, unknown>, index: number) => void) | undefined;
+  compact: boolean;
 }): ReactElement {
   const t = useT();
   const [first, ...rest] = fields;
@@ -273,7 +276,7 @@ function DataTableCards({
   return (
     <section aria-label={label} className="flex flex-col gap-8 min-w-0">
       {caption ? <p className="m-0 text-text-13 font-semibold">{caption}</p> : null}
-      <ul className="flex flex-col gap-8 m-0 p-0 list-none">
+      <ul className={cx("flex flex-col m-0 p-0 list-none", compact ? "gap-4" : "gap-8")}>
         {rows.map((row, index) => {
           // A row whose title field is empty still gets a name, so its button is never unlabeled.
           const title =
@@ -285,7 +288,10 @@ function DataTableCards({
           return (
             <li
               key={index}
-              className="flex flex-col gap-6 p-12 rounded-card border border-border-subtle bg-bg-surface"
+              className={cx(
+                "flex flex-col rounded-card border border-border-subtle bg-bg-surface",
+                compact ? "gap-4 p-8" : "gap-6 p-12",
+              )}
             >
               {onRowActivate ? (
                 <button
@@ -329,7 +335,7 @@ export function DataTable({
   columns: givenColumns,
   rows,
   caption,
-  density = "default",
+  density: givenDensity,
   totals,
   totalsLabel,
   label,
@@ -342,6 +348,9 @@ export function DataTable({
   cardFields,
 }: DataTableProps): ReactElement {
   const t = useT();
+  // shell.density: compact rows unless the table chooses its own density.
+  const preferred = usePreferences().density;
+  const density = givenDensity ?? (preferred === "compact" ? "compact" : "default");
   const narrow = useNarrow();
   const dir = Direction.useDirection();
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -533,6 +542,7 @@ export function DataTable({
         totals={totals}
         totalsLabel={totalsLabel ?? t("table.total")}
         onRowActivate={onRowActivate}
+        compact={density === "compact"}
       />
     );
   }

@@ -1,6 +1,7 @@
 import { type KeyboardEvent, type ReactElement } from "react";
 import type { NotificationItem } from "../types/reference";
 import { useT } from "../lib/context.tsx";
+import { singleKeyShortcutsEnabled } from "../lib/preferences.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { Button, IconButton } from "../Button/Button.tsx";
 import { RecordKindGlyph } from "../Glyphs/Glyphs.tsx";
@@ -16,7 +17,7 @@ function NotificationList({
   const t = useT();
   const onKey = (e: KeyboardEvent<HTMLLIElement>, item: NotificationItem) => {
     if (e.target !== e.currentTarget) return;
-    const key = e.key.toLowerCase();
+    const key = singleKeyShortcutsEnabled() ? e.key.toLowerCase() : "";
     if (key === "e") onDone?.(item);
     else if (key === "h") onSnooze?.(item);
     else if (e.key === "Enter") onAction?.(item);

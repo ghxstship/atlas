@@ -23,6 +23,7 @@ import {
   type Geofence,
   type GeofenceStatus,
 } from "../domain/geo";
+import { requiresGeofence } from "../domain/settings";
 import { useCompass, useRows } from "../runtime/CompassProvider";
 import { useLocation } from "../runtime/location";
 import { deviceClock } from "../runtime/platform";
@@ -78,7 +79,7 @@ export interface ClockModel {
 }
 
 export function useClock(punching: boolean): ClockModel {
-  const { resolved, projectId, enqueue, settings } = useCompass();
+  const { resolved, projectId, enqueue, settings, orgSettings } = useCompass();
   const identity = resolved?.identity;
   const engagement = identity ? (operationalEngagements(identity, projectId)[0] ?? null) : null;
   const mine = (r: { membership_id?: string | null; engagement_id?: string | null }) =>
@@ -126,7 +127,10 @@ export function useClock(punching: boolean): ClockModel {
     return boundary ? [{ id: s.id, name: s.name, boundary }] : [];
   });
   const geofence = evaluateGeofence(fix, geofences, now);
-  const policy = { requireGeofence: geofences.length > 0, requireShift: false };
+  const policy = {
+    requireGeofence: requiresGeofence(orgSettings, geofences.length),
+    requireShift: false,
+  };
 
   const engagementId = identity?.membershipId ? null : (engagement?.id ?? null);
   const context: PunchContext | null =

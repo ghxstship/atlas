@@ -44,7 +44,16 @@ export type KioskStep =
   /** The device key names no live kiosk: the kiosk takes no PINs until a supervisor forgets it. */
   | { readonly kind: "unregistered" };
 
-export type KioskRefusal = "pin-invalid" | "pin-locked" | "device-unregistered" | "request-invalid";
+export type KioskRefusal =
+  | "pin-invalid"
+  | "pin-locked"
+  /** The device key names no live kiosk (migration 1420): the device needs a new key. */
+  | "device-unregistered"
+  | "request-invalid"
+  /** The org has not turned kiosks on (time.kiosk_enabled). */
+  | "kiosk-disabled"
+  /** The project asks for a photo on every kiosk punch (time.photo_on_punch) and none came. */
+  | "photo-required";
 
 /** The kiosk-punch refusal for a device key that names no live kiosk (migration 1420). */
 export const DEVICE_UNREGISTERED = "kiosk_device_unregistered";
@@ -101,6 +110,8 @@ export function refusalFromServer(reason: string): KioskRefusal {
   if (reason === "kiosk_pin_locked") return "pin-locked";
   if (reason === DEVICE_UNREGISTERED) return "device-unregistered";
   if (reason === "kiosk_request_invalid") return "request-invalid";
+  if (reason === "kiosk_disabled") return "kiosk-disabled";
+  if (reason === "punch_photo_required" || reason === "kiosk_photo_uri") return "photo-required";
   return "pin-invalid";
 }
 
@@ -137,6 +148,21 @@ export interface KioskPunchInput {
   readonly monotonicAt: number;
   readonly bootId: string;
   readonly photoUri: string | null;
+  /** The photo taken on this device, uploaded to field-media before the punch is sent. */
+  readonly photo?: { readonly path: string; readonly localUri: string } | null;
+}
+
+/**
+ * Where a kiosk punch photo is stored in the field-media bucket (migration 1328):
+ * <org_id>/kiosk-punches/<project_id>/<punch id>.jpg.
+ */
+export function kioskPhotoPath(orgId: string, projectId: string, punchId: string): string {
+  return `${orgId}/kiosk-punches/${projectId}/${punchId}.jpg`;
+}
+
+/** The URI a punch carries for a stored field-media photo. */
+export function storedPhotoUri(path: string): string {
+  return `storage://field-media/${path}`;
 }
 
 /**
@@ -166,7 +192,15 @@ export function buildKioskPunch(
       monotonic_at: input.monotonicAt,
       boot_id: input.bootId,
       ...(input.projectId ? { projectId: input.projectId } : {}),
-      ...(input.photoUri ? { photoUri: input.photoUri } : {}),
+      ...(input.photo
+        ? {
+            photoUri: storedPhotoUri(input.photo.path),
+            storage_path: input.photo.path,
+            local_uri: input.photo.localUri,
+          }
+        : input.photoUri
+          ? { photoUri: input.photoUri }
+          : {}),
     },
     policy: "append",
   };

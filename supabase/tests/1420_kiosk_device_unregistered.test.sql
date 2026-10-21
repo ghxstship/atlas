@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(15);
+select plan(17);
 
 create temporary table kiosk (key text primary key, id uuid, device_key text);
 grant select, insert, update on kiosk to public;
@@ -20,6 +20,8 @@ insert into kiosk select 'retired', r.kiosk_device_id, r.device_key
 insert into kiosk select 'revoked', r.kiosk_device_id, r.device_key
   from app.register_kiosk_device(pg_temp.id('org_a'), 'Lost Tablet', pg_temp.id('prj_a')) r;
 select app.set_kiosk_pin(pg_temp.id('frank@org_a'), '4821');
+-- Kiosks are off until the org turns them on (time.kiosk_enabled, 1321); this suite runs with them on.
+select app.set_setting(pg_temp.id('org_a'), 'time.kiosk_enabled', 'Organization', pg_temp.id('org_a'), p_value_boolean => true);
 update app.kiosk_devices set deleted_at = now() where id = (select id from kiosk where key = 'retired');
 select pg_temp.as_platform();
 update app.kiosk_devices set revoked_at = now() where id = (select id from kiosk where key = 'revoked');
@@ -73,6 +75,14 @@ select 'kiosk_pin.failure', extensions.digest((select device_key from kiosk wher
 from generate_series(1, 20);
 select is(pg_temp.punch('retired', 'frank@org_a', '4821'), 'kiosk_device_unregistered',
   'a retired kiosk with old failures keeps the unregistered answer instead of the rate limit');
+
+select pg_temp.as_user('bob');
+select app.set_setting(pg_temp.id('org_a'), 'time.kiosk_enabled', 'Organization', pg_temp.id('org_a'), p_value_boolean => false);
+select pg_temp.as_platform();
+select is(pg_temp.punch('unknown', 'frank@org_a', '4821'), 'kiosk_device_unregistered',
+  'with kiosks turned off, an unregistered key still hears that the device needs a new key');
+select is(pg_temp.punch('revoked', 'frank@org_a', '4821'), 'kiosk_device_unregistered',
+  'and so does a revoked one: the device answer comes before every org rule');
 
 -- The SQLSTATE a read-only call raises, in a subtransaction that always rolls back.
 create function pg_temp.read_only_state(p_kiosk text) returns text language plpgsql as $$

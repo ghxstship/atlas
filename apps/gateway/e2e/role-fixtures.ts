@@ -635,11 +635,12 @@ export async function workedShift(
   shiftId: string,
   person: string,
 ): Promise<{ timesheetId: string }> {
-  // app.record_punch is what Compass calls on a phone: In, then Out, as the person.
+  // app.record_punch is what Compass calls on a phone: In, then Out, as the person, standing inside the demo
+  // project's Pier Site geofence (seed 0109), since the project requires the geofence (time.geofence_required).
   for (const kind of ["In", "Out"] as const) {
     await asPerson(
       person,
-      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, null, null, null, null,
+      `select app.record_punch(gen_random_uuid(), $1, $2::app.punch_kind, now(), 0, $3, 25.7752, -80.1855, 10, null,
          'Mobile', null, null, null, $4)`,
       [PROJECT, kind, shiftId, engagementId],
     );

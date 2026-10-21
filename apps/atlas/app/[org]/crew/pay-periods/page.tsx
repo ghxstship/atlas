@@ -19,7 +19,7 @@ import { ButtonLink, EmptyStateLink } from "@/components/ui";
 import { flatParams, getCrewContext, withParams } from "@/lib/crew/context";
 import { planHasFeature } from "@/lib/crew/plan";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, mondayOf } from "@/lib/crew/time";
+import { nextPayPeriodDates } from "@xos/data/crew";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -177,10 +177,15 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
     }
   }
 
-  // Drawers: a new period suggested after the latest one, edits while Open, and new runs.
-  const latest = result.data[0];
-  // Pay periods are the org's (A71): this week on its calendar, never UTC's.
-  const suggestStart = latest ? addDays(latest.endsOn, 1) : mondayOf(await orgToday(crew.ctx));
+  // Drawers: a new period proposed from the payroll settings (payroll.pay_period and payroll.week_start,
+  // migration 1323) after the latest one, edits while Open, and new runs. A first period starts in the
+  // org's week on its calendar (A71), never UTC's.
+  const proposed =
+    search["create"] === "1" && manage
+      ? await nextPayPeriodDates(db, crew.orgId, await orgToday(crew.ctx))
+      : null;
+  if (proposed && !proposed.ok)
+    throw new Error(`Cannot propose a pay period: ${proposed.error.kind}`);
   const editing = search["edit"] ? result.data.find((p) => p.id === search["edit"]) : undefined;
   const runFor = search["run"] ? result.data.find((p) => p.id === search["run"]) : undefined;
   const currencies = runFor ? await listCurrencies(db) : null;
@@ -197,14 +202,14 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
             kind: "date",
             name: "startsOn",
             label: t("crew.payroll.firstDay"),
-            value: suggestStart,
+            value: proposed?.ok ? proposed.data.startsOn : "",
             required: true,
           },
           {
             kind: "date",
             name: "endsOn",
             label: t("crew.payroll.lastDay"),
-            value: addDays(suggestStart, 13),
+            value: proposed?.ok ? proposed.data.endsOn : "",
             required: true,
             help: t("crew.payroll.periodHelp"),
           },

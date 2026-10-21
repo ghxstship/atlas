@@ -11,7 +11,8 @@
 --     kiosk retrying its queued punches keeps getting the same clear answer instead of kiosk_rate_limited.
 -- The key is a 256-bit secret (0340), so learning that a guessed key is unregistered gives an unauthenticated
 -- caller nothing to enumerate. A read-only transaction is refused first, before the device lookup, as every
--- attempt-counting helper does (1295, A69-001). Everything else is as in 0592.
+-- attempt-counting helper does (1295, A69-001). Everything else is as in 1321, which added kiosk_disabled
+-- (time.kiosk_enabled) to 0592.
 
 create or replace function app.kiosk_punch(
   p_device_key text,
@@ -70,6 +71,12 @@ begin
     return query select p_punch_id, null::uuid, p_punch_kind, null::timestamptz, null::boolean, 'kiosk_project'::text;
     return;
   end if;
+  -- Kiosk clock-in (time.kiosk_enabled): off until the org, or the project's workspace, turns kiosks on.
+  if not coalesce(private.setting_boolean(v_device.org_id, 'time.kiosk_enabled',
+       (select p.workspace_id from app.projects p where p.id = v_project)), false) then
+    return query select p_punch_id, null::uuid, p_punch_kind, null::timestamptz, null::boolean, 'kiosk_disabled'::text;
+    return;
+  end if;
   begin
     select * into v_punch from app.record_punch(
       p_punch_id => p_punch_id,
@@ -91,7 +98,7 @@ begin
 end;
 $$;
 
-comment on function app.kiosk_punch(text, uuid, text, uuid, app.punch_kind, timestamptz, bigint, text, uuid) is 'Kiosk PIN service (service role only, called by the kiosk-punch Edge Function for A17 Compass). A device key that names no live kiosk (unknown, revoked or retired) is refused as kiosk_device_unregistered before the member or PIN are looked at, uncounted (1420). For a live kiosk: limits failed PINs to 20 per device in 15 minutes, verifies the member PIN through private.verify_kiosk_pin, then records the punch through app.record_punch as a Kiosk punch on the kiosk''s project: idempotent on the client punch id, with the device time corrected by the monotonic offset for punches queued offline. Every refusal (device, PIN, rate limit, project, photo or a record_punch rule such as punch_already_in) returns as a code instead of raising, so failure counts persist (invariant 8).';
+comment on function app.kiosk_punch(text, uuid, text, uuid, app.punch_kind, timestamptz, bigint, text, uuid) is 'Kiosk PIN service (service role only, called by the kiosk-punch Edge Function for A17 Compass). A device key that names no live kiosk (unknown, revoked or retired) is refused as kiosk_device_unregistered before the member or PIN are looked at, uncounted (1420). For a live kiosk: limits failed PINs to 20 per device in 15 minutes, verifies the member PIN through private.verify_kiosk_pin, refuses with kiosk_disabled until time.kiosk_enabled is on for the org or the project''s workspace (1321), then records the punch through app.record_punch as a Kiosk punch on the kiosk''s project: idempotent on the client punch id, with the device time corrected by the monotonic offset for punches queued offline. Every refusal (device, PIN, rate limit, project, kiosk off, photo or a record_punch rule such as punch_already_in or punch_photo_required) returns as a code instead of raising, so failure counts persist (invariant 8).';
 
 revoke all on function app.kiosk_punch(text, uuid, text, uuid, app.punch_kind, timestamptz, bigint, text, uuid) from public, anon, authenticated;
 grant execute on function app.kiosk_punch(text, uuid, text, uuid, app.punch_kind, timestamptz, bigint, text, uuid) to service_role;

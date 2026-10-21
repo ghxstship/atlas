@@ -196,7 +196,8 @@
       "codeHelp": "Único dentro del recinto, por ejemplo FOH o DOCK-1.",
       "space": "Dentro del espacio",
       "spaceHelp": "Opcional. El espacio donde está esta zona.",
-      "noSpace": "Fuera de un espacio"
+      "noSpace": "Fuera de un espacio",
+      "areaMetric": "Superficie (m²)"
     }
   },
   "documents": {
