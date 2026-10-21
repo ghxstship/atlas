@@ -59,7 +59,12 @@ select is(
        -- the person's Work Details access log, written only by the database; org_id names an org's act (A78, 1340)
        'work_detail_events',
        -- the record of an org's deletion, kept after the org and its members are gone (A79, migration 1351)
-       'deletion_certificates')
+       'deletion_certificates',
+       -- a person's own quiet hours for orgs they are not a member of, keyed by person_id (A89, migration 1461)
+       'person_notification_settings',
+       -- supplier diversity certifications owned by a person or an external account and read only by the owner, and
+       -- their access log written only by the database; org_id there names an org's read (A89, migration 1464)
+       'supplier_diversity_certifications', 'supplier_diversity_events')
      and (select count(*) from information_schema.columns c
           where c.table_schema = 'app' and c.table_name = t.table_name
             and c.column_name in ('org_id', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at')) <> 6),
