@@ -53,6 +53,7 @@ import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translat
 import { DeleteAccountSection } from "./delete-account";
 import { NotificationPreferences } from "./notification-preferences";
 import { PersonalSetting } from "./personal-setting";
+import { SecurityPanels } from "./security-panels";
 import {
   MyAccessLogPanel,
   MySharingPanel,
@@ -544,6 +545,7 @@ function SecuritySection(props: SectionProps) {
     <>
       <Header t={t} node={props.node} />
       <p className="m-0 text-text-14">{t("gateway.settings.security.passwordless")}</p>
+      <SecurityPanels ctx={props.ctx} t={t} locale={props.locale} />
       <form method="post" action="/auth/sign-out">
         <button
           type="submit"

@@ -30,6 +30,11 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/mfa":
+    "Auth template: the second factor after the first, or setting one up an org requires (A77).",
+  "/auth/session-ended":
+    "Auth template: an org's session lifetime or idle timeout ended the session; sign in again (A77).",
+  "/auth/sso": "Auth template: Enterprise single sign-on by work email domain (A77).",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":

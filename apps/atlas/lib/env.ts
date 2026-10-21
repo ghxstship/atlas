@@ -31,6 +31,16 @@ const EnvSchema = z.object({
   COMPASS_APPLE_TEAM_IDS: z.string().optional(),
   COMPASS_ANDROID_CERT_SHA256: z.string().optional(),
   /**
+   * WebAuthn relying party for security keys as a second factor (Section 9), the same values as Supabase
+   * Auth's [auth.webauthn] rp_id and rp_origins: the registrable domain, and the https origins of Atlas and
+   * Gateway, comma-separated. Unset, people add authenticator apps and passkeys but not security keys.
+   */
+  WEBAUTHN_RP_ID: z
+    .string()
+    .regex(/^[a-z0-9.-]+$/)
+    .optional(),
+  WEBAUTHN_RP_ORIGINS: z.string().optional(),
+  /**
    * Trusted proxies in front of the one that appends the client address to X-Forwarded-For
    * (A69-003). Unset (0) on Vercel and behind one proxy; 1 behind a CDN and a proxy, and so on.
    */

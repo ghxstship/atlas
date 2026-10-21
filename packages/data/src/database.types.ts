@@ -54558,6 +54558,14 @@ export type Database = {
       issue_scim_token: { Args: { p_identity_provider_id: string }; Returns: string };
       issue_training_certification: { Args: { p_completion_id: string }; Returns: string };
       join_by_sso: { Args: { p_org_id: string }; Returns: string };
+      join_by_sso_session: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          joined: boolean;
+          org_id: string;
+          slug: string;
+        }[];
+      };
       join_by_verified_domain: { Args: { p_org_id: string }; Returns: string };
       kiosk_punch: {
         Args: {
@@ -54642,6 +54650,13 @@ export type Database = {
           submitted_at: string;
         }[];
       };
+      my_auth_factor_labels: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          factor_id: string;
+          label: string;
+        }[];
+      };
       my_blocks: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -54693,12 +54708,33 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_org_auth_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          idle_timeout_minutes: number;
+          mfa_required: boolean;
+          mfa_verified: boolean;
+          session_expired: boolean;
+          session_expires_at: string;
+          session_hours: number;
+          signed_in_at: string;
+        }[];
+      };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
           capability_code: string;
           project_id: string;
           project_role: Database["app"]["Enums"]["project_role"];
+        }[];
+      };
+      my_second_factor_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          recent: boolean;
+          recent_until: string;
+          second_factor_at: string;
+          session_aal: string;
         }[];
       };
       my_sms_status: {
@@ -55571,6 +55607,7 @@ export type Database = {
         };
         Returns: string;
       };
+      scim_user_for_email: { Args: { p_email: string }; Returns: string };
       seat_usage: {
         Args: { p_org_id: string };
         Returns: {
@@ -55613,6 +55650,7 @@ export type Database = {
         Returns: string;
       };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
+      set_auth_factor_label: { Args: { p_factor_id: string; p_label: string }; Returns: undefined };
       set_deliverable_fee: {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;

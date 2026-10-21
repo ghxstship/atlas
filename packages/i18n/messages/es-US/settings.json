@@ -71,7 +71,6 @@
     "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
     "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
     "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    "setting_not_enforced": "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
     "setting_fixed": "Esta configuración es fija y no se puede cambiar."
   },
   "fields": {
@@ -101,15 +100,15 @@
     },
     "mfaPolicy": {
       "label": "Autenticación multifactor",
-      "help": "Quién debe usar un segundo factor para iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en Opcional."
+      "help": "Quién debe usar un segundo factor. A quien se aplique configura uno, o verifica el que tiene, antes de abrir la organización."
     },
     "sessionHours": {
       "label": "Duración de la sesión en horas",
-      "help": "Cuánto dura un inicio de sesión antes de volver a iniciar sesión. Aún no disponible: XOS no lo aplica, así que sigue en 336 horas."
+      "help": "Cuánto dura un inicio de sesión antes de volver a iniciar sesión, de 1 a 720 horas."
     },
     "idleTimeout": {
       "label": "Tiempo de inactividad en minutos",
-      "help": "Cerrar la sesión tras estos minutos sin actividad. Aún no disponible: XOS no lo aplica, así que sigue en 60 minutos."
+      "help": "Cerrar la sesión tras estos minutos sin actividad, de 5 a 1.440."
     },
     "ipAllowlist": {
       "label": "Aplicar la lista de IP permitidas",

@@ -1,7 +1,9 @@
+import { tokenAal } from "@xos/data/auth-assurance";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { env, platformHosts } from "@/lib/env";
 import {
   buildCsp,
@@ -94,6 +96,14 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
         const next = `${path}${request.nextUrl.search}`;
         const to = new URL(`/auth/sign-in?next=${encodeURIComponent(next)}`, request.url);
         return secure(carryCookies(NextResponse.redirect(to), response()));
+      }
+      // A person who holds a verified second factor verifies it before any page (A77, Section 9).
+      if ((user.factors ?? []).some((f) => f.status === "verified")) {
+        const { data: current } = await db.auth.getSession();
+        if (tokenAal(current.session?.access_token) === "aal1") {
+          const to = new URL(secondFactorRedirect(path, request.nextUrl.search), request.url);
+          return secure(carryCookies(NextResponse.redirect(to), response()));
+        }
       }
       const accounts = await listMyAccounts(db);
       if (!accounts.ok)

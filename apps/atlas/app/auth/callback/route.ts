@@ -1,3 +1,4 @@
+import { joinBySsoSession } from "@xos/data/identity-providers";
 import { NextResponse, type NextRequest } from "next/server";
 import { authErrorKey, oauthCallbackError, type AuthErrorKey } from "@/lib/auth/errors";
 import { isOAuthProvider } from "@/lib/auth/providers";
@@ -14,11 +15,13 @@ function goTo(path: string): NextResponse {
 }
 
 /**
- * OAuth and email-link (PKCE) return. Supabase Auth comes back with a code, which is exchanged for
- * the session cookies, or with the provider's refusal, which goes back to sign-in with its message.
- * `next` survives both ways (safeNext keeps it on this site), so an invitation or an org page is
- * where the person lands once signed in. `provider` is set by signInWithProvider: an OAuth code
- * that cannot be exchanged means the sign-in expired or started in another browser.
+ * OAuth, single sign-on and email-link (PKCE) return. Supabase Auth comes back with a code, which is
+ * exchanged for the session cookies, or with the provider's refusal, which goes back to sign-in with
+ * its message. `next` survives both ways (safeNext keeps it on this site), so an invitation or an org
+ * page is where the person lands once signed in. `provider` is set by signInWithProvider: an OAuth
+ * code that cannot be exchanged means the sign-in expired or started in another browser. After an
+ * Enterprise single sign-on (A77) the person joins the identity provider's org when it adds people
+ * just in time, and lands on that org's Home unless they were going somewhere.
  */
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const params = request.nextUrl.searchParams;
@@ -35,11 +38,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   // Without it, as now, the verifier of the latest flow started in this browser is used.
   const flowId = params.get("sb_flow_id");
   const db = await createServerSupabase();
-  const { error } = await db.auth.exchangeCodeForSession(code, flowId ? { flowId } : undefined);
+  const { data, error } = await db.auth.exchangeCodeForSession(
+    code,
+    flowId ? { flowId } : undefined,
+  );
   if (error) {
     if (!oauth) return back("link_invalid");
     const key = authErrorKey(error);
     return back(key === "link_invalid" ? "oauth_expired" : key);
+  }
+  const provider = data.user?.app_metadata["provider"];
+  if (typeof provider === "string" && provider.startsWith("sso:")) {
+    const joined = await joinBySsoSession(db);
+    if (joined.ok && joined.data && next === "/") return goTo(`/${joined.data.slug}/home`);
   }
   return goTo(next);
 }

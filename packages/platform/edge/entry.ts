@@ -17,6 +17,14 @@ export { createLogger, identityFromEnv } from "../../../infra/observability/src/
 export { createObservability, observe } from "../../../infra/observability/src/index.ts";
 export { observeEdgeFunction } from "../../../infra/observability/src/edge.ts";
 export * from "./reports.ts";
+// The SCIM 2.0 endpoint's handler (A77, supabase/functions/scim), from @xos/integrations, which depends on this
+// package, so it is bundled by path rather than as a dependency.
+export {
+  handleScimRequest,
+  serveScim,
+  supabaseAuthAdmin,
+  supabaseScimStore,
+} from "../../integrations/src/identity/scim.ts";
 
 /** The plan registry the bundle was built from. */
 export const planRegistry: PlanRegistry = parsePlanRegistry(plansYaml);
