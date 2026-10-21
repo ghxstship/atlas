@@ -1190,6 +1190,28 @@ __all__ = [
     "TemplateApplicationCreate",
     "ProjectAuthorityPage",
     "ProjectAuthority",
+    "MeasurementMetricPage",
+    "MeasurementMetric",
+    "MeasurementUnitPage",
+    "MeasurementUnit",
+    "MeasurementMetricTagPage",
+    "MeasurementMetricTag",
+    "ProjectObjectivePage",
+    "ProjectObjective",
+    "ProjectObjectiveCreate",
+    "ProjectObjectiveUpdate",
+    "ProjectMeasurementPage",
+    "ProjectMeasurement",
+    "ProjectMeasurementCreate",
+    "ProjectMeasurementUpdate",
+    "ProjectMeasurementCorrectionPage",
+    "ProjectMeasurementCorrection",
+    "EarnedMediaItemPage",
+    "EarnedMediaItem",
+    "EarnedMediaItemCreate",
+    "EarnedMediaItemUpdate",
+    "ProjectMeasurementSummaryPage",
+    "ProjectMeasurementSummary",
     "CueCallPage",
     "CueCall",
     "CueCallCreate",
@@ -19540,6 +19562,447 @@ class ProjectAuthority(TypedDict):
     agency: str
     #: How to reach the agency.
     contact: Optional[str]
+
+
+class MeasurementMetricPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementMetric]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementMetric(TypedDict):
+    """A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one."""
+
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Family of the figure.
+    family: Literal["Sustainability", "Audience", "Earned Media", "Sentiment"]
+    #: Dimension of the figure.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Unit totals and comparisons are computed in.
+    base_unit_code: str
+    #: How a project's figures combine: each adds to the total (Sum) or the latest measured one stands (Latest).
+    aggregation: Literal["Sum", "Latest"]
+    #: True when the figure is computed from the coverage records rather than entered.
+    is_derived: bool
+    #: Lowest figure accepted, in the base unit.
+    lower_bound: Optional[float]
+    #: Highest figure accepted, in the base unit.
+    upper_bound: Optional[float]
+    #: Domain of the benchmarking canon metric.
+    canon_domain: Optional[str]
+    #: Item of the benchmarking canon metric.
+    canon_item: Optional[str]
+    #: The canon benchmark as a number.
+    canon_value_numeric: Optional[float]
+    #: The canon benchmark in words.
+    canon_value_text: Optional[str]
+    #: Qualifier of the canon benchmark.
+    canon_qualifier: Optional[str]
+    #: Display order.
+    ordinal: int
+
+
+class MeasurementUnitPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementUnit]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementUnit(TypedDict):
+    """A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers."""
+
+    #: Unit code.
+    unit_code: str
+    #: Dimension of the unit.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Base units in one of this unit.
+    factor_to_base: float
+    #: Measurement system of the unit.
+    unit_system: Literal["Metric", "Imperial", "Either"]
+    #: True for the unit reports show the dimension in for readers of its system.
+    is_display: bool
+    #: Display order.
+    ordinal: int
+
+
+class MeasurementMetricTagPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[MeasurementMetricTag]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class MeasurementMetricTag(TypedDict):
+    """A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10)."""
+
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Canon tag code.
+    tag_id: str
+    #: Tag value as written in canon.
+    tag: str
+
+
+class ProjectObjectivePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectObjective]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectObjective(TypedDict):
+    """A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger."""
+
+    #: Identifier of the project objective.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+    #: Note.
+    note: Optional[str]
+
+
+class _ProjectObjectiveCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+
+
+class ProjectObjectiveCreate(_ProjectObjectiveCreateRequired, total=False):
+    """Fields accepted when creating a ProjectObjective."""
+
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectObjectiveUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectObjective. Omitted fields are unchanged."""
+
+    #: Met by reaching the target (At Least) or by staying within it (At Most).
+    direction: Literal["At Least", "At Most"]
+    #: Target figure, in unit_code.
+    target_value: float
+    #: Unit of the target, of the metric's dimension.
+    unit_code: str
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurement]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurement(TypedDict):
+    """A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at."""
+
+    #: Identifier of the project measurement.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class _ProjectMeasurementCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+
+
+class ProjectMeasurementCreate(_ProjectMeasurementCreateRequired, total=False):
+    """Fields accepted when creating a ProjectMeasurement."""
+
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementUpdate(TypedDict, total=False):
+    """Fields accepted when updating a ProjectMeasurement. Omitted fields are unchanged."""
+
+    #: Day the figure covers, on the project's calendar; today there when omitted, never later.
+    measured_on: str
+    #: The figure in unit_code; null when not measured.
+    value: Optional[float]
+    #: Unit of the figure, of the metric's dimension.
+    unit_code: Optional[str]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Link to the source: an http(s) URL or a URN.
+    source_uri: Optional[str]
+    #: Note.
+    note: Optional[str]
+    #: Why the figure is corrected: required when the value, unit or day changes, kept in the correction ledger and never returned.
+    correction_reason: str
+
+
+class ProjectMeasurementCorrectionPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurementCorrection]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurementCorrection(TypedDict):
+    """An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at."""
+
+    #: Identifier of the project measurement correction.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the figure that changed.
+    project_measurement_id: str
+    #: What changed the figure.
+    correction_kind: Literal["Corrected", "Withdrawn", "Restored"]
+    #: Value before the change; null when Unmeasured.
+    previous_value: Optional[float]
+    #: Unit before the change.
+    previous_unit_code: Optional[str]
+    #: Day before the change.
+    previous_measured_on: str
+    #: Value after the change; null when Unmeasured.
+    value: Optional[float]
+    #: Unit after the change.
+    unit_code: Optional[str]
+    #: Day after the change.
+    measured_on: str
+    #: Why the figure changed.
+    reason: Optional[str]
+
+
+class EarnedMediaItemPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[EarnedMediaItem]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class EarnedMediaItem(TypedDict):
+    """A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated."""
+
+    #: Identifier of the earned media item.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class _EarnedMediaItemCreateRequired(TypedDict):
+    #: Identifier of the project.
+    project_id: str
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+
+
+class EarnedMediaItemCreate(_EarnedMediaItemCreateRequired, total=False):
+    """Fields accepted when creating a EarnedMediaItem."""
+
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class EarnedMediaItemUpdate(TypedDict, total=False):
+    """Fields accepted when updating a EarnedMediaItem. Omitted fields are unchanged."""
+
+    #: Headline or title of the coverage.
+    title: str
+    #: Publication, station, channel or account that ran it.
+    outlet: str
+    #: Where the coverage ran.
+    medium: Literal["Online", "Print", "Broadcast", "Podcast", "Social"]
+    #: Day it ran, on the project's calendar; never after today there.
+    published_on: str
+    #: Link to the coverage; one live row per link in a project.
+    url: Optional[str]
+    #: Audience the outlet reports for the piece; null when unreported.
+    reach: Optional[int]
+    #: Sentiment of the coverage; null until rated.
+    tone: Optional[Literal["Positive", "Neutral", "Negative"]]
+    #: How the figure reached XOS.
+    source: Literal["Manual", "Import", "Integration"]
+    #: What the figure came from, such as an invoice, a meter reading or a file name.
+    source_reference: Optional[str]
+    #: Note.
+    note: Optional[str]
+
+
+class ProjectMeasurementSummaryPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectMeasurementSummary]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectMeasurementSummary(TypedDict):
+    """Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero."""
+
+    #: Identifier of the project.
+    project_id: str
+    #: Metric (app.measurement_metrics).
+    metric_code: str
+    #: Family of the figure.
+    family: Literal["Sustainability", "Audience", "Earned Media", "Sentiment"]
+    #: Dimension of the figure.
+    dimension: Literal["Mass", "Volume", "Energy", "Emissions", "Count", "Percent"]
+    #: Unit of target_base and measured_base.
+    base_unit_code: str
+    #: How figures combine.
+    aggregation: Literal["Sum", "Latest"]
+    #: Identifier of the live gate 1 objective for the metric.
+    objective_id: Optional[str]
+    #: Direction of the objective.
+    direction: Optional[Literal["At Least", "At Most"]]
+    #: Target as set, in target_unit_code.
+    target_value: Optional[float]
+    #: Unit the target was set in.
+    target_unit_code: Optional[str]
+    #: Target in the base unit.
+    target_base: Optional[float]
+    #: Figures with a value.
+    measured_count: int
+    #: Figures recorded as not measured; never counted as zero.
+    unmeasured_count: int
+    #: Total (Sum) or latest figure (Latest) in the base unit; null when nothing was measured.
+    measured_base: Optional[float]
+    #: Day of the most recent measured figure.
+    last_measured_on: Optional[str]
+    #: Met, Not Met, Incomplete (unmeasured figures leave the objective undecided) or Unmeasured; null without an objective.
+    outcome: Optional[Literal["Met", "Not Met", "Incomplete", "Unmeasured"]]
 
 
 class CueCallPage(TypedDict):

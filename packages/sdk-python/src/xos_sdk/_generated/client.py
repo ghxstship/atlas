@@ -339,6 +339,14 @@ from .resources import (
     TemplatesResource,
     TemplateApplicationsResource,
     ProjectAuthoritiesResource,
+    MeasurementMetricsResource,
+    MeasurementUnitsResource,
+    MeasurementMetricTagsResource,
+    ProjectObjectivesResource,
+    ProjectMeasurementsResource,
+    ProjectMeasurementCorrectionsResource,
+    EarnedMediaItemsResource,
+    ProjectMeasurementSummaryResource,
     CueCallsResource,
     GuestListEntriesResource,
     Form1099NecResource,
@@ -750,6 +758,14 @@ class XosClient(XosClientCore):
     templates: TemplatesResource
     template_applications: TemplateApplicationsResource
     project_authorities: ProjectAuthoritiesResource
+    measurement_metrics: MeasurementMetricsResource
+    measurement_units: MeasurementUnitsResource
+    measurement_metric_tags: MeasurementMetricTagsResource
+    project_objectives: ProjectObjectivesResource
+    project_measurements: ProjectMeasurementsResource
+    project_measurement_corrections: ProjectMeasurementCorrectionsResource
+    earned_media_items: EarnedMediaItemsResource
+    project_measurement_summary: ProjectMeasurementSummaryResource
     cue_calls: CueCallsResource
     guest_list_entries: GuestListEntriesResource
     form1099_nec: Form1099NecResource
@@ -1149,6 +1165,14 @@ class XosClient(XosClientCore):
         self.templates = TemplatesResource(self)
         self.template_applications = TemplateApplicationsResource(self)
         self.project_authorities = ProjectAuthoritiesResource(self)
+        self.measurement_metrics = MeasurementMetricsResource(self)
+        self.measurement_units = MeasurementUnitsResource(self)
+        self.measurement_metric_tags = MeasurementMetricTagsResource(self)
+        self.project_objectives = ProjectObjectivesResource(self)
+        self.project_measurements = ProjectMeasurementsResource(self)
+        self.project_measurement_corrections = ProjectMeasurementCorrectionsResource(self)
+        self.earned_media_items = EarnedMediaItemsResource(self)
+        self.project_measurement_summary = ProjectMeasurementSummaryResource(self)
         self.cue_calls = CueCallsResource(self)
         self.guest_list_entries = GuestListEntriesResource(self)
         self.form1099_nec = Form1099NecResource(self)

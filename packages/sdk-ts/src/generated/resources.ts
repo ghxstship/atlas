@@ -321,6 +321,9 @@ import type {
   DoorGuestPage,
   DsarRequest,
   DsarRequestCreate,
+  EarnedMediaItem,
+  EarnedMediaItemCreate,
+  EarnedMediaItemUpdate,
   EarningCode,
   EarningCodeCreate,
   EarningCodeUpdate,
@@ -500,6 +503,9 @@ import type {
   MarshallingLogEntry,
   MarshallingLogEntryCreate,
   Me,
+  MeasurementMetric,
+  MeasurementMetricTag,
+  MeasurementUnit,
   MedicalEncounter,
   MedicalEncounterCreate,
   MedicalEncounterUpdate,
@@ -649,6 +655,14 @@ import type {
   ProjectAssignmentUpdate,
   ProjectAuthority,
   ProjectCreate,
+  ProjectMeasurement,
+  ProjectMeasurementCorrection,
+  ProjectMeasurementCreate,
+  ProjectMeasurementSummary,
+  ProjectMeasurementUpdate,
+  ProjectObjective,
+  ProjectObjectiveCreate,
+  ProjectObjectiveUpdate,
   ProjectPhaseTransition,
   ProjectShare,
   ProjectShareCreate,
@@ -32993,6 +33007,627 @@ export class ProjectAuthoritiesResource extends $Resource {
   ): AsyncGenerator<ProjectAuthority, void, undefined> {
     return this.client.paginate<ProjectAuthority>(
       $OPERATIONS["projectAuthorities.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `measurementMetrics`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class MeasurementMetricsResource extends $Resource {
+  /**
+   * List measurement metric rows
+   *
+   * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /measurement-metrics` (operation `measurementMetrics.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<MeasurementMetric>,
+    options?: $RequestOptions,
+  ): Promise<$Page<MeasurementMetric>> {
+    return this.client.requestPage<MeasurementMetric>(
+      $OPERATIONS["measurementMetrics.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List measurement metric rows
+   *
+   * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /measurement-metrics` (operation `measurementMetrics.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<MeasurementMetric>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<MeasurementMetric, void, undefined> {
+    return this.client.paginate<MeasurementMetric>(
+      $OPERATIONS["measurementMetrics.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `measurementUnits`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class MeasurementUnitsResource extends $Resource {
+  /**
+   * List measurement unit rows
+   *
+   * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /measurement-units` (operation `measurementUnits.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<MeasurementUnit>,
+    options?: $RequestOptions,
+  ): Promise<$Page<MeasurementUnit>> {
+    return this.client.requestPage<MeasurementUnit>(
+      $OPERATIONS["measurementUnits.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List measurement unit rows
+   *
+   * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /measurement-units` (operation `measurementUnits.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<MeasurementUnit>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<MeasurementUnit, void, undefined> {
+    return this.client.paginate<MeasurementUnit>(
+      $OPERATIONS["measurementUnits.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `measurementMetricTags`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class MeasurementMetricTagsResource extends $Resource {
+  /**
+   * List measurement metric tag rows
+   *
+   * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /measurement-metric-tags` (operation `measurementMetricTags.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<MeasurementMetricTag>,
+    options?: $RequestOptions,
+  ): Promise<$Page<MeasurementMetricTag>> {
+    return this.client.requestPage<MeasurementMetricTag>(
+      $OPERATIONS["measurementMetricTags.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List measurement metric tag rows
+   *
+   * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /measurement-metric-tags` (operation `measurementMetricTags.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<MeasurementMetricTag>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<MeasurementMetricTag, void, undefined> {
+    return this.client.paginate<MeasurementMetricTag>(
+      $OPERATIONS["measurementMetricTags.list"],
+      { query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectObjectives`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectObjectivesResource extends $Resource {
+  /**
+   * List project objective rows
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-objectives` (operation `projectObjectives.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectObjective>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectObjective>> {
+    return this.client.requestPage<ProjectObjective>(
+      $OPERATIONS["projectObjectives.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project objective rows
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-objectives` (operation `projectObjectives.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectObjective>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectObjective, void, undefined> {
+    return this.client.paginate<ProjectObjective>(
+      $OPERATIONS["projectObjectives.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Creates a project objective. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /project-objectives` (operation `projectObjectives.create`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  create(
+    body: ProjectObjectiveCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectObjective>> {
+    return this.client.request<ProjectObjective>(
+      $OPERATIONS["projectObjectives.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns one project objective with its `ETag`. A project objective the caller may not see returns 404.
+   *
+   * `GET /project-objectives/{id}` (operation `projectObjectives.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectObjective>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectObjective>> {
+    return this.client.request<ProjectObjective>(
+      $OPERATIONS["projectObjectives.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /project-objectives/{id}` (operation `projectObjectives.update`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  update(
+    id: string,
+    body: ProjectObjectiveUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProjectObjective>> {
+    return this.client.request<ProjectObjective>(
+      $OPERATIONS["projectObjectives.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a project objective
+   *
+   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Soft-deletes the project objective: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /project-objectives/{id}` (operation `projectObjectives.delete`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["projectObjectives.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectMeasurements`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectMeasurementsResource extends $Resource {
+  /**
+   * List project measurement rows
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-measurements` (operation `projectMeasurements.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectMeasurement>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectMeasurement>> {
+    return this.client.requestPage<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project measurement rows
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-measurements` (operation `projectMeasurements.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectMeasurement>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectMeasurement, void, undefined> {
+    return this.client.paginate<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Creates a project measurement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /project-measurements` (operation `projectMeasurements.create`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  create(
+    body: ProjectMeasurementCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectMeasurement>> {
+    return this.client.request<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns one project measurement with its `ETag`. A project measurement the caller may not see returns 404.
+   *
+   * `GET /project-measurements/{id}` (operation `projectMeasurements.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectMeasurement>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectMeasurement>> {
+    return this.client.request<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /project-measurements/{id}` (operation `projectMeasurements.update`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  update(
+    id: string,
+    body: ProjectMeasurementUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<ProjectMeasurement>> {
+    return this.client.request<ProjectMeasurement>(
+      $OPERATIONS["projectMeasurements.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete a project measurement
+   *
+   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Soft-deletes the project measurement: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /project-measurements/{id}` (operation `projectMeasurements.delete`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["projectMeasurements.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectMeasurementCorrections`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectMeasurementCorrectionsResource extends $Resource {
+  /**
+   * List project measurement correction rows
+   *
+   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-measurement-corrections` (operation `projectMeasurementCorrections.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectMeasurementCorrection>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectMeasurementCorrection>> {
+    return this.client.requestPage<ProjectMeasurementCorrection>(
+      $OPERATIONS["projectMeasurementCorrections.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project measurement correction rows
+   *
+   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-measurement-corrections` (operation `projectMeasurementCorrections.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectMeasurementCorrection>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectMeasurementCorrection, void, undefined> {
+    return this.client.paginate<ProjectMeasurementCorrection>(
+      $OPERATIONS["projectMeasurementCorrections.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a project measurement correction
+   *
+   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns one project measurement correction with its `ETag`. A project measurement correction the caller may not see returns 404.
+   *
+   * `GET /project-measurement-corrections/{id}` (operation `projectMeasurementCorrections.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectMeasurementCorrection>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectMeasurementCorrection>> {
+    return this.client.request<ProjectMeasurementCorrection>(
+      $OPERATIONS["projectMeasurementCorrections.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `earnedMediaItems`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class EarnedMediaItemsResource extends $Resource {
+  /**
+   * List earned media item rows
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /earned-media-items` (operation `earnedMediaItems.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<EarnedMediaItem>,
+    options?: $RequestOptions,
+  ): Promise<$Page<EarnedMediaItem>> {
+    return this.client.requestPage<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List earned media item rows
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /earned-media-items` (operation `earnedMediaItems.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<EarnedMediaItem>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<EarnedMediaItem, void, undefined> {
+    return this.client.paginate<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Creates an earned media item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
+   *
+   * `POST /earned-media-items` (operation `earnedMediaItems.create`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  create(
+    body: EarnedMediaItemCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<EarnedMediaItem>> {
+    return this.client.request<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns one earned media item with its `ETag`. A earned media item the caller may not see returns 404.
+   *
+   * `GET /earned-media-items/{id}` (operation `earnedMediaItems.get`).
+   * Requires the capability `projects.gate.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<EarnedMediaItem>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<EarnedMediaItem>> {
+    return this.client.request<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Update an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
+   *
+   * `PATCH /earned-media-items/{id}` (operation `earnedMediaItems.update`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  update(
+    id: string,
+    body: EarnedMediaItemUpdate,
+    options: $UpdateOptions,
+  ): Promise<$ApiResponse<EarnedMediaItem>> {
+    return this.client.request<EarnedMediaItem>(
+      $OPERATIONS["earnedMediaItems.update"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Delete an earned media item
+   *
+   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Soft-deletes the earned media item: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /earned-media-items/{id}` (operation `earnedMediaItems.delete`).
+   * Requires the capability `projects.gate.evidence.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["earnedMediaItems.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectMeasurementSummary`, in the Projects module.
+ *
+ * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
+ */
+export class ProjectMeasurementSummaryResource extends $Resource {
+  /**
+   * List project measurement summary row rows
+   *
+   * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-measurement-summary` (operation `projectMeasurementSummary.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  list(
+    params?: $ListParams<ProjectMeasurementSummary>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectMeasurementSummary>> {
+    return this.client.requestPage<ProjectMeasurementSummary>(
+      $OPERATIONS["projectMeasurementSummary.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project measurement summary row rows
+   *
+   * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-measurement-summary` (operation `projectMeasurementSummary.list`).
+   * Requires the capability `projects.gate.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectMeasurementSummary>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectMeasurementSummary, void, undefined> {
+    return this.client.paginate<ProjectMeasurementSummary>(
+      $OPERATIONS["projectMeasurementSummary.list"],
       { query: params },
       options,
     );
