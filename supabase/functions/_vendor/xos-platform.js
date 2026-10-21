@@ -10512,6 +10512,36 @@ var platform_default$1 = {
       "You already decided a step of this approval. The next step needs another approver.",
     approval_rejection_reason: "Say why when you reject an approval.",
     sod_approval_requester: "You requested this approval, so someone else decides it.",
+    import_google_sheets_off:
+      "Importing from a Google Sheets link is turned off for this organization.",
+    import_google_drive_required:
+      "Connect Google Drive in Settings, Integrations, before importing a Google Sheets link.",
+    import_sheet_not_detected: "Sheets can be imported once the workbook has been read.",
+    import_sheet_empty: "That sheet has no rows to import.",
+    import_target_not_allowed: "You cannot import into that target in this organization.",
+    import_sheet_taken: "An import of this sheet is already open.",
+    import_link_invalid: "Paste a link that starts with https://docs.google.com/spreadsheets/d/.",
+    warehouse_plan: "Warehouse delivery is part of the Enterprise plan.",
+    warehouse_provider_unavailable:
+      "Delivery to that provider is not available yet. Use S3 or an S3-compatible bucket.",
+    warehouse_private_endpoint: "A bucket endpoint must be a public HTTPS address.",
+    warehouse_confidential_capability:
+      "Delivering Confidential columns needs the confidential export capability.",
+    warehouse_provider_fixed: "A destination keeps its provider. Add another destination instead.",
+    warehouse_fields_service_only:
+      "Credential and delivery details change only through their own forms.",
+    warehouse_credential_empty: "A bucket credential needs a value.",
+    warehouse_credential_too_large: "A bucket credential is at most 16 KB.",
+    warehouse_credential_format:
+      "The credential must be JSON with access_key_id and secret_access_key.",
+    warehouse_credential_required: "Store the bucket credential before the first delivery.",
+    warehouse_destination_paused: "Resume the destination before delivering to it.",
+    warehouse_delivery_in_progress: "A delivery to this destination is already on its way.",
+    integration_inbound_reason: "Say why the webhook should be tried again.",
+    integration_inbound_not_dead_letter: "Only a webhook that failed for good can be sent back.",
+    integration_inbound_secret_short: "A webhook secret has at least 16 characters.",
+    integration_inbound_secret_long: "A webhook secret is at most 1024 characters.",
+    integration_disconnected: "That connection is disconnected and cannot change.",
   },
   partner: {
     sections: "Partner console sections",
@@ -10672,6 +10702,14 @@ var platform_default$1 = {
       file: "Spreadsheet",
       fileHelp: ".csv or .xlsx, up to 10 MB. The first row with text is the header row.",
       submit: "Upload and read",
+      source: "Read from",
+      sourceFile: "A file",
+      sourceSheets: "A Google Sheets link",
+      link: "Google Sheets link",
+      linkHelp:
+        "Paste the link of a spreadsheet shared with the Google account that connected Google Drive in Settings, Integrations.",
+      linkSubmit: "Read the sheet",
+      linkInvalid: "Paste a link that starts with https://docs.google.com/spreadsheets/d/.",
     },
     past: {
       title: "Recent imports",
@@ -10711,6 +10749,7 @@ var platform_default$1 = {
       validating: "Checking every row. This page updates on its own.",
       committing: "Writing the rows. This page updates on its own.",
       scanning: "Checking the file for viruses before reading it. This page updates on its own.",
+      fetching: "Reading the Google Sheet. This page updates on its own.",
     },
     failed: {
       title: "This import could not be processed",
@@ -10719,11 +10758,28 @@ var platform_default$1 = {
         "Our virus scan found something harmful in this file, so it was deleted and nothing was imported. Check the file on your computer with your antivirus, then upload a clean copy.",
       scanFailed:
         "This file could not be checked for viruses, so it was not read. Save it again as .csv or .xlsx and start a new import.",
+      google_drive_not_connected:
+        "Google Drive is not connected, so the sheet could not be read. Ask an Admin to connect it in Settings, Integrations, then start a new import.",
+      google_sheet_not_shared:
+        "The sheet is not shared with the Google account that connected Google Drive. Share it with that account, then start a new import.",
+      google_sheet_not_found:
+        "The link points to no spreadsheet. Check the link and start a new import.",
+      google_drive_credential_refused:
+        "Google refused the Google Drive connection. Ask an Admin to reconnect Google Drive, then start a new import.",
+      google_drive_credential_malformed:
+        "The Google Drive connection has no usable token. Ask an Admin to reconnect Google Drive, then start a new import.",
+      google_sheet_unavailable:
+        "Google did not answer after several tries. Start a new import in a few minutes.",
+      google_sheet_too_large:
+        "The spreadsheet is too large to import from a link (more than 50 sheets or 500,000 cells). Download it as .xlsx and upload that file.",
+      google_sheet_empty: "The spreadsheet has no sheets with cells to read.",
+      google_sheet_link_invalid:
+        "The link is not a Google Sheets spreadsheet link. Start a new import with the sheet's link.",
     },
     map: {
       title: "Map the columns",
       intro:
-        "Confirm what each column holds. Suggestions come from the header names; skip any column you do not need.",
+        "Confirm what each column holds. Suggestions come from your saved mappings, the Playbook column map and the column names; skip any column you do not need.",
       noColumns:
         "No header row was found. Check that the first row with text holds the column names.",
       columns: "Columns",
@@ -10734,6 +10790,12 @@ var platform_default$1 = {
       suggested: "Suggested",
       missing: "Map these required fields first: {fields}.",
       confirm: "Confirm the mapping",
+      sources: {
+        Profile: "From your saved mapping",
+        Playbook: "From the Playbook column map",
+        Header: "From the column name",
+        Assistant: "Suggested by Aurora",
+      },
     },
     fields: {
       name: "Name",
@@ -10821,6 +10883,32 @@ var platform_default$1 = {
         "{reverted, plural, one {# row reverted} other {# rows reverted}}, {kept, plural, =0 {none kept} one {# kept} other {# kept}}.",
       keptTitle: "Rows kept",
       keptRow: "Row {row}: {reason}",
+    },
+    sheetLine: "Sheet {sheet}",
+    sheets: {
+      title: "Sheets in this workbook",
+      intro:
+        "Each sheet is imported on its own, into the target that fits it. The proposed target comes from the Playbook sheet of the same name or from the column names.",
+      caption: "Sheets in this workbook",
+      thisImport: "This import",
+      open: "Open its import",
+      none: "None proposed",
+      fromPlaybook: "{target}, from the Playbook",
+      importIt: "Import this sheet",
+      importLabel: "Import the sheet {sheet}",
+      target: "Import {sheet} into",
+      summary:
+        "{rows, plural, =0 {No rows} one {# row} other {# rows}}. Proposed target: {target}.",
+    },
+    aurora: {
+      button: "Suggest with Aurora",
+      note: "Aurora sees only the column names, never the values in your sheet. You confirm every mapping.",
+      running: "Aurora is reading the column names.",
+      noAnswer: "Aurora has no suggestion: {missing}",
+      failed: "Aurora could not suggest mappings. Map the columns yourself.",
+      applied:
+        "{count, plural, one {Aurora suggested # column. Check it before you confirm.} other {Aurora suggested # columns. Check them before you confirm.}}",
+      none: "Aurora found nothing to add to the current suggestions.",
     },
   },
   objects: {
@@ -11049,6 +11137,125 @@ var platform_default$1 = {
       "Our virus scan found something harmful in this file, so it was deleted. Nobody can open it. Check the file on your device and upload a clean copy.",
     scanFailed:
       "This file could not be checked for viruses, so it stays closed. Upload it again, or save it in another format first.",
+  },
+  warehouse: {
+    title: "Warehouse delivery",
+    description:
+      "Nightly Parquet or CSV files of your organization's data in your own bucket, for your data warehouse. Restricted columns are never delivered.",
+    enterpriseOnly: "Warehouse delivery is part of the Enterprise plan.",
+    readOnly:
+      "Changing warehouse delivery needs the Schedule report delivery and warehouse delivery capability.",
+    loadError: "Warehouse delivery could not be loaded.",
+    empty: "No destination yet. Add your bucket below.",
+    docs: "Read the published schema",
+    add: {
+      heading: "Add a destination",
+      provider: "Provider",
+      providerHelp: "S3 works with Amazon S3 and any S3-compatible service.",
+      unavailable: "{provider} (not available yet)",
+      name: "Name",
+      nameHelp: "How you know this destination, for example Analytics Lake.",
+      bucket: "Bucket",
+      region: "Region",
+      regionHelp: "For example us-east-1. Use auto for Cloudflare R2.",
+      endpoint: "Endpoint",
+      endpointHelp: "Only for a service other than Amazon S3: its HTTPS address.",
+      prefix: "Folder",
+      prefixHelp: "Folder inside the bucket. Each delivery writes a dated folder under it.",
+      format: "Format",
+      hour: "Delivery hour (UTC)",
+      hourHelp: "A whole hour from 0 to 23.",
+      confidential: "Also deliver Confidential columns",
+      confidentialHelp: "Restricted columns are never delivered.",
+      submit: "Add destination",
+      added: "Destination added. Store its credential next.",
+    },
+    destinations: "Destinations",
+    line: "{provider}, bucket {bucket}, {format}, every night at {hour}:00 UTC",
+    states: {
+      Active: "Active",
+      Paused: "Paused",
+    },
+    next: "Next delivery {when}",
+    last: "Last delivered {when}",
+    never: "Not delivered yet",
+    lastError: "Last error: {error}",
+    confidentialOn: "Confidential columns are delivered.",
+    credential: {
+      label: "Bucket credential (JSON)",
+      help: "JSON with access_key_id and secret_access_key, and session_token for temporary credentials. It is stored in Vault and never shown again.",
+      submit: "Store credential",
+      saved: "Credential stored.",
+      stored: "Credential stored {when}",
+      missing: "No credential stored yet.",
+    },
+    actions: {
+      deliverNow: "Deliver now",
+      queued: "Delivery queued. It starts within a minute.",
+      pause: "Pause",
+      resume: "Resume",
+      remove: "Delete destination",
+      removed: "Destination deleted. Its credential was destroyed.",
+    },
+    deliveries: {
+      title: "Recent deliveries",
+      empty: "No delivery yet.",
+      started: "Started",
+      state: "State",
+      trigger: "Started by",
+      tables: "Tables",
+      rows: "Rows",
+      withheld: "Columns left out",
+      error: "Error",
+      manual: "Deliver now",
+      nightly: "Nightly schedule",
+    },
+    deliveryStates: {
+      Queued: "Queued",
+      Running: "Running",
+      Delivered: "Delivered",
+      Retrying: "Retrying",
+      Failed: "Failed",
+    },
+    withheld: {
+      title: "Columns never delivered",
+      intro:
+        "Restricted columns never leave XOS in a delivery. Confidential columns go only to a destination that includes them.",
+      restricted: "{table}.{column}: Restricted, never delivered",
+      confidential: "{table}.{column}: Confidential, only when included",
+    },
+  },
+  inbound: {
+    title: "Provider webhooks",
+    description:
+      "Changes and links the connected providers send to XOS. A webhook that fails for good waits here until you send it back.",
+    loadError: "Provider webhooks could not be loaded.",
+    empty: "No provider webhook has failed for good.",
+    caption: "Failed webhooks",
+    line: "{provider}, {kind}, received {when}, {attempts} attempts",
+    kinds: {
+      "Link Unfurl": "link unfurl",
+      "Change Notice": "change notice",
+    },
+    error: "Error: {error}",
+    retry: "Try again",
+    retryLabel: "Try the {provider} webhook again",
+    reason: "Why try again",
+    reasonHelp: "For example, the token was reinstalled.",
+    retried: "Sent back. It runs within a minute.",
+    secrets: {
+      title: "Webhook secrets",
+      intro:
+        "Teams outgoing webhooks, Google Calendar channels and Microsoft Graph subscriptions sign what they send with a secret of the connection. Point the provider at the endpoint and store the same secret here.",
+      endpoint: "Endpoint: {url}",
+      stored: "Secret stored {when}",
+      missing: "No secret stored",
+      label: "Webhook secret for {name}",
+      help: "At least 16 characters. It is stored in Vault and never shown again.",
+      submit: "Store secret",
+      saved: "Secret stored.",
+      connection: "{name} ({provider})",
+    },
   },
 };
 var procurement_default$1 = {
@@ -26977,6 +27184,38 @@ var platform_default = {
       "Usted ya decidió un paso de esta aprobación. El siguiente paso necesita otra persona.",
     approval_rejection_reason: "Diga por qué cuando rechace una aprobación.",
     sod_approval_requester: "Usted solicitó esta aprobación, así que otra persona la decide.",
+    import_google_sheets_off:
+      "La importación desde un enlace de Google Sheets está desactivada para esta organización.",
+    import_google_drive_required:
+      "Conecte Google Drive en Configuración, Integraciones, antes de importar un enlace de Google Sheets.",
+    import_sheet_not_detected: "Las hojas se pueden importar cuando se haya leído el libro.",
+    import_sheet_empty: "Esa hoja no tiene filas que importar.",
+    import_target_not_allowed: "No puede importar en ese destino en esta organización.",
+    import_sheet_taken: "Ya hay una importación abierta de esta hoja.",
+    import_link_invalid: "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/.",
+    warehouse_plan: "La entrega al almacén de datos es parte del plan Enterprise.",
+    warehouse_provider_unavailable:
+      "La entrega a ese proveedor aún no está disponible. Use S3 o un bucket compatible con S3.",
+    warehouse_private_endpoint:
+      "El punto de acceso de un bucket debe ser una dirección HTTPS pública.",
+    warehouse_confidential_capability:
+      "Entregar columnas confidenciales requiere la capacidad de exportación confidencial.",
+    warehouse_provider_fixed: "Un destino conserva su proveedor. Agregue otro destino.",
+    warehouse_fields_service_only:
+      "Los datos de credencial y de entrega solo cambian con sus propios formularios.",
+    warehouse_credential_empty: "Una credencial de bucket necesita un valor.",
+    warehouse_credential_too_large: "Una credencial de bucket tiene como máximo 16 KB.",
+    warehouse_credential_format:
+      "La credencial debe ser JSON con access_key_id y secret_access_key.",
+    warehouse_credential_required: "Guarde la credencial del bucket antes de la primera entrega.",
+    warehouse_destination_paused: "Reanude el destino antes de entregarle datos.",
+    warehouse_delivery_in_progress: "Ya hay una entrega en camino a este destino.",
+    integration_inbound_reason: "Indique por qué se debe intentar de nuevo el webhook.",
+    integration_inbound_not_dead_letter:
+      "Solo se puede reenviar un webhook que falló definitivamente.",
+    integration_inbound_secret_short: "Un secreto de webhook tiene al menos 16 caracteres.",
+    integration_inbound_secret_long: "Un secreto de webhook tiene como máximo 1024 caracteres.",
+    integration_disconnected: "Esa conexión está desconectada y no puede cambiar.",
   },
   partner: {
     sections: "Secciones de la consola de socio",
@@ -27140,6 +27379,14 @@ var platform_default = {
       file: "Hoja de cálculo",
       fileHelp: ".csv o .xlsx, hasta 10 MB. La primera fila con texto es la fila de encabezados.",
       submit: "Subir y leer",
+      source: "Leer desde",
+      sourceFile: "Un archivo",
+      sourceSheets: "Un enlace de Google Sheets",
+      link: "Enlace de Google Sheets",
+      linkHelp:
+        "Pegue el enlace de una hoja de cálculo compartida con la cuenta de Google que conectó Google Drive en Configuración, Integraciones.",
+      linkSubmit: "Leer la hoja",
+      linkInvalid: "Pegue un enlace que empiece con https://docs.google.com/spreadsheets/d/.",
     },
     past: {
       title: "Importaciones recientes",
@@ -27180,6 +27427,7 @@ var platform_default = {
       committing: "Escribiendo las filas. Esta página se actualiza sola.",
       scanning:
         "Revisando el archivo en busca de virus antes de leerlo. Esta página se actualiza sola.",
+      fetching: "Leyendo la hoja de Google. Esta página se actualiza sola.",
     },
     failed: {
       title: "No se pudo procesar esta importación",
@@ -27188,11 +27436,28 @@ var platform_default = {
         "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó y no se importó nada. Revise el archivo en su computadora con su antivirus y suba una copia limpia.",
       scanFailed:
         "No se pudo revisar este archivo en busca de virus, así que no se leyó. Guárdelo de nuevo como .csv o .xlsx e inicie una nueva importación.",
+      google_drive_not_connected:
+        "Google Drive no está conectado, así que no se pudo leer la hoja. Pida a un administrador que lo conecte en Configuración, Integraciones, y luego inicie una importación nueva.",
+      google_sheet_not_shared:
+        "La hoja no está compartida con la cuenta de Google que conectó Google Drive. Compártala con esa cuenta y luego inicie una importación nueva.",
+      google_sheet_not_found:
+        "El enlace no lleva a ninguna hoja de cálculo. Revise el enlace e inicie una importación nueva.",
+      google_drive_credential_refused:
+        "Google rechazó la conexión de Google Drive. Pida a un administrador que vuelva a conectar Google Drive y luego inicie una importación nueva.",
+      google_drive_credential_malformed:
+        "La conexión de Google Drive no tiene un token válido. Pida a un administrador que vuelva a conectar Google Drive y luego inicie una importación nueva.",
+      google_sheet_unavailable:
+        "Google no respondió después de varios intentos. Inicie una importación nueva en unos minutos.",
+      google_sheet_too_large:
+        "La hoja de cálculo es demasiado grande para importarla desde un enlace (más de 50 hojas o 500,000 celdas). Descárguela como .xlsx y suba ese archivo.",
+      google_sheet_empty: "La hoja de cálculo no tiene hojas con celdas que leer.",
+      google_sheet_link_invalid:
+        "El enlace no es de una hoja de cálculo de Google Sheets. Inicie una importación nueva con el enlace de la hoja.",
     },
     map: {
       title: "Asignar las columnas",
       intro:
-        "Confirme qué contiene cada columna. Las sugerencias vienen de los encabezados; omita cualquier columna que no necesite.",
+        "Confirme qué contiene cada columna. Las sugerencias vienen de sus asignaciones guardadas, del mapa de columnas del Playbook y de los nombres de las columnas; omita las columnas que no necesite.",
       noColumns:
         "No se encontró una fila de encabezados. Verifique que la primera fila con texto contenga los nombres de las columnas.",
       columns: "Columnas",
@@ -27203,6 +27468,12 @@ var platform_default = {
       suggested: "Sugerido",
       missing: "Asigne primero estos campos obligatorios: {fields}.",
       confirm: "Confirmar la asignación",
+      sources: {
+        Profile: "Según su asignación guardada",
+        Playbook: "Según el mapa de columnas del Playbook",
+        Header: "Según el nombre de la columna",
+        Assistant: "Sugerido por Aurora",
+      },
     },
     fields: {
       name: "Nombre",
@@ -27292,6 +27563,32 @@ var platform_default = {
         "{reverted, plural, one {# fila revertida} other {# filas revertidas}}, {kept, plural, =0 {ninguna conservada} one {# conservada} other {# conservadas}}.",
       keptTitle: "Filas conservadas",
       keptRow: "Fila {row}: {reason}",
+    },
+    sheetLine: "Hoja {sheet}",
+    sheets: {
+      title: "Hojas de este libro",
+      intro:
+        "Cada hoja se importa por separado, en el destino que le corresponde. El destino propuesto viene de la hoja del Playbook con el mismo nombre o de los nombres de las columnas.",
+      caption: "Hojas de este libro",
+      thisImport: "Esta importación",
+      open: "Abrir su importación",
+      none: "Ninguno propuesto",
+      fromPlaybook: "{target}, según el Playbook",
+      importIt: "Importar esta hoja",
+      importLabel: "Importar la hoja {sheet}",
+      target: "Importar {sheet} en",
+      summary:
+        "{rows, plural, =0 {Sin filas} one {# fila} other {# filas}}. Destino propuesto: {target}.",
+    },
+    aurora: {
+      button: "Sugerir con Aurora",
+      note: "Aurora solo ve los nombres de las columnas, nunca los valores de su hoja. Usted confirma cada asignación.",
+      running: "Aurora está leyendo los nombres de las columnas.",
+      noAnswer: "Aurora no tiene sugerencias: {missing}",
+      failed: "Aurora no pudo sugerir asignaciones. Asigne las columnas usted.",
+      applied:
+        "{count, plural, one {Aurora sugirió # columna. Revísela antes de confirmar.} other {Aurora sugirió # columnas. Revíselas antes de confirmar.}}",
+      none: "Aurora no encontró nada que agregar a las sugerencias actuales.",
     },
   },
   objects: {
@@ -27526,6 +27823,126 @@ var platform_default = {
       "Nuestro análisis antivirus encontró algo dañino en este archivo, así que se eliminó. Nadie puede abrirlo. Revise el archivo en su dispositivo y suba una copia limpia.",
     scanFailed:
       "No se pudo revisar este archivo en busca de virus, así que sigue cerrado. Súbalo de nuevo, o guárdelo antes en otro formato.",
+  },
+  warehouse: {
+    title: "Entrega al almacén de datos",
+    description:
+      "Archivos Parquet o CSV con los datos de su organización cada noche en su propio bucket, para su almacén de datos. Las columnas restringidas nunca se entregan.",
+    enterpriseOnly: "La entrega al almacén de datos es parte del plan Enterprise.",
+    readOnly:
+      "Cambiar la entrega al almacén de datos requiere la capacidad Programar la entrega de informes y al almacén de datos.",
+    loadError: "No se pudo cargar la entrega al almacén de datos.",
+    empty: "Aún no hay destinos. Agregue su bucket abajo.",
+    docs: "Leer el esquema publicado",
+    add: {
+      heading: "Agregar un destino",
+      provider: "Proveedor",
+      providerHelp: "S3 funciona con Amazon S3 y con cualquier servicio compatible con S3.",
+      unavailable: "{provider} (aún no disponible)",
+      name: "Nombre",
+      nameHelp: "Cómo reconoce este destino, por ejemplo Lago de análisis.",
+      bucket: "Bucket",
+      region: "Región",
+      regionHelp: "Por ejemplo us-east-1. Use auto para Cloudflare R2.",
+      endpoint: "Punto de acceso",
+      endpointHelp: "Solo para un servicio que no sea Amazon S3: su dirección HTTPS.",
+      prefix: "Carpeta",
+      prefixHelp:
+        "Carpeta dentro del bucket. Cada entrega escribe una carpeta con fecha dentro de ella.",
+      format: "Formato",
+      hour: "Hora de entrega (UTC)",
+      hourHelp: "Una hora entera de 0 a 23.",
+      confidential: "Entregar también las columnas confidenciales",
+      confidentialHelp: "Las columnas restringidas nunca se entregan.",
+      submit: "Agregar destino",
+      added: "Destino agregado. Ahora guarde su credencial.",
+    },
+    destinations: "Destinos",
+    line: "{provider}, bucket {bucket}, {format}, cada noche a las {hour}:00 UTC",
+    states: {
+      Active: "Activo",
+      Paused: "En pausa",
+    },
+    next: "Próxima entrega {when}",
+    last: "Última entrega {when}",
+    never: "Aún no se ha entregado",
+    lastError: "Último error: {error}",
+    confidentialOn: "Se entregan las columnas confidenciales.",
+    credential: {
+      label: "Credencial del bucket (JSON)",
+      help: "JSON con access_key_id y secret_access_key, y session_token para credenciales temporales. Se guarda en Vault y no se vuelve a mostrar.",
+      submit: "Guardar credencial",
+      saved: "Credencial guardada.",
+      stored: "Credencial guardada {when}",
+      missing: "Aún no hay credencial guardada.",
+    },
+    actions: {
+      deliverNow: "Entregar ahora",
+      queued: "Entrega en cola. Empieza en menos de un minuto.",
+      pause: "Pausar",
+      resume: "Reanudar",
+      remove: "Eliminar destino",
+      removed: "Destino eliminado. Su credencial se destruyó.",
+    },
+    deliveries: {
+      title: "Entregas recientes",
+      empty: "Aún no hay entregas.",
+      started: "Inicio",
+      state: "Estado",
+      trigger: "Iniciada por",
+      tables: "Tablas",
+      rows: "Filas",
+      withheld: "Columnas omitidas",
+      error: "Error",
+      manual: "Entregar ahora",
+      nightly: "Programa nocturno",
+    },
+    deliveryStates: {
+      Queued: "En cola",
+      Running: "En curso",
+      Delivered: "Entregada",
+      Retrying: "Reintentando",
+      Failed: "Fallida",
+    },
+    withheld: {
+      title: "Columnas que nunca se entregan",
+      intro:
+        "Las columnas restringidas nunca salen de XOS en una entrega. Las columnas confidenciales solo van a un destino que las incluya.",
+      restricted: "{table}.{column}: restringida, nunca se entrega",
+      confidential: "{table}.{column}: confidencial, solo si se incluye",
+    },
+  },
+  inbound: {
+    title: "Webhooks de proveedores",
+    description:
+      "Cambios y enlaces que los proveedores conectados envían a XOS. Un webhook que falla definitivamente espera aquí hasta que usted lo reenvíe.",
+    loadError: "No se pudieron cargar los webhooks de proveedores.",
+    empty: "Ningún webhook de proveedor ha fallado definitivamente.",
+    caption: "Webhooks fallidos",
+    line: "{provider}, {kind}, recibido {when}, {attempts} intentos",
+    kinds: {
+      "Link Unfurl": "vista previa de enlace",
+      "Change Notice": "aviso de cambio",
+    },
+    error: "Error: {error}",
+    retry: "Intentar de nuevo",
+    retryLabel: "Intentar de nuevo el webhook de {provider}",
+    reason: "Por qué intentarlo de nuevo",
+    reasonHelp: "Por ejemplo, se reinstaló el token.",
+    retried: "Reenviado. Se ejecuta en menos de un minuto.",
+    secrets: {
+      title: "Secretos de webhook",
+      intro:
+        "Los webhooks salientes de Teams, los canales de Google Calendar y las suscripciones de Microsoft Graph firman lo que envían con un secreto de la conexión. Dirija el proveedor al punto de acceso y guarde aquí el mismo secreto.",
+      endpoint: "Punto de acceso: {url}",
+      stored: "Secreto guardado {when}",
+      missing: "No hay secreto guardado",
+      label: "Secreto de webhook de {name}",
+      help: "Al menos 16 caracteres. Se guarda en Vault y no se vuelve a mostrar.",
+      submit: "Guardar secreto",
+      saved: "Secreto guardado.",
+      connection: "{name} ({provider})",
+    },
   },
 };
 var procurement_default = {
