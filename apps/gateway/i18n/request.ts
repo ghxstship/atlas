@@ -36,12 +36,13 @@ export function messagesFor(locale: GatewayLocale): Messages {
 }
 
 /**
- * The namespaces Gateway client components read: Gateway's own copy, the sitemap labels (`nav`),
- * personal settings, the shell, view names, help, statuses and Work Details. Server components keep
- * every namespace; test/client-namespaces.test.ts fails when a client component asks for one
- * outside this list.
+ * The namespaces Gateway client components read: second factors and passkeys (`authSecurity`, shared
+ * with Atlas), Gateway's own copy, the sitemap labels (`nav`), personal settings, the shell, view names,
+ * help, statuses and Work Details. Server components keep every namespace;
+ * test/client-namespaces.test.ts fails when a client component asks for one outside this list.
  */
 export const CLIENT_NAMESPACES: readonly Namespace[] = [
+  "authSecurity",
   "gateway",
   "help",
   "nav",

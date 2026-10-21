@@ -15,7 +15,8 @@
     "inspection-report": "Informe de inspección",
     "incident-report": "Informe de incidente",
     "final-cost-report": "Informe de costo final",
-    "agreement-certificate": "Certificado de firma"
+    "agreement-certificate": "Certificado de firma",
+    "deletion-certificate": "Certificado de eliminación"
   },
   "facts": {
     "recordKey": "Clave del registro",
@@ -248,5 +249,33 @@
       "Expired": "Vencido",
       "Canceled": "Cancelado"
     }
+  },
+  "deletionCertificate": {
+    "title": "Certificado de eliminación: {org}",
+    "issuer": "XOS",
+    "key": "Certificado",
+    "qrAlt": "Código QR que abre sus certificados de eliminación en Atlas, certificado {key}",
+    "statement": "Este certificado confirma que todos los registros y archivos almacenados de {org} se eliminaron de XOS el {date}.",
+    "organization": "Organización",
+    "orgName": "Nombre",
+    "orgSlug": "Dirección web",
+    "orgId": "Id de la organización",
+    "issuedTo": "Emitido a",
+    "formerOwner": "El antiguo Propietario",
+    "timeline": "Cronología",
+    "canceled": "Cancelada",
+    "requestedDeletion": "Eliminación solicitada",
+    "due": "Fecha prevista de eliminación",
+    "deleted": "Eliminada",
+    "whatWasDeleted": "Qué se eliminó",
+    "what": "Qué",
+    "count": "Cantidad",
+    "rows": "Registros",
+    "tables": "Tipos de registro",
+    "files": "Archivos almacenados",
+    "nothing": "No había nada almacenado.",
+    "backupsTitle": "Copias de seguridad",
+    "backups": "Las copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario. Solo se conservan para recuperación ante desastres y no se usan para restaurar una organización eliminada.",
+    "keep": "Conserve este certificado en sus archivos. Su id es {id}."
   }
 }

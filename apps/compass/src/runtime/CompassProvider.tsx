@@ -27,6 +27,7 @@ import {
   type ReactNode,
 } from "react";
 import { downloadAll, type DownloadReport } from "../data/downloader";
+import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from "./assurance";
 import { IdentityError, resolveIdentity, type ResolvedIdentity } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
 import {
@@ -77,6 +78,8 @@ const PROJECT_KEY = "xos.compass.project";
 export type Phase =
   | { readonly kind: "starting" }
   | { readonly kind: "signed-out" }
+  | { readonly kind: "second-factor"; readonly factors: readonly ChallengeFactor[] }
+  | { readonly kind: "factor-required" }
   | { readonly kind: "identity-failed"; readonly step: string; readonly message: string }
   | { readonly kind: "ready" };
 
@@ -279,14 +282,26 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     return () => data.subscription.unsubscribe();
   }, [client, engine]);
 
-  // Identity and scope.
+  // Identity and scope, after the second factor the session owes (A77): one the person holds, then the one
+  // their org's security settings ask of their role.
   useEffect(() => {
     if (!session || !store) return;
     let live = true;
-    void resolveIdentity(client, session.user.id)
+    /** True when the gate holds the device; the auth listener reopens it once the session changes. */
+    const held = (gate: SecondFactorGate): boolean => {
+      if (!live || gate.kind === "ok") return !live;
+      if (gate.kind === "verify") setPhase({ kind: "second-factor", factors: gate.factors });
+      else if (gate.kind === "enroll-elsewhere") setPhase({ kind: "factor-required" });
+      else void client.auth.signOut({ scope: "local" });
+      return true;
+    };
+    void secondFactorGate(client, null)
+      .then(async (gate) => (held(gate) ? null : resolveIdentity(client, session.user.id)))
       .then(async (next) => {
-        if (!live) return;
-        orgRef.current = next.identity.membershipId ? next.orgId : null;
+        if (!live || next === null) return;
+        const org = next.identity.membershipId ? next.orgId : null;
+        if (held(await secondFactorGate(client, org))) return;
+        orgRef.current = org;
         const sync = new SyncSession(store, next.scope);
         // A narrower scope than last time (an engagement completed) purges rows the device may no longer hold.
         await sync.narrow(next.scope);

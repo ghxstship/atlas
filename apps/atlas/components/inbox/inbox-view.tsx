@@ -1,9 +1,11 @@
 "use client";
 
+import { chordOf } from "@xos/schemas/shortcuts/keys";
 import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
 import type { Route } from "next";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import {
   useCallback,
   useEffect,
@@ -12,9 +14,9 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
 import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
+import { useShellKeys } from "@/components/shell/shell-keys-context";
 import { neighbourOf } from "@/lib/inbox/focus";
 import type { PlatformActionState } from "@/lib/platform/state";
 
@@ -34,15 +36,17 @@ export interface InboxRow {
 
 type Quick = "approve" | "done" | "snooze";
 
-/** Shortcut keys shown above the list; the keys are the same in every language. */
-const KEY_HINTS: readonly (readonly [readonly string[], string])[] = [
-  [["J", "K"], "move"],
-  [["A"], "approve"],
-  [["R"], "reject"],
-  [["E"], "done"],
-  [["H"], "snooze"],
-  [["Enter"], "open"],
-];
+/**
+ * Shortcuts on the focused item, by registry id (packages/schemas/shortcuts.yaml, scope inbox), with the
+ * hint label each shows above the list. J and K move as in every list (list.next and list.previous).
+ */
+const ACTIONS = [
+  ["inbox.approve", "approve"],
+  ["inbox.reject", "reject"],
+  ["inbox.done", "done"],
+  ["inbox.snooze", "snooze"],
+] as const;
+const MODIFIER = /(?:^|\+)(?:Mod|Ctrl|Alt)\+/;
 
 /**
  * Sends one quick act. Approve and Done go straight to the public API's notification action (the
@@ -74,9 +78,10 @@ async function sendAct(org: string, id: string, action: Quick): Promise<Platform
 
 /**
  * The Inbox list (Section 11.10 rule 5). Keyboard: J or Down and K or Up move between items, A approves,
- * R rejects with a reason, E marks Done, H snoozes until tomorrow and Enter opens the item. Acting removes
- * the item at once and moves to the next, so a queue is cleared without waiting; a refusal puts the item
- * back and says why.
+ * R rejects with a reason, E marks Done, H snoozes until tomorrow and Enter opens the item, as the
+ * person's shortcuts say (Personal settings, Keyboard Shortcuts). Single keys obey me.shortcuts_enabled;
+ * the arrow keys and Enter always work. Acting removes the item at once and moves to the next, so a queue
+ * is cleared without waiting; a refusal puts the item back and says why.
  *
  * The selection is held by item id, not by position, and the focus moves to the neighbour before the
  * acted-on item leaves the DOM (journey 57): focus never falls to the page body between two key presses,
@@ -84,6 +89,7 @@ async function sendAct(org: string, id: string, action: Quick): Promise<Platform
  */
 export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[] }) {
   const t = usePlatformT();
+  const keys = useShellKeys();
   const router = useRouter();
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set());
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -164,49 +170,53 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
   );
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
-    if (event.metaKey || event.ctrlKey || event.altKey) return;
-    // Letter shortcuts follow me.shortcuts_enabled; the arrow keys always move.
-    if (event.key.length === 1 && !singleKeyShortcutsEnabled()) return;
     const onControl =
       event.target instanceof HTMLButtonElement || event.target instanceof HTMLAnchorElement;
     if (onControl && (event.key === "Enter" || event.key === " ")) return;
     const row = current;
-    switch (event.key.toLowerCase()) {
-      case "j":
-      case "arrowdown":
+    const chord = chordOf(event, keys.platform);
+    // list.open (Enter) is fixed keyboard operation, so it opens the focused item whatever the setting.
+    if (chord !== null && chord === (keys.scoped["list.open"] ?? "Enter")) {
+      if (row?.href) {
         event.preventDefault();
-        focusItem(Math.min(currentIndex + 1, items.length - 1));
-        return;
-      case "k":
-      case "arrowup":
-        event.preventDefault();
-        focusItem(Math.max(currentIndex - 1, 0));
-        return;
-      case "enter":
-        if (row?.href) {
-          event.preventDefault();
-          router.push(row.href as Route);
-        }
-        return;
-      case "a":
+        router.push(row.href as Route);
+      }
+      return;
+    }
+    // Single keys follow me.shortcuts_enabled (singleKeyShortcutsEnabled); the arrow keys always move.
+    const single = !MODIFIER.test(chord ?? "") && !(chord ?? "").startsWith("Arrow");
+    if (chord === null || (single && !singleKeyShortcutsEnabled())) return;
+    const action = ACTIONS.find(([id]) => keys.scoped[id] === chord)?.[0];
+    if (chord === "ArrowDown" || chord === keys.scoped["list.next"]) {
+      event.preventDefault();
+      focusItem(Math.min(currentIndex + 1, items.length - 1));
+      return;
+    }
+    if (chord === "ArrowUp" || chord === keys.scoped["list.previous"]) {
+      event.preventDefault();
+      focusItem(Math.max(currentIndex - 1, 0));
+      return;
+    }
+    switch (action) {
+      case "inbox.approve":
         if (row?.approvable) {
           event.preventDefault();
           act(row, "approve");
         }
         return;
-      case "e":
+      case "inbox.done":
         if (row) {
           event.preventDefault();
           act(row, "done");
         }
         return;
-      case "h":
+      case "inbox.snooze":
         if (row) {
           event.preventDefault();
           act(row, "snooze");
         }
         return;
-      case "r":
+      case "inbox.reject":
         if (row?.approvable) {
           event.preventDefault();
           setRejecting(row);
@@ -267,14 +277,18 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
     <div className="flex flex-col gap-16">
       <p className="m-0 hidden flex-wrap items-center gap-8 text-text-12 text-text-secondary md:flex">
         <span>{t("inbox.keys.title")}</span>
-        {KEY_HINTS.map(([keys, label]) => (
-          <span key={label} className="inline-flex items-center gap-4">
-            {keys.map((k) => (
-              <Kbd key={k}>{k}</Kbd>
-            ))}
-            {t(`inbox.keys.${label}`)}
-          </span>
-        ))}
+        {[
+          [[keys.display["list.next"], keys.display["list.previous"]], "move"] as const,
+          ...ACTIONS.map(([id, label]) => [[keys.display[id]], label] as const),
+          [[keys.display["list.open"] ?? "Enter"], "open"] as const,
+        ].map(([shown, label]) =>
+          shown.every((k) => k === undefined) ? null : (
+            <span key={label} className="inline-flex items-center gap-4">
+              {shown.map((k) => (k === undefined ? null : <Kbd key={k}>{k}</Kbd>))}
+              {t(`inbox.keys.${label}`)}
+            </span>
+          ),
+        )}
       </p>
       <div aria-live="polite" className="flex flex-col gap-4">
         {handled > 0 ? (

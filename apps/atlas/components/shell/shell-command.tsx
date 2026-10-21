@@ -73,9 +73,10 @@ function tokenText(token: SearchToken): string {
  * opened last (the last 50, Section 11.7), the common actions, the search operators, every page and the
  * help articles. As they type it shows the filters it recognized as chips and asks the server for records,
  * incidents, people, documents, SOPs, handbook articles, settings and actions (app.global_search, scoped by
- * row level security), so no org data is in the route bundle. It works entirely from the keyboard: arrows
- * move, Enter opens, an operator hint fills the search field and keeps the menu open. It loads the first
- * time it opens (A24-009); the shell frame owns the shortcuts.
+ * row level security), so no org data is in the route bundle. Pages and the actions that open them show
+ * the keys of their navigation shortcut. It works entirely from the keyboard: arrows move, Enter opens, an
+ * operator hint fills the search field and keeps the menu open. It loads the first time it opens
+ * (A24-009); the shell frame owns the shortcuts.
  */
 export function ShellCommand({ open, onOpenChange, commands, locale, go }: ShellCommandProps) {
   const t = useTranslations();
@@ -106,17 +107,27 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
   const close = () => onOpenChange(false);
   // A peek where the shell opens it, else the record page (lib/shell/peek).
   const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key);
+  // An action that opens a page shows that page's navigation shortcut, as the page entry does.
+  const shortcutOf = new Map<string, string>(
+    commands.flatMap((g) =>
+      g.items.flatMap((i) => (i.shortcut ? [[i.href, i.shortcut] as const] : [])),
+    ),
+  );
   const found = answer.groups.map((g) => ({
     label: g.label,
-    items: g.items.map((item) => ({
-      label: item.label,
-      icon: item.icon as IconName,
-      ...(item.code ? { code: item.code } : {}),
-      onSelect: () => {
-        close();
-        go(item.peek ? peekHref(item.peek) : (item.href ?? pathname));
-      },
-    })),
+    items: g.items.map((item) => {
+      const shortcut = item.href === undefined ? undefined : shortcutOf.get(item.href);
+      return {
+        label: item.label,
+        icon: item.icon as IconName,
+        ...(item.code ? { code: item.code } : {}),
+        ...(shortcut ? { shortcut } : {}),
+        onSelect: () => {
+          close();
+          go(item.peek ? peekHref(item.peek) : (item.href ?? pathname));
+        },
+      };
+    }),
   }));
 
   // Pages and help answer plain words in the browser; a query with operators asks only the server.
@@ -131,6 +142,7 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
         .map((item) => ({
           label: item.label,
           icon: item.icon as IconName,
+          ...(item.shortcut ? { shortcut: item.shortcut } : {}),
           onSelect: () => {
             onOpenChange(false);
             go(item.href);

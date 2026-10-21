@@ -45,7 +45,7 @@ select is(app.subscribe_external_account((select id from k where key = 'acct')),
   'the Account Owner subscribes the account itself');
 select pg_temp.as_platform();
 select is((select plan_code from app.subscriptions where org_id = (select id from k where key = 'acct') and deleted_at is null),
-  'access', 'it starts on the Access plan');
+  'pro', 'it starts a Pro trial (Section 14.7)');
 select is((select count(*)::integer from app.organizations where slug = 'nina-lighting' or name = 'Nina Lighting Rentals'),
   1, 'no second organization is created');
 select is((select array_agg(r.code) from app.memberships m join app.membership_roles mr on mr.membership_id = m.id and mr.deleted_at is null

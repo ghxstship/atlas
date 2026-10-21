@@ -21,8 +21,8 @@ import {
   unblockAction,
   type AccessControlFormState,
 } from "@/app/[org]/settings/access-control-actions";
+import { useStepUpForm } from "@/components/auth/security/step-up";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
-import { SecondFactor } from "@/components/auth/second-factor";
 
 /**
  * Client forms for the A52 settings panels (legal entities, IP allow-list, break-glass, access
@@ -293,22 +293,17 @@ export function RemoveNetworkButton({
 
 // Break-glass -----------------------------------------------------------------------------------------------
 
+const stepUpRefused = (state: AccessControlFormState) => state.error === "step_up_required";
+
+/** Break-glass: the database asks for a recent second factor; the step-up dialog gets one and resubmits (A59-019). */
 export function BreakGlassForm({ org }: { org: string }) {
   const { state, dispatch, pending, keep, fieldError, t } = useForm(startBreakGlassAction);
-  // A refusal for want of a second factor offers the step-up in place, then retries (A59-019).
-  const stepUp = state.error === "step_up_required";
+  const stepUpDialog = useStepUpForm(state, stepUpRefused, keep.ref);
+  // The dialog renders outside the form: React bubbles a portal's submit event to its tree parents.
   return (
-    <div className="flex max-w-layout-form flex-col gap-12">
-      {stepUp ? (
-        <SecondFactor
-          mode="step-up"
-          onVerified={() =>
-            (document.getElementById("break-glass-form") as HTMLFormElement | null)?.requestSubmit()
-          }
-        />
-      ) : null}
+    <>
+      {stepUpDialog}
       <form
-        id="break-glass-form"
         action={dispatch}
         {...keep}
         aria-label={t("breakGlass.startLabel")}
@@ -316,7 +311,7 @@ export function BreakGlassForm({ org }: { org: string }) {
         noValidate
       >
         <input type="hidden" name="org" value={org} />
-        {stepUp ? null : <Status state={state} />}
+        <Status state={state} />
         <Textarea
           id="break-glass-reason"
           name="reason"
@@ -333,7 +328,7 @@ export function BreakGlassForm({ org }: { org: string }) {
           </Button>
         </div>
       </form>
-    </div>
+    </>
   );
 }
 

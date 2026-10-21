@@ -488,8 +488,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "home.alerts.read":
     "Alerts are delivered through notifications; a dedicated alerts feed arrives with the Home module.",
   "projects.project.export": "Exports run through export jobs, which require data.export.run.",
-  "projects.settings.write":
-    "Project settings are fields of the project and its settings registry values.",
   "schedule.milestone.write":
     "Milestones are records of kind Milestone and use the record write capability.",
   "schedule.timeline.export": "Exports run through export jobs.",
@@ -512,7 +510,6 @@ export const UNUSED_CAPABILITY_ALLOWLIST: Readonly<Record<string, string>> = {
   "org.localization.write": "Localization defaults are setting values.",
   "org.legal.read": "Legal acceptance records arrive with A21.",
   "org.legal.accept": "Legal acceptance records arrive with A21.",
-  "org.ownership.transfer": "Ownership transfer arrives with A30 offboarding in Wave 3.",
   "org.organization.archive": "Org lifecycle operations arrive with A18 billing.",
   "org.departments.write": "Departments in use are setting values.",
   "org.locations.write": "Location defaults are setting values.",
