@@ -632,6 +632,46 @@
       "entry": "Shared by {owner} · Your members act as {role}"
     }
   },
+  "shortcuts": {
+    "title": "Change shortcuts",
+    "description": "Choose Change, then press the new keys. A sequence is a letter, then a second key, such as G then H. Esc cancels.",
+    "table": "Shortcuts you can change",
+    "recording": "Press the new keys for {action}, or Esc to cancel.",
+    "saved": "{action} now uses {keys}.",
+    "resetOne": "{action} uses its default keys again.",
+    "resetAll": "Reset all shortcuts",
+    "resetAllDone": "Every shortcut uses its default keys again.",
+    "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
+    "problems": {
+      "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",
+      "browser": "{keys} belongs to your browser or computer. Choose other keys.",
+      "screen-reader": "{keys} belongs to screen readers. Choose other keys.",
+      "navigation": "{keys} moves around the page. Choose other keys.",
+      "typing": "This shortcut also works while you type, so it needs Ctrl, Cmd or Alt.",
+      "invalid": "Those keys cannot be a shortcut. Use a letter, digit or symbol, with Ctrl, Cmd, Alt or Shift if you like.",
+      "fixed": "This shortcut cannot be changed.",
+      "unknown": "This shortcut no longer exists. Reload the page.",
+      "failed": "The shortcut was not saved. Try again."
+    }
+  },
+  "sidebar": {
+    "title": "Sidebar",
+    "description": "Hide the items you never use and put the groups and items in your own order. Hidden items stay in search and the command menu.",
+    "group": "{group} group",
+    "show": "Show {item} in the sidebar",
+    "move": "Move {item}",
+    "moveHelp": "Drag, or press Space to pick up, the arrow keys to move, Space to drop and Esc to cancel.",
+    "picked": "{item} picked up, position {position} of {count}. Use the arrow keys to move it, Space to drop it.",
+    "moved": "{item} moved to position {position} of {count}.",
+    "dropped": "{item} dropped at position {position} of {count}.",
+    "returned": "{item} put back at position {position} of {count}.",
+    "save": "Save sidebar",
+    "saved": "Your sidebar is saved.",
+    "reset": "Reset to role default",
+    "resetDone": "Your sidebar is back to the default for your role.",
+    "failed": "The sidebar was not saved. Try again."
+  },
   "notifications": {
     "category": "Category",
     "channels": {

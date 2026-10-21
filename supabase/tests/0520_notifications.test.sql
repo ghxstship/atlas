@@ -17,6 +17,12 @@ $$;
 select pg_temp.as_platform();
 create temporary table n (key text primary key, id uuid);
 grant select on n to public;
+-- Dave is reached in a zone where it is now midday, so the default 21:00 to 08:00 window for texts and push
+-- (1367, ADR 0033 decision 35) never holds his deliveries, whatever time the suite runs.
+insert into app.notification_settings (membership_id, time_zone)
+select pg_temp.id('dave@org_a'), z.name from pg_catalog.pg_timezone_names z
+where z.name ~ '^Etc/GMT[+-][0-9]+$' and (now() at time zone z.name)::time between time '10:00' and time '16:00'
+order by z.name limit 1;
 insert into n values ('dave_1', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', 'app.expenses', gen_random_uuid(), pg_temp.id('prj_a'), '{"title": "Rigging rental"}'));
 select is(pg_temp.channels((select id from n where key = 'dave_1')), 'Email:Queued,Push:Queued',
   'by default a member gets email and push; SMS waits for an opt-in');

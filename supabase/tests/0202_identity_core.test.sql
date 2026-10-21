@@ -43,6 +43,8 @@ select is(
        'organizations', 'people',
        -- person-owned: one row per sign-in, keyed by user_id (ADR 0007 item 1, migration 0920)
        'active_org_selections',
+       -- person-owned keyboard shortcut bindings keyed by person_id, readable only by the person (A81, migration 1370)
+       'shortcut_bindings',
        -- person-owned profile rows keyed by person_id, read by others only through api_public (A30, migration 0860)
        'person_profiles', 'profile_section_visibility', 'person_skills', 'person_languages', 'person_links',
        'portfolio_items', 'person_references', 'person_certifications',

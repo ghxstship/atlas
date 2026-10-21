@@ -685,3 +685,6 @@ settings:
     enforced_by:
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
+      # The Atlas shell's registry key handler: C, ?, / and G then a letter (A81, shortcuts.yaml).
+      - consumer: apps/atlas/components/shell/key-dispatch.ts#installShellKeys
+        test: apps/atlas/test/shortcuts.test.ts
