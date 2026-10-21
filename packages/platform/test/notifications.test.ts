@@ -1003,14 +1003,15 @@ describe("chat message translation (Section 4.9)", () => {
 // Stores --------------------------------------------------------------------------------------------------------
 
 describe("stores over the 1361 and 1363 RPCs", () => {
-  it("reads the recipient's language and zone in the org through the 1393 RPC, never a cleared setting row", async () => {
+  it("reads the recipient's live language and zone in the org (app.recipient_setting, 1393)", async () => {
     const { db, calls } = fakeDb(
       {
-        // The database resolves live values only: a value for this org over one for every org.
-        notification_recipient_profile: (args) =>
-          args["p_person_id"] === "p1"
-            ? [{ full_name: "Dave Lindqvist", language: "en-US", time_zone: "America/Chicago" }]
-            : [{ full_name: null, language: null, time_zone: null }],
+        // The database answers with live values only, one kept for this org over the one for every org, and
+        // the zone the org reaches the person in.
+        recipient_setting: (args) =>
+          args["p_person_id"] === "p1" && args["p_setting_key"] === "locale.time_zone"
+            ? "America/Chicago"
+            : null,
       },
       {
         people: [{ id: "p1", full_name: "Dave Lindqvist" }],
@@ -1022,12 +1023,6 @@ describe("stores over the 1361 and 1363 RPCs", () => {
             value_text: "es-US",
             deleted_at: "2026-10-20T00:00:00Z",
           },
-          {
-            person_id: "p1",
-            setting_key: "locale.time_zone",
-            value_text: "Asia/Tokyo",
-            deleted_at: "2026-10-20T00:00:00Z",
-          },
         ],
       },
     );
@@ -1036,11 +1031,23 @@ describe("stores over the 1361 and 1363 RPCs", () => {
       locale: "en-US",
       timeZone: "America/Chicago",
     });
-    expect(calls[0]).toEqual({
-      fn: "notification_recipient_profile",
-      args: { p_person_id: "p1", p_org_id: "org-1" },
+    expect(calls).toEqual([
+      {
+        fn: "recipient_setting",
+        args: { p_person_id: "p1", p_org_id: "org-1", p_setting_key: "locale.language" },
+      },
+      {
+        fn: "recipient_setting",
+        args: { p_person_id: "p1", p_org_id: "org-1", p_setting_key: "locale.time_zone" },
+      },
+    ]);
+    // Outside an org only the values kept for every org apply.
+    await recipientProfile(db, "p1");
+    expect(calls.at(-1)?.args).toEqual({
+      p_person_id: "p1",
+      p_org_id: null,
+      p_setting_key: "locale.time_zone",
     });
-    // An org with no zone and no project at all is the only case left for UTC.
     await expect(recipientProfile(db, "p9", "org-1")).resolves.toEqual({
       name: "",
       locale: "en-US",
@@ -1069,12 +1076,10 @@ describe("stores over the 1361 and 1363 RPCs", () => {
           },
         ],
         record_push_tickets: () => null,
+        recipient_setting: () => null,
         record_notification_delivery: () => null,
         claim_push_receipts: () => [{ ticket_id: "t-1" }],
         record_push_receipts: () => 2,
-        notification_recipient_profile: () => [
-          { full_name: "Dave Lindqvist", language: "en-US", time_zone: "America/New_York" },
-        ],
       },
       {
         records: [{ id: "r1", project_id: "prj-1", record_number: 42 }],
@@ -1099,7 +1104,8 @@ describe("stores over the 1361 and 1363 RPCs", () => {
       "record_notification_delivery",
       "claim_push_receipts",
       "record_push_receipts",
-      "notification_recipient_profile",
+      "recipient_setting",
+      "recipient_setting",
     ]);
   });
 
@@ -1135,12 +1141,11 @@ describe("stores over the 1361 and 1363 RPCs", () => {
             message_args: { title: "Load in" },
           },
         ],
+        recipient_setting: (args) =>
+          args["p_setting_key"] === "locale.time_zone" ? "America/Chicago" : null,
         record_notification_delivery: () => null,
         record_sms_keyword: () => 2,
         record_sms_status: () => true,
-        notification_recipient_profile: () => [
-          { full_name: "Dave Lindqvist", language: "es-US", time_zone: "America/Chicago" },
-        ],
       },
       { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
     );

@@ -183,24 +183,31 @@ export function gatewayLink(
 }
 
 /**
- * A person's name, language and time zone for rendering any channel to them from an org, through
- * app.notification_recipient_profile (1393): their live `locale.language` (a value for this org over one for
- * every org, cleared values ignored), else the org's, else en-US; and the zone the org reaches them in
- * (private.recipient_time_zone), which falls back through their projects and the org, never to UTC by default.
- * UTC is used only when the org has no zone and no project at all.
+ * A person's name, language and time zone for rendering any channel: their own `locale.language` and
+ * `locale.time_zone` personal settings, else en-US and UTC.
  */
 export async function recipientProfile(
   db: PlatformDb,
   personId: string,
-  orgId: string,
+  orgId?: string,
 ): Promise<Recipient> {
-  const row = rows(
-    await db.rpc("notification_recipient_profile", { p_person_id: personId, p_org_id: orgId }),
-  )[0];
+  const person = await db.selectOne("people", "full_name", { id: personId });
+  // Live values only: one kept for this org over the one for every org, and the zone the org reaches them in (1393).
+  const setting = async (key: string) =>
+    optionalText(
+      {
+        value_text: await db.rpc("recipient_setting", {
+          p_person_id: personId,
+          p_org_id: orgId ?? null,
+          p_setting_key: key,
+        }),
+      },
+      "value_text",
+    );
   return {
-    name: optionalText(row, "full_name") ?? "",
-    locale: optionalText(row, "language") ?? "en-US",
-    timeZone: optionalText(row, "time_zone") ?? "UTC",
+    name: optionalText(person ?? undefined, "full_name") ?? "",
+    locale: (await setting("locale.language")) ?? "en-US",
+    timeZone: (await setting("locale.time_zone")) ?? "UTC",
   };
 }
 

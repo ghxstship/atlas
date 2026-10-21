@@ -309,6 +309,7 @@ export function createSmsProvider(
 /** What the SMS sender needs from the database. */
 export interface SmsStore {
   claimSms(limit: number): Promise<readonly ClaimedSms[]>;
+  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
   orgName(orgId: string): Promise<string>;
   /** Link that opens the notification, kept short for the text. */
@@ -397,6 +398,7 @@ export interface ClaimedSmsSummary {
 /** What the summary sender needs from the database. */
 export interface SmsSummaryStore {
   claimSummaries(limit: number): Promise<readonly ClaimedSmsSummary[]>;
+  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
   orgName(orgId: string): Promise<string>;
   /** The org's Inbox, where every held notification waits. */

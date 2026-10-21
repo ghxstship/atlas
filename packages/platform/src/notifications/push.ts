@@ -94,6 +94,7 @@ export interface TicketReceipt {
 /** What the push sender needs from the database. */
 export interface PushStore {
   claimPush(limit: number): Promise<readonly ClaimedPush[]>;
+  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
   /** The Compass deep link of the notification's subject. */
   deepLink(claim: ClaimedPush): Promise<string>;

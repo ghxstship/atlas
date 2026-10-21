@@ -12,9 +12,9 @@
 --      created, so a change to a shift 12.5 hours away, made in quiet hours that last longer than that, waited for the
 --      end of quiet hours and could arrive after the shift started. Held texts and deferred pushes now wait no later
 --      than the shift's startsAt less the window, and the summary releases a held text whose window has opened.
---   5. Senders read the recipient's language and time zone through app.notification_recipient_profile. The platform
---      read personal_setting_values directly with no deleted_at filter and no org precedence, so a cleared language
---      or zone could still apply, and a missing zone fell back to UTC.
+--   5. Senders read the recipient's own language and time zone through app.recipient_setting. The platform read
+--      personal_setting_values directly with no deleted_at filter, no org and no order, so a cleared language or
+--      zone could still apply, a value kept for another org could win, and a missing zone fell back to UTC.
 --   6. A sent text counts its billed segments toward the sms_segments meter, not one per text. The sender passes the
 --      count (Twilio's, else computed from the encoded body) to record_notification_delivery and record_sms_summary.
 
@@ -545,21 +545,28 @@ $$;
 
 comment on function app.claim_notification_deliveries(app.notification_channel, integer) is 'Worker API (service role): claims due deliveries of a channel with SKIP LOCKED. Quiet hours are checked again unless the kind is on the bypass list (ADR 0033 decision 35): a push waits until they end (Deferred), a text is held for the member''s summary (1367), in both cases no later than the opening of the kind''s bypass window, as for a shift starting within 12 hours (1393). Suppresses, with the reason, any delivery whose recipient neither belongs to the org nor works with it as an external party, has no verified address, is suppressed, lacks SMS consent or has no device. Push rows list the devices not yet pushed for the delivery (push_devices). A claimed delivery becomes due again after 10 minutes unless its outcome is recorded.';
 
--- 5. The language and time zone a recipient is reached in --------------------------------------------------------------
+-- 5. A recipient's own language and time zone --------------------------------------------------------------------------
 
-create or replace function app.notification_recipient_profile(p_person_id uuid, p_org_id uuid)
-returns table (full_name text, language text, time_zone text)
+create or replace function app.recipient_setting(p_person_id uuid, p_org_id uuid, p_setting_key text)
+returns text
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select (select p.full_name from app.people p where p.id = p_person_id),
-    private.setting_text(p_org_id, 'locale.language', null, null, p_person_id),
-    private.recipient_time_zone(p_org_id, p_person_id, null);
+  select case
+    when p_setting_key = 'locale.time_zone' and p_org_id is not null then
+      private.recipient_time_zone(p_org_id, p_person_id, null)
+    else
+      (select pv.value_text from app.personal_setting_values pv
+       where pv.person_id = p_person_id and pv.setting_key = p_setting_key and pv.deleted_at is null
+         and (pv.org_id is null or pv.org_id = p_org_id)
+       order by pv.org_id nulls last
+       limit 1)
+  end;
 $$;
 
-comment on function app.notification_recipient_profile(uuid, uuid) is 'Sender API (service role): the name, language and time zone a person is reached in by an org, for rendering email, push and SMS (1393). The language is their live locale.language (a value for this org over one for every org, cleared values ignored), else the org''s, else en-US (private.setting_text); the zone is private.recipient_time_zone (their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. The zone is null only for an org with no zone and no project.';
+comment on function app.recipient_setting(uuid, uuid, text) is 'Sender API (service role): a person''s own value of a personal setting as an org renders email, push and SMS to them (1393): their live value kept for this org over the one for every org, cleared (soft-deleted) values ignored; with no org, only the value for every org. For locale.time_zone in an org it is the zone the org reaches them in (private.recipient_time_zone: their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. Null when they have none. The org''s own locale.language is not applied here.';
 
 -- 6. Texts count their billed segments (record_notification_delivery from 0520, record_sms_summary from 1367) -----------
 
@@ -670,8 +677,8 @@ revoke all on function private.notify_feed_post(uuid) from public, anon, authent
 revoke all on function private.quiet_hours_bypass_opens(text, jsonb) from public, anon, authenticated;
 revoke all on function app.claim_notification_deliveries(app.notification_channel, integer) from public, anon, authenticated;
 grant execute on function app.claim_notification_deliveries(app.notification_channel, integer) to service_role;
-revoke all on function app.notification_recipient_profile(uuid, uuid) from public, anon, authenticated;
-grant execute on function app.notification_recipient_profile(uuid, uuid) to service_role;
+revoke all on function app.recipient_setting(uuid, uuid, text) from public, anon, authenticated;
+grant execute on function app.recipient_setting(uuid, uuid, text) to service_role;
 revoke all on function app.record_notification_delivery(uuid, app.message_status, text, text, integer) from public, anon, authenticated;
 grant execute on function app.record_notification_delivery(uuid, app.message_status, text, text, integer) to service_role;
 revoke all on function app.record_sms_summary(uuid[], app.message_status, text, text, integer) from public, anon, authenticated;

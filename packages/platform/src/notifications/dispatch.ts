@@ -38,6 +38,7 @@ export interface NotificationStore {
   claimEmail(limit: number): Promise<readonly ClaimedEmail[]>;
   /** Sender identity of an org: name, postal address, From address, preference and unsubscribe links. */
   senderFor(orgId: string, recipientPersonId: string): Promise<Sender & { readonly from: string }>;
+  /** The recipient as an org writes to them: their name, its language for them and their time zone. */
   recipient(personId: string, orgId: string): Promise<Recipient>;
   /** Link that opens the notification's subject in the app. */
   linkFor(claim: ClaimedEmail): Promise<string>;

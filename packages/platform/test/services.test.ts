@@ -401,15 +401,9 @@ describe("stores", () => {
             subject_id: "s1",
           },
         ],
+        recipient_setting: () => null,
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
-        notification_recipient_profile: (args) => [
-          {
-            full_name: args["p_person_id"] === "p1" ? "Dave Lindqvist" : null,
-            language: "en-US",
-            time_zone: args["p_org_id"] === "org-1" ? "America/New_York" : null,
-          },
-        ],
       },
       {
         organizations: { slug: "northwind-live", name: "Northwind Live" },
@@ -432,7 +426,7 @@ describe("stores", () => {
     await expect(store.recipient("p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
       locale: "en-US",
-      timeZone: "America/New_York",
+      timeZone: "UTC",
     });
     if (claimed === undefined) throw new Error("claim expected");
     await expect(store.linkFor(claimed)).resolves.toBe(

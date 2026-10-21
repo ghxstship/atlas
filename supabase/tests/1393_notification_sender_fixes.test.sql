@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(28);
+select plan(29);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -167,29 +167,32 @@ select is((pg_temp.sms((select id from n where key = 'shift_window'))).message_s
 select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50) c where c.recipient_person_id = pg_temp.id('frank')), 1,
   'the sender claims it at once, inside quiet hours');
 
--- 5. The language and zone a recipient is reached in ----------------------------------------------------------------------
-create function pg_temp.profile(p_person text) returns text
+-- 5. A recipient's own language and zone, live values only --------------------------------------------------------------
+create function pg_temp.profile(p_person text, p_org text) returns text
 language sql as $$
-  select concat_ws('|', r.full_name, r.language, r.time_zone) from app.notification_recipient_profile(pg_temp.id(p_person), pg_temp.id('org_a')) r
+  select concat_ws('|', coalesce(app.recipient_setting(pg_temp.id(p_person), pg_temp.id(p_org), 'locale.language'), '-'),
+    coalesce(app.recipient_setting(pg_temp.id(p_person), pg_temp.id(p_org), 'locale.time_zone'), '-'))
 $$;
 select pg_temp.as_user('erin');
 select app.set_personal_setting('locale.language', null, 'es-US');
 select app.set_personal_setting('locale.time_zone', null, 'Asia/Tokyo');
 select pg_temp.as_platform();
-select is(pg_temp.profile('erin'), 'Erin Castillo|es-US|Asia/Tokyo', 'a recipient is reached in their own language and zone');
+select is(pg_temp.profile('erin', 'org_a'), 'es-US|Asia/Tokyo', 'a recipient is reached in their own language and zone');
 select pg_temp.as_user('erin');
 select app.clear_personal_setting('locale.language');
 select app.clear_personal_setting('locale.time_zone');
 select pg_temp.as_platform();
-select is(pg_temp.profile('erin'), 'Erin Castillo|en-US|America/New_York',
-  'cleared settings no longer apply: the default language, and the org''s project zone, never UTC');
+select is(pg_temp.profile('erin', 'org_a'), '-|America/New_York',
+  'cleared settings no longer apply: no language of their own, and the org''s project zone, never UTC');
 select pg_temp.as_user('erin');
 select app.set_personal_setting('locale.language', null, 'es-US');
 select app.set_personal_setting('locale.language', pg_temp.id('org_a'), 'en-US');
 select pg_temp.as_platform();
-select is(pg_temp.profile('erin'), 'Erin Castillo|en-US|America/New_York', 'a language kept for this org wins over the one for every org');
-select ok(not has_function_privilege('authenticated', 'app.notification_recipient_profile(uuid, uuid)', 'execute'),
-  'only the senders read a recipient''s profile');
+select is(pg_temp.profile('erin', 'org_a'), 'en-US|America/New_York', 'a language kept for this org wins over the one for every org');
+select is(app.recipient_setting(pg_temp.id('erin'), pg_temp.id('org_b'), 'locale.language'), 'es-US',
+  'and another org sees only the one for every org');
+select ok(not has_function_privilege('authenticated', 'app.recipient_setting(uuid, uuid, text)', 'execute'),
+  'only the senders read a recipient''s settings');
 
 -- 6. Texts count their billed segments --------------------------------------------------------------------------------------
 create function pg_temp.usage(p_source uuid) returns text
