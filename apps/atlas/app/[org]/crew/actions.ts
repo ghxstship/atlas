@@ -3,6 +3,10 @@
 import type { DataError, Result } from "@xos/data";
 import {
   acceptShift,
+  acceptSwap,
+  awardOpenShift,
+  decideShiftClaim,
+  withdrawShiftClaim,
   addRateCardLine,
   approvePayrollRun,
   calculatePayrollRun,
@@ -194,6 +198,39 @@ export async function claimShiftAction(_: State, form: FormData): Promise<State>
   return done(ctx.org.slug, await claimOpenShift(db, id.data, r.data), t);
 }
 
+/** A supervisor approves or rejects a waiting open shift claim (scheduling.open_shift_claiming, 1322). */
+export async function decideClaimAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z
+    .object({ id: uuid, decision: DECISION, reason: z.string().trim().max(500).optional() })
+    .safeParse(Object.fromEntries(form));
+  if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
+  const approved = parsed.data.decision === "Approved";
+  if (!approved && !parsed.data.reason) return invalid(t, { reason: "crew.errors.reason" });
+  return done(
+    ctx.org.slug,
+    await decideShiftClaim(db, parsed.data.id, approved, parsed.data.reason || null),
+    t,
+  );
+}
+
+/** Under the seniority rule, gives the open shift to the most senior claimant. */
+export async function awardShiftAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  const r = reason.safeParse(form.get("reason"));
+  if (!id.success || !r.success) return invalid(t, { reason: "crew.errors.reason" });
+  return done(ctx.org.slug, await awardOpenShift(db, id.data, r.data), t);
+}
+
+/** The claimant withdraws their waiting claim. */
+export async function withdrawClaimAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const id = uuid.safeParse(form.get("id"));
+  if (!id.success) return failed(t, { kind: "not-found" });
+  return done(ctx.org.slug, await withdrawShiftClaim(db, id.data), t);
+}
+
 export async function trashShiftAction(_: State, form: FormData): Promise<State> {
   const { ctx, db, t } = await context(form);
   const id = uuid.safeParse(form.get("id"));
@@ -239,6 +276,14 @@ export async function decideSwapAction(_: State, form: FormData): Promise<State>
     await decideSwap(db, parsed.data.id, parsed.data.decision, parsed.data.reason),
     t,
   );
+}
+
+/** The person offered a shift accepts the swap, where swaps need no supervisor (1322). */
+export async function acceptSwapAction(_: State, form: FormData): Promise<State> {
+  const { ctx, db, t } = await context(form);
+  const parsed = z.object({ id: uuid, reason }).safeParse(Object.fromEntries(form));
+  if (!parsed.success) return invalid(t, { reason: "crew.errors.reason" });
+  return done(ctx.org.slug, await acceptSwap(db, parsed.data.id, parsed.data.reason), t);
 }
 
 export async function cancelSwapAction(_: State, form: FormData): Promise<State> {

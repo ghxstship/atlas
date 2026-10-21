@@ -19,6 +19,29 @@ export type ColorToken = keyof (typeof themeTokens)["dark"]["color"];
 export type TypographyToken = keyof typeof baseTokens.typography;
 export type SpaceToken = keyof typeof baseTokens.space;
 
+type TypographyStyle = (typeof baseTokens.typography)[keyof typeof baseTokens.typography];
+
+/** Type styles with sizes a person's text size may scale (me.text_size). */
+export type NativeTypography = {
+  readonly [K in keyof typeof baseTokens.typography]: Omit<
+    TypographyStyle,
+    "fontSize" | "lineHeight"
+  > & { readonly fontSize: number; readonly lineHeight: number };
+};
+
+/** Motion durations in milliseconds; reduced motion shortens every one (me.reduced_motion). */
+export type NativeDurations = { readonly [K in keyof typeof baseTokens.duration]: number };
+
+/**
+ * The person's accessibility settings a theme applies (Section 4.5.6 Accessibility, A65-001): text size as a
+ * scale, high contrast, and reduced motion.
+ */
+export interface ThemeOptions {
+  readonly textScale?: number;
+  readonly highContrast?: boolean;
+  readonly reduceMotion?: boolean;
+}
+
 /** Everything a native component reads to draw itself: base tokens plus the active theme's colors. */
 export interface XosNativeTheme {
   readonly name: ThemeName;
@@ -33,11 +56,11 @@ export interface XosNativeTheme {
   readonly opacity: typeof baseTokens.opacity;
   readonly iconSize: typeof baseTokens.iconSize;
   readonly density: typeof baseTokens.density;
-  readonly duration: typeof baseTokens.duration;
+  readonly duration: NativeDurations;
   readonly easing: typeof baseTokens.easing;
   readonly spring: typeof baseTokens.spring;
   readonly fontWeight: typeof baseTokens.fontWeight;
-  readonly typography: typeof baseTokens.typography;
+  readonly typography: NativeTypography;
 }
 
 export const DEFAULT_THEME: ThemeName = "dark";
@@ -51,13 +74,50 @@ export function resolveThemeName(
   return system === "light" ? "light" : DEFAULT_THEME;
 }
 
-/** Builds the full native theme object for a theme name. */
-export function createTheme(name: ThemeName): XosNativeTheme {
+function scaledTypography(scale: number): NativeTypography {
+  const out: Record<string, TypographyStyle> = {};
+  for (const [key, style] of Object.entries(baseTokens.typography)) {
+    out[key] = {
+      ...style,
+      fontSize: Math.round(style.fontSize * scale),
+      lineHeight: Math.round(style.lineHeight * scale),
+    } as TypographyStyle;
+  }
+  return out as unknown as NativeTypography;
+}
+
+function reducedDurations(): NativeDurations {
+  const d = baseTokens.duration;
+  const reduced = (ms: number) => (ms === 0 ? 0 : Math.min(ms, d.reduced));
+  return {
+    base: reduced(d.base),
+    deliberate: reduced(d.deliberate),
+    fast: reduced(d.fast),
+    instant: 0,
+    reduced: d.reduced,
+    slow: reduced(d.slow),
+  };
+}
+
+/**
+ * Builds the full native theme object for a theme name. Options apply the person's accessibility settings:
+ * a text scale, high contrast (secondary text and borders as strong as primary ones) and reduced motion.
+ */
+export function createTheme(name: ThemeName, options: ThemeOptions = {}): XosNativeTheme {
   const theme = themeTokens[name];
+  const color = options.highContrast
+    ? {
+        ...theme.color,
+        textSecondary: theme.color.textPrimary,
+        textTertiary: theme.color.textPrimary,
+        borderSubtle: theme.color.borderStrong,
+        borderControl: theme.color.borderStrong,
+      }
+    : theme.color;
   return {
     name,
     dark: name === "dark",
-    color: theme.color,
+    color,
     shadow: theme.shadow,
     space: baseTokens.space,
     radius: baseTokens.radius,
@@ -66,11 +126,14 @@ export function createTheme(name: ThemeName): XosNativeTheme {
     opacity: baseTokens.opacity,
     iconSize: baseTokens.iconSize,
     density: baseTokens.density,
-    duration: baseTokens.duration,
+    duration: options.reduceMotion ? reducedDurations() : baseTokens.duration,
     easing: baseTokens.easing,
     spring: baseTokens.spring,
     fontWeight: baseTokens.fontWeight,
-    typography: baseTokens.typography,
+    typography:
+      options.textScale && options.textScale !== 1
+        ? scaledTypography(options.textScale)
+        : baseTokens.typography,
   };
 }
 
@@ -95,6 +158,8 @@ export interface ThemeProviderProps {
   systemColorScheme?: SystemColorScheme;
   /** Plays haptic feedback, for example with expo-haptics. Omit it, or pass nothing when the person turns haptics off. */
   onHaptic?: HapticHandler;
+  /** The person's text size, contrast and motion settings. */
+  options?: ThemeOptions;
   children: ReactNode;
 }
 
@@ -103,10 +168,20 @@ export function ThemeProvider({
   preference = "system",
   systemColorScheme,
   onHaptic,
+  options,
   children,
 }: ThemeProviderProps): ReactElement {
   const name = resolveThemeName(preference, systemColorScheme);
-  const value = useMemo(() => themes[name], [name]);
+  const textScale = options?.textScale ?? 1;
+  const highContrast = options?.highContrast ?? false;
+  const reduceMotion = options?.reduceMotion ?? false;
+  const value = useMemo(
+    () =>
+      textScale === 1 && !highContrast && !reduceMotion
+        ? themes[name]
+        : createTheme(name, { textScale, highContrast, reduceMotion }),
+    [name, textScale, highContrast, reduceMotion],
+  );
   return createElement(
     ThemeContext.Provider,
     { value },

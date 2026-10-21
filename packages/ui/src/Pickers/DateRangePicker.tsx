@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { Popover as RPopover } from "radix-ui";
-import { useLocale, useT } from "../lib/context.tsx";
+import { useLocale, usePreferences, useT } from "../lib/context.tsx";
 import { formatDate } from "../lib/format.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { Field, describedBy, useFieldId } from "../Field/Field.tsx";
@@ -19,6 +19,7 @@ export function DateRangePicker({
 }: DateRangePickerProps): ReactElement {
   const t = useT();
   const locale = useLocale();
+  const { dateFormat } = usePreferences();
   const fieldId = useFieldId(id);
   const [range, setRange] = useState<[string | undefined, string | undefined]>([start, end]);
   const [open, setOpen] = useState(Boolean(defaultOpen));
@@ -50,10 +51,10 @@ export function DateRangePicker({
               {a
                 ? b
                   ? t("date.rangeValue", {
-                      start: formatDate(locale, a),
-                      end: formatDate(locale, b),
+                      start: formatDate(locale, a, dateFormat),
+                      end: formatDate(locale, b, dateFormat),
                     })
-                  : formatDate(locale, a)
+                  : formatDate(locale, a, dateFormat)
                 : t("date.chooseRange")}
             </span>
             {days !== null ? (

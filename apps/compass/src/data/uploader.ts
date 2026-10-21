@@ -327,6 +327,9 @@ export class SupabaseUploader implements Uploader {
   }
 
   async #edgeFunction(name: string, mutation: Mutation): Promise<UploadOutcome> {
+    // A kiosk punch photo (time.photo_on_punch) is stored before the punch that names it.
+    const media = await this.#uploadMedia(mutation);
+    if (media) return media;
     const fetchImpl = this.#options.fetchImpl ?? fetch;
     const token = await this.#options.accessToken();
     let response: Response;

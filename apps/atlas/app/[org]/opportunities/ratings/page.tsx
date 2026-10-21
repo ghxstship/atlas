@@ -4,12 +4,14 @@ import {
   type EngagementCard,
   type Rating,
 } from "@xos/data/opportunities";
+import { resolveSettings } from "@xos/data/settings";
 import { ActionForm } from "@/components/opportunities/action-form";
 import { Muted, RowLink, Section, Table, ViewSwitch } from "@/components/opportunities/parts";
 import { PageHeader, StatTile, TemplateCollection } from "@/components/opportunities/ui";
 import { EmptyStateLink } from "@/components/ui";
 import { enumKey } from "@/lib/opportunities/format";
 import { must, setupPage, type PageSetup, type SearchParams } from "@/lib/opportunities/page";
+import { engagementsToRate, ratingPromptsOn } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { rateAction, replyAction } from "../actions";
 
@@ -17,6 +19,8 @@ import { rateAction, replyAction } from "../actions";
  * Ratings (Section 4.4.3, Section 14.9): two-sided ratings of completed engagements. The org rates the party here; both
  * ratings release together once both are in or 14 days after completion; the org replies once, publicly, to the party's
  * rating. Ratings are never edited, withdrawn or suppressed, and internal notes never appear here.
+ * gateway.ratings_enabled decides only whether members are prompted to rate (ADR 0038): with prompts off the list of
+ * engagements waiting for a rating goes, and every rating still shows.
  */
 export default async function RatingsPage({
   params,
@@ -29,13 +33,16 @@ export default async function RatingsPage({
     (await searchParams) as SearchParams,
   );
   const { ctx, t } = page;
-  const [ratings, completed] = await Promise.all([
+  const [ratings, completed, settings] = await Promise.all([
     listRatings(ctx.viewer.db, ctx.org.id),
     listEngagements(ctx.viewer.db, ctx.org.id, { states: ["Complete"] }),
+    resolveSettings(ctx.viewer.db, { orgId: ctx.org.id }),
   ]);
   const all = must(ratings, "ratings");
   const engagements = new Map(must(completed, "engagements").map((e) => [e.id, e]));
-  const toRate = [...engagements.values()].filter((e) => !e.orgRated);
+  const setting = (key: string) => (settings.ok ? settings.data.get(key)?.value : undefined);
+  const prompts = ratingPromptsOn(setting);
+  const toRate = engagementsToRate(setting, [...engagements.values()]);
   const received = all.filter((r) => r.side === "Party");
   const average =
     received.length === 0
@@ -67,7 +74,7 @@ export default async function RatingsPage({
           value={average}
           caption={average === null ? t("ratings.noAverage") : t("ratings.outOfFive")}
         />
-        <StatTile label={t("ratings.toRate")} value={toRate.length} />
+        {prompts ? <StatTile label={t("ratings.toRate")} value={toRate.length} /> : null}
       </div>
       {canRate && toRate.length > 0 ? (
         <Section id="ratings-to-rate" title={t("ratings.toRateTitle")}>
