@@ -454,3 +454,12 @@ verify_jwt = false
 [functions.api-token]
 # Authenticates its caller by the API key itself (A04R, migration 0922).
 verify_jwt = false
+
+[functions.scim]
+# SCIM 2.0 for identity providers: authenticates its caller by the org's SCIM bearer token, kept only as its
+# SHA-256 (A77, migrations 0638 and 1332).
+verify_jwt = false
+
+[functions.integration-inbound]
+# Providers authenticate by webhook signature (A83, migration 1400; packages/integrations/src/inbound).
+verify_jwt = false

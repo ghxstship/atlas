@@ -3,10 +3,24 @@ import {
   dataRows,
   headers,
   parseCsv,
-  suggestMapping,
+  playbookFieldMap,
+  proposeTarget,
+  sheetLayout,
+  suggestWithSources,
   type DataRow,
+  type PlaybookColumn,
+  type PlaybookSheet,
   type Sheet,
+  type SheetLayout,
+  type SuggestionSource,
 } from "./import-parse.ts";
+import {
+  GoogleSheetError,
+  driveAccessToken,
+  readGoogleSheet,
+  type SheetsFetch,
+  type Workbook,
+} from "./import-sheets.ts";
 
 /**
  * The import worker (A36; Section 4.6.2 steps 2, 4, 5 and 7), run with the service role like A35's
@@ -18,13 +32,23 @@ import {
  *     to the fuzzy match (0.85, merge review), and marks the import Validated
  *   * commit: writes each Valid row in the batch the person's commit opened: a create, an update of the
  *     strong key match, or a merge into the candidate the person chose, each recorded with the batch id
+ *   * fetch (A83): reads a Google Sheets link through the org's Google Drive connection and saves it to the
+ *     imports bucket, where it is scanned like an upload; its Clean verdict queues detection
+ * Detection reads every sheet of the workbook (A83, finding A65-025): it records each sheet with its header row,
+ * data range and a proposed target, and the import reads one sheet; another sheet is imported as its own import.
+ * Suggestions come from a saved profile, the Playbook column map and header similarity, each with its source.
  * A failed attempt goes back to the queue while attempts remain, then the import is marked Failed.
  * A spreadsheet is parsed only once its virus scan is Clean (owner decision 10, migration 1240): the
  * database queues detection on the Clean verdict, and every step checks again before reading.
  * Not exported from the package index: only the worker entry points load it, with its .xlsx reader.
  */
 
-export const IMPORT_JOB_KINDS = ["import.detect", "import.validate", "import.commit"] as const;
+export const IMPORT_JOB_KINDS = [
+  "import.fetch",
+  "import.detect",
+  "import.validate",
+  "import.commit",
+] as const;
 export type ImportJobKind = (typeof IMPORT_JOB_KINDS)[number];
 
 type Row = Record<string, unknown>;
@@ -43,6 +67,18 @@ export interface ImportJobRecord {
   readonly filename: string;
   readonly status: string;
   readonly profileId: string | null;
+  /** The sheet the import reads; null until detection picks one. */
+  readonly sheetName?: string | null;
+  /** The Google Sheets link of a Google Sheets import. */
+  readonly sourceUrl?: string | null;
+}
+
+/** One detected sheet of a workbook, with the target proposed for it. */
+export interface DetectedSheet extends SheetLayout {
+  readonly name: string;
+  readonly index: number;
+  readonly proposedTarget: string | null;
+  readonly proposedFromPlaybook: boolean;
 }
 
 export interface MappedColumn {
@@ -79,8 +115,22 @@ export interface ImportStore {
   insertColumns(
     jobId: string,
     sheet: string,
-    columns: { header: string; suggested: string | null }[],
+    columns: { header: string; suggested: string | null; source?: SuggestionSource | null }[],
   ): Promise<void>;
+  /** Records every sheet detection found (A83). */
+  insertSheets(jobId: string, sheets: readonly DetectedSheet[]): Promise<void>;
+  /** Records the sheet the import reads, once (A83). */
+  setSheet(jobId: string, sheetName: string): Promise<void>;
+  /** The Playbook column map and its sheets (xpms.playbook_column, xpms.playbook_sheet). */
+  playbook(): Promise<{ columns: readonly PlaybookColumn[]; sheets: readonly PlaybookSheet[] }>;
+  /** Every import target with its fields, for proposing a target per sheet. */
+  importTargets(): Promise<{ code: string; fields: string[]; required: string[] }[]>;
+  /** The decrypted credential of the org's Connected Google Drive connection, or null when it has none. */
+  driveCredential(orgId: string): Promise<string | null>;
+  /** Saves a fetched Google Sheet into the imports bucket at the import's path, to be scanned. */
+  saveUpload(path: string, bytes: Uint8Array): Promise<void>;
+  /** Fails an import before it was read, with the reason Atlas explains (failure_code). */
+  failImport(jobId: string, code: string): Promise<void>;
   mappedColumns(jobId: string): Promise<MappedColumn[]>;
   recordRow(input: {
     jobId: string;
@@ -133,34 +183,73 @@ export interface ImportJobResult {
 
 // Reading the spreadsheet ---------------------------------------------------------------------------------
 
-/** The first sheet of an upload: CSV as text, .xlsx through exceljs (loaded only here). */
-export async function readSheet(
+/**
+ * Every sheet of an upload, in workbook order: CSV as one sheet named after the file, .xlsx (and a saved Google
+ * Sheets link, which the fetch step stores as .xlsx) through exceljs, loaded only here.
+ */
+export async function readWorkbook(
   source: string,
   filename: string,
   bytes: Uint8Array,
-): Promise<Sheet> {
+): Promise<Sheet[]> {
   if (source === "CSV") {
-    return { name: filename, rows: parseCsv(new TextDecoder().decode(bytes)) };
+    return [{ name: filename, rows: parseCsv(new TextDecoder().decode(bytes)) }];
   }
-  if (source === "XLSX") {
+  if (source === "XLSX" || source === "Google Sheets") {
     const { default: ExcelJS } = await import("exceljs");
     const workbook = new ExcelJS.Workbook();
     await workbook.xlsx.load(
       bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer,
     );
-    const sheet = workbook.worksheets[0];
-    if (!sheet) return { name: filename, rows: [] };
-    const rows: string[][] = [];
-    sheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
-      const cells: string[] = [];
-      row.eachCell({ includeEmpty: true }, (cell, col) => {
-        cells[col - 1] = cell.text ?? "";
+    return workbook.worksheets.map((sheet) => {
+      const rows: string[][] = [];
+      sheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+        const cells: string[] = [];
+        row.eachCell({ includeEmpty: true }, (cell, col) => {
+          cells[col - 1] = cell.text ?? "";
+        });
+        rows[rowNumber - 1] = Array.from(cells, (c) => c ?? "");
       });
-      rows[rowNumber - 1] = Array.from(cells, (c) => c ?? "");
+      return { name: sheet.name, rows: Array.from(rows, (r) => r ?? []) };
     });
-    return { name: sheet.name, rows: Array.from(rows, (r) => r ?? []) };
   }
   throw new UnreadableUploadError(source);
+}
+
+/** The first sheet of an upload (an empty sheet named after the file when the workbook has none). */
+export async function readSheet(
+  source: string,
+  filename: string,
+  bytes: Uint8Array,
+): Promise<Sheet> {
+  return (await readWorkbook(source, filename, bytes))[0] ?? { name: filename, rows: [] };
+}
+
+/** The sheet an import reads: the named one, else the first with data rows, else the first. */
+export function pickSheet(sheets: readonly Sheet[], name: string | null | undefined): Sheet | null {
+  if (name) return sheets.find((s) => s.name === name) ?? null;
+  return sheets.find((s) => dataRows(s).length > 0) ?? sheets[0] ?? null;
+}
+
+/** Writes a fetched Google Sheet as .xlsx, one worksheet per sheet, every cell as text. */
+export async function writeWorkbook(workbook: Workbook): Promise<Uint8Array> {
+  const { default: ExcelJS } = await import("exceljs");
+  const book = new ExcelJS.Workbook();
+  const used = new Set<string>();
+  for (const sheet of workbook.sheets) {
+    // Excel limits a worksheet name to 31 characters without []:*?/\; keep names unique after trimming.
+    const base =
+      sheet.name
+        .replace(/[[\]:*?/\\]/g, " ")
+        .slice(0, 31)
+        .trim() || "Sheet";
+    let name = base;
+    for (let n = 2; used.has(name.toLowerCase()); n += 1) name = `${base.slice(0, 27)} (${n})`;
+    used.add(name.toLowerCase());
+    const target = book.addWorksheet(name);
+    for (const row of sheet.rows) target.addRow([...row]);
+  }
+  return new Uint8Array(await book.xlsx.writeBuffer());
 }
 
 export class UnreadableUploadError extends Error {
@@ -324,38 +413,116 @@ export class UploadRejectedError extends Error {
 }
 
 /** Downloads the upload only once its scan is Clean. */
-async function readUpload(store: ImportStore, job: ImportJobRecord): Promise<Sheet> {
+/** Downloads the upload only once its scan is Clean, and reads every sheet. */
+async function readUploadWorkbook(store: ImportStore, job: ImportJobRecord): Promise<Sheet[]> {
   const status = await store.scanStatus(job.path);
   if (status === "Infected" || status === "Scan Failed") throw new UploadRejectedError(status);
   if (status !== "Clean") throw new UploadNotScannedError(status);
-  return readSheet(job.source, job.filename, await store.download(job.path));
+  return readWorkbook(job.source, job.filename, await store.download(job.path));
+}
+
+/** The sheet the import reads, once its upload is Clean. */
+async function readUpload(store: ImportStore, job: ImportJobRecord): Promise<Sheet> {
+  const sheet = pickSheet(await readUploadWorkbook(store, job), job.sheetName);
+  if (sheet === null) throw new Error(`The sheet ${job.sheetName ?? ""} is no longer in the file.`);
+  return sheet;
 }
 
 async function detect(store: ImportStore, jobId: string): Promise<void> {
   const job = await store.job(jobId);
   if (!job || job.status !== "Uploaded") return;
-  let sheet: Sheet;
+  let sheets: Sheet[];
   try {
-    sheet = await readUpload(store, job);
+    sheets = await readUploadWorkbook(store, job);
   } catch (error) {
     if (!(error instanceof UploadRejectedError)) throw error;
     // Atlas tells the uploader why (app.my_upload_scan_status); nothing is retried.
     await store.setStatus(job.id, "Failed");
     return;
   }
+  const sheet = pickSheet(sheets, job.sheetName) ?? { name: job.filename, rows: [] };
+  const [targets, playbook] = await Promise.all([store.importTargets(), store.playbook()]);
   const fields = (await store.targetFields(job.targetCode)).map((f) => f.name);
   const profile = job.profileId
     ? await store.profileMapping(job.profileId)
     : new Map<string, string>();
   const heads = headers(sheet);
-  const suggested = suggestMapping(heads, fields, profile);
+  const suggested = suggestWithSources(
+    heads,
+    fields,
+    profile,
+    playbookFieldMap(playbook.columns, job.targetCode, fields),
+  );
   await store.setStatus(job.id, "Detected");
+  // An import started from a detected sheet already names its sheet; the first import lists them all.
+  if (job.sheetName === null || job.sheetName === undefined) {
+    await store.insertSheets(
+      job.id,
+      sheets.slice(0, 1000).map((s, index) => {
+        const proposal = proposeTarget(s, targets, playbook.sheets, playbook.columns);
+        return {
+          name: s.name.slice(0, 200) || `Sheet ${index + 1}`,
+          index,
+          ...sheetLayout(s),
+          proposedTarget: proposal.targetCode,
+          proposedFromPlaybook: proposal.fromPlaybook,
+        };
+      }),
+    );
+    await store.setSheet(job.id, sheet.name.slice(0, 200) || "Sheet 1");
+  }
   await store.insertColumns(
     job.id,
     sheet.name,
-    heads.map((header, i) => ({ header: header.slice(0, 200), suggested: suggested[i] ?? null })),
+    heads.map((header, i) => ({
+      header: header.slice(0, 200),
+      suggested: suggested[i]?.field ?? null,
+      source: suggested[i]?.source ?? null,
+    })),
   );
   await store.setStatus(job.id, "Mapped");
+}
+
+/** What the worker entry points pass: fetch for the Google Sheets reader. */
+export interface ImportWorkerOptions {
+  readonly sheetsFetch?: SheetsFetch;
+}
+
+/** import.fetch: reads a Google Sheets link through the org's Drive connection and saves it for scanning. */
+async function fetchSheet(
+  store: ImportStore,
+  jobId: string,
+  options: ImportWorkerOptions,
+): Promise<void> {
+  const job = await store.job(jobId);
+  if (!job || job.status !== "Uploaded" || job.source !== "Google Sheets" || !job.sourceUrl) return;
+  // Already saved (a retried job): the scan verdict queues detection.
+  if ((await store.scanStatus(job.path)) !== null) return;
+  if (!options.sheetsFetch) throw new Error("The import worker has no Google Sheets reader.");
+  const credential = await store.driveCredential(job.orgId);
+  if (credential === null) {
+    await store.failImport(job.id, "google_drive_not_connected");
+    return;
+  }
+  let workbook: Workbook;
+  try {
+    workbook = await readGoogleSheet(
+      options.sheetsFetch,
+      driveAccessToken(credential),
+      job.sourceUrl,
+    );
+  } catch (error) {
+    if (error instanceof GoogleSheetError && !error.retryable) {
+      await store.failImport(job.id, error.code);
+      return;
+    }
+    throw error;
+  }
+  if (workbook.sheets.length === 0) {
+    await store.failImport(job.id, "google_sheet_empty");
+    return;
+  }
+  await store.saveUpload(job.path, await writeWorkbook(workbook));
 }
 
 async function validate(store: ImportStore, jobId: string): Promise<void> {
@@ -460,7 +627,10 @@ export class ImportWriteError extends Error {
   }
 }
 
-const STEPS: Record<ImportJobKind, (store: ImportStore, subjectId: string) => Promise<void>> = {
+type Step = (store: ImportStore, subjectId: string, options: ImportWorkerOptions) => Promise<void>;
+
+const STEPS: Record<ImportJobKind, Step> = {
+  "import.fetch": fetchSheet,
   "import.detect": detect,
   "import.validate": validate,
   "import.commit": commit,
@@ -471,12 +641,13 @@ export async function runImportJobs(
   store: ImportStore,
   worker: string,
   limit = 10,
+  options: ImportWorkerOptions = {},
 ): Promise<ImportJobResult[]> {
   const results: ImportJobResult[] = [];
   for (const kind of IMPORT_JOB_KINDS) {
     for (const claimed of await store.claim(kind, worker, limit)) {
       try {
-        await STEPS[kind](store, claimed.subjectId);
+        await STEPS[kind](store, claimed.subjectId, options);
         await store.finishJob(claimed.jobId, true, null);
         results.push({
           kind,
@@ -490,7 +661,9 @@ export async function runImportJobs(
         if (status === "Failed") {
           const jobId =
             kind === "import.commit" ? await store.batchJob(claimed.subjectId) : claimed.subjectId;
-          if (jobId) await store.setStatus(jobId, "Failed");
+          if (jobId && kind === "import.fetch") {
+            await store.failImport(jobId, "google_sheet_unavailable");
+          } else if (jobId) await store.setStatus(jobId, "Failed");
         }
         results.push({
           kind,
@@ -510,10 +683,11 @@ export async function drainImportJobs(
   store: ImportStore,
   worker: string,
   passes = 5,
+  options: ImportWorkerOptions = {},
 ): Promise<ImportJobResult[]> {
   const all: ImportJobResult[] = [];
   for (let i = 0; i < passes; i += 1) {
-    const results = await runImportJobs(store, worker);
+    const results = await runImportJobs(store, worker, 10, options);
     all.push(...results);
     if (results.length === 0) break;
   }
@@ -714,12 +888,13 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
         app
           .from("import_jobs")
           .select(
-            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id",
+            "id, org_id, target_code, source, storage_object_path, original_filename, import_status, import_mapping_profile_id, sheet_name, source_url",
           )
           .eq("id", id)
           .is("deleted_at", null),
         "import_jobs",
       );
+      const optional = (key: string) => (typeof row?.[key] === "string" ? row[key] : null);
       return row
         ? {
             id: text(row, "id"),
@@ -729,12 +904,111 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             path: text(row, "storage_object_path"),
             filename: text(row, "original_filename"),
             status: text(row, "import_status"),
-            profileId:
-              typeof row["import_mapping_profile_id"] === "string"
-                ? row["import_mapping_profile_id"]
-                : null,
+            profileId: optional("import_mapping_profile_id"),
+            sheetName: optional("sheet_name"),
+            sourceUrl: optional("source_url"),
           }
         : null;
+    },
+    async insertSheets(jobId, sheets) {
+      if (sheets.length === 0) return;
+      await exec(
+        app.from("import_job_sheets").insert(
+          sheets.map((s) => ({
+            import_job_id: jobId,
+            sheet_name: s.name,
+            sheet_index: s.index,
+            header_row: s.headerRow,
+            first_data_row: s.firstDataRow,
+            last_row: s.lastRow,
+            column_count: s.columnCount,
+            data_row_count: s.dataRowCount,
+            proposed_target_code: s.proposedTarget,
+            proposed_from_playbook: s.proposedFromPlaybook,
+          })),
+        ),
+        "import_job_sheets",
+      );
+    },
+    async setSheet(jobId, sheetName) {
+      await exec(
+        app.from("import_jobs").update({ sheet_name: sheetName }).eq("id", jobId),
+        "import_jobs",
+      );
+    },
+    async playbook() {
+      const [columns, sheets] = await Promise.all([
+        canon
+          .from("playbook_column")
+          .select("sheet_name, header, target")
+          .eq("disposition", "field")
+          .not("header", "is", null),
+        canon.from("playbook_sheet").select("sheet_name, entity"),
+      ]);
+      if (columns.error) throw new Error(`playbook_column: ${columns.error.message}`);
+      if (sheets.error) throw new Error(`playbook_sheet: ${sheets.error.message}`);
+      return {
+        columns: ((columns.data as Row[] | null) ?? [])
+          .filter((c) => typeof c["header"] === "string" && typeof c["target"] === "string")
+          .map((c) => ({
+            sheet: text(c, "sheet_name"),
+            header: text(c, "header"),
+            target: text(c, "target"),
+          })),
+        sheets: ((sheets.data as Row[] | null) ?? [])
+          .filter((s) => typeof s["entity"] === "string")
+          .map((s) => ({ sheet: text(s, "sheet_name"), entity: text(s, "entity") })),
+      };
+    },
+    async importTargets() {
+      const { data, error } = await app
+        .from("import_target_fields")
+        .select("target_code, field_name, required");
+      if (error) throw new Error(`import_target_fields: ${error.message}`);
+      const byTarget = new Map<string, { code: string; fields: string[]; required: string[] }>();
+      for (const f of (data as Row[] | null) ?? []) {
+        const code = text(f, "target_code");
+        const entry = byTarget.get(code) ?? { code, fields: [], required: [] };
+        entry.fields.push(text(f, "field_name"));
+        if (f["required"] === true) entry.required.push(text(f, "field_name"));
+        byTarget.set(code, entry);
+      }
+      return [...byTarget.values()].sort((a, b) => a.code.localeCompare(b.code));
+    },
+    async driveCredential(orgId) {
+      const connection = await one(
+        app
+          .from("integration_connections")
+          .select("id")
+          .eq("org_id", orgId)
+          .eq("provider_code", "google_drive")
+          .eq("connection_state", "Connected")
+          .is("deleted_at", null)
+          .order("created_at")
+          .limit(1),
+        "integration_connections",
+      );
+      if (!connection) return null;
+      const secret = await call("read_integration_credential", {
+        p_connection_id: text(connection, "id"),
+      });
+      return typeof secret === "string" ? secret : null;
+    },
+    async saveUpload(path, bytes) {
+      const { error } = await client.storage.from("imports").upload(path, bytes, {
+        contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        upsert: false,
+      });
+      if (error) throw new Error(`imports ${path}: ${error.message}`);
+    },
+    async failImport(jobId, code) {
+      await exec(
+        app
+          .from("import_jobs")
+          .update({ import_status: "Failed", failure_code: code })
+          .eq("id", jobId),
+        "import_jobs",
+      );
     },
     async batchJob(batchId) {
       const row = await one(
@@ -797,6 +1071,7 @@ export function supabaseImportStore(client: SupabaseClient): ImportStore {
             column_index: i,
             header: c.header,
             suggested_field_name: c.suggested,
+            suggestion_source: c.suggested === null ? null : (c.source ?? null),
           })),
         ),
         "import_job_columns",

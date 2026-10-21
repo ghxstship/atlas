@@ -84,6 +84,8 @@ test("journey 69: ? opens help for the page, and a request with diagnostics reac
   await signIn(page, "field@example.com");
   const subject = `Scanner question ${Date.now().toString(36)}`;
   await page.goto(`/${ORG}/credentials/access-grid`);
+  // The shortcut works once the shell's key handler has loaded and attached it.
+  await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
   await page.locator("body").click({ position: { x: 5, y: 5 } });
   await page.keyboard.press("?");
   const help = page.getByRole("dialog", { name: "Help" });

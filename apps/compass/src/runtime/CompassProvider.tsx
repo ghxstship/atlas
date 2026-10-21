@@ -28,6 +28,7 @@ import {
   type ReactNode,
 } from "react";
 import { downloadAll, type DownloadReport } from "../data/downloader";
+import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from "./assurance";
 import {
   activateOrg,
   IdentityError,
@@ -101,6 +102,8 @@ export const BRANDS_TABLE = "_org_brands";
 export type Phase =
   | { readonly kind: "starting" }
   | { readonly kind: "signed-out" }
+  | { readonly kind: "second-factor"; readonly factors: readonly ChallengeFactor[] }
+  | { readonly kind: "factor-required" }
   | { readonly kind: "identity-failed"; readonly step: string; readonly message: string }
   | { readonly kind: "ready" };
 
@@ -302,6 +305,21 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     [contexts],
   );
 
+  /**
+   * Holds the device for the second factor a gate asks (A77). True when it holds; the auth listener reopens
+   * Compass once the session changes.
+   */
+  const holdFor = useCallback(
+    (gate: SecondFactorGate): boolean => {
+      if (gate.kind === "ok") return false;
+      if (gate.kind === "verify") setPhase({ kind: "second-factor", factors: gate.factors });
+      else if (gate.kind === "enroll-elsewhere") setPhase({ kind: "factor-required" });
+      else void client.auth.signOut({ scope: "local" });
+      return true;
+    },
+    [client],
+  );
+
   const setOrgId = useCallback(
     (orgId: string) => {
       const context = contexts?.find((c) => c.orgId === orgId);
@@ -316,8 +334,13 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         : (context.projects[0]?.id ?? null);
       setProjectIdState(next);
       if (next) void SecureStore.setItemAsync(PROJECT_KEY, next);
+      // Each org's security settings apply when it becomes active (A77): its second factor or session rule.
+      if (context.kind === "member")
+        void secondFactorGate(client, orgId)
+          .then(holdFor)
+          .catch(() => undefined);
     },
-    [contexts],
+    [client, contexts, holdFor],
   );
 
   // Local store and sync engine. A store that will not open, even after recovery, shows as a startup
@@ -399,18 +422,24 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     return () => data.subscription.unsubscribe();
   }, [client, engine]);
 
-  // Identity and scope, in every org the person works in (Section 4.5.7).
+  // Identity and scope, after the second factor the session owes (A77): one the person holds, then the one
+  // their active org's security settings ask of their role; in every org the person works in (Section 4.5.7).
   useEffect(() => {
     if (!session || !store) return;
     let live = true;
-    void SecureStore.getItemAsync(ORG_KEY)
-      .catch(() => null)
-      .then((storedOrg) => {
+    /** True when the gate holds the device; the auth listener reopens it once the session changes. */
+    const held = (gate: SecondFactorGate): boolean => (live ? holdFor(gate) : true);
+    void secondFactorGate(client, null)
+      .then(async (gate) => {
+        if (held(gate)) return null;
+        const storedOrg = await SecureStore.getItemAsync(ORG_KEY).catch(() => null);
         if (storedOrg) chosenOrgRef.current = true;
         return resolveIdentity(client, session.user.id, storedOrg);
       })
       .then(async (next) => {
-        if (!live) return;
+        if (!live || next === null) return;
+        const org = next.identity.membershipId ? next.orgId : null;
+        if (held(await secondFactorGate(client, org))) return;
         const scopes = next.contexts.map((c) => c.scope);
         const sync = new SyncSession(store, scopes);
         // A narrower scope than last time (an engagement completed, a membership in one org ended) purges
@@ -441,7 +470,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     return () => {
       live = false;
     };
-  }, [client, session, store, identityAttempt]);
+  }, [client, session, store, identityAttempt, holdFor]);
 
   const refresh = useCallback(async () => {
     if (!syncSession) return null;

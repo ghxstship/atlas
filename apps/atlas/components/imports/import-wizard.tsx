@@ -6,7 +6,16 @@ import type {
   ImportSummary,
   ImportTargetField,
 } from "@xos/data/imports";
-import { DataTable, InlineAlert, Select, StatTile, Stepper, Textarea } from "@xos/ui";
+import {
+  DataTable,
+  InlineAlert,
+  Input,
+  SegmentedControl,
+  Select,
+  StatTile,
+  Stepper,
+  Textarea,
+} from "@xos/ui";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -16,11 +25,14 @@ import {
   commitImportAction,
   confirmMappingAction,
   createImportAction,
+  createSheetsImportAction,
   decideReviewAction,
+  importSheetAction,
   undoBatchAction,
 } from "@/app/[org]/import/actions";
 import { ActionForm, EmptyPanel, Refresher, usePlatformT } from "@/components/platform/kit";
 import type { PlatformActionState } from "@/lib/platform/state";
+import { ImportAuroraSuggest, type AuroraChoice } from "./import-aurora";
 
 const STEP_KEYS = ["upload", "map", "review", "commit", "undo"] as const;
 
@@ -45,16 +57,23 @@ function stepOf(status: ImportStatus, confirmed: boolean): number {
 export function ImportList({
   org,
   targets,
+  googleSheets = false,
   imports,
 }: {
   org: string;
   targets: readonly string[];
+  /** The imports.google_sheets flag: offer a Google Sheets link next to a file (A83). */
+  googleSheets?: boolean;
   imports: readonly (ImportSummary & { when: string })[];
 }) {
   const t = usePlatformT();
   const router = useRouter();
   const pathname = usePathname();
   const [target, setTarget] = useState(targets[0] ?? "");
+  const [source, setSource] = useState<"file" | "sheets">("file");
+  const open = (state: PlatformActionState) => {
+    if (state.id) router.push(`${pathname}?import=${state.id}` as Route);
+  };
   return (
     <div className="flex flex-col gap-24">
       <section aria-labelledby="new-import" className="flex max-w-layout-form flex-col gap-12">
@@ -62,17 +81,57 @@ export function ImportList({
           {t("imports.new.title")}
         </h2>
         <p className="m-0 text-text-13 text-text-secondary">{t("imports.new.intro")}</p>
+        {targets.length > 0 && googleSheets ? (
+          <SegmentedControl
+            label={t("imports.new.source")}
+            value={source}
+            options={[
+              { value: "file", label: t("imports.new.sourceFile") },
+              { value: "sheets", label: t("imports.new.sourceSheets") },
+            ]}
+            onChange={(value) => setSource(value === "sheets" ? "sheets" : "file")}
+          />
+        ) : null}
         {targets.length === 0 ? (
           <InlineAlert tone="info">{t("imports.new.noTargets")}</InlineAlert>
+        ) : source === "sheets" && googleSheets ? (
+          <ActionForm
+            action={createSheetsImportAction}
+            hidden={{ org, target }}
+            label={t("imports.new.sourceSheets")}
+            submitLabel={t("imports.new.linkSubmit")}
+            onDone={open}
+          >
+            <Select
+              label={t("imports.new.target")}
+              help={t("imports.new.targetHelp")}
+              value={target}
+              options={targets.map((code) => ({
+                value: code,
+                label: t(`imports.targets.${code}`),
+              }))}
+              onChange={(e) => setTarget(e.target.value)}
+            />
+            <Input
+              id="import-link"
+              name="link"
+              type="url"
+              required
+              inputMode="url"
+              autoComplete="off"
+              label={t("imports.new.link")}
+              help={t("imports.new.linkHelp")}
+              pattern="https://docs\.google\.com/spreadsheets/d/.+"
+              title={t("imports.new.linkInvalid")}
+            />
+          </ActionForm>
         ) : (
           <ActionForm
             action={createImportAction}
             hidden={{ org, target }}
             label={t("imports.new.title")}
             submitLabel={t("imports.new.submit")}
-            onDone={(state: PlatformActionState) => {
-              if (state.id) router.push(`${pathname}?import=${state.id}` as Route);
-            }}
+            onDone={open}
           >
             <Select
               label={t("imports.new.target")}
@@ -151,11 +210,17 @@ export function ImportWizard({
   org,
   detail,
   fields,
+  targets = [],
+  aiMapping = false,
   committedAt,
 }: {
   org: string;
   detail: ImportDetail;
   fields: readonly ImportTargetField[];
+  /** Targets the viewer may import into, for importing another sheet of the workbook. */
+  targets?: readonly string[];
+  /** The imports.ai_mapping flag: offer Aurora's suggestions on the mapping step. */
+  aiMapping?: boolean;
   committedAt: string | null;
 }) {
   const t = usePlatformT();
@@ -178,25 +243,31 @@ export function ImportWizard({
             file: detail.filename,
             target: t(`imports.targets.${detail.targetCode}`),
           })}
+          {detail.sheetName && detail.sheets.length > 1 ? (
+            <span className="block">{t("imports.sheetLine", { sheet: detail.sheetName })}</span>
+          ) : null}
         </p>
       </div>
       <Stepper steps={STEP_KEYS.map((k) => t(`imports.steps.${k}`))} current={step} />
       <Refresher
         active={working}
-        label={t(`imports.working.${workingKey(detail.status, detail.scanStatus)}`)}
+        label={t(`imports.working.${workingKey(detail.status, detail.scanStatus, detail.source)}`)}
       />
 
       {detail.status === "Failed" ? (
         <InlineAlert tone="danger" title={t("imports.failed.title")}>
-          {t(`imports.failed.${failedKey(detail.scanStatus)}`)}
+          {t(`imports.failed.${failedKey(detail.scanStatus, detail.failureCode, t.has)}`)}
         </InlineAlert>
       ) : null}
       {detail.status === "Canceled" ? (
         <InlineAlert tone="info">{t("imports.canceled")}</InlineAlert>
       ) : null}
 
+      {detail.sheets.length > 1 ? (
+        <SheetsSection org={org} detail={detail} targets={targets} />
+      ) : null}
       {detail.status === "Mapped" && !confirmed ? (
-        <MappingStep org={org} detail={detail} fields={fields} />
+        <MappingStep org={org} detail={detail} fields={fields} aiMapping={aiMapping} />
       ) : null}
       {detail.status === "Validated" ? <ReviewStep org={org} detail={detail} /> : null}
       {detail.status === "Committed" || detail.status === "Undone" ? (
@@ -216,28 +287,127 @@ export function ImportWizard({
   );
 }
 
-function workingKey(status: ImportStatus, scan: ImportDetail["scanStatus"]): string {
+function workingKey(
+  status: ImportStatus,
+  scan: ImportDetail["scanStatus"],
+  source: ImportDetail["source"],
+): string {
   if (status === "Committing") return "committing";
   if (status === "Mapped") return "validating";
   if (status === "Uploaded" && scan === "Scanning") return "scanning";
+  if (status === "Uploaded" && source === "Google Sheets" && scan === null) return "fetching";
   return "reading";
 }
 
-/** Why an import failed, in plain words: a virus, a file the scanner refused, or anything else. */
-function failedKey(scan: ImportDetail["scanStatus"]): string {
+/** Why an import failed, in plain words: a virus, a file the scanner refused, a link the worker could not read, or anything else. */
+function failedKey(
+  scan: ImportDetail["scanStatus"],
+  failure: string | null,
+  has: (key: string) => boolean,
+): string {
   if (scan === "Infected") return "infected";
   if (scan === "Scan Failed") return "scanFailed";
+  if (failure !== null && has(`imports.failed.${failure}`)) return failure;
   return "body";
+}
+
+/** Every sheet of the workbook (A83): rows, the proposed target and the import that reads it, or a way to start one. */
+function SheetsSection({
+  org,
+  detail,
+  targets,
+}: {
+  org: string;
+  detail: ImportDetail;
+  targets: readonly string[];
+}) {
+  const t = usePlatformT();
+  const router = useRouter();
+  const ready = !["Uploaded", "Detected", "Failed", "Canceled"].includes(detail.status);
+  return (
+    <section aria-labelledby="import-sheets" className="flex flex-col gap-12">
+      <h2 id="import-sheets" className="m-0 text-text-15 font-semibold">
+        {t("imports.sheets.title")}
+      </h2>
+      <p className="m-0 text-text-13 text-text-secondary">{t("imports.sheets.intro")}</p>
+      <ul
+        className="m-0 flex list-none flex-col gap-8 p-0"
+        aria-label={t("imports.sheets.caption")}
+      >
+        {detail.sheets.map((sheet) => {
+          const proposed = sheet.proposedTargetCode;
+          const proposal =
+            proposed === null
+              ? t("imports.sheets.none")
+              : sheet.proposedFromPlaybook
+                ? t("imports.sheets.fromPlaybook", { target: t(`imports.targets.${proposed}`) })
+                : t(`imports.targets.${proposed}`);
+          const choices = targets.includes(proposed ?? "")
+            ? [proposed as string, ...targets.filter((code) => code !== proposed)]
+            : targets;
+          return (
+            <li
+              key={sheet.id}
+              className="flex flex-wrap items-end justify-between gap-12 rounded-card border border-border-subtle p-12"
+            >
+              <div className="flex flex-col gap-2">
+                <span className="text-text-13 font-medium">{sheet.name}</span>
+                <span className="text-text-12 text-text-secondary">
+                  {t("imports.sheets.summary", { rows: sheet.dataRowCount, target: proposal })}
+                </span>
+              </div>
+              {sheet.importId === detail.id ? (
+                <span className="text-text-12 text-text-tertiary">
+                  {t("imports.sheets.thisImport")}
+                </span>
+              ) : sheet.importId !== null ? (
+                <Link
+                  href={`/${org}/import?import=${sheet.importId}` as Route}
+                  className="text-text-13 text-accent-text underline"
+                >
+                  {t("imports.sheets.open")}
+                </Link>
+              ) : ready && sheet.dataRowCount > 0 && choices.length > 0 ? (
+                <ActionForm
+                  action={importSheetAction}
+                  hidden={{ org, sheet: sheet.id }}
+                  label={t("imports.sheets.importLabel", { sheet: sheet.name })}
+                  submitLabel={t("imports.sheets.importIt")}
+                  submitVariant="secondary"
+                  inline
+                  onDone={(state: PlatformActionState) => {
+                    if (state.id) router.push(`/${org}/import?import=${state.id}` as Route);
+                  }}
+                >
+                  <Select
+                    name="target"
+                    label={t("imports.sheets.target", { sheet: sheet.name })}
+                    value={choices[0] ?? ""}
+                    options={choices.map((code) => ({
+                      value: code,
+                      label: t(`imports.targets.${code}`),
+                    }))}
+                  />
+                </ActionForm>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
 }
 
 function MappingStep({
   org,
   detail,
   fields,
+  aiMapping,
 }: {
   org: string;
   detail: ImportDetail;
   fields: readonly ImportTargetField[];
+  aiMapping: boolean;
 }) {
   const t = usePlatformT();
   const [choice, setChoice] = useState<Record<string, string>>(() =>
@@ -245,6 +415,18 @@ function MappingStep({
       detail.columns.map((c) => [c.id, c.fieldName ?? c.suggestedFieldName ?? ""]),
     ),
   );
+  // The columns whose current choice came from Aurora, until the person changes them.
+  const [fromAurora, setFromAurora] = useState<ReadonlySet<string>>(new Set());
+  const [round, setRound] = useState(0);
+  const applyAurora = (picks: readonly AuroraChoice[]) => {
+    setChoice((prev) => ({
+      ...prev,
+      ...Object.fromEntries(picks.map((p) => [p.columnId, p.field])),
+    }));
+    setFromAurora(new Set(picks.map((p) => p.columnId)));
+    // The selects are uncontrolled: a new round remounts them with Aurora's picks.
+    setRound((n) => n + 1);
+  };
   const chosen = new Set(Object.values(choice).filter(Boolean));
   const missing = fields.filter((f) => f.required && !chosen.has(f.name));
   const hidden = Object.fromEntries([
@@ -258,6 +440,15 @@ function MappingStep({
         {t("imports.map.title")}
       </h2>
       <p className="m-0 text-text-13 text-text-secondary">{t("imports.map.intro")}</p>
+      {aiMapping && detail.columns.length > 0 ? (
+        <ImportAuroraSuggest
+          targetCode={detail.targetCode}
+          columns={detail.columns}
+          fields={fields}
+          choice={choice}
+          onApply={applyAurora}
+        />
+      ) : null}
       {detail.columns.length === 0 ? (
         <InlineAlert tone="warning">{t("imports.map.noColumns")}</InlineAlert>
       ) : (
@@ -275,6 +466,7 @@ function MappingStep({
             {detail.columns.map((c) => (
               <li key={c.id} className="flex flex-wrap items-end gap-12">
                 <Select
+                  key={`${c.id}-${round}`}
                   label={t("imports.map.column", {
                     header: c.header || t("imports.map.untitled", { index: c.index + 1 }),
                   })}
@@ -286,11 +478,21 @@ function MappingStep({
                       label: `${t(`imports.fields.${f.name}`)}${f.required ? ` (${t("imports.map.required")})` : ""}`,
                     })),
                   ]}
-                  onChange={(e) => setChoice((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setChoice((prev) => ({ ...prev, [c.id]: value }));
+                    setFromAurora((prev) => new Set([...prev].filter((id) => id !== c.id)));
+                  }}
                 />
-                {c.suggestedFieldName && c.suggestedFieldName === choice[c.id] ? (
+                {fromAurora.has(c.id) ? (
                   <span className="pb-8 text-text-12 text-text-tertiary">
-                    {t("imports.map.suggested")}
+                    {t("imports.map.sources.Assistant")}
+                  </span>
+                ) : c.suggestedFieldName && c.suggestedFieldName === choice[c.id] ? (
+                  <span className="pb-8 text-text-12 text-text-tertiary">
+                    {c.suggestionSource
+                      ? t(`imports.map.sources.${c.suggestionSource}`)
+                      : t("imports.map.suggested")}
                   </span>
                 ) : null}
               </li>
