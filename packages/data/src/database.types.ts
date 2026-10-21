@@ -54964,6 +54964,10 @@ export type Database = {
         };
         Returns: string;
       };
+      recipient_setting: {
+        Args: { p_org_id: string; p_person_id: string; p_setting_key: string };
+        Returns: string;
+      };
       recognition_count: { Args: { p_org_id: string; p_person_id: string }; Returns: number };
       recognize: {
         Args: {
@@ -55104,6 +55108,7 @@ export type Database = {
           p_delivery_id: string;
           p_error?: string;
           p_provider_message_id?: string;
+          p_segments?: number;
           p_status: Database["app"]["Enums"]["message_status"];
         };
         Returns: undefined;
@@ -55256,6 +55261,7 @@ export type Database = {
           p_delivery_ids: string[];
           p_error?: string;
           p_provider_message_id?: string;
+          p_segments?: number;
           p_status: Database["app"]["Enums"]["message_status"];
         };
         Returns: undefined;
