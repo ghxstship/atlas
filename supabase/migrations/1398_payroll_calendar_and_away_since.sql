@@ -1,5 +1,6 @@
 -- 1398_payroll_calendar_and_away_since.sql
--- Orchestrator (RRR-116, A71 and A76). Pay periods follow the org's calendar, never the database's UTC date:
+-- Orchestrator (RRR-116, A71 and A76). Payroll and out of office follow the org's and the person's calendars, never
+-- the database's UTC date or the ISO Monday week:
 --
 --   * app.next_pay_period_dates (1323) took p_today default current_date, and app.create_next_pay_period called it
 --     without a date, so an org's first pay period lined up on the UTC date. At 21:00 on Oct 31 in New York (Nov 1
@@ -7,6 +8,10 @@
 --     Atlas's proposal passed the org's date, so the two disagreed. p_today now defaults to null, which means today
 --     on the org's calendar (private.org_today, 1305), and create_next_pay_period passes that date. Every other
 --     behavior of 1323 is unchanged.
+--   * app.calculate_payroll_run (0463) counts weekly overtime over the org's payroll.week_start, the week pay periods,
+--     timesheets and the Atlas schedule start on, not over date_trunc('week') Monday weeks.
+--   * private.away_since (1325) starts an out-of-office period at midnight in the person's time zone, the day
+--     private.person_away counts in, not at midnight UTC.
 
 -- Pay periods on the org's calendar -------------------------------------------------------------------------------
 
@@ -206,3 +211,32 @@ $$;
 comment on function app.calculate_payroll_run(uuid, text) is 'Writes a Draft payroll run''s lines from approved member timesheets of its pay period (external crew are paid through their engagement): hours by person and role at the pay rate in force, weekly overtime split by the wage-hour rule of each project''s jurisdiction at its multiplier, then moves the run to Calculated. Overtime weeks start on the org''s payroll.week_start, in each project''s time zone (1398). Needs crew.pay_period.manage; never returns a rate. Refuses with no answer when a rate, an earning code or a wage-hour rule is missing.';
 revoke all on function app.calculate_payroll_run(uuid, text) from public, anon;
 grant execute on function app.calculate_payroll_run(uuid, text) to authenticated, service_role;
+
+-- Out of office from midnight in the person's time zone -------------------------------------------------------------
+-- private.away_since (1325) cast me.out_of_office.starts_on to timestamptz, which is midnight UTC, while
+-- private.person_away counts the day in the person's locale.time_zone. In Tokyo the person was away from 00:00 on the
+-- start date but away_since was 09:00, so app.send_chat_message found no automatic reply since away_since and sent
+-- another for every direct message until then. The start date now begins at midnight in the zone person_away uses
+-- (UTC for a blank or unknown zone); the fallbacks are 1325's.
+
+create or replace function private.away_since(p_person_id uuid, p_org_id uuid)
+returns timestamptz
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(
+    (private.setting_date(private.setting_text(p_org_id, 'me.out_of_office.starts_on', null, null, p_person_id)))::timestamp
+      at time zone coalesce(
+        (select z.name from pg_catalog.pg_timezone_names z
+         where z.name = private.setting_text(p_org_id, 'locale.time_zone', null, null, p_person_id) limit 1),
+        'UTC'),
+    (select max(v.updated_at) from app.personal_setting_values v
+     where v.person_id = p_person_id and v.setting_key = 'me.out_of_office.enabled' and v.deleted_at is null
+       and (v.org_id is null or v.org_id = p_org_id)),
+    '-infinity'::timestamptz);
+$$;
+
+comment on function private.away_since(uuid, uuid) is 'When a person''s current time away began: midnight of their me.out_of_office.starts_on in their locale.time_zone (the day private.person_away counts in; UTC when unset or unknown, 1398), else when they last turned out of office on.';
+revoke all on function private.away_since(uuid, uuid) from public, anon, authenticated;
