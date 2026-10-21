@@ -1,0 +1,43 @@
+appId: pro.ghxstship.compass
+# Compass opens an old-format offline database without a blank screen (A66; A68-001).
+name: old-database
+---
+# Run by scripts/old-database-check.sh, which signs in and puts the old file in place first; MODE is
+# plain (a pre-A68 plain SQLite file, nothing unsent) or unreadable (no key opens it). Kept out of flows/
+# because it needs the host to place the file.
+- launchApp:
+    stopApp: true
+# Today, not a blank screen and not the startup error.
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar|startup-failed"
+    timeout: 120000
+- assertNotVisible:
+    id: "startup-failed"
+- runFlow:
+    when:
+      true: ${MODE == "plain"}
+    commands:
+      - assertNotVisible:
+          id: "storage-reset-notice"
+- runFlow:
+    when:
+      true: ${MODE == "unreadable"}
+    commands:
+      - extendedWaitUntil:
+          visible:
+            id: "storage-reset-notice"
+          timeout: 20000
+      - assertVisible: ".*could not be recovered.*"
+      # Said once: dismissed, it stays gone after a relaunch.
+      - tapOn: "Dismiss"
+      - assertNotVisible:
+          id: "storage-reset-notice"
+      - launchApp:
+          stopApp: true
+      - extendedWaitUntil:
+          visible:
+            id: "tab-bar"
+          timeout: 120000
+      - assertNotVisible:
+          id: "storage-reset-notice"

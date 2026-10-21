@@ -131,8 +131,10 @@ export function DeleteAccount(): ReactElement {
     );
   }
 
+  // The hold on Delete Account comes straight after typing the email. Without "handled" the first touch
+  // only closed the keyboard, and the hold never reached the button (A68, journey 38).
   return (
-    <Screen testID="account" title={t("compass.account.title")}>
+    <Screen testID="account" title={t("compass.account.title")} keyboardShouldPersistTaps="handled">
       <Text tone="secondary">{t("compass.account.intro")}</Text>
       {!network.isConnected ? (
         <InlineAlert

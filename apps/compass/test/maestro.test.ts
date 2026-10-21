@@ -78,6 +78,15 @@ describe("Maestro flows", () => {
     }
   });
 
+  // Maestro matches flowsOrder against each flow's name, not its file; a flow named otherwise drops the
+  // whole order and the suite runs in any order (A66), so state-changing flows collide.
+  it.each(readdirSync(flowDir))("%s is named after its file, so flowsOrder applies", (file) => {
+    const header = parseAllDocuments(readFileSync(join(flowDir, file), "utf8"))[0]?.toJS() as {
+      name?: string;
+    };
+    expect(header.name).toBe(file.replace(/\.yaml$/, ""));
+  });
+
   it("orders every flow in config.yaml", () => {
     const config = parseAllDocuments(
       readFileSync(join(root, ".maestro/config.yaml"), "utf8"),

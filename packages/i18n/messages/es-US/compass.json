@@ -47,7 +47,21 @@
     "emailInvalid": "Escribe un correo como nombre@example.com.",
     "network": "Compass no llega al servidor. Conéctate a una red e inicia sesión.",
     "identityTitle": "Tu acceso no cargó",
-    "identity": "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación."
+    "identity": "Compass no pudo leer {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+    "identitySteps": {
+      "person": "tu perfil",
+      "memberships": "tus membresías",
+      "roles": "tus roles",
+      "capabilities": "tus permisos",
+      "projects": "tus proyectos",
+      "engagements": "tus contrataciones",
+      "access": "tu acceso"
+    }
+  },
+  "startup": {
+    "title": "Compass no pudo iniciar",
+    "sentence": "El almacenamiento sin conexión de este dispositivo no se abrió. Vuelve a intentarlo. Si sigue pasando, reinicia el teléfono.",
+    "storageReset": "Compass tuvo que restablecer su almacenamiento sin conexión en este dispositivo. No se pudieron recuperar los cambios hechos sin conexión que no se habían subido. Todo lo demás se descarga de nuevo."
   },
   "denial": {
     "roleTitle": "No es parte de tu rol",
@@ -376,7 +390,8 @@
       "permissionDenied": "Compass no puede usar el micrófono. Permítelo en Ajustes y vuelve a mantener presionado para grabar.",
       "failed": "La nota de voz no se grabó: {reason}. Mantén presionado para intentarlo otra vez.",
       "tooShort": "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
-      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado."
+      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+      "didNotSave": "La grabación no terminó de guardarse. Vuelve a intentarlo."
     }
   },
   "inspections": {

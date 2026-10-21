@@ -2678,6 +2678,22 @@ var compass_default$1 = {
     identityTitle: "Your access did not load",
     identity:
       "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
+    identitySteps: {
+      person: "profile",
+      memberships: "memberships",
+      roles: "roles",
+      capabilities: "permissions",
+      projects: "projects",
+      engagements: "engagements",
+      access: "access",
+    },
+  },
+  startup: {
+    title: "Compass could not start",
+    sentence:
+      "The offline storage on this device did not open. Try again. If it keeps happening, restart the phone.",
+    storageReset:
+      "Compass had to reset its offline storage on this device. Changes made offline that had not uploaded could not be recovered. Everything else downloads again.",
   },
   denial: {
     roleTitle: "Not part of your role",
@@ -3025,6 +3041,7 @@ var compass_default$1 = {
       tooShort: "That was too short to keep. Hold a little longer to record a voice note.",
       micDidNotStart:
         "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again.",
+      didNotSave: "The recording did not finish saving. Try again.",
     },
   },
   inspections: {
@@ -19261,7 +19278,23 @@ var compass_default = {
     network: "Compass no llega al servidor. Conéctate a una red e inicia sesión.",
     identityTitle: "Tu acceso no cargó",
     identity:
-      "Compass no pudo leer tu {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+      "Compass no pudo leer {step}. Vuelve a intentarlo o pide a tu organización que revise tu invitación.",
+    identitySteps: {
+      person: "tu perfil",
+      memberships: "tus membresías",
+      roles: "tus roles",
+      capabilities: "tus permisos",
+      projects: "tus proyectos",
+      engagements: "tus contrataciones",
+      access: "tu acceso",
+    },
+  },
+  startup: {
+    title: "Compass no pudo iniciar",
+    sentence:
+      "El almacenamiento sin conexión de este dispositivo no se abrió. Vuelve a intentarlo. Si sigue pasando, reinicia el teléfono.",
+    storageReset:
+      "Compass tuvo que restablecer su almacenamiento sin conexión en este dispositivo. No se pudieron recuperar los cambios hechos sin conexión que no se habían subido. Todo lo demás se descarga de nuevo.",
   },
   denial: {
     roleTitle: "No es parte de tu rol",
@@ -19614,6 +19647,7 @@ var compass_default = {
         "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
       micDidNotStart:
         "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+      didNotSave: "La grabación no terminó de guardarse. Vuelve a intentarlo.",
     },
   },
   inspections: {
@@ -25419,9 +25453,9 @@ var nav_default = {
     },
     tabs: {
       today: "Hoy",
-      schedule: "Horario",
+      schedule: "Agenda",
       scan: "Escanear",
-      inbox: "Bandeja de entrada",
+      inbox: "Bandeja",
       more: "Más",
       crew: "Equipo técnico",
     },

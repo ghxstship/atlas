@@ -41,8 +41,10 @@ import {
   createSupabase,
   deviceClock,
   deviceId,
+  dismissStorageNotice as forgetStorageNotice,
   openStore,
   readConfig,
+  storageNoticePending,
   watchNetwork,
   type CompassConfig,
 } from "./platform";
@@ -103,6 +105,15 @@ export interface CompassContextValue {
   readonly lastRefresh: DownloadReport | null;
   readonly retryIdentity: () => void;
   readonly signOut: () => Promise<void>;
+  /**
+   * Why the local store or the sync engine could not start, or null. The root layout shows it with a
+   * retry instead of a blank screen (A66).
+   */
+  readonly startupError: string | null;
+  readonly retryStartup: () => void;
+  /** The offline storage was replaced and unsent offline work could not be recovered; say so once. */
+  readonly storageNotice: boolean;
+  readonly dismissStorageNotice: () => void;
 }
 
 const CompassContext = createContext<CompassContextValue | null>(null);
@@ -161,6 +172,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [resolvedSettings, setResolvedSettings] = useState<ResolvedValues>(NO_VALUES);
   const [lastRefresh, setLastRefresh] = useState<DownloadReport | null>(null);
   const [identityAttempt, setIdentityAttempt] = useState(0);
+  const [startupError, setStartupError] = useState<string | null>(null);
+  const [startupAttempt, setStartupAttempt] = useState(0);
+  const [storageNotice, setStorageNotice] = useState(false);
   const orgRef = useRef<string | null>(null);
   const storeRef = useRef<LocalStore | null>(null);
 
@@ -192,13 +206,21 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     void SecureStore.setItemAsync(PROJECT_KEY, id);
   }, []);
 
-  // Local store and sync engine.
+  // Local store and sync engine. A store that will not open, even after recovery, shows as a startup
+  // error with a retry (startupError), never as a blank screen.
   useEffect(() => {
     let stopped = false;
+    setStartupError(null);
     void (async () => {
-      const opened = await openStore();
+      const { store: opened, recovery } = await openStore();
       const id = await deviceId();
       if (stopped) return;
+      if (recovery) {
+        console.warn(
+          `[compass] offline storage replaced: ${recovery.reason}; ${String(recovery.recovered)} unsent writes carried over${recovery.unreadable ? ", old file unreadable" : ""}`,
+        );
+      }
+      setStorageNotice(await storageNoticePending());
       const uploader = new SupabaseUploader({
         client,
         functionsUrl: config.supabaseUrl,
@@ -212,11 +234,19 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       storeRef.current = opened;
       setStore(opened);
       setEngine(new SyncEngine({ store: opened, uploader }));
-    })();
+    })().catch((error: unknown) => {
+      if (!stopped) setStartupError(error instanceof Error ? error.message : String(error));
+    });
     return () => {
       stopped = true;
     };
-  }, [client, config]);
+  }, [client, config, startupAttempt]);
+
+  const retryStartup = useCallback(() => setStartupAttempt((n) => n + 1), []);
+  const dismissStorageNotice = useCallback(() => {
+    setStorageNotice(false);
+    void forgetStorageNotice();
+  }, []);
 
   useEffect(() => {
     if (!engine) return undefined;
@@ -368,6 +398,10 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     lastRefresh,
     retryIdentity: () => setIdentityAttempt((n) => n + 1),
     signOut,
+    startupError,
+    retryStartup,
+    storageNotice,
+    dismissStorageNotice,
   };
   return <CompassContext.Provider value={value}>{children}</CompassContext.Provider>;
 }

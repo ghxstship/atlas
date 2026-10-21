@@ -63,6 +63,32 @@ export interface VoiceNote {
 export const VOICE_NOTE_MIN_MS = 500;
 export const VOICE_NOTE_MAX_MS = 600_000;
 
+/**
+ * How long saving a recording may take before it counts as not saved. Three seconds was too short on a
+ * busy device: a slow stop was reported as a microphone that never started (A66).
+ */
+export const VOICE_STOP_TIMEOUT_MS = 10_000;
+
+/** How long a just-started recorder may take to report that it is recording. */
+export const VOICE_START_GRACE_MS = 1_000;
+
+export type VoiceStopOutcome = "kept" | "tooShort" | "didNotStart" | "didNotSave";
+
+/**
+ * What a released hold produced. "didNotStart" only when the recorder never reported recording (another
+ * app holds the input, or there is none); a recording that started but did not finish saving in time is
+ * "didNotSave", with its own message.
+ */
+export function voiceStopOutcome(result: {
+  readonly started: boolean;
+  readonly stopped: boolean;
+  readonly note: VoiceNote | null;
+}): VoiceStopOutcome {
+  if (!result.started) return "didNotStart";
+  if (!result.stopped) return "didNotSave";
+  return result.note ? "kept" : "tooShort";
+}
+
 /** The note to keep from a finished recording, or null when it is too short to hold anything. */
 export function keepVoiceNote(
   uri: string | null,
