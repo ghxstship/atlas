@@ -11,10 +11,10 @@ export {
   ProgressBar,
   PropertyList,
   ReconciliationTable,
-  RefusalNotice,
   Skeleton,
   StateChip,
   Tag,
   TemplateRecord,
   TemplateSplitView,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";

@@ -44,6 +44,7 @@ import {
   WorkOrderPeek,
 } from "./work-orders";
 import { TemplateRecord } from "./ui";
+import { describeRrule } from "@/lib/work/recurrence-text";
 
 const WORK_ORDER_STATES = Constants.app.Enums.work_order_state;
 
@@ -269,7 +270,7 @@ export async function RecurringPage({
     const tz = recurrence.timeZone;
     return {
       record,
-      rule: recurrence.rrule,
+      rule: describeRrule(recurrence.rrule, (key, values) => t(`work.recurrence.${key}`, values)),
       timeZone: tz,
       next: next.map((at) => ({ at, label: formatWhen(at, locale, tz) ?? at })),
     };

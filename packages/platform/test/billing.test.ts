@@ -9,6 +9,7 @@ import {
   addonForLookupKey,
   createAddonCheckoutSession,
   createCheckoutSession,
+  stripeTrialEnd,
   createPortalSession,
   createStripeClient,
   extraSeatForLookupKey,
@@ -258,6 +259,30 @@ describe("checkout", () => {
       customer_email: "billing@northwind.test",
       automatic_tax: { enabled: true },
     });
+  });
+
+  it("carries the rest of an XOS trial, so the card added at checkout is charged only when the trial ends", async () => {
+    const key = lookupKeyFor(registry, "pro", "Monthly");
+    const { client, calls } = fakeStripe({ [key]: "price_pro" });
+    const now = new Date("2026-10-20T12:00:00Z");
+    await createCheckoutSession(client, registry, {
+      orgId: "org-1",
+      planCode: "pro",
+      interval: "Monthly",
+      successUrl: "https://a.test/ok",
+      cancelUrl: "https://a.test/no",
+      trialEnd: "2026-10-30T12:00:00Z",
+      now,
+    });
+    expect(calls[1]?.params).toMatchObject({
+      subscription_data: {
+        metadata: { org_id: "org-1" },
+        trial_end: Date.parse("2026-10-30T12:00:00Z") / 1000,
+      },
+    });
+    expect(stripeTrialEnd("2026-10-21T12:00:00Z", now)).toBeUndefined();
+    expect(stripeTrialEnd("not a date", now)).toBeUndefined();
+    expect(stripeTrialEnd(undefined, now)).toBeUndefined();
   });
 
   it("uses an existing customer and opens the portal", async () => {

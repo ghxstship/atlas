@@ -36,7 +36,6 @@ import {
   hidePostAction,
   pinPostAction,
   postSwitchesAction,
-  reactAction,
   respondSurveyAction,
   transitionSurveyAction,
   voteAction,
@@ -47,6 +46,8 @@ import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { requestNow } from "@/lib/workforce/time";
 import { QuerySwitch } from "./client";
+import { OverflowMenu } from "./overflow-menu";
+import { ReactionBar } from "./reaction-bar";
 import {
   REFUSALS,
   audienceFields,
@@ -163,28 +164,38 @@ async function PostsSection({
     />
   );
 
-  const actions = (p: FeedPost) => {
+  /** Acknowledge stays visible; pinning and moderation sit in the post's More menu (A59-027). */
+  const acknowledge = (p: FeedPost) =>
+    p.requiresAcknowledgment && !p.acknowledgedByMe && !p.hiddenAt ? (
+      <ActionButton
+        action={acknowledgePostAction}
+        hidden={{ org: ctx.org.slug, id: p.id }}
+        label={t("feed.acknowledge")}
+        variant="secondary"
+        refusals={REFUSALS}
+      />
+    ) : null;
+
+  const moreActions = (p: FeedPost) => {
     const mineAuthor = p.authorMembershipId === ctx.org.membershipId;
+    const canPin = (mineAuthor || canModerate) && (canAnnounce || canModerate) && !p.hiddenAt;
+    const canSwitch = (mineAuthor || canModerate) && !p.hiddenAt;
+    if (!canPin && !canSwitch) return null;
     return (
-      <>
-        {p.requiresAcknowledgment && !p.acknowledgedByMe && !p.hiddenAt ? (
-          <ActionButton
-            action={acknowledgePostAction}
-            hidden={{ org: ctx.org.slug, id: p.id }}
-            label={t("feed.acknowledge")}
-            variant="secondary"
-            refusals={REFUSALS}
-          />
-        ) : null}
-        {(mineAuthor || canModerate) && (canAnnounce || canModerate) && !p.hiddenAt ? (
+      <OverflowMenu
+        label={t("feed.more")}
+        title={t("feed.moreFor", { title: p.title ?? t(`feed.kinds.${p.kind}`) })}
+      >
+        {canPin ? (
           <ActionButton
             action={pinPostAction}
             hidden={{ org: ctx.org.slug, id: p.id, pinned: p.pinnedAt ? "false" : "true" }}
             label={p.pinnedAt ? t("feed.unpin") : t("feed.pin")}
+            variant="ghost"
             refusals={REFUSALS}
           />
         ) : null}
-        {(mineAuthor || canModerate) && !p.hiddenAt ? (
+        {canSwitch ? (
           <>
             <ActionButton
               action={postSwitchesAction}
@@ -194,6 +205,7 @@ async function PostsSection({
                 comments: p.commentsEnabled ? "false" : "true",
               }}
               label={p.commentsEnabled ? t("feed.commentsOff") : t("feed.commentsOn")}
+              variant="ghost"
               refusals={REFUSALS}
             />
             <ActionButton
@@ -204,6 +216,7 @@ async function PostsSection({
                 reactions: p.reactionsEnabled ? "false" : "true",
               }}
               label={p.reactionsEnabled ? t("feed.reactionsOff") : t("feed.reactionsOn")}
+              variant="ghost"
               refusals={REFUSALS}
             />
             <ActionButton
@@ -216,30 +229,27 @@ async function PostsSection({
             />
           </>
         ) : null}
-      </>
+      </OverflowMenu>
     );
   };
 
+  // Reactions are the curated glyphs, each with its count only when someone reacted (A59-027).
   const reactions = (p: FeedPost) =>
     p.reactionsEnabled && !p.hiddenAt ? (
-      <div className="flex flex-wrap gap-4" role="group" aria-label={t("feed.reactions")}>
-        {REACTION_CODES.map((code) => {
-          const on = p.myReactions.includes(code);
-          return (
-            <ActionButton
-              key={code}
-              action={reactAction}
-              hidden={{ org: ctx.org.slug, id: p.id, code, on: on ? "false" : "true" }}
-              label={t("feed.reaction", {
-                name: t(`feed.reactionNames.${code}`),
-                count: p.reactions[code] ?? 0,
-              })}
-              variant={on ? "primary" : "secondary"}
-              refusals={REFUSALS}
-            />
-          );
-        })}
-      </div>
+      <ReactionBar
+        org={ctx.org.slug}
+        postId={p.id}
+        label={t("feed.reactions")}
+        choices={REACTION_CODES.map((code) => ({
+          code,
+          label: t("feed.reaction", {
+            name: t(`feed.reactionNames.${code}`),
+            count: p.reactions[code] ?? 0,
+          }),
+          count: p.reactions[code] ?? 0,
+          mine: p.myReactions.includes(code),
+        }))}
+      />
     ) : null;
 
   const poll = async (p: FeedPost) => {
@@ -315,12 +325,15 @@ async function PostsSection({
             {p.acknowledgedByMe ? t("feed.acknowledged") : t("feed.needsAcknowledgment")}
           </p>
         ) : null}
-        {reactions(p)}
-        <div className="flex flex-wrap items-center gap-8">
-          {actions(p)}
-          <KitLink href={withQuery(path, state, { view: "feed", peek: p.id })} size="sm">
-            {p.commentsEnabled ? t("feed.openComments") : t("feed.open")}
-          </KitLink>
+        <div className="flex flex-wrap items-center justify-between gap-8">
+          {reactions(p)}
+          <div className="flex flex-wrap items-center gap-8">
+            {acknowledge(p)}
+            <KitLink href={withQuery(path, state, { view: "feed", peek: p.id })} size="sm">
+              {p.commentsEnabled ? t("feed.openComments") : t("feed.open")}
+            </KitLink>
+            {moreActions(p)}
+          </div>
         </div>
       </div>
     </Card>
@@ -411,7 +424,12 @@ async function PostsSection({
           { label: t("feed.publishAt"), value: when(selected.publishAt) },
           { label: t("feed.comments"), value: selected.commentsEnabled ? t("on") : t("off") },
         ]}
-        actions={actions(selected)}
+        actions={
+          <>
+            {acknowledge(selected)}
+            {moreActions(selected)}
+          </>
+        }
       >
         <p className="m-0 whitespace-pre-wrap text-text-14">{selected.body}</p>
         {selected.hiddenReason ? (

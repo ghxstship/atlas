@@ -8,14 +8,9 @@ import {
   type ConversationSummary,
 } from "@xos/data/workforce-chat";
 import { getFormatter } from "next-intl/server";
-import {
-  ActionButton,
-  EmptyRefresh,
-  EntityForm,
-  ErrorPanel,
-  KitLink,
-} from "@/components/collection-kit/kit";
+import { ActionButton, EntityForm, ErrorPanel, KitLink } from "@/components/collection-kit/kit";
 import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
+import { EmptyStateLink } from "@/components/ui";
 import {
   deleteMessageAction,
   markReadAction,
@@ -76,7 +71,12 @@ export async function ChatSection({
   const list = (
     <nav aria-label={t("chat.conversations")} className="flex flex-col gap-4">
       {conversations.data.length === 0 ? (
-        <EmptyRefresh icon="MessagesSquare" sentence={t("chat.empty")} />
+        <EmptyStateLink
+          icon="MessagesSquare"
+          sentence={t("chat.empty")}
+          actionLabel={t("chat.emptyAction")}
+          href="#directory-q"
+        />
       ) : (
         <ul className="m-0 flex list-none flex-col gap-2 p-0">
           {conversations.data.map((c) => (

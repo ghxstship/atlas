@@ -53,6 +53,28 @@ export interface CheckoutRequest {
   readonly customerEmail?: string;
   readonly successUrl: string;
   readonly cancelUrl: string;
+  /**
+   * End of the org's running XOS trial (app.subscriptions.trial_ends_at, Section 14.7). Checkout then
+   * collects the card now and Stripe charges it only when the trial would have ended; the webhook moves the
+   * trialing subscription to active at once, so adding a card converts the trial.
+   */
+  readonly trialEnd?: string;
+  /** The current time, for tests. */
+  readonly now?: Date;
+}
+
+/** Stripe needs a Checkout trial to end at least 48 hours ahead; a shorter remainder is not carried over. */
+export const MIN_STRIPE_TRIAL_MS = 48 * 60 * 60 * 1000;
+
+/** The Stripe trial_end (Unix seconds) for the rest of an XOS trial, or undefined when none is left to carry. */
+export function stripeTrialEnd(
+  trialEnd: string | undefined,
+  now: Date = new Date(),
+): number | undefined {
+  if (trialEnd === undefined) return undefined;
+  const end = Date.parse(trialEnd);
+  if (Number.isNaN(end) || end - now.getTime() < MIN_STRIPE_TRIAL_MS) return undefined;
+  return Math.floor(end / 1000);
 }
 
 function customerFields(request: {
@@ -82,6 +104,7 @@ export async function createCheckoutSession(
     lookupKeyFor(registry, request.planCode, request.interval),
   );
   const lineItems = [{ price, quantity: 1 }];
+  const trialEnd = stripeTrialEnd(request.trialEnd, request.now);
   if (extraSeats > 0) {
     const seatPrice = await resolvePriceId(
       stripe,
@@ -94,7 +117,10 @@ export async function createCheckoutSession(
     line_items: lineItems,
     client_reference_id: request.orgId,
     metadata: { org_id: request.orgId },
-    subscription_data: { metadata: { org_id: request.orgId } },
+    subscription_data: {
+      metadata: { org_id: request.orgId },
+      ...(trialEnd === undefined ? {} : { trial_end: trialEnd }),
+    },
     allow_promotion_codes: true,
     automatic_tax: { enabled: true },
     tax_id_collection: { enabled: true },

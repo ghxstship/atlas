@@ -1288,6 +1288,7 @@ var activity_default$1 = {
     loadErrorTitle: "Activity did not load",
     loadError: "The activity feed could not be loaded. Check your connection and try again.",
     retry: "Try again",
+    times: "{count, plural, one {once} other {# times}}",
   },
   audit: {
     title: "Audit log",
@@ -1306,6 +1307,14 @@ var activity_default$1 = {
     older: "Show older entries",
     newest: "Back to newest",
     changedFields: "{count, plural, one {# field} other {# fields}}",
+    ops: {
+      insert: "Created",
+      update: "Updated",
+      delete: "Deleted",
+      other: "Changed",
+    },
+    actionText: "{op} {subject}",
+    code: "Code",
   },
   verbs: {
     accepted: "accepted",
@@ -1450,6 +1459,33 @@ var activity_default$1 = {
     work_order: "a work order",
     work_order_bid: "a work order bid",
     fallback: "a record",
+    budget_line: "a budget line",
+    budget: "a budget",
+    membership: "a membership",
+    membership_role: "a member's role",
+    account_membership: "an account membership",
+    account_membership_role: "an account role",
+    spend_authority: "a spend authority",
+    accounting_period: "an accounting period",
+    radio_channel: "a radio channel",
+    sop: "a standard operating procedure",
+    setting_value: "a setting",
+    journal_entry: "a journal entry",
+    journal_line: "a journal line",
+    credential_category: "a credential category",
+    subscription: "a subscription",
+    purchase_order: "a purchase order",
+    po_line: "a purchase order line",
+    goods_receipt: "a goods receipt",
+    invoice_line: "an invoice line",
+    certification: "a certification",
+    document: "a document",
+    org_domain: "a domain",
+    submittal: "a submittal",
+    sponsor_asset: "a sponsor asset",
+    cost_center: "a cost center",
+    time_off_request: "a time off request",
+    access_grid: "an access grid entry",
   },
 };
 var advancing_default$1 = {
@@ -2728,6 +2764,17 @@ var canonBrowser_default$1 = {
     source: "Source",
     jurisdiction: "Jurisdiction",
     provenance: "Provenance",
+    domains: {
+      capacity: "Capacity",
+      crew_logistics: "Crew logistics",
+      metric_tag_roadmap: "Metric tag roadmap",
+      power: "Power",
+      restrooms_ada: "Accessible restrooms (ADA)",
+      safety_staffing: "Safety staffing",
+      site_services: "Site services",
+      space_program: "Space program",
+      tech_network: "Technology and network",
+    },
   },
   extensions: {
     title: "Org extensions",
@@ -3660,7 +3707,6 @@ var credentials_default$1 = {
     noProjects:
       "There are no projects you can open yet. Create a project, then come back to set up credentials.",
     openFull: "Open full page",
-    openProject: "Open {key}",
     project: "Project",
     properties: "Properties",
     recordMissing:
@@ -3680,6 +3726,8 @@ var credentials_default$1 = {
       table: "Table",
     },
     viewsLabel: "{section} views",
+    chooseProjectLabel: "Choose a project",
+    continue: "Continue",
   },
   errors: {
     alertInput: "Choose a code and write the announcement, then try again.",
@@ -8014,6 +8062,7 @@ var incidents_default$1 = {
     libraryShared: "Shared and guest channels",
     name: "Name",
     new: "New channel",
+    chooseProject: "Choose the project whose radio channels you want to set up.",
   },
   reason: "Reason",
   remove: "Remove",
@@ -8041,6 +8090,9 @@ var incidents_default$1 = {
   viewAll: "View all incidents",
   withdraw: "Withdraw",
   zone: "Zone",
+  chooseProject: "Choose the project where the incident happened, then report it.",
+  noProjects:
+    "There are no projects you can open yet. Create a project, then come back to report incidents.",
 };
 var integrations_default$1 = {
   chat: {
@@ -9917,7 +9969,18 @@ var peek_default$1 = {
   owner: "Owner",
   unassigned: "Unassigned",
   due: "Due",
-  openFullHint: "Open the full page for the record's content, comments and activity.",
+  phase: "Phase",
+  starts: "Starts",
+  ends: "Ends",
+  timeZone: "Time zone",
+  blocker: "Blocked by",
+  activity: "Recent activity",
+  noActivity: "No changes yet.",
+  stateChange: "Moved from {from} to {to}",
+  stateSet: "Set to {to}",
+  byWhen: "{name} · {when}",
+  system: "Atlas",
+  openFull: "Open full page",
 };
 var people_default$1 = {
   kinds: {
@@ -11343,7 +11406,6 @@ var platform_default$1 = {
     fyi: "For your information",
     aRecord: "a record",
     someone: "Someone",
-    generic: "Update",
     otherKind: "Notification",
     kinds: {
       access: { break_glass_started: "Emergency access taken" },
@@ -11408,7 +11470,9 @@ var platform_default$1 = {
       reject: "reject",
       done: "done",
       snooze: "snooze until tomorrow",
+      open: "open",
     },
+    open: "Open",
   },
   access: {
     why: {
@@ -12519,8 +12583,11 @@ var projects_default$1 = {
     loadErrorTitle: "Projects did not load",
     retry: "Try again",
     empty: "No projects yet. Create the first one with its key, jurisdiction and phase.",
-    emptyReadOnly: "No projects are shared with you yet. Ask a producer to add you to a project.",
-    emptyReadOnlyAction: "View my work",
+    emptyReadOnly:
+      "No projects are shared with you yet. The Owner or a Producer can add you to a project, and it then appears here.",
+    emptyReadOnlyAction: "Go to Home",
+    emptyReadOnlyNamed:
+      "No projects are shared with you yet. {names} can add you to a project, and it then appears here.",
   },
   peek: {
     title: "{key} {name}",
@@ -12726,6 +12793,7 @@ var projects_default$1 = {
     historyEntry: "Gate {gate}: {from} to {to}",
     historyEntryLast: "Gate {gate}: {from} closed",
     readOnly: "You can read the gates. Ask a project manager to attest evidence or pass a gate.",
+    criterionCode: "Criterion {code}",
   },
   settings: {
     title: "Project settings",
@@ -13367,7 +13435,7 @@ var settings_default$1 = {
     },
     recordKeyFormat: {
       label: "Record key format",
-      help: "Use {PROJECT} and {SEQ}, for example {PROJECT}-{SEQ}.",
+      help: "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}'-'{SEQ}'.",
     },
     numberPadding: {
       label: "Number padding",
@@ -13696,6 +13764,11 @@ var settings_default$1 = {
       "Workspaces divide the org by office or venue group. Override settings for each one here.",
     accessReviews:
       "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    partner:
+      "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
+    usage:
+      "What the organization uses against its plan: seats, field members, projects and engagements.",
+    templates: "Templates the organization reuses for projects, documents and packets.",
     calendarFeeds:
       "Subscribe to your schedule, or to a project you work on, from any calendar app.",
   },
@@ -14237,6 +14310,7 @@ var shell_default$1 = {
       submit: "Create account",
       haveAccount: "Already have an account?",
       toSignIn: "Sign in",
+      magicLink: "Email me a sign-up link",
     },
     providers: {
       continueWith: "Continue with {provider}",
@@ -14275,6 +14349,10 @@ var shell_default$1 = {
           "This organization has no seat left for your role. Ask its Owner to upgrade the plan, then open the invitation again.",
       },
       home: "Go to Atlas",
+      closedTitle: "This invitation link is not valid any more",
+      closedBody:
+        "It may have expired, been used already, or been replaced by a newer invitation. Ask the person who invited you to send a new one. If you already have an account, you can still sign in.",
+      signIn: "Sign in",
     },
     signOut: "Sign out",
     session: {
@@ -14342,7 +14420,7 @@ var shell_default$1 = {
   },
   chrome: {
     search: "Search",
-    searchHint: "Search pages and settings",
+    searchHint: "Search records, people, pages and actions",
     favoritesEmpty: "Pin projects, saved views and records to keep them here.",
     organizations: "Organizations",
     createOrganization: "Create organization",
@@ -14486,6 +14564,55 @@ var shell_default$1 = {
         sole_owner: "You are the only Owner of {org}. Make someone else Owner before you leave.",
         unexpected: "Something went wrong on our side. Try again in a moment.",
       },
+    },
+    partnerConsole: {
+      title: "Partner console",
+      lead: "{org} is a partner agency. Create client orgs and set their plans, give them a default brand, and see usage and wholesale billing in the Partner console.",
+      clientOrgs: "Client orgs",
+      discount: "Wholesale discount",
+      createFirst: "Create your first client org",
+      open: "Open the Partner console",
+    },
+    usagePanel: {
+      title: "Usage now",
+      lead: "What {org} uses today against the {plan} plan.",
+      leadNoPlan: "What {org} uses today.",
+      seats: "Seats",
+      field: "Field members",
+      projects: "Active projects",
+      engagements: "Open external engagements",
+      unlimited: "{used} (no limit on this plan)",
+      ofLimit: "{used} of {limit}",
+      members: "View members",
+      billing: "Billing and plan",
+    },
+    templatesPanel: {
+      title: "Project templates",
+      lead: "Templates the org starts projects from. Create, version and apply them on Projects, Templates.",
+      empty: "No project templates yet. Save one from a project you want to repeat.",
+      line: "Version {version} · {items, plural, one {# item} other {# items}} · {projects, plural, =0 {no projects yet} one {# project} other {# projects}}",
+      open: "Open project templates",
+    },
+  },
+  refusalOutcome: {
+    REFUSE: "Refused",
+    NO_ANSWER: "No answer",
+    UNRATIFIED: "Not ratified",
+  },
+  commandMenu: {
+    groups: {
+      actions: "Actions",
+      records: "Records",
+      people: "People",
+    },
+    incident: "Incident",
+    actions: {
+      newProject: "New project",
+      newRecord: "New record",
+      reportIncident: "Report incident",
+      approveTimesheets: "Approve timesheets",
+      openApprovals: "Open approvals",
+      openInbox: "Open Inbox",
     },
   },
   create: {
@@ -16209,7 +16336,7 @@ var work_default$1 = {
   recurrence: {
     title: "Repeats",
     none: "This record does not repeat.",
-    rule: "Repeats by the rule {rule}.",
+    rule: "Repeats: {rule}.",
     frequency: "Repeat",
     never: "Never",
     daily: "Daily",
@@ -16230,6 +16357,13 @@ var work_default$1 = {
     save: "Save rule",
     clear: "Stop repeating",
     next: "Next: {dates}",
+    summary: {
+      daily: "{interval, plural, one {Daily} other {Every # days}}",
+      weekly: "{interval, plural, one {Weekly} other {Every # weeks}}",
+      monthly: "{interval, plural, one {Monthly} other {Every # months}}",
+      on: "{summary} on {days}",
+      custom: "Custom rule",
+    },
   },
   history: {
     title: "State history",
@@ -17426,7 +17560,7 @@ var workforce_default$1 = {
     hideReason: "Why are you hiding this post?",
     hiddenTitle: "This post is hidden",
     reactions: "Reactions",
-    reaction: "{name} {count}",
+    reaction: "{name}, {count}",
     reactionNames: {
       thumbs_up: "Thumbs up",
       heart: "Heart",
@@ -17443,6 +17577,8 @@ var workforce_default$1 = {
     pollResults: "Poll results",
     pollLine: "{label}: {votes, plural, one {# vote} other {# votes}} ({percent}%)",
     yourVote: "(your vote)",
+    more: "More",
+    moreFor: "More actions for {title}",
   },
   surveys: {
     title: "Surveys",
@@ -17741,7 +17877,7 @@ var workforce_default$1 = {
     agenda: "Agenda",
     organizer: "Organizer",
     rsvps: "RSVPs",
-    rsvpCounts: "{Going} going, {Maybe} maybe, {Declined} declined",
+    rsvpCounts: "{going} going, {maybe} maybe, {declined} declined",
     rsvp: {
       Going: "Going",
       Maybe: "Maybe",
@@ -17805,7 +17941,7 @@ var workforce_default$1 = {
     title: "Chat",
     what: "your conversations",
     conversations: "Conversations",
-    empty: "No conversations yet. Find someone in the directory to message.",
+    empty: "No conversations yet. Message a teammate to start one.",
     untitled: "Conversation",
     unread: "{count} new",
     noMessages: "No messages yet",
@@ -17837,6 +17973,7 @@ var workforce_default$1 = {
       File: "File",
       Voice: "Voice note",
     },
+    emptyAction: "Message a teammate",
   },
   recognition: {
     title: "Recognition",
@@ -18045,6 +18182,7 @@ var workforce_default$1 = {
       "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     checkedInCount: "Checked in of {expected}",
     peopleIn: "People in",
+    emptyAction: "Open the guest list",
   },
   lostFound: {
     title: "Lost and Found",
@@ -18331,7 +18469,7 @@ var workforce_default$1 = {
       },
       when: "{start} to {end}",
       whenAt: "{start} to {end} · {location}",
-      counts: "{Going} going, {Maybe} maybe, {Declined} not going",
+      counts: "{going} going, {maybe} maybe, {declined} not going",
     },
     forms: {
       submit: "Submit Form",
@@ -18542,6 +18680,7 @@ var activity_default = {
     loadErrorTitle: "La actividad no se cargó",
     loadError: "No se pudo cargar la actividad. Revisa tu conexión e inténtalo de nuevo.",
     retry: "Intentar de nuevo",
+    times: "{count, plural, one {una vez} other {# veces}}",
   },
   audit: {
     title: "Registro de auditoría",
@@ -18561,6 +18700,14 @@ var activity_default = {
     older: "Mostrar entradas anteriores",
     newest: "Volver a lo más reciente",
     changedFields: "{count, plural, one {# campo} other {# campos}}",
+    ops: {
+      insert: "Creó",
+      update: "Actualizó",
+      delete: "Eliminó",
+      other: "Cambió",
+    },
+    actionText: "{op} {subject}",
+    code: "Código",
   },
   verbs: {
     accepted: "aceptó",
@@ -18705,6 +18852,33 @@ var activity_default = {
     work_order: "una orden de trabajo",
     work_order_bid: "una oferta de orden de trabajo",
     fallback: "un registro",
+    budget_line: "una línea de presupuesto",
+    budget: "un presupuesto",
+    membership: "una membresía",
+    membership_role: "un rol de miembro",
+    account_membership: "una membresía de cuenta",
+    account_membership_role: "un rol de cuenta",
+    spend_authority: "una autoridad de gasto",
+    accounting_period: "un período contable",
+    radio_channel: "un canal de radio",
+    sop: "un procedimiento operativo estándar",
+    setting_value: "una configuración",
+    journal_entry: "un asiento contable",
+    journal_line: "una línea de asiento",
+    credential_category: "una categoría de credencial",
+    subscription: "una suscripción",
+    purchase_order: "una orden de compra",
+    po_line: "una línea de orden de compra",
+    goods_receipt: "una recepción de mercancía",
+    invoice_line: "una línea de factura",
+    certification: "una certificación",
+    document: "un documento",
+    org_domain: "un dominio",
+    submittal: "un envío técnico",
+    sponsor_asset: "un activo de patrocinio",
+    cost_center: "un centro de costos",
+    time_off_request: "una solicitud de tiempo libre",
+    access_grid: "una entrada de la matriz de acceso",
   },
 };
 var advancing_default = {
@@ -20019,6 +20193,17 @@ var canonBrowser_default = {
     source: "Fuente",
     jurisdiction: "Jurisdicción",
     provenance: "Procedencia",
+    domains: {
+      capacity: "Capacidad",
+      crew_logistics: "Logística del equipo",
+      metric_tag_roadmap: "Hoja de ruta de etiquetas de métricas",
+      power: "Energía",
+      restrooms_ada: "Sanitarios accesibles (ADA)",
+      safety_staffing: "Personal de seguridad",
+      site_services: "Servicios del sitio",
+      space_program: "Programa de espacios",
+      tech_network: "Tecnología y red",
+    },
   },
   extensions: {
     title: "Extensiones de la organización",
@@ -20973,7 +21158,6 @@ var credentials_default = {
     noProjects:
       "Todavía no hay proyectos que puedas abrir. Crea un proyecto y vuelve para configurar las credenciales.",
     openFull: "Abrir página completa",
-    openProject: "Abrir {key}",
     project: "Proyecto",
     properties: "Propiedades",
     recordMissing:
@@ -20993,6 +21177,8 @@ var credentials_default = {
       table: "Tabla",
     },
     viewsLabel: "Vistas de {section}",
+    chooseProjectLabel: "Elige un proyecto",
+    continue: "Continuar",
   },
   errors: {
     alertInput: "Elige un código y escribe el anuncio, y vuelve a intentarlo.",
@@ -25290,6 +25476,7 @@ var incidents_default = {
     libraryShared: "Canales compartidos y de invitados",
     name: "Nombre",
     new: "Nuevo canal",
+    chooseProject: "Elige el proyecto cuyos canales de radio quieres configurar.",
   },
   reason: "Motivo",
   remove: "Quitar",
@@ -25318,6 +25505,9 @@ var incidents_default = {
   viewAll: "Ver todos los incidentes",
   withdraw: "Retirar",
   zone: "Zona",
+  chooseProject: "Elige el proyecto donde ocurrió el incidente y luego repórtalo.",
+  noProjects:
+    "Todavía no hay proyectos que puedas abrir. Crea un proyecto y vuelve para reportar incidentes.",
 };
 var integrations_default = {
   chat: {
@@ -27239,8 +27429,18 @@ var peek_default = {
   owner: "Responsable",
   unassigned: "Sin asignar",
   due: "Vence",
-  openFullHint:
-    "Abre la página completa para ver el contenido, los comentarios y la actividad del registro.",
+  phase: "Fase",
+  starts: "Comienza",
+  ends: "Termina",
+  timeZone: "Zona horaria",
+  blocker: "Bloqueado por",
+  activity: "Actividad reciente",
+  noActivity: "Aún no hay cambios.",
+  stateChange: "Pasó de {from} a {to}",
+  stateSet: "Quedó en {to}",
+  byWhen: "{name} · {when}",
+  system: "Atlas",
+  openFull: "Abrir la página completa",
 };
 var people_default = {
   kinds: {
@@ -28722,7 +28922,6 @@ var platform_default = {
     fyi: "Para su información",
     aRecord: "un registro",
     someone: "Alguien",
-    generic: "Actualización",
     otherKind: "Notificación",
     kinds: {
       access: { break_glass_started: "Acceso de emergencia tomado" },
@@ -28787,7 +28986,9 @@ var platform_default = {
       reject: "rechazar",
       done: "listo",
       snooze: "posponer hasta mañana",
+      open: "abrir",
     },
+    open: "Abrir",
   },
   access: {
     why: {
@@ -29930,8 +30131,10 @@ var projects_default = {
     retry: "Intentar de nuevo",
     empty: "Aún no hay proyectos. Crea el primero con su clave, jurisdicción y fase.",
     emptyReadOnly:
-      "Aún no se ha compartido ningún proyecto contigo. Pide a un productor que te agregue a un proyecto.",
-    emptyReadOnlyAction: "Ver mi trabajo",
+      "Todavía no se ha compartido ningún proyecto contigo. El propietario o un productor puede agregarte a un proyecto y entonces aparecerá aquí.",
+    emptyReadOnlyAction: "Ir a Inicio",
+    emptyReadOnlyNamed:
+      "Todavía no se ha compartido ningún proyecto contigo. {names} puede agregarte a un proyecto y entonces aparecerá aquí.",
   },
   peek: {
     title: "{key} {name}",
@@ -30145,6 +30348,7 @@ var projects_default = {
     historyEntryLast: "Compuerta {gate}: {from} cerrada",
     readOnly:
       "Puedes leer las compuertas. Pide a un gerente del proyecto que certifique evidencia o pase una compuerta.",
+    criterionCode: "Criterio {code}",
   },
   settings: {
     title: "Configuración del proyecto",
@@ -30806,7 +31010,7 @@ var settings_default = {
     },
     recordKeyFormat: {
       label: "Formato de la clave de registro",
-      help: "Usa {PROJECT} y {SEQ}, por ejemplo {PROJECT}-{SEQ}.",
+      help: "Usa '{PROJECT}' y '{SEQ}', por ejemplo '{PROJECT}'-'{SEQ}'.",
     },
     numberPadding: {
       label: "Relleno de números",
@@ -31139,6 +31343,11 @@ var settings_default = {
       "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     accessReviews:
       "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
+    partner:
+      "Las organizaciones cliente de tu agencia socia, las condiciones mayoristas y el acceso a la Consola de socio.",
+    usage:
+      "Lo que la organización usa frente a su plan: asientos, miembros de campo, proyectos y contrataciones.",
+    templates: "Plantillas que la organización reutiliza para proyectos, documentos y paquetes.",
     calendarFeeds:
       "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
   },
@@ -31687,6 +31896,7 @@ var shell_default = {
       submit: "Crear cuenta",
       haveAccount: "¿Ya tienes una cuenta?",
       toSignIn: "Iniciar sesión",
+      magicLink: "Envíame un enlace para registrarme",
     },
     providers: {
       continueWith: "Continuar con {provider}",
@@ -31725,6 +31935,10 @@ var shell_default = {
           "Esta organización no tiene asientos libres para tu rol. Pide a su propietario que mejore el plan y vuelve a abrir la invitación.",
       },
       home: "Ir a Atlas",
+      closedTitle: "Este enlace de invitación ya no es válido",
+      closedBody:
+        "Es posible que haya vencido, que ya se haya usado o que una invitación más reciente lo haya reemplazado. Pide a la persona que te invitó que te envíe una nueva. Si ya tienes una cuenta, aún puedes iniciar sesión.",
+      signIn: "Iniciar sesión",
     },
     signOut: "Cerrar sesión",
     session: {
@@ -31795,7 +32009,7 @@ var shell_default = {
   },
   chrome: {
     search: "Buscar",
-    searchHint: "Busca páginas y ajustes",
+    searchHint: "Busca registros, personas, páginas y acciones",
     favoritesEmpty: "Fija proyectos, vistas guardadas y registros para tenerlos aquí.",
     organizations: "Organizaciones",
     createOrganization: "Crear organización",
@@ -31942,6 +32156,56 @@ var shell_default = {
           "Eres el único propietario de {org}. Nombra a otra persona propietaria antes de salir.",
         unexpected: "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento.",
       },
+    },
+    partnerConsole: {
+      title: "Consola de socio",
+      lead: "{org} es una agencia socia. Crea organizaciones cliente y define sus planes, dales una marca predeterminada y consulta el uso y la facturación mayorista en la Consola de socio.",
+      clientOrgs: "Organizaciones cliente",
+      discount: "Descuento mayorista",
+      createFirst: "Crear tu primera organización cliente",
+      open: "Abrir la Consola de socio",
+    },
+    usagePanel: {
+      title: "Uso actual",
+      lead: "Lo que {org} usa hoy frente al plan {plan}.",
+      leadNoPlan: "Lo que {org} usa hoy.",
+      seats: "Asientos",
+      field: "Miembros de campo",
+      projects: "Proyectos activos",
+      engagements: "Contrataciones externas abiertas",
+      unlimited: "{used} (sin límite en este plan)",
+      ofLimit: "{used} de {limit}",
+      members: "Ver miembros",
+      billing: "Facturación y plan",
+    },
+    templatesPanel: {
+      title: "Plantillas de proyecto",
+      lead: "Plantillas con las que la organización inicia proyectos. Créalas, versiónalas y aplícalas en Proyectos, Plantillas.",
+      empty:
+        "Aún no hay plantillas de proyecto. Guarda una a partir de un proyecto que quieras repetir.",
+      line: "Versión {version} · {items, plural, one {# elemento} other {# elementos}} · {projects, plural, =0 {aún sin proyectos} one {# proyecto} other {# proyectos}}",
+      open: "Abrir plantillas de proyecto",
+    },
+  },
+  refusalOutcome: {
+    REFUSE: "Rechazado",
+    NO_ANSWER: "Sin respuesta",
+    UNRATIFIED: "Sin ratificar",
+  },
+  commandMenu: {
+    groups: {
+      actions: "Acciones",
+      records: "Registros",
+      people: "Personas",
+    },
+    incident: "Incidente",
+    actions: {
+      newProject: "Nuevo proyecto",
+      newRecord: "Nuevo registro",
+      reportIncident: "Reportar incidente",
+      approveTimesheets: "Aprobar hojas de horas",
+      openApprovals: "Abrir aprobaciones",
+      openInbox: "Abrir Bandeja",
     },
   },
   create: {
@@ -33702,7 +33966,7 @@ var work_default = {
   recurrence: {
     title: "Se repite",
     none: "Este registro no se repite.",
-    rule: "Se repite según la regla {rule}.",
+    rule: "Se repite: {rule}.",
     frequency: "Repetir",
     never: "Nunca",
     daily: "Diario",
@@ -33723,6 +33987,13 @@ var work_default = {
     save: "Guardar regla",
     clear: "Dejar de repetir",
     next: "Próximas: {dates}",
+    summary: {
+      daily: "{interval, plural, one {A diario} other {Cada # días}}",
+      weekly: "{interval, plural, one {Semanal} other {Cada # semanas}}",
+      monthly: "{interval, plural, one {Mensual} other {Cada # meses}}",
+      on: "{summary}, los {days}",
+      custom: "Regla personalizada",
+    },
   },
   history: {
     title: "Historial de estados",
@@ -34943,7 +35214,7 @@ var workforce_default = {
     hideReason: "¿Por qué ocultas esta publicación?",
     hiddenTitle: "Esta publicación está oculta",
     reactions: "Reacciones",
-    reaction: "{name} {count}",
+    reaction: "{name}, {count}",
     reactionNames: {
       thumbs_up: "Me gusta",
       heart: "Corazón",
@@ -34960,6 +35231,8 @@ var workforce_default = {
     pollResults: "Resultados de la encuesta",
     pollLine: "{label}: {votes, plural, one {# voto} other {# votos}} ({percent} %)",
     yourVote: "(tu voto)",
+    more: "Más",
+    moreFor: "Más acciones para {title}",
   },
   surveys: {
     title: "Encuestas",
@@ -35260,7 +35533,7 @@ var workforce_default = {
     agenda: "Agenda",
     organizer: "Organizador",
     rsvps: "Respuestas",
-    rsvpCounts: "{Going} van, {Maybe} quizás, {Declined} no van",
+    rsvpCounts: "{going} van, {maybe} quizás, {declined} no van",
     rsvp: {
       Going: "Voy",
       Maybe: "Quizás",
@@ -35325,7 +35598,7 @@ var workforce_default = {
     title: "Chat",
     what: "tus conversaciones",
     conversations: "Conversaciones",
-    empty: "Todavía no hay conversaciones. Busca a alguien en el directorio para escribirle.",
+    empty: "Aún no hay conversaciones. Escribe a un compañero para empezar una.",
     untitled: "Conversación",
     unread: "{count} nuevos",
     noMessages: "Todavía no hay mensajes",
@@ -35357,6 +35630,7 @@ var workforce_default = {
       File: "Archivo",
       Voice: "Nota de voz",
     },
+    emptyAction: "Escribir a un compañero",
   },
   recognition: {
     title: "Reconocimientos",
@@ -35568,6 +35842,7 @@ var workforce_default = {
       "Admitido con {plusOnes, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}} en {door}.",
     checkedInCount: "Registrados de {expected}",
     peopleIn: "Personas adentro",
+    emptyAction: "Abrir la lista de invitados",
   },
   lostFound: {
     title: "Objetos perdidos",
@@ -35860,7 +36135,7 @@ var workforce_default = {
       },
       when: "{start} a {end}",
       whenAt: "{start} a {end} · {location}",
-      counts: "{Going} asistirán, {Maybe} tal vez, {Declined} no asistirán",
+      counts: "{going} asistirán, {maybe} tal vez, {declined} no asistirán",
     },
     forms: {
       submit: "Enviar formulario",

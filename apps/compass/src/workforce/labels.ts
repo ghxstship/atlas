@@ -177,7 +177,12 @@ export function eventsLabels(t: T): EventsScreenLabels {
         end: new Intl.DateTimeFormat(undefined, { timeStyle: "short" }).format(new Date(endsAt)),
         location: location ?? "",
       }),
-    counts: (counts) => t(`${C}.events.counts`, counts),
+    counts: (counts) =>
+      t(`${C}.events.counts`, {
+        going: counts.Going,
+        maybe: counts.Maybe,
+        declined: counts.Declined,
+      }),
   };
 }
 

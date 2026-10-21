@@ -113,7 +113,7 @@
     "hideReason": "¿Por qué ocultas esta publicación?",
     "hiddenTitle": "Esta publicación está oculta",
     "reactions": "Reacciones",
-    "reaction": "{name} {count}",
+    "reaction": "{name}, {count}",
     "reactionNames": {
       "thumbs_up": "Me gusta",
       "heart": "Corazón",
@@ -129,7 +129,9 @@
     "pickOne": "Elige una",
     "pollResults": "Resultados de la encuesta",
     "pollLine": "{label}: {votes, plural, one {# voto} other {# votos}} ({percent} %)",
-    "yourVote": "(tu voto)"
+    "yourVote": "(tu voto)",
+    "more": "Más",
+    "moreFor": "Más acciones para {title}"
   },
   "surveys": {
     "title": "Encuestas",
@@ -418,7 +420,7 @@
     "agenda": "Agenda",
     "organizer": "Organizador",
     "rsvps": "Respuestas",
-    "rsvpCounts": "{Going} van, {Maybe} quizás, {Declined} no van",
+    "rsvpCounts": "{going} van, {maybe} quizás, {declined} no van",
     "rsvp": {
       "Going": "Voy",
       "Maybe": "Quizás",
@@ -482,7 +484,7 @@
     "title": "Chat",
     "what": "tus conversaciones",
     "conversations": "Conversaciones",
-    "empty": "Todavía no hay conversaciones. Busca a alguien en el directorio para escribirle.",
+    "empty": "Aún no hay conversaciones. Escribe a un compañero para empezar una.",
     "untitled": "Conversación",
     "unread": "{count} nuevos",
     "noMessages": "Todavía no hay mensajes",
@@ -513,7 +515,8 @@
       "Photo": "Foto",
       "File": "Archivo",
       "Voice": "Nota de voz"
-    }
+    },
+    "emptyAction": "Escribir a un compañero"
   },
   "recognition": {
     "title": "Reconocimientos",
@@ -713,7 +716,8 @@
     "credentialHelp": "Escanea o escribe el número del gafete si el invitado tiene uno.",
     "admittedLine": "Admitido con {plusOnes, plural, =0 {ningún acompañante} one {# acompañante} other {# acompañantes}} en {door}.",
     "checkedInCount": "Registrados de {expected}",
-    "peopleIn": "Personas adentro"
+    "peopleIn": "Personas adentro",
+    "emptyAction": "Abrir la lista de invitados"
   },
   "lostFound": {
     "title": "Objetos perdidos",
@@ -993,7 +997,7 @@
       },
       "when": "{start} a {end}",
       "whenAt": "{start} a {end} · {location}",
-      "counts": "{Going} asistirán, {Maybe} tal vez, {Declined} no asistirán"
+      "counts": "{going} asistirán, {maybe} tal vez, {declined} no asistirán"
     },
     "forms": {
       "submit": "Enviar formulario",

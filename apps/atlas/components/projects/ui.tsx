@@ -15,7 +15,6 @@ export {
   PageHeader,
   PhaseChip,
   PropertyList,
-  RefusalNotice,
   Skeleton,
   StatTile,
   StateChip,
@@ -24,3 +23,4 @@ export {
   TemplateDashboard,
   TemplateRecord,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";
