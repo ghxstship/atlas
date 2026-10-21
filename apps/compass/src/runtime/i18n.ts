@@ -26,6 +26,12 @@ export function initI18n(locale: Locale = deviceLocale()): typeof i18next {
   return i18next;
 }
 
+/** Renders in a chosen language (locale.language), or in the device's language when nobody chose one. */
+export function applyLanguage(locale: Locale | null): void {
+  const next = locale ?? deviceLocale();
+  if (i18next.isInitialized && i18next.language !== next) void i18next.changeLanguage(next);
+}
+
 /** Picks the One or Other form of a count message. */
 export function countKey(base: string, count: number): string {
   return count === 1 ? `${base}One` : `${base}Other`;

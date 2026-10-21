@@ -1,9 +1,10 @@
 /**
  * The registered settings Compass applies (Section 4.5.6, A65-001), from app.resolve_settings for the person in
- * their org and current project: personal accessibility (text size, contrast, motion, haptics, sounds), units,
- * and the org's clock, kiosk and claiming rules. The server enforces the org rules again (migrations 1321 and
- * 1322); here they shape what the device offers before it queues anything.
+ * their org and current project: the language, personal accessibility (text size, contrast, motion, haptics,
+ * sounds), units, and the org's clock, kiosk and claiming rules. The server enforces the org rules again
+ * (migrations 1321 and 1322); here they shape what the device offers before it queues anything.
  */
+import { isLocale, type Locale } from "@xos/i18n/locales";
 import type { ThemeOptions } from "@xos/ui-native/theme";
 
 /** Resolved setting values by key; empty until the first download (every rule then falls back to its default). */
@@ -13,6 +14,7 @@ export const NO_VALUES: ResolvedValues = new Map();
 
 /** The settings Compass reads; the device keeps only these. */
 export const COMPASS_SETTING_KEYS: readonly string[] = [
+  "locale.language",
   "me.text_size",
   "me.high_contrast",
   "me.reduced_motion",
@@ -37,6 +39,32 @@ export function valuesFromRows(
   return new Map(
     rows.map((r) => [r.setting_key, r.value_text ?? r.value_boolean ?? r.value_integer ?? null]),
   );
+}
+
+/**
+ * Rows of app.resolve_settings as the values the device keeps: the keys Compass reads, without the platform
+ * default of locale.language, which is nobody's choice, so the device's own language stands until the person or
+ * their org chooses one.
+ */
+export function compassValuesFromRows(
+  rows: readonly (Parameters<typeof valuesFromRows>[0][number] & { readonly source?: string })[],
+): ResolvedValues {
+  return valuesFromRows(
+    rows.filter(
+      (r) =>
+        COMPASS_SETTING_KEYS.includes(r.setting_key) &&
+        !(r.setting_key === "locale.language" && r.source === "Default"),
+    ),
+  );
+}
+
+/**
+ * The language Compass renders in: locale.language as resolved for the person (their org's when it locks it,
+ * else their own from any device or shell, else their org's), or null to keep the device's language.
+ */
+export function languageOf(values: ResolvedValues): Locale | null {
+  const value = values.get("locale.language");
+  return typeof value === "string" && isLocale(value) ? value : null;
 }
 
 /** Text size, contrast and motion for the native theme (me.text_size, me.high_contrast, me.reduced_motion). */

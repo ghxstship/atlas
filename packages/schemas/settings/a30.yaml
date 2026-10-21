@@ -487,6 +487,10 @@ settings:
         test: apps/atlas/test/org-locale.test.ts
       - consumer: apps/gateway/i18n/request.ts#negotiatedLocale
         test: apps/gateway/test/personal-language.test.ts
+      - consumer: apps/compass/src/domain/settings.ts#languageOf
+        test: apps/compass/test/settings.test.ts
+      - consumer: apps/compass/src/runtime/i18n.ts#applyLanguage
+        test: apps/compass/test/language.test.ts
       - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
         test: apps/atlas/test/org-settings.test.ts
   - key: locale.time_zone

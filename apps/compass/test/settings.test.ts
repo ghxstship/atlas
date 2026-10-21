@@ -12,9 +12,11 @@ import {
 } from "../src/domain/kiosk";
 import {
   claimRuleOf,
+  compassValuesFromRows,
   formatDistance,
   hapticsOn,
   kioskRules,
+  languageOf,
   NO_VALUES,
   requiresGeofence,
   soundsOn,
@@ -46,6 +48,44 @@ describe("resolved settings", () => {
     expect(read.get("me.haptics")).toBe(false);
     expect(read.get("locale.units")).toBe("metric");
     expect(read.get("x.count")).toBe(3);
+  });
+
+  it("speaks the language the person or their org chose, else the device's (locale.language)", () => {
+    const language = (value: string, source: string) =>
+      languageOf(
+        compassValuesFromRows([
+          {
+            setting_key: "locale.language",
+            value_text: value,
+            value_boolean: null,
+            value_integer: null,
+            source,
+          },
+          {
+            setting_key: "x.other",
+            value_text: "kept out",
+            value_boolean: null,
+            value_integer: null,
+            source,
+          },
+        ]),
+      );
+    // An org's language (locked or not, which app.resolve_settings already ranks) and the person's own apply.
+    expect(language("es-US", "Organization")).toBe("es-US");
+    expect(language("es-US", "Personal")).toBe("es-US");
+    // The platform default is nobody's choice: the device's language stands.
+    expect(language("en-US", "Default")).toBeNull();
+    expect(language("fr-FR", "Personal")).toBeNull();
+    expect(
+      compassValuesFromRows([
+        {
+          setting_key: "x.other",
+          value_text: "kept out",
+          value_boolean: null,
+          value_integer: null,
+        },
+      ]).size,
+    ).toBe(0);
   });
 });
 

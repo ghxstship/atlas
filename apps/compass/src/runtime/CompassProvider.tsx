@@ -30,13 +30,14 @@ import { downloadAll, type DownloadReport } from "../data/downloader";
 import { IdentityError, resolveIdentity, type ResolvedIdentity } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
 import {
-  COMPASS_SETTING_KEYS,
   NO_VALUES,
-  valuesFromRows,
+  compassValuesFromRows,
+  languageOf,
   withQueuedSetting,
   type ResolvedValues,
 } from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
+import { applyLanguage } from "./i18n";
 import { fieldMediaUploader } from "./media";
 import {
   createSupabase,
@@ -347,11 +348,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       })
       .then(({ data, error }) => {
         if (!live || error || !Array.isArray(data)) return;
-        const values = valuesFromRows(
-          (data as Parameters<typeof valuesFromRows>[0]).filter((r) =>
-            COMPASS_SETTING_KEYS.includes(r.setting_key),
-          ),
-        );
+        const values = compassValuesFromRows(data as Parameters<typeof compassValuesFromRows>[0]);
         setResolvedSettings(values);
         void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(values)));
       });
@@ -359,6 +356,11 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       live = false;
     };
   }, [client, phase.kind, network.isConnected, orgId, projectId]);
+
+  // Compass speaks the language the person or their org chose (locale.language), else the device's (A65-001).
+  useEffect(() => {
+    applyLanguage(languageOf(resolvedSettings));
+  }, [resolvedSettings]);
 
   const enqueue = useCallback(
     async (input: MutationInput) => {
