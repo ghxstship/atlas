@@ -943,6 +943,16 @@ export async function passOpportunity(db: XosClient, opportunityId: string): Pro
   return error ? fail(toDataError(error)) : ok(null);
 }
 
+/** Removes a listing from the caller's saved list by the listing (soft delete), as Explore's Saved button toggles. */
+export async function unsaveListing(db: XosClient, opportunityId: string): Promise<Result<null>> {
+  const { error } = await db
+    .from("saved_opportunities")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("opportunity_id", opportunityId)
+    .is("deleted_at", null);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
 /** Undoes a pass (soft delete), so the listing comes back to Explore. */
 export async function undoPass(db: XosClient, opportunityId: string): Promise<Result<null>> {
   const { error } = await db
