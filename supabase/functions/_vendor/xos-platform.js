@@ -3032,6 +3032,7 @@ var compass_default$1 = {
       tooShort: "That was too short to keep. Hold a little longer to record a voice note.",
       micDidNotStart:
         "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again.",
+      didNotSave: "The recording did not finish saving. Try again.",
     },
   },
   inspections: {
@@ -19573,6 +19574,7 @@ var compass_default = {
         "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
       micDidNotStart:
         "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+      didNotSave: "La grabación no terminó de guardarse. Vuelve a intentarlo.",
     },
   },
   inspections: {

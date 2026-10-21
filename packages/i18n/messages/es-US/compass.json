@@ -384,7 +384,8 @@
       "permissionDenied": "Compass no puede usar el micrófono. Permítelo en Ajustes y vuelve a mantener presionado para grabar.",
       "failed": "La nota de voz no se grabó: {reason}. Mantén presionado para intentarlo otra vez.",
       "tooShort": "Fue demasiado corta para guardarla. Mantén presionado un poco más para grabar una nota de voz.",
-      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado."
+      "micDidNotStart": "El micrófono no se inició, así que no se grabó nada. Cierra cualquier app que lo esté usando y vuelve a mantener presionado.",
+      "didNotSave": "La grabación no terminó de guardarse. Vuelve a intentarlo."
     }
   },
   "inspections": {

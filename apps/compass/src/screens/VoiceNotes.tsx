@@ -13,7 +13,14 @@ import {
 import { useRef, useState, type ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, View } from "react-native";
-import { formatNoteLength, keepVoiceNote, type VoiceNote } from "../domain/incidents";
+import {
+  formatNoteLength,
+  keepVoiceNote,
+  VOICE_START_GRACE_MS,
+  VOICE_STOP_TIMEOUT_MS,
+  voiceStopOutcome,
+  type VoiceNote,
+} from "../domain/incidents";
 import { useVoiceRecorder } from "../runtime/voiceRecorder";
 import { Icon, IconButton, InlineAlert, Text, useTheme } from "../ui";
 
@@ -21,8 +28,15 @@ function message(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/** How long a stop may take before the recording counts as failed (an audio input that never started). */
-const STOP_TIMEOUT_MS = 3_000;
+/** Resolves true once the check passes, false when it has not within ms. */
+async function becomes(check: () => boolean, ms: number): Promise<boolean> {
+  const end = Date.now() + ms;
+  while (!check()) {
+    if (Date.now() >= end) return false;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return true;
+}
 
 /** Resolves true when the promise settles in time, false when the time runs out first. */
 function within(promise: Promise<unknown>, ms: number): Promise<boolean> {
@@ -93,17 +107,22 @@ export function VoiceNotes({
     starting$.current = null;
     if (!started) return;
     try {
+      // A release that came before the microphone was ready reaches here just after record(); give the
+      // recorder a moment to report that it started before calling it a failure to start.
+      const started =
+        recorder.isRecording || (await becomes(() => recorder.isRecording, VOICE_START_GRACE_MS));
       const durationMs = recorder.currentTime * 1000;
-      const wasRecording = recorder.isRecording;
-      const stopped = await within(recorder.stop(), STOP_TIMEOUT_MS);
+      const stopped = started && (await within(recorder.stop(), VOICE_STOP_TIMEOUT_MS));
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true });
-      if (!wasRecording || !stopped) {
-        // The audio session refused to start (another app holds the input, or none is available).
-        setProblem(t("compass.incidents.voice.micDidNotStart"));
-        return;
-      }
-      const note = keepVoiceNote(recorder.uri, durationMs, new Date().toISOString());
-      if (note) onChange([...notes, note]);
+      const note = stopped
+        ? keepVoiceNote(recorder.uri, durationMs, new Date().toISOString())
+        : null;
+      const outcome = voiceStopOutcome({ started, stopped, note });
+      if (outcome === "kept" && note) onChange([...notes, note]);
+      // didNotStart: the audio session refused to start (another app holds the input, or none is
+      // available). didNotSave: it recorded, but saving did not finish in time (a busy device).
+      else if (outcome === "didNotStart") setProblem(t("compass.incidents.voice.micDidNotStart"));
+      else if (outcome === "didNotSave") setProblem(t("compass.incidents.voice.didNotSave"));
       else setProblem(t("compass.incidents.voice.tooShort"));
     } catch (error: unknown) {
       setProblem(t("compass.incidents.voice.failed", { reason: message(error) }));
