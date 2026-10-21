@@ -384,6 +384,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1327_marketplace_visibility.sql#private.marketplace_visibility_cap
         test: supabase/tests/1327_marketplace_visibility.test.sql
+      - consumer: supabase/migrations/1397_settings_reader_fixes.sql#app.explore_organizations
+        test: supabase/tests/1397_settings_reader_fixes.test.sql
       - consumer: apps/atlas/lib/shell/org-settings.ts#allowedVisibilities
         test: apps/atlas/test/org-settings.test.ts
   - key: gateway.ratings_enabled

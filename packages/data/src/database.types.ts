@@ -54964,6 +54964,7 @@ export type Database = {
         };
         Returns: string;
       };
+      recipient_language: { Args: { p_org_id: string; p_person_id: string }; Returns: string };
       recognition_count: { Args: { p_org_id: string; p_person_id: string }; Returns: number };
       recognize: {
         Args: {
