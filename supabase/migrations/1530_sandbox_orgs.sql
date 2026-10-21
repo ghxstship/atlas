@@ -43,6 +43,8 @@ call private.describe('app.sandbox_orgs', 'A private sandbox org (Section 11.7, 
 
 call private.install_policies('app.sandbox_orgs', $$person_id = (select private.current_person_id())$$);
 call private.install_audit_trail('app.sandbox_orgs');
+-- The purge deletes a sandbox's row with the org; a row soft deleted by hand leaves after 30 days.
+call private.install_default_retention('app.sandbox_orgs', interval '30 days');
 
 create table private.sandbox_leftover_objects (
   id uuid primary key default private.uuid_v7(),
