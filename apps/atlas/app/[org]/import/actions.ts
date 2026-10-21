@@ -13,7 +13,9 @@ import {
   requestImportCommit,
   undoImportBatch,
 } from "@xos/data/imports";
+import type { Route } from "next";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import {
   done,
@@ -94,7 +96,8 @@ export async function importSheetAction(
   });
   if (!result.ok) return fromDataError(result.error);
   revalidatePath(`/${ctx.org.slug}/import`);
-  return done(result.data);
+  // The sheet's row turns into a link to its import on the next render, so the form cannot navigate itself.
+  redirect(`/${ctx.org.slug}/import?import=${result.data}` as Route);
 }
 
 export async function confirmMappingAction(

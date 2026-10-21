@@ -417,12 +417,15 @@ function MappingStep({
   );
   // The columns whose current choice came from Aurora, until the person changes them.
   const [fromAurora, setFromAurora] = useState<ReadonlySet<string>>(new Set());
+  const [round, setRound] = useState(0);
   const applyAurora = (picks: readonly AuroraChoice[]) => {
     setChoice((prev) => ({
       ...prev,
       ...Object.fromEntries(picks.map((p) => [p.columnId, p.field])),
     }));
     setFromAurora(new Set(picks.map((p) => p.columnId)));
+    // The selects are uncontrolled: a new round remounts them with Aurora's picks.
+    setRound((n) => n + 1);
   };
   const chosen = new Set(Object.values(choice).filter(Boolean));
   const missing = fields.filter((f) => f.required && !chosen.has(f.name));
@@ -463,6 +466,7 @@ function MappingStep({
             {detail.columns.map((c) => (
               <li key={c.id} className="flex flex-wrap items-end gap-12">
                 <Select
+                  key={`${c.id}-${round}`}
                   label={t("imports.map.column", {
                     header: c.header || t("imports.map.untitled", { index: c.index + 1 }),
                   })}
