@@ -194,6 +194,44 @@ describe("Zapier app", () => {
     expect(defaulted.calls[0]?.url).toBe("https://api.ghxstship.tech/v1/me");
   });
 
+  it("pins Zapier platform 19.1.0 on Node 22 and keeps to the v17 to v19 schema", () => {
+    // 19.1.0 (2026-07-30) is pinned exactly; v18 moved the runtime to Node 22. CommonJS stays supported (ESM is opt-in).
+    const pkg = JSON.parse(read("../automation/zapier/package.json")) as {
+      engines: { node: string };
+      dependencies: Record<string, string>;
+    };
+    expect(pkg.dependencies["zapier-platform-core"]).toBe("19.1.0");
+    expect(app.platformVersion).toBe("19.1.0");
+    expect(pkg.engines.node).toBe(">=22");
+    // v17: auth fields lost the code, file, integer and text types and several properties.
+    const removedAuth = [
+      "altersDynamicFields",
+      "dynamic",
+      "meta",
+      "primary",
+      "search",
+      "steadyState",
+    ];
+    for (const field of app.authentication.fields as Json[]) {
+      expect(["code", "file", "integer", "text"]).not.toContain(field["type"]);
+      for (const key of removedAuth)
+        expect(field, `auth field ${String(field["key"])}`).not.toHaveProperty(key);
+    }
+    // v17: input fields lost primary and steadyState; shouldLock is gone.
+    for (const action of [...Object.values(app.creates), ...Object.values(app.searches)]) {
+      for (const field of action.operation.inputFields as Json[]) {
+        expect(field).not.toHaveProperty("primary");
+        expect(field).not.toHaveProperty("steadyState");
+      }
+      expect(action.operation).not.toHaveProperty("shouldLock");
+    }
+    // v17: z.request refuses {{bundle.*}} and {{process.env.*}}; every request is built with template literals.
+    const source = read("../automation/zapier/index.js");
+    expect(source).not.toMatch(/\{\{\s*(bundle|process\.env)\./);
+    // v18: 429 throws ThrottledError before afterResponse, so the problem handler never sees throttling.
+    expect(source).not.toMatch(/429/);
+  });
+
   it("turns API problems into errors with their detail", () => {
     const after = app.afterResponse[0] as (
       r: { status: number; content: string },

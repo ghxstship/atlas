@@ -106,19 +106,41 @@ The app definitions live in `packages/integrations/automation/` and are tested a
 characters) that a customer creates in Atlas, Settings, API keys and service accounts. OAuth replaces the key once
 the authorization server described by the OpenAPI document ships.
 
-**Zapier.** With the Zapier CLI (`npm install -g zapier-platform-cli`, then `zapier login` as the GHXSTSHIP
-account):
+**Zapier.** The app pins `zapier-platform-core` 19.1.0 (released 2026-07-30) and needs Node 22 or later, the
+runtime Zapier has used since platform 18. Install the CLI at the same version so `validate` checks the same
+schema. Since 19.0.0 the CLI command is `zapier-platform`; the old `zapier` command is gone.
 
 ```bash
+npm install -g zapier-platform-cli@19.1.0
+zapier-platform login           # as the GHXSTSHIP account
 cd packages/integrations/automation/zapier
-npm install            # set zapier-platform-core in package.json to the current release first
-zapier register "XOS"  # once; writes .zapierapprc (do not commit it)
-zapier validate
-zapier push
+npm install                     # installs zapier-platform-core 19.1.0 from package.json
+zapier-platform register "XOS"  # once; writes .zapierapprc (do not commit it)
+zapier-platform validate
+zapier-platform push
 ```
 
 Then invite testers, and submit the app for public listing in the Zapier developer platform when the owner
 decides to publish (Zapier reviews it).
+
+What changed between platform 17 and 19, and where the app stands (checked against the 19.1.0 schema offline,
+with no errors):
+
+- Node and module format. Platform 18 runs on Node 22. CommonJS apps are still supported (ESM is opt-in through
+  `"type": "module"` and `exports`), so `index.js` stays CommonJS.
+- Authentication. Platform 17 removed the `code`, `file`, `integer` and `text` auth field types and the
+  `altersDynamicFields`, `dynamic`, `meta`, `primary`, `search` and `steadyState` auth field properties. The app's
+  custom auth uses a `password` field (`api_key`) and a plain field (`base_url`), so nothing changed.
+- Requests. Platform 17 refuses `{{bundle.*}}` and `{{process.env.*}}` inside `z.request`; the app builds every URL
+  with template literals. Platform 18 throws `ThrottledError` on 429 before `afterResponse` runs, so the app's
+  problem handler sees every other error status and Zapier retries throttled calls.
+- Schema. Platform 17 removed `primary` and `steadyState` from input fields and dropped `shouldLock`; platform 18
+  replaced the `skipCleanArrayInputData` flag with `cleanInputData`. The app uses none of these. 19.0.0 and 19.1.0
+  have no schema changes.
+
+`packages/integrations/test/automation.test.ts` checks the pinned version, the Node engine and these rules. Before
+moving to a newer platform, read its release notes at `https://docs.zapier.com/platform/news` and run
+`zapier-platform validate`.
 
 **Make.** In Make, Custom Apps, create the app "XOS", then copy each section of
 `packages/integrations/automation/make/xos.make.json` into the matching tab: Base, the `xos-api-key` connection,
@@ -130,6 +152,6 @@ with a scenario against staging, then request publication (Make reviews it) when
 - Inbound events that fail for good wait as Dead Letter in Atlas, Settings, Integrations, where an Admin sends them
   back with a reason. `select provider_code, inbound_state, count(*) from app.integration_inbound_events group by 1, 2;`
 - Warehouse deliveries and their files are audited (`app.warehouse_deliveries`, `app.warehouse_delivery_files`).
-- The demo removal script (`infra/production/remove-demo-data.sql`) deletes `xos_integration_<id>` Vault secrets;
-  inbound secrets (`xos_integration_inbound_<id>`) and warehouse credentials (`xos_warehouse_<id>`) of a removed
-  org must be deleted the same way if any exist.
+- The demo removal script (`infra/production/remove-demo-data.sql`) deletes the Vault secrets of a removed org:
+  connector credentials (`xos_integration_<id>`), inbound secrets (`xos_integration_inbound_<id>`) and warehouse
+  credentials (`xos_warehouse_<id>`).

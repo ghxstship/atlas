@@ -6,9 +6,9 @@
   "license": "AGPL-3.0-only",
   "main": "index.js",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "dependencies": {
-    "zapier-platform-core": "16.0.0"
+    "zapier-platform-core": "19.1.0"
   }
 }

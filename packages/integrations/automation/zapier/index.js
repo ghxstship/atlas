@@ -10,8 +10,8 @@
  * key (Authorization: Bearer xos_live_...). Every request this file makes is validated against
  * packages/api/openapi/v1.json by packages/integrations/test/automation.test.ts.
  *
- * Publishing is an owner step (infra/runbooks/integrations.md): `zapier register`, `zapier push`, then the
- * Zapier review. OAuth replaces the API key once the XOS authorization server ships.
+ * Publishing is an owner step (infra/runbooks/integrations.md): `zapier-platform register`, `zapier-platform push`,
+ * then the Zapier review. Platform 19.1.0 on Node 22; the app stays CommonJS, which platform 19 still supports. OAuth replaces the API key once the XOS authorization server ships.
  */
 
 const { version } = require("./package.json");
