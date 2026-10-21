@@ -29,6 +29,7 @@ import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { PageSkeleton } from "@/components/projects/page-skeleton";
 import { Suspense } from "react";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const BOARD_STATES: readonly RecordState[] = [
   "proposed",
@@ -116,6 +117,7 @@ async function ObjectRecords({
   const state = collectionState(
     query["view"] ? query : { ...query, view: views.includes(preferred) ? preferred : "list" },
     views,
+    await orgToday(ctx),
   );
   const records = await listObjectRecords(ctx.viewer.db, object);
   if (!records.ok) {

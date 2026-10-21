@@ -1,10 +1,12 @@
-import { expect, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import {
   createOrganization,
   expectAccessible,
+  NEW_PROJECT_TIME_ZONE,
   PASSWORD,
   signUp,
   testEmail,
+  todayIn,
   uniqueId,
 } from "./support";
 
@@ -12,14 +14,16 @@ import {
  * A13 Crew journeys (Section 20.2): 10 (publish a shift, the crew member accepts and clocks in, a
  * second clock in for the same time is refused, then clocks out), 11 (a supervisor approves the
  * timesheet, the hours change and the approval is voided), 12 and 31 (payroll export is plan gated
- * and Restricted), and 66 (crew claim a published open shift). Each run signs up a new owner in a new
+ * and Restricted), and 66 (crew claim a published open shift under the org's claiming rule: approval by
+ * default, so a supervisor approves the claim). Each run signs up a new owner in a new
  * org with a project and a Field member, so runs never collide on the shared stack. Every page is
  * checked with axe in both themes.
  */
 
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
-expect.configure({ timeout: 20_000 });
+// expect.configure returns a configured expect; called on its own it changed nothing (A71).
+const expect = baseExpect.configure({ timeout: 20_000 });
 
 /** Panels fade in; axe runs once the fade has settled so it measures final colors. */
 async function settled(page: Page) {
@@ -34,6 +38,8 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settled(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
+  // Leave the page hydrated: callers act next, and a click before hydration is lost (A71, A77).
+  await settle(page);
 }
 
 interface Crew {
@@ -65,6 +71,13 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   await signUp(page, { name: "Olive Owner", email: testEmail("owner", id) });
   await createOrganization(page, { name: `Crew ${id}`, slug });
   await createProject(page, slug, "NWL", "Northwind Summer Series");
+  // A New York production: the org's time zone is the project's (journey 63's setting).
+  await page.goto(`/${slug}/settings/localization`);
+  const settings = page.getByRole("form", { name: "Settings on this page" });
+  const zone = settings.locator("li").filter({ has: page.getByLabel("Time zone") });
+  await zone.getByLabel("Time zone").selectOption(NEW_PROJECT_TIME_ZONE);
+  await settings.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(zone.getByText(/Set for the organization/)).toBeVisible();
   await page.goto(`/${slug}/settings/members`);
   await page.getByLabel("Email", { exact: true }).fill(fieldEmail);
   await page.locator("#invite-role").selectOption({ label: "Field" });
@@ -84,8 +97,13 @@ async function newCrew(page: Page, browser: Browser): Promise<Crew> {
   return { slug, owner: page, field, fieldName };
 }
 
+/**
+ * Today in project NWL's zone, where the shift and time entry forms take their times (A71). The org is
+ * set to the same zone (newCrew), so its org-wide crew week is that calendar too; left on UTC, the
+ * default, its week ran a day ahead of New York in the evening and lost Sunday night's shifts.
+ */
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return todayIn(NEW_PROJECT_TIME_ZONE);
 }
 
 async function confirm(page: Page, button: string, confirmLabel = button) {
@@ -227,9 +245,24 @@ test("journey 66: crew claim a published open shift; a double booking is refused
   await expectAccessibleInBothThemes(field);
   const open = field.getByRole("link", { name: /Open shift/ });
   await expect(open).toHaveCount(2);
+  // The org keeps the default claiming rule, approval (scheduling.open_shift_claiming): the claim waits.
   await open.first().click();
   await confirm(field, "Claim shift");
+  await expect(field.getByText("Your claim is waiting for a supervisor to decide.")).toBeVisible();
+
+  // The Owner approves the waiting claim, and the shift is the field member's.
+  await owner.goto(`/${slug}/crew/shifts?view=list`);
+  await owner
+    .getByRole("link", { name: /Open shift/ })
+    .first()
+    .click();
+  await expect(owner.getByRole("heading", { name: "Waiting claims" })).toBeVisible();
+  await confirm(owner, "Approve");
+  await expectAccessible(owner);
+
+  // Claiming the other shift, which overlaps the one now held, is refused as a double booking.
   await field.goto(`/${slug}/crew/shifts?view=list`);
+  await expect(field.getByRole("link", { name: /Open shift/ })).toHaveCount(1);
   await field
     .getByRole("link", { name: /Open shift/ })
     .first()

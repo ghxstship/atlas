@@ -44,7 +44,8 @@ import {
   savePrivacyAction,
   saveProfileAction,
 } from "@/lib/actions/profile";
-import { formatDate, formatMoney, minorDigits, todayIso } from "@/lib/format";
+import { formatDate, formatMoney, minorDigits } from "@/lib/format";
+import { personToday } from "@/lib/time-zone";
 import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settings";
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -111,7 +112,11 @@ async function RegistrySettings({ ctx, t, node }: SectionProps) {
               label={t(def.label)}
               help={def.help ? t(def.help) : null}
               initial={initial}
-              sourceText={t(`settings.source.personal${source}`)}
+              sourceText={
+                def.deferred
+                  ? `${t(`settings.source.personal${source}`)} ${t("settings.notInEffect")}`
+                  : t(`settings.source.personal${source}`)
+              }
               setHere={source === "Personal"}
               options={
                 def.type === "choice"
@@ -895,7 +900,8 @@ async function RepresentationSection(props: SectionProps) {
   const { ctx, t, locale } = props;
   const reps = await listRepresentations(ctx.db);
   if (!reps.ok) return <RegionError />;
-  const today = todayIso();
+  // Representation agreements are the person's own, so their standing follows the person's calendar.
+  const today = await personToday(ctx);
   const mine = reps.data.filter((r) => r.accountId === ctx.acting?.id);
   return (
     <>

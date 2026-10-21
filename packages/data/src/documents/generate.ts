@@ -155,14 +155,34 @@ export async function renderSharedImagePdf(input: SharedImageInput): Promise<Gen
   return { bytes, fileName: watermarkedFileName(input.filename), templateVersion: 1 };
 }
 
-/** The org's brand for documents: display name, legal entity, accent and a PNG or JPEG logo. */
+/**
+ * The org's registered legal name (setting org.legal_name, Section 4.5.6 General), or null when unset or
+ * not readable by the caller (people outside the org fall back to the brand).
+ */
+export async function orgLegalName(db: XosClient, orgId: string): Promise<string | null> {
+  const { data, error } = await db
+    .from("setting_values")
+    .select("value_text")
+    .eq("org_id", orgId)
+    .eq("setting_key", "org.legal_name")
+    .eq("scope_kind", "Organization")
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.value_text?.trim() || null;
+}
+
+/**
+ * The org's brand for documents: display name, legal entity, accent and a PNG or JPEG logo. The legal
+ * entity is the white-label legal entity name when set, else the org's registered legal name.
+ */
 export async function loadDocumentBrand(
   db: XosClient,
   orgId: string,
   fallbackName: string,
   logoAlt: (name: string) => string,
 ): Promise<DocumentBrand> {
-  const brand = await getOrgBrand(db, orgId);
+  const [brand, legalName] = await Promise.all([getOrgBrand(db, orgId), orgLegalName(db, orgId)]);
   const saved = brand.ok ? brand.data : null;
   const name = saved?.displayName?.trim() || fallbackName;
   let logo: DocumentLogo | null = null;
@@ -175,7 +195,7 @@ export async function loadDocumentBrand(
   }
   return {
     name,
-    legalEntity: saved?.legalEntityName?.trim() || null,
+    legalEntity: saved?.legalEntityName?.trim() || legalName,
     accentHex: saved?.accentHex ?? null,
     logo,
   };

@@ -1,4 +1,5 @@
 import type { XosClient } from "@xos/data/client";
+import { clientAddress, trustedProxyHops } from "@xos/data/client-address";
 import { recordLegalAcceptances } from "@xos/data/settings";
 
 /**
@@ -88,11 +89,12 @@ export async function missingSignUpAcceptances(db: XosClient): Promise<Acceptanc
   return required.filter((d) => !accepted.has(d.slug));
 }
 
-/** The client IP the platform saw, from the proxy chain headers. */
+/**
+ * The client IP the platform saw: the entry the trusted proxy appended to X-Forwarded-For, never
+ * the first entry, which the client writes (A69-003).
+ */
 export function clientIp(headers: Headers): string | null {
-  const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() || null;
-  return headers.get("x-real-ip");
+  return clientAddress(headers, trustedProxyHops(process.env["XOS_TRUSTED_PROXY_HOPS"]));
 }
 
 /**

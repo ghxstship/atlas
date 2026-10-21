@@ -1,6 +1,6 @@
 import { useState, type ReactElement } from "react";
 import { Popover as RPopover } from "radix-ui";
-import { useLocale, useT } from "../lib/context.tsx";
+import { useLocale, usePreferences, useT } from "../lib/context.tsx";
 import { formatDate } from "../lib/format.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { Field, describedBy, useFieldId } from "../Field/Field.tsx";
@@ -21,6 +21,7 @@ export function DatePicker({
 }: DatePickerProps): ReactElement {
   const t = useT();
   const locale = useLocale();
+  const { dateFormat } = usePreferences();
   const fieldId = useFieldId(id);
   const [current, setCurrent] = useState(value);
   const [open, setOpen] = useState(Boolean(defaultOpen));
@@ -39,7 +40,7 @@ export function DatePicker({
           >
             <Icon name="Calendar" size={14} />
             <span className={current ? undefined : "text-text-tertiary"}>
-              {current ? formatDate(locale, current) : (hint ?? t("date.pick"))}
+              {current ? formatDate(locale, current, dateFormat) : (hint ?? t("date.pick"))}
             </span>
           </button>
         </RPopover.Trigger>

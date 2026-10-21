@@ -1,0 +1,18 @@
+# Settings registry: A80 (push and SMS senders, notification registry and org defaults, RRR-125). Section 4.5.6.
+# Field reference: see a30.yaml. Org notification defaults and mandatory categories are a matrix, not a
+# setting: they live in app.org_notification_defaults and app.org_mandatory_notification_categories (1362)
+# and render as a contributed panel on Settings, Notifications.
+contributor: a80
+settings:
+  # Communication -------------------------------------------------------------------------------------------
+  - key: communication.message_translation
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.communication.write
+    label: settings.fields.messageTranslation.label
+    help: settings.fields.messageTranslation.help
+    pages: { org: settings.communication }
+    enforced_by:
+      - consumer: supabase/migrations/1363_chat_message_translation.sql#app.record_chat_message_translation
+        test: supabase/tests/1363_chat_message_translation.test.sql

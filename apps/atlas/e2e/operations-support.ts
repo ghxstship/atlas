@@ -1,4 +1,5 @@
 import type { Page } from "@playwright/test";
+import { settle } from "./engine-test";
 import { expectAccessible } from "./support";
 
 /** Shared helpers for A11's Logistics and Hospitality journeys on the demo tenant seed. */
@@ -28,4 +29,6 @@ export async function expectAccessibleInBothThemes(page: Page) {
   await settled(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
+  // Leave the page hydrated: callers act next, and a click before hydration is lost (A71, A77).
+  await settle(page);
 }

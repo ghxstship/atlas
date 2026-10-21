@@ -48,6 +48,7 @@ settings:
     capability: org.general.write
     label: sample.fields.sample.label
     pages: { org: settings.general, personal: me.preferences }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
 `;
 
 describe("settings registry files", () => {
@@ -81,6 +82,7 @@ settings:
     capability: org.general.write
     label: sample.a.label
     pages: { personal: me.preferences }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
   - key: org.b
     type: integer
     max_length: 4
@@ -89,12 +91,14 @@ settings:
     capability: me.preferences.write
     label: sample.b.label
     pages: { personal: settings.general }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
   - key: org.c
     type: choice
     scopes: [organization]
     capability: org.general.write
     label: sample.c.label
     pages: { org: settings.general }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
   - key: org.c
     type: boolean
     default: 1
@@ -102,6 +106,7 @@ settings:
     capability: org.general.write
     label: sample.c.label
     pages: { org: settings.general }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
 `;
     const issues = issuesOf(yaml);
     for (const expected of [
@@ -139,6 +144,7 @@ settings:
     capability: org.general.write
     label: sample.d.label
     pages: { org: settings.general }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
   - key: org.e
     type: integer
     min: 1
@@ -148,6 +154,7 @@ settings:
     capability: org.general.write
     label: sample.e.label
     pages: { org: settings.general }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
   - key: org.f
     type: text
     max_length: 2
@@ -156,6 +163,7 @@ settings:
     capability: org.general.write
     label: sample.f.label
     pages: { org: settings.general }
+    deferred: { reason: "Waits on the sample decision for this test fixture.", decision: "Sample decision" }
 `;
     const issues = issuesOf(yaml);
     expect(issues.some((i) => i.includes("repeats a choice"))).toBe(true);

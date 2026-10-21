@@ -68,6 +68,17 @@ export function mondayOf(isoDate: string): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * The first day of the week containing an ISO date, for a first day of 0 (Sunday) or 1 (Monday), the
+ * person's or org's payroll.week_start.
+ */
+export function weekStartOf(isoDate: string, firstDay: number): string {
+  const d = new Date(`${isoDate}T00:00:00Z`);
+  const shift = (d.getUTCDay() - firstDay + 7) % 7;
+  d.setUTCDate(d.getUTCDate() - shift);
+  return d.toISOString().slice(0, 10);
+}
+
 /** An ISO date plus some days. */
 export function addDays(isoDate: string, days: number): string {
   const d = new Date(`${isoDate}T00:00:00Z`);

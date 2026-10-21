@@ -13,7 +13,9 @@ import {
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { cache, type ReactNode } from "react";
+import { todayIn } from "@xos/data/calendar";
 import { requireNode } from "@/lib/shell/require-node";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import type { OrgContext } from "@/lib/shell/context";
 import { CollabPanels } from "./collab";
 import type { CollabSubject } from "./collab-actions";
@@ -70,6 +72,11 @@ export interface PageScope {
   readonly projects: readonly OperationsProject[];
   /** The project of a project tab; undefined on the org-level module page. */
   readonly project?: OperationsProject;
+  /**
+   * Today as `YYYY-MM-DD`: on the project's calendar on a project tab, else on the org's (A71). Never
+   * the UTC date, which is a day ahead every evening in the Americas.
+   */
+  readonly today: string;
 }
 
 async function scopeFor(
@@ -77,9 +84,10 @@ async function scopeFor(
   params: Readonly<Record<string, string>>,
   project?: OperationsProject,
 ): Promise<PageScope> {
-  const [access, projects] = await Promise.all([
+  const [access, projects, orgZone] = await Promise.all([
     getOperationsAccess(ctx.viewer.db, ctx.org.id),
     listOperationsProjects(ctx.viewer.db, ctx.org.id),
+    getOrgTimeZone(ctx),
   ]);
   if (!access.ok) throw new Error(`Cannot read access: ${JSON.stringify(access.error)}`);
   if (!projects.ok) throw new Error(`Cannot read projects: ${JSON.stringify(projects.error)}`);
@@ -89,6 +97,7 @@ async function scopeFor(
     access: access.data,
     projects: projects.data,
     ...(project ? { project } : {}),
+    today: todayIn(project?.timeZone ?? orgZone),
   };
 }
 
@@ -159,12 +168,16 @@ export function isoDateIn(instant: string, timeZone: string): string {
   }).format(new Date(instant));
 }
 
-/** The month a calendar shows (`month=YYYY-MM`, default this month) and its neighbors. */
-export function calendarMonth(search: SearchParams, now: Date = new Date()) {
+/**
+ * The month a calendar shows (`month=YYYY-MM`, default the month of `today`) and its neighbors.
+ * `today` is the scope's date (PageScope.today), so this month follows the project's or org's
+ * calendar, not UTC's.
+ */
+export function calendarMonth(search: SearchParams, today: string) {
   const asked = param(search, "month") ?? "";
   const match = /^(\d{4})-(\d{2})$/.exec(asked);
-  const y = match ? Number(match[1]) : now.getUTCFullYear();
-  const m = match ? Number(match[2]) : now.getUTCMonth() + 1;
+  const y = Number(match ? match[1] : today.slice(0, 4));
+  const m = Number(match ? match[2] : today.slice(5, 7));
   const iso = (year: number, month: number) => {
     const d = new Date(Date.UTC(year, month - 1, 1));
     return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -173,7 +186,7 @@ export function calendarMonth(search: SearchParams, now: Date = new Date()) {
     month: `${iso(y, m)}-01`,
     previous: iso(y, m - 1),
     next: iso(y, m + 1),
-    today: now.toISOString().slice(0, 10),
+    today,
   };
 }
 

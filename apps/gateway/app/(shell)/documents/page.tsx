@@ -1,3 +1,4 @@
+import { addCalendarDays, todayIn } from "@xos/data/calendar";
 import {
   listEngagementDocuments,
   listMyEngagements,
@@ -14,7 +15,7 @@ import { PageTitle, pickView, RegionError, Section, ViewSwitcher } from "@/compo
 import { EmptyStateLink, InlineAlert } from "@/components/ui";
 import { signDocumentAction } from "@/lib/actions/engagement";
 import { inBrandScope } from "@/lib/brand/brand";
-import { formatDate, isoDaysFromToday, todayIso } from "@/lib/format";
+import { formatDate } from "@/lib/format";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { toneFor } from "@/lib/states";
@@ -51,8 +52,6 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
     );
   }
   const byId = new Map(engagements.data.map((e) => [e.id, e]));
-  const today = todayIso();
-  const soon = isoDaysFromToday(30);
   const docs = documents.data
     .map((d) => ({ d, e: byId.get(d.engagementId) }))
     .filter(({ e }) => e && inBrandScope(ctx.brand, e.orgId))
@@ -61,9 +60,12 @@ export default async function DocumentsPage({ searchParams }: PageProps<"/docume
         Number(b.d.state === "Sent") - Number(a.d.state === "Sent") ||
         (a.d.expiresOn ?? "9999").localeCompare(b.d.expiresOn ?? "9999"),
     );
-  const expiring = docs.filter(
-    ({ d }) => d.expiresOn && d.expiresOn >= today && d.expiresOn <= soon,
-  );
+  // A document expires on its engagement's calendar (the project's time zone, 1390), not UTC's.
+  const expiring = docs.filter(({ d, e }) => {
+    if (!d.expiresOn || !e) return false;
+    const today = todayIn(e.projectTimeZone);
+    return d.expiresOn >= today && d.expiresOn <= addCalendarDays(today, 30);
+  });
   const empty = docs.length === 0 && signedByLink.data.length === 0 && taxForms.data.length === 0;
   return (
     <>

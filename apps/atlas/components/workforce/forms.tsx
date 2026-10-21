@@ -36,6 +36,7 @@ import { fieldListText } from "@/lib/workforce/parse";
 import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { QuerySwitch } from "./client";
 import { FormFiller } from "./form-filler";
 import { REFUSALS, workforceCopy } from "./shared";
@@ -76,7 +77,7 @@ export async function FormsSection({
   search: SearchParams;
 }) {
   const section = search["section"] === "submissions" ? "submissions" : "forms";
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, templates, submissions] = await Promise.all([
     workforceCopy(),

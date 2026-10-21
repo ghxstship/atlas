@@ -16,10 +16,11 @@ import { AssetsCollection, type CollectionRow } from "@/components/assets/collec
 import { NewUnitForm } from "@/components/assets/forms";
 import { Breadcrumbs, PageHeader } from "@/components/assets/ui";
 import { UnitRecord } from "@/components/assets/unit-record";
-import { assetCapabilities, loadPickers, must, todayIso } from "@/lib/assets/context";
+import { assetCapabilities, loadPickers, must } from "@/lib/assets/context";
 import { DEFAULT_CURRENCY, pageViews } from "@/lib/assets/page";
 import { ASSET_STATE_TONE, matches, type ListQuery } from "@/lib/assets/views";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -44,7 +45,8 @@ export async function UnitsView({
   const format = await getFormatter();
   const db = ctx.viewer.db;
   const can = assetCapabilities(ctx);
-  const today = todayIso();
+  // Assets are the org's: warranty and service dates follow its calendar, not UTC's (A71).
+  const today = await orgToday(ctx);
   const [unitsResult, classesResult, pickers] = await Promise.all([
     listAssetUnits(db, ctx.org.id, project ? { projectId: project.id } : {}),
     listAssetClasses(db, ctx.org.id),

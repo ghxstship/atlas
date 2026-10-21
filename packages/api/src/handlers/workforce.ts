@@ -200,6 +200,7 @@ export const handlers = defineHandlers("Workforce", {
       p_body: body.body,
       p_title: body.title ?? undefined,
       ...audience(body as Body),
+      p_department_code: (body as Body)["department_code"] ?? undefined,
       p_requires_acknowledgment: body.requires_acknowledgment,
       p_reactions_enabled: body.reactions_enabled,
       p_comments_enabled: body.comments_enabled,
@@ -214,6 +215,7 @@ export const handlers = defineHandlers("Workforce", {
       p_body: body.body,
       p_title: body.title,
       ...audience(body as Body),
+      p_department_code: (body as Body)["department_code"] ?? undefined,
       p_poll: args({
         question: body.question,
         options: body.options,

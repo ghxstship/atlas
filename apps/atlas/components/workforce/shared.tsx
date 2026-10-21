@@ -1,5 +1,5 @@
 import { listMembers, listRoles, type Member } from "@xos/data";
-import { listProjects, type ProjectSummary } from "@xos/data/projects";
+import { listDepartments, listProjects, type ProjectSummary } from "@xos/data/projects";
 import { listGroups, type Group } from "@xos/data/workforce-chat";
 import type { Audience } from "@xos/data/workforce-shared";
 import type { FieldSpec } from "@/components/collection-kit/kit";
@@ -24,12 +24,14 @@ export interface OrgPickers {
   readonly groups: readonly Group[];
   readonly teams: readonly { id: string; name: string }[];
   readonly members: readonly Member[];
+  /** Canon departments (code and name), the targets of a Department audience on feed posts. */
+  readonly departments: readonly { code: string; label: string }[];
 }
 
-/** Projects, roles, groups, teams and members of the org; an unreadable list is empty. */
+/** Projects, roles, groups, teams, members and canon departments; an unreadable list is empty. */
 export async function orgPickers(ctx: OrgContext): Promise<OrgPickers> {
   const db = ctx.viewer.db;
-  const [projects, roles, groups, teams, members] = await Promise.all([
+  const [projects, roles, groups, teams, members, departments] = await Promise.all([
     listProjects(db, ctx.org.id),
     listRoles(db, ctx.org.id),
     listGroups(db, ctx.org.id),
@@ -40,6 +42,7 @@ export async function orgPickers(ctx: OrgContext): Promise<OrgPickers> {
       .is("deleted_at", null)
       .order("name"),
     listMembers(db, ctx.org.id),
+    listDepartments(db),
   ]);
   return {
     projects: projects.ok ? projects.data : [],
@@ -47,11 +50,20 @@ export async function orgPickers(ctx: OrgContext): Promise<OrgPickers> {
     groups: groups.ok ? groups.data.filter((g) => g.archivedAt === null) : [],
     teams: (teams.data ?? []).map((t) => ({ id: t.id, name: t.name })),
     members: members.ok ? members.data : [],
+    departments: departments.ok ? departments.data : [],
   };
 }
 
-/** The audience picker: a kind and one target of that kind, listed together. */
-export function audienceFields(t: Copy, pickers: OrgPickers): FieldSpec[] {
+/**
+ * The audience picker: a kind and one target of that kind, listed together. Feed posts also reach a
+ * canon department (`withDepartments`, 1365), named as "Production · 5000" (plain words before codes).
+ */
+export function audienceFields(
+  t: Copy,
+  pickers: OrgPickers,
+  options: { readonly withDepartments?: boolean } = {},
+): FieldSpec[] {
+  const departments = options.withDepartments ? pickers.departments : [];
   const target = [
     ...pickers.projects.map((p) => ({
       value: p.id,
@@ -60,6 +72,10 @@ export function audienceFields(t: Copy, pickers: OrgPickers): FieldSpec[] {
     ...pickers.teams.map((x) => ({
       value: x.id,
       label: t("audience.teamOption", { name: x.name }),
+    })),
+    ...departments.map((d) => ({
+      value: d.code,
+      label: t("audience.departmentOption", { name: d.label, code: d.code }),
     })),
     ...pickers.roles.map((x) => ({
       value: x.id,
@@ -76,7 +92,14 @@ export function audienceFields(t: Copy, pickers: OrgPickers): FieldSpec[] {
       name: "audienceKind",
       label: t("audience.kind"),
       defaultValue: "Organization",
-      options: ["Organization", "Project", "Team", "Role", "Group"].map((k) => ({
+      options: [
+        "Organization",
+        "Project",
+        "Team",
+        ...(options.withDepartments ? ["Department"] : []),
+        "Role",
+        "Group",
+      ].map((k) => ({
         value: k,
         label: t(`audience.kinds.${k}`),
       })),
@@ -103,6 +126,12 @@ export function audienceLabel(t: Copy, a: Audience, pickers: OrgPickers): string
     }
     case "Team":
       return pickers.teams.find((x) => x.id === a.teamId)?.name ?? t("audience.kinds.Team");
+    case "Department": {
+      const d = pickers.departments.find((x) => x.code === a.departmentCode);
+      return d
+        ? t("audience.departmentOption", { name: d.label, code: d.code })
+        : t("audience.kinds.Department");
+    }
     case "Role":
       return pickers.roles.find((x) => x.id === a.roleId)?.name ?? t("audience.kinds.Role");
     case "Group":

@@ -13,6 +13,23 @@ export function testEmail(label: string, id: string): string {
 
 export const PASSWORD = `E2e-${"passphrase"}-9431`;
 
+/** The zone a new project starts in (the New project form's default, components/projects/projects-page.tsx). */
+export const NEW_PROJECT_TIME_ZONE = "America/New_York";
+
+/**
+ * Today's calendar date in a time zone, as `YYYY-MM-DD` (A71, RRR-116). Times a journey types into a
+ * project's forms are that project's local times, so "today" is the project's date, never the UTC date
+ * `toISOString()` gives, which runs a day ahead every evening in New York.
+ */
+export function todayIn(timeZone: string, now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
 /** axe-core on the current page: zero serious or critical findings (Section 18, gate 8). */
 export async function expectAccessible(page: Page): Promise<void> {
   // axe measures the resting state; a pointer left on a button after a click would measure its hover

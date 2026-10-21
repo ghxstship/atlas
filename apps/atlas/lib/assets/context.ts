@@ -91,8 +91,3 @@ export async function loadPickers(ctx: OrgContext, unnamed: string): Promise<Ass
 export function stateLabelKey(state: AssetState): string {
   return `assets.states.${assetStateKey(state)}`;
 }
-
-/** Today as an ISO date in UTC, for default dates and the calendar. */
-export function todayIso(now: Date = new Date()): string {
-  return now.toISOString().slice(0, 10);
-}

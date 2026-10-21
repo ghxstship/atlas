@@ -187,6 +187,13 @@
     "screenshotNeedsConsent": "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     "screenshotTooBig": "Esa imagen supera los 5 MB. Elija una más pequeña."
   },
+  "orgSupport": {
+    "title": "Soporte de tu organización",
+    "email": "Correo",
+    "hours": "Horario",
+    "link": "Guías",
+    "linkLabel": "Abrir las guías de tu organización"
+  },
   "gateway": {
     "general": "En todo Gateway",
     "shortcuts": {

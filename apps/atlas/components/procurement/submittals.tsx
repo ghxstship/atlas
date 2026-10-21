@@ -33,6 +33,7 @@ import { PageHeader } from "@/components/collection-kit/ui";
 import { getCopy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "board", "calendar"];
 const REFUSALS = "procurement.refusals";
@@ -67,7 +68,7 @@ export async function SubmittalsSection({
   search: SearchParams;
   projectId: string;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, format, all, vendors, orders, rules] = await Promise.all([
     getCopy("procurement"),

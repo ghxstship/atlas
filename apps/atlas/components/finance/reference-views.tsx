@@ -17,6 +17,7 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { exponentOf } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { saveCostCenterAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Figures, Section, SimpleTable } from "./figures";
@@ -519,7 +520,7 @@ export async function CostCentersView({ page }: { page: FinancePage }) {
                   currencies={currencies}
                   base="USD"
                   quote="EUR"
-                  today={new Date().toISOString().slice(0, 10)}
+                  today={await orgToday(ctx)}
                 />
               ) : null}
             </Section>

@@ -8,6 +8,7 @@ import { XOSProvider } from "@/components/xos-provider";
 import { localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
+import { PREFERENCES_COOKIE, decodePreferences, documentAttributes } from "@xos/ui/preferences";
 import "./globals.css";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -27,12 +28,23 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     cookies(),
   ]);
   const theme = themeFromCookie(cookieStore.get(THEME_COOKIE)?.value);
+  // The person's display preferences (A65-001), kept in a cookie the shell syncs from their settings.
+  const preferences = decodePreferences(cookieStore.get(PREFERENCES_COOKIE)?.value);
   const overrides = uiMessages(locale);
   return (
-    <html lang={locale} dir={localeDirection(locale)} data-theme={theme}>
+    <html
+      lang={locale}
+      dir={localeDirection(locale)}
+      data-theme={theme}
+      {...documentAttributes(preferences)}
+    >
       <body>
         <NextIntlClientProvider messages={clientMessages(locale)}>
-          <XOSProvider locale={formatting} {...(overrides ? { messages: overrides } : {})}>
+          <XOSProvider
+            locale={formatting}
+            preferences={preferences}
+            {...(overrides ? { messages: overrides } : {})}
+          >
             <CookieBanner />
             {children}
           </XOSProvider>

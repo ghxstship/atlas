@@ -8,6 +8,7 @@ import { THEME_COOKIE, THEMES } from "@/lib/theme";
 import { setPersonalSetting } from "@xos/data/settings";
 import { getMyOrganizations, getViewer } from "./context";
 import { WORKSPACE_COOKIE } from "./workspace";
+import { devicePreference } from "./org-settings";
 
 /**
  * Device preferences set from the shell: language, theme and the workspace filter, kept in httpOnly
@@ -42,6 +43,17 @@ export async function setTheme(theme: string): Promise<void> {
   const chosen = z.enum(THEMES).parse(theme);
   await setPreference(THEME_COOKIE, chosen);
   await rememberPersonally("me.theme", chosen);
+}
+
+/**
+ * A theme or language saved on a settings page (me.theme, locale.language) applies on this device at once,
+ * as the shell's own pickers do. A theme of System keeps the device's current one.
+ */
+export async function applyDevicePreference(key: string, value: string): Promise<void> {
+  const locales = selectableLocales(process.env.NODE_ENV === "production") as string[];
+  const device = devicePreference(key, value, THEMES, locales);
+  if (device)
+    await setPreference(device.cookie === "theme" ? THEME_COOKIE : LOCALE_COOKIE, device.value);
 }
 
 /**
