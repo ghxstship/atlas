@@ -1,6 +1,7 @@
 import { tokenAal } from "@xos/data/auth-assurance";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
+import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
@@ -130,7 +131,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       }
     }
   }
-  return secure(response());
+  const result = response();
+  // The service worker keeps a page for offline reading only under the person it was served to (A96).
+  if (user) result.headers.set(OFFLINE_KEY_HEADER, await offlineKey(user.id));
+  return secure(result);
 }
 
 export const config = {

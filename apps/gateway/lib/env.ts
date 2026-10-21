@@ -45,6 +45,15 @@ const EnvSchema = z.object({
    * link on the platform Gateway. Custom domains never show it, so an org's brand stays its own.
    */
   DOCS_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
+  /**
+   * The VAPID public key browsers subscribe to Web Push with (A96, ADR 0052), the same value as the
+   * notification-dispatch Edge Function's VAPID_PUBLIC_KEY: an uncompressed P-256 key, base64url. Public by
+   * design. Unset, the browser notifications setting says they are not set up yet.
+   */
+  VAPID_PUBLIC_KEY: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{87}$/, "Use the 87-character base64url VAPID public key.")
+    .optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

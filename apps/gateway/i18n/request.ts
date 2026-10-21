@@ -43,6 +43,7 @@ export function messagesFor(locale: GatewayLocale): Messages {
  */
 export const CLIENT_NAMESPACES: readonly Namespace[] = [
   "authSecurity",
+  "firstRun",
   "gateway",
   "help",
   "nav",

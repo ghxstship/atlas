@@ -11,7 +11,7 @@ export const dynamic = "force-static";
 export function GET(): Response {
   const script = serviceWorkerScript({
     app: "Atlas",
-    version: process.env["NEXT_PUBLIC_XOS_RELEASE"] ?? "local",
+    version: process.env["NEXT_PUBLIC_XOS_RELEASE"] || "local",
     offlinePath: OFFLINE_PATH,
     icon: appIcon.src,
   });
