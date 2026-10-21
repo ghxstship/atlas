@@ -110,8 +110,10 @@ create index feedback_submissions_triage_idx on app.feedback_submissions (triage
 revoke insert, update on app.feedback_submissions from authenticated;
 drop policy feedback_submissions_owner_insert on app.feedback_submissions;
 drop policy feedback_submissions_owner_update on app.feedback_submissions;
-create policy feedback_submissions_staff_read on app.feedback_submissions for select to authenticated
-  using ((select private.is_platform_staff()));
+-- One read policy: the sender, or platform staff.
+drop policy feedback_submissions_owner_read on app.feedback_submissions;
+create policy feedback_submissions_read on app.feedback_submissions for select to authenticated
+  using (person_id = (select private.current_person_id()) or (select private.is_platform_staff()));
 
 call private.describe('app.feedback_submissions', 'Feedback a person sent the platform team from the widget in Atlas or Gateway (Section 11.7, A65-022): their message, the page context the widget showed them before sending and an optional screenshot they chose. Never anything they did not see. Read by the sender and platform staff; written only through app.send_feedback and app.triage_feedback.', array[
   'id', 'Primary key, UUID v7.',
