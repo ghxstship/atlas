@@ -1,7 +1,8 @@
 -- pgTAP: 1398 (RRR-116). Pay periods follow the org's calendar: app.next_pay_period_dates takes today on the org's
 -- calendar when no date is given, and app.create_next_pay_period adds the first period on that date, never on the
 -- database's UTC date. Postgres's clock cannot be set inside a test, so the suite moves the place instead, as 1305
--- does: org_a takes a zone whose date differs from UTC's right now (UTC+14 from noon UTC, UTC-12 before it).
+-- does: org_a takes a zone whose date differs from UTC's right now (UTC+14 from noon UTC, UTC-12 before it). The last
+-- section also pins another org's today far from the database's date, so the first period it adds is checked on any day.
 -- Weekly overtime counts over the org's payroll.week_start, the week pay periods and timesheets start on. Out of office
 -- starts at midnight in the person's time zone (locale.time_zone), the day private.person_away counts in.
 begin;
@@ -9,7 +10,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(12);
+select plan(15);
 
 create temporary table clock as
   select s.zone, (now() at time zone s.zone)::date as local_on, (now() at time zone 'UTC')::date as utc_on
@@ -103,6 +104,26 @@ select app.set_personal_setting('locale.time_zone', null, p_value_text => 'Ameri
 select pg_temp.as_platform();
 select is(private.away_since(pg_temp.id('bob'), pg_temp.id('org_a')), '2026-11-02 05:00+00'::timestamptz,
   'in New York it starts at midnight New York time');
+
+-- A first pay period on the org's date, whatever the UTC date --------------------------------------------------------
+-- The zone checks above can only catch a UTC-aligned period on the days a week starts between the two dates. Here the
+-- org's today is pinned to Wednesday 2027-06-16 (private.org_today replaced inside this rolled-back test), months from
+-- the database's date, so a period aligned on current_date fails at any time of day.
+select pg_temp.as_platform();
+create or replace function private.org_today(p_org_id uuid) returns date language sql stable security definer
+set search_path = '' as $$ select date '2027-06-16' $$;
+select pg_temp.as_user('xavier');
+select app.set_setting(pg_temp.id('org_b'), 'payroll.week_start', 'Organization', pg_temp.id('org_b'), p_value_text => 'monday');
+select app.set_setting(pg_temp.id('org_b'), 'payroll.pay_period', 'Organization', pg_temp.id('org_b'), p_value_text => 'weekly');
+select results_eq(
+  $$select starts_on, ends_on from app.next_pay_period_dates((select id from world where key = 'org_b'))$$,
+  $$values ('2027-06-14'::date, '2027-06-20'::date)$$,
+  'with the date left out, the first period is proposed for the org''s today, not the database''s');
+select lives_ok($$select app.create_next_pay_period((select id from world where key = 'org_b'))$$, 'another org''s Owner adds its first period');
+select results_eq(
+  $$select starts_on, ends_on from app.pay_periods where org_id = (select id from world where key = 'org_b') and deleted_at is null$$,
+  $$values ('2027-06-14'::date, '2027-06-20'::date)$$,
+  'on the org''s week that holds the org''s today');
 
 select * from finish();
 rollback;
