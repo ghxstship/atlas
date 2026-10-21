@@ -78,8 +78,8 @@ select throws_ok($$insert into app.dashboard_tiles (dashboard_id, report_definit
 
 -- Calendar feeds --------------------------------------------------------------------------------------------------------
 insert into app.shifts (project_id, membership_id, role_code, starts_at, ends_at, time_zone) values
-  (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '0000.50.01', '2027-06-01 08:00+00', '2027-06-01 16:00+00', 'America/New_York'),
-  (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '0000.50.01', '2027-06-02 08:00+00', '2027-06-02 16:00+00', 'America/New_York');
+  (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '0000.50.01', date_trunc('day', now()) + interval '30 days 8 hours', date_trunc('day', now()) + interval '30 days 16 hours', 'America/New_York'),
+  (pg_temp.id('prj_a'), pg_temp.id('dave@org_a'), '0000.50.01', date_trunc('day', now()) + interval '31 days 8 hours', date_trunc('day', now()) + interval '31 days 16 hours', 'America/New_York');
 select pg_temp.as_user('frank');
 insert into k (key, id, val) select 'feed', calendar_feed_id, feed_token from app.create_calendar_feed(pg_temp.id('org_a'));
 select ok((select val like 'xcal_%' from k where key = 'feed'), 'the feed token is returned once');
@@ -88,23 +88,23 @@ select is((select token_hint from app.calendar_feeds), right((select val from k 
 select throws_ok($$select app.create_calendar_feed(pg_temp.id('org_a'), pg_temp.id('prj_a2'))$$, '42501', null,
   'nobody subscribes to a project they cannot read');
 select pg_temp.as_anon();
-select is((select count(*)::integer from api_public.calendar_feed_events((select val from k where key = 'feed'))), 1,
+select is(coalesce(jsonb_array_length(api_public.calendar_feed((select val from k where key = 'feed')) -> 'events'), 0), 1,
   'a personal feed shows the owner''s own shift and nobody else''s');
-select is((select count(*)::integer from api_public.calendar_feed_events('xcal_wrong')), 0, 'a wrong token shows nothing');
+select is(coalesce(jsonb_array_length(api_public.calendar_feed('xcal_wrong') -> 'events'), 0), 0, 'a wrong token shows nothing');
 select pg_temp.as_user('frank');
 update app.calendar_feeds set revoked_at = now();
 select throws_ok($$update app.calendar_feeds set project_id = pg_temp.id('prj_a')$$, '42501', null, 'a feed only gets revoked');
 select pg_temp.as_anon();
-select is((select count(*)::integer from api_public.calendar_feed_events((select val from k where key = 'feed'))), 0, 'a revoked feed shows nothing');
+select is(coalesce(jsonb_array_length(api_public.calendar_feed((select val from k where key = 'feed')) -> 'events'), 0), 0, 'a revoked feed shows nothing');
 select pg_temp.as_user('dave');
 insert into k (key, id, val) select 'pfeed', calendar_feed_id, feed_token from app.create_calendar_feed(pg_temp.id('org_a'), pg_temp.id('prj_a'));
 select pg_temp.as_anon();
-select ok((select count(*) from api_public.calendar_feed_events((select val from k where key = 'pfeed'))) >= 1,
+select ok(coalesce(jsonb_array_length(api_public.calendar_feed((select val from k where key = 'pfeed')) -> 'events'), 0) >= 1,
   'a project feed shows the project''s shifts its owner may see');
 select pg_temp.as_user('dave');
 select app.leave_organization(pg_temp.id('org_a'));
 select pg_temp.as_anon();
-select is((select count(*)::integer from api_public.calendar_feed_events((select val from k where key = 'pfeed'))), 0,
+select is(coalesce(jsonb_array_length(api_public.calendar_feed((select val from k where key = 'pfeed')) -> 'events'), 0), 0,
   'leaving the org ends the feed at once (invariant 3)');
 
 -- Email in ---------------------------------------------------------------------------------------------------------------

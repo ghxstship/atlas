@@ -441,7 +441,8 @@
     "change": "Cambiar",
     "edit": "Editar",
     "press": "Presione las teclas",
-    "shortcut": "Atajo"
+    "shortcut": "Atajo",
+    "none": "Sin asignar"
   },
   "shortcuts": {
     "title": "Atajos de teclado"

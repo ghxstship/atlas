@@ -162,6 +162,58 @@ export async function createImport(db: XosClient, input: NewImport): Promise<Res
   );
 }
 
+/** A Google Sheets import: the link the worker reads through the org's Google Drive connection (A83). */
+export interface NewSheetsImport {
+  readonly orgId: string;
+  readonly targetCode: string;
+  readonly link: string;
+  /** The person's own imports folder; the worker saves the fetched sheet here as .xlsx. */
+  readonly objectPath: string;
+}
+
+/** The spreadsheet id of a Google Sheets link, or null when it is not one (the database checks again). */
+export function googleSheetsLinkId(link: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(link.trim());
+  } catch {
+    return null; // Not a URL at all.
+  }
+  if (url.protocol !== "https:" || url.hostname !== "docs.google.com") return null;
+  return /^\/spreadsheets\/d\/([A-Za-z0-9_-]{20,100})(?:\/|$)/.exec(url.pathname)?.[1] ?? null;
+}
+
+/** Starts an import of a Google Sheets link; nothing is uploaded, the worker fetches it (import.fetch). */
+export function createSheetsImport(db: XosClient, input: NewSheetsImport): Promise<Result<string>> {
+  const id = googleSheetsLinkId(input.link);
+  return writtenId(
+    untyped(db)
+      .from("import_jobs")
+      .insert({
+        org_id: input.orgId,
+        target_code: input.targetCode,
+        source: "Google Sheets",
+        original_filename: `Google Sheets ${id ?? ""}`.trim().slice(0, 255),
+        storage_object_path: input.objectPath,
+        source_url: input.link.trim(),
+      })
+      .select("id"),
+  );
+}
+
+/** Starts the import of another detected sheet of a read workbook, into a target (app.import_detected_sheet). */
+export function importDetectedSheet(
+  db: XosClient,
+  input: { sheetId: string; targetCode: string },
+): Promise<Result<string>> {
+  return rpc(
+    db,
+    "import_detected_sheet",
+    { p_sheet_id: input.sheetId, p_target_code: input.targetCode },
+    str,
+  );
+}
+
 export interface ImportSummary {
   readonly id: string;
   readonly targetCode: string;
@@ -201,6 +253,24 @@ export interface ImportColumn {
   readonly header: string;
   readonly fieldName: string | null;
   readonly suggestedFieldName: string | null;
+  /** Where the suggestion came from: a saved profile, the Playbook column map or header similarity. */
+  readonly suggestionSource: "Profile" | "Playbook" | "Header" | null;
+}
+
+/** A sheet detection found in the workbook, with the proposed target and the import that reads it, if any. */
+export interface ImportSheet {
+  readonly id: string;
+  readonly name: string;
+  readonly index: number;
+  readonly headerRow: number | null;
+  readonly firstDataRow: number | null;
+  readonly lastRow: number | null;
+  readonly columnCount: number;
+  readonly dataRowCount: number;
+  readonly proposedTargetCode: string | null;
+  readonly proposedFromPlaybook: boolean;
+  /** The open import of this sheet (this import for the sheet it reads), or null. */
+  readonly importId: string | null;
 }
 
 export interface RowIssue {
@@ -247,6 +317,15 @@ export type UploadScanStatus = "Scanning" | "Clean" | "Infected" | "Scan Failed"
 
 export interface ImportDetail extends ImportSummary {
   readonly mappingConfirmedAt: string | null;
+  readonly source: ImportSource;
+  /** The sheet of the workbook this import reads. */
+  readonly sheetName: string | null;
+  /** The Google Sheets link of a Google Sheets import. */
+  readonly sourceUrl: string | null;
+  /** Why the worker failed the import before reading it (google_sheet_not_shared and others). */
+  readonly failureCode: string | null;
+  /** Every sheet of the workbook, listed on the import detection read first. */
+  readonly sheets: readonly ImportSheet[];
   /**
    * The spreadsheet's virus scan, while the import waits for it or after it failed; null once the file
    * was read, or for anyone but the uploader (app.my_upload_scan_status).
@@ -277,7 +356,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
     untyped(db)
       .from("import_jobs")
       .select(
-        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path",
+        "id, target_code, original_filename, import_status, created_at, mapping_confirmed_at, storage_object_path, source, sheet_name, source_url, failure_code, import_job_sheet_id",
       )
       .eq("id", id)
       .is("deleted_at", null)
@@ -286,11 +365,14 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
   if (!job.ok) return job;
   const head = job.data[0];
   if (!head) return fail({ kind: "not-found" });
-  const [columns, results, reviews, dry, batches] = await Promise.all([
+  const sheetSource = strOrNull(head["import_job_sheet_id"]);
+  const [columns, results, reviews, dry, batches, sheets] = await Promise.all([
     rows(
       untyped(db)
         .from("import_job_columns")
-        .select("id, sheet_name, column_index, header, field_name, suggested_field_name")
+        .select(
+          "id, sheet_name, column_index, header, field_name, suggested_field_name, suggestion_source",
+        )
         .eq("import_job_id", id)
         .is("deleted_at", null)
         .order("column_index"),
@@ -330,8 +412,10 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
         .is("deleted_at", null)
         .order("created_at", { ascending: false }),
     ),
+    importSheets(db, id, sheetSource),
   ]);
   if (!columns.ok) return columns;
+  if (!sheets.ok) return sheets;
   if (!results.ok) return results;
   if (!reviews.ok) return reviews;
   if (!dry.ok) return dry;
@@ -345,6 +429,15 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
   return ok({
     ...toSummary(head),
     mappingConfirmedAt: strOrNull(head["mapping_confirmed_at"]),
+    source: str(head["source"]) as ImportSource,
+    sheetName: strOrNull(head["sheet_name"]),
+    sourceUrl: strOrNull(head["source_url"]),
+    failureCode: strOrNull(head["failure_code"]),
+    sheets: sheets.data.map((sheet) =>
+      sheet.name === strOrNull(head["sheet_name"]) && sheet.importId === null
+        ? { ...sheet, importId: id }
+        : sheet,
+    ),
     scanStatus: scan.data,
     columns: columns.data.map((c) => ({
       id: str(c["id"]),
@@ -353,6 +446,7 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       header: str(c["header"]),
       fieldName: strOrNull(c["field_name"]),
       suggestedFieldName: strOrNull(c["suggested_field_name"]),
+      suggestionSource: strOrNull(c["suggestion_source"]) as ImportColumn["suggestionSource"],
     })),
     issues: results.data
       .filter(
@@ -410,6 +504,69 @@ export async function getImport(db: XosClient, id: string): Promise<Result<Impor
       };
     }),
   });
+}
+
+/**
+ * The detected sheets of an import's workbook: its own list, or for an import started from a detected sheet,
+ * the list of the import that read the workbook first. Each carries the open import that reads it.
+ */
+async function importSheets(
+  db: XosClient,
+  importId: string,
+  sheetSource: string | null,
+): Promise<Result<ImportSheet[]>> {
+  let owner = importId;
+  if (sheetSource !== null) {
+    const parent = await rows(
+      untyped(db).from("import_job_sheets").select("import_job_id").eq("id", sheetSource).limit(1),
+    );
+    if (!parent.ok) return parent;
+    owner = strOrNull(parent.data[0]?.["import_job_id"]) ?? importId;
+  }
+  const list = await rows(
+    untyped(db)
+      .from("import_job_sheets")
+      .select(
+        "id, sheet_name, sheet_index, header_row, first_data_row, last_row, column_count, data_row_count, proposed_target_code, proposed_from_playbook",
+      )
+      .eq("import_job_id", owner)
+      .is("deleted_at", null)
+      .order("sheet_index"),
+  );
+  if (!list.ok) return list;
+  const ids = list.data.map((s) => str(s["id"]));
+  const opened = new Map<string, string>();
+  if (ids.length > 0) {
+    const jobs = await rows(
+      untyped(db)
+        .from("import_jobs")
+        .select("id, import_job_sheet_id, import_status")
+        .in("import_job_sheet_id", ids)
+        .is("deleted_at", null),
+    );
+    if (!jobs.ok) return jobs;
+    for (const j of jobs.data) {
+      const status = str(j["import_status"]);
+      if (status !== "Canceled" && status !== "Failed" && status !== "Undone") {
+        opened.set(str(j["import_job_sheet_id"]), str(j["id"]));
+      }
+    }
+  }
+  return ok(
+    list.data.map((s) => ({
+      id: str(s["id"]),
+      name: str(s["sheet_name"]),
+      index: num(s["sheet_index"]),
+      headerRow: numOrNull(s["header_row"]),
+      firstDataRow: numOrNull(s["first_data_row"]),
+      lastRow: numOrNull(s["last_row"]),
+      columnCount: num(s["column_count"]),
+      dataRowCount: num(s["data_row_count"]),
+      proposedTargetCode: strOrNull(s["proposed_target_code"]),
+      proposedFromPlaybook: s["proposed_from_playbook"] === true,
+      importId: opened.get(str(s["id"])) ?? null,
+    })),
+  );
 }
 
 /** Display names of merge candidates, read as the caller: venues by name, counterparties by company. */
@@ -508,6 +665,38 @@ export function cancelImport(db: XosClient, importId: string): Promise<Result<st
       .eq("id", importId)
       .select("id"),
   );
+}
+
+/**
+ * The import wizard's feature flags for an org (0540): Google Sheets links and the assistant's mapping step. The
+ * imports.ai_mapping flag is on by default (1402), so Aurora's step also needs the org's own AI switch: the
+ * mapping feature turned on by an Admin in Settings, AI Features, with aurora_ai in the plan
+ * (app.ai_enabled_features, 0650). An org that turned AI off never sees the step, and app.ai_begin_request
+ * refuses aurora_feature_off before any column name reaches a model.
+ */
+export async function importFlags(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<{ googleSheets: boolean; aiMapping: boolean }>> {
+  const flags = await rpc(
+    db,
+    "org_feature_flags",
+    { p_org_id: orgId },
+    (d) =>
+      new Set(
+        ((d as Raw[] | null) ?? [])
+          .filter((r) => r["enabled"] === true)
+          .map((r) => str(r["flag_key"])),
+      ),
+  );
+  if (!flags.ok) return flags;
+  const googleSheets = flags.data.has("imports.google_sheets");
+  if (!flags.data.has("imports.ai_mapping")) return ok({ googleSheets, aiMapping: false });
+  const features = await rpc(db, "ai_enabled_features", { p_org_id: orgId }, (d) =>
+    ((d as unknown[] | null) ?? []).map(String),
+  );
+  if (!features.ok) return features;
+  return ok({ googleSheets, aiMapping: features.data.includes("mapping") });
 }
 
 /** Rounds a similarity of 0.85 to 1 to a whole percentage for display. */

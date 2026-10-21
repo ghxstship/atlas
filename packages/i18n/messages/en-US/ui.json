@@ -441,7 +441,8 @@
     "change": "Change",
     "edit": "Edit",
     "press": "Press Keys",
-    "shortcut": "Shortcut"
+    "shortcut": "Shortcut",
+    "none": "Not set"
   },
   "shortcuts": {
     "title": "Keyboard Shortcuts"

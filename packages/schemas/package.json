@@ -2,7 +2,7 @@
   "name": "@xos/schemas",
   "version": "0.0.0",
   "private": true,
-  "description": "Single-source registries for XOS: the capability, plan, settings and notification kind registries, with Zod schemas and generated contracts alongside.",
+  "description": "Single-source registries for XOS: the capability, plan, settings, notification kind and shortcut registries, with Zod schemas and generated contracts alongside.",
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -12,6 +12,9 @@
     "./plans": "./src/plans/index.ts",
     "./plans.yaml": "./plans.yaml",
     "./settings": "./src/settings/index.ts",
+    "./shortcuts": "./src/shortcuts/index.ts",
+    "./shortcuts/keys": "./src/shortcuts/keys.ts",
+    "./shortcuts.yaml": "./shortcuts.yaml",
     "./views": "./src/views/index.ts",
     "./views.yaml": "./views.yaml",
     "./notifications": "./src/notifications/index.ts",
@@ -30,6 +33,8 @@
     "generate:settings": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts",
     "check:settings": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts --check",
     "settings:sql": "node --experimental-strip-types --no-warnings src/settings/generate-cli.ts sql",
+    "generate:shortcuts": "node --experimental-strip-types --no-warnings src/shortcuts/generate-cli.ts",
+    "check:shortcuts": "node --experimental-strip-types --no-warnings src/shortcuts/generate-cli.ts --check",
     "generate:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts",
     "check:views": "node --experimental-strip-types --no-warnings src/views/generate-cli.ts --check"
   },

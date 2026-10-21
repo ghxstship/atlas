@@ -71,7 +71,6 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
     "setting_fixed": "This setting is fixed and cannot be changed."
   },
   "fields": {
@@ -101,15 +100,15 @@
     },
     "mfaPolicy": {
       "label": "Multi-factor authentication",
-      "help": "Who must use a second factor to sign in. Not available yet: XOS does not enforce it, so it stays Optional."
+      "help": "Who must use a second factor. Anyone it applies to sets one up, or verifies the one they have, before opening the organization."
     },
     "sessionHours": {
       "label": "Session length in hours",
-      "help": "How long a sign-in lasts before the person signs in again. Not available yet: XOS does not enforce it, so it stays at 336 hours."
+      "help": "How long a sign-in lasts before the person signs in again, from 1 to 720 hours."
     },
     "idleTimeout": {
       "label": "Idle timeout in minutes",
-      "help": "Sign out after this many minutes without activity. Not available yet: XOS does not enforce it, so it stays at 60 minutes."
+      "help": "Sign out after this many minutes without activity, from 5 to 1,440."
     },
     "ipAllowlist": {
       "label": "Enforce the IP allow-list",
@@ -451,7 +450,8 @@
   "descriptions": {
     "teams": "Teams group members who share work. Each team lists its members.",
     "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
-    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled."
+    "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app."
   },
   "accessControls": {
     "saved": "Saved.",
@@ -631,6 +631,46 @@
       "title": "Shared with your organization",
       "entry": "Shared by {owner} · Your members act as {role}"
     }
+  },
+  "shortcuts": {
+    "title": "Change shortcuts",
+    "description": "Choose Change, then press the new keys. A sequence is a letter, then a second key, such as G then H. Esc cancels.",
+    "table": "Shortcuts you can change",
+    "recording": "Press the new keys for {action}, or Esc to cancel.",
+    "saved": "{action} now uses {keys}.",
+    "resetOne": "{action} uses its default keys again.",
+    "resetAll": "Reset all shortcuts",
+    "resetAllDone": "Every shortcut uses its default keys again.",
+    "singleKeysOff": "Single-key shortcuts are off, so shortcuts without Ctrl, Cmd or Alt do nothing. Turn on Keyboard shortcuts above to use them.",
+    "fixed": "Esc, Enter and the list keys J, K and X belong to every list and dialog, so they stay as they are. Help lists every shortcut.",
+    "problems": {
+      "conflict": "{keys} already does {action}. Change that shortcut first, or choose other keys.",
+      "browser": "{keys} belongs to your browser or computer. Choose other keys.",
+      "screen-reader": "{keys} belongs to screen readers. Choose other keys.",
+      "navigation": "{keys} moves around the page. Choose other keys.",
+      "typing": "This shortcut also works while you type, so it needs Ctrl, Cmd or Alt.",
+      "invalid": "Those keys cannot be a shortcut. Use a letter, digit or symbol, with Ctrl, Cmd, Alt or Shift if you like.",
+      "fixed": "This shortcut cannot be changed.",
+      "unknown": "This shortcut no longer exists. Reload the page.",
+      "failed": "The shortcut was not saved. Try again."
+    }
+  },
+  "sidebar": {
+    "title": "Sidebar",
+    "description": "Hide the items you never use and put the groups and items in your own order. Hidden items stay in search and the command menu.",
+    "group": "{group} group",
+    "show": "Show {item} in the sidebar",
+    "move": "Move {item}",
+    "moveHelp": "Drag, or press Space to pick up, the arrow keys to move, Space to drop and Esc to cancel.",
+    "picked": "{item} picked up, position {position} of {count}. Use the arrow keys to move it, Space to drop it.",
+    "moved": "{item} moved to position {position} of {count}.",
+    "dropped": "{item} dropped at position {position} of {count}.",
+    "returned": "{item} put back at position {position} of {count}.",
+    "save": "Save sidebar",
+    "saved": "Your sidebar is saved.",
+    "reset": "Reset to role default",
+    "resetDone": "Your sidebar is back to the default for your role.",
+    "failed": "The sidebar was not saved. Try again."
   },
   "notifications": {
     "category": "Category",

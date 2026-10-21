@@ -13,12 +13,7 @@ import {
   type MenuItem,
   type NavItem,
 } from "@xos/ui";
-import {
-  applyDocumentAttributes,
-  decodePreferences,
-  preferencesCookie,
-  singleKeyShortcutsEnabled,
-} from "@xos/ui/preferences";
+import { applyDocumentAttributes, decodePreferences, preferencesCookie } from "@xos/ui/preferences";
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -33,19 +28,27 @@ import {
 } from "react";
 import { clientSitemap } from "@/ia/sitemap.client.generated";
 import type { AtlasLocale } from "@/i18n/negotiate";
+import type { CreateItem } from "@/lib/shell/create-order";
 import type { NavLinkModel, ShellNav } from "@/lib/shell/nav-model";
+import type { ShellKeys } from "@/lib/shell/shell-keys";
 import { selectOrganization, setLocale, setTheme, setWorkspace } from "@/lib/shell/actions";
 import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
-import { AuroraCenter } from "@/components/aurora/aurora-center";
-import { HelpCenter } from "@/components/help/help-center";
+import { AuroraCenter, openAurora } from "@/components/aurora/aurora-center";
+import { HelpCenter, openHelpArticle } from "@/components/help/help-center";
 import { atlasLiveSource } from "@/components/live/live-source";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
+import { ShellKeysContext } from "./shell-keys-context";
+import type { KeyState } from "./key-dispatch";
 
 /** The command menu (cmdk and the help article index) loads the first time it opens (A24-009). */
 const commandMenu = onDemand(() => import("./shell-command"));
+/** The Create menu shares the command menu's dialog and loads the first time it opens. */
+const createMenu = onDemand(() => import("./shell-create"));
+/** The key handler loads once the shell has hydrated, outside the route's first JavaScript. */
+const keyHandler = onDemand(() => import("./shell-keys"));
 
 export interface ShellFrameProps {
   readonly org: { readonly name: string; readonly slug: string };
@@ -65,16 +68,21 @@ export interface ShellFrameProps {
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
   readonly storedPreferences: string;
+  /** The person's keyboard shortcuts: the registry with their own bindings (lib/shell/shell-keys.ts). */
+  readonly keys: ShellKeys;
+  /** What the person may create, for the Create menu (lib/shell/create-menu.ts). */
+  readonly create: readonly CreateItem[];
   readonly children: ReactNode;
 }
 
 type Translate = (key: string, values?: Record<string, string>) => string;
 
 /**
- * The Atlas shell on @xos/ui (A05): org switcher, workspace filter, sitemap sidebar with favorites
- * and role-default groups, breadcrumbs, account menu, command menu (Cmd or Ctrl+K, and `/`), the
- * phone bottom bar, focus mode (Cmd or Ctrl+.) and the session dialog. Every item comes from the
- * navigation model built from ia/sitemap.yaml on the server.
+ * The Atlas shell on @xos/ui (A05): org switcher, workspace filter, sitemap sidebar with favorites,
+ * role-default groups and the person's own layout, the Create menu, breadcrumbs, account menu,
+ * command menu, the phone bottom bar, focus mode and the session dialog. Every item comes from the
+ * navigation model built from ia/sitemap.yaml on the server, and every shortcut (Cmd or Ctrl+K, `/`,
+ * C, `?`, G then a letter, focus mode) from the shortcut registry with the person's own bindings.
  */
 export function ShellFrame(props: ShellFrameProps) {
   const { org, nav } = props;
@@ -84,6 +92,11 @@ export function ShellFrame(props: ShellFrameProps) {
   const t = tRoot as unknown as Translate;
   const [commandOpen, setCommandOpen] = useState(false);
   const command = useOnDemand(commandMenu, commandOpen);
+  const [createOpen, setCreateOpen] = useState(false);
+  const create = useOnDemand(createMenu, createOpen);
+  // The first key of a sequence (G) while the shell waits for the next one; it shows the hint.
+  const [pendingKey, setPendingKey] = useState<string | null>(null);
+  const keyModule = useOnDemand(keyHandler, pendingKey !== null);
   const [focus, setFocus] = useState(false);
   // The navigation drawer below lg: the top bar's menu button and the bottom bar's Menu tab both
   // open it, and moving to another page closes it (A59-001): it is open on the page it opened on.
@@ -121,35 +134,44 @@ export function ShellFrame(props: ShellFrameProps) {
     return match?.label;
   }, [nav, pathname]);
 
+  // What the key handler acts on, kept current as the person's keys change; read once per key.
+  const keyState = useRef<KeyState | null>(null);
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      const typing =
-        target?.isContentEditable ||
-        ["INPUT", "TEXTAREA", "SELECT"].includes(target?.tagName ?? "");
-      if ((event.metaKey || event.ctrlKey) && event.key === ".") {
-        event.preventDefault();
-        setFocus((f) => !f);
-      } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setCommandOpen((o) => !o);
-      } else if (
-        event.key === "/" &&
-        !typing &&
-        !event.metaKey &&
-        !event.ctrlKey &&
-        singleKeyShortcutsEnabled()
-      ) {
-        event.preventDefault();
-        setCommandOpen(true);
-      }
+    keyState.current = {
+      keys: props.keys,
+      handlers: {
+        go,
+        pending: setPendingKey,
+        command: (id) => {
+          if (id === "command-menu") setCommandOpen((o) => !o);
+          else if (id === "search") setCommandOpen(true);
+          else if (id === "create-menu") setCreateOpen(true);
+          else if (id === "help") openHelpArticle("");
+          else if (id === "focus-mode") setFocus((f) => !f);
+          else if (id === "aurora") openAurora(true);
+        },
+      },
     };
-    window.addEventListener("keydown", onKey);
-    // Marks the document once the shell's shortcuts (command menu, focus mode) work, from hydration on.
-    document.documentElement.dataset["shellReady"] = "";
+  }, [props.keys, go]);
+  useEffect(() => {
+    let live = true;
+    let stop: (() => void) | undefined;
+    const root = document.documentElement.dataset;
+    keyHandler.load().then(
+      (m) => {
+        if (!live) return;
+        stop = m.installShellKeys(keyState);
+        // Marks the document once the shell's shortcuts work, Aurora's among them.
+        root["shellReady"] = "";
+        root["auroraReady"] = "";
+      },
+      (error: unknown) => console.error("Could not load the keyboard shortcuts", error),
+    );
     return () => {
-      delete document.documentElement.dataset["shellReady"];
-      window.removeEventListener("keydown", onKey);
+      live = false;
+      stop?.();
+      delete root["shellReady"];
+      delete root["auroraReady"];
     };
   }, []);
 
@@ -203,7 +225,11 @@ export function ShellFrame(props: ShellFrameProps) {
       },
     })),
     { separator: true },
-    { label: t("shell.chrome.focusMode"), shortcut: "Mod+.", onSelect: () => setFocus(true) },
+    {
+      label: t("shell.chrome.focusMode"),
+      ...(props.keys.display["focus-mode"] ? { shortcut: props.keys.display["focus-mode"] } : {}),
+      onSelect: () => setFocus(true),
+    },
     {
       label: t("shell.auth.signOut"),
       icon: "LogOut",
@@ -216,7 +242,9 @@ export function ShellFrame(props: ShellFrameProps) {
       <Button
         variant="ghost"
         icon="Search"
-        shortcut="Mod+K"
+        {...(props.keys.display["command-menu"]
+          ? { shortcut: props.keys.display["command-menu"] }
+          : {})}
         className="w-full justify-start"
         onPointerEnter={() => void commandMenu.load().catch(() => undefined)}
         onFocus={() => void commandMenu.load().catch(() => undefined)}
@@ -224,6 +252,22 @@ export function ShellFrame(props: ShellFrameProps) {
       >
         {t("shell.chrome.search")}
       </Button>
+      {props.create.length > 0 ? (
+        <Button
+          variant="ghost"
+          icon="Plus"
+          data-create-trigger=""
+          {...(props.keys.display["create-menu"]
+            ? { shortcut: props.keys.display["create-menu"] }
+            : {})}
+          className="w-full justify-start"
+          onPointerEnter={() => void createMenu.load().catch(() => undefined)}
+          onFocus={() => void createMenu.load().catch(() => undefined)}
+          onClick={() => setCreateOpen(true)}
+        >
+          {t("shell.create.button")}
+        </Button>
+      ) : null}
       {props.workspaces.length > 0 ? (
         <Select
           id="workspace-filter"
@@ -302,93 +346,111 @@ export function ShellFrame(props: ShellFrameProps) {
   );
 
   return (
-    <div data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
-      {/* Bypass blocks (2.4.1): the first stop skips the sidebar and header to the page (A23-011). */}
-      <a
-        href="#content"
-        className="sr-only focus:not-sr-only focus:fixed focus:start-8 focus:top-8 focus:z-popover focus:rounded-control focus:bg-bg-raised focus:px-12 focus:py-8 focus:text-text-primary focus:shadow-menu"
-      >
-        {t("shell.page.skipToContent")}
-      </a>
-      {focus ? (
-        <p className="sr-only" role="status">
-          {t("shell.chrome.focusModeOn")}
-        </p>
-      ) : null}
-      <AppShell
-        menuOpen={menuOpen}
-        onMenuOpenChange={setMenuOpen}
-        brand={
-          <ShellOrgSwitcher
-            current={org.name}
-            heading={t("shell.chrome.organizations")}
-            orgs={props.orgs.map((o) => ({ name: o.name, role: o.role }))}
-            onSelect={async (name) => {
-              const target = props.orgs.find((o) => o.name === name);
-              if (!target) return;
-              const slug = await selectOrganization(target.slug);
-              go(slug ? `/${slug}/home` : "/");
-            }}
-          />
-        }
-        sidebar={sidebar}
-        header={
-          <>
-            <Breadcrumbs items={crumbs} />
-            <AuroraCenter org={org.slug} canManage={props.canManageAi} />
-            <HelpCenter org={org.slug} />
-            <DeferredDropdownMenu
-              label={t("shell.chrome.account")}
-              icon="CircleUserRound"
-              items={accountItems}
-              compact
-            />
-          </>
-        }
-        mobileNav={
-          <TabBar
-            label={t("shell.chrome.mainNav")}
-            active={active ?? ""}
-            items={nav.bottomBar.map((item) => ({
-              label: item.label,
-              icon: item.icon,
-              ...(item.href ? { href: item.href } : {}),
-              onSelect: () => {
-                if (item.action === "search") setCommandOpen(true);
-                else if (item.action === "menu") setMenuOpen(true);
-                else if (item.href) go(item.href);
-              },
-            }))}
-          />
-        }
-      >
-        <div
-          id="content"
-          tabIndex={-1}
-          className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
+    <ShellKeysContext.Provider value={props.keys}>
+      <div data-focus={focus ? "true" : undefined} className="xos-shell h-dvh">
+        {/* Bypass blocks (2.4.1): the first stop skips the sidebar and header to the page (A23-011). */}
+        <a
+          href="#content"
+          className="sr-only focus:not-sr-only focus:fixed focus:start-8 focus:top-8 focus:z-popover focus:rounded-control focus:bg-bg-raised focus:px-12 focus:py-8 focus:text-text-primary focus:shadow-menu"
         >
-          <PreferencesProvider preferences={displayPreferences}>
-            <LiveProvider source={atlasLiveSource}>{props.children}</LiveProvider>
-          </PreferencesProvider>
-        </div>
-      </AppShell>
-      {command ? (
-        <command.ShellCommand
-          open={commandOpen}
-          onOpenChange={setCommandOpen}
-          commands={nav.commands}
-          locale={props.locale}
-          go={go}
+          {t("shell.page.skipToContent")}
+        </a>
+        {focus ? (
+          <p className="sr-only" role="status">
+            {t("shell.chrome.focusModeOn")}
+          </p>
+        ) : null}
+        <AppShell
+          menuOpen={menuOpen}
+          onMenuOpenChange={setMenuOpen}
+          brand={
+            <ShellOrgSwitcher
+              current={org.name}
+              heading={t("shell.chrome.organizations")}
+              orgs={props.orgs.map((o) => ({ name: o.name, role: o.role }))}
+              onSelect={async (name) => {
+                const target = props.orgs.find((o) => o.name === name);
+                if (!target) return;
+                const slug = await selectOrganization(target.slug);
+                go(slug ? `/${slug}/home` : "/");
+              }}
+            />
+          }
+          sidebar={sidebar}
+          header={
+            <>
+              <Breadcrumbs items={crumbs} />
+              <AuroraCenter
+                org={org.slug}
+                canManage={props.canManageAi}
+                shortcut={props.keys.display["aurora"]}
+              />
+              <HelpCenter org={org.slug} shortcut={props.keys.display["help"]} />
+              <DeferredDropdownMenu
+                label={t("shell.chrome.account")}
+                icon="CircleUserRound"
+                items={accountItems}
+                compact
+              />
+            </>
+          }
+          mobileNav={
+            <TabBar
+              label={t("shell.chrome.mainNav")}
+              active={active ?? ""}
+              items={nav.bottomBar.map((item) => ({
+                label: item.label,
+                icon: item.icon,
+                ...(item.href ? { href: item.href } : {}),
+                onSelect: () => {
+                  if (item.action === "search") setCommandOpen(true);
+                  else if (item.action === "menu") setMenuOpen(true);
+                  else if (item.href) go(item.href);
+                },
+              }))}
+            />
+          }
+        >
+          <div
+            id="content"
+            tabIndex={-1}
+            className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
+          >
+            <PreferencesProvider preferences={displayPreferences}>
+              <LiveProvider source={atlasLiveSource}>{props.children}</LiveProvider>
+            </PreferencesProvider>
+          </div>
+        </AppShell>
+        {command ? (
+          <command.ShellCommand
+            open={commandOpen}
+            onOpenChange={setCommandOpen}
+            commands={nav.commands}
+            locale={props.locale}
+            go={go}
+          />
+        ) : null}
+        {create ? (
+          <create.ShellCreate
+            open={createOpen}
+            onOpenChange={setCreateOpen}
+            items={props.create}
+            pathname={pathname}
+            go={go}
+          />
+        ) : null}
+        {pendingKey !== null && keyModule ? (
+          <keyModule.GoHint keys={props.keys} prefix={pendingKey} />
+        ) : null}
+        <form
+          ref={signOutForm}
+          method="post"
+          action="/auth/sign-out"
+          onSubmit={() => broadcast("signed-out")}
+          hidden
         />
-      ) : null}
-      <form
-        ref={signOutForm}
-        method="post"
-        action="/auth/sign-out"
-        onSubmit={() => broadcast("signed-out")}
-        hidden
-      />
-      <SessionWatcher email={props.email} />
-    </div>
+        <SessionWatcher email={props.email} />
+      </div>
+    </ShellKeysContext.Provider>
   );
 }

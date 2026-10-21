@@ -1,4 +1,4 @@
-import { toDataError, type DatabaseErrorLike, type DataError } from "@xos/data";
+import { toDataError, type DatabaseErrorLike, type DataError } from "@xos/data/result";
 
 /**
  * The slice of the Supabase client the integration stores use. Typed structurally so this package
