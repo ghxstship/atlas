@@ -238,12 +238,13 @@ export async function sampleAutomationEvent(
   return ok(data);
 }
 
-/** Runs newest first, for one automation or the whole org; `before` pages back by creation time. */
+/** Runs newest first, for one automation, one run or the whole org; `before` pages back by creation time. */
 export async function listAutomationRuns(
   db: XosClient,
   orgId: string,
   options: {
     readonly automationId?: string | undefined;
+    readonly runId?: string | undefined;
     readonly limit?: number;
     readonly before?: string | undefined;
   } = {},
@@ -257,6 +258,7 @@ export async function listAutomationRuns(
     .order("created_at", { ascending: false })
     .limit(Math.min(Math.max(options.limit ?? 25, 1), 100));
   if (options.automationId) query = query.eq("automation_id", options.automationId);
+  if (options.runId) query = query.eq("id", options.runId);
   if (options.before) query = query.lt("created_at", options.before);
   const { data, error } = await query;
   if (error) return fail(toDataError(error));

@@ -170,6 +170,7 @@ describe("automations (1480, 1481)", () => {
           { ...run, id: "odd", run_status: "Exploded", event_payload: null, automation: null },
         ]),
         okResponse([]),
+        okResponse([]),
         errorResponse("42501", "no"),
       ],
       "from:automation_run_steps": [
@@ -204,6 +205,8 @@ describe("automations (1480, 1481)", () => {
     expect(calls[1]?.steps).toContainEqual(["eq", ["automation_id", AUTO]]);
     expect(calls[1]?.steps).toContainEqual(["lt", ["created_at", "2026-10-21T11:00:00Z"]]);
     expect(calls[1]?.steps).toContainEqual(["limit", [100]]);
+    await listAutomationRuns(db, "org-1", { runId: RUN });
+    expect(calls[2]?.steps).toContainEqual(["eq", ["id", RUN]]);
     expect((await listAutomationRuns(db, "org-1")).ok).toBe(false);
     expect(await listAutomationRunSteps(db, RUN)).toMatchObject({
       ok: true,
