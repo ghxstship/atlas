@@ -120,10 +120,15 @@ test("plain_language: a sentence becomes the page's own filters, shown and edita
   await expect(search).toBeVisible();
   const before = await used(page);
 
-  await search.getByLabel("Filter in plain language").fill("overdue invoices from Bluewater");
-  await search.getByRole("button", { name: "Build filter" }).click();
+  // Keyboard only: Enter in the field opens the panel, Escape closes it, Enter opens it again.
+  const field = search.getByLabel("Filter in plain language");
+  await field.fill("overdue invoices from Bluewater");
+  await field.press("Enter");
   const panel = page.getByRole("dialog", { name: "Filter invoices with Aurora" });
   await expect(panel.getByRole("heading", { name: "What Aurora receives" })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeHidden();
+  await field.press("Enter");
   await expect(panel.getByText("overdue invoices from Bluewater").first()).toBeVisible();
   await expect(
     panel.getByText("Restricted fields and medical records are never sent."),
@@ -352,6 +357,31 @@ test("mapping: Suggest binding binds an unknown scanned code after the person co
   await panel.getByRole("button", { name: "Bind and resolve" }).click();
   await expect(panel).toBeHidden();
   await expect(queue.getByRole("listitem").filter({ hasText: code })).toHaveCount(0);
+});
+
+test("panels pass axe in the light theme too (both themes, gate 8)", async () => {
+  await page.context().addCookies([{ name: "xos-theme", value: "light", url: page.url() }]);
+  try {
+    await page.goto(`/${ORG}/finance/invoices`);
+    const search = page.getByRole("search", { name: "Filter in plain language" });
+    await search.getByLabel("Filter in plain language").fill("overdue invoices from Bluewater");
+    await search.getByRole("button", { name: "Build filter" }).click();
+    const panel = page.getByRole("dialog", { name: "Filter invoices with Aurora" });
+    await expect(panel.getByRole("heading", { name: "What Aurora receives" })).toBeVisible();
+    await expectAccessible(page);
+    await panel.getByRole("button", { name: "Send to Aurora" }).click();
+    await expect(panel.getByText("AI-generated")).toBeVisible();
+    await expectAccessible(page);
+    await panel.getByRole("button", { name: "Discard" }).click();
+
+    await page.goto(`/${ORG}/p/NWS/overview`);
+    await page.getByRole("button", { name: "Summarize" }).click();
+    const summary = page.getByRole("dialog", { name: "Summarize with Aurora" });
+    await expect(summary.getByRole("heading", { name: "What Aurora receives" })).toBeVisible();
+    await expectAccessible(page);
+  } finally {
+    await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
+  }
 });
 
 test("with the switches off, every entry point is gone", async () => {
