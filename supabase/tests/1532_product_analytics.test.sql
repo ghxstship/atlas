@@ -60,7 +60,15 @@ select throws_ok($$select app.record_product_events('Atlas', gen_random_uuid(), 
 
 -- Platform staff read the aggregates.
 select pg_temp.as_platform();
-insert into private.platform_staff (person_id, reason) values (pg_temp.id('dave'), 'Reviews workflow funnels.');
+do $$
+begin
+  if to_regclass('app.platform_operators') is not null then
+    perform private.grant_platform_operator('dave@northwind.test', 'Support', 'Reviews workflow funnels.');
+  else
+    insert into private.platform_staff (person_id, reason) values (pg_temp.id('dave'), 'Reviews workflow funnels.');
+  end if;
+end;
+$$;
 select pg_temp.as_user('dave');
 select is((select sum(f.sessions)::int from app.product_funnel_hourly f
            where f.workflow_code = 'atlas.projects_gates' and f.event_name = 'Workflow Completed'), 1,

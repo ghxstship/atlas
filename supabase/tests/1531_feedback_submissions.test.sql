@@ -40,9 +40,17 @@ select is((select count(*)::int from app.feedback_submissions), 2, 'and nina onl
 select throws_ok($$select * from app.feedback_triage_list()$$, '42501', null, 'the triage list is for platform staff only');
 select is(app.am_i_platform_staff(), false, 'nina is not on the platform team');
 
--- The service role puts dave on the platform team.
+-- The service role puts dave on the platform team: through A90's roster once it lands (1470), else the stand-in.
 select pg_temp.as_platform();
-insert into private.platform_staff (person_id, reason) values (pg_temp.id('dave'), 'Triages product feedback.');
+do $$
+begin
+  if to_regclass('app.platform_operators') is not null then
+    perform private.grant_platform_operator('dave@northwind.test', 'Support', 'Triages product feedback.');
+  else
+    insert into private.platform_staff (person_id, reason) values (pg_temp.id('dave'), 'Triages product feedback.');
+  end if;
+end;
+$$;
 select pg_temp.as_user('dave');
 select is(app.am_i_platform_staff(), true, 'dave is on the platform team');
 select is((select count(*)::int from app.feedback_triage_list()), 3, 'and reads every submission');
@@ -67,7 +75,16 @@ select is(private.staff_may_read_feedback_screenshot(pg_temp.id('nina')::text ||
 
 -- Revoking access ends it at once.
 select pg_temp.as_platform();
-update private.platform_staff set revoked_at = now() where person_id = pg_temp.id('dave');
+do $$
+begin
+  if to_regclass('app.platform_operators') is not null then
+    update app.platform_operators set revoked_at = now(), revoke_reason = 'Left the team.'
+    where person_id = pg_temp.id('dave') and revoked_at is null;
+  else
+    update private.platform_staff set revoked_at = now() where person_id = pg_temp.id('dave');
+  end if;
+end;
+$$;
 select pg_temp.as_user('dave');
 select is((select count(*)::int from app.feedback_submissions), 0, 'revoked staff read nothing');
 

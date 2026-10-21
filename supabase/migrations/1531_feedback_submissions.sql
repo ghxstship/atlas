@@ -1,9 +1,8 @@
 -- 1531_feedback_submissions.sql
 -- A96 (RRR-141), finding A65-022, Section 11.7 ("The feedback widget sends a message and an optional screenshot to the
 -- platform team. It never captures data the user did not approve.") and Section 7.3 (feedback_submissions), ADR 0052:
---   * private.platform_staff: the people on the platform team, granted and revoked by the service role only. Until
---     now the platform team acted only through the service role (private.is_platform_operator, 0643); triaging
---     feedback in Atlas needs signed-in staff
+--   * platform staff are private.is_platform_staff(), which A90's operator console defines (1470); until it lands a
+--     stand-in roster, private.platform_staff, written by the service role only, answers it
 --   * app.feedback_submissions: the message, the page it was sent from (its path, never its query string), the app
 --     and version, locale and window size the widget shows the person before they send, and an optional screenshot
 --     the person chose, uploaded through the support screenshot path (1034: bucket support-screenshots, owner-only)
@@ -12,41 +11,46 @@
 --   * kept two years, like support diagnostics (0643)
 
 -- Platform staff -------------------------------------------------------------------------------------------------------
+-- A90's operator console (1470, app.platform_operators) defines private.is_platform_staff(): a signed-in person with a
+-- live operator grant. Until it lands, a minimal roster the service role writes stands in under the same function;
+-- once 1470 is present (it runs first), this block creates nothing and A90's definition is the one in force.
 
-create table private.platform_staff (
-  person_id uuid primary key references app.people (id),
-  reason text not null,
-  granted_at timestamptz not null default now(),
-  revoked_at timestamptz,
-  constraint platform_staff_reason_length check (char_length(btrim(reason)) between 1 and 300),
-  constraint platform_staff_revoked_after_grant check (revoked_at is null or revoked_at >= granted_at)
-);
+do $do$
+begin
+  if to_regprocedure('private.is_platform_staff()') is null then
+    create table private.platform_staff (
+      person_id uuid primary key references app.people (id),
+      reason text not null,
+      granted_at timestamptz not null default now(),
+      revoked_at timestamptz,
+      constraint platform_staff_reason_length check (char_length(btrim(reason)) between 1 and 300),
+      constraint platform_staff_revoked_after_grant check (revoked_at is null or revoked_at >= granted_at)
+    );
+    comment on table private.platform_staff is 'Stand-in roster of the platform team until A90''s app.platform_operators (1470) lands: people who triage feedback in Atlas (1531). Written only by the service role, an owner step; a revoked row ends access at once.';
+    comment on column private.platform_staff.person_id is 'Person on the platform team.';
+    comment on column private.platform_staff.reason is 'Why the person has platform access, for the access review.';
+    comment on column private.platform_staff.granted_at is 'When access was granted.';
+    comment on column private.platform_staff.revoked_at is 'When access was revoked; null while it stands.';
+    alter table private.platform_staff enable row level security;
+    revoke all on private.platform_staff from public, anon, authenticated;
+    grant select, insert, update on private.platform_staff to service_role;
 
-comment on table private.platform_staff is 'People on the platform team who triage feedback in Atlas (1531). Rows are written only by the service role, an owner step; a revoked row ends access at once.';
-comment on column private.platform_staff.person_id is 'Person on the platform team.';
-comment on column private.platform_staff.reason is 'Why the person has platform access, for the access review.';
-comment on column private.platform_staff.granted_at is 'When access was granted.';
-comment on column private.platform_staff.revoked_at is 'When access was revoked; null while it stands.';
-
-alter table private.platform_staff enable row level security;
-revoke all on private.platform_staff from public, anon, authenticated;
-grant select, insert, update on private.platform_staff to service_role;
-
-create or replace function private.is_platform_staff()
-returns boolean
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select private.is_platform_operator() or exists (
-    select 1 from private.platform_staff s
-    where s.person_id = private.current_person_id() and s.revoked_at is null);
-$$;
-
-comment on function private.is_platform_staff() is 'True for a signed-in person on the platform team (private.platform_staff) and for the platform operator (the service role or a database session).';
-revoke all on function private.is_platform_staff() from public, anon;
-grant execute on function private.is_platform_staff() to authenticated, service_role;
+    create function private.is_platform_staff()
+    returns boolean
+    language sql
+    stable
+    security definer
+    set search_path = ''
+    as $f$
+      select exists (select 1 from private.platform_staff s
+                     where s.person_id = private.current_person_id() and s.revoked_at is null);
+    $f$;
+    comment on function private.is_platform_staff() is 'True when the signed-in person is on the platform team (stand-in roster private.platform_staff, 1531, until A90''s 1470 defines it over app.platform_operators). Names a person, never the service role.';
+    revoke all on function private.is_platform_staff() from public, anon;
+    grant execute on function private.is_platform_staff() to authenticated, service_role;
+  end if;
+end;
+$do$;
 
 create or replace function app.am_i_platform_staff()
 returns boolean
@@ -185,7 +189,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not private.is_platform_staff() then
+  if not (private.is_platform_staff() or private.is_platform_operator()) then
     raise exception using errcode = '42501', message = 'platform staff only';
   end if;
   return query
@@ -215,7 +219,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if not private.is_platform_staff() then
+  if not (private.is_platform_staff() or private.is_platform_operator()) then
     raise exception using errcode = '42501', message = 'platform staff only';
   end if;
   if p_state is null or p_state not in ('Read', 'Planned', 'Closed') then
