@@ -290,6 +290,7 @@ __all__ = [
     "ShiftCreate",
     "ShiftUpdate",
     "ShiftTransitionRequest",
+    "ShiftClaimResult",
     "ShiftSwapPage",
     "ShiftSwap",
     "ShiftSwapCreate",
@@ -5998,6 +5999,46 @@ class ShiftTransitionRequest(_ShiftTransitionRequestRequired, total=False):
 
     #: Reason, required by some transitions.
     reason: str
+
+
+class ShiftClaimResult(TypedDict):
+    """The shift after a claim, with the caller's waiting claim when a supervisor decides it."""
+
+    #: Identifier of the shift.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row; null when a seed, platform or system process created it.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row; null when a seed, platform or system process updated it.
+    updated_by: Optional[str]
+    #: Identifier of the project.
+    project_id: str
+    #: Identifier of the Shift record.
+    record_id: Optional[str]
+    role_code: Optional[RoleCode]
+    #: Identifier of the engagement.
+    engagement_id: Optional[str]
+    #: Call time.
+    starts_at: str
+    #: Wrap time.
+    ends_at: str
+    #: Shift state.
+    shift_state: Literal["Draft", "Published", "Accepted", "Canceled"]
+    #: Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.
+    membership_id: Optional[str]
+    #: Identifier of the scope node of the same project, such as the show.
+    scope_node_id: Optional[str]
+    #: IANA time zone the call and wrap times are shown in.
+    time_zone: str
+    #: Meal break scheduled within the shift, in minutes.
+    scheduled_break_minutes: Optional[int]
+    #: The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come).
+    claim: Optional[Dict[str, Any]]
 
 
 class ShiftSwapPage(TypedDict):

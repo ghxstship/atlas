@@ -1097,6 +1097,7 @@ if TYPE_CHECKING:
         SettleClaimRequest,
         SharedWorkDetails,
         Shift,
+        ShiftClaimResult,
         ShiftCreate,
         ShiftPage,
         ShiftSwap,
@@ -8103,10 +8104,10 @@ class ShiftsResource(Resource):
         *,
         idempotency_key: Optional[str] = None,
         options: Optional[RequestOptions] = None,
-    ) -> ApiResponse[Shift]:
+    ) -> ApiResponse[ShiftClaimResult]:
         """Claim an open shift
 
-        Takes a published shift that has no one on it as the caller's own membership; the shift becomes Accepted. A held, unpublished or overlapping shift is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Claims a published shift that has no one on it for the caller's own membership, under the project's claiming rule (scheduling.open_shift_claiming). Under first-come the caller gets the shift at once: it becomes Accepted and `claim` is null. Under approval, the default, or seniority the claim waits for a supervisor: the shift stays Published with no one on it and `claim` carries the waiting claim. A second claim on the shift while the caller's first one waits is refused (422, shift_claim_waiting). A held, unpublished or overlapping shift is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /shifts/{id}/claim`` (operation ``shifts.claim``).
         Requires the capability ``crew.shift.read``.

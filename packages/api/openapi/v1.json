@@ -12326,6 +12326,150 @@
         "required": ["expected_state", "to_state"],
         "description": "Request to move a lifecycle to another state."
       },
+      "ShiftClaimResult": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the shift.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row; null when a seed, platform or system process created it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row; null when a seed, platform or system process updated it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Shift record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "role_code": {
+            "anyOf": [{ "$ref": "#/components/schemas/RoleCode" }, { "type": "null" }]
+          },
+          "engagement_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Call time.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Wrap time.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "shift_state": {
+            "type": "string",
+            "enum": ["Draft", "Published", "Accepted", "Canceled"],
+            "description": "Shift state.",
+            "example": "Draft"
+          },
+          "membership_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the membership of the person on the shift; null for external crew, who carry an engagement.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "scope_node_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the scope node of the same project, such as the show.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "time_zone": {
+            "type": "string",
+            "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
+            "description": "IANA time zone the call and wrap times are shown in.",
+            "example": "America/New_York"
+          },
+          "scheduled_break_minutes": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Meal break scheduled within the shift, in minutes.",
+            "example": 30
+          },
+          "claim": {
+            "type": ["object", "null"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "description": "Identifier of the waiting claim.",
+                "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "claim_state": {
+                "type": "string",
+                "enum": ["Requested"],
+                "description": "State of the claim: Requested until a supervisor approves or rejects it.",
+                "example": "Requested"
+              }
+            },
+            "required": ["id", "claim_state"],
+            "description": "The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come)."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "record_id",
+          "role_code",
+          "engagement_id",
+          "starts_at",
+          "ends_at",
+          "shift_state",
+          "membership_id",
+          "scope_node_id",
+          "time_zone",
+          "scheduled_break_minutes",
+          "claim"
+        ],
+        "description": "The shift after a claim, with the caller's waiting claim when a supervisor decides it."
+      },
       "ShiftSwapPage": {
         "type": "object",
         "properties": {
@@ -77515,7 +77659,7 @@
         "x-xos-capability": "crew.shift.read",
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["crew"] }],
         "summary": "Claim an open shift",
-        "description": "Takes a published shift that has no one on it as the caller's own membership; the shift becomes Accepted. A held, unpublished or overlapping shift is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Claims a published shift that has no one on it for the caller's own membership, under the project's claiming rule (scheduling.open_shift_claiming). Under first-come the caller gets the shift at once: it becomes Accepted and `claim` is null. Under approval, the default, or seniority the claim waits for a supervisor: the shift stays Published with no one on it and `claim` carries the waiting claim. A second claim on the shift while the caller's first one waits is refused (422, shift_claim_waiting). A held, unpublished or overlapping shift is refused (422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [
           {
             "schema": {
@@ -77535,7 +77679,6 @@
           "200": {
             "description": "The result.",
             "headers": {
-              "ETag": { "$ref": "#/components/headers/ETag" },
               "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
               "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
               "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
@@ -77559,9 +77702,13 @@
                   "membership_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "scope_node_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "time_zone": "America/New_York",
-                  "scheduled_break_minutes": 30
+                  "scheduled_break_minutes": 30,
+                  "claim": {
+                    "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                    "claim_state": "Requested"
+                  }
                 },
-                "schema": { "$ref": "#/components/schemas/Shift" }
+                "schema": { "$ref": "#/components/schemas/ShiftClaimResult" }
               }
             }
           },

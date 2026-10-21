@@ -268,15 +268,33 @@ export async function acceptShift(
   return ok({ transitionId: data });
 }
 
-/** A member claims a Published open shift (app.claim_open_shift). */
+/**
+ * What a claim on an open shift did under the project's claiming rule (scheduling.open_shift_claiming,
+ * migration 1322): first-come gives the claimant the shift at once (the ledger entry of its move to
+ * Accepted); approval, the default, and seniority record a claim that waits for a supervisor (its
+ * app.shift_claims id) while the shift stays Published with no one on it.
+ */
+export type ShiftClaimOutcome =
+  | { readonly kind: "assigned"; readonly transitionId: string }
+  | { readonly kind: "waiting"; readonly claimId: string };
+
+/** A member claims a Published open shift (app.claim_open_shift) and learns what the claim did. */
 export async function claimOpenShift(
   db: XosClient,
   id: string,
   reason: string,
-): Promise<Result<{ transitionId: string }>> {
+): Promise<Result<ShiftClaimOutcome>> {
   const { data, error } = await db.rpc("claim_open_shift", { p_shift_id: id, p_reason: reason });
   if (error) return fail(toDataError(error));
-  return ok({ transitionId: data });
+  // The RPC returns a shift_claims id for a waiting claim, which the claimant may read, and a ledger
+  // entry id otherwise.
+  const claim = await db.from("shift_claims").select("id").eq("id", data).maybeSingle();
+  if (claim.error) return fail(toDataError(claim.error));
+  return ok(
+    claim.data === null
+      ? { kind: "assigned", transitionId: data }
+      : { kind: "waiting", claimId: data },
+  );
 }
 
 /** Where a shift sits in time, for display: upcoming, in progress or over. */

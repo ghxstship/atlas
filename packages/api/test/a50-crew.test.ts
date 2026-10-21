@@ -21,6 +21,10 @@ const MEMBER = id(2);
 const OTHER_MEMBER = id(3);
 const SHIFT = id(10);
 const OPEN_SHIFT = id(11);
+/** An open shift on a project whose claiming rule is approval (scheduling.open_shift_claiming, 1322). */
+const WAITING_SHIFT = id(12);
+const APPROVAL_PROJECT = id(5);
+const CLAIM = id(13);
 const SWAP = id(20);
 const ENTRY = id(30);
 const CORRECTION = id(40);
@@ -97,7 +101,14 @@ function world() {
           engagement_id: null,
           shift_state: "Published",
         }),
+        row("Shift", WAITING_SHIFT, {
+          project_id: APPROVAL_PROJECT,
+          membership_id: null,
+          engagement_id: null,
+          shift_state: "Published",
+        }),
       ],
+      shift_claims: [],
       shift_swaps: [
         row("ShiftSwap", SWAP, {
           shift_id: SHIFT,
@@ -197,6 +208,24 @@ function world() {
       claim_open_shift: (args, db) => {
         const s = find(db, "shifts", args["p_shift_id"]);
         if (s["membership_id"] !== null) throw refusal("shift_not_open");
+        if (s["project_id"] === APPROVAL_PROJECT) {
+          // Approval: the claim waits in app.shift_claims and the shift stays Published.
+          const claims = db.tables["shift_claims"] as Row[];
+          if (claims.some((c) => c["shift_id"] === s["id"] && c["claim_state"] === "Requested")) {
+            throw refusal("shift_claim_waiting");
+          }
+          claims.push(
+            tenantRow(CLAIM, ORG, {
+              id: CLAIM,
+              org_id: ORG,
+              project_id: APPROVAL_PROJECT,
+              shift_id: s["id"],
+              membership_id: MEMBER,
+              claim_state: "Requested",
+            }),
+          );
+          return CLAIM;
+        }
         Object.assign(s, { membership_id: MEMBER, shift_state: "Accepted" });
         return id(7003);
       },
@@ -352,10 +381,25 @@ describe("Crew: shifts and swaps", () => {
     expect(stale.status).toBe(409);
     const accept = await success(http.post(`/shifts/${SHIFT}/accept`));
     await expectContract(accept, "shifts.accept");
+    // First-come: the caller gets the shift and no claim waits.
     const claim = await success(http.post(`/shifts/${OPEN_SHIFT}/claim`));
-    const claimed = (await expectContract(claim, "shifts.claim")) as { membership_id: string };
-    expect(claimed.membership_id).toBe(MEMBER);
+    const claimed = (await expectContract(claim, "shifts.claim")) as {
+      membership_id: string;
+      shift_state: string;
+      claim: unknown;
+    };
+    expect(claimed).toMatchObject({ membership_id: MEMBER, shift_state: "Accepted", claim: null });
     expect((await http.post(`/shifts/${SHIFT}/claim`)).status).toBe(422);
+    // Approval: the shift stays open and the response names the claim a supervisor decides.
+    const waiting = await success(http.post(`/shifts/${WAITING_SHIFT}/claim`));
+    expect(await expectContract(waiting, "shifts.claim")).toMatchObject({
+      membership_id: null,
+      shift_state: "Published",
+      claim: { id: CLAIM, claim_state: "Requested" },
+    });
+    const again = await http.post(`/shifts/${WAITING_SHIFT}/claim`);
+    expect(again.status).toBe(422);
+    expect(await again.json()).toMatchObject({ rule: "shift_claim_waiting" });
     await expectContract(await success(http.delete(`/shifts/${made.id}`)), "shifts.delete");
     expect(find(db, "shifts", made.id)["deleted_at"]).not.toBeNull();
   });

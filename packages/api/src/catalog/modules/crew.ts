@@ -50,6 +50,34 @@ const restrict =
 
 const SINCE = "1.0.0-draft.2";
 
+/**
+ * What `shifts.claim` returns: the shift, and the claim that waits for a supervisor when the project's
+ * claiming rule (scheduling.open_shift_claiming, 1322) is approval or seniority.
+ */
+const shiftClaimResult = (shift: z.ZodObject) =>
+  shift
+    .extend({
+      claim: orNull(
+        z
+          .object({
+            id: fields.uuid("Identifier of the waiting claim."),
+            claim_state: label(
+              ["Requested"],
+              "State of the claim: Requested until a supervisor approves or rejects it.",
+            ),
+          })
+          .meta({ description: "The claim that waits for a supervisor." }),
+      ).meta({
+        description:
+          "The caller's waiting claim when the claiming rule is approval or seniority; null when the caller got the shift (first-come).",
+      }),
+    })
+    .meta({
+      id: "ShiftClaimResult",
+      description:
+        "The shift after a claim, with the caller's waiting claim when a supervisor decides it.",
+    });
+
 export const additions = defineAdditions("Crew", {
   corrections: [
     {
@@ -682,5 +710,24 @@ export const additions = defineAdditions("Crew", {
     },
     ...crewFieldHomes,
     ...crewFieldExposure,
+    // Last, so the result carries every field the corrections above give the shift.
+    {
+      id: "shift-claim-waiting",
+      since: SINCE,
+      resources: ["shifts"],
+      change:
+        "`shifts.claim` returns ShiftClaimResult: the shift and `claim`, the caller's claim that waits for a supervisor, or null when the caller got the shift.",
+      reason:
+        "Under the project's claiming rule (scheduling.open_shift_claiming, 1322) app.claim_open_shift gives the shift only under first-come. Under approval, the default, or seniority it records a claim in app.shift_claims and returns its id, and the shift stays Published with no one on it.",
+      apply: (spec: ResourceSpec) =>
+        putActions([
+          itemAction("claim", {
+            summary: "Claim an open shift",
+            description:
+              "Claims a published shift that has no one on it for the caller's own membership, under the project's claiming rule (scheduling.open_shift_claiming). Under first-come the caller gets the shift at once: it becomes Accepted and `claim` is null. Under approval, the default, or seniority the claim waits for a supervisor: the shift stays Published with no one on it and `claim` carries the waiting claim. A second claim on the shift while the caller's first one waits is refused (422, shift_claim_waiting). A held, unpublished or overlapping shift is refused (422).",
+            response: shiftClaimResult(spec.def.read),
+          }),
+        ])(spec),
+    },
   ],
 });

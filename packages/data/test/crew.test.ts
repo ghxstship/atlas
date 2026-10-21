@@ -307,7 +307,9 @@ describe("shifts", () => {
       "rpc:transition_shift": [okResponse("t1"), refused("shift_state_conflict")],
       "rpc:publish_shifts": [okResponse(2), denied()],
       "rpc:accept_shift": [okResponse("t2"), denied()],
-      "rpc:claim_open_shift": [okResponse("t3"), refused("shift_double_booked")],
+      "rpc:claim_open_shift": [okResponse("t3"), okResponse("c1"), refused("shift_double_booked")],
+      // A first-come claim returns a ledger entry; approval and seniority return the waiting claim.
+      "from:shift_claims": [okResponse(null), okResponse({ id: "c1" })],
     });
     expect(await transitionShift(db, "s1", "Draft", "Published", "Go.")).toEqual({
       ok: true,
@@ -325,7 +327,14 @@ describe("shifts", () => {
     expect((await publishShifts(db, [], "Go.")).ok).toBe(false);
     expect((await acceptShift(db, "s1", "Yes.")).ok).toBe(true);
     expect((await acceptShift(db, "s1", "Yes.")).ok).toBe(false);
-    expect((await claimOpenShift(db, "s1", "Mine.")).ok).toBe(true);
+    expect(await claimOpenShift(db, "s1", "Mine.")).toEqual({
+      ok: true,
+      data: { kind: "assigned", transitionId: "t3" },
+    });
+    expect(await claimOpenShift(db, "s1", "Mine.")).toEqual({
+      ok: true,
+      data: { kind: "waiting", claimId: "c1" },
+    });
     expect((await claimOpenShift(db, "s1", "Mine.")).ok).toBe(false);
   });
 

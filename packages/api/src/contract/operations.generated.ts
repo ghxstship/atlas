@@ -6956,6 +6956,26 @@ export interface Components {
     time_zone: string;
     scheduled_break_minutes: number | null;
   };
+  ShiftClaimResult: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    record_id: string | null;
+    role_code: Components["RoleCode"] | null;
+    engagement_id: string | null;
+    starts_at: string;
+    ends_at: string;
+    shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
+    membership_id: string | null;
+    scope_node_id: string | null;
+    time_zone: string;
+    scheduled_break_minutes: number | null;
+    claim: { id: string; claim_state: "Requested" } | null;
+  };
   ShiftCreate: {
     project_id: string;
     record_id?: string | null;
@@ -12194,7 +12214,7 @@ export interface Operations {
     params: { id: string };
     query: Record<string, never>;
     body: undefined;
-    responses: { 200: Components["Shift"] };
+    responses: { 200: Components["ShiftClaimResult"] };
   };
   "shiftSwaps.list": {
     module: "Crew";

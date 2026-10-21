@@ -8722,7 +8722,7 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     body: null,
     bodyRequired: false,
     successStatus: 200,
-    response: "Shift",
+    response: "ShiftClaimResult",
     item: null,
     tag: "Crew",
     summary: "Claim an open shift",
