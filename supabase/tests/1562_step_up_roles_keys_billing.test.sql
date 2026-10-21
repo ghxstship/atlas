@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(17);
+select plan(19);
 
 create function pg_temp.as_session(p_user text, p_aal text, p_second_ago interval, p_key boolean default false) returns void
 language plpgsql as $$
@@ -104,6 +104,16 @@ select is(private.billing_step_up(pg_temp.id('org_a')), true,
 select pg_temp.as_platform();
 select ok(exists (select 1 from pg_policies where schemaname = 'app' and tablename = 'subscriptions'
   and policyname = 'subscriptions_step_up_update' and permissive = 'RESTRICTIVE'), 'the step-up policies are restrictive');
+
+-- Partner exit (A79's app.leave_partner) -----------------------------------------------------------------------------------
+
+select pg_temp.as_session('cora', 'aal1', null);
+select throws_ok($$select app.leave_partner((select id from world where key = 'org_c'), 'Tidewater Events')$$, 'XR001',
+  'step_up_required: Confirm it is you with your second factor to leave your partner.',
+  'leaving the partner, which ends the partner-billed subscription, needs step-up');
+select pg_temp.as_session('cora', 'aal2', interval '1 minute');
+select is(app.leave_partner(pg_temp.id('org_c'), 'Tidewater Events'), pg_temp.id('org_c'),
+  'with a recent second factor the client org leaves');
 
 select * from finish();
 rollback;
