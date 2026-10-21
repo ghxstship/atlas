@@ -205,5 +205,19 @@
     "subject": "We received your {requestType} request",
     "heading": "Request received",
     "body": "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}."
+  },
+  "subprocessor_confirm": {
+    "subject": "Confirm your subscription to XOS subprocessor changes",
+    "heading": "Confirm your subscription",
+    "body": "You asked to hear about changes to the XOS Subprocessor List. Confirm within 7 days to start receiving notices.",
+    "ignore": "If you did not ask for this, ignore this email and nothing will be sent.",
+    "confirm": "Confirm subscription"
+  },
+  "subprocessor_notice": {
+    "subject": "XOS Subprocessor List changes on {effectiveOn, date, long}",
+    "heading": "Subprocessor List {listVersion}",
+    "intro": "We will change our Subprocessor List on {effectiveOn, date, long}, at least 30 days from this notice.",
+    "objection": "A customer may object under Section 7.3 of the Data Processing Agreement.",
+    "review": "Read the Subprocessor List"
   }
 }

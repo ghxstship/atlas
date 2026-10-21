@@ -60,6 +60,11 @@ alter table private.platform_emails enable row level security;
 revoke all on private.platform_emails from public, anon, authenticated;
 grant select on private.platform_emails to service_role;
 
+insert into private.email_templates (code, description, transactional) values
+  ('subprocessor_confirm', 'Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).', true),
+  ('subprocessor_notice', 'Announces a Subprocessor List change at least 30 days before it applies.', false)
+on conflict (code) do nothing;
+
 -- Subscriptions -------------------------------------------------------------------------------------------------------
 
 create table private.subprocessor_subscriptions (
