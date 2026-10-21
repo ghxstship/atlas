@@ -142,5 +142,34 @@
     "gatewayPreferences": "Preferencias: recordar tu idioma y tema durante 12 meses.",
     "gatewaySettingsLead": "Elige qué cookies puede usar Gateway en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
     "gatewayTableCaption": "Cookies que usa Gateway"
+  },
+  "subprocessors": {
+    "title": "Avisos de cambios",
+    "lead": "Recibe un correo al menos 30 días antes de que agreguemos o reemplacemos un subencargado.",
+    "email": "Correo electrónico",
+    "emailHelp": "Enviamos un correo para confirmar. No se envía nada más hasta que confirmes.",
+    "subscribe": "Suscribirse",
+    "members": "Los Propietarios y Administradores de una organización cliente reciben estos avisos sin suscribirse y pueden desactivarlos en Configuración, Notificaciones.",
+    "confirmTitle": "Confirma tu suscripción",
+    "confirmLead": "Confirma que quieres recibir avisos de cambios en la Lista de subencargados en esta dirección.",
+    "confirm": "Confirmar suscripción",
+    "unsubscribeTitle": "Cancelar los avisos de cambios",
+    "unsubscribeLead": "Deja de recibir avisos de cambios en la Lista de subencargados en esta dirección.",
+    "unsubscribe": "Cancelar suscripción",
+    "notices": {
+      "subscribed": "Revisa tu correo y confirma en un plazo de 7 días para empezar a recibir avisos.",
+      "invalid": "Escribe una dirección de correo, como nombre@ejemplo.com.",
+      "failed": "No pudimos registrar tu suscripción. Inténtalo de nuevo en unos minutos.",
+      "confirmed": "Ya estás suscrito. Te escribiremos al menos 30 días antes de un cambio.",
+      "confirm-failed": "Este enlace venció o ya se usó. Suscríbete de nuevo para recibir uno nuevo.",
+      "unsubscribed": "Cancelaste la suscripción. No recibirás más avisos de cambios.",
+      "unsubscribe-failed": "Este enlace no es válido. Usa el enlace para cancelar del aviso más reciente."
+    },
+    "settings": {
+      "title": "Cambios en la Lista de subencargados",
+      "lead": "Como Propietario o Administrador, recibes un correo al menos 30 días antes de que agreguemos o reemplacemos un subencargado.",
+      "label": "Enviarme un correo sobre cambios en la Lista de subencargados",
+      "save": "Guardar"
+    }
   }
 }

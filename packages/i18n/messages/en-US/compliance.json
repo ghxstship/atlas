@@ -142,5 +142,34 @@
     "gatewayPreferences": "Preferences: remember your language and theme for 12 months.",
     "gatewaySettingsLead": "Choose which cookies Gateway may set in this browser. Your choice is also kept on our servers as a record.",
     "gatewayTableCaption": "Cookies Gateway sets"
+  },
+  "subprocessors": {
+    "title": "Change notices",
+    "lead": "Get an email at least 30 days before we add or replace a subprocessor.",
+    "email": "Email",
+    "emailHelp": "We send one email to confirm. Nothing else is sent until you confirm.",
+    "subscribe": "Subscribe",
+    "members": "Owners and Admins of a customer organization get these notices without subscribing and can turn them off in Settings, Notifications.",
+    "confirmTitle": "Confirm your subscription",
+    "confirmLead": "Confirm that you want Subprocessor List change notices at this address.",
+    "confirm": "Confirm subscription",
+    "unsubscribeTitle": "Unsubscribe from change notices",
+    "unsubscribeLead": "Stop Subprocessor List change notices at this address.",
+    "unsubscribe": "Unsubscribe",
+    "notices": {
+      "subscribed": "Check your email and confirm within 7 days to start receiving notices.",
+      "invalid": "Enter an email address, such as name@example.com.",
+      "failed": "We could not take your subscription. Try again in a few minutes.",
+      "confirmed": "You are subscribed. We will email you at least 30 days before a change.",
+      "confirm-failed": "This link has expired or was already used. Subscribe again to get a new one.",
+      "unsubscribed": "You are unsubscribed. You will not get more change notices.",
+      "unsubscribe-failed": "This link is not valid. Use the unsubscribe link in the most recent notice."
+    },
+    "settings": {
+      "title": "Subprocessor List changes",
+      "lead": "As an Owner or Admin, you get an email at least 30 days before we add or replace a subprocessor.",
+      "label": "Email me about Subprocessor List changes",
+      "save": "Save"
+    }
   }
 }

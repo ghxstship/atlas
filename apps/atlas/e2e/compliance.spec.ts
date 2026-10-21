@@ -1,5 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
+import { randomBytes } from "node:crypto";
 import { readFileSync } from "node:fs";
+import pg from "pg";
 import { expect, test, type Browser, type Page } from "./engine-test";
 import { ORG, signIn } from "./a16-support";
 import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } from "./support";
@@ -7,8 +9,9 @@ import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } f
 /**
  * A82 compliance journeys (RRR-127, findings A65-014 and A65-016): the cookie banner and Global
  * Privacy Control (Section 14.3), "16 or older" at sign-up (Sections 14.3 and 14.9), and share links
- * with the Section 8.6 rules and watermark. The config sends Global Privacy Control so the banner
- * stays out of other journeys; these tests open their own contexts without it.
+ * with the Section 8.6 rules and watermark, and the Subprocessor List change notice subscription
+ * (Section 14.4). The config sends Global Privacy Control so the banner stays out of other journeys;
+ * these tests open their own contexts without it.
  */
 
 /** Server actions on a development server can take seconds on first compile. */
@@ -240,5 +243,92 @@ test.describe("share links", () => {
     await imagePanel.getByLabel("Classification").selectOption("Restricted");
     await imagePanel.getByRole("button", { name: "Save classification" }).click();
     await slow(imagePanel.getByText("Restricted files are never shared by link.")).toBeVisible();
+  });
+});
+
+/** Reads the local stack directly: the outbox keeps a token only until the email is sent. */
+async function localSql<T extends pg.QueryResultRow>(sql: string, args: unknown[]): Promise<T[]> {
+  const url = process.env["E2E_DATABASE_URL"];
+  if (!url || !/@(127\.0\.0\.1|localhost):/.test(url)) {
+    throw new Error("Set E2E_DATABASE_URL to the local stack.");
+  }
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    return (await client.query<T>(sql, args)).rows;
+  } finally {
+    await client.end();
+  }
+}
+
+test.describe("subprocessor change notices", () => {
+  test("subscribing needs the emailed confirmation, and a notice's link unsubscribes", async ({
+    page,
+  }) => {
+    const email = testEmail("notices", uniqueId());
+    await page.goto("/legal/subprocessors");
+    const notices = page.getByRole("region", { name: "Change notices" });
+    await expect(notices).toBeVisible();
+    await expectAccessible(page);
+    await notices.getByLabel("Email").fill(email);
+    await notices.getByRole("button", { name: "Subscribe" }).click();
+    await slow(page.getByText("Check your email and confirm within 7 days")).toBeVisible();
+    expect(new URL(page.url()).search).toBe("?notice=subscribed");
+
+    const [queued] = await localSql<{ token: string }>(
+      `select args ->> 'confirm_token' as token from private.platform_emails
+        where template = 'subprocessor_confirm' and to_email = $1`,
+      [email],
+    );
+    expect(queued?.token).toMatch(/^xspn_[0-9a-f]{64}$/);
+
+    // Opening the link changes nothing; the button does.
+    await page.goto(`/legal/subprocessors?confirm=${queued?.token}`);
+    await expect(page.getByRole("heading", { name: "Confirm your subscription" })).toBeVisible();
+    const [pending] = await localSql<{ state: string }>(
+      "select subscription_state as state from private.subprocessor_subscriptions where email = $1",
+      [email],
+    );
+    expect(pending?.state).toBe("Pending");
+    await page.getByRole("button", { name: "Confirm subscription" }).click();
+    await slow(page.getByText("You are subscribed.")).toBeVisible();
+    expect(page.url()).not.toContain("xspn_");
+
+    // A used link says so.
+    await page.goto(`/legal/subprocessors?confirm=${queued?.token}`);
+    await page.getByRole("button", { name: "Confirm subscription" }).click();
+    await slow(page.getByText("This link has expired or was already used.")).toBeVisible();
+
+    // The unsubscribe link a notice carries (issued here as app.queue_subprocessor_notice would).
+    const unsubscribe = `xspu_${randomBytes(32).toString("hex")}`;
+    await localSql(
+      `insert into private.subprocessor_unsubscribe_tokens (token_hash, subscription_id)
+       select extensions.digest($1, 'sha256'), id from private.subprocessor_subscriptions where email = $2`,
+      [unsubscribe, email],
+    );
+    await page.goto(`/legal/subprocessors?unsubscribe=${unsubscribe}`);
+    await page.getByRole("button", { name: "Unsubscribe" }).click();
+    await slow(page.getByText("You are unsubscribed.")).toBeVisible();
+    const [ended] = await localSql<{ state: string }>(
+      "select subscription_state as state from private.subprocessor_subscriptions where email = $1",
+      [email],
+    );
+    expect(ended?.state).toBe("Unsubscribed");
+  });
+
+  test("an Owner receives them by default and can turn them off", async ({ page }) => {
+    await signIn(page);
+    await page.goto(`/${ORG}/me/notifications`);
+    const panel = page.getByRole("region", { name: "Subprocessor List changes" });
+    const box = panel.getByLabel("Email me about Subprocessor List changes");
+    await expect(box).toBeChecked();
+    await box.uncheck();
+    await panel.getByRole("button", { name: "Save" }).click();
+    await page.reload();
+    await slow(box).not.toBeChecked();
+    await box.check();
+    await panel.getByRole("button", { name: "Save" }).click();
+    await page.reload();
+    await slow(box).toBeChecked();
   });
 });
