@@ -592,7 +592,10 @@ export function Sheet({
             </View>
             <Button label={closeLabel} variant="ghost" onPress={onClose} />
           </View>
+          {/* "handled": a button pressed straight after typing in the sheet presses on the first tap,
+              instead of only closing the keyboard (as Screen allows for forms). */}
           <ScrollView
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingHorizontal: theme.space["16"], gap: theme.space["16"] }}
           >
             {children}

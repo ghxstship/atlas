@@ -43,14 +43,14 @@ tags:
     id: "expense-line"
 - tapOn:
     id: "expense-line-1"
-- tapOn:
-    id: "expense-description"
-- inputText: "Ice and water for the crew"
-# The keyboard covers the amount field; a tap there would land on a key.
-- hideKeyboard
+# The amount first: the decimal pad has no return key, and closing it would tap a key. The description field
+# sits above it, so the text keyboard comes next and closes cleanly.
 - tapOn:
     id: "expense-amount"
 - inputText: "42.50"
+- tapOn:
+    id: "expense-description"
+- inputText: "Ice and water for the crew"
 - hideKeyboard
 - runFlow:
     when:
