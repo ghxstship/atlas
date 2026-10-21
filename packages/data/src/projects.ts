@@ -262,11 +262,15 @@ export function untypedRpc<T>(
   name: string,
   args: Record<string, unknown>,
 ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    fn: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
-  return rpc(name, args);
+  // Cast the client, not db.rpc.bind(db): binding instantiates rpc's generics over every function in the
+  // generated types, which passes TypeScript's depth limit (TS2589) once the schema is large enough.
+  const untyped = db as unknown as {
+    rpc(
+      fn: string,
+      params: Record<string, unknown>,
+    ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
+  };
+  return untyped.rpc(name, args);
 }
 
 /**

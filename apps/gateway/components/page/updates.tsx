@@ -12,6 +12,11 @@ const KINDS: Readonly<Record<string, string>> = {
   "invoice.approved": "invoiceApproved",
   "invoice.scheduled": "invoiceScheduled",
   "invoice.paid": "invoicePaid",
+  // Saved-search matches and expiry reminders (A89, migrations 1462 and 1463).
+  "opportunity.matched": "opportunityMatched",
+  "onboarding.item_expiring": "onboardingExpiring",
+  "certification.expiring": "certificationExpiring",
+  "document.expiring": "documentExpiring",
 };
 
 /**
@@ -34,6 +39,9 @@ export async function Updates({ db, t, locale }: { db: XosClient; t: Translate; 
           const text = t(`gateway.home.updates.kinds.${KINDS[n.kind] ?? ""}`, {
             title: n.args["title"] ?? "",
             orgName: n.args["orgName"] ?? "",
+            searchName: n.args["searchName"] ?? "",
+            expiresOn: n.args["expiresOn"] ?? "",
+            kind: n.args["kind"] ?? "other",
           });
           const path = n.args["gatewayPath"];
           return (

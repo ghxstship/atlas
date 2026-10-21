@@ -1069,7 +1069,11 @@
         "invoiceSubmitted": "{orgName} recibió la factura {title}",
         "invoiceApproved": "{orgName} aprobó la factura {title}",
         "invoiceScheduled": "{orgName} programó un pago para la factura {title}",
-        "invoicePaid": "{orgName} pagó la factura {title}"
+        "invoicePaid": "{orgName} pagó la factura {title}",
+        "opportunityMatched": "Nueva coincidencia para {searchName}: {title}",
+        "onboardingExpiring": "{title} para {orgName} vence el {expiresOn}",
+        "certificationExpiring": "Su certificación {title} vence el {expiresOn}",
+        "documentExpiring": "{kind, select, passport {Su pasaporte} insurance {Su certificado de seguro {title}} other {{title}}} vence el {expiresOn}"
       }
     }
   },
