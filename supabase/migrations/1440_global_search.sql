@@ -415,16 +415,15 @@ stable
 security definer
 set search_path = ''
 as $$
-  select '(' || coalesce((
-      select string_agg('(' || p.qual || ')', ' or ')
-      from pg_catalog.pg_policies p
-      where format('%I.%I', p.schemaname, p.tablename)::regclass = p_table and p.permissive = 'PERMISSIVE'
-        and p.cmd in ('SELECT', 'ALL') and (p.roles && array['authenticated', 'public']::name[])), 'false') || ')'
-    || coalesce((
-      select ' and ' || string_agg('(' || p.qual || ')', ' and ')
-      from pg_catalog.pg_policies p
-      where format('%I.%I', p.schemaname, p.tablename)::regclass = p_table and p.permissive = 'RESTRICTIVE'
-        and p.cmd in ('SELECT', 'ALL') and (p.roles && array['authenticated', 'public']::name[])), '');
+  -- pg_policy by its relation index: polcmd r is SELECT and * is ALL; role 0 is PUBLIC.
+  with applicable as (
+    select p.polpermissive as permissive, pg_catalog.pg_get_expr(p.polqual, p.polrelid) as qual
+    from pg_catalog.pg_policy p
+    where p.polrelid = p_table and p.polcmd in ('r', '*') and p.polqual is not null
+      and (0::oid = any (p.polroles) or 'authenticated'::regrole::oid = any (p.polroles))
+  )
+  select '(' || coalesce((select string_agg('(' || a.qual || ')', ' or ') from applicable a where a.permissive), 'false') || ')'
+    || coalesce((select ' and ' || string_agg('(' || a.qual || ')', ' and ') from applicable a where not a.permissive), '');
 $$;
 
 comment on function private.read_policy_predicate(regclass) is 'The SQL condition the authenticated role''s SELECT policies of a table apply: the permissive policies joined by OR, the restrictive ones by AND (A87).';
