@@ -1,6 +1,6 @@
 import { COMPASS_SCHEME, compassSchemeUrl, isRecordKey } from "@xos/ia/handoff";
 import { PlatformDbError, recipientProfile, type PlatformDb } from "../stores.ts";
-import type { ClaimedPush, PushDevice, PushStore } from "./push.ts";
+import type { ClaimedPush, PushDevice, PushStore, WebPushStore } from "./push.ts";
 import type {
   ClaimedSms,
   ClaimedSmsSummary,
@@ -9,6 +9,7 @@ import type {
   SmsSummaryStore,
 } from "./sms.ts";
 import type { TranslationStore } from "./translation.ts";
+import type { WebPushDevice } from "./web-push.ts";
 
 /**
  * Stores of the push and SMS senders, the SMS webhook and chat translation, over the 1361 and 1363 RPCs
@@ -39,6 +40,50 @@ function devices(value: unknown): PushDevice[] {
     const token = optionalText(d, "token");
     return subscriptionId !== null && token !== null ? [{ subscriptionId, token }] : [];
   });
+}
+
+/** Browsers the claim lists: subscription ids with no Expo token (1533). */
+function browsers(value: unknown): string[] {
+  return rows(value).flatMap((d) => {
+    const subscriptionId = optionalText(d, "subscriptionId");
+    return subscriptionId !== null && d["token"] === null ? [subscriptionId] : [];
+  });
+}
+
+/** The record key and org slug of a notification about a record, or null. */
+async function recordTarget(
+  db: PlatformDb,
+  claim: Pick<ClaimedPush, "orgId" | "subjectTable" | "subjectId">,
+): Promise<{ readonly slug: string | null; readonly recordKey: string | null }> {
+  const org = await db.selectOne("organizations", "slug", { id: claim.orgId });
+  const slug = optionalText(org, "slug");
+  if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
+    return { slug, recordKey: null };
+  const record = await db.selectOne("records", "project_id, record_number", {
+    id: claim.subjectId,
+  });
+  const projectId = optionalText(record, "project_id");
+  if (record === null || projectId === null) return { slug, recordKey: null };
+  const project = await db.selectOne("projects", "project_key", { id: projectId });
+  const recordKey = `${optionalText(project, "project_key") ?? ""}-${String(record["record_number"] ?? "")}`;
+  return { slug, recordKey: isRecordKey(recordKey) ? recordKey : null };
+}
+
+/**
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
+ * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ */
+export async function webPushLink(
+  db: PlatformDb,
+  claim: Pick<ClaimedPush, "orgId" | "subjectTable" | "subjectId">,
+  app: WebPushDevice["app"],
+): Promise<string> {
+  if (app === "Gateway") return "/home";
+  const target = await recordTarget(db, claim);
+  if (target.slug === null) return "/";
+  return target.recordKey === null
+    ? `/${target.slug}/inbox`
+    : `/${target.slug}/r/${target.recordKey}`;
 }
 
 /** The Compass deep link of a notification: the record screen for a record, else the Inbox. */
@@ -79,6 +124,7 @@ export function pushStore(db: PlatformDb): PushStore {
         subjectTable: optionalText(row, "subject_table"),
         subjectId: optionalText(row, "subject_id"),
         devices: devices(row["push_devices"]),
+        browsers: browsers(row["push_devices"]),
       }));
     },
     recipient: (personId) => recipientProfile(db, personId),
@@ -103,6 +149,34 @@ export function pushStore(db: PlatformDb): PushStore {
       const pruned = await db.rpc("record_push_receipts", { p_receipts: receipts });
       return typeof pruned === "number" ? pruned : 0;
     },
+  };
+}
+
+/** WebPushStore over app.web_push_devices and app.record_web_push_tickets (1533). */
+export function webPushStore(db: PlatformDb): WebPushStore {
+  return {
+    async webDevices(deliveryId) {
+      return rows(await db.rpc("web_push_devices", { p_delivery_id: deliveryId })).flatMap(
+        (r): WebPushDevice[] => {
+          const app = optionalText(r, "app");
+          return app === "Atlas" || app === "Gateway"
+            ? [
+                {
+                  subscriptionId: text(r, "subscription_id"),
+                  endpoint: text(r, "endpoint"),
+                  p256dh: text(r, "p256dh"),
+                  auth: text(r, "auth"),
+                  app,
+                },
+              ]
+            : [];
+        },
+      );
+    },
+    async recordWebTickets(deliveryId, tickets) {
+      await db.rpc("record_web_push_tickets", { p_delivery_id: deliveryId, p_tickets: tickets });
+    },
+    webLink: (claim, app) => webPushLink(db, claim, app),
   };
 }
 

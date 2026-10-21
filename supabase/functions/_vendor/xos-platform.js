@@ -868,14 +868,14 @@ async function handleStripeWebhook(request) {
  * (private.webhook_signature); this module verifies and signs with Web Crypto, for receivers, the SDKs
  * and tests. It runs unchanged in Node and Deno.
  */
-var encoder = new TextEncoder();
+var encoder$1 = new TextEncoder();
 function toHex(bytes) {
   return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 async function hmacHex(secret, message) {
   const key = await crypto.subtle.importKey(
     "raw",
-    encoder.encode(secret),
+    encoder$1.encode(secret),
     {
       name: "HMAC",
       hash: "SHA-256",
@@ -883,7 +883,7 @@ async function hmacHex(secret, message) {
     false,
     ["sign"],
   );
-  return toHex(await crypto.subtle.sign("HMAC", key, encoder.encode(message)));
+  return toHex(await crypto.subtle.sign("HMAC", key, encoder$1.encode(message)));
 }
 /** The XOS-Signature header value for a body at a time. */
 async function signWebhook(secret, timestamp, body) {
@@ -37936,6 +37936,22 @@ function pushMessage(claim, device, recipient, url) {
     ttl: 86400,
   };
 }
+/** The Web Push payload of a notification, in the recipient's locale and time zone. */
+function webPushPayload(claim, recipient, url) {
+  const text = notificationText(
+    claim.kind,
+    claim.messageArgs,
+    localeOf(recipient.locale),
+    recipient.timeZone,
+  );
+  return {
+    title: clip(text.title, 120),
+    body: clip(text.body, 900),
+    url,
+    tag: claim.notificationId,
+    kind: claim.kind,
+  };
+}
 /** The delivery outcome of a delivery's tickets. */
 function outcomeOf(tickets) {
   const accepted = tickets.find((t) => t.status === "ok");
@@ -37981,9 +37997,12 @@ async function dispatchPush(store, client, options = {}) {
   const claims = await store.claimPush(options.limit ?? 50);
   const pending = [];
   const failedEarly = /* @__PURE__ */ new Map();
+  const recipients = /* @__PURE__ */ new Map();
   for (const claim of claims)
     try {
       const recipient = await store.recipient(claim.recipientPersonId);
+      recipients.set(claim.deliveryId, recipient);
+      if (claim.devices.length === 0) continue;
       const url = await store.deepLink(claim);
       for (const device of claim.devices)
         pending.push({
@@ -38020,8 +38039,18 @@ async function dispatchPush(store, client, options = {}) {
   let sent = 0;
   let failed = 0;
   let bounced = 0;
+  let browsers = 0;
   for (const claim of claims) {
-    const early = failedEarly.get(claim.deliveryId);
+    let early = failedEarly.get(claim.deliveryId);
+    let webTickets = [];
+    const recipient = recipients.get(claim.deliveryId);
+    if (early === void 0 && options.web && recipient && (claim.browsers?.length ?? 0) > 0)
+      try {
+        webTickets = await pushBrowsers(claim, recipient, options.web);
+        browsers += webTickets.length;
+      } catch (error) {
+        early = error instanceof Error ? error.message : String(error);
+      }
     if (early !== void 0) {
       await store.record(claim.deliveryId, "Failed", null, early);
       failed += 1;
@@ -38047,14 +38076,15 @@ async function dispatchPush(store, client, options = {}) {
             },
       );
     if (mine.length > 0) await store.recordTickets(claim.deliveryId, mine);
+    const all = [...mine, ...webTickets];
     const result =
-      claim.devices.length === 0
+      all.length === 0
         ? {
             outcome: "Sent",
             providerMessageId: null,
             error: null,
           }
-        : outcomeOf(mine);
+        : outcomeOf(all);
     await store.record(claim.deliveryId, result.outcome, result.providerMessageId, result.error);
     if (result.outcome === "Sent") sent += 1;
     else if (result.outcome === "Bounced") bounced += 1;
@@ -38065,8 +38095,43 @@ async function dispatchPush(store, client, options = {}) {
     sent,
     failed,
     bounced,
-    devices: pending.length,
+    devices: pending.length + browsers,
   };
+}
+/** Pushes a delivery's browsers through Web Push and records each push service's answer. */
+async function pushBrowsers(claim, recipient, web) {
+  const devices = await web.store.webDevices(claim.deliveryId);
+  if (devices.length === 0) return [];
+  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const links = /* @__PURE__ */ new Map();
+  for (const device of devices)
+    if (!links.has(device.app)) links.set(device.app, await web.store.webLink(claim, device.app));
+  const tickets = await Promise.all(
+    devices.map(async (device) => {
+      const payload = webPushPayload(claim, recipient, links.get(device.app) ?? "/");
+      const answer = await web.client.send(device, payload, {
+        ttl: 86400,
+        urgency: pushCategory === null ? "normal" : "high",
+      });
+      return answer.status === "ok"
+        ? {
+            subscriptionId: device.subscriptionId,
+            status: "ok",
+            ticketId: null,
+            error: null,
+            message: null,
+          }
+        : {
+            subscriptionId: device.subscriptionId,
+            status: "error",
+            ticketId: null,
+            error: answer.error,
+            message: answer.message,
+          };
+    }),
+  );
+  await web.store.recordWebTickets(claim.deliveryId, tickets);
+  return tickets;
 }
 /**
  * Reads the receipts of tickets at least 15 minutes old (Expo keeps them 24 hours) and records them:
@@ -38249,6 +38314,314 @@ function createPushClient(env, fetchImpl) {
   if (env.XOS_PUSH_TRANSPORT !== "expo") return new RecordingPushClient();
   return expoPushClient({
     accessToken: env.EXPO_ACCESS_TOKEN ?? null,
+    ...(fetchImpl === void 0 ? {} : { fetch: fetchImpl }),
+  });
+}
+//#endregion
+//#region src/notifications/web-push.ts
+var encoder = new TextEncoder();
+function bytes(length) {
+  return new Uint8Array(new ArrayBuffer(length));
+}
+function concat(...parts) {
+  const out = bytes(parts.reduce((n, p) => n + p.length, 0));
+  let offset = 0;
+  for (const part of parts) {
+    out.set(part, offset);
+    offset += part.length;
+  }
+  return out;
+}
+function utf8(text) {
+  return concat(encoder.encode(text));
+}
+function base64UrlEncode(data) {
+  let binary = "";
+  for (const b of data) binary += String.fromCharCode(b);
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
+}
+function base64UrlDecode(text) {
+  const padded =
+    text.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((text.length + 3) % 4);
+  const binary = atob(padded);
+  const out = bytes(binary.length);
+  for (let i = 0; i < binary.length; i += 1) out[i] = binary.charCodeAt(i);
+  return out;
+}
+async function hkdf(salt, ikm, info, length) {
+  const key = await crypto.subtle.importKey("raw", ikm, "HKDF", false, ["deriveBits"]);
+  return new Uint8Array(
+    await crypto.subtle.deriveBits(
+      {
+        name: "HKDF",
+        hash: "SHA-256",
+        salt,
+        info,
+      },
+      key,
+      length * 8,
+    ),
+  );
+}
+/** The record size written in the aes128gcm header; one record carries the whole message. */
+var RECORD_SIZE = 4096;
+/** Largest plaintext one record holds: the record size less the 16-byte tag and the 1-byte delimiter. */
+var WEB_PUSH_MAX_PAYLOAD = 4079;
+/**
+ * Encrypts a payload for one browser (RFC 8291 section 3.4): an ephemeral P-256 key agreement with the browser's
+ * key, mixed with its authentication secret, gives the content key and nonce of a single aes128gcm record (RFC 8188),
+ * whose header carries the salt and the ephemeral public key.
+ */
+async function encryptWebPush(plaintext, p256dh, auth, options = {}) {
+  if (plaintext.length > 4079) throw new RangeError("The push message is too big for one record.");
+  const browserKey = base64UrlDecode(p256dh);
+  const authSecret = base64UrlDecode(auth);
+  if (browserKey.length !== 65 || authSecret.length !== 16)
+    throw new RangeError("The browser's keys are malformed.");
+  const serverKeys =
+    options.serverKeys ??
+    (await crypto.subtle.generateKey(
+      {
+        name: "ECDH",
+        namedCurve: "P-256",
+      },
+      true,
+      ["deriveBits"],
+    ));
+  const serverPublic = new Uint8Array(await crypto.subtle.exportKey("raw", serverKeys.publicKey));
+  const browserPublic = await crypto.subtle.importKey(
+    "raw",
+    browserKey,
+    {
+      name: "ECDH",
+      namedCurve: "P-256",
+    },
+    false,
+    [],
+  );
+  const ikm = await hkdf(
+    authSecret,
+    new Uint8Array(
+      await crypto.subtle.deriveBits(
+        {
+          name: "ECDH",
+          public: browserPublic,
+        },
+        serverKeys.privateKey,
+        256,
+      ),
+    ),
+    concat(utf8("WebPush: info\0"), browserKey, serverPublic),
+    32,
+  );
+  const salt = options.salt ?? concat(crypto.getRandomValues(bytes(16)));
+  const contentKey = await hkdf(salt, ikm, utf8("Content-Encoding: aes128gcm\0"), 16);
+  const nonce = await hkdf(salt, ikm, utf8("Content-Encoding: nonce\0"), 12);
+  const key = await crypto.subtle.importKey("raw", contentKey, "AES-GCM", false, ["encrypt"]);
+  const record = new Uint8Array(
+    await crypto.subtle.encrypt(
+      {
+        name: "AES-GCM",
+        iv: nonce,
+        tagLength: 128,
+      },
+      key,
+      concat(plaintext, new Uint8Array([2])),
+    ),
+  );
+  const header = bytes(21 + serverPublic.length);
+  header.set(salt, 0);
+  new DataView(header.buffer).setUint32(16, RECORD_SIZE);
+  header[20] = serverPublic.length;
+  header.set(serverPublic, 21);
+  return concat(header, record);
+}
+/** The VAPID Authorization header for an endpoint: an ES256 JWT for its origin, valid 12 hours, and the public key. */
+async function vapidAuthorization(endpoint, keys, nowSeconds) {
+  const publicKey = base64UrlDecode(keys.publicKey);
+  if (publicKey.length !== 65 || publicKey[0] !== 4)
+    throw new RangeError("VAPID_PUBLIC_KEY is not an uncompressed P-256 key.");
+  const jwk = {
+    kty: "EC",
+    crv: "P-256",
+    x: base64UrlEncode(publicKey.slice(1, 33)),
+    y: base64UrlEncode(publicKey.slice(33, 65)),
+    d: keys.privateKey,
+    ext: true,
+  };
+  const signingKey = await crypto.subtle.importKey(
+    "jwk",
+    jwk,
+    {
+      name: "ECDSA",
+      namedCurve: "P-256",
+    },
+    false,
+    ["sign"],
+  );
+  const header = base64UrlEncode(
+    utf8(
+      JSON.stringify({
+        typ: "JWT",
+        alg: "ES256",
+      }),
+    ),
+  );
+  const claims = base64UrlEncode(
+    utf8(
+      JSON.stringify({
+        aud: new URL(endpoint).origin,
+        exp: nowSeconds + 43200,
+        sub: keys.subject,
+      }),
+    ),
+  );
+  return `vapid t=${header}.${claims}.${base64UrlEncode(
+    new Uint8Array(
+      await crypto.subtle.sign(
+        {
+          name: "ECDSA",
+          hash: "SHA-256",
+        },
+        signingKey,
+        utf8(`${header}.${claims}`),
+      ),
+    ),
+  )}, k=${keys.publicKey}`;
+}
+/** Web Push over fetch with VAPID: one request per browser. */
+function vapidWebPushClient(options) {
+  const doFetch = options.fetch ?? fetch;
+  const sleep = options.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
+  const now = options.now ?? (() => Date.now());
+  const attempts = options.attempts ?? 3;
+  return {
+    name: "vapid",
+    async send(device, payload, sendOptions) {
+      let body;
+      let authorization;
+      try {
+        body = await encryptWebPush(utf8(JSON.stringify(payload)), device.p256dh, device.auth);
+        authorization = await vapidAuthorization(
+          device.endpoint,
+          options.keys,
+          Math.floor(now() / 1e3),
+        );
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return {
+          status: "error",
+          error: error instanceof RangeError ? "MessageTooBig" : "EncryptionFailed",
+          message,
+        };
+      }
+      let lastError = "";
+      for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+          const response = await doFetch(device.endpoint, {
+            method: "POST",
+            headers: {
+              Authorization: authorization,
+              "Content-Encoding": "aes128gcm",
+              "Content-Type": "application/octet-stream",
+              TTL: String(sendOptions.ttl),
+              Urgency: sendOptions.urgency,
+            },
+            body,
+          });
+          if (response.status >= 200 && response.status < 300) return { status: "ok" };
+          const detail = `The push service answered ${response.status}: ${(await response.text()).slice(0, 300)}`;
+          if (response.status === 404 || response.status === 410)
+            return {
+              status: "error",
+              error: "DeviceNotRegistered",
+              message: detail,
+            };
+          if (response.status === 413)
+            return {
+              status: "error",
+              error: "MessageTooBig",
+              message: detail,
+            };
+          lastError = detail;
+          if (response.status !== 429 && response.status < 500)
+            return {
+              status: "error",
+              error: "PushServiceRefused",
+              message: detail,
+            };
+        } catch (error) {
+          lastError = error instanceof Error ? error.message : String(error);
+        }
+        if (attempt < attempts) await sleep(500 * 2 ** (attempt - 1));
+      }
+      return {
+        status: "error",
+        error: "RequestFailed",
+        message: lastError,
+      };
+    },
+  };
+}
+/** Records pushes instead of sending them: tests, local runs and every environment without VAPID keys. */
+var RecordingWebPushClient = class {
+  name = "record";
+  sent = [];
+  async send(device, payload, options) {
+    this.sent.push({
+      device,
+      payload,
+      options,
+    });
+    return { status: "ok" };
+  }
+};
+var webPushEnvSchema = z
+  .object({
+    XOS_WEB_PUSH_TRANSPORT: z.enum(["record", "vapid"]).default("record"),
+    VAPID_PUBLIC_KEY: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{87}$/, "an uncompressed P-256 public key, base64url")
+      .optional(),
+    VAPID_PRIVATE_KEY: z
+      .string()
+      .regex(/^[A-Za-z0-9_-]{43}$/, "a P-256 private key, base64url")
+      .optional(),
+    VAPID_SUBJECT: z
+      .string()
+      .regex(/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/, "a mailto: or https: contact")
+      .optional(),
+  })
+  .refine(
+    (env) =>
+      env.XOS_WEB_PUSH_TRANSPORT !== "vapid" ||
+      (env.VAPID_PUBLIC_KEY !== void 0 &&
+        env.VAPID_PRIVATE_KEY !== void 0 &&
+        env.VAPID_SUBJECT !== void 0),
+    {
+      message:
+        "XOS_WEB_PUSH_TRANSPORT=vapid needs VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY and VAPID_SUBJECT",
+      path: ["VAPID_PUBLIC_KEY"],
+    },
+  );
+/** Parses the Web Push environment, naming each bad variable without echoing its value. */
+function readWebPushEnv(source) {
+  const parsed = webPushEnvSchema.safeParse(source);
+  if (!parsed.success)
+    throw new Error(
+      `Invalid web push environment: ${parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+    );
+  return parsed.data;
+}
+/** The client the environment asks for: VAPID with XOS_WEB_PUSH_TRANSPORT=vapid, recording otherwise. */
+function createWebPushClient(env, fetchImpl) {
+  if (env.XOS_WEB_PUSH_TRANSPORT !== "vapid") return new RecordingWebPushClient();
+  return vapidWebPushClient({
+    keys: {
+      publicKey: env.VAPID_PUBLIC_KEY ?? "",
+      privateKey: env.VAPID_PRIVATE_KEY ?? "",
+      subject: env.VAPID_SUBJECT ?? "",
+    },
     ...(fetchImpl === void 0 ? {} : { fetch: fetchImpl }),
   });
 }
@@ -39227,6 +39600,51 @@ function devices(value) {
       : [];
   });
 }
+/** Browsers the claim lists: subscription ids with no Expo token (1533). */
+function browsers(value) {
+  return rows$2(value).flatMap((d) => {
+    const subscriptionId = optionalText$1(d, "subscriptionId");
+    return subscriptionId !== null && d["token"] === null ? [subscriptionId] : [];
+  });
+}
+/** The record key and org slug of a notification about a record, or null. */
+async function recordTarget(db, claim) {
+  const slug = optionalText$1(
+    await db.selectOne("organizations", "slug", { id: claim.orgId }),
+    "slug",
+  );
+  if (claim.subjectId === null || !["records", "app.records"].includes(claim.subjectTable ?? ""))
+    return {
+      slug,
+      recordKey: null,
+    };
+  const record = await db.selectOne("records", "project_id, record_number", {
+    id: claim.subjectId,
+  });
+  const projectId = optionalText$1(record, "project_id");
+  if (record === null || projectId === null)
+    return {
+      slug,
+      recordKey: null,
+    };
+  const recordKey = `${optionalText$1(await db.selectOne("projects", "project_key", { id: projectId }), "project_key") ?? ""}-${String(record["record_number"] ?? "")}`;
+  return {
+    slug,
+    recordKey: isRecordKey(recordKey) ? recordKey : null,
+  };
+}
+/**
+ * The path a browser push opens on the app it subscribed in: in Atlas the record a notification is about, else the
+ * org's Inbox; in Gateway, Home. A path, never a full URL: the service worker resolves it on its own origin.
+ */
+async function webPushLink(db, claim, app) {
+  if (app === "Gateway") return "/home";
+  const target = await recordTarget(db, claim);
+  if (target.slug === null) return "/";
+  return target.recordKey === null
+    ? `/${target.slug}/inbox`
+    : `/${target.slug}/r/${target.recordKey}`;
+}
 /** The Compass deep link of a notification: the record screen for a record, else the Inbox. */
 async function compassLink(db, claim) {
   const inbox = `${COMPASS_SCHEME}://inbox`;
@@ -39268,6 +39686,7 @@ function pushStore(db) {
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
         devices: devices(row["push_devices"]),
+        browsers: browsers(row["push_devices"]),
       }));
     },
     recipient: (personId) => recipientProfile(db, personId),
@@ -39295,6 +39714,36 @@ function pushStore(db) {
       const pruned = await db.rpc("record_push_receipts", { p_receipts: receipts });
       return typeof pruned === "number" ? pruned : 0;
     },
+  };
+}
+/** WebPushStore over app.web_push_devices and app.record_web_push_tickets (1533). */
+function webPushStore(db) {
+  return {
+    async webDevices(deliveryId) {
+      return rows$2(await db.rpc("web_push_devices", { p_delivery_id: deliveryId })).flatMap(
+        (r) => {
+          const app = optionalText$1(r, "app");
+          return app === "Atlas" || app === "Gateway"
+            ? [
+                {
+                  subscriptionId: text$5(r, "subscription_id"),
+                  endpoint: text$5(r, "endpoint"),
+                  p256dh: text$5(r, "p256dh"),
+                  auth: text$5(r, "auth"),
+                  app,
+                },
+              ]
+            : [];
+        },
+      );
+    },
+    async recordWebTickets(deliveryId, tickets) {
+      await db.rpc("record_web_push_tickets", {
+        p_delivery_id: deliveryId,
+        p_tickets: tickets,
+      });
+    },
+    webLink: (claim, app) => webPushLink(db, claim, app),
   };
 }
 /** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
@@ -50010,6 +50459,7 @@ export {
   REPORT_RUN_JOB,
   RecordingPushClient,
   RecordingSmsProvider,
+  RecordingWebPushClient,
   ScannerUnavailableError,
   SmsRecipientRefusedError,
   SmsSendError,
@@ -50018,9 +50468,12 @@ export {
   TWILIO_API,
   TranslationUnavailableError,
   UPLOAD_STAGING_BUCKET,
+  WEB_PUSH_MAX_PAYLOAD,
   ZIP_LIMITS,
   addonForLookupKey,
   asDbClient,
+  base64UrlDecode,
+  base64UrlEncode,
   billingEnvSchema,
   billingStore,
   checkContent,
@@ -50039,12 +50492,14 @@ export {
   createSmsProvider,
   createStripeClient,
   createTransport,
+  createWebPushClient,
   dispatchEmail,
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
   dispatchWebhooks,
   edgeFunctionName,
+  encryptWebPush,
   expoPushClient,
   extraSeatForLookupKey,
   extraSeatLookupKeyFor,
@@ -50086,6 +50541,7 @@ export {
   readEmailEnv,
   readPushEnv,
   readSmsEnv,
+  readWebPushEnv,
   readZipDirectory,
   receiveInbound,
   recipientAllowed,
@@ -50134,8 +50590,14 @@ export {
   translationStore,
   twilioSignature,
   twilioSmsProvider,
+  vapidAuthorization,
+  vapidWebPushClient,
   verifyTwilioSignature,
   verifyWebhook,
+  webPushEnvSchema,
+  webPushLink,
+  webPushPayload,
+  webPushStore,
   webhookStore,
   workloadIdentityToken,
 };

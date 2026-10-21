@@ -2,6 +2,7 @@ import { notificationKind } from "@xos/schemas/notifications";
 import { z } from "zod";
 import { clip, localeOf, notificationText } from "./copy.ts";
 import type { DeliveryOutcome, Recipient } from "./dispatch.ts";
+import type { WebPushClient, WebPushDevice, WebPushPayload } from "./web-push.ts";
 
 /**
  * Push notifications through the Expo push service (Section 5, ADR 0030, finding A65-012). Compass
@@ -42,6 +43,11 @@ export interface ClaimedPush {
   readonly subjectId: string | null;
   /** Devices not yet pushed for this delivery. Empty when every device already has a ticket. */
   readonly devices: readonly PushDevice[];
+  /**
+   * Browsers not yet pushed for this delivery (1533): the claim lists them with no token, by subscription id; the
+   * Web Push sender reads their endpoint and keys through WebPushStore.
+   */
+  readonly browsers?: readonly string[];
 }
 
 /** One message to the Expo push service. */
@@ -110,6 +116,16 @@ export interface PushStore {
   recordReceipts(receipts: readonly TicketReceipt[]): Promise<number>;
 }
 
+/** What the Web Push sender needs from the database (1533). */
+export interface WebPushStore {
+  /** The browsers a delivery still goes to, with their endpoint and keys. */
+  webDevices(deliveryId: string): Promise<readonly WebPushDevice[]>;
+  /** Records what each push service answered; DeviceNotRegistered revokes the browser. */
+  recordWebTickets(deliveryId: string, tickets: readonly DeviceTicket[]): Promise<void>;
+  /** The path a click opens on the subscribing app's own origin. */
+  webLink(claim: ClaimedPush, app: WebPushDevice["app"]): Promise<string>;
+}
+
 /** Errors that mean the message can never reach that device: no retry. */
 const PERMANENT = new Set(["DeviceNotRegistered", "MessageTooBig"]);
 
@@ -144,6 +160,27 @@ export function pushMessage(
     sound: "default",
     priority: pushCategory === null ? "default" : "high",
     ttl: 60 * 60 * 24,
+  };
+}
+
+/** The Web Push payload of a notification, in the recipient's locale and time zone. */
+export function webPushPayload(
+  claim: ClaimedPush,
+  recipient: Recipient,
+  url: string,
+): WebPushPayload {
+  const text = notificationText(
+    claim.kind,
+    claim.messageArgs,
+    localeOf(recipient.locale),
+    recipient.timeZone,
+  );
+  return {
+    title: clip(text.title, 120),
+    body: clip(text.body, 900),
+    url,
+    tag: claim.notificationId,
+    kind: claim.kind,
   };
 }
 
@@ -185,6 +222,8 @@ export interface PushDispatchOptions {
   readonly limit?: number;
   /** Send requests in flight at once; Expo allows 600 notifications a second per project. */
   readonly concurrency?: number;
+  /** Browsers through Web Push with VAPID (1533). Without it, browsers are not pushed. */
+  readonly web?: { readonly store: WebPushStore; readonly client: WebPushClient };
 }
 
 export interface PushDispatchSummary {
@@ -216,9 +255,12 @@ export async function dispatchPush(
   const claims = await store.claimPush(options.limit ?? 50);
   const pending: Pending[] = [];
   const failedEarly = new Map<string, string>();
+  const recipients = new Map<string, Recipient>();
   for (const claim of claims) {
     try {
       const recipient = await store.recipient(claim.recipientPersonId);
+      recipients.set(claim.deliveryId, recipient);
+      if (claim.devices.length === 0) continue;
       const url = await store.deepLink(claim);
       for (const device of claim.devices)
         pending.push({ claim, device, message: pushMessage(claim, device, recipient, url) });
@@ -251,8 +293,19 @@ export async function dispatchPush(
   let sent = 0;
   let failed = 0;
   let bounced = 0;
+  let browsers = 0;
   for (const claim of claims) {
-    const early = failedEarly.get(claim.deliveryId);
+    let early = failedEarly.get(claim.deliveryId);
+    let webTickets: DeviceTicket[] = [];
+    const recipient = recipients.get(claim.deliveryId);
+    if (early === undefined && options.web && recipient && (claim.browsers?.length ?? 0) > 0) {
+      try {
+        webTickets = await pushBrowsers(claim, recipient, options.web);
+        browsers += webTickets.length;
+      } catch (error) {
+        early = error instanceof Error ? error.message : String(error);
+      }
+    }
     if (early !== undefined) {
       await store.record(claim.deliveryId, "Failed", null, early);
       failed += 1;
@@ -278,17 +331,58 @@ export async function dispatchPush(
             },
       );
     if (mine.length > 0) await store.recordTickets(claim.deliveryId, mine);
-    // No device left to push means every device was pushed on an earlier attempt.
+    // No device or browser left to push means every one was pushed on an earlier attempt.
+    const all = [...mine, ...webTickets];
     const result =
-      claim.devices.length === 0
+      all.length === 0
         ? { outcome: "Sent" as const, providerMessageId: null, error: null }
-        : outcomeOf(mine);
+        : outcomeOf(all);
     await store.record(claim.deliveryId, result.outcome, result.providerMessageId, result.error);
     if (result.outcome === "Sent") sent += 1;
     else if (result.outcome === "Bounced") bounced += 1;
     else failed += 1;
   }
-  return { attempted: claims.length, sent, failed, bounced, devices: pending.length };
+  return { attempted: claims.length, sent, failed, bounced, devices: pending.length + browsers };
+}
+
+/** Pushes a delivery's browsers through Web Push and records each push service's answer. */
+async function pushBrowsers(
+  claim: ClaimedPush,
+  recipient: Recipient,
+  web: NonNullable<PushDispatchOptions["web"]>,
+): Promise<DeviceTicket[]> {
+  const devices = await web.store.webDevices(claim.deliveryId);
+  if (devices.length === 0) return [];
+  const pushCategory = notificationKind(claim.kind)?.pushCategory ?? null;
+  const links = new Map<WebPushDevice["app"], string>();
+  for (const device of devices)
+    if (!links.has(device.app)) links.set(device.app, await web.store.webLink(claim, device.app));
+  const tickets = await Promise.all(
+    devices.map(async (device): Promise<DeviceTicket> => {
+      const payload = webPushPayload(claim, recipient, links.get(device.app) ?? "/");
+      const answer = await web.client.send(device, payload, {
+        ttl: 60 * 60 * 24,
+        urgency: pushCategory === null ? "normal" : "high",
+      });
+      return answer.status === "ok"
+        ? {
+            subscriptionId: device.subscriptionId,
+            status: "ok",
+            ticketId: null,
+            error: null,
+            message: null,
+          }
+        : {
+            subscriptionId: device.subscriptionId,
+            status: "error",
+            ticketId: null,
+            error: answer.error,
+            message: answer.message,
+          };
+    }),
+  );
+  await web.store.recordWebTickets(claim.deliveryId, tickets);
+  return tickets;
 }
 
 export interface ReceiptSummary {

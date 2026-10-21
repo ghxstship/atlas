@@ -5,6 +5,10 @@
 //     Section 19.8).
 //   * Push through the Expo push service when XOS_PUSH_TRANSPORT=expo (EXPO_ACCESS_TOKEN when the Expo project
 //     uses enhanced push security); recorded otherwise. Receipts prune devices Expo no longer knows.
+//   * Browsers (Atlas and Gateway, 1533) through Web Push with VAPID when XOS_WEB_PUSH_TRANSPORT=vapid
+//     (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT; the apps get the same public key); recorded otherwise.
+//     They ride the Push deliveries, so quiet hours and preferences are A80's. A browser that unsubscribed (404 or
+//     410) is revoked.
 //   * SMS through Twilio when XOS_SMS_TRANSPORT=twilio (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN,
 //     TWILIO_MESSAGING_SERVICE_SID, XOS_SMS_HELP_CONTACT), limited to XOS_SMS_ALLOWLIST unless
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook. Texts held by
@@ -15,6 +19,7 @@ import {
   createLogger,
   createPushClient,
   createSmsProvider,
+  createWebPushClient,
   createTransport,
   dispatchEmail,
   dispatchPush,
@@ -26,7 +31,9 @@ import {
   readEmailEnv,
   readPushEnv,
   readSmsEnv,
+  readWebPushEnv,
   smsStore,
+  webPushStore,
 } from "../_vendor/xos-platform.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
@@ -73,7 +80,9 @@ serve(async (request) => {
   });
 
   const push = await channel("push", () =>
-    dispatchPush(pushStore(db), createPushClient(readPushEnv(source))),
+    dispatchPush(pushStore(db), createPushClient(readPushEnv(source)), {
+      web: { store: webPushStore(db), client: createWebPushClient(readWebPushEnv(source)) },
+    }),
   );
   const receipts = await channel("push-receipts", () =>
     checkPushReceipts(pushStore(db), createPushClient(readPushEnv(source))),
