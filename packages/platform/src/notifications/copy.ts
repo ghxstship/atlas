@@ -1,4 +1,4 @@
-import { formatMessage, type MessageArgs } from "@xos/email";
+import { formatMessage, type MessageArgs } from "@xos/email/messages";
 import { isLocale, type Locale } from "@xos/i18n/locales";
 import { copyKeys } from "@xos/schemas/notifications";
 

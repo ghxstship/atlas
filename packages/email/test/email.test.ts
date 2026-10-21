@@ -15,12 +15,12 @@ import {
   recipientAllowed,
   renderEmail,
   sendEmail,
-  templates,
   type ResendClient,
   type Sender,
   type TemplateCode,
   type TemplateProps,
 } from "../src/index.ts";
+import { templates } from "../src/templates/index.tsx";
 import { color, layout, radius, space, stroke, text } from "../src/theme.ts";
 
 const sender: Sender = {

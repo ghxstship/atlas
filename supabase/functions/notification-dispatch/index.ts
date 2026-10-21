@@ -9,23 +9,24 @@
 //     TWILIO_MESSAGING_SERVICE_SID, XOS_SMS_HELP_CONTACT), limited to XOS_SMS_ALLOWLIST unless
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook.
 // One channel failing never stops the others: its error is logged and reported in the answer.
+// React Email, the templates and Resend load only when an email is rendered or sent (A85), so the many runs
+// with nothing due boot without them.
 import {
   checkPushReceipts,
-  createLogger,
   createPushClient,
   createSmsProvider,
   createTransport,
   dispatchEmail,
   dispatchPush,
   dispatchSms,
-  identityFromEnv,
   notificationStore,
   pushStore,
   readEmailEnv,
   readPushEnv,
   readSmsEnv,
   smsStore,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/notification-dispatch.js";
+import { createLogger, identityFromEnv } from "../_vendor/core.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 const logger = createLogger(identityFromEnv("edge.notification-dispatch", Deno.env.toObject()));

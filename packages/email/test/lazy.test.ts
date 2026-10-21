@@ -20,8 +20,8 @@ vi.mock("resend", () => ({
   },
 }));
 
-const { TEMPLATE_CODES, emailCatalog, lazyResendClient, templates } =
-  await import("../src/index.ts");
+const { TEMPLATE_CODES, emailCatalog, lazyResendClient } = await import("../src/index.ts");
+const { templates } = await import("../src/templates/index.tsx");
 
 describe("loading on demand (A85, Edge Function cold starts)", () => {
   it("lists exactly the templates, so isTemplateCode needs no React", () => {

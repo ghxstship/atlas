@@ -18,12 +18,9 @@ export { isTemplateCode, renderEmail, type RenderedEmail, type RenderOptions } f
 export { TEMPLATE_CODES } from "./templates/codes.ts";
 export { sendEmail, type SendRequest } from "./send.ts";
 export type { Sender } from "./templates/layout.tsx";
-export {
-  templates,
-  type KindItem,
-  type TemplateCode,
-  type TemplateProps,
-} from "./templates/index.tsx";
+// Types only: the templates (and React Email with them) load when renderEmail renders, never with
+// this entry, so a worker that only checks or routes email does not parse them (A85).
+export type { KindItem, TemplateCode, TemplateProps } from "./templates/index.tsx";
 export {
   EmailSendError,
   GuardedTransport,
