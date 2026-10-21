@@ -107,6 +107,7 @@ export {
   smsEnvSchema,
   smsSummaryBody,
   smsKeyword,
+  smsSegments,
   twilioSignature,
   twilioSmsProvider,
   verifyTwilioSignature,

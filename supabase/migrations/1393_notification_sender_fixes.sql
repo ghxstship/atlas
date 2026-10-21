@@ -15,6 +15,8 @@
 --   5. Senders read the recipient's language and time zone through app.notification_recipient_profile. The platform
 --      read personal_setting_values directly with no deleted_at filter and no org precedence, so a cleared language
 --      or zone could still apply, and a missing zone fell back to UTC.
+--   6. A sent text counts its billed segments toward the sms_segments meter, not one per text. The sender passes the
+--      count (Twilio's, else computed from the encoded body) to record_notification_delivery and record_sms_summary.
 
 -- 1. Status callbacks settle every delivery of the text (from 1361) ----------------------------------------------------
 
@@ -559,6 +561,102 @@ $$;
 
 comment on function app.notification_recipient_profile(uuid, uuid) is 'Sender API (service role): the name, language and time zone a person is reached in by an org, for rendering email, push and SMS (1393). The language is their live locale.language (a value for this org over one for every org, cleared values ignored), else the org''s, else en-US (private.setting_text); the zone is private.recipient_time_zone (their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. The zone is null only for an org with no zone and no project.';
 
+-- 6. Texts count their billed segments (record_notification_delivery from 0520, record_sms_summary from 1367) -----------
+
+drop function app.record_notification_delivery(uuid, app.message_status, text, text);
+
+create function app.record_notification_delivery(
+  p_delivery_id uuid,
+  p_status app.message_status,
+  p_provider_message_id text default null,
+  p_error text default null,
+  p_segments integer default 1
+)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_d record;
+begin
+  if p_status not in ('Sent', 'Delivered', 'Bounced', 'Failed') then
+    perform private.refuse('delivery_status_invalid', 'A sender records Sent, Delivered, Bounced or Failed.');
+  end if;
+  select d.id, d.notification_created_at, d.org_id, d.channel, d.attempt_count into v_d
+  from app.notification_deliveries d where d.id = p_delivery_id for update;
+  if v_d.id is null then
+    perform private.refuse('delivery_unknown', 'No such delivery.');
+  end if;
+  update app.notification_deliveries
+  set message_status = case when p_status = 'Failed' and v_d.attempt_count < 5 then 'Queued'::app.message_status else p_status end,
+    deliver_after = case when p_status = 'Failed' then now() + private.webhook_retry_delay(v_d.attempt_count) else deliver_after end,
+    provider_message_id = coalesce(left(p_provider_message_id, 200), provider_message_id),
+    last_error = left(p_error, 2000),
+    sent_at = case when p_status in ('Sent', 'Delivered') then coalesce(sent_at, now()) else sent_at end
+  where id = p_delivery_id and notification_created_at = v_d.notification_created_at;
+  if p_status = 'Sent' then
+    perform private.record_usage(v_d.org_id,
+      case v_d.channel when 'Email' then 'emails_sent' when 'SMS' then 'sms_segments' else 'push_sent' end,
+      case when v_d.channel = 'SMS' then greatest(coalesce(p_segments, 1), 1) else 1 end, p_delivery_id);
+  end if;
+end;
+$$;
+
+comment on function app.record_notification_delivery(uuid, app.message_status, text, text, integer) is 'Worker and provider webhook API (service role): records a send outcome. A failure retries with backoff up to 5 attempts. A sent message counts toward usage: one email or push, or a text''s billed segments (p_segments, at least 1; 1393).';
+
+drop function app.record_sms_summary(uuid[], app.message_status, text, text);
+
+create function app.record_sms_summary(
+  p_delivery_ids uuid[],
+  p_status app.message_status,
+  p_provider_message_id text default null,
+  p_error text default null,
+  p_segments integer default 1
+)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+declare
+  v_org uuid;
+  v_attempts smallint;
+begin
+  if p_status not in ('Sent', 'Bounced', 'Failed') then
+    perform private.refuse('delivery_status_invalid', 'A summary records Sent, Bounced or Failed.');
+  end if;
+  if coalesce(cardinality(p_delivery_ids), 0) = 0 then
+    perform private.refuse('sms_summary_empty', 'A summary carries at least one held text.');
+  end if;
+  select min(d.org_id::text)::uuid, max(d.attempt_count) into v_org, v_attempts
+  from app.notification_deliveries d where d.id = any (p_delivery_ids) and d.channel = 'SMS';
+  if v_org is null then
+    perform private.refuse('delivery_unknown', 'No such SMS delivery.');
+  end if;
+  if p_status = 'Failed' and v_attempts < 5 then
+    update app.notification_deliveries set last_error = left(p_error, 2000) where id = any (p_delivery_ids);
+    update app.sms_summary_queue set due_at = now() + private.webhook_retry_delay(v_attempts)
+    where notification_delivery_id = any (p_delivery_ids) and sent_at is null;
+    return;
+  end if;
+  update app.notification_deliveries
+  set message_status = p_status,
+    provider_message_id = coalesce(left(p_provider_message_id, 200), provider_message_id),
+    last_error = left(p_error, 2000),
+    sent_at = case when p_status = 'Sent' then coalesce(sent_at, now()) else sent_at end
+  where id = any (p_delivery_ids);
+  update app.sms_summary_queue set sent_at = now() where notification_delivery_id = any (p_delivery_ids) and sent_at is null;
+  if p_status = 'Sent' then
+    perform private.record_usage(v_org, 'sms_segments', greatest(coalesce(p_segments, 1), 1), p_delivery_ids[1]);
+  end if;
+end;
+$$;
+
+comment on function app.record_sms_summary(uuid[], app.message_status, text, text, integer) is 'SMS sender API (service role): records the outcome of one summary text for every held delivery it carried. Sent marks them Sent with the message SID and counts the text''s billed segments toward usage (p_segments, at least 1; 1393); Bounced settles them; Failed retries the summary with backoff, up to 5 attempts.';
+
 -- Privileges (create or replace keeps them; restated for review) -------------------------------------------------------
 
 revoke all on function app.record_sms_status(text, text, text) from public, anon, authenticated;
@@ -574,3 +672,7 @@ revoke all on function app.claim_notification_deliveries(app.notification_channe
 grant execute on function app.claim_notification_deliveries(app.notification_channel, integer) to service_role;
 revoke all on function app.notification_recipient_profile(uuid, uuid) from public, anon, authenticated;
 grant execute on function app.notification_recipient_profile(uuid, uuid) to service_role;
+revoke all on function app.record_notification_delivery(uuid, app.message_status, text, text, integer) from public, anon, authenticated;
+grant execute on function app.record_notification_delivery(uuid, app.message_status, text, text, integer) to service_role;
+revoke all on function app.record_sms_summary(uuid[], app.message_status, text, text, integer) from public, anon, authenticated;
+grant execute on function app.record_sms_summary(uuid[], app.message_status, text, text, integer) to service_role;

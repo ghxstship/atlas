@@ -1,12 +1,14 @@
 -- pgTAP: migration 1393, fixes to the notification dispatcher and the SMS senders (RRR-125): a Twilio status callback
--- settles every held text a summary carried, and held texts honor a category-scoped SMS suppression. Zones are pinned
--- with Etc/GMT offsets where it is now night (inside 21:00 to 08:00) or day, so the suite never depends on the clock.
+-- settles every held text a summary carried; held texts honor a category-scoped SMS suppression; every notification
+-- names its actor; a held shift change goes once its bypass window opens; senders read the recipient's live language
+-- and zone; texts count their billed segments. Zones are pinned with Etc/GMT offsets where it is now night (inside
+-- 21:00 to 08:00) or day, or with quiet hours relative to now, so the suite never depends on the clock.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(24);
+select plan(28);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -188,6 +190,31 @@ select pg_temp.as_platform();
 select is(pg_temp.profile('erin'), 'Erin Castillo|en-US|America/New_York', 'a language kept for this org wins over the one for every org');
 select ok(not has_function_privilege('authenticated', 'app.notification_recipient_profile(uuid, uuid)', 'execute'),
   'only the senders read a recipient''s profile');
+
+-- 6. Texts count their billed segments --------------------------------------------------------------------------------------
+create function pg_temp.usage(p_source uuid) returns text
+language sql as $$
+  select string_agg(u.meter_code || ' ' || u.quantity, ', ' order by u.meter_code) from app.usage_events u where u.source_id = p_source
+$$;
+select app.record_notification_delivery((pg_temp.sms((select id from n where key = 'shift_window'))).id, 'Sent', 'SM-1393-single', null, 3);
+select is(pg_temp.usage((pg_temp.sms((select id from n where key = 'shift_window'))).id), 'sms_segments 3',
+  'a single text counts the segments it was billed as');
+select app.record_notification_delivery((select d.id from app.notification_deliveries d
+  where d.notification_id = (select id from n where key = 'shift_window') and d.channel = 'Push'), 'Sent', 'tkt-1393', null, 5);
+select is(pg_temp.usage((select d.id from app.notification_deliveries d
+  where d.notification_id = (select id from n where key = 'shift_window') and d.channel = 'Push')), 'push_sent 1', 'a push still counts once');
+select pg_temp.night();
+insert into n values ('sec2', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
+  '{"change": "email"}'));
+insert into n values ('sec3', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
+  '{"change": "phone"}'));
+select pg_temp.morning();
+create temporary table s3 as select * from app.claim_sms_summaries();
+select app.record_sms_summary((select delivery_ids from s3), 'Sent', 'SM-1393-summary-3', null, 4);
+select is(pg_temp.usage((select delivery_ids[1] from s3)), 'sms_segments 4', 'a summary text counts its segments, not one');
+select app.record_notification_delivery((pg_temp.sms((select id from n where key = 'shift_later'))).id, 'Sent', 'SM-1393-zero', null, 0);
+select is(pg_temp.usage((pg_temp.sms((select id from n where key = 'shift_later'))).id), 'sms_segments 1',
+  'a text never counts less than one segment');
 
 select * from finish();
 rollback;
