@@ -791,3 +791,39 @@ export function rollupByMetric(
       };
     });
 }
+
+// Ticketing ----------------------------------------------------------------------------------------------------------
+
+export interface TicketingAttendance {
+  readonly sold: number;
+  /** Scans over the import rows that report them; null when none does. */
+  readonly scanned: number | null;
+  /** Import rows whose source reported no scans, never counted as zero. */
+  readonly scansUnreported: number;
+}
+
+/**
+ * The ticketing imports of a project (0636, app.project_attendance_totals) summed over its shows, as a reference
+ * beside the attendance figures; null when nothing was imported.
+ */
+export async function ticketingAttendance(
+  db: XosClient,
+  projectId: string,
+): Promise<Result<TicketingAttendance | null>> {
+  const { data, error } = await db
+    .from("project_attendance_totals")
+    .select("tickets_sold, tickets_scanned, scans_unreported_count")
+    .eq("project_id", projectId);
+  if (error) return fail(toDataError(error));
+  const rows = data ?? [];
+  if (rows.length === 0) return ok(null);
+  const scannedRows = rows.filter((r) => r.tickets_scanned !== null);
+  return ok({
+    sold: rows.reduce((n, r) => n + Number(r.tickets_sold ?? 0), 0),
+    scanned:
+      scannedRows.length === 0
+        ? null
+        : scannedRows.reduce((n, r) => n + Number(r.tickets_scanned ?? 0), 0),
+    scansUnreported: rows.reduce((n, r) => n + Number(r.scans_unreported_count ?? 0), 0),
+  });
+}

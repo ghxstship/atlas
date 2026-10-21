@@ -23,7 +23,7 @@ import {
 import type { Route } from "next";
 import { useFormatter, useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import {
   attestEvidenceAction,
   passGateAction,
@@ -69,6 +69,7 @@ export function GatesView({
   canPass,
   views,
   view,
+  gatePanels,
 }: Hidden & {
   phases: readonly Phase[];
   criteria: readonly GateCriterion[];
@@ -80,6 +81,8 @@ export function GatesView({
   canPass: boolean;
   views: readonly GateView[];
   view: GateView;
+  /** Server-rendered panels shown under a gate's criteria, keyed by gate (A98: objectives at 1, measurement at 8). */
+  gatePanels?: Readonly<Partial<Record<number, ReactNode>>>;
 }) {
   const t = useTranslations("projects");
   const format = useFormatter();
@@ -261,6 +264,7 @@ export function GatesView({
                       );
                     })}
                   </ul>
+                  {gatePanels?.[ph.gate] ?? null}
                 </section>
               </li>
             );

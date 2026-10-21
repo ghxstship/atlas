@@ -1444,6 +1444,13 @@ export const sitemap: Sitemap = {
               list: { views: ["table", "chart"], default: "table" },
             },
             {
+              id: "reports.measurement",
+              kind: "page",
+              label: "nav.atlas.pages.reports.measurement",
+              route: "/{org}/reports/measurement",
+              list: { views: ["table", "chart"], default: "table" },
+            },
+            {
               id: "reports.saved-reports",
               kind: "page",
               label: "nav.atlas.pages.reports.savedReports",

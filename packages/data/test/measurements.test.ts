@@ -20,6 +20,7 @@ import {
   rollupByMetric,
   rollupByProject,
   saveProjectObjective,
+  ticketingAttendance,
   toneBreakdown,
   unitsOf,
   withdrawEarnedMediaItem,
@@ -793,5 +794,38 @@ describe("summary and rollups", () => {
         projectsPartial: 0,
       },
     ]);
+  });
+});
+
+describe("ticketing reference", () => {
+  it("sums the imported shows, keeping unreported scans apart and nothing imported null", async () => {
+    const { db, calls } = moduleClient({
+      "from:project_attendance_totals": [
+        {
+          data: [
+            { tickets_sold: 1800, tickets_scanned: 1650, scans_unreported_count: 0 },
+            { tickets_sold: 210, tickets_scanned: null, scans_unreported_count: 1 },
+          ],
+          error: null,
+        },
+        {
+          data: [{ tickets_sold: 10, tickets_scanned: null, scans_unreported_count: 2 }],
+          error: null,
+        },
+        { data: [], error: null },
+        down,
+      ],
+    });
+    expect(await ticketingAttendance(db, "p1")).toEqual({
+      ok: true,
+      data: { sold: 2010, scanned: 1650, scansUnreported: 1 },
+    });
+    expect(stepsOf(calls[0], "eq")).toEqual([["project_id", "p1"]]);
+    expect(await ticketingAttendance(db, "p1")).toEqual({
+      ok: true,
+      data: { sold: 10, scanned: null, scansUnreported: 2 },
+    });
+    expect(await ticketingAttendance(db, "p1")).toEqual({ ok: true, data: null });
+    expect((await ticketingAttendance(db, "p1")).ok).toBe(false);
   });
 });
