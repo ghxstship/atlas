@@ -202,6 +202,24 @@ describe("preview of what a request sends", () => {
     expect(body.vocabulary_terms).toBe(0);
   });
 
+  it("keeps the named project apart from the gate readiness that shares its id", () => {
+    const neverSend = new NeverSendList([]);
+    expect(
+      previewRecords(
+        [{ collection: "projects", id: PROJECT }],
+        [
+          { id: PROJECT, table: "app.projects", data: { id: PROJECT, name: "Northwind Summer" } },
+          { id: PROJECT, table: "app.gate_criteria_status", data: { gate_readiness: [] } },
+        ],
+        catalog,
+        neverSend,
+      ).map((r) => ({ id: r.id, fields: r.fields })),
+    ).toEqual([
+      { id: PROJECT, fields: ["id", "name"] },
+      { id: PROJECT, fields: ["gate_readiness"] },
+    ]);
+  });
+
   it("never sends a whole excluded table", () => {
     const neverSend = new NeverSendList([{ table: "app.medical_encounters", column: null }]);
     expect(

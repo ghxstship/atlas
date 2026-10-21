@@ -20,9 +20,8 @@ test.use({
   baseURL: process.env["E2E_AURORA_URL"] ?? "http://127.0.0.1:3016",
   reducedMotion: "reduce",
 });
-test.describe.configure({ mode: "serial" });
 test.setTimeout(240_000);
-const expect = baseExpect.configure({ timeout: 30_000 });
+const expect = baseExpect.configure({ timeout: 60_000 });
 
 type Feature = "assistant" | "plain_language" | "extraction" | "drafting" | "summaries" | "mapping";
 const FEATURES: readonly Feature[] = [
@@ -42,19 +41,20 @@ async function setSwitches(page: Page, on: readonly Feature[]) {
       Origin: new URL(page.url()).origin,
       "Idempotency-Key": `a95-switches-${uniqueId()}`,
     },
+    timeout: 120_000,
   });
   expect(response.status(), await response.text()).toBe(200);
 }
 
 /** This month's metered Aurora requests for the org (app.ai_usage through aurora.status). */
 async function used(page: Page): Promise<number> {
-  const response = await page.request.get("/api/v1/aurora/status");
+  const response = await page.request.get("/api/v1/aurora/status", { timeout: 120_000 });
   expect(response.status()).toBe(200);
   return ((await response.json()) as { used: number }).used;
 }
 
 async function suggestionState(page: Page, id: string) {
-  const response = await page.request.get(`/api/v1/ai-suggestions/${id}`);
+  const response = await page.request.get(`/api/v1/ai-suggestions/${id}`, { timeout: 120_000 });
   expect(response.status()).toBe(200);
   return (await response.json()) as { suggestion_state: string; applied_id: string | null };
 }
@@ -103,7 +103,9 @@ const RECEIPT = [
 
 let page: Page;
 
-test.beforeAll(async ({ browser }) => {
+test.beforeAll(async ({ browser }, testInfo) => {
+  // A development server compiles the sign-in and home routes on first use.
+  testInfo.setTimeout(240_000);
   page = settledGoto(await (await browser.newContext({ reducedMotion: "reduce" })).newPage());
   await signIn(page, "owner@example.com");
   await setSwitches(page, FEATURES);
@@ -138,10 +140,10 @@ test("plain_language: a sentence becomes the page's own filters, shown and edita
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await expect(panel.getByText("AI-generated")).toBeVisible();
   const filters = panel.getByRole("list", { name: "Filters" });
-  await expect(filters.getByLabel("Overdue")).toHaveValue("true");
-  await expect(filters.getByLabel("Search")).toHaveValue("Bluewater");
+  await expect(filters.getByRole("combobox", { name: "Overdue" })).toHaveValue("true");
+  await expect(filters.getByRole("textbox", { name: "Search" })).toHaveValue("Bluewater");
   // The person edits a value before anything applies.
-  await filters.getByLabel("Search").fill("Blue");
+  await filters.getByRole("textbox", { name: "Search" }).fill("Blue");
   await expectAccessible(page);
   await panel.getByRole("button", { name: "Apply filter" }).click();
 
@@ -385,6 +387,8 @@ test("panels pass axe in the light theme too (both themes, gate 8)", async () =>
 });
 
 test("with the switches off, every entry point is gone", async () => {
+  // Nine pages, each compiled on first visit by a development server.
+  test.info().setTimeout(600_000);
   await setSwitches(page, []);
   try {
     const checks: [string, string][] = [
@@ -398,7 +402,9 @@ test("with the switches off, every entry point is gone", async () => {
       [`/${ORG}/credentials/scan-log`, "Suggest binding"],
     ];
     for (const [path, name] of checks) {
-      await page.goto(path);
+      // A page that failed to render would hide its entry points too: it must load first.
+      const response = await page.goto(path);
+      expect(response?.status(), path).toBeLessThan(400);
       await settle(page);
       await expect(page.getByRole("button", { name }), path).toHaveCount(0);
       await expect(page.locator("[data-ai-entry]"), path).toHaveCount(0);

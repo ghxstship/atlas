@@ -337,7 +337,11 @@ export function previewRecords(
   specs: readonly ResourceSpec[],
   neverSend: NeverSendList,
 ) {
-  const byId = new Map(read.map((r) => [r.id, r]));
+  // The gate readiness a gate summary adds carries the project's id; it never stands in for the
+  // project record the request names.
+  const byId = new Map(
+    read.filter((r) => r.table !== "app.gate_criteria_status").map((r) => [r.id, r]),
+  );
   const preview = (
     collection: string,
     record: { id: string; table: string; data: Row } | undefined,
