@@ -75,6 +75,7 @@ $$, $$values ('calendar_feed'), ('client_minimum_version'), ('org_brand_for_host
   ('organization_profile_details'), ('person_profile'), ('person_profile_certifications'), ('person_profile_languages'),
   ('person_profile_links'), ('person_profile_organizations'), ('person_profile_portfolio'), ('person_profile_references'),
   ('person_profile_skills'), ('preview_advance'), ('read_agreement'), ('record_cookie_consent'), ('sign_agreement'),
+  ('invite_token_open'),
   ('submit_advance'), ('token_document'), ('token_sign_document'), ('verify_certification')$$,
   'anon reaches exactly the reviewed api_public token, profile and consent RPCs');
 

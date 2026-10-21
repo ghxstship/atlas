@@ -218,6 +218,7 @@ export function GatesView({
                         <li key={c.id} className="flex flex-col gap-8 py-12">
                           <div className="flex flex-wrap items-start justify-between gap-8">
                             <div className="flex min-w-0 flex-col gap-4">
+                              <span className="text-text-14 text-text-primary">{c.statement}</span>
                               <span className="flex flex-wrap items-center gap-6">
                                 <span className="font-mono text-text-12 text-text-secondary">
                                   {c.id}
@@ -233,7 +234,6 @@ export function GatesView({
                                   {counted(c) ? t("gates.met") : t("gates.gap")}
                                 </Tag>
                               </span>
-                              <span className="text-text-14 text-text-primary">{c.statement}</span>
                             </div>
                             {canAttest && s !== "passed" ? (
                               <AttestDialog
@@ -391,6 +391,8 @@ function AttestDialog({
   const [open, setOpen] = useState(false);
   const [state, action, pending] = useClosingAction(attestEvidenceAction, () => setOpen(false));
   const id = `attest-${criterion.id.replace(/\./g, "-")}`;
+  // The plain sentence names the criterion; the code follows it, never alone (A59-017).
+  const criterionName = criterion.statement.replace(/\.$/, "");
   return (
     <Dialog
       open={open}
@@ -399,13 +401,13 @@ function AttestDialog({
         <Button
           size="sm"
           variant="secondary"
-          aria-label={t("gates.attestFor", { criterion: criterion.id })}
+          aria-label={t("gates.attestFor", { criterion: criterionName })}
         >
           {t("gates.attest")}
         </Button>
       }
-      title={t("gates.attestFor", { criterion: criterion.id })}
-      description={criterion.statement}
+      title={t("gates.attestFor", { criterion: criterionName })}
+      description={t("gates.criterionCode", { code: criterion.id })}
       actions={
         <>
           <Button type="button" variant="ghost" onClick={() => setOpen(false)}>

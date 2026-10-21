@@ -13,6 +13,7 @@ import {
   type BudgetDimension,
 } from "@xos/data/reports";
 import { listGlAccounts } from "@xos/data/finance";
+import { listGateCriteria } from "@xos/data/projects";
 import { getNode } from "@xos/ia";
 import Link from "next/link";
 import type { Route } from "next";
@@ -157,6 +158,14 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
   if (!result.ok) return failure(page, node, t);
   const rows = result.data;
   const org = page.ctx.org.slug;
+  // Canon codes appear next to their plain name, never alone (Section 11.10 item 2, A59-017).
+  const criteria = await listGateCriteria(page.ctx.viewer.db);
+  const statement = new Map(criteria.ok ? criteria.data.map((c) => [c.id, c.statement]) : []);
+  const criterionName = (code: string) => {
+    const sentence = statement.get(code);
+    return sentence ? `${sentence.replace(/\.$/, "")} (${code})` : code;
+  };
+  const phaseName = (code: string) => (code ? t(`projects.phases.${code}`) : "");
   const header = [
     t("finance.common.project"),
     t("reports.gates.phase"),
@@ -167,8 +176,8 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
   ];
   const csv = rows.map((r) => [
     r.project.key,
-    r.project.phase,
-    r.nextGate === null ? t("reports.gates.allPassed") : String(r.nextGate),
+    phaseName(r.project.phase),
+    r.nextGate === null ? t("reports.gates.allPassed") : t("reports.gates.gate", { n: r.nextGate }),
     `${r.blockingMet}/${r.blockingTotal}`,
     `${r.otherMet}/${r.otherTotal}`,
     r.ready ? t("reports.gates.yes") : t("reports.gates.no"),
@@ -241,7 +250,7 @@ export async function GateReadinessReport({ page }: { page: FinancePage }) {
             {r.project.key} · {r.project.name}
           </Link>,
           ...(csv[i] ?? []).slice(1),
-          r.unmetBlocking.join(", "),
+          r.unmetBlocking.map(criterionName).join("; "),
         ])}
       />
     );

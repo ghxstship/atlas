@@ -89,7 +89,8 @@ test("journey 19: check out and return a unit by scan and see the custody ledger
   await page.goto(`/${ORG}/assets/custody-ledger`);
   await lookUp(page, "NOPE-404-XYZ");
   await expect(page.getByText("Nothing found for NOPE-404-XYZ")).toBeVisible();
-  await expect(page.getByText("NO_ANSWER")).toBeVisible();
+  // The outcome reads in words, not as its code (A59-017).
+  await expect(page.getByText("No answer", { exact: true })).toBeVisible();
   await settled(page);
 
   // Check it out by scanning its tag.
@@ -135,7 +136,9 @@ test("journey 23: a damaged unit is written off by an approver, with a comment",
   await signIn(page, "owner@example.com");
   // The demo seed's damage report is listed.
   await page.goto(`/${ORG}/assets/damage`);
-  await expect(page.getByText(/^MH-005 · Yoke cracked/).first()).toBeVisible();
+  // The asset tag is the row key and the description the title (A59-009).
+  await expect(page.getByText(/^Yoke cracked/).first()).toBeVisible();
+  await expect(page.getByText("MH-005", { exact: true }).first()).toBeVisible();
 
   // A unit of this run's own goes out, comes back damaged and is reported.
   const tag = `MH-E2E-${suffix()}`;
@@ -238,7 +241,7 @@ test("maintenance keeps an unknown cost unknown and damage is reported from a un
   await damage.getByRole("button", { name: "Report damage" }).click();
   await expect(damage).toBeHidden();
   await page.goto(`/${ORG}/assets/damage`);
-  await expect(page.getByText(`RAD-002 · ${what}`)).toBeVisible();
+  await expect(page.getByText(what)).toBeVisible();
 });
 
 test("a new asset class binds to a canon element", async ({ page }) => {

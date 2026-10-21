@@ -12,10 +12,10 @@ export {
   Money,
   PageHeader,
   PropertyList,
-  RefusalNotice,
   StatTile,
   StateChip,
   Tag,
   TemplateDocument,
   URIDChip,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";

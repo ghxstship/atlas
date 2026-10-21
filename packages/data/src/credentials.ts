@@ -1,4 +1,5 @@
 import type { XosClient } from "./client.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type DatabaseErrorLike, type Result } from "./result.ts";
 
 /**
@@ -372,7 +373,21 @@ export async function listIssuedCredentials(
   if (filter.holderPersonId) query = query.eq("holder_person_id", filter.holderPersonId);
   const { data, error } = await query.order("credential_number");
   if (error) return fail(toDataError(error));
-  return ok((data as unknown as CredentialRow[]).map(toCredential));
+  return ok(await namedHolders(db, (data as unknown as CredentialRow[]).map(toCredential)));
+}
+
+/** Holder names through the one name resolution (A59-011): engaged crew are named, not "Unnamed". */
+function namedHolders(
+  db: XosClient,
+  list: readonly IssuedCredential[],
+): Promise<IssuedCredential[]> {
+  return fillPersonNames(
+    db,
+    list,
+    (c) => c.holderPersonId,
+    (c) => c.holderName,
+    (c, holderName) => ({ ...c, holderName }),
+  );
 }
 
 /** The credentials of a project, for Compass to decide scans offline (A17). */
@@ -412,7 +427,8 @@ export async function getIssuedCredential(
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok(toCredential(data as unknown as CredentialRow));
+  const [credential] = await namedHolders(db, [toCredential(data as unknown as CredentialRow)]);
+  return ok(credential as IssuedCredential);
 }
 
 /** A credential by its printed number, for scanning a badge whose id is not on the device. */
@@ -430,7 +446,8 @@ export async function lookupCredentialByNumber(
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok(toCredential(data as unknown as CredentialRow));
+  const [credential] = await namedHolders(db, [toCredential(data as unknown as CredentialRow)]);
+  return ok(credential as IssuedCredential);
 }
 
 export interface IssueCredentialInput {
@@ -680,6 +697,7 @@ interface ScanRow {
   zone: { code: string; name: string } | null;
   credential: {
     credential_number: string;
+    holder_person_id: string | null;
     holder: { full_name: string | null } | null;
     category: { code: string; project_id: string; project: { project_key: string } | null } | null;
   } | null;
@@ -687,7 +705,7 @@ interface ScanRow {
 
 const SCAN_COLUMNS = [
   "id, credential_id, zone_id, scanned_at, result, zone:zones(code, name)",
-  "credential:credentials!inner(credential_number, holder:people!credentials_holder_person_id_fkey(full_name), category:credential_categories!inner(code, project_id, project:projects!credential_categories_project_id_fkey(project_key)))",
+  "credential:credentials!inner(credential_number, holder_person_id, holder:people!credentials_holder_person_id_fkey(full_name), category:credential_categories!inner(code, project_id, project:projects!credential_categories_project_id_fkey(project_key)))",
 ].join(", ");
 
 function toScan(row: ScanRow): AccessScan {
@@ -728,7 +746,16 @@ export async function listAccessScans(
     .order("scanned_at", { ascending: false })
     .limit(filter.limit ?? 500);
   if (error) return fail(toDataError(error));
-  return ok((data as unknown as ScanRow[]).map(toScan));
+  const scans = data as unknown as ScanRow[];
+  const named = await fillPersonNames(
+    db,
+    scans,
+    (r) => r.credential?.holder_person_id,
+    (r) => r.credential?.holder?.full_name,
+    (r, full_name) =>
+      r.credential ? { ...r, credential: { ...r.credential, holder: { full_name } } } : r,
+  );
+  return ok(named.map(toScan));
 }
 
 export interface RecordScanInput {

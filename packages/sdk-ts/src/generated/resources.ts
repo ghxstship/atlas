@@ -302,6 +302,7 @@ import type {
   Delegation,
   DelegationCreate,
   DelegationUpdate,
+  DeletionCertificate,
   DeptCode,
   DirectConversationRequest,
   DirectoryEntryPage,
@@ -490,6 +491,7 @@ import type {
   KioskDeviceCreate,
   KioskDeviceUpdate,
   KnowledgeSourcePage,
+  LeavePartnerRequest,
   ListingReport,
   ListingReportCreate,
   LostFoundClaim,
@@ -564,6 +566,8 @@ import type {
   OrgBranding,
   OrgBrandingCreate,
   OrgBrandingUpdate,
+  OrgDeletionRequest,
+  OrgDeletionRequestCreate,
   OrgExport,
   OrgExportCreate,
   OrgIpAllowlistEntry,
@@ -584,6 +588,10 @@ import type {
   OrganizationRelationshipUpdate,
   OrganizationUpdate,
   OvertimeRule,
+  OwnershipTransfer,
+  OwnershipTransferOfferRequest,
+  PartnerStandingGrant,
+  PartnerStandingGrantRecordRequest,
   PassportReveal,
   PassportRevealRequest,
   PayPeriod,
@@ -23865,7 +23873,7 @@ export class OrganizationsResource extends $Resource {
   /**
    * Create an organization
    *
-   * Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   * Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
    *
    * `POST /organizations` (operation `organizations.create`).
    * Requires the capability `me.account.write`.
@@ -23935,6 +23943,25 @@ export class OrganizationsResource extends $Resource {
   ): Promise<$ApiResponse<CreateClientOrganizationResult>> {
     return this.client.request<CreateClientOrganizationResult>(
       $OPERATIONS["organizations.createClient"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Leave the partner
+   *
+   * The client Owner (org.billing.manage) types the bound org's name; the org leaves its partner and becomes a direct customer (app.leave_partner). Its rendered brand becomes its own, the partner's support sessions and standing grants end, and billing moves to the org as a 14-day trial of the same plan that stays once a card is added. Data and members are untouched. An org without a partner answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /organizations/leave-partner` (operation `organizations.leavePartner`).
+   * Requires the capability `org.billing.manage`.
+   */
+  leavePartner(
+    body: LeavePartnerRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<Organization>> {
+    return this.client.request<Organization>(
+      $OPERATIONS["organizations.leavePartner"],
       { body },
       options,
     );
@@ -25266,6 +25293,22 @@ export class VerifiedDomainsResource extends $Resource {
   delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
     return this.client.request<undefined>(
       $OPERATIONS["verifiedDomains.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Check a custom domain again
+   *
+   * Queues the provider worker for a custom Atlas, Gateway or sending domain (app.request_domain_check): provisioning again when it never reached the provider, otherwise checking DNS verification and TLS now. Verified domains answer 422 (domain_not_provisioned). Returns the domain. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /verified-domains/{id}/check` (operation `verifiedDomains.check`).
+   * Requires the capability `org.white_label.write`.
+   */
+  check(id: string, options?: $MutationOptions): Promise<$ApiResponse<VerifiedDomain>> {
+    return this.client.request<VerifiedDomain>(
+      $OPERATIONS["verifiedDomains.check"],
       { path: { id } },
       options,
     );
@@ -36608,6 +36651,411 @@ export class WholesaleStatementsResource extends $Resource {
     return this.client.request<WholesaleStatement>(
       $OPERATIONS["wholesaleStatements.run"],
       { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `ownershipTransfers`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class OwnershipTransfersResource extends $Resource {
+  /**
+   * List ownership transfer rows
+   *
+   * An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns a cursor page of ownership transfer rows the caller may see. The default order is `offered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /ownership-transfers` (operation `ownershipTransfers.list`).
+   * Requires the capability `org.members.read`.
+   */
+  list(
+    params?: $ListParams<OwnershipTransfer>,
+    options?: $RequestOptions,
+  ): Promise<$Page<OwnershipTransfer>> {
+    return this.client.requestPage<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List ownership transfer rows
+   *
+   * An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns a cursor page of ownership transfer rows the caller may see. The default order is `offered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /ownership-transfers` (operation `ownershipTransfers.list`).
+   * Requires the capability `org.members.read`.
+   */
+  listAll(
+    params?: $ListAllParams<OwnershipTransfer>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<OwnershipTransfer, void, undefined> {
+    return this.client.paginate<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an ownership transfer
+   *
+   * An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns one ownership transfer with its `ETag`. A ownership transfer the caller may not see returns 404.
+   *
+   * `GET /ownership-transfers/{id}` (operation `ownershipTransfers.get`).
+   * Requires the capability `org.members.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<OwnershipTransfer>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<OwnershipTransfer>> {
+    return this.client.request<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Offer ownership of the organization
+   *
+   * An Owner (org.ownership.transfer) with step-up offers the bound org to another active member who is not an Owner (app.offer_ownership_transfer), choosing whether they become an Admin or leave on acceptance. One open offer per org; it lapses after 7 days. Without a recent second factor the call answers 422 step_up_required; an API key answers step_up_session_only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /ownership-transfers/offer` (operation `ownershipTransfers.offer`).
+   * Requires the capability `org.ownership.transfer`.
+   */
+  offer(
+    body: OwnershipTransferOfferRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<OwnershipTransfer>> {
+    return this.client.request<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.offer"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Accept ownership
+   *
+   * The member the org was offered to accepts with step-up, so a second factor (app.accept_ownership_transfer): they become an Owner, then the old Owner becomes an Admin (or leaves) and loses the Owner role, so the org keeps an Owner at every step (invariant 4). An answered, withdrawn or lapsed offer answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /ownership-transfers/{id}/accept` (operation `ownershipTransfers.accept`).
+   * Requires the capability `org.members.read`.
+   */
+  accept(id: string, options?: $MutationOptions): Promise<$ApiResponse<OwnershipTransfer>> {
+    return this.client.request<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.accept"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Decline ownership
+   *
+   * The member the org was offered to declines (app.decline_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /ownership-transfers/{id}/decline` (operation `ownershipTransfers.decline`).
+   * Requires the capability `org.members.read`.
+   */
+  decline(id: string, options?: $MutationOptions): Promise<$ApiResponse<OwnershipTransfer>> {
+    return this.client.request<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.decline"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Withdraw an ownership offer
+   *
+   * The Owner who offered, or any Owner, withdraws an open offer (app.cancel_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /ownership-transfers/{id}/cancel` (operation `ownershipTransfers.cancel`).
+   * Requires the capability `org.ownership.transfer`.
+   */
+  cancel(id: string, options?: $MutationOptions): Promise<$ApiResponse<OwnershipTransfer>> {
+    return this.client.request<OwnershipTransfer>(
+      $OPERATIONS["ownershipTransfers.cancel"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `orgDeletionRequests`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class OrgDeletionRequestsResource extends $Resource {
+  /**
+   * List org deletion request rows
+   *
+   * An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns a cursor page of org deletion request rows the caller may see. The default order is `requested_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /org-deletion-requests` (operation `orgDeletionRequests.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<OrgDeletionRequest>,
+    options?: $RequestOptions,
+  ): Promise<$Page<OrgDeletionRequest>> {
+    return this.client.requestPage<OrgDeletionRequest>(
+      $OPERATIONS["orgDeletionRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List org deletion request rows
+   *
+   * An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns a cursor page of org deletion request rows the caller may see. The default order is `requested_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /org-deletion-requests` (operation `orgDeletionRequests.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<OrgDeletionRequest>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<OrgDeletionRequest, void, undefined> {
+    return this.client.paginate<OrgDeletionRequest>(
+      $OPERATIONS["orgDeletionRequests.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an org deletion request
+   *
+   * An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns one org deletion request with its `ETag`. A org deletion request the caller may not see returns 404.
+   *
+   * `GET /org-deletion-requests/{id}` (operation `orgDeletionRequests.get`).
+   * Requires the capability `org.settings.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<OrgDeletionRequest>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<OrgDeletionRequest>> {
+    return this.client.request<OrgDeletionRequest>(
+      $OPERATIONS["orgDeletionRequests.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Ask to delete the organization
+   *
+   * The Owner (org.organization.delete) with step-up types the bound org's name and a reason (app.request_org_deletion). The subscription ends, the org is read-only at once, every Owner is told, and the data is deleted after 7 days unless an Owner recovers it. A partner with clients and an org under a legal hold are refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /org-deletion-requests/request` (operation `orgDeletionRequests.request`).
+   * Requires the capability `org.organization.delete`.
+   */
+  request(
+    body: OrgDeletionRequestCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<OrgDeletionRequest>> {
+    return this.client.request<OrgDeletionRequest>(
+      $OPERATIONS["orgDeletionRequests.request"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Recover the organization
+   *
+   * An Owner recovers the org within the 7-day window (app.recover_org_deletion): writes work again and, unless the org is also canceled, it restarts on the Access plan. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /org-deletion-requests/{id}/recover` (operation `orgDeletionRequests.recover`).
+   * Requires the capability `org.organization.delete`.
+   */
+  recover(id: string, options?: $MutationOptions): Promise<$ApiResponse<OrgDeletionRequest>> {
+    return this.client.request<OrgDeletionRequest>(
+      $OPERATIONS["orgDeletionRequests.recover"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `deletionCertificates`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class DeletionCertificatesResource extends $Resource {
+  /**
+   * List deletion certificate rows
+   *
+   * The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns a cursor page of deletion certificate rows the caller may see. The default order is `due_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /deletion-certificates` (operation `deletionCertificates.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<DeletionCertificate>,
+    options?: $RequestOptions,
+  ): Promise<$Page<DeletionCertificate>> {
+    return this.client.requestPage<DeletionCertificate>(
+      $OPERATIONS["deletionCertificates.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List deletion certificate rows
+   *
+   * The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns a cursor page of deletion certificate rows the caller may see. The default order is `due_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /deletion-certificates` (operation `deletionCertificates.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<DeletionCertificate>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<DeletionCertificate, void, undefined> {
+    return this.client.paginate<DeletionCertificate>(
+      $OPERATIONS["deletionCertificates.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a deletion certificate
+   *
+   * The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns one deletion certificate with its `ETag`. A deletion certificate the caller may not see returns 404.
+   *
+   * `GET /deletion-certificates/{id}` (operation `deletionCertificates.get`).
+   * Requires the capability `org.settings.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<DeletionCertificate>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<DeletionCertificate>> {
+    return this.client.request<DeletionCertificate>(
+      $OPERATIONS["deletionCertificates.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `partnerStandingGrants`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class PartnerStandingGrantsResource extends $Resource {
+  /**
+   * List partner standing grant rows
+   *
+   * A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns a cursor page of partner standing grant rows the caller may see. The default order is `valid_from` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /partner-standing-grants` (operation `partnerStandingGrants.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  list(
+    params?: $ListParams<PartnerStandingGrant>,
+    options?: $RequestOptions,
+  ): Promise<$Page<PartnerStandingGrant>> {
+    return this.client.requestPage<PartnerStandingGrant>(
+      $OPERATIONS["partnerStandingGrants.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List partner standing grant rows
+   *
+   * A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns a cursor page of partner standing grant rows the caller may see. The default order is `valid_from` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /partner-standing-grants` (operation `partnerStandingGrants.list`).
+   * Requires the capability `org.settings.read`.
+   */
+  listAll(
+    params?: $ListAllParams<PartnerStandingGrant>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<PartnerStandingGrant, void, undefined> {
+    return this.client.paginate<PartnerStandingGrant>(
+      $OPERATIONS["partnerStandingGrants.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get a partner standing grant
+   *
+   * A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns one partner standing grant with its `ETag`. A partner standing grant the caller may not see returns 404.
+   *
+   * `GET /partner-standing-grants/{id}` (operation `partnerStandingGrants.get`).
+   * Requires the capability `org.settings.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<PartnerStandingGrant>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<PartnerStandingGrant>> {
+    return this.client.request<PartnerStandingGrant>(
+      $OPERATIONS["partnerStandingGrants.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Record a standing partner grant
+   *
+   * The client Owner (org.support_session.grant) records a grant the partner and client agreement provides (app.record_standing_grant): one read capability a support session may grant, an expiry within a year and the clause. A scope outside those, an expiry past a year and an org without a partner answer 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /partner-standing-grants/record` (operation `partnerStandingGrants.record`).
+   * Requires the capability `org.support_session.grant`.
+   */
+  record(
+    body: PartnerStandingGrantRecordRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<PartnerStandingGrant>> {
+    return this.client.request<PartnerStandingGrant>(
+      $OPERATIONS["partnerStandingGrants.record"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * End a standing partner grant
+   *
+   * Ends a standing grant early (app.end_standing_grant): the client's Owner or the partner's staff with org.partner.manage. An ended grant answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /partner-standing-grants/{id}/end` (operation `partnerStandingGrants.end`).
+   * Requires the capability `org.support_session.grant`.
+   */
+  end(id: string, options?: $MutationOptions): Promise<$ApiResponse<PartnerStandingGrant>> {
+    return this.client.request<PartnerStandingGrant>(
+      $OPERATIONS["partnerStandingGrants.end"],
+      { path: { id } },
       options,
     );
   }

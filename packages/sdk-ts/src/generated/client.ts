@@ -370,6 +370,10 @@ import {
   TemplateItemsResource,
   SupportSessionsResource,
   WholesaleStatementsResource,
+  OwnershipTransfersResource,
+  OrgDeletionRequestsResource,
+  DeletionCertificatesResource,
+  PartnerStandingGrantsResource,
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
@@ -1251,6 +1255,18 @@ export class XosClient extends XosClientCore {
   readonly supportSessions: SupportSessionsResource = new SupportSessionsResource(this);
   /** Platform: operations on `wholesaleStatements`. */
   readonly wholesaleStatements: WholesaleStatementsResource = new WholesaleStatementsResource(this);
+  /** Platform: operations on `ownershipTransfers`. */
+  readonly ownershipTransfers: OwnershipTransfersResource = new OwnershipTransfersResource(this);
+  /** Platform: operations on `orgDeletionRequests`. */
+  readonly orgDeletionRequests: OrgDeletionRequestsResource = new OrgDeletionRequestsResource(this);
+  /** Platform: operations on `deletionCertificates`. */
+  readonly deletionCertificates: DeletionCertificatesResource = new DeletionCertificatesResource(
+    this,
+  );
+  /** Platform: operations on `partnerStandingGrants`. */
+  readonly partnerStandingGrants: PartnerStandingGrantsResource = new PartnerStandingGrantsResource(
+    this,
+  );
   /** Platform: operations on `personCalendarFeeds`. */
   readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
   /** Platform: operations on `projectInboxes`. */
