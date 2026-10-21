@@ -163,11 +163,11 @@
               "const": "is_null"
             },
             "value": {
-              "description": "true (or absent) holds for a missing value, false for a present one.",
               "anyOf": [
                 {
                   "type": "string",
-                  "enum": ["true", "false"]
+                  "enum": ["true", "false"],
+                  "description": "true (or absent) holds for a missing value, false for a present one."
                 },
                 {
                   "type": "null"

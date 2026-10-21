@@ -54642,17 +54642,16 @@ var valueText = z
   .refine((v) => codePoints(v) <= AUTOMATION_LIMITS.value, {
     message: "At most 1,000 characters.",
   });
+var isNullValue = z
+  .enum(["true", "false"])
+  .meta({ description: "true (or absent) holds for a missing value, false for a present one." })
+  .nullable()
+  .optional();
 var IsNullCondition = z
   .object({
     field,
     operator: z.literal("is_null"),
-    value: z
-      .enum(["true", "false"])
-      .nullable()
-      .optional()
-      .meta({
-        description: "true (or absent) holds for a missing value, false for a present one.",
-      }),
+    value: isNullValue,
   })
   .strict();
 var InCondition = z
@@ -54896,8 +54895,8 @@ function valueAt(event, field) {
   }
   return current === null ? void 0 : current;
 }
-/** `{{ path }}` placeholders of a template. */
-var PLACEHOLDER = /\{\{\s*([a-z][a-z0-9_]*(?:\.[a-z0-9_]+){0,7})\s*\}\}/g;
+/** The `{{ path }}` insertions of a template. */
+var TEMPLATE_PATH = /\{\{\s*([a-z][a-z0-9_]*(?:\.[a-z0-9_]+){0,7})\s*\}\}/g;
 function display(value) {
   if (value === void 0 || value === null) return "";
   if (typeof value === "string") return value;
@@ -54905,11 +54904,11 @@ function display(value) {
   return JSON.stringify(value);
 }
 /**
- * Fills a template's `{{ path }}` placeholders from the event: text as it is, numbers and booleans as written,
+ * Fills a template's `{{ path }}` insertions from the event: text as it is, numbers and booleans as written,
  * objects and arrays as JSON, missing values as nothing. Anything else in braces stays as typed.
  */
 function renderTemplate(template, event) {
-  return template.replace(PLACEHOLDER, (_whole, path) => display(valueAt(event, path)));
+  return template.replace(TEMPLATE_PATH, (_whole, path) => display(valueAt(event, path)));
 }
 /** A rendered template trimmed of spaces and cut to `limit` code points, as the action's API field allows. */
 function renderField(template, event, limit) {

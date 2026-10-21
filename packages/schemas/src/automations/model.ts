@@ -93,13 +93,17 @@ const valueText = z
     message: "At most 1,000 characters.",
   });
 
+const isNullValue = z
+  .enum(["true", "false"])
+  .meta({ description: "true (or absent) holds for a missing value, false for a present one." })
+  .nullable()
+  .optional();
+
 const IsNullCondition = z
   .object({
     field,
     operator: z.literal("is_null"),
-    value: z.enum(["true", "false"]).nullable().optional().meta({
-      description: "true (or absent) holds for a missing value, false for a present one.",
-    }),
+    value: isNullValue,
   })
   .strict();
 

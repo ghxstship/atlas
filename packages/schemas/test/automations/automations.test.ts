@@ -165,7 +165,7 @@ describe("templates", () => {
     data: { title: "Call the venue", number: 42, ok: false, tags: ["A"], gone: null },
   };
 
-  it("fills placeholders from the event", () => {
+  it("fills double-brace paths from the event", () => {
     expect(renderTemplate("Review {{data.title}} ({{ data.number }}, {{data.ok}})", event)).toBe(
       "Review Call the venue (42, false)",
     );

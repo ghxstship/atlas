@@ -172,8 +172,8 @@ export function explainConditions(
   return { matched: conditionsMatch(conditions, event), conditions: results };
 }
 
-/** `{{ path }}` placeholders of a template. */
-export const PLACEHOLDER = /\{\{\s*([a-z][a-z0-9_]*(?:\.[a-z0-9_]+){0,7})\s*\}\}/g;
+/** The `{{ path }}` insertions of a template. */
+export const TEMPLATE_PATH = /\{\{\s*([a-z][a-z0-9_]*(?:\.[a-z0-9_]+){0,7})\s*\}\}/g;
 
 function display(value: unknown): string {
   if (value === undefined || value === null) return "";
@@ -183,11 +183,11 @@ function display(value: unknown): string {
 }
 
 /**
- * Fills a template's `{{ path }}` placeholders from the event: text as it is, numbers and booleans as written,
+ * Fills a template's `{{ path }}` insertions from the event: text as it is, numbers and booleans as written,
  * objects and arrays as JSON, missing values as nothing. Anything else in braces stays as typed.
  */
 export function renderTemplate(template: string, event: unknown): string {
-  return template.replace(PLACEHOLDER, (_whole, path: string) => display(valueAt(event, path)));
+  return template.replace(TEMPLATE_PATH, (_whole, path: string) => display(valueAt(event, path)));
 }
 
 /** A rendered template trimmed of spaces and cut to `limit` code points, as the action's API field allows. */
