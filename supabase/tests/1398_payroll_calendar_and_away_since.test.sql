@@ -2,12 +2,13 @@
 -- calendar when no date is given, and app.create_next_pay_period adds the first period on that date, never on the
 -- database's UTC date. Postgres's clock cannot be set inside a test, so the suite moves the place instead, as 1305
 -- does: org_a takes a zone whose date differs from UTC's right now (UTC+14 from noon UTC, UTC-12 before it).
+-- Weekly overtime counts over the org's payroll.week_start, the week pay periods and timesheets start on.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(6);
+select plan(8);
 
 create temporary table clock as
   select s.zone, (now() at time zone s.zone)::date as local_on, (now() at time zone 'UTC')::date as utc_on
@@ -40,6 +41,46 @@ select results_eq(
   $$select starts_on, ends_on from app.pay_periods where org_id = (select id from world where key = 'org_a') and deleted_at is null$$,
   $$select (select local_on from clock) - ((extract(dow from (select local_on from clock))::integer + 6) % 7), (select local_on from clock) - ((extract(dow from (select local_on from clock))::integer + 6) % 7) + 6$$,
   'on the org''s week that holds the org''s today');
+
+-- Weekly overtime on the org's payroll week --------------------------------------------------------------------------
+-- Frank works 10 hours on Sunday 2027-06-13 and 38 from Monday to Thursday in New York, under the federal 40-hour rule
+-- of prj_a's jurisdiction. On Sunday weeks (the default) that is one 48-hour week; on Monday weeks Sunday belongs to
+-- the week before and no week passes 40 hours.
+select app.set_setting(pg_temp.id('org_a'), 'payroll.week_start', 'Organization', pg_temp.id('org_a'), p_value_text => 'sunday');
+select pg_temp.as_user('bob');
+insert into app.pay_rates (membership_id, role_code, rate_minor, currency_code, effective_from)
+values (pg_temp.id('frank@org_a'), '0000.50.01', 3200, 'USD', '2027-01-01');
+insert into app.earning_codes (org_id, code, name) values (pg_temp.id('org_a'), 'REG', 'Regular');
+insert into app.earning_codes (org_id, code, name, is_overtime) values (pg_temp.id('org_a'), 'OT', 'Overtime', true);
+select pg_temp.as_user('frank');
+insert into app.time_entries (project_id, membership_id, clock_in, clock_out)
+select pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), (d::date + time '08:00') at time zone 'America/New_York',
+  (d::date + case when d::date = date '2027-06-17' then time '16:00' else time '18:00' end) at time zone 'America/New_York'
+from generate_series(date '2027-06-13', date '2027-06-17', interval '1 day') d;
+with x as (insert into app.timesheets (project_id, membership_id, period_start, period_end)
+  values (pg_temp.id('prj_a'), pg_temp.id('frank@org_a'), '2027-06-13', '2027-06-19') returning id) insert into world select 'ts', id from x;
+select app.submit_timesheet(pg_temp.id('ts'));
+select pg_temp.as_user('carol');
+select app.decide_timesheet(pg_temp.id('ts'), 'Approved', 'Matches the call sheet.');
+with x as (insert into app.pay_periods (org_id, starts_on, ends_on) values (pg_temp.id('org_a'), '2027-06-13', '2027-06-26') returning id) insert into world select 'pp', id from x;
+with x as (insert into app.payroll_runs (pay_period_id, currency_code) values (pg_temp.id('pp'), 'USD') returning id) insert into world select 'run_sunday', id from x;
+select app.calculate_payroll_run(pg_temp.id('run_sunday'));
+select results_eq(
+  $$select e.code, l.hours from app.payroll_lines l join app.earning_codes e on e.id = l.earning_code_id
+    where l.payroll_run_id = (select id from world where key = 'run_sunday') and l.deleted_at is null order by e.code$$,
+  $$values ('OT'::text, 8.00::numeric), ('REG', 40.00)$$,
+  'on the org''s Sunday weeks, Sunday and Monday to Thursday are one week: 8 overtime hours');
+
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'payroll.week_start', 'Organization', pg_temp.id('org_a'), p_value_text => 'monday');
+select pg_temp.as_user('carol');
+with x as (insert into app.payroll_runs (pay_period_id, currency_code) values (pg_temp.id('pp'), 'USD') returning id) insert into world select 'run_monday', id from x;
+select app.calculate_payroll_run(pg_temp.id('run_monday'));
+select results_eq(
+  $$select e.code, l.hours from app.payroll_lines l join app.earning_codes e on e.id = l.earning_code_id
+    where l.payroll_run_id = (select id from world where key = 'run_monday') and l.deleted_at is null order by e.code$$,
+  $$values ('REG'::text, 48.00::numeric)$$,
+  'on Monday weeks Sunday counts in the week before: no week passes 40 hours');
 
 select * from finish();
 rollback;
