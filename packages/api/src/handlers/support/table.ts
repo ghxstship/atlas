@@ -117,11 +117,11 @@ export function rpc(
   name: string,
   args: Row = {},
 ): PromiseLike<{ data: unknown; error: unknown }> {
-  const call = db.rpc.bind(db) as unknown as (
-    fn: string,
-    params: Row,
-  ) => PromiseLike<{ data: unknown; error: unknown }>;
-  return call(name, args);
+  // Widened before `rpc` is read: the typed `rpc` over every generated function exceeds the compiler's depth.
+  const client = db as unknown as {
+    rpc: (fn: string, params: Row) => PromiseLike<{ data: unknown; error: unknown }>;
+  };
+  return client.rpc(name, args);
 }
 
 /** Awaits a query and throws its error, so the runtime maps it (README "Errors"). */

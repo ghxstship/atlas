@@ -262,11 +262,15 @@ export function untypedRpc<T>(
   name: string,
   args: Record<string, unknown>,
 ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    fn: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
-  return rpc(name, args);
+  // The client is widened before `rpc` is read: resolving the typed `rpc` over every generated function
+  // exceeds the compiler's instantiation depth once the database has enough of them.
+  const client = db as unknown as {
+    rpc: (
+      fn: string,
+      params: Record<string, unknown>,
+    ) => PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
+  };
+  return client.rpc(name, args);
 }
 
 /**
