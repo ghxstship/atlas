@@ -22,6 +22,7 @@ executionOrder:
     - field-claim-open-shift
     - field-clock-offline
     - field-incident-report
+    - field-resumable-upload
     - field-inspection-walk
     - field-gate-scan
     - field-receive-batch
@@ -32,5 +33,6 @@ executionOrder:
     - supervisor-kiosk
     - crew-external-today
     - vendor-external-scan
+    - multi-org-today
     - account-delete
     - settings-sunlight-sign-out
