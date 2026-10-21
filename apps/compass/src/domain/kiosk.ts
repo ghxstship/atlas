@@ -5,6 +5,11 @@
  * PINs are verified only by the server (private.verify_kiosk_pin through the kiosk-punch Edge Function);
  * the device never holds PIN hashes. When the kiosk is offline the punch is queued with the PIN and
  * verified on upload, and the screen says so instead of claiming success.
+ *
+ * Re-keying (A85): when the server answers that the device key names no live kiosk (retired, revoked or
+ * unknown, migration 1420), the kiosk stops taking PINs and says the device is no longer registered. A
+ * supervisor whose session the auth server still accepts can forget the stored key, which returns the
+ * device to kiosk setup for a new key from Atlas.
  */
 import { uuidv7, type MutationInput } from "@xos/sync";
 import type { PunchKind } from "./clock";
@@ -31,9 +36,18 @@ export type KioskStep =
       readonly punch: PunchKind;
       readonly verified: boolean;
     }
-  | { readonly kind: "refused"; readonly worker: RosterEntry; readonly reason: KioskRefusal };
+  | {
+      readonly kind: "refused";
+      readonly worker: RosterEntry;
+      readonly reason: Exclude<KioskRefusal, "device-unregistered">;
+    }
+  /** The device key names no live kiosk: the kiosk takes no PINs until a supervisor forgets it. */
+  | { readonly kind: "unregistered" };
 
-export type KioskRefusal = "pin-invalid" | "pin-locked" | "device-revoked" | "request-invalid";
+export type KioskRefusal = "pin-invalid" | "pin-locked" | "device-unregistered" | "request-invalid";
+
+/** The kiosk-punch refusal for a device key that names no live kiosk (migration 1420). */
+export const DEVICE_UNREGISTERED = "kiosk_device_unregistered";
 
 export const PIN_MIN = 4;
 export const PIN_MAX = 8;
@@ -85,8 +99,7 @@ export function kioskPunchKind(worker: RosterEntry): PunchKind {
 /** Maps the Edge Function's refusal reason to the kiosk's refusal. */
 export function refusalFromServer(reason: string): KioskRefusal {
   if (reason === "kiosk_pin_locked") return "pin-locked";
-  if (reason === "kiosk_device_revoked" || reason === "kiosk_device_unknown")
-    return "device-revoked";
+  if (reason === DEVICE_UNREGISTERED) return "device-unregistered";
   if (reason === "kiosk_request_invalid") return "request-invalid";
   return "pin-invalid";
 }
@@ -103,6 +116,7 @@ export function afterServer(
   if (outcome.ok === true) return { kind: "done", worker: step.worker, punch, verified: true };
   if (outcome.ok === "queued") return { kind: "done", worker: step.worker, punch, verified: false };
   const reason = refusalFromServer(outcome.reason);
+  if (reason === "device-unregistered") return { kind: "unregistered" };
   if (reason === "pin-invalid" && step.kind === "pin" && step.attemptsLeft > 1) {
     return { ...step, digits: "", attemptsLeft: step.attemptsLeft - 1 };
   }
@@ -156,4 +170,33 @@ export function buildKioskPunch(
     },
     policy: "append",
   };
+}
+
+export type ForgetKioskOutcome = "forgotten" | "supervisor-required";
+
+export interface ForgetKioskDeps {
+  /** True when the signed-in person may run kiosks on this project (kiosk.operate): a supervisor. */
+  readonly supervisor: boolean;
+  /** The signed-in user's id as the auth server confirms it now (never a cached session), or null. */
+  readonly verifiedUserId: () => Promise<string | null>;
+  /** Removes the device key from secure storage, which returns the device to kiosk setup. */
+  readonly clearKey: () => void | Promise<void>;
+}
+
+/**
+ * "Forget this kiosk" on an unregistered kiosk. Only a supervisor who is still signed in may clear the
+ * key: the session is checked with the auth server, so an expired or revoked session, or a device that
+ * is offline, is refused and the key stays.
+ */
+export async function forgetKiosk(deps: ForgetKioskDeps): Promise<ForgetKioskOutcome> {
+  if (!deps.supervisor) return "supervisor-required";
+  let userId: string | null;
+  try {
+    userId = await deps.verifiedUserId();
+  } catch {
+    userId = null;
+  }
+  if (userId === null) return "supervisor-required";
+  await deps.clearKey();
+  return "forgotten";
 }

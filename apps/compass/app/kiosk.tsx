@@ -9,6 +9,7 @@ import {
   backspace,
   buildKioskPunch,
   canSubmitPin,
+  forgetKiosk,
   KIOSK_RESET_MS,
   KIOSK_START,
   kioskPunchKind,
@@ -22,7 +23,7 @@ import { useCompass, useRows } from "../src/runtime/CompassProvider";
 import { countKey } from "../src/runtime/i18n";
 import { deviceClock } from "../src/runtime/platform";
 
-import { Gate } from "../src/screens/common";
+import { Gate, useAllowed } from "../src/screens/common";
 import { NativeHeaderContext } from "../src/ui/layout";
 import {
   Button,
@@ -40,9 +41,80 @@ import {
 const REFUSED_KEY = {
   "pin-locked": "compass.kiosk.refused.pinLocked",
   "pin-invalid": "compass.kiosk.refused.pinLocked",
-  "device-revoked": "compass.kiosk.refused.deviceRevoked",
   "request-invalid": "compass.kiosk.refused.requestInvalid",
 } as const;
+
+/**
+ * The device key names no live kiosk (retired or revoked in Atlas, migration 1420). The kiosk takes no
+ * PINs; a supervisor who is still signed in can forget the key, which returns to kiosk setup (A85).
+ */
+function Unregistered({
+  supervisor,
+  onForget,
+}: {
+  readonly supervisor: boolean;
+  readonly onForget: () => Promise<"forgotten" | "supervisor-required">;
+}): ReactElement {
+  const { t } = useTranslation();
+  const [confirming, setConfirming] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [refused, setRefused] = useState(!supervisor);
+  const forget = async () => {
+    setBusy(true);
+    const outcome = await onForget();
+    setBusy(false);
+    setConfirming(false);
+    setRefused(outcome === "supervisor-required");
+  };
+  return (
+    <Card testID="kiosk-unregistered" title={t("compass.kiosk.unregistered.title")}>
+      <Text tone="secondary">{t("compass.kiosk.unregistered.sentence")}</Text>
+      {refused ? (
+        <InlineAlert
+          testID="kiosk-forget-refused"
+          tone="warning"
+          message={t("compass.kiosk.unregistered.supervisorRequired")}
+        />
+      ) : null}
+      {supervisor && !confirming ? (
+        <Button
+          testID="kiosk-forget"
+          variant="secondary"
+          block
+          label={t("compass.kiosk.unregistered.forget")}
+          onPress={() => setConfirming(true)}
+        />
+      ) : null}
+      {supervisor && confirming ? (
+        <InlineAlert
+          tone="warning"
+          title={t("compass.kiosk.unregistered.confirmTitle")}
+          message={t("compass.kiosk.unregistered.confirmSentence")}
+        />
+      ) : null}
+      {supervisor && confirming ? (
+        <Button
+          testID="kiosk-forget-confirm"
+          variant="danger"
+          block
+          loading={busy}
+          disabled={busy}
+          label={t("compass.kiosk.unregistered.confirm")}
+          onPress={() => void forget()}
+        />
+      ) : null}
+      {supervisor && confirming ? (
+        <Button
+          testID="kiosk-forget-cancel"
+          variant="ghost"
+          block
+          label={t("compass.common.cancel")}
+          onPress={() => setConfirming(false)}
+        />
+      ) : null}
+    </Card>
+  );
+}
 
 function Setup({ onKey }: { readonly onKey: (key: string) => void }): ReactElement {
   const { t } = useTranslation();
@@ -159,6 +231,7 @@ function Kiosk(): ReactElement {
     "time_entries",
     (e) => e.clock_out === null,
   );
+  const supervisor = useAllowed("kiosk.operate");
   useEffect(() => {
     if (step.kind !== "done" && step.kind !== "refused") return undefined;
     const timer = setTimeout(() => setStep(KIOSK_START), KIOSK_RESET_MS);
@@ -219,6 +292,19 @@ function Kiosk(): ReactElement {
       await engine.outbox.enqueue(input);
       setStep(afterServer(step, { ok: "queued" }));
     }
+  };
+  const forget = async () => {
+    const outcome = await forgetKiosk({
+      supervisor,
+      // The auth server confirms the session now; a cached or expired one does not count.
+      verifiedUserId: async () => {
+        const { data, error } = await client.auth.getUser();
+        return error ? null : (data.user?.id ?? null);
+      },
+      clearKey: () => updateSettings({ kioskDeviceKey: null }),
+    });
+    if (outcome === "forgotten") setStep(KIOSK_START);
+    return outcome;
   };
   return (
     <Screen
@@ -294,6 +380,9 @@ function Kiosk(): ReactElement {
               : t("compass.kiosk.doneQueued", { name: step.worker.displayName })
           }
         />
+      ) : null}
+      {step.kind === "unregistered" ? (
+        <Unregistered supervisor={supervisor} onForget={forget} />
       ) : null}
       {step.kind === "refused" ? (
         <RefusalNotice
