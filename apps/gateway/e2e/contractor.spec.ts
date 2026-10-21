@@ -158,7 +158,8 @@ test("journey 44: pay range required to publish, milestone delivered and invoice
   await w9.getByLabel("State").fill("FL");
   await w9.getByLabel("ZIP code").fill("33131");
   await w9.getByRole("button", { name: "Save address" }).click();
-  await expect(page.getByText("200 Biscayne Blvd, Miami, FL, 33131").first()).toBeVisible();
+  // The US postal format, street on one line and city, state and ZIP on the next (d4de1e9f).
+  await expect(page.getByText("200 Biscayne Blvd Miami, FL 33131").first()).toBeVisible();
   await expectAccessible(page);
 
   // Atlas, Finance, Year-end: the studio is a 1099-NEC payee; the file needs step-up.

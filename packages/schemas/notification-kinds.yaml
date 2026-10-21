@@ -19,8 +19,16 @@
 #   channels:        every channel, with whether it is on when nobody chose (private.channel_defaults)
 #   email_templates: React Email templates in packages/email (transactional email carries no unsubscribe link)
 #   categories:      preference matrix rows; urgent categories bypass quiet hours and digests
-#   kinds:           kind (subject.event), its category, its email template (default notification), and an
-#                    optional push category: the actionable category Compass registers (ADR 0030)
+#   kinds:           kind (subject.event), its category, its email template (default notification), an
+#                    optional push category: the actionable category Compass registers (ADR 0030), and
+#                    bypasses_quiet_hours for the few kinds that reach a person even during quiet hours
+#
+# Quiet hours (ADR 0033 decision 35): texts and pushes wait out the person's quiet hours, and texts also wait
+# out 21:00 to 08:00 in their time zone when they set none; held texts go out as one summary. Only the kinds
+# flagged bypasses_quiet_hours below go at once, and the list stays short: safety alerts, and a change to a
+# shift starting within 12 hours (`starts_within_hours`, read from the startsAt argument). A mandatory or
+# urgent category alone never bypasses. Sign-in and verification codes are sent by Supabase Auth itself, never
+# through this queue, so they are never held.
 
 version: 1
 
@@ -113,6 +121,8 @@ kinds:
     category: schedule
   - kind: shift.changed
     category: schedule
+    bypasses_quiet_hours:
+      starts_within_hours: 12
   - kind: event.invited
     category: schedule
   # Finance (0520, 1131)
@@ -127,10 +137,13 @@ kinds:
   # Safety (0520, 0800)
   - kind: incident.reported
     category: safety
+    bypasses_quiet_hours: true
   - kind: occupancy.threshold
     category: safety
+    bypasses_quiet_hours: true
   - kind: weather.alert
     category: safety
+    bypasses_quiet_hours: true
   # Account (0520, 0560, 1203)
   - kind: account.security_changed
     category: account

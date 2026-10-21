@@ -1,15 +1,15 @@
--- 1360_notification_kind_seed.test.sql
+-- 1368_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
 -- pgTAP drift test of the notification kind registry (Section 3.15, A65-021): the database holds exactly
--- the channel defaults, email templates, categories and kinds the registry declares. A kind added in SQL
--- without the registry, or a registry change without a regenerated seed, fails here.
+-- the channel defaults, email templates, categories, kinds and quiet-hours bypass list the registry declares.
+-- A kind added in SQL without the registry, or a registry change without a regenerated seed, fails here.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 
-select plan(4);
+select plan(5);
 
 select set_eq(
   $$select channel::text, enabled_by_default from private.channel_defaults$$,
@@ -165,6 +165,15 @@ select set_eq(
   ('help_request.assigned', 'SMS', 'assignments', null::text),
   ('help_request.assigned', 'Push', 'assignments', null::text)$$,
   'notification kinds by channel match notification-kinds.yaml');
+
+select set_eq(
+  $$select kind, starts_within from private.notification_quiet_hours_bypass$$,
+  $$values
+  ('shift.changed', interval '12 hours'),
+  ('incident.reported', null::interval),
+  ('occupancy.threshold', null::interval),
+  ('weather.alert', null::interval)$$,
+  'the kinds that bypass quiet hours match notification-kinds.yaml (ADR 0033 decision 35)');
 
 select * from finish();
 rollback;
