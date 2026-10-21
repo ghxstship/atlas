@@ -239,12 +239,27 @@ call private.describe('app.search_embeddings', 'Semantic search index (Section 5
   'embedded_at', 'When the vector was made.'
 ]);
 
-call private.install_policies('app.search_embeddings', $$
-  (source_table = 'sops' and exists (select 1 from app.sops s where s.id = source_id and s.deleted_at is null))
-  or (source_table = 'documents' and exists (select 1 from app.documents d where d.id = source_id and d.deleted_at is null))
-  or (source_table = 'handbook_articles' and exists (
-    select 1 from app.handbook_articles a where a.id = source_id and a.deleted_at is null and a.article_state = 'Published'))
-$$);
+create or replace function private.can_read_search_source(p_source_table text, p_source_id uuid)
+returns boolean
+language sql
+stable
+security invoker
+set search_path = ''
+as $$
+  select case p_source_table
+    when 'sops' then exists (select 1 from app.sops s where s.id = p_source_id and s.deleted_at is null)
+    when 'documents' then exists (select 1 from app.documents d where d.id = p_source_id and d.deleted_at is null)
+    when 'handbook_articles' then exists (
+      select 1 from app.handbook_articles a where a.id = p_source_id and a.deleted_at is null and a.article_state = 'Published')
+    else false
+  end;
+$$;
+
+comment on function private.can_read_search_source(text, uuid) is 'True when the caller can read the source of a search embedding: a live SOP or document, or a published handbook article. Runs as the caller (security invoker), so the source''s own read policy decides. Takes the source as arguments and never reads app.search_embeddings (ADR 0016 rule 14). References only app objects, which the caller may resolve.';
+revoke all on function private.can_read_search_source(text, uuid) from public, anon;
+grant execute on function private.can_read_search_source(text, uuid) to authenticated, service_role;
+
+call private.install_policies('app.search_embeddings', $$private.can_read_search_source(source_table, source_id)$$);
 
 insert into private.retention_policies (table_name, basis, time_column, retention, purge_method, rationale) values
   ('app.search_embeddings', 'Soft Deleted', 'deleted_at', interval '30 days', 'Delete', 'A derived index rebuilt from its source; it is kept no longer than the source.');
