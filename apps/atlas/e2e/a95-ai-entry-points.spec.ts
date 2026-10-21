@@ -334,16 +334,17 @@ test("mapping: Suggest binding binds an unknown scanned code after the person co
   const code = `0${Date.now()}`.slice(0, 13);
   await unknownScan(code);
   await page.goto(`/${ORG}/credentials/scan-log`);
-  const queue = page.locator("section", {
-    has: page.getByRole("heading", { name: "Unresolved scans" }),
-  });
+  const queue = page.locator('section[aria-labelledby="scan-intake"]');
+  await expect(queue.getByRole("heading", { name: "Unresolved scans" })).toBeVisible();
   const row = queue.getByRole("listitem").filter({ hasText: code });
   await expect(row).toBeVisible();
   await row.getByRole("button", { name: "Suggest binding" }).click();
   const panel = page.getByRole("dialog", { name: `Bind code ${code}` });
   await panel.getByLabel("What the label says").fill("LED wall panel");
   await panel.getByRole("button", { name: "Find candidates" }).click();
-  await expect(panel.getByText(/catalog elements? found/).first()).toBeAttached();
+  // Candidates found: what Aurora receives lists them, and sending is possible.
+  await expect(panel.getByRole("button", { name: "Send to Aurora" })).toBeEnabled();
+  await expect(panel.getByText("Find candidates first")).toHaveCount(0);
   await expectAccessible(page);
   await panel.getByRole("button", { name: "Send to Aurora" }).click();
   await expect(panel.getByText(/Aurora suggests/)).toBeVisible();
