@@ -159,7 +159,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, each every minute) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `search-embed`, each every minute) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 ### 3. Apps
 
@@ -482,6 +482,10 @@ Texts go only to verified numbers with recorded consent in the org, and never in
 ### Chat translation (off by default)
 
 The seam is built (Section 4.9) but no screen calls it yet, and the platform runs no provider until `XOS_MESSAGE_TRANSLATION=google`. When the owner approves Google Cloud Translation as a subprocessor for chat text: enable the API in the ADR 0037 project, grant the runtime's service account `roles/cloudtranslate.user` through Workload Identity Federation (`GOOGLE_WORKLOAD_IDENTITY_AUDIENCE`, `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`, no key), and add Google to the subprocessor list. Each org then turns on Settings, Communication, "Translate chat messages".
+
+### Semantic search (off until an Admin turns it on)
+
+`search-embed` (A87, migration 1440) embeds the published documents, SOPs and handbook articles of orgs that turned on Settings, AI features, "Semantic search", with Supabase's built-in gte-small model in the Edge Runtime, so no text goes to a new subprocessor. Deploy it with the other functions and schedule it every minute like `report-run`, with the `xos_worker_key` bearer; each call embeds at most eight texts and retires the vectors of anything unpublished or of an org that turned the switch off. Atlas embeds a person's query by calling the same function with their own session, which refuses unless their org has semantic search on. `XOS_SEARCH_EMBEDDINGS=off` (an Edge Function secret, and an Atlas environment variable) stops it everywhere; never set `local-hash` outside local development.
 
 ## Sign in with Google (OWNER)
 
