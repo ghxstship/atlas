@@ -10,7 +10,7 @@ import { createOrganization, expectAccessible, PASSWORD, testEmail, uniqueId } f
  * A82 compliance journeys (RRR-127, findings A65-014 and A65-016): the cookie banner and Global
  * Privacy Control (Section 14.3), "16 or older" at sign-up (Sections 14.3 and 14.9), and share links
  * with the Section 8.6 rules and watermark, the Subprocessor List change notice subscription and
- * re-acceptance after a material change (Section 14.4). The config sends Global Privacy Control so the banner stays out of other journeys;
+ * re-acceptance after a material change (Section 14.4), and the OSHA and WH-347 forms (Section 14.5). The config sends Global Privacy Control so the banner stays out of other journeys;
  * these tests open their own contexts without it.
  */
 
@@ -376,5 +376,114 @@ test.describe("re-acceptance", () => {
     } finally {
       await localSql("select app.withdraw_legal_change('terms-of-service', $1)", [version]);
     }
+  });
+});
+
+test.describe("compliance forms", () => {
+  test("an Owner keeps the OSHA log of an establishment and records a case from an incident", async ({
+    page,
+  }) => {
+    test.setTimeout(240_000);
+    const id = uniqueId();
+    const name = `Northwind Shop ${id}`;
+    const year = new Date().getUTCFullYear();
+    await signIn(page);
+    await page.goto(`/${ORG}/settings/locations-and-venues`);
+    const panel = page.getByRole("region", { name: "OSHA recordkeeping" });
+    await panel.getByText("Add an establishment").click();
+    await panel.getByLabel("Establishment name").fill(name);
+    await panel.getByLabel("City").first().fill("Miami");
+    await panel.getByLabel("State", { exact: true }).fill("FL");
+    await panel.getByRole("button", { name: "Add establishment" }).click();
+    await slow(panel.getByText(`${name} added.`)).toBeVisible();
+    await page.reload();
+    const card = page.locator("li", { hasText: name }).first();
+    await expect(card.getByText(`Form 300A summary, ${year}`)).toBeVisible();
+    await expectAccessible(page);
+
+    const summary = page.waitForEvent("download", { timeout: 120_000 });
+    await card
+      .locator("form", { hasText: `Form 300A summary, ${year}` })
+      .getByRole("button", { name: "PDF" })
+      .click();
+    const pdf = await summary;
+    expect(pdf.suggestedFilename()).toMatch(new RegExp(`^osha-300a-${year}-northwind-shop-`));
+    const bytes = readFileSync((await pdf.path()) as string).toString("latin1");
+    expect(bytes.startsWith("%PDF-1.7")).toBe(true);
+    expect(bytes).toContain("<pdf:Keywords>Downloaded by owner@example.com on");
+
+    // A recordable case from an incident, then its Form 301 and the log.
+    const [incident] = await localSql<{ id: string }>(
+      `select i.id from app.incidents i join app.organizations o on o.id = i.org_id
+        where o.slug = $1 and i.deleted_at is null order by i.created_at limit 1`,
+      [ORG],
+    );
+    await page.goto(`/${ORG}/safety/incidents?peek=${incident?.id}`);
+    const cases = page.getByRole("region", { name: "OSHA recordable cases" });
+    await slow(cases).toBeVisible();
+    await cases.getByText("Record an OSHA case").click();
+    await cases.getByLabel("Establishment").selectOption({ label: name });
+    await cases.getByLabel("Employee's full name").fill(`Temporary Rigger ${id}`);
+    await cases.getByLabel("Job title").fill("Rigger");
+    await cases.getByLabel("Date of injury or onset of illness").fill(`${year}-01-05`);
+    await cases.getByLabel("Where the event occurred").fill("Loading dock north end");
+    await cases
+      .getByLabel(/^Injury or illness, parts of body/)
+      .fill("Sprained left ankle on the ramp");
+    await cases.getByLabel("Most serious outcome").selectOption("Days away from work");
+    await cases.getByLabel("Days away from work").fill("3");
+    await cases.getByLabel("Injury or illness type").selectOption("Injury");
+    await cases.getByRole("button", { name: "Record case" }).click();
+    await slow(cases.getByText("Case recorded.")).toBeVisible();
+    await page.reload();
+    await slow(
+      page.getByText(new RegExp(`Temporary Rigger ${id}, Days away from work`)),
+    ).toBeVisible();
+    const report = page.waitForEvent("download", { timeout: 120_000 });
+    await page.getByRole("link", { name: "Form 301" }).first().click();
+    expect((await report).suggestedFilename()).toMatch(
+      new RegExp(`^osha-301-${year}-\\d{3}\\.pdf$`),
+    );
+
+    await page.goto(`/${ORG}/settings/locations-and-venues`);
+    const log = page.waitForEvent("download", { timeout: 120_000 });
+    await page
+      .locator("li", { hasText: name })
+      .first()
+      .locator("form", { hasText: `Form 300 log, ${year}` })
+      .getByRole("button", { name: "CSV" })
+      .click();
+    const csv = readFileSync((await (await log).path()) as string, "utf8");
+    expect(csv.startsWith("(A) Case no.,(B) Employee's name")).toBe(true);
+    expect(csv).toContain(`Temporary Rigger ${id},Rigger,${year}-01-05`);
+  });
+
+  test("the WH-347 keeps a project's details and asks for step-up before issuing", async ({
+    page,
+  }) => {
+    test.setTimeout(180_000);
+    await signIn(page);
+    await page.goto(`/${ORG}/settings/payroll-and-time-off`);
+    const panel = page.getByRole("region", { name: "Certified payroll (WH-347)" });
+    await slow(panel).toBeVisible();
+    await panel.getByText("Enter or change a project's WH-347 details").click();
+    await panel.getByLabel("Project", { exact: true }).selectOption({ index: 0 });
+    await panel.getByLabel("Project or contract number").fill("GS-07P-27-0001");
+    await panel.getByLabel("Wage determination numbers").fill("FL20270001 Mod 2");
+    await panel.getByLabel("Legal business name").fill("Demo Productions LLC");
+    await panel.getByLabel("Business address").fill("100 Harbor Way, Miami, FL 33132");
+    await panel.getByLabel("Project location").fill("Miami-Dade County, FL");
+    await panel.getByRole("button", { name: "Save details" }).click();
+    await slow(panel.getByText("Details saved.")).toBeVisible();
+    await page.reload();
+    await expect(
+      page.getByText("Contract GS-07P-27-0001, wage determination FL20270001 Mod 2"),
+    ).toBeVisible();
+    await expectAccessible(page);
+    // Pay rates are Restricted: without a two-step sign-in the database refuses, and says what to do.
+    await page.getByRole("button", { name: "Issue as CSV" }).first().click();
+    await slow(
+      page.getByText("Sign in again with your second step, then issue the certified payroll."),
+    ).toBeVisible();
   });
 });

@@ -34,6 +34,8 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/{org}/forms/{form}/{id}":
+    "Route handler: OSHA Forms 300, 300A and 301 and the WH-347 certified payroll as PDF/UA or CSV (Section 14.5, A82).",
   "/share/{token}":
     "Auth template: opens a share link with its access code; no session needed (Section 8.6, A82).",
   "/share/{token}/file":

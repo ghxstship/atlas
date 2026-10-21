@@ -841,3 +841,70 @@ export function osha301Model(
     ...(ctx.now ? { now: ctx.now } : {}),
   });
 }
+
+export interface OshaAnnualSummaryInput {
+  readonly establishmentId: string;
+  readonly year: number;
+  readonly annualAverageEmployees: number | null;
+  readonly totalHoursWorked: number | null;
+  /** The company executive certifying; null leaves the summary uncertified. */
+  readonly certifiedBy: string | null;
+  readonly certifierTitle: string | null;
+  readonly certifierPhone: string | null;
+  readonly certifiedOn: string | null;
+}
+
+/** Saves the Form 300A employment figures and certification of a year, creating the row once. */
+export async function saveOshaAnnualSummary(
+  db: XosClient,
+  input: OshaAnnualSummaryInput,
+): Promise<Result<true>> {
+  const row = {
+    annual_average_employees: input.annualAverageEmployees,
+    total_hours_worked: input.totalHoursWorked,
+    certified_by: input.certifiedBy,
+    certifier_title: input.certifierTitle,
+    certifier_phone: input.certifierPhone,
+    certified_on: input.certifiedOn,
+  };
+  const table = (
+    db as unknown as {
+      from(t: string): {
+        update(r: object): {
+          eq(
+            c: string,
+            v: unknown,
+          ): {
+            eq(
+              c: string,
+              v: unknown,
+            ): {
+              is(
+                c: string,
+                v: null,
+              ): {
+                select(c: string): PromiseLike<{ data: unknown[] | null; error: never }>;
+              };
+            };
+          };
+        };
+        insert(r: object): PromiseLike<{ error: never }>;
+      };
+    }
+  ).from("osha_annual_summaries");
+  const updated = await table
+    .update(row)
+    .eq("establishment_id", input.establishmentId)
+    .eq("log_year", input.year)
+    .is("deleted_at", null)
+    .select("id");
+  if (updated.error) return fail(toDataError(updated.error));
+  if ((updated.data ?? []).length > 0) return ok(true);
+  const inserted = await table.insert({
+    establishment_id: input.establishmentId,
+    log_year: input.year,
+    ...row,
+  });
+  if (inserted.error) return fail(toDataError(inserted.error));
+  return ok(true);
+}

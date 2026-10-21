@@ -3,6 +3,8 @@ import { getMemberNoticeSubscription } from "@xos/data/subprocessor-notices";
 import type { Route } from "next";
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
+import { CertifiedPayrollPanel } from "@/components/compliance/certified-payroll-panel";
+import { OshaEstablishmentsPanel } from "@/components/compliance/osha-panels";
 import { documentTitle, legalDate } from "@/components/legal/reacceptance-banner";
 import { Button, Checkbox } from "@/components/ui";
 import { acceptLegalChangeAction } from "@/lib/legal/reacceptance-actions";
@@ -15,6 +17,9 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
  *   Settings, Legal      announced material changes the org has not accepted yet, each with what
  *                        changes, when it takes effect and an Accept button (migration 1383); shown
  *                        to those who may accept for the org, above the acceptance history
+ *   Settings, Locations and Venues   OSHA establishments with their Forms 300 and 300A and the
+ *                        summary's employment figures and certification (Section 14.5, 1385)
+ *   Settings, Payroll and Time Off   the WH-347 certified payroll of covered projects (1386)
  *   Me, Notifications    Subprocessor List change notices, which Owners and Admins of a customer org
  *                        receive by default (legal/subprocessors.md section 1, migration 1382); shown
  *                        only to them
@@ -104,5 +109,15 @@ async function SubprocessorNoticePanel({ ctx }: SettingsPanelProps) {
 
 export const contributions: readonly SettingsContribution[] = [
   { node: "settings.legal", order: 5, Panel: LegalChangesPanel },
+  {
+    node: "settings.locations-and-venues",
+    order: 60,
+    Panel: ({ ctx }) => <OshaEstablishmentsPanel ctx={ctx} />,
+  },
+  {
+    node: "settings.payroll-and-time-off",
+    order: 60,
+    Panel: ({ ctx }) => <CertifiedPayrollPanel ctx={ctx} />,
+  },
   { node: "me.notifications", order: 80, Panel: SubprocessorNoticePanel },
 ];

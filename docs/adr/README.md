@@ -42,5 +42,6 @@ Each record states one decision, the alternatives considered and the reason. A d
 | [0036](0036-sign-in-with-google.md)                      | Sign in with Google                                                              | Accepted |
 | [0037](0037-machine-translation.md)                      | Machine Translation Replaces the Native Spanish Reviewer                         | Accepted |
 | [0038](0038-rating-prompts-and-fixed-record-keys.md)     | Rating Prompts and Fixed Record Keys                                             | Accepted |
+| [0041](0041-compliance-forms-and-state-overtime.md)      | Compliance Forms and State Overtime                                              | Accepted |
 
 The [denormalization register](denormalization-register.md) lists every materialized view and stored derived value, with its source, refresh rule and reason.
