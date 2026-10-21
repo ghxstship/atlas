@@ -53,6 +53,7 @@ import {
   type ResolvedValues,
 } from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
+import { clearGlance } from "./glance";
 import { persistQueuedMedia, resumableMediaUploader } from "./uploads";
 import {
   createSupabase,
@@ -391,6 +392,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       if (!next) {
         // Signed out here or remotely from Atlas (the refresh token was revoked): wipe the local store (Section 13).
         void storeRef.current?.wipe();
+        clearGlance();
         setPhase({ kind: "signed-out" });
       } else if (engine) void engine.authRestored();
     });
@@ -551,6 +553,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     setContexts(null);
     setBrands(new Map());
     setSyncSession(null);
+    clearGlance();
     await forgetGoogleAccount();
   }, [client, store, syncSession]);
 

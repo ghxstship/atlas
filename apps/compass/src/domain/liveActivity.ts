@@ -12,9 +12,27 @@
 import type { EventTime, MutationInput } from "@xos/sync";
 import { buildPunch, type ClockSnapshot, type PunchContext, type PunchKind } from "./clock";
 
+/**
+ * The next cue the activity shows beside the shift timer (Section 13 Platform features: "the running shift
+ * timer and the next cue on the lock screen and Dynamic Island"; A65-011 part 4).
+ */
+export interface NextCue {
+  readonly label: string;
+  /** Its planned time, epoch milliseconds. */
+  readonly at: number;
+}
+
+/**
+ * While clocked out, a cue this close starts the activity on its own ("cue" state, no punch buttons), so
+ * the next cue is on the lock screen; one this late still shows until it is called.
+ */
+export const CUE_ACTIVITY_LEAD_MS = 2 * 3600_000;
+export const CUE_ACTIVITY_LATE_MS = 3600_000;
+
 /** What the activity shows; times are epoch milliseconds. Mirrors ClockActivityAttributes.ContentState. */
 export interface ActivityContent {
-  readonly state: "on" | "break";
+  /** "cue": clocked out, showing only the next cue. */
+  readonly state: "on" | "break" | "cue";
   /** When the open entry began (clock in). */
   readonly onShiftSince: number;
   /** When the current worked segment began; the running timer counts from here plus workedBaseSeconds. */
@@ -23,11 +41,40 @@ export interface ActivityContent {
   readonly workedBaseSeconds: number;
   /** When the running break began; null while working. */
   readonly breakSince: number | null;
+  /** The next cue, when there is one to show. */
+  readonly nextCueLabel?: string;
+  readonly nextCueAt?: number;
 }
 
-/** The activity content for a snapshot, or null when clocked out (no activity). */
-export function activityContent(snapshot: ClockSnapshot, nowMs: number): ActivityContent | null {
-  if (snapshot.state === "out" || snapshot.onSince === null) return null;
+/** True when a clocked-out person's next cue is close enough to start the activity for it alone. */
+export function cueDue(cue: NextCue | null | undefined, nowMs: number): cue is NextCue {
+  if (!cue) return false;
+  const lead = cue.at - nowMs;
+  return lead <= CUE_ACTIVITY_LEAD_MS && lead >= -CUE_ACTIVITY_LATE_MS;
+}
+
+/**
+ * The activity content for a snapshot and the next cue, or null when there is nothing to show (clocked out
+ * with no cue due).
+ */
+export function activityContent(
+  snapshot: ClockSnapshot,
+  nowMs: number,
+  nextCue: NextCue | null = null,
+): ActivityContent | null {
+  const cue = nextCue ? { nextCueLabel: nextCue.label, nextCueAt: nextCue.at } : {};
+  if (snapshot.state === "out" || snapshot.onSince === null) {
+    if (!cueDue(nextCue, nowMs)) return null;
+    // The shift fields are unused in the cue state; they hold the cue's time so the record stays whole.
+    return {
+      state: "cue",
+      onShiftSince: nextCue.at,
+      segmentStart: nextCue.at,
+      workedBaseSeconds: 0,
+      breakSince: null,
+      ...cue,
+    };
+  }
   if (snapshot.state === "break" && snapshot.breakSince !== null) {
     const worked = snapshot.breakSince - snapshot.onSince - snapshot.breakMs;
     return {
@@ -36,6 +83,7 @@ export function activityContent(snapshot: ClockSnapshot, nowMs: number): Activit
       segmentStart: snapshot.breakSince,
       workedBaseSeconds: Math.max(0, Math.floor(worked / 1000)),
       breakSince: snapshot.breakSince,
+      ...cue,
     };
   }
   // Working: worked time is now - onSince - breakMs, so a timer counting up from onSince + breakMs reads it
@@ -46,6 +94,7 @@ export function activityContent(snapshot: ClockSnapshot, nowMs: number): Activit
     segmentStart: Math.min(nowMs, snapshot.onSince + snapshot.breakMs),
     workedBaseSeconds: 0,
     breakSince: null,
+    ...cue,
   };
 }
 
@@ -59,7 +108,9 @@ export function activityChanged(
     prev.state !== next.state ||
     prev.onShiftSince !== next.onShiftSince ||
     prev.breakSince !== next.breakSince ||
-    prev.workedBaseSeconds !== next.workedBaseSeconds
+    prev.workedBaseSeconds !== next.workedBaseSeconds ||
+    prev.nextCueLabel !== next.nextCueLabel ||
+    prev.nextCueAt !== next.nextCueAt
   );
 }
 

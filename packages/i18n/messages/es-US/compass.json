@@ -242,6 +242,17 @@
     "combinedTitle": "Hoy en todas tus organizaciones",
     "nothingToday": "Nada para hoy."
   },
+  "glance": {
+    "today": "Hoy",
+    "noCue": "No hay cue hoy.",
+    "cueLine": "Siguiente cue: {cue} a las {time}",
+    "onShiftTitle": "En turno en {project}",
+    "onBreakTitle": "En descanso en {project}",
+    "since": "Desde las {time}",
+    "cueTitle": "Siguiente cue: {cue}",
+    "cueBody": "{project} a las {time}",
+    "channel": "Turno y siguiente cue"
+  },
   "clock": {
     "in": "Marcar entrada",
     "onShift": "En turno",

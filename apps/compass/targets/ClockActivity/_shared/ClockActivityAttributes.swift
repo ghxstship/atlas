@@ -9,7 +9,7 @@ import Foundation
 @available(iOS 16.1, *)
 struct ClockActivityAttributes: ActivityAttributes {
   struct ContentState: Codable, Hashable {
-    /// "on" while working, "break" during a break.
+    /// "on" while working, "break" during a break, "cue" when clocked out and showing only the next cue.
     var state: String
     /// When the open entry began (clock in).
     var onShiftSince: Date
@@ -19,6 +19,10 @@ struct ClockActivityAttributes: ActivityAttributes {
     var workedBaseSeconds: Double
     /// When the running break began.
     var breakSince: Date?
+    /// The next cue and its planned time (A65-011 part 4); optional, so an activity from an earlier build
+    /// still decodes.
+    var nextCueLabel: String?
+    var nextCueAt: Date?
   }
 
   /// The project the shift is on.
@@ -31,12 +35,21 @@ struct ClockActivityAttributes: ActivityAttributes {
   var startBreakLabel: String
   var endBreakLabel: String
   var clockOutLabel: String
+  /// "Next cue", optional for the same reason.
+  var nextCueTitle: String?
 }
 
 /// Punches made on the lock screen or in the Dynamic Island, queued in the App Group for the app to drain
 /// into its sync outbox, and the punch context the app stored when it started the activity.
 enum ClockPunchQueue {
-  static let appGroup = "group.pro.ghxstship.compass"
+  /// `group.` and the app's bundle identifier (app.config.ts appGroupFor), read from the running bundle, so
+  /// a tenant's branded build uses its own App Group. The widget extension's identifier ends in
+  /// `.clock-activity`.
+  static var appGroup: String {
+    let id = Bundle.main.bundleIdentifier ?? "pro.ghxstship.compass"
+    let suffix = ".clock-activity"
+    return "group." + (id.hasSuffix(suffix) ? String(id.dropLast(suffix.count)) : id)
+  }
   static let queueKey = "compass.clock.queue"
   static let contextKey = "compass.clock.context"
   static let queued = Notification.Name("CompassClockPunchQueued")
@@ -78,6 +91,24 @@ enum ClockPunchQueue {
     let hex = bytes.map { String(format: "%02x", $0) }.joined()
     let parts = [hex.prefix(8), hex.dropFirst(8).prefix(4), hex.dropFirst(12).prefix(4), hex.dropFirst(16).prefix(4), hex.dropFirst(20)]
     return parts.map(String.init).joined(separator: "-")
+  }
+}
+
+/// What the home screen widgets show (today's shifts and the next cue, A65-011 part 4): JSON the app writes
+/// into the App Group and the widgets read.
+enum CompassWidgetStore {
+  static let key = "compass.widget.today"
+
+  static func write(_ json: String) {
+    if json.isEmpty {
+      ClockPunchQueue.defaults?.removeObject(forKey: key)
+    } else {
+      ClockPunchQueue.defaults?.set(Data(json.utf8), forKey: key)
+    }
+  }
+
+  static func read() -> Data? {
+    ClockPunchQueue.defaults?.data(forKey: key)
   }
 }
 // END SHARED DECLARATIONS

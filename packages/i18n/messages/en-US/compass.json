@@ -242,6 +242,17 @@
     "combinedTitle": "Today in all your organizations",
     "nothingToday": "Nothing today."
   },
+  "glance": {
+    "today": "Today",
+    "noCue": "No cue today.",
+    "cueLine": "Next cue: {cue} at {time}",
+    "onShiftTitle": "On shift at {project}",
+    "onBreakTitle": "On break at {project}",
+    "since": "Since {time}",
+    "cueTitle": "Next cue: {cue}",
+    "cueBody": "{project} at {time}",
+    "channel": "Shift and next cue"
+  },
   "clock": {
     "in": "Clock In",
     "onShift": "On Shift",

@@ -1,6 +1,7 @@
 /**
- * The clock Live Activity native module (SIM-005). Absent on Android, on iOS before 16.2 and in tests, so
- * callers get null and keep the in-app Live Activity card as the fallback.
+ * The clock Live Activity native module (SIM-005), which also feeds the home screen widgets (A65-011 part 4).
+ * Absent on Android, on iOS before 16.2 and in tests, so callers get null and keep the in-app Live Activity
+ * card as the fallback.
  */
 import { requireOptionalNativeModule } from "expo";
 
@@ -13,14 +14,19 @@ export interface ClockLabels {
   readonly startBreak: string;
   readonly endBreak: string;
   readonly clockOut: string;
+  /** "Next cue", beside the shift timer (A65-011 part 4). */
+  readonly nextCue: string;
 }
 
 export interface ClockContent {
-  readonly state: "on" | "break";
+  /** "cue": clocked out, showing only the next cue. */
+  readonly state: "on" | "break" | "cue";
   readonly onShiftSince: number;
   readonly segmentStart: number;
   readonly workedBaseSeconds: number;
   readonly breakSince: number | null;
+  readonly nextCueLabel?: string;
+  readonly nextCueAt?: number;
 }
 
 export interface QueuedPunchRecord {
@@ -39,6 +45,8 @@ export interface CompassLiveActivityModule {
   prepareClockIn(json: string): void;
   peekQueue(): QueuedPunchRecord[];
   ackQueue(ids: readonly string[]): void;
+  /** Writes the home screen widgets' JSON (src/domain/glance.ts widgetPayload) and reloads them; "" clears. */
+  setWidgetData(json: string): void;
   addListener(event: "onPunchQueued", listener: () => void): { remove(): void };
 }
 
