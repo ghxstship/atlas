@@ -34,6 +34,8 @@ comment on column private.fx_reference_rates.base_currency is 'The currency rate
 comment on column private.fx_reference_rates.quote_currency is 'The currency one unit of base_currency buys rate units of.';
 comment on column private.fx_reference_rates.rate is 'Units of quote_currency per unit of base_currency.';
 comment on column private.fx_reference_rates.recorded_at is 'When the rate was last written.';
+create index fx_reference_rates_base_currency_idx on private.fx_reference_rates (base_currency);
+create index fx_reference_rates_quote_currency_idx on private.fx_reference_rates (quote_currency);
 alter table private.fx_reference_rates enable row level security;
 revoke all on private.fx_reference_rates from public, anon, authenticated;
 grant select on private.fx_reference_rates to service_role;
