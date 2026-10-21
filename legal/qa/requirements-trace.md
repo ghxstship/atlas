@@ -42,14 +42,14 @@ row names its follow-up: an A65 finding, an in-progress finding, a gate, or an o
 
 ## Summary
 
-673 requirements: 420 Met, 190 Partial, 48 Missing, 4 Deferred by decision,
-11 Blocked on owner.
+673 requirements: 426 Met, 184 Partial, 47 Missing, 4 Deferred by decision,
+11 Blocked on owner. A97 (RRR-142, 2026-10-21) moved S5-33, S15-03, S15-05, S15-07, S15-11 and S15-16 to Met.
 
 | Section                         | Met | Partial | Missing | Deferred by decision | Blocked on owner | Total |
 | ------------------------------- | --- | ------- | ------- | -------------------- | ---------------- | ----- |
 | 3 Doctrine                      | 57  | 5       | 1       | 0                    | 0                | 63    |
 | 4 Product scope                 | 166 | 70      | 16      | 1                    | 1                | 254   |
-| 5 Architecture and reliability  | 30  | 17      | 2       | 3                    | 4                | 56    |
+| 5 Architecture and reliability  | 31  | 16      | 2       | 3                    | 4                | 56    |
 | 6 Repository layout             | 5   | 0       | 1       | 0                    | 0                | 6     |
 | 7 Data model                    | 34  | 5       | 0       | 0                    | 0                | 39    |
 | 8 Authorization                 | 25  | 4       | 2       | 0                    | 0                | 31    |
@@ -59,10 +59,10 @@ row names its follow-up: an A65 finding, an in-progress finding, a gate, or an o
 | 12 White label                  | 4   | 4       | 2       | 0                    | 0                | 10    |
 | 13 Compass engineering          | 11  | 4       | 2       | 0                    | 1                | 18    |
 | 14 Compliance                   | 17  | 24      | 5       | 0                    | 1                | 47    |
-| 15 Internationalization         | 4   | 9       | 2       | 0                    | 1                | 16    |
+| 15 Internationalization         | 9   | 5       | 1       | 0                    | 1                | 16    |
 | 16 Plans and billing            | 8   | 4       | 0       | 0                    | 0                | 12    |
 | 17 Integrations                 | 1   | 8       | 1       | 0                    | 0                | 10    |
-| **All**                         | 420 | 190     | 48      | 4                    | 11               | 673   |
+| **All**                         | 426 | 184     | 47      | 4                    | 11               | 673   |
 
 Section 4 by part:
 

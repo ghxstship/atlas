@@ -456,7 +456,7 @@ Later runs: `pnpm --filter @xos/i18n translate` re-translates only strings whose
 
 The five Beta locales ship in the language picker marked Beta. They are targets of the same pipeline, so the first `translate` (inside `translate:all`) writes their catalogs; until then every key reads en-US.
 
-1. Price it first: `pnpm --filter @xos/i18n translate --dry-run` prints each locale's strings, characters and estimated cost. A full fill of one locale costs about the same as the first es-US review (USD 9.76 on 2026-10-20), so about USD 49 for all five.
+1. Price it first: `pnpm --filter @xos/i18n translate --dry-run` prints each locale's strings, characters and estimated cost. A full fill of one locale, catalogs and canon labels, is estimated at USD 9.58 (dry run on 2026-10-21), so about USD 48 for all five.
 2. Run `pnpm --filter @xos/i18n translate` (or one locale: `--locale fr-FR`). Beta locales cover the app catalogs and the canon labels (`surfaces: ["catalogs", "canon"]` in `translation/config.json`); help articles and guides stay in en-US for them.
 3. Commit `packages/i18n/messages/<locale>/`, `packages/i18n/canon/<locale>/`, `packages/i18n/translation/memory/<locale>.json`, the regenerated `packages/i18n/src/beta/<locale>.generated.ts` and `docs/i18n/translate-<locale>.md`, with a `Part of RRR-142` trailer.
    3a. Canon labels reach the database through a migration: run `pnpm --filter @xos/i18n canon:sql` and paste what it prints into a new migration in your range (`packages/i18n/test/canon.test.ts` fails until you do). es-US canon labels other than phases, record kinds, classes, states, subtypes and worker classifications arrive the same way on the first `translate`.

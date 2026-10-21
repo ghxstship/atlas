@@ -8,6 +8,14 @@ Google Cloud Translation produces and reviews every locale other than en-US (ADR
 | `review/<locale>/<name>.md` | `translate:review`                         | Every string of one catalog namespace (or every file of the help or guides surface) whose wording differs: en-US, the previous version, Google's version and the decision            |
 | `translate-<locale>.md`     | `pnpm --filter @xos/i18n translate`        | The last translate run: counts, strings that failed and kept their value, locked strings whose en-US changed, and tests to update                                                    |
 
+## Status on 2026-10-21 (A97, ADR 0053)
+
+- **Five Beta locales are targets:** fr-FR, de-DE, it-IT, pt-BR and ja-JP, partial and translated on the `catalogs` and `canon` surfaces only. Their catalogs are empty until the owner's first run, and every key reads en-US meanwhile.
+- **Canon labels are a surface:** `packages/i18n/canon/<locale>/`, partial in every locale. es-US holds 178 of 930 labels, copied from the catalogs; a migration loads them (`pnpm --filter @xos/i18n canon:sql`).
+- **Dry run of the first `translate`** (2026-10-21, no network):
+  - es-US: 752 canon labels to translate, 10,822 characters, about USD 0.24.
+  - Each Beta locale: 14,102 catalog strings and 930 canon labels, 10,663 distinct segments, 435,597 characters billed, about USD 9.58. All five come to about USD 48.
+
 ## Status on 2026-10-20
 
 - **The pipeline is in place:** `packages/i18n/src/translation/`, `packages/i18n/scripts/translate.ts` and `packages/i18n/translation/`.
