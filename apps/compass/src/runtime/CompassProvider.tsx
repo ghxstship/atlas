@@ -53,7 +53,7 @@ import {
   type ResolvedValues,
 } from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
-import { fieldMediaUploader } from "./media";
+import { persistQueuedMedia, resumableMediaUploader } from "./uploads";
 import {
   createSupabase,
   deviceClock,
@@ -342,7 +342,12 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         orgId: () => orgRef.current,
         deviceId: id,
         clock: deviceClock,
-        uploadFile: fieldMediaUploader(client),
+        // Photos, voice notes and documents upload resumably (TUS) and survive restarts (A65-011).
+        uploadFile: resumableMediaUploader(client, {
+          supabaseUrl: config.supabaseUrl,
+          anonKey: config.supabaseAnonKey,
+          store: opened,
+        }),
       });
       storeRef.current = opened;
       setStore(opened);
@@ -527,9 +532,11 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const enqueue = useCallback(
     async (input: MutationInput) => {
       if (!engine) throw new Error("the local store is still opening");
+      // Files the write uploads move out of the caches first, so a restart never loses them.
+      const durable = persistQueuedMedia(input);
       const mutation = await engine.outbox.enqueue({
-        ...input,
-        payload: { ...input.payload, device_org_id: orgRef.current },
+        ...durable,
+        payload: { ...durable.payload, device_org_id: orgRef.current },
       });
       void engine.drain();
       return mutation.id;

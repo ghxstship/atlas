@@ -14,9 +14,9 @@
  * (app.config.ts tenantReleaseProblems, scripts/store-preflight.ts). Nothing here signs in anywhere.
  *
  *   node --experimental-strip-types scripts/tenant-profile.ts --slug acme --org acme-live \
- *     --name "Acme Crew" --bundle-id com.acme.crew [--android-package com.acme.crew] [--scheme acmecrew] \
- *     [--accent "#B45309"] [--hosts atlas:atlas.acme.example,gateway:crew.acme.example] \
- *     [--eas-project-id <uuid>]
+ *     --name "Acme Crew" --bundle-id com.acme.crew --accent <the org's brand accent, #RRGGBB> \
+ *     [--android-package com.acme.crew] [--scheme acmecrew] \
+ *     [--hosts atlas:atlas.acme.example,gateway:crew.acme.example] [--eas-project-id <uuid>]
  *   node --experimental-strip-types scripts/tenant-profile.ts --check
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -60,7 +60,7 @@ export function parseArgs(argv: readonly string[]): TenantArgs | { readonly erro
       return { error: `Unknown or incomplete flag: ${argv[i] ?? ""}` };
     out[key] = value;
   }
-  for (const required of ["slug", "orgSlug", "name", "bundleIdentifier"] as const) {
+  for (const required of ["slug", "orgSlug", "name", "bundleIdentifier", "accent"] as const) {
     if (!out[required]) return { error: `Missing --${required === "orgSlug" ? "org" : required}` };
   }
   return out as unknown as TenantArgs;
@@ -76,7 +76,8 @@ export function tenantDefinition(args: TenantArgs): TenantBuild {
     bundleIdentifier: args.bundleIdentifier,
     androidPackage: args.androidPackage ?? args.bundleIdentifier.toLowerCase().replaceAll("-", "_"),
     scheme: args.scheme ?? args.slug.replaceAll("-", ""),
-    accent: (args.accent ?? "#4F57D9").toUpperCase(),
+    // The org's brand accent (app.org_brands accent_hex), required: a branded build has no platform default.
+    accent: (args.accent ?? "").toUpperCase(),
     icon: `${dir}/icon.png`,
     splash: `${dir}/splash.png`,
     storeConfig: `${dir}/store.config.json`,
