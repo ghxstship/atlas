@@ -60,13 +60,14 @@ tags:
     id: "photo-take"
 - assertVisible: "2 attached"
 # A voice note: hold to record, play it back; a second one is recorded and deleted (SIM-003). Grant the
-# microphone first; the simulator records from the Mac's input.
+# microphone first; the simulator records from the Mac's input. Saving a note may take up to the
+# recorder's stop limit (VOICE_STOP_TIMEOUT_MS, 10 s) on a busy machine, so each wait allows 15 s.
 - longPressOn:
     id: "incident-voice-record"
 - extendedWaitUntil:
     visible:
       id: "incident-voice-note-0"
-    timeout: 5000
+    timeout: 15000
 - tapOn:
     id: "incident-voice-play-0"
 - longPressOn:
@@ -74,7 +75,7 @@ tags:
 - extendedWaitUntil:
     visible:
       id: "incident-voice-note-1"
-    timeout: 5000
+    timeout: 15000
 - tapOn:
     id: "incident-voice-delete-1"
 - assertNotVisible:
