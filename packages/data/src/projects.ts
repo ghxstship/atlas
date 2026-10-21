@@ -262,11 +262,14 @@ export function untypedRpc<T>(
   name: string,
   args: Record<string, unknown>,
 ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    fn: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
-  return rpc(name, args);
+  // Cast before binding: binding the generated generic rpc instantiates every function's types (TS2589).
+  const client = db as unknown as {
+    rpc(
+      fn: string,
+      params: Record<string, unknown>,
+    ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
+  };
+  return client.rpc(name, args);
 }
 
 /**

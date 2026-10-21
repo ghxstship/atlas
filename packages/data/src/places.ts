@@ -35,11 +35,14 @@ export async function callRpc<T>(
   fn: string,
   args: Record<string, unknown>,
 ): Promise<Result<T>> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    name: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
-  const { data, error } = await rpc(fn, args);
+  // Cast before binding: binding the generated generic rpc instantiates every function's types (TS2589).
+  const client = db as unknown as {
+    rpc(
+      name: string,
+      params: Record<string, unknown>,
+    ): PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
+  };
+  const { data, error } = await client.rpc(fn, args);
   return error ? fail(toDataError(error)) : ok(data as T);
 }
 
