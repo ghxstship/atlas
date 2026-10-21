@@ -6,6 +6,7 @@ import enUS_advancing from "../messages/en-US/advancing.json" with { type: "json
 import enUS_assets from "../messages/en-US/assets.json" with { type: "json" };
 import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_auroraCertificates from "../messages/en-US/auroraCertificates.json" with { type: "json" };
+import enUS_authSecurity from "../messages/en-US/authSecurity.json" with { type: "json" };
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
 import enUS_compassExpenses from "../messages/en-US/compassExpenses.json" with { type: "json" };
@@ -62,6 +63,7 @@ import esUS_advancing from "../messages/es-US/advancing.json" with { type: "json
 import esUS_assets from "../messages/es-US/assets.json" with { type: "json" };
 import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_auroraCertificates from "../messages/es-US/auroraCertificates.json" with { type: "json" };
+import esUS_authSecurity from "../messages/es-US/authSecurity.json" with { type: "json" };
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
 import esUS_compassExpenses from "../messages/es-US/compassExpenses.json" with { type: "json" };
@@ -120,6 +122,7 @@ export const enUS = {
   assets: enUS_assets,
   aurora: enUS_aurora,
   auroraCertificates: enUS_auroraCertificates,
+  authSecurity: enUS_authSecurity,
   canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
   compassExpenses: enUS_compassExpenses,
@@ -179,6 +182,7 @@ export const esUS = {
   assets: esUS_assets,
   aurora: esUS_aurora,
   auroraCertificates: esUS_auroraCertificates,
+  authSecurity: esUS_authSecurity,
   canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
   compassExpenses: esUS_compassExpenses,

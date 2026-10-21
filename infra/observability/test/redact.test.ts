@@ -76,6 +76,25 @@ describe("redactString", () => {
     expect(redactString("xadv_short")).toBe("xadv_short");
   });
 
+  // A84: calendar feed links and signed reply addresses.
+  it("replaces whatever follows /ical/, and signed reply addresses", () => {
+    const hex = "b".repeat(64);
+    expect(redactUrl(`/ical/xcal_${hex}.ics`)).toBe("/ical/[token]");
+    expect(redactString(`GET https://atlas.example.test/ical/xcal_${hex}.ics 200`)).toBe(
+      "GET https://atlas.example.test/ical/[token] 200",
+    );
+    expect(redactString("GET /ical/XCAL_TRUNCATED.ics 404")).toBe("GET /ical/[token] 404");
+    expect(redactString(`webcal://atlas.example.test/ical/${"c".repeat(20)}`)).toBe(
+      "webcal://atlas.example.test/ical/[token]",
+    );
+    expect(redactString("/ical/")).toBe("/ical/");
+    const reply = `r-${"1".repeat(32)}-${"2".repeat(32)}-${"3".repeat(32)}`;
+    expect(redactString(`local part ${reply}`)).toBe("local part [token]");
+    expect(redact({ to: `${reply}@inbound.example.test` })).toEqual({
+      to: "[token]@inbound.example.test",
+    });
+  });
+
   it("redacts secrets in query strings", () => {
     expect(redactString("GET /auth/callback?code=abc123&next=/home")).toBe(
       `GET /auth/callback?code=${REDACTED}&next=/home`,
