@@ -253,6 +253,23 @@
     "cueBody": "{project} a las {time}",
     "channel": "Turno y siguiente cue"
   },
+  "wallet": {
+    "holder": "Nombre",
+    "credential": "Credencial",
+    "role": "Puesto",
+    "project": "Proyecto",
+    "starts": "Empieza",
+    "ends": "Termina",
+    "validUntil": "Válida hasta",
+    "organization": "Organización",
+    "addApple": "Agregar a Apple Wallet",
+    "addGoogle": "Agregar a Google Wallet",
+    "adding": "Obteniendo tu pase",
+    "notConfigured": "Los pases de Wallet aún no están configurados para tu organización. Muestra aquí la credencial.",
+    "notFound": "Este pase no es tuyo.",
+    "offline": "Conéctate a internet para agregar el pase. Una vez agregado, funciona sin conexión.",
+    "failed": "No se pudo agregar el pase. Inténtalo de nuevo."
+  },
   "clock": {
     "in": "Marcar entrada",
     "onShift": "En turno",

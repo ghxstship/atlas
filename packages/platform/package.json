@@ -22,6 +22,7 @@
     "@xos/i18n": "workspace:*",
     "@xos/ia": "workspace:*",
     "@xos/schemas": "workspace:*",
+    "@xos/tokens": "workspace:*",
     "stripe": "23.0.0",
     "zod": "4.6.5"
   },

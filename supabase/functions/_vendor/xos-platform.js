@@ -2867,6 +2867,46 @@ var compass_default$1 = {
     orgChip: "{org}",
     nextCueAt: "Planned for {day} at {time}",
   },
+  orgs: {
+    title: "Organizations",
+    chip: "Organization: {org}",
+    switch: "Organization: {org}. Change organization",
+    switchHint: "Lists the organizations you work for.",
+    change: "Change",
+    member: "Member",
+    engaged: "Engaged",
+    combinedTitle: "Today in all your organizations",
+    nothingToday: "Nothing today.",
+  },
+  glance: {
+    today: "Today",
+    noCue: "No cue today.",
+    cueLine: "Next cue: {cue} at {time}",
+    onShiftTitle: "On shift at {project}",
+    onBreakTitle: "On break at {project}",
+    since: "Since {time}",
+    cueTitle: "Next cue: {cue}",
+    cueBody: "{project} at {time}",
+    channel: "Shift and next cue",
+  },
+  wallet: {
+    holder: "Name",
+    credential: "Credential",
+    role: "Role",
+    project: "Project",
+    starts: "Starts",
+    ends: "Ends",
+    validUntil: "Valid until",
+    organization: "Organization",
+    addApple: "Add to Apple Wallet",
+    addGoogle: "Add to Google Wallet",
+    adding: "Getting your pass",
+    notConfigured:
+      "Wallet passes are not set up for your organization yet. Show the badge here instead.",
+    notFound: "This pass is not yours to add.",
+    offline: "Connect to the internet to add the pass. Once added, it works offline.",
+    failed: "The pass could not be added. Try again.",
+  },
   clock: {
     in: "Clock In",
     onShift: "On Shift",
@@ -19471,6 +19511,46 @@ var compass_default = {
     orgChip: "{org}",
     nextCueAt: "Previsto para el {day} a las {time}",
   },
+  orgs: {
+    title: "Organizaciones",
+    chip: "Organización: {org}",
+    switch: "Organización: {org}. Cambiar de organización",
+    switchHint: "Muestra las organizaciones para las que trabajas.",
+    change: "Cambiar",
+    member: "Miembro",
+    engaged: "Contratado",
+    combinedTitle: "Hoy en todas tus organizaciones",
+    nothingToday: "Nada para hoy.",
+  },
+  glance: {
+    today: "Hoy",
+    noCue: "No hay cue hoy.",
+    cueLine: "Siguiente cue: {cue} a las {time}",
+    onShiftTitle: "En turno en {project}",
+    onBreakTitle: "En descanso en {project}",
+    since: "Desde las {time}",
+    cueTitle: "Siguiente cue: {cue}",
+    cueBody: "{project} a las {time}",
+    channel: "Turno y siguiente cue",
+  },
+  wallet: {
+    holder: "Nombre",
+    credential: "Credencial",
+    role: "Puesto",
+    project: "Proyecto",
+    starts: "Empieza",
+    ends: "Termina",
+    validUntil: "Válida hasta",
+    organization: "Organización",
+    addApple: "Agregar a Apple Wallet",
+    addGoogle: "Agregar a Google Wallet",
+    adding: "Obteniendo tu pase",
+    notConfigured:
+      "Los pases de Wallet aún no están configurados para tu organización. Muestra aquí la credencial.",
+    notFound: "Este pase no es tuyo.",
+    offline: "Conéctate a internet para agregar el pase. Una vez agregado, funciona sin conexión.",
+    failed: "No se pudo agregar el pase. Inténtalo de nuevo.",
+  },
   clock: {
     in: "Marcar entrada",
     onShift: "En turno",
@@ -35504,7 +35584,7 @@ var xos_tokens_default = {
 };
 //#endregion
 //#region ../email/src/theme.ts
-var colorTokens = xos_tokens_default.color.tokens;
+var colorTokens$1 = xos_tokens_default.color.tokens;
 var spacingTokens = xos_tokens_default.spacing.tokens;
 var radiusTokens = xos_tokens_default.radius.tokens;
 var strokeTokens = xos_tokens_default.strokeWidth.tokens;
@@ -35512,7 +35592,7 @@ var layoutTokens = xos_tokens_default.layout.tokens;
 var typeStyles = xos_tokens_default.type.groups.flatMap((g) => g.styles);
 /** Resolves a color token in the Light theme, following `{other-token}` references. */
 function color(name, seen = /* @__PURE__ */ new Set()) {
-  const token = colorTokens.find((t) => t.name === name);
+  const token = colorTokens$1.find((t) => t.name === name);
   if (token === void 0) throw new Error(`Unknown color token ${name}`);
   const raw = typeof token.value === "string" ? token.value : token.value.light;
   if (raw === void 0) throw new Error(`Color token ${name} has no light value`);
@@ -35545,7 +35625,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$5(name) {
+function text$6(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -35574,12 +35654,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$5("heading-20"),
+    ...text$6("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$5("label-13"),
+    ...text$6("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -35591,7 +35671,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$5("text-12"),
+    ...text$6("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -35601,7 +35681,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$5("text-14"),
+      ...text$6("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -35767,7 +35847,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$5("text-14"),
+                          ...text$6("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -37644,7 +37724,7 @@ function supabaseDb(client) {
 function rows$3(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$4(row, key) {
+function text$5(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -37668,7 +37748,7 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text$4(row, "stripe_event_row_id");
+      const rowId = text$5(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
@@ -37724,11 +37804,11 @@ function webhookStore(db) {
   return {
     async claim(limit) {
       return rows$3(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$4(row, "delivery_id"),
-        url: text$4(row, "url"),
-        eventType: text$4(row, "event_type"),
-        body: text$4(row, "body"),
-        signature: text$4(row, "signature"),
+        deliveryId: text$5(row, "delivery_id"),
+        url: text$5(row, "url"),
+        eventType: text$5(row, "event_type"),
+        body: text$5(row, "body"),
+        signature: text$5(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -37771,7 +37851,7 @@ async function recipientProfile(db, personId) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text$4((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$5((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
       return rows$3(
@@ -37780,12 +37860,12 @@ function notificationStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$4(row, "delivery_id"),
-        orgId: text$4(row, "org_id"),
-        recipientPersonId: text$4(row, "recipient_person_id"),
-        address: text$4(row, "address"),
-        kind: text$4(row, "kind"),
-        emailTemplateCode: text$4(row, "email_template_code"),
+        deliveryId: text$5(row, "delivery_id"),
+        orgId: text$5(row, "org_id"),
+        recipientPersonId: text$5(row, "recipient_person_id"),
+        address: text$5(row, "address"),
+        kind: text$5(row, "kind"),
+        emailTemplateCode: text$5(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$2(row, "subject_table"),
         subjectId: optionalText$2(row, "subject_id"),
@@ -37793,8 +37873,8 @@ function notificationStore(db, options) {
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$4(org, "slug");
-      const name = text$4(org, "name");
+      const slug = text$5(org, "slug");
+      const name = text$5(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -37880,7 +37960,7 @@ async function kioskPunch(db, input) {
 function rows$2(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$3(row, key) {
+function text$4(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -37935,12 +38015,12 @@ function pushStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$3(row, "delivery_id"),
-        notificationId: text$3(row, "notification_id"),
-        orgId: text$3(row, "org_id"),
-        recipientPersonId: text$3(row, "recipient_person_id"),
-        kind: text$3(row, "kind"),
-        categoryCode: text$3(row, "category_code"),
+        deliveryId: text$4(row, "delivery_id"),
+        notificationId: text$4(row, "notification_id"),
+        orgId: text$4(row, "org_id"),
+        recipientPersonId: text$4(row, "recipient_person_id"),
+        kind: text$4(row, "kind"),
+        categoryCode: text$4(row, "category_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
@@ -37965,7 +38045,7 @@ function pushStore(db) {
     },
     async claimReceipts(limit) {
       return rows$2(await db.rpc("claim_push_receipts", { p_limit: limit })).map((r) =>
-        text$3(r, "ticket_id"),
+        text$4(r, "ticket_id"),
       );
     },
     async recordReceipts(receipts) {
@@ -37983,7 +38063,7 @@ function smsStore(db, options) {
   const org = async (orgId) =>
     (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
   const inbox = async (orgId) =>
-    `${options.appUrl.replace(/\/$/, "")}/${text$3(await org(orgId), "slug")}/inbox`;
+    `${options.appUrl.replace(/\/$/, "")}/${text$4(await org(orgId), "slug")}/inbox`;
   return {
     async claimSms(limit) {
       return rows$2(
@@ -37992,17 +38072,17 @@ function smsStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$3(row, "delivery_id"),
-        orgId: text$3(row, "org_id"),
-        recipientPersonId: text$3(row, "recipient_person_id"),
-        address: text$3(row, "address"),
-        kind: text$3(row, "kind"),
+        deliveryId: text$4(row, "delivery_id"),
+        orgId: text$4(row, "org_id"),
+        recipientPersonId: text$4(row, "recipient_person_id"),
+        address: text$4(row, "address"),
+        kind: text$4(row, "kind"),
         messageArgs: row["message_args"] ?? {},
       }));
     },
     recipient: (personId) => recipientProfile(db, personId),
     async orgName(orgId) {
-      return text$3(await org(orgId), "name");
+      return text$4(await org(orgId), "name");
     },
     linkFor: (claim) => inbox(claim.orgId),
     inboxLink: inbox,
@@ -38019,12 +38099,12 @@ function smsStore(db, options) {
         const ids = row["delivery_ids"];
         const count = row["held_count"];
         return {
-          orgId: text$3(row, "org_id"),
-          recipientPersonId: text$3(row, "recipient_person_id"),
-          address: text$3(row, "address"),
+          orgId: text$4(row, "org_id"),
+          recipientPersonId: text$4(row, "recipient_person_id"),
+          address: text$4(row, "address"),
           deliveryIds: Array.isArray(ids) ? ids.filter((i) => typeof i === "string") : [],
           heldCount: typeof count === "number" ? count : 0,
-          kind: text$3(row, "kind"),
+          kind: text$4(row, "kind"),
           messageArgs: row["message_args"] ?? {},
         };
       });
@@ -38070,7 +38150,7 @@ function translationStore(db) {
       });
       if (row === null || optionalText$1(row, "deleted_at") !== null) return null;
       return {
-        orgId: text$3(row, "org_id"),
+        orgId: text$4(row, "org_id"),
         body: optionalText$1(row, "body"),
         language: optionalText$1(row, "language"),
       };
@@ -38833,7 +38913,7 @@ async function runUploadScans(options) {
 function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$2(row, key) {
+function text$3(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -38858,8 +38938,8 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        jobId: text$2(row, "id"),
-        attachmentVersionId: text$2(row, "subject_id"),
+        jobId: text$3(row, "id"),
+        attachmentVersionId: text$3(row, "subject_id"),
         attempts: count(row, "attempts"),
       }));
     },
@@ -38871,11 +38951,11 @@ function scanStore(db) {
       );
       if (row === null) return null;
       return {
-        objectName: text$2(row, "object_name"),
-        filename: text$2(row, "filename"),
-        contentType: text$2(row, "content_type"),
+        objectName: text$3(row, "object_name"),
+        filename: text$3(row, "filename"),
+        contentType: text$3(row, "content_type"),
         checksumSha256: optionalText(row, "checksum_sha256"),
-        scanStatus: text$2(row, "scan_status"),
+        scanStatus: text$3(row, "scan_status"),
       };
     },
     async recordAttachmentScan(attachmentVersionId, clean, detail) {
@@ -38903,9 +38983,9 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        objectScanId: text$2(row, "object_scan_id"),
-        bucketId: text$2(row, "bucket_id"),
-        objectName: text$2(row, "object_name"),
+        objectScanId: text$3(row, "object_scan_id"),
+        bucketId: text$3(row, "bucket_id"),
+        objectName: text$3(row, "object_name"),
         contentType: optionalText(row, "content_type"),
         attempts: count(row, "attempts"),
       }));
@@ -38948,6 +39028,853 @@ function supabaseStorage(client) {
       const { error } = await client.storage.from(bucket).remove([name]);
       if (error !== null) throw new PlatformDbError(`storage ${bucket}`, error.message);
     },
+  };
+}
+//#endregion
+//#region src/wallet/der.ts
+/**
+ * The little ASN.1 DER the Apple Wallet signature needs (A93, RRR-138): encoding the CMS SignedData of a
+ * pass's manifest and reading a certificate's issuer and serial number. Web Crypto signs; this only lays
+ * the bytes out, so the Edge runtime needs no crypto library.
+ */
+function concat(...parts) {
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let at = 0;
+  for (const p of parts) {
+    out.set(p, at);
+    at += p.length;
+  }
+  return out;
+}
+function lengthBytes(length) {
+  if (length < 128) return Uint8Array.of(length);
+  const bytes = [];
+  for (let n = length; n > 0; n = Math.floor(n / 256)) bytes.unshift(n % 256);
+  return Uint8Array.of(128 | bytes.length, ...bytes);
+}
+/** One tag-length-value element. */
+function tlv(tag, ...content) {
+  const body = concat(...content);
+  return concat(Uint8Array.of(tag), lengthBytes(body.length), body);
+}
+var sequence = (...content) => tlv(48, ...content);
+function compareBytes(a, b) {
+  for (let i = 0; i < Math.min(a.length, b.length); i += 1) {
+    const d = (a[i] ?? 0) - (b[i] ?? 0);
+    if (d !== 0) return d;
+  }
+  return a.length - b.length;
+}
+/** A SET OF, its elements in DER's ascending order of their encodings. */
+function setOf(...elements) {
+  return tlv(49, ...[...elements].sort(compareBytes));
+}
+/** A context-specific constructed element, [n]. */
+function context(n, ...content) {
+  return tlv(160 | n, ...content);
+}
+var NULL = Uint8Array.of(5, 0);
+function oid(dotted) {
+  const [first = 0, second = 0, ...rest] = dotted.split(".").map(Number);
+  const bytes = [first * 40 + second];
+  for (const arc of rest) {
+    const chunk = [];
+    let n = arc;
+    do {
+      chunk.unshift(n % 128);
+      n = Math.floor(n / 128);
+    } while (n > 0);
+    for (let i = 0; i < chunk.length - 1; i += 1) chunk[i] = (chunk[i] ?? 0) | 128;
+    bytes.push(...chunk);
+  }
+  return tlv(6, Uint8Array.from(bytes));
+}
+function integer(value) {
+  let bytes;
+  if (typeof value === "number") {
+    const out = [];
+    let n = value;
+    do {
+      out.unshift(n % 256);
+      n = Math.floor(n / 256);
+    } while (n > 0);
+    bytes = Uint8Array.from(out);
+  } else bytes = value;
+  if ((bytes[0] ?? 0) & 128) bytes = concat(Uint8Array.of(0), bytes);
+  return tlv(2, bytes);
+}
+var octetString = (bytes) => tlv(4, bytes);
+/** UTCTime, YYMMDDHHMMSSZ (CMS signing time before 2050). */
+function utcTime(date) {
+  const pad = (n) => String(n).padStart(2, "0");
+  const text =
+    pad(date.getUTCFullYear() % 100) +
+    pad(date.getUTCMonth() + 1) +
+    pad(date.getUTCDate()) +
+    pad(date.getUTCHours()) +
+    pad(date.getUTCMinutes()) +
+    pad(date.getUTCSeconds()) +
+    "Z";
+  return tlv(23, new TextEncoder().encode(text));
+}
+/** Reads the element at an offset. */
+function readElement(bytes, start) {
+  const tag = bytes[start];
+  const first = bytes[start + 1];
+  if (tag === void 0 || first === void 0) throw new Error("DER: truncated element");
+  let length = first;
+  let contentStart = start + 2;
+  if (first & 128) {
+    const count = first & 127;
+    length = 0;
+    for (let i = 0; i < count; i += 1) length = length * 256 + (bytes[start + 2 + i] ?? 0);
+    contentStart += count;
+  }
+  const end = contentStart + length;
+  if (end > bytes.length) throw new Error("DER: element runs past the end");
+  return {
+    tag,
+    start,
+    contentStart,
+    end,
+  };
+}
+/** The child elements of a constructed element. */
+function children(bytes, parent) {
+  const out = [];
+  for (let at = parent.contentStart; at < parent.end;) {
+    const child = readElement(bytes, at);
+    out.push(child);
+    at = child.end;
+  }
+  return out;
+}
+var raw = (bytes, e) => bytes.subarray(e.start, e.end);
+/** A certificate's issuer Name and serialNumber, as encoded, for a CMS IssuerAndSerialNumber. */
+function issuerAndSerial(certificate) {
+  const [tbs] = children(certificate, readElement(certificate, 0));
+  if (!tbs) throw new Error("DER: not a certificate");
+  const fields = children(certificate, tbs);
+  const offset = fields[0]?.tag === 160 ? 1 : 0;
+  const serial = fields[offset];
+  const issuer = fields[offset + 2];
+  if (!serial || serial.tag !== 2 || !issuer || issuer.tag !== 48)
+    throw new Error("DER: not a certificate");
+  return {
+    issuer: raw(certificate, issuer),
+    serial: raw(certificate, serial),
+  };
+}
+/** The DER bytes of a PEM block (certificate or key). */
+function pemToDer(pem) {
+  const body = pem
+    .replace(/-----BEGIN [^-]+-----/, "")
+    .replace(/-----END [^-]+-----/, "")
+    .replace(/\s+/g, "");
+  if (!body) throw new Error("PEM: empty");
+  const text = atob(body);
+  return Uint8Array.from(text, (c) => c.charCodeAt(0));
+}
+var RSA_ENCRYPTION = "1.2.840.113549.1.1.1";
+/**
+ * A private key as PKCS#8 for Web Crypto: PKCS#8 PEM as it is, a PKCS#1 ("BEGIN RSA PRIVATE KEY") key
+ * wrapped in a PrivateKeyInfo.
+ */
+function pkcs8Of(pem) {
+  const der = pemToDer(pem);
+  if (!pem.includes("BEGIN RSA PRIVATE KEY")) return der;
+  return sequence(integer(0), sequence(oid(RSA_ENCRYPTION), NULL), octetString(der));
+}
+//#endregion
+//#region ../tokens/scripts/ratio.js
+function lin(c) {
+  c /= 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+/** WCAG relative luminance of a hex color (#rgb or #rrggbb). */
+function luminance(hex) {
+  let h = hex.replace("#", "");
+  if (h.length === 3) h = h.replace(/./g, "$&$&");
+  return (
+    0.2126 * lin(parseInt(h.substring(0, 2), 16)) +
+    0.7152 * lin(parseInt(h.substring(2, 4), 16)) +
+    0.0722 * lin(parseInt(h.substring(4, 6), 16))
+  );
+}
+/** WCAG 2.2 contrast ratio between two hex colors. */
+function ratio(a, b) {
+  const x = luminance(a);
+  const y = luminance(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+}
+//#endregion
+//#region src/wallet/colors.ts
+/**
+ * Pass colors (A93, RRR-138), read from packages/tokens like every design value (Section 3.15): the pass is
+ * the org's accent with the on-accent label color, or the platform accent when the org has none or its
+ * accent fails the "Label on accent fill" contrast pair (WCAG 2.2 AA, 4.5:1) under white labels.
+ */
+var colorTokens = xos_tokens_default.color.tokens;
+/** A color token's Light theme value, following `{other-token}` references. */
+function lightColor(name) {
+  const token = colorTokens.find((t) => t.name === name);
+  const value = typeof token?.value === "string" ? token.value : token?.value.light;
+  if (!value) throw new Error(`Unknown color token ${name}`);
+  const ref = /^\{(.+)\}$/.exec(value);
+  return ref?.[1] ? lightColor(ref[1]) : value.toUpperCase();
+}
+var PLATFORM_ACCENT = lightColor("accent-default");
+var ON_ACCENT = lightColor("accent-text-on");
+var HEX = /^#[0-9A-Fa-f]{6}$/;
+/** The pass background: the org's accent when on-accent labels read on it, else the platform accent. */
+function passBackground(accentHex) {
+  if (!accentHex || !HEX.test(accentHex)) return PLATFORM_ACCENT;
+  return ratio(ON_ACCENT, accentHex) >= 4.5 ? accentHex.toUpperCase() : PLATFORM_ACCENT;
+}
+/** The CSS function name Apple's pass.json spells colors with. */
+var TRIPLE = "rgb";
+/** A #RRGGBB color as the CSS rgb() triple pass.json takes. */
+function cssTriple(hex) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) || 0);
+  return `${TRIPLE}(${String(r)}, ${String(g)}, ${String(b)})`;
+}
+//#endregion
+//#region src/wallet/files.ts
+/**
+ * The files of an Apple Wallet pass (A93, RRR-138): a .pkpass is a zip of pass.json, the images, the
+ * manifest (each file's SHA-1) and the signature. Wallet reads stored (uncompressed) entries, so the zip
+ * here stores; the icon is a solid PNG in the org's accent until the owner supplies pass art, and its
+ * zlib stream uses stored blocks. No compression library is needed in the Edge runtime.
+ */
+var CRC_TABLE = (() => {
+  const table = /* @__PURE__ */ new Uint32Array(256);
+  for (let n = 0; n < 256; n += 1) {
+    let c = n;
+    for (let k = 0; k < 8; k += 1) c = c & 1 ? 3988292384 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+function crc32(bytes) {
+  let crc = 4294967295;
+  for (const b of bytes) crc = (CRC_TABLE[(crc ^ b) & 255] ?? 0) ^ (crc >>> 8);
+  return (crc ^ 4294967295) >>> 0;
+}
+function u16(n) {
+  return Uint8Array.of(n & 255, (n >>> 8) & 255);
+}
+function u32(n) {
+  return Uint8Array.of(n & 255, (n >>> 8) & 255, (n >>> 16) & 255, (n >>> 24) & 255);
+}
+/** A zip of stored entries, in the order given. */
+function storedZip(files) {
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const file of files) {
+    const name = new TextEncoder().encode(file.name);
+    const crc = crc32(file.data);
+    const common = concat(
+      u16(20),
+      u16(0),
+      u16(0),
+      u16(0),
+      u16(23585),
+      u32(crc),
+      u32(file.data.length),
+      u32(file.data.length),
+      u16(name.length),
+    );
+    const local = concat(u32(67324752), common, u16(0), name, file.data);
+    centrals.push(
+      concat(
+        u32(33639248),
+        u16(20),
+        common,
+        u16(0),
+        u16(0),
+        u16(0),
+        u16(0),
+        u32(0),
+        u32(offset),
+        name,
+      ),
+    );
+    locals.push(local);
+    offset += local.length;
+  }
+  const central = concat(...centrals);
+  const end = concat(
+    u32(101010256),
+    u16(0),
+    u16(0),
+    u16(files.length),
+    u16(files.length),
+    u32(central.length),
+    u32(offset),
+    u16(0),
+  );
+  return concat(...locals, central, end);
+}
+function adler32(bytes) {
+  let a = 1;
+  let b = 0;
+  for (const byte of bytes) {
+    a = (a + byte) % 65521;
+    b = (b + a) % 65521;
+  }
+  return ((b << 16) | a) >>> 0;
+}
+/** A zlib stream of stored deflate blocks. */
+function zlibStored(data) {
+  const blocks = [Uint8Array.of(120, 1)];
+  let at = 0;
+  do {
+    const block = data.subarray(at, at + 65535);
+    at += 65535;
+    const last = at >= data.length;
+    blocks.push(Uint8Array.of(last ? 1 : 0), u16(block.length), u16(~block.length & 65535), block);
+  } while (at < data.length);
+  const sum = adler32(data);
+  blocks.push(Uint8Array.of((sum >>> 24) & 255, (sum >>> 16) & 255, (sum >>> 8) & 255, sum & 255));
+  return concat(...blocks);
+}
+function chunk(type, data) {
+  const typed = concat(new TextEncoder().encode(type), data);
+  const crc = crc32(typed);
+  const length = data.length;
+  return concat(
+    Uint8Array.of((length >>> 24) & 255, (length >>> 16) & 255, (length >>> 8) & 255, length & 255),
+    typed,
+    Uint8Array.of((crc >>> 24) & 255, (crc >>> 16) & 255, (crc >>> 8) & 255, crc & 255),
+  );
+}
+/** A square PNG of one color (#RRGGBB), RGB without alpha. */
+function solidPng(size, hex) {
+  const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) || 0);
+  const row = new Uint8Array(1 + size * 3);
+  for (let x = 0; x < size; x += 1) row.set(rgb, 1 + x * 3);
+  const raw = new Uint8Array(row.length * size);
+  for (let y = 0; y < size; y += 1) raw.set(row, y * row.length);
+  const header = /* @__PURE__ */ new Uint8Array(13);
+  const view = new DataView(header.buffer);
+  view.setUint32(0, size);
+  view.setUint32(4, size);
+  header.set([8, 2, 0, 0, 0], 8);
+  return concat(
+    Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10),
+    chunk("IHDR", header),
+    chunk("IDAT", zlibStored(raw)),
+    chunk("IEND", /* @__PURE__ */ new Uint8Array(0)),
+  );
+}
+/** Lowercase hex SHA-1 of bytes (the pass manifest's digest). */
+async function sha1Hex(bytes) {
+  return [...new Uint8Array(await crypto.subtle.digest("SHA-1", bytes))]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+//#endregion
+//#region src/wallet/apple.ts
+/**
+ * Apple Wallet passes for credentials and shift passes (A93, RRR-138; Section 11.10 item 14, Section 11.13:
+ * the badge in one tap from the lock screen). A pass is a signed zip: pass.json, the images, manifest.json
+ * (each file's SHA-1) and `signature`, a detached CMS signature of the manifest made with the Pass Type ID
+ * certificate and Apple's WWDR intermediate.
+ *
+ * Signing is a seam (PassSigner). The real signer signs with Web Crypto from the owner's certificate and
+ * key, held as Edge Function secrets and never in the repository; until they are set the signer reports
+ * itself unconfigured and the function answers 503 wallet_not_configured. Tests use a fake signer built at
+ * run time.
+ */
+/** The pass.json for a pass. */
+function passJson(pass, config, labels) {
+  const color = passBackground(pass.accentHex);
+  const date = (key, label, value) => ({
+    key,
+    label,
+    value,
+    dateStyle: "PKDateStyleMedium",
+    timeStyle: "PKDateStyleShort",
+  });
+  const fields =
+    pass.kind === "credential"
+      ? {
+          generic: {
+            primaryFields: [
+              {
+                key: "holder",
+                label: labels.holder,
+                value: pass.holderName,
+              },
+            ],
+            secondaryFields: [
+              {
+                key: "credential",
+                label: labels.credential,
+                value: pass.title,
+              },
+            ],
+            auxiliaryFields: [
+              {
+                key: "project",
+                label: labels.project,
+                value: pass.projectName,
+              },
+              ...(pass.endsAt
+                ? [
+                    {
+                      ...date("validUntil", labels.validUntil, pass.endsAt),
+                      timeStyle: "PKDateStyleNone",
+                    },
+                  ]
+                : []),
+            ],
+            backFields: [
+              {
+                key: "organization",
+                label: labels.organization,
+                value: pass.orgName,
+              },
+            ],
+          },
+        }
+      : {
+          eventTicket: {
+            primaryFields: [
+              {
+                key: "role",
+                label: labels.role,
+                value: pass.title,
+              },
+            ],
+            secondaryFields: [
+              date("starts", labels.starts, pass.startsAt),
+              ...(pass.endsAt ? [date("ends", labels.ends, pass.endsAt)] : []),
+            ],
+            auxiliaryFields: [
+              {
+                key: "project",
+                label: labels.project,
+                value: pass.projectName,
+              },
+            ],
+            backFields: [
+              {
+                key: "holder",
+                label: labels.holder,
+                value: pass.holderName,
+              },
+              {
+                key: "organization",
+                label: labels.organization,
+                value: pass.orgName,
+              },
+            ],
+          },
+        };
+  return {
+    formatVersion: 1,
+    passTypeIdentifier: config.passTypeIdentifier,
+    teamIdentifier: config.teamIdentifier,
+    serialNumber: `${pass.kind}-${pass.serial}`,
+    organizationName: pass.orgName,
+    description: `${pass.title}, ${pass.projectName}`,
+    logoText: pass.orgName,
+    foregroundColor: cssTriple(ON_ACCENT),
+    labelColor: cssTriple(ON_ACCENT),
+    backgroundColor: cssTriple(color),
+    sharingProhibited: true,
+    voided: pass.voided,
+    ...(pass.kind === "shift" ? { relevantDate: pass.startsAt } : {}),
+    ...(pass.endsAt ? { expirationDate: pass.endsAt } : {}),
+    ...(pass.barcode
+      ? {
+          barcodes: [
+            {
+              format: "PKBarcodeFormatQR",
+              message: pass.barcode,
+              messageEncoding: "iso-8859-1",
+              altText: pass.barcode.replace(/^XOSCR1:/, ""),
+            },
+          ],
+        }
+      : {}),
+    ...fields,
+  };
+}
+/** The signed .pkpass bytes. Throws when the signer is not configured. */
+async function buildPkpass(pass, config, labels, signer) {
+  if (!signer.configured) throw new Error("The Apple Wallet signer is not configured.");
+  const color = passBackground(pass.accentHex);
+  const files = [
+    {
+      name: "pass.json",
+      data: new TextEncoder().encode(JSON.stringify(passJson(pass, config, labels))),
+    },
+    {
+      name: "icon.png",
+      data: solidPng(29, color),
+    },
+    {
+      name: "icon@2x.png",
+      data: solidPng(58, color),
+    },
+    {
+      name: "icon@3x.png",
+      data: solidPng(87, color),
+    },
+  ];
+  const manifest = {};
+  for (const file of files) manifest[file.name] = await sha1Hex(file.data);
+  const manifestBytes = new TextEncoder().encode(JSON.stringify(manifest));
+  const signature = await signer.sign(manifestBytes);
+  return storedZip([
+    ...files,
+    {
+      name: "manifest.json",
+      data: manifestBytes,
+    },
+    {
+      name: "signature",
+      data: signature,
+    },
+  ]);
+}
+var SHA256 = "2.16.840.1.101.3.4.2.1";
+var RSA = "1.2.840.113549.1.1.1";
+var DATA = "1.2.840.113549.1.7.1";
+var SIGNED_DATA = "1.2.840.113549.1.7.2";
+var CONTENT_TYPE = "1.2.840.113549.1.9.3";
+var MESSAGE_DIGEST = "1.2.840.113549.1.9.4";
+var SIGNING_TIME = "1.2.840.113549.1.9.5";
+/**
+ * The CMS SignedData Wallet checks: SHA-256, the signer certificate and the WWDR intermediate included, and
+ * signed attributes (content type, signing time, message digest) signed with RSA (Web Crypto).
+ */
+function webCryptoPassSigner(keys, now = () => /* @__PURE__ */ new Date()) {
+  return {
+    configured: true,
+    async sign(manifest) {
+      const certificate = pemToDer(keys.certificatePem);
+      const wwdr = pemToDer(keys.wwdrPem);
+      const key = await crypto.subtle.importKey(
+        "pkcs8",
+        pkcs8Of(keys.privateKeyPem),
+        {
+          name: "RSASSA-PKCS1-v1_5",
+          hash: "SHA-256",
+        },
+        false,
+        ["sign"],
+      );
+      const digest = new Uint8Array(await crypto.subtle.digest("SHA-256", manifest));
+      const signedSet = setOf(
+        ...[
+          sequence(oid(CONTENT_TYPE), setOf(oid(DATA))),
+          sequence(oid(SIGNING_TIME), setOf(utcTime(now()))),
+          sequence(oid(MESSAGE_DIGEST), setOf(octetString(digest))),
+        ],
+      );
+      const signature = new Uint8Array(
+        await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, signedSet),
+      );
+      const { issuer, serial } = issuerAndSerial(certificate);
+      const signerInfo = sequence(
+        integer(1),
+        sequence(issuer, serial),
+        sequence(oid(SHA256), NULL),
+        concat(Uint8Array.of(160), signedSet.subarray(1)),
+        sequence(oid(RSA), NULL),
+        octetString(signature),
+      );
+      const signedData = sequence(
+        integer(1),
+        setOf(sequence(oid(SHA256), NULL)),
+        sequence(oid(DATA)),
+        context(0, certificate, wwdr),
+        setOf(signerInfo),
+      );
+      return sequence(oid(SIGNED_DATA), context(0, signedData));
+    },
+  };
+}
+/** A signer for a deployment without the owner's certificate: never signs. */
+var unconfiguredPassSigner = {
+  configured: false,
+  sign: () =>
+    Promise.reject(/* @__PURE__ */ new Error("The Apple Wallet signer is not configured.")),
+};
+/**
+ * The Apple Wallet settings from the Edge Function's secrets (owner steps: APPLE_PASS_TYPE_ID,
+ * APPLE_TEAM_ID, APPLE_PASS_CERT_PEM, APPLE_PASS_KEY_PEM, APPLE_WWDR_CERT_PEM), or null while any is
+ * missing or still a placeholder.
+ */
+function readAppleWalletEnv(env) {
+  const passTypeIdentifier = env["APPLE_PASS_TYPE_ID"] ?? "";
+  const teamIdentifier = env["APPLE_TEAM_ID"] ?? "";
+  const certificatePem = env["APPLE_PASS_CERT_PEM"] ?? "";
+  const privateKeyPem = env["APPLE_PASS_KEY_PEM"] ?? "";
+  const wwdrPem = env["APPLE_WWDR_CERT_PEM"] ?? "";
+  if (!/^pass\.[A-Za-z0-9.-]+$/.test(passTypeIdentifier) || !/^[A-Z0-9]{10}$/.test(teamIdentifier))
+    return null;
+  if (![certificatePem, wwdrPem].every((p) => p.includes("BEGIN CERTIFICATE"))) return null;
+  if (!privateKeyPem.includes("PRIVATE KEY")) return null;
+  return {
+    config: {
+      passTypeIdentifier,
+      teamIdentifier,
+    },
+    signer: webCryptoPassSigner({
+      certificatePem,
+      privateKeyPem,
+      wwdrPem,
+    }),
+  };
+}
+//#endregion
+//#region src/wallet/google.ts
+var GOOGLE_SAVE_URL = "https://pay.google.com/gp/v/save/";
+function base64Url(bytes) {
+  let text = "";
+  for (const b of bytes) text += String.fromCharCode(b);
+  return btoa(text).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+var encode = (value) => base64Url(new TextEncoder().encode(JSON.stringify(value)));
+/** RS256 with Web Crypto from the service account's private key (PEM). */
+function webCryptoJwtSigner(privateKeyPem) {
+  return {
+    configured: true,
+    async sign(claims) {
+      const key = await crypto.subtle.importKey(
+        "pkcs8",
+        pkcs8Of(privateKeyPem),
+        {
+          name: "RSASSA-PKCS1-v1_5",
+          hash: "SHA-256",
+        },
+        false,
+        ["sign"],
+      );
+      const input = `${encode({
+        alg: "RS256",
+        typ: "JWT",
+      })}.${encode(claims)}`;
+      return `${input}.${base64Url(new Uint8Array(await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(input))))}`;
+    },
+  };
+}
+var unconfiguredJwtSigner = {
+  configured: false,
+  sign: () =>
+    Promise.reject(/* @__PURE__ */ new Error("The Google Wallet signer is not configured.")),
+};
+/** A Google Wallet id part: letters, digits, dot, dash and underscore. */
+function idPart(value) {
+  return value.replace(/[^A-Za-z0-9._-]/g, "_");
+}
+function text$2(language, value) {
+  return {
+    defaultValue: {
+      language,
+      value,
+    },
+  };
+}
+/** The Generic object and class for a pass. */
+function genericObject(pass, config, labels, language) {
+  const classId = `${config.issuerId}.xos_compass_${pass.kind}`;
+  const modules = [
+    {
+      id: "project",
+      header: labels.project,
+      body: pass.projectName,
+    },
+    {
+      id: "organization",
+      header: labels.organization,
+      body: pass.orgName,
+    },
+    ...(pass.kind === "shift"
+      ? [
+          {
+            id: "starts",
+            header: labels.starts,
+            body: pass.startsAt,
+          },
+        ]
+      : []),
+  ];
+  return {
+    classId,
+    object: {
+      id: `${config.issuerId}.${idPart(`${pass.kind}-${pass.serial}`)}`,
+      classId,
+      state: pass.voided ? "INACTIVE" : "ACTIVE",
+      cardTitle: text$2(language, pass.orgName),
+      header: text$2(language, pass.kind === "credential" ? pass.holderName : pass.title),
+      subheader: text$2(language, pass.kind === "credential" ? pass.title : pass.holderName),
+      hexBackgroundColor: passBackground(pass.accentHex),
+      ...(pass.barcode
+        ? {
+            barcode: {
+              type: "QR_CODE",
+              value: pass.barcode,
+              alternateText: pass.barcode.replace(/^XOSCR1:/, ""),
+            },
+          }
+        : {}),
+      validTimeInterval: {
+        start: { date: pass.startsAt },
+        ...(pass.endsAt ? { end: { date: pass.endsAt } } : {}),
+      },
+      textModulesData: modules,
+    },
+  };
+}
+/** The "Save to Google Wallet" link for a pass. Throws when the signer is not configured. */
+async function googleSaveUrl(pass, config, labels, language, signer, now = Date.now) {
+  if (!signer.configured) throw new Error("The Google Wallet signer is not configured.");
+  const { object, classId } = genericObject(pass, config, labels, language);
+  return `${GOOGLE_SAVE_URL}${await signer.sign({
+    iss: config.serviceAccountEmail,
+    aud: "google",
+    typ: "savetowallet",
+    iat: Math.floor(now() / 1e3),
+    origins: [],
+    payload: {
+      genericClasses: [{ id: classId }],
+      genericObjects: [object],
+    },
+  })}`;
+}
+/**
+ * The Google Wallet settings from the Edge Function's secrets (owner steps: GOOGLE_WALLET_ISSUER_ID,
+ * GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL, GOOGLE_WALLET_PRIVATE_KEY_PEM), or null while any is missing.
+ */
+function readGoogleWalletEnv(env) {
+  const issuerId = env["GOOGLE_WALLET_ISSUER_ID"] ?? "";
+  const serviceAccountEmail = env["GOOGLE_WALLET_SERVICE_ACCOUNT_EMAIL"] ?? "";
+  const privateKeyPem = (env["GOOGLE_WALLET_PRIVATE_KEY_PEM"] ?? "").replace(/\\n/g, "\n");
+  if (
+    !/^\d{6,30}$/.test(issuerId) ||
+    !/^[^@\s]+@[^@\s]+\.iam\.gserviceaccount\.com$/.test(serviceAccountEmail)
+  )
+    return null;
+  if (!privateKeyPem.includes("PRIVATE KEY")) return null;
+  return {
+    config: {
+      issuerId,
+      serviceAccountEmail,
+    },
+    signer: webCryptoJwtSigner(privateKeyPem),
+  };
+}
+//#endregion
+//#region src/wallet/handler.ts
+/**
+ * The wallet-pass Edge Function's logic (A93, RRR-138): Compass posts which pass it wants (its own
+ * credential or shift) and for which wallet; the pass comes from app.my_wallet_pass with the caller's own
+ * token, so nobody gets a pass for another person's badge; the answer is the signed .pkpass for Apple
+ * Wallet or the "Save to Google Wallet" link. A wallet whose certificate or key is not set answers 503
+ * wallet_not_configured, which Compass explains in plain words.
+ */
+var PKPASS_TYPE = "application/vnd.apple.pkpass";
+var request = z.object({
+  kind: z.enum(["credential", "shift"]),
+  id: z.uuid(),
+  platform: z.enum(["apple", "google"]),
+  locale: z.string().max(10).optional(),
+});
+function problem(status, reason, title) {
+  return {
+    status,
+    headers: { "content-type": "application/problem+json" },
+    body: JSON.stringify({
+      type: `/problems/${reason.replaceAll("_", "-")}`,
+      title,
+      status,
+      reason,
+    }),
+  };
+}
+/** The pass labels in the holder's language (compass.wallet in the catalog). */
+function walletLabels(locale) {
+  const wallet = getMessages(locale).compass.wallet;
+  const label = (key) => wallet[key] ?? key;
+  return {
+    holder: label("holder"),
+    credential: label("credential"),
+    role: label("role"),
+    project: label("project"),
+    starts: label("starts"),
+    ends: label("ends"),
+    validUntil: label("validUntil"),
+    organization: label("organization"),
+  };
+}
+async function walletPassResponse(body, deps) {
+  const parsed = request.safeParse(body);
+  if (!parsed.success)
+    return problem(422, "wallet_request_invalid", "The pass request is not valid.");
+  const { kind, id, platform } = parsed.data;
+  const locale = parsed.data.locale && isLocale(parsed.data.locale) ? parsed.data.locale : "en-US";
+  const wallet = platform === "apple" ? deps.apple : deps.google;
+  if (!wallet || !wallet.signer.configured)
+    return problem(503, "wallet_not_configured", "Wallet passes are not set up yet.");
+  const pass = await deps.loadPass(kind, id);
+  if (!pass) return problem(404, "wallet_pass_not_found", "No pass of yours matches.");
+  const labels = walletLabels(locale);
+  if (platform === "apple" && deps.apple) {
+    const bytes = await buildPkpass(pass, deps.apple.config, labels, deps.apple.signer);
+    return {
+      status: 200,
+      headers: {
+        "content-type": PKPASS_TYPE,
+        "content-disposition": `attachment; filename="${kind}.pkpass"`,
+        "cache-control": "no-store",
+      },
+      body: bytes,
+    };
+  }
+  const google = deps.google;
+  const saveUrl = await googleSaveUrl(
+    pass,
+    google.config,
+    labels,
+    locale.slice(0, 2),
+    google.signer,
+  );
+  return {
+    status: 200,
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "no-store",
+    },
+    body: JSON.stringify({ saveUrl }),
+  };
+}
+/** A row of app.my_wallet_pass as a WalletPass, or null for no row. */
+function passFromRow(row) {
+  if (!row) return null;
+  const str = (key) => (typeof row[key] === "string" ? row[key] : null);
+  const kind = str("kind");
+  const serial = str("serial");
+  const startsAt = str("starts_at");
+  if ((kind !== "credential" && kind !== "shift") || !serial || !startsAt) return null;
+  return {
+    kind,
+    serial,
+    orgName: str("org_name") ?? "",
+    accentHex: str("accent_hex"),
+    title: str("title") ?? "",
+    holderName: str("holder_name") ?? "",
+    projectName: str("project_name") ?? "",
+    barcode: str("barcode"),
+    startsAt,
+    endsAt: str("ends_at"),
+    timeZone: str("time_zone") ?? "UTC",
+    voided: row["voided"] === true,
   };
 }
 //#endregion
@@ -41308,12 +42235,14 @@ export {
   EXPO_PUSH_SEND_URL,
   EXPO_RECEIPT_BATCH,
   EXPO_SEND_BATCH,
+  GOOGLE_SAVE_URL,
   GOOGLE_TRANSLATE_HOST,
   GuardedSmsProvider,
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
   MAX_SCAN_ATTEMPTS,
   NotSelfServeError,
+  PKPASS_TYPE,
   PUBLIC_UPLOAD_BUCKETS,
   PUNCH_KINDS,
   PlatformDbError,
@@ -41336,6 +42265,7 @@ export {
   addonForLookupKey,
   billingEnvSchema,
   billingStore,
+  buildPkpass,
   checkContent,
   checkPushReceipts,
   checkZip,
@@ -41362,8 +42292,10 @@ export {
   extraSeatForLookupKey,
   extraSeatLookupKeyFor,
   gatewayLink,
+  genericObject,
   googleLanguage,
   googleMessageTranslator,
+  googleSaveUrl,
   handleStripeWebhook,
   handleTwilioWebhook,
   identityFromEnv,
@@ -41384,14 +42316,18 @@ export {
   observeEdgeFunction,
   outcomeOf,
   parseClamdReply,
+  passFromRow,
+  passJson,
   passThroughScanner,
   planForLookupKey,
   planRegistry,
   pushEnvSchema,
   pushMessage,
   pushStore,
+  readAppleWalletEnv,
   readBillingEnv,
   readEmailEnv,
+  readGoogleWalletEnv,
   readPushEnv,
   readSmsEnv,
   readZipDirectory,
@@ -41434,8 +42370,14 @@ export {
   translationStore,
   twilioSignature,
   twilioSmsProvider,
+  unconfiguredJwtSigner,
+  unconfiguredPassSigner,
   verifyTwilioSignature,
   verifyWebhook,
+  walletLabels,
+  walletPassResponse,
+  webCryptoJwtSigner,
+  webCryptoPassSigner,
   webhookStore,
   workloadIdentityToken,
 };

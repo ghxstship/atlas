@@ -34,6 +34,7 @@ import { scanAnnouncement } from "../../src/domain/announce";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { DenialNotice, formatDay, ProjectPicker, SyncBanner } from "../../src/screens/common";
 import { Scanner } from "../../src/screens/Scanner";
+import { WalletButton } from "../../src/screens/WalletButton";
 import {
   announce,
   Button,
@@ -129,6 +130,7 @@ function ManualEntry({
 
 function BadgeView({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { resolved, projectId } = useCompass();
   const personId = resolved?.identity.personId;
   const { rows } = useRows<
@@ -191,7 +193,13 @@ function BadgeView({ grant }: { readonly grant: ScanModeGrant }): ReactElement {
       <Text variant="text13" tone="tertiary">
         {t("compass.scan.brightness")}
       </Text>
-      {own.map(badge)}
+      {own.map((c) => (
+        <View key={c.id} style={{ gap: theme.space["8"] }}>
+          {badge(c)}
+          {/* The badge in Wallet, offline and one tap from the lock screen (A65-011 part 4). */}
+          <WalletButton kind="credential" id={c.id} testID={`wallet-${c.credential_number}`} />
+        </View>
+      ))}
       {party.length > 0 ? (
         <>
           <Text variant="heading20" heading>
