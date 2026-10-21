@@ -9,6 +9,7 @@ import {
   rotateCalendarFeedAction,
   type CalendarFeedFormState,
 } from "@/app/[org]/me/calendar-feed-actions";
+import { useKeepInput } from "@/components/collection-kit/keep-input";
 
 /**
  * Client forms of Personal settings, Calendar Feeds (ADR 0040): add a feed, get a new link and
@@ -76,10 +77,12 @@ export function AddCalendarFeedForm({
 }) {
   const t = useCopy();
   const [state, dispatch, pending] = useActionState(addCalendarFeedAction, INITIAL);
+  const keep = useKeepInput(state, dispatch, (s) => s.ok === true);
   return (
     <div className="flex flex-col gap-12">
       <form
         action={dispatch}
+        {...keep}
         aria-label={t("addTitle")}
         className="flex flex-wrap items-end gap-12"
         noValidate
