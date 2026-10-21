@@ -1,4 +1,10 @@
-export { createTransport, emailEnvSchema, readEmailEnv, type EmailEnv } from "./env.ts";
+export {
+  createTransport,
+  emailEnvSchema,
+  lazyResendClient,
+  readEmailEnv,
+  type EmailEnv,
+} from "./env.ts";
 export {
   emailCatalog,
   formatMessage,
@@ -9,6 +15,7 @@ export {
   type Translate,
 } from "./messages.ts";
 export { isTemplateCode, renderEmail, type RenderedEmail, type RenderOptions } from "./render.ts";
+export { TEMPLATE_CODES } from "./templates/codes.ts";
 export { sendEmail, type SendRequest } from "./send.ts";
 export type { Sender } from "./templates/layout.tsx";
 export {

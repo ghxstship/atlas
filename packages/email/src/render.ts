@@ -1,8 +1,8 @@
-import { render } from "@react-email/components";
 import type { Locale } from "@xos/i18n";
 import { translator } from "./messages.ts";
+import { TEMPLATE_CODES } from "./templates/codes.ts";
 import type { Sender } from "./templates/layout.tsx";
-import { templates, type TemplateCode, type TemplateProps } from "./templates/index.tsx";
+import type { TemplateCode, TemplateProps } from "./templates/index.tsx";
 
 export interface RenderOptions {
   readonly locale: Locale;
@@ -21,18 +21,24 @@ export interface RenderedEmail {
 
 /** True when the code names a template in this package. */
 export function isTemplateCode(code: string): code is TemplateCode {
-  return Object.hasOwn(templates, code);
+  return (TEMPLATE_CODES as readonly string[]).includes(code);
 }
 
 /**
  * Renders a template to semantic HTML and a plain-text part, with every string from the locale's
  * email catalog. Non-transactional email without an unsubscribe link is refused (CAN-SPAM, CASL).
+ * React Email and the templates load on the first render rather than with this module, so a worker
+ * run that sends nothing never parses them (A85).
  */
 export async function renderEmail<C extends TemplateCode>(
   code: C,
   props: TemplateProps[C],
   options: RenderOptions,
 ): Promise<RenderedEmail> {
+  const [{ render }, { templates }] = await Promise.all([
+    import("@react-email/components"),
+    import("./templates/index.tsx"),
+  ]);
   const template = templates[code];
   if (!template.transactional && options.sender.unsubscribeUrl === undefined) {
     throw new Error(`The ${code} email is not transactional and needs an unsubscribe link`);

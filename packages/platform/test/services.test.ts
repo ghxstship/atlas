@@ -12,6 +12,7 @@ import {
   gatewayLink,
   notificationStore,
   receiveInbound,
+  restDb,
   signWebhook,
   stripQuotedText,
   supabaseDb,
@@ -570,5 +571,124 @@ describe("stores", () => {
     await expect(db.selectOne("organizations", "id", { id: "x" })).resolves.toEqual({ id: "x" });
     await expect(db.selectOne("bad", "id", {})).rejects.toThrow(/denied/);
     expect(queries[0]).toBe("schema:app");
+  });
+
+  it("supabaseDb keeps the refusal code and hint on the error", async () => {
+    const client = {
+      schema: () => ({
+        rpc: async () => ({
+          data: null,
+          error: { message: "the key is revoked", code: "XR001", hint: "api_key_revoked" },
+        }),
+      }),
+    };
+    const failure = await supabaseDb(client as never)
+      .rpc("exchange_api_key", {})
+      .catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(PlatformDbError);
+    expect(failure).toMatchObject({
+      message: "exchange_api_key: the key is revoked",
+      databaseMessage: "the key is revoked",
+      code: "XR001",
+      hint: "api_key_revoked",
+    });
+  });
+
+  describe("restDb", () => {
+    const serviceKey = ["service", "role", "placeholder"].join("-");
+
+    function fakeRest(answer: (url: string, init: RequestInit) => Response) {
+      const calls: { url: string; init: RequestInit }[] = [];
+      const db = restDb({
+        url: "http://kong:8000/",
+        serviceKey,
+        fetch: async (url, init) => {
+          calls.push({ url, init });
+          return answer(url, init);
+        },
+      });
+      return { db, calls };
+    }
+
+    it("posts RPCs to the app schema with the service key, as supabase-js does", async () => {
+      const { db, calls } = fakeRest(() => Response.json([{ punch_id: "p1" }]));
+      await expect(db.rpc("kiosk_punch", { p_pin: "4821", p_photo_uri: null })).resolves.toEqual([
+        { punch_id: "p1" },
+      ]);
+      expect(calls[0]?.url).toBe("http://kong:8000/rest/v1/rpc/kiosk_punch");
+      expect(calls[0]?.init.method).toBe("POST");
+      expect(calls[0]?.init.headers).toEqual({
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
+        "Content-Profile": "app",
+      });
+      expect(JSON.parse(String(calls[0]?.init.body))).toEqual({ p_pin: "4821", p_photo_uri: null });
+    });
+
+    it("answers null for an empty body and a scalar for a scalar function", async () => {
+      const { db } = fakeRest((url) =>
+        url.endsWith("/finish") ? new Response(null, { status: 204 }) : Response.json("acme"),
+      );
+      await expect(db.rpc("finish", {})).resolves.toBeNull();
+      await expect(db.rpc("unsubscribe_by_token", { p_token: "t" })).resolves.toBe("acme");
+    });
+
+    it("reads one row with eq filters in the app schema", async () => {
+      const { db, calls } = fakeRest((url) =>
+        url.includes("people") ? Response.json([{ full_name: "Avery Cole" }]) : Response.json([]),
+      );
+      await expect(
+        db.selectOne("personal_setting_values", "value_text", {
+          person_id: "p1",
+          setting_key: "locale.language",
+        }),
+      ).resolves.toBeNull();
+      await expect(db.selectOne("people", "slug, full_name", { id: "p1" })).resolves.toEqual({
+        full_name: "Avery Cole",
+      });
+      const first = new URL(String(calls[0]?.url));
+      expect(first.pathname).toBe("/rest/v1/personal_setting_values");
+      expect(Object.fromEntries(first.searchParams)).toEqual({
+        select: "value_text",
+        person_id: "eq.p1",
+        setting_key: "eq.locale.language",
+        limit: "1",
+      });
+      expect(new URL(String(calls[1]?.url)).searchParams.get("select")).toBe("slug,full_name");
+      expect(calls[1]?.init).toEqual({
+        method: "GET",
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          "Accept-Profile": "app",
+        },
+      });
+    });
+
+    it("throws PostgREST errors with their code and hint, and gateway errors with their text", async () => {
+      const { db } = fakeRest((url) =>
+        url.includes("exchange")
+          ? Response.json(
+              { code: "XR001", message: "api_key_revoked: revoked", hint: "api_key_revoked" },
+              { status: 400 },
+            )
+          : new Response("upstream timed out", { status: 504, statusText: "Gateway Timeout" }),
+      );
+      const refused = await db.rpc("exchange_api_key", {}).catch((error: unknown) => error);
+      expect(refused).toMatchObject({
+        name: "PlatformDbError",
+        message: "exchange_api_key: api_key_revoked: revoked",
+        code: "XR001",
+        hint: "api_key_revoked",
+      });
+      await expect(db.selectOne("people", "id", {})).rejects.toThrow("people: upstream timed out");
+      const { db: silent } = fakeRest(() => new Response("", { status: 503, statusText: "Busy" }));
+      await expect(silent.rpc("claim", {})).rejects.toMatchObject({
+        message: "claim: Busy",
+        code: null,
+        hint: null,
+      });
+    });
   });
 });

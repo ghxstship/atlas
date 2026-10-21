@@ -167,6 +167,7 @@ export {
   gatewayLink,
   notificationStore,
   recipientProfile,
+  restDb,
   supabaseDb,
   webhookStore,
   type KioskPunchInput,
@@ -174,7 +175,10 @@ export {
   type PunchKind,
   type NotificationStoreOptions,
   type PlatformDb,
+  type PlatformDbErrorDetails,
+  type RestDbOptions,
 } from "./stores.ts";
+export { KIOSK_REFUSALS, parseKioskPunchRequest, type KioskRefusal } from "./kiosk.ts";
 export {
   edgeFunctionName,
   internalErrorResponse,
