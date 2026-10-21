@@ -3167,7 +3167,7 @@ var compass_default$1 = {
     step: "Step {step} of 3",
     severity: "How serious is it?",
     location: "Location",
-    locationAuto: "Near {latitude}, {longitude} (within {accuracy} m)",
+    locationAuto: "Near {latitude}, {longitude} (within {accuracy})",
     locationUnknown: "Location not found. Describe where in the title.",
     change: "Change",
     titleLabel: "What happened",
@@ -5513,6 +5513,10 @@ var finance_default$1 = {
     },
     converted:
       "Converted at {rate} {to} per {from}, the rate recorded on {date}. Unpriced figures stay Unpriced.",
+    convertedVia:
+      "Converted at {rate} {to} per {from} through {via}, from the rates recorded on {date}. Unpriced figures stay Unpriced.",
+    staleRate:
+      "This rate is {days, plural, one {# day} other {# days}} old: no newer rate has been recorded.",
     create: "New budget",
     delete: "Delete budget",
     deleteCount: "{count, plural, =0 {Delete lines} one {Delete # line} other {Delete # lines}}",
@@ -5814,6 +5818,16 @@ var finance_default$1 = {
       source: "Source",
     },
     empty: "No exchange rates yet. Record one to show budget totals in another currency.",
+    latestOnly:
+      "Each pair shows its latest rate. A conversion uses the rate of its business date, or the last one before it.",
+    feed: {
+      arrived: "ECB reference rates last arrived on {date}, for {rateDate}.",
+      failing:
+        "The ECB rate feed has failed {count, plural, one {# time} other {# times}} since its last success, most recently on {date}: {error}. Conversions use the newest rate recorded and show its date.",
+      never: "No ECB reference rates have arrived yet. Conversions use the rates recorded here.",
+      neverFailed:
+        "No ECB reference rates have arrived yet. The last attempt, on {date}, failed: {error}",
+    },
     sentence:
       "Budget totals convert at the latest rate recorded on or before the day shown, and the rate date is shown beside them.",
     title: "Exchange rates",
@@ -7081,9 +7095,15 @@ var gateway_default$1 = {
     locales: {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)",
     },
+    betaLocale: "{language} (Beta)",
     switchOrg: {
       title: "Switch org",
       body: "Pick the organization to focus on. Every organization you work with stays in Work and Messages.",
@@ -13419,11 +13439,15 @@ var settings_default$1 = {
     },
     language: {
       label: "Language",
-      help: "The language of menus, emails and documents.",
+      help: "The language of menus, emails and documents. Beta languages are machine translated; anything not translated yet shows in English.",
     },
     timeZone: {
       label: "Time zone",
       help: "Times are shown and entered in this zone.",
+    },
+    timeZoneDisplay: {
+      label: "Show schedule times in",
+      help: "Schedule times show in the event's time zone, labeled with its abbreviation. Choose your own time zone, set above, to see them as your clock reads them.",
     },
     dateFormat: {
       label: "Date format",
@@ -13431,7 +13455,7 @@ var settings_default$1 = {
     },
     units: {
       label: "Units",
-      help: "Units for distances, weights and areas.",
+      help: "Units for lengths, distances, weights, temperatures and areas. By default they follow the project's jurisdiction: imperial in the United States, metric elsewhere.",
     },
     theme: { label: "Theme" },
     persona: {
@@ -13520,14 +13544,24 @@ var settings_default$1 = {
     locale_language: {
       "en-US": "English (United States)",
       "es-US": "Spanish (United States)",
+      "fr-FR": "French (France), Beta",
+      "de-DE": "German (Germany), Beta",
+      "it-IT": "Italian (Italy), Beta",
+      "pt-BR": "Portuguese (Brazil), Beta",
+      "ja-JP": "Japanese (Japan), Beta",
     },
     locale_date_format: {
       locale: "Follow the language",
       iso: "Year-month-day",
     },
     locale_units: {
+      jurisdiction: "Follow the project's jurisdiction",
       imperial: "Imperial",
       metric: "Metric",
+    },
+    me_time_zone_display: {
+      event: "The event's time zone",
+      viewer: "My time zone",
     },
     me_theme: {
       system: "Match the device",
@@ -14324,9 +14358,15 @@ var shell_default$1 = {
     locales: {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudo-locale (accented)",
       "ar-XB": "Pseudo-locale (right to left)",
     },
+    betaLocale: "{language} (Beta)",
     mainNav: "Main",
   },
   settings: {
@@ -17585,7 +17625,7 @@ var workforce_default$1 = {
     gps: "GPS stamp",
     gpsTake: "Use my location",
     gpsAgain: "Update location",
-    gpsTaken: "Located at {latitude}, {longitude} within {accuracy} m.",
+    gpsTaken: "Located at {latitude}, {longitude} within {accuracy}.",
     gpsDenied: "Location is blocked. Allow location for this site in your browser, then try again.",
     gpsNeeded: "This form needs your location.",
     signature: "Signature",
@@ -17941,13 +17981,8 @@ var workforce_default$1 = {
       Heat: "Heat index",
     },
     hazardUnit: "{hazard} ({unit})",
-    units: {
-      mph: "mph",
-      mi: "miles",
-      F: "°F",
-    },
     value: "Reading",
-    valueHelp: "In the hazard's unit.",
+    valueHelp: "In the unit shown beside the hazard.",
     thresholds: "Thresholds",
     noThresholds: "No thresholds yet. Set them from your emergency plan.",
     noThresholdsRead: "No thresholds set for this project yet.",
@@ -17958,15 +17993,16 @@ var workforce_default$1 = {
       Evacuate: "Evacuate",
     },
     trigger: "Triggers at",
-    atOrAbove: "{value} {unit} or more",
-    atOrBelow: "{value} {unit} or closer",
+    atOrAbove: "{measure} or more",
+    atOrBelow: "{measure} or closer",
     source: "Source",
     sourceHelp: "Where the value comes from, for example the emergency plan section.",
     canonNote:
       "The Bible has no weather action metrics yet, so each project enters its thresholds from its emergency plan.",
     setThreshold: "Set threshold",
     thresholdValue: "Value",
-    thresholdHelp: "Mph for wind, miles for lightning distance, °F for heat index.",
+    thresholdHelp:
+      "In {wind} for wind, {distance} for lightning distance and {heat} for heat index.",
     roles: "Who is alerted",
     noRoles: "No roles named yet. The project's dispatchers are always alerted.",
     roleLine: "{level}: {role}",
@@ -20430,7 +20466,7 @@ var compass_default = {
     step: "Paso {step} de 3",
     severity: "¿Qué tan grave es?",
     location: "Ubicación",
-    locationAuto: "Cerca de {latitude}, {longitude} (a {accuracy} m)",
+    locationAuto: "Cerca de {latitude}, {longitude} (a {accuracy})",
     locationUnknown: "No se encontró la ubicación. Describe dónde en el título.",
     change: "Cambiar",
     titleLabel: "Qué pasó",
@@ -22701,6 +22737,10 @@ var finance_default = {
     },
     converted:
       "Convertido a {rate} {to} por {from}, el tipo registrado el {date}. Las cifras sin precio siguen Sin precio.",
+    convertedVia:
+      "Convertido a {rate} {to} por {from} a través de {via}, con los tipos registrados el {date}. Las cifras sin precio siguen Sin precio.",
+    staleRate:
+      "Este tipo tiene {days, plural, one {# día} other {# días}} de antigüedad: no se ha registrado uno más reciente.",
     create: "Presupuesto nuevo",
     delete: "Eliminar presupuesto",
     deleteCount:
@@ -23004,6 +23044,18 @@ var finance_default = {
     added: "Tipo de cambio registrado.",
     empty:
       "Aún no hay tipos de cambio. Registre uno para mostrar los totales del presupuesto en otra moneda.",
+    latestOnly:
+      "Cada par muestra su tipo más reciente. Una conversión usa el tipo de su fecha hábil, o el último anterior.",
+    feed: {
+      arrived:
+        "Los tipos de referencia del BCE llegaron por última vez el {date}, para el {rateDate}.",
+      failing:
+        "La carga de tipos del BCE ha fallado {count, plural, one {# vez} other {# veces}} desde su último éxito, la más reciente el {date}: {error}. Las conversiones usan el tipo más reciente registrado y muestran su fecha.",
+      never:
+        "Aún no han llegado tipos de referencia del BCE. Las conversiones usan los tipos registrados aquí.",
+      neverFailed:
+        "Aún no han llegado tipos de referencia del BCE. El último intento, el {date}, falló: {error}",
+    },
     fields: {
       base: "Moneda de origen",
       effectiveOn: "Vigente desde",
@@ -24305,9 +24357,15 @@ var gateway_default = {
     locales: {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudolocal (acentos)",
       "ar-XB": "Pseudolocal (derecha a izquierda)",
     },
+    betaLocale: "{language} (beta)",
     switchOrg: {
       title: "Cambiar de organización",
       body: "Elige la organización en la que quieres enfocarte. Todas las organizaciones con las que trabajas siguen en Trabajo y Mensajes.",
@@ -30820,11 +30878,15 @@ var settings_default = {
     },
     language: {
       label: "Idioma",
-      help: "El idioma de menús, correos y documentos.",
+      help: "El idioma de menús, correos y documentos. Los idiomas en beta son traducciones automáticas; lo que aún no está traducido se muestra en inglés.",
     },
     timeZone: {
       label: "Zona horaria",
       help: "Las horas se muestran e introducen en esta zona.",
+    },
+    timeZoneDisplay: {
+      label: "Mostrar los horarios en",
+      help: "Los horarios se muestran en la zona horaria del evento, con su abreviatura. Elige tu propia zona horaria, la de arriba, para verlos como marca tu reloj.",
     },
     dateFormat: {
       label: "Formato de fecha",
@@ -30832,7 +30894,7 @@ var settings_default = {
     },
     units: {
       label: "Unidades",
-      help: "Unidades de distancia, peso y superficie.",
+      help: "Unidades de longitud, distancia, peso, temperatura y superficie. Por defecto siguen la jurisdicción del proyecto: imperiales en Estados Unidos y métricas en el resto.",
     },
     theme: { label: "Tema" },
     persona: {
@@ -30921,14 +30983,24 @@ var settings_default = {
     locale_language: {
       "en-US": "Inglés (Estados Unidos)",
       "es-US": "Español (Estados Unidos)",
+      "fr-FR": "Francés (Francia), beta",
+      "de-DE": "Alemán (Alemania), beta",
+      "it-IT": "Italiano (Italia), beta",
+      "pt-BR": "Portugués (Brasil), beta",
+      "ja-JP": "Japonés (Japón), beta",
     },
     locale_date_format: {
       locale: "Seguir el idioma",
       iso: "Año-mes-día",
     },
     locale_units: {
+      jurisdiction: "Según la jurisdicción del proyecto",
       imperial: "Imperiales",
       metric: "Métricas",
+    },
+    me_time_zone_display: {
+      event: "La zona horaria del evento",
+      viewer: "Mi zona horaria",
     },
     me_theme: {
       system: "Igual que el dispositivo",
@@ -31740,9 +31812,15 @@ var shell_default = {
     locales: {
       "en-US": "English (US)",
       "es-US": "Español (EE. UU.)",
+      "fr-FR": "Français",
+      "de-DE": "Deutsch",
+      "it-IT": "Italiano",
+      "pt-BR": "Português (Brasil)",
+      "ja-JP": "日本語",
       "en-XA": "Pseudolocalización (acentos)",
       "ar-XB": "Pseudolocalización (derecha a izquierda)",
     },
+    betaLocale: "{language} (beta)",
     mainNav: "Principal",
   },
   settings: {
@@ -35065,7 +35143,7 @@ var workforce_default = {
     gps: "Ubicación GPS",
     gpsTake: "Usar mi ubicación",
     gpsAgain: "Actualizar ubicación",
-    gpsTaken: "Ubicado en {latitude}, {longitude} con {accuracy} m de precisión.",
+    gpsTaken: "Ubicado en {latitude}, {longitude} con una precisión de {accuracy}.",
     gpsDenied:
       "La ubicación está bloqueada. Permite la ubicación para este sitio en tu navegador e intenta de nuevo.",
     gpsNeeded: "Este formulario necesita tu ubicación.",
@@ -35424,13 +35502,8 @@ var workforce_default = {
       Heat: "Índice de calor",
     },
     hazardUnit: "{hazard} ({unit})",
-    units: {
-      mph: "mph",
-      mi: "millas",
-      F: "°F",
-    },
     value: "Lectura",
-    valueHelp: "En la unidad del riesgo.",
+    valueHelp: "En la unidad que aparece junto al riesgo.",
     thresholds: "Umbrales",
     noThresholds: "Todavía no hay umbrales. Configúralos según tu plan de emergencia.",
     noThresholdsRead: "Este proyecto todavía no tiene umbrales.",
@@ -35441,8 +35514,8 @@ var workforce_default = {
       Evacuate: "Evacuar",
     },
     trigger: "Se activa con",
-    atOrAbove: "{value} {unit} o más",
-    atOrBelow: "{value} {unit} o menos",
+    atOrAbove: "{measure} o más",
+    atOrBelow: "{measure} o menos",
     source: "Fuente",
     sourceHelp: "De dónde sale el valor, por ejemplo la sección del plan de emergencia.",
     canonNote:
@@ -35450,7 +35523,7 @@ var workforce_default = {
     setThreshold: "Guardar umbral",
     thresholdValue: "Valor",
     thresholdHelp:
-      "Mph para el viento, millas para la distancia de rayos, °F para el índice de calor.",
+      "En {wind} para el viento, {distance} para la distancia de rayos y {heat} para el índice de calor.",
     roles: "A quién se alerta",
     noRoles: "Todavía no hay roles. Siempre se alerta a los despachadores del proyecto.",
     roleLine: "{level}: {role}",
@@ -36086,25 +36159,44 @@ var esUS = {
 /**
  * The shipped locales, without any catalog. Client code imports this entry (`@xos/i18n/locales`)
  * so that checking a locale never pulls the message catalogs into a browser bundle (A24-009).
+ *
+ * Section 15 ships two kinds of locale:
+ *   - launch locales (en-US, the source, and es-US): complete catalogs, held strict by the tests;
+ *   - Beta locales (fr-FR, de-DE, it-IT, pt-BR, ja-JP): machine translated through the Google
+ *     Translate pipeline (ADR 0037), so a catalog may be partial or absent. Every key a Beta catalog
+ *     lacks falls back to en-US, one key at a time, so a raw key never shows. The language picker marks
+ *     them Beta until a native reviewer signs them off in packages/i18n/REVIEW.md.
  */
-var locales = ["en-US", "es-US"];
+var launchLocales = ["en-US", "es-US"];
+var betaLocales = ["fr-FR", "de-DE", "it-IT", "pt-BR", "ja-JP"];
+var locales = [...launchLocales, ...betaLocales];
 var defaultLocale = "en-US";
 function isLocale(value) {
   return locales.includes(value);
 }
+function isBetaLocale(value) {
+  return betaLocales.includes(value);
+}
 //#endregion
 //#region ../i18n/src/index.ts
-var catalogs = {
+var launch = {
   "en-US": enUS,
   "es-US": esUS,
 };
+/** Beta catalogs registered so far, already merged over en-US key by key (ADR 0053). */
+var beta = /* @__PURE__ */ new Map();
 /**
  * Every namespace of one locale. Server code only: a client component that imports this pulls the
  * whole catalog into the browser. Client components get their copy from the next-intl provider
  * (see `pickNamespaces`) or import one namespace file from `@xos/i18n/messages/<locale>/<ns>.json`.
+ *
+ * A Beta locale reads its translations where the pipeline has written them and en-US for every other
+ * key. Its catalog loads on demand: call `loadMessages` from `@xos/i18n/load` first (the shells' request
+ * configuration does), or a Beta locale reads plain en-US. Either way no key is ever missing.
  */
 function getMessages(locale) {
-  return catalogs[locale];
+  if (isBetaLocale(locale)) return beta.get(locale) ?? launch["en-US"];
+  return launch[locale];
 }
 //#endregion
 //#region ../email/src/messages.ts

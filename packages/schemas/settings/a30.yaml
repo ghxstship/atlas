@@ -538,6 +538,12 @@ settings:
         test: packages/ui/test/preferences.test.tsx
       - consumer: apps/compass/src/domain/settings.ts#formatDistance
         test: apps/compass/test/settings.test.ts
+      - consumer: packages/i18n/src/formats/units.ts#resolveUnitSystem
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/atlas/lib/workforce/units.ts#unitSystemFor
+        test: apps/atlas/test/weather-units.test.ts
+      - consumer: apps/compass/src/domain/settings.ts#unitSystemOf
+        test: apps/compass/test/settings.test.ts
 
   # Personal: preferences ---------------------------------------------------------------------------------------------
   - key: me.theme

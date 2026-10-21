@@ -359,7 +359,7 @@
     "step": "Paso {step} de 3",
     "severity": "¿Qué tan grave es?",
     "location": "Ubicación",
-    "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy} m)",
+    "locationAuto": "Cerca de {latitude}, {longitude} (a {accuracy})",
     "locationUnknown": "No se encontró la ubicación. Describe dónde en el título.",
     "change": "Cambiar",
     "titleLabel": "Qué pasó",

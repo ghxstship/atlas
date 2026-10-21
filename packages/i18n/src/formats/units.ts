@@ -113,6 +113,20 @@ export function resolveUnitSystem(
   return unitSystemForRegion(context.locale ? regionOfLocale(context.locale) : null);
 }
 
+/** A unit's short symbol in a locale, from Intl ("km/h", "mi", "°F"), for labels such as "Wind (km/h)". */
+export function unitSymbol(locale: string, unit: MeasureUnit): string {
+  const parts = new Intl.NumberFormat(locale, {
+    style: "unit",
+    unit,
+    unitDisplay: "short",
+  }).formatToParts(1);
+  return parts
+    .filter((p) => p.type === "unit")
+    .map((p) => p.value)
+    .join("")
+    .trim();
+}
+
 /** The unit a quantity shows in for a system. */
 export function displayUnit(quantity: Quantity, system: UnitSystem): MeasureUnit {
   return DISPLAY[quantity][system];

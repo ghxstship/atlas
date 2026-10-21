@@ -55287,6 +55287,16 @@ export type Database = {
         };
         Returns: string;
       };
+      fx_feed_status: {
+        Args: { p_source?: string };
+        Returns: {
+          failures_since_success: number;
+          last_error: string;
+          last_failure_at: string;
+          last_rate_date: string;
+          last_success_at: string;
+        }[];
+      };
       generate_permit_requirements: { Args: { p_project_id: string }; Returns: number };
       generate_self_billed_invoice: {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
@@ -55872,6 +55882,11 @@ export type Database = {
           p_reason: Database["app"]["Enums"]["suppression_reason"];
         };
         Returns: undefined;
+      };
+      record_fx_feed_failure: { Args: { p_error: string; p_source: string }; Returns: undefined };
+      record_fx_reference_rates: {
+        Args: { p_rate_date: string; p_rates: Json; p_source: string };
+        Returns: Json;
       };
       record_gate_arrival: {
         Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
@@ -58045,6 +58060,49 @@ export type Database = {
           },
         ];
       };
+      canon_label: {
+        Row: {
+          code: string;
+          label: string;
+          locale_code: string;
+          provenance: string;
+          updated_at: string;
+          vocabulary: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          code: string;
+          label: string;
+          locale_code: string;
+          provenance: string;
+          updated_at?: string;
+          vocabulary: string;
+        };
+        Update: {
+          code?: string;
+          label?: string;
+          locale_code?: string;
+          provenance?: string;
+          updated_at?: string;
+          vocabulary?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "canon_label_locale_code_fkey";
+            columns: ["locale_code"];
+            isOneToOne: false;
+            referencedRelation: "dim_locale";
+            referencedColumns: ["locale_code"];
+          },
+          {
+            foreignKeyName: "canon_label_vocabulary_fkey";
+            columns: ["vocabulary"];
+            isOneToOne: false;
+            referencedRelation: "canon_vocabulary";
+            referencedColumns: ["vocabulary"];
+          },
+        ];
+      };
       canon_statement: {
         Row: {
           item: string | null;
@@ -58064,6 +58122,37 @@ export type Database = {
           ordinal?: number;
           statement?: string | null;
           tab?: string;
+        };
+        Relationships: [];
+      };
+      canon_vocabulary: {
+        Row: {
+          code_column: string;
+          description: string;
+          label_column: string;
+          ordinal: number;
+          parent_column: string | null;
+          source_table: unknown;
+          vocabulary: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          code_column: string;
+          description: string;
+          label_column: string;
+          ordinal: number;
+          parent_column?: string | null;
+          source_table: unknown;
+          vocabulary: string;
+        };
+        Update: {
+          code_column?: string;
+          description?: string;
+          label_column?: string;
+          ordinal?: number;
+          parent_column?: string | null;
+          source_table?: unknown;
+          vocabulary?: string;
         };
         Relationships: [];
       };
@@ -63492,6 +63581,20 @@ export type Database = {
         Args: { as_of?: string; confidence: string; valid_from: string; valid_to: string };
         Returns: string;
       };
+      canon_code_expression: { Args: { p_vocabulary: string }; Returns: string };
+      canon_label_of: {
+        Args: { p_code: string; p_locale: string; p_vocabulary: string };
+        Returns: string;
+      };
+      canon_labels: {
+        Args: { p_locale: string; p_vocabulary: string };
+        Returns: {
+          code: string;
+          label: string;
+          locale_code: string;
+          translated: boolean;
+        }[];
+      };
       is_extension_urid: { Args: { urid: string }; Returns: boolean };
       may_write_field: {
         Args: { element_id: string; field: string; provenance: string };
@@ -63514,6 +63617,10 @@ export type Database = {
       pb_ts: { Args: { value: string }; Returns: string };
       playbook_checksum: { Args: { sheet: string }; Returns: string };
       playbook_lines: { Args: { sheet: string }; Returns: string };
+      put_canon_labels: {
+        Args: { p_labels: Json; p_locale: string; p_provenance: string; p_vocabulary: string };
+        Returns: number;
+      };
       resolve_element: {
         Args: { query: string };
         Returns: {

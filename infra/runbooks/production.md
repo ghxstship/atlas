@@ -180,7 +180,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, each every minute; `infra/runbooks/integrations.md`; and `xos_fx_rates_ecb`, which a migration creates, section Exchange rates) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 ### 3. Apps
 
@@ -457,8 +457,9 @@ Later runs: `pnpm --filter @xos/i18n translate` re-translates only strings whose
 The five Beta locales ship in the language picker marked Beta. They are targets of the same pipeline, so the first `translate` (inside `translate:all`) writes their catalogs; until then every key reads en-US.
 
 1. Price it first: `pnpm --filter @xos/i18n translate --dry-run` prints each locale's strings, characters and estimated cost. A full fill of one locale costs about the same as the first es-US review (USD 9.76 on 2026-10-20), so about USD 49 for all five.
-2. Run `pnpm --filter @xos/i18n translate` (or one locale: `--locale fr-FR`). Beta locales cover only the app catalogs (`surfaces: ["catalogs"]` in `translation/config.json`); help articles and guides stay in en-US for them.
-3. Commit `packages/i18n/messages/<locale>/`, `packages/i18n/translation/memory/<locale>.json`, the regenerated `packages/i18n/src/beta/<locale>.generated.ts` and `docs/i18n/translate-<locale>.md`, with a `Part of RRR-142` trailer.
+2. Run `pnpm --filter @xos/i18n translate` (or one locale: `--locale fr-FR`). Beta locales cover the app catalogs and the canon labels (`surfaces: ["catalogs", "canon"]` in `translation/config.json`); help articles and guides stay in en-US for them.
+3. Commit `packages/i18n/messages/<locale>/`, `packages/i18n/canon/<locale>/`, `packages/i18n/translation/memory/<locale>.json`, the regenerated `packages/i18n/src/beta/<locale>.generated.ts` and `docs/i18n/translate-<locale>.md`, with a `Part of RRR-142` trailer.
+   3a. Canon labels reach the database through a migration: run `pnpm --filter @xos/i18n canon:sql` and paste what it prints into a new migration in your range (`packages/i18n/test/canon.test.ts` fails until you do). es-US canon labels other than phases, record kinds, classes, states, subtypes and worker classifications arrive the same way on the first `translate`.
 4. Optional: fill the Beta columns of `packages/i18n/translation/glossary.csv` (`fr`, `de`, `it`, `pt`, `ja`) with the terms a person chose, then run `translate:glossary`. Until then those columns hold only the product names.
 
 A Beta locale becomes general when a native reviewer signs it off in `packages/i18n/REVIEW.md` (the steps are there).
@@ -486,6 +487,23 @@ The manual workflow `translate.yml` (`infra/ci/README.md`, section 9) runs the s
 - `400` about contextual translation: set `google.contextualGlossary` to `false` in `packages/i18n/translation/config.json` and run again.
 - Many strings failed with "Google's markup did not survive": the model is dropping the masking spans. Switch to NMT as above; failed strings are retried and nothing broken was written.
 - Strings listed as failed in `docs/i18n/translate-<locale>.md` kept their value (or the en-US text where they had none) and are retried on the next run.
+
+## Exchange rates (OWNER, ECB daily reference rates)
+
+The Edge Function `fx-rates-ecb` writes the European Central Bank's daily reference rates into every org's
+exchange rates (ADR 0053, migration 1542). pg_cron job `xos_fx_rates_ecb` runs it on ECB business days at 15:30 and
+21:30 UTC (`30 15,21 * * 1-5`), after the 16:00 CET publication. The rates file is public: no key is needed to read
+it.
+
+1. Deploy the function with the others: `supabase functions deploy fx-rates-ecb --project-ref <ref>`. It keeps the
+   default `verify_jwt = true` and checks the service key, as the other workers do.
+2. Add the functions URL to Vault once, beside `xos_worker_key` (example value, use your own project ref):
+   `select vault.create_secret('https://<project ref>.supabase.co/functions/v1', 'xos_functions_url');`
+3. Check the first run (the next weekday after 15:30 UTC, or call `select private.request_fx_feed();`):
+   `select * from app.fx_feed_status('ECB');` shows `last_rate_date` and no failures since. Until step 2, every
+   scheduled run records a failure saying the feed is not configured, and Finance, Cost centers says so.
+4. A failing feed: `select ran_at, error from private.fx_feed_runs where outcome = 'Failed' order by ran_at desc
+limit 5;`. Conversions keep using the newest rate recorded, show its date, and say when it is stale.
 
 ## Push and SMS (OWNER)
 

@@ -357,7 +357,7 @@ The workflow file itself is the source; this section no longer copies it. What i
 - **Inputs.** `command` is `translate` (missing and stale strings in es-US and in the five Beta locales), `review` (es-US) or `all` (glossary, translate, review). `locale` limits `translate` or `review` to one target, for example `fr-FR`.
 - **No credentials, no run.** The first step checks the repository variables `GOOGLE_CLOUD_PROJECT`, `GOOGLE_WORKLOAD_IDENTITY_PROVIDER` and `GOOGLE_TRANSLATE_SERVICE_ACCOUNT`. Until the owner sets them, the run ends there with a notice ("Translation skipped") and touches nothing: no install, no Google call, no patch. The Beta catalogs stay as they are and every missing key reads en-US (ADR 0053).
 - **With credentials,** it installs, authenticates through Workload Identity Federation, runs the command, runs the offline check (`pnpm --filter @xos/i18n test`) and uploads the changes as `translation.patch`.
-- **Beta locales** (fr-FR, de-DE, it-IT, pt-BR, ja-JP) are targets in `packages/i18n/translation/config.json` with `partial: true` and only the `catalogs` surface, so the first `translate` writes their catalogs and nothing under the help articles or guides.
+- **Beta locales** (fr-FR, de-DE, it-IT, pt-BR, ja-JP) are targets in `packages/i18n/translation/config.json` with `partial: true` and the `catalogs` and `canon` surfaces, so the first `translate` writes their catalogs and canon labels and nothing under the help articles or guides.
 
 To apply the result:
 
