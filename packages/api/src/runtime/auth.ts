@@ -5,7 +5,8 @@
  *   `@supabase/ssr`) for Atlas pages, with a
  *   same-origin check on state-changing methods because cookies ride along cross-site;
  * - `Authorization: Bearer xos_live_...` API keys, exchanged for a short-lived JWT acting as the
- *   key's service account (`createApiKeyExchange`), limited to the key's scopes.
+ *   key's service account (`createApiKeyExchange`), limited to the key's scopes; personal API
+ *   tokens (`xos_pat_...`, A86) take the same exchange and act as their person.
  *
  * The token's signature is verified against the project's published keys (runtime/jwt.ts), or by
  * Supabase Auth for a token only Auth can judge, and every query runs through a client carrying
@@ -140,6 +141,11 @@ export function sessionRuleRefused(rule: Exclude<SessionRule, "ok">) {
   );
 }
 export const API_KEY_PREFIX = "xos_live_";
+/**
+ * Personal API tokens (A86, migration 1432) are exchanged like API keys: app.exchange_api_key resolves them to
+ * their person's own sign-in, limited to the token's scopes.
+ */
+export const PERSONAL_TOKEN_PREFIX = "xos_pat_";
 export const SUPPORTED_LOCALES = ["en-US", "es-US"] as const;
 
 export interface SupabaseAuthOptions {
@@ -267,7 +273,10 @@ function readCredential(request: Request, options: SupabaseAuthOptions): Credent
     const token = match[1] as string;
     return {
       token,
-      kind: token.startsWith(API_KEY_PREFIX) ? "api-key" : "session-bearer",
+      kind:
+        token.startsWith(API_KEY_PREFIX) || token.startsWith(PERSONAL_TOKEN_PREFIX)
+          ? "api-key"
+          : "session-bearer",
       cookies,
     };
   }

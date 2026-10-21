@@ -42,6 +42,7 @@ import enUS_reports from "../messages/en-US/reports.json" with { type: "json" };
 import enUS_savedViews from "../messages/en-US/savedViews.json" with { type: "json" };
 import enUS_schedule from "../messages/en-US/schedule.json" with { type: "json" };
 import enUS_settings from "../messages/en-US/settings.json" with { type: "json" };
+import enUS_settingsSurfaces from "../messages/en-US/settingsSurfaces.json" with { type: "json" };
 import enUS_shell from "../messages/en-US/shell.json" with { type: "json" };
 import enUS_shipmentTracking from "../messages/en-US/shipmentTracking.json" with { type: "json" };
 import enUS_show from "../messages/en-US/show.json" with { type: "json" };
@@ -96,6 +97,7 @@ import esUS_reports from "../messages/es-US/reports.json" with { type: "json" };
 import esUS_savedViews from "../messages/es-US/savedViews.json" with { type: "json" };
 import esUS_schedule from "../messages/es-US/schedule.json" with { type: "json" };
 import esUS_settings from "../messages/es-US/settings.json" with { type: "json" };
+import esUS_settingsSurfaces from "../messages/es-US/settingsSurfaces.json" with { type: "json" };
 import esUS_shell from "../messages/es-US/shell.json" with { type: "json" };
 import esUS_shipmentTracking from "../messages/es-US/shipmentTracking.json" with { type: "json" };
 import esUS_show from "../messages/es-US/show.json" with { type: "json" };
@@ -152,6 +154,7 @@ export const enUS = {
   savedViews: enUS_savedViews,
   schedule: enUS_schedule,
   settings: enUS_settings,
+  settingsSurfaces: enUS_settingsSurfaces,
   shell: enUS_shell,
   shipmentTracking: enUS_shipmentTracking,
   show: enUS_show,
@@ -209,6 +212,7 @@ export const esUS = {
   savedViews: esUS_savedViews,
   schedule: esUS_schedule,
   settings: esUS_settings,
+  settingsSurfaces: esUS_settingsSurfaces,
   shell: esUS_shell,
   shipmentTracking: esUS_shipmentTracking,
   show: esUS_show,

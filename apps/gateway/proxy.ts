@@ -1,4 +1,5 @@
 import { tokenAal } from "@xos/data/auth-assurance";
+import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
 import { NextResponse, type NextRequest } from "next/server";
@@ -115,12 +116,17 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       const roleTypes = routeNeeds(sitemap, guarded, "paid-work")
         ? await listMyEngagementRoleTypes(db)
         : null;
+      // Only Developer depends on an org allowing personal tokens (A86); read it just for that route.
+      const tokenOrgs = routeNeeds(sitemap, guarded, "org-allows-personal-tokens")
+        ? await listOrgsAllowingPersonalTokens(db)
+        : null;
       const ctx = navContext({
         standing: acting.standing,
         companyAccount: acting.account !== null,
         platformDomain: isPlatformHost(host, platformHosts(config)),
         desktop: isDesktopAgent(request.headers.get("user-agent")),
         paidWork: roleTypes?.ok ? doesPaidWork(roleTypes.data) : true,
+        personalTokens: tokenOrgs?.ok === true && tokenOrgs.data.length > 0,
       });
       if (!isNodeVisible(sitemap, guarded, ctx)) {
         const rewrite = NextResponse.rewrite(new URL(NOT_FOUND_PATH, request.url), {

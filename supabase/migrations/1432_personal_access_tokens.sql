@@ -15,7 +15,8 @@
 --   * app.exchange_api_key, replaced from 0922: an `xos_pat_` secret now resolves to the person's own sign-in, so
 --     the api-token Edge Function signs the same short-lived JWT with the token's scopes (0936 enforces them). The
 --     `xos_live_` path is unchanged.
--- Step-up before creating a token is A77's (requireSecondFactor); this migration does not stand in for it.
+-- Creating a token is a step-up action: private.require_second_factor (A77, 1333) asks for an aal2 session with a
+-- second factor in the last 15 minutes, and refuses an API key or token session.
 
 select private.define_setting('developer.personal_tokens', 'Boolean', 'org.api_keys.manage', array['organization'], false, p_default_boolean => false);
 
@@ -147,6 +148,9 @@ begin
   if not private.org_allows_personal_tokens(p_org_id) then
     perform private.refuse('personal_tokens_off', 'Your organization does not allow personal API tokens.');
   end if;
+  -- A token acts as its person, so issuing one is a step-up action (A77, 1333): an aal2 session with a second
+  -- factor in the last 15 minutes, and never an API key or another token.
+  perform private.require_second_factor('create a personal API token');
   if p_name is null or char_length(btrim(p_name)) not between 1 and 200 then
     perform private.refuse('personal_token_name', 'Name the token in 1 to 200 characters.');
   end if;
@@ -179,7 +183,7 @@ begin
 end;
 $$;
 
-comment on function app.create_personal_access_token(uuid, text, text[], timestamptz) is 'Creates the signed-in member''s personal API token for an org that allows them and returns its secret once; only the SHA-256 hash is stored. Scopes are capability groups the person holds; expiry at most one year ahead; at most 10 active tokens per person and org. Audited.';
+comment on function app.create_personal_access_token(uuid, text, text[], timestamptz) is 'Creates the signed-in member''s personal API token for an org that allows them and returns its secret once; only the SHA-256 hash is stored. Scopes are capability groups the person holds; expiry at most one year ahead; at most 10 active tokens per person and org. Needs a recent second factor (step-up). Audited.';
 
 create or replace function app.revoke_personal_access_token(p_token_id uuid)
 returns void

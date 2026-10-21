@@ -114,4 +114,17 @@ export const EMPTY_STATE_TARGETS: Readonly<Record<string, string>> = {
 };
 
 /** Route parameters that name data rows; a page whose row does not resolve answers 404. */
-export const DATA_PARAMS = ["projectKey", "recordKey", "viewId", "objectKey"] as const;
+export const DATA_PARAMS = [
+  "projectKey",
+  "recordKey",
+  "viewId",
+  "objectKey",
+  "workspaceSlug",
+  "teamId",
+] as const;
+
+/**
+ * Data parameters whose page looks its row up itself and answers 404 when it does not resolve: the workspace
+ * and team settings pages (A86, ADR 0006 amendment of 2026-10-21). Project keys resolve in the route guard.
+ */
+export const PAGE_RESOLVED_PARAMS = ["workspaceSlug", "teamId"] as const;

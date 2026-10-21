@@ -109,6 +109,54 @@ export async function setLocationDefaults(
   return ok(null);
 }
 
+// Workspace and team settings pages (ADR 0006 amendment of 2026-10-21) --------------------------------------
+
+/** The memberships in a workspace (app.workspace_members). */
+export async function listWorkspaceMembershipIds(
+  db: XosClient,
+  workspaceId: string,
+): Promise<Result<string[]>> {
+  const { data, error } = await db
+    .from("workspace_members")
+    .select("membership_id")
+    .eq("workspace_id", workspaceId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  return ok(data.map((r) => r.membership_id));
+}
+
+export interface TeamSummary {
+  readonly id: string;
+  readonly name: string;
+  readonly description: string | null;
+  readonly membershipIds: readonly string[];
+}
+
+/** One team of an org with its live memberships; not-found when it is not the org's or is gone. */
+export async function getTeam(
+  db: XosClient,
+  orgId: string,
+  teamId: string,
+): Promise<Result<TeamSummary>> {
+  const { data, error } = await db
+    .from("teams")
+    .select("id, name, description, team_members(membership_id, deleted_at)")
+    .eq("org_id", orgId)
+    .eq("id", teamId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return fail(toDataError(error));
+  if (data === null) return fail({ kind: "not-found" });
+  return ok({
+    id: data.id,
+    name: data.name,
+    description: data.description,
+    membershipIds: (data.team_members ?? [])
+      .filter((m) => m.deleted_at === null)
+      .map((m) => m.membership_id),
+  });
+}
+
 /**
  * What a new venue's form starts with: the org's location defaults, else the first jurisdiction offered and the
  * zone the caller passes (the browser's, the form's behavior before defaults existed). A saved venue keeps its own.

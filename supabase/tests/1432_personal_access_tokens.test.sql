@@ -5,10 +5,21 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(33);
+select plan(35);
 
 create temporary table tok (key text primary key, id uuid, secret text);
 grant select, insert on tok to public;
+
+-- A user's session after a second factor p_second_ago (A77's step-up, as 1333's suite builds it).
+create function pg_temp.as_stepped(p_key text, p_second_ago interval default interval '1 minute') returns void
+language plpgsql as $$
+begin
+  perform set_config('role', 'postgres', true);
+  perform set_config('request.jwt.claims', jsonb_build_object('sub', pg_temp.id(p_key || '_user'), 'role', 'authenticated',
+    'aal', 'aal2', 'amr', jsonb_build_array(jsonb_build_object('method', 'totp',
+      'timestamp', extract(epoch from now() - p_second_ago)::bigint)))::text, true);
+  perform set_config('role', 'authenticated', true);
+end $$;
 
 -- The org setting decides -------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
@@ -34,6 +45,15 @@ select is(app.org_allows_personal_tokens(pg_temp.id('org_a')), false, 'someone o
 
 -- Creating a token ---------------------------------------------------------------------------------------------------
 select pg_temp.as_user('dave');
+select throws_ok($$select * from app.create_personal_access_token(pg_temp.id('org_a'), 'Laptop', array['work'], now() + interval '30 days')$$,
+  'XR001', 'step_up_required: Confirm it is you with your second factor to create a personal API token.',
+  'creating a token needs a second factor (step-up)');
+select pg_temp.as_stepped('dave', interval '20 minutes');
+select throws_ok($$select * from app.create_personal_access_token(pg_temp.id('org_a'), 'Laptop', array['work'], now() + interval '30 days')$$,
+  'XR001', 'step_up_required: Confirm it is you with your second factor to create a personal API token.',
+  'and a recent one: 20 minutes ago is too long');
+
+select pg_temp.as_stepped('dave');
 select throws_ok($$select * from app.create_personal_access_token(pg_temp.id('org_a'), 'Laptop', array['org'], now() + interval '30 days')$$,
   'XR001', 'personal_token_scope_not_held: You hold no capability in org, so a token cannot use it.',
   'a token cannot reach a capability group its person does not hold');
@@ -92,7 +112,7 @@ select pg_temp.as_user('erin');
 select throws_ok($$select app.revoke_personal_access_token((select id from tok where key = 'dave'))$$, '42501', null,
   'another member cannot revoke the token');
 
-select pg_temp.as_user('dave');
+select pg_temp.as_stepped('dave');
 select lives_ok($$select app.revoke_personal_access_token((select id from tok where key = 'dave'))$$, 'the owner revokes the token');
 select throws_ok($$select app.revoke_personal_access_token((select id from tok where key = 'dave'))$$, 'XR001',
   'personal_token_revoked: This token is already revoked.', 'a revoked token stays revoked');
@@ -112,7 +132,7 @@ select is((select revoked_by from app.personal_access_tokens where id = (select 
   'the token records who revoked it');
 
 -- Leaving the org ends the token -------------------------------------------------------------------------------------
-select pg_temp.as_user('dave');
+select pg_temp.as_stepped('dave');
 insert into tok select 'dave3', t.personal_access_token_id, t.secret
 from app.create_personal_access_token(pg_temp.id('org_a'), 'Report sync', array['reports'], now() + interval '30 days') t;
 select pg_temp.as_platform();
