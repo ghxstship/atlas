@@ -4,23 +4,25 @@
  * wire format. The worker (`@xos/data/search-embeddings`) embeds the text of published documents, SOPs and
  * handbook articles; the search embeds the words a person searched with. Both go through one provider.
  *
- * No provider is chosen yet. A provider is a new subprocessor, so choosing one is an owner decision
- * (legal/OWNER_INPUTS.md); until then `embeddingProviderFromEnv` returns null and search stays lexical.
- * The deterministic `localHashEmbeddings` fake stands in for tests and local development only: it runs
- * when XOS_SEARCH_EMBEDDINGS=local-hash and the process is not a production one, and it never leaves the
- * process. Every text is redacted (`redactText`) before it reaches any provider, and the database hands
- * the worker no column classified Restricted (migration 1440).
+ * The default provider is Supabase's built-in gte-small model (`Supabase.ai.Session("gte-small")`), which
+ * runs inside the Supabase Edge Runtime the platform already uses, so no text leaves for a new
+ * subprocessor. The search-embed Edge Function runs it for the worker and, for servers outside the Edge
+ * Runtime such as Atlas, embeds a person's query (`remoteGteSmallEmbeddings`). Search stays lexical for an
+ * org until an Admin turns on search.semantic_enabled. XOS_SEARCH_EMBEDDINGS=off turns the provider off
+ * everywhere; XOS_SEARCH_EMBEDDINGS=local-hash names a deterministic fake for tests and local development,
+ * refused in production. Every text is redacted (`redactText`) before any provider sees it, and the
+ * database hands the worker no column classified Restricted (migration 1440).
  */
 import { redactText } from "./redact.ts";
 
-/** Dimensions of every stored vector (app.search_embeddings.embedding is vector(1024)). */
-export const EMBEDDING_DIMENSIONS = 1024;
+/** Dimensions of every stored vector: gte-small's width (app.search_embeddings.embedding is vector(384)). */
+export const EMBEDDING_DIMENSIONS = 384;
 
 /** A document is embedded for storage; a query for comparison. Some providers embed them differently. */
 export type EmbeddingPurpose = "document" | "query";
 
 export interface EmbeddingProvider {
-  /** Stored with each vector (app.search_embeddings.provider), for example `local-hash`. */
+  /** Stored with each vector (app.search_embeddings.provider), for example `supabase-gte`. */
   readonly provider: string;
   /** Model that makes the vectors; vectors of different models are never compared. */
   readonly model: string;
@@ -39,6 +41,60 @@ export class EmbeddingUnavailableError extends Error {
     this.name = "EmbeddingUnavailableError";
   }
 }
+
+// Supabase gte-small ---------------------------------------------------------------------------------------
+
+/** Names stored with gte-small vectors. */
+export const GTE_SMALL = { provider: "supabase-gte", model: "gte-small" } as const;
+
+/** gte-small reads about 512 tokens; longer text is cut to its start, where titles and summaries sit. */
+export const GTE_SMALL_MAX_CHARS = 2000;
+
+/** gte-small's floor: below it a match is noise (measured on the demo seed, A87). */
+export const GTE_SMALL_MIN_SIMILARITY = 0.82;
+
+/**
+ * One text to one vector in the Edge Runtime:
+ * `new Supabase.ai.Session("gte-small").run(text, { mean_pool: true, normalize: true })`.
+ */
+export type GteSmallRun = (text: string) => Promise<ArrayLike<number>>;
+
+/** Embeds a person's query through the search-embed Edge Function, for servers outside the Edge Runtime. */
+export type GteSmallRemote = (text: string) => Promise<readonly number[]>;
+
+/**
+ * Supabase's gte-small in the Edge Runtime. Vectors come back normalized, so cosine similarity is their
+ * dot product. On the demo seed, related texts scored 0.82 to 0.87 and unrelated ones 0.74 to 0.81.
+ */
+export function gteSmallEmbeddings(run: GteSmallRun): EmbeddingProvider {
+  return {
+    ...GTE_SMALL,
+    dimensions: EMBEDDING_DIMENSIONS,
+    minSimilarity: GTE_SMALL_MIN_SIMILARITY,
+    async embed(texts) {
+      const out: number[][] = [];
+      // One at a time: the Edge Runtime's model session runs on the function's own CPU.
+      for (const text of texts) out.push(Array.from(await run(text.slice(0, GTE_SMALL_MAX_CHARS))));
+      return out;
+    },
+  };
+}
+
+/** gte-small reached through the search-embed Edge Function; the same model, so its vectors compare. */
+export function remoteGteSmallEmbeddings(remote: GteSmallRemote): EmbeddingProvider {
+  return {
+    ...GTE_SMALL,
+    dimensions: EMBEDDING_DIMENSIONS,
+    minSimilarity: GTE_SMALL_MIN_SIMILARITY,
+    async embed(texts) {
+      const out: number[][] = [];
+      for (const text of texts) out.push([...(await remote(text.slice(0, GTE_SMALL_MAX_CHARS)))]);
+      return out;
+    },
+  };
+}
+
+// The deterministic local fake -------------------------------------------------------------------------------
 
 const FNV_OFFSET = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
@@ -62,36 +118,14 @@ function stem(word: string): string {
   return word;
 }
 
-const STOP_WORDS = new Set([
-  "a",
-  "an",
-  "and",
-  "as",
-  "at",
-  "by",
-  "for",
-  "in",
-  "is",
-  "it",
-  "of",
-  "on",
-  "or",
-  "the",
-  "to",
-  "with",
-  "you",
-  "your",
-  "el",
-  "la",
-  "los",
-  "las",
-  "de",
-  "del",
-  "y",
-  "en",
-  "un",
-  "una",
-]);
+const STOP_WORDS = new Set(
+  "a an and as at by for in is it of on or the to with you your el la los las de del y en un una".split(
+    " ",
+  ),
+);
+
+/** Combining marks left by NFKD, removed so `evacuación` and `evacuacion` agree. */
+const COMBINING_MARKS = /[̀-ͯ]/g;
 
 /**
  * The vector of a text by feature hashing: each word stem adds ±1 at a hashed position, then the vector
@@ -103,7 +137,7 @@ export function hashEmbedding(text: string, dimensions = EMBEDDING_DIMENSIONS): 
   const words = text
     .toLocaleLowerCase("en-US")
     .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(COMBINING_MARKS, "")
     .split(/[^\p{L}\p{N}]+/u)
     .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
   for (const word of words) {
@@ -118,7 +152,7 @@ export function hashEmbedding(text: string, dimensions = EMBEDDING_DIMENSIONS): 
 export function localHashEmbeddings(): EmbeddingProvider {
   return {
     provider: "local-hash",
-    model: "local-hash-1024",
+    model: "local-hash-384",
     dimensions: EMBEDDING_DIMENSIONS,
     // Two short texts sharing one of three words sit near 0.3; unrelated texts near 0.
     minSimilarity: 0.25,
@@ -128,7 +162,15 @@ export function localHashEmbeddings(): EmbeddingProvider {
   };
 }
 
+// Choosing the provider -----------------------------------------------------------------------------------------
+
 export type EmbeddingEnv = Readonly<Record<string, string | undefined>>;
+
+/** How this runtime reaches gte-small: in the Edge Runtime itself, or through the Edge Function. */
+export interface EmbeddingRuntime {
+  readonly gteSmall?: GteSmallRun;
+  readonly remoteGteSmall?: GteSmallRemote;
+}
 
 /** True when the process is a production one, where the local fake must never run. */
 function isProduction(env: EmbeddingEnv): boolean {
@@ -136,13 +178,16 @@ function isProduction(env: EmbeddingEnv): boolean {
 }
 
 /**
- * The provider XOS_SEARCH_EMBEDDINGS names, or null when it names none (`off` or unset). Only
- * `local-hash` exists, refused in production; any other name is refused until the owner chooses a
- * provider and an adapter is added here.
+ * The provider XOS_SEARCH_EMBEDDINGS names: gte-small (`supabase-gte`) when unset, null when `off`, the
+ * local fake for `local-hash` outside production. gte-small is null when this runtime has no way to reach
+ * it. Any other name is refused: a provider outside Supabase is a new subprocessor, an owner decision.
  */
-export function embeddingProviderFromEnv(env: EmbeddingEnv): EmbeddingProvider | null {
-  const name = env["XOS_SEARCH_EMBEDDINGS"]?.trim() ?? "";
-  if (name === "" || name === "off") return null;
+export function embeddingProviderFromEnv(
+  env: EmbeddingEnv,
+  runtime: EmbeddingRuntime = {},
+): EmbeddingProvider | null {
+  const name = env["XOS_SEARCH_EMBEDDINGS"]?.trim() || GTE_SMALL.provider;
+  if (name === "off") return null;
   if (name === "local-hash") {
     if (isProduction(env)) {
       throw new EmbeddingUnavailableError(
@@ -151,8 +196,13 @@ export function embeddingProviderFromEnv(env: EmbeddingEnv): EmbeddingProvider |
     }
     return localHashEmbeddings();
   }
+  if (name === GTE_SMALL.provider) {
+    if (runtime.gteSmall) return gteSmallEmbeddings(runtime.gteSmall);
+    if (runtime.remoteGteSmall) return remoteGteSmallEmbeddings(runtime.remoteGteSmall);
+    return null;
+  }
   throw new EmbeddingUnavailableError(
-    `No embedding provider named ${name}: choosing one is an owner decision (legal/OWNER_INPUTS.md).`,
+    `No embedding provider named ${name}: a provider outside Supabase is a new subprocessor and an owner decision (legal/OWNER_INPUTS.md).`,
   );
 }
 

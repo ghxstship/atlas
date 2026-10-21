@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { BUNDLE_PATH, EDGE_EXTERNALS, renderBundle } from "../edge/build.ts";
+import { BUNDLE_PATH, EDGE_EXTERNALS, FUNCTION_BUNDLES, renderBundle } from "../edge/build.ts";
 
 const denoConfig = JSON.parse(
   readFileSync(new URL("../../../supabase/functions/deno.json", import.meta.url), "utf8"),
@@ -12,6 +12,13 @@ const manifest = JSON.parse(readFileSync(new URL("../package.json", import.meta.
 describe("Edge Function bundle", () => {
   it("is regenerated, never hand-edited (Section 3.15)", async () => {
     expect(readFileSync(BUNDLE_PATH, "utf8")).toBe(await renderBundle());
+  }, 120_000);
+
+  it("builds search-embed its own bundle with no npm package, so it boots inside the CPU limit", async () => {
+    const bundle = readFileSync(FUNCTION_BUNDLES["search-embed"], "utf8");
+    expect(bundle).toBe(await renderBundle("search-embed"));
+    expect(bundle).not.toMatch(/^import /m);
+    expect(bundle.length).toBeLessThan(40_000);
   }, 120_000);
 
   it("maps every external package to a pinned npm specifier in deno.json", () => {
