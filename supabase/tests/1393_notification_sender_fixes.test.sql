@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(14);
+select plan(20);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -128,6 +128,42 @@ select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.request
   '{"title": "Catering", "actorName": "Bob Okafor"}');
 select is(pg_temp.actor('dave', 'approval.requested'), 'Bob Okafor', 'an emitter''s own actor is kept');
 select pg_temp.as_platform();
+
+-- 4. A held shift change goes when its bypass window opens ------------------------------------------------------------------
+-- Frank's own quiet hours run from an hour ago to ten hours from now, longer than the 12-hour window leaves.
+update auth.users set phone = '15555550133', phone_confirmed_at = now() where id = pg_temp.id('frank_user');
+insert into app.sms_consent_events (org_id, person_id, phone_e164, action, source)
+values (pg_temp.id('org_a'), pg_temp.id('frank'), '+15555550133', 'Opt In', 'Web');
+insert into app.notification_settings (membership_id, time_zone, quiet_hours_start, quiet_hours_end)
+values (pg_temp.id('frank@org_a'), 'UTC', ((now() at time zone 'UTC') - interval '1 hour')::time,
+  ((now() at time zone 'UTC') + interval '10 hours')::time);
+select pg_temp.as_user('frank');
+select app.set_my_notification_preferences(pg_temp.id('org_a'), '[{"category": "schedule", "channel": "SMS", "enabled": true}]'::jsonb);
+select pg_temp.as_platform();
+insert into n values ('shift_window', private.notify(pg_temp.id('org_a'), pg_temp.id('frank'), 'shift.changed', null, null, null,
+  jsonb_build_object('title', 'Load in', 'startsAt', now() + interval '12 hours 30 minutes')));
+insert into n values ('shift_later', private.notify(pg_temp.id('org_a'), pg_temp.id('frank'), 'shift.changed', null, null, null,
+  jsonb_build_object('title', 'Load out', 'startsAt', now() + interval '30 hours')));
+select is((select q.due_at from app.sms_summary_queue q where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_window'))).id),
+  now() + interval '30 minutes', 'a text about a shift 12.5 hours away waits only until the shift is 12 hours away');
+select is((select d.message_status::text || ' ' || (d.deliver_after = now() + interval '30 minutes')::text from app.notification_deliveries d
+           where d.notification_id = (select id from n where key = 'shift_window') and d.channel = 'Push'), 'Deferred true',
+  'and so does its push, which the worker then claims and sends while the bypass holds');
+select is((select q.due_at from app.sms_summary_queue q where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_later'))).id),
+  now() + interval '10 hours', 'a shift further away waits for the end of quiet hours');
+
+-- Half an hour later the shift starts within 12 hours (simulated by moving its start nearer).
+set local session_replication_role = replica;
+update app.notifications set message_args = jsonb_set(message_args, '{startsAt}', to_jsonb(now() + interval '11 hours 30 minutes'))
+where id = (select id from n where key = 'shift_window');
+set local session_replication_role = origin;
+update app.sms_summary_queue set due_at = now() - interval '1 minute'
+where notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_window'))).id;
+select is((select count(*)::integer from app.claim_sms_summaries() s where s.recipient_person_id = pg_temp.id('frank')), 0,
+  'once its window opens the held text leaves the summary');
+select is((pg_temp.sms((select id from n where key = 'shift_window'))).message_status::text, 'Queued', 'and is queued on its own');
+select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50) c where c.recipient_person_id = pg_temp.id('frank')), 1,
+  'the sender claims it at once, inside quiet hours');
 
 select * from finish();
 rollback;
