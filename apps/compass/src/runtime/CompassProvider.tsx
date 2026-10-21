@@ -405,7 +405,10 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     let live = true;
     void SecureStore.getItemAsync(ORG_KEY)
       .catch(() => null)
-      .then((storedOrg) => resolveIdentity(client, session.user.id, storedOrg))
+      .then((storedOrg) => {
+        if (storedOrg) chosenOrgRef.current = true;
+        return resolveIdentity(client, session.user.id, storedOrg);
+      })
       .then(async (next) => {
         if (!live) return;
         const scopes = next.contexts.map((c) => c.scope);

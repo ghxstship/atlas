@@ -147,7 +147,9 @@ struct NextCueWidgetView: View {
         VStack(alignment: .leading, spacing: 2) {
           Label(entry.payload?.nextCueTitle ?? "", systemImage: "music.mic")
             .font(.caption)
-            .foregroundStyle(family == .accessoryRectangular ? .primary : Color.compassAccent)
+            .foregroundStyle(
+              family == .accessoryRectangular
+                ? AnyShapeStyle(.primary) : AnyShapeStyle(Color.compassAccent))
           if let cue = entry.cue {
             Text(cue.label)
               .font(family == .accessoryRectangular ? .headline : .title3.weight(.semibold))
