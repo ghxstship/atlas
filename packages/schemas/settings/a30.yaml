@@ -351,7 +351,7 @@ settings:
     help: settings.fields.payPeriod.help
     pages: { org: settings.payroll-and-time-off }
     enforced_by:
-      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.next_pay_period_dates
         test: supabase/tests/1323_payroll_settings.test.sql
   - key: payroll.week_start
     type: choice
@@ -364,7 +364,7 @@ settings:
     help: settings.fields.weekStart.help
     pages: { org: settings.payroll-and-time-off, personal: me.preferences }
     enforced_by:
-      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+      - consumer: supabase/migrations/1398_payroll_calendar_and_away_since.sql#app.next_pay_period_dates
         test: supabase/tests/1323_payroll_settings.test.sql
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
