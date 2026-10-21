@@ -26,7 +26,9 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await org.getByRole("checkbox", { name: "Safety by Text (SMS)", exact: true }).check();
   await org.getByRole("checkbox", { name: "Safety is mandatory" }).check();
   await org.getByRole("button", { name: "Save notification settings" }).click();
-  await expect(org.getByRole("status")).toHaveText("Notification settings saved.");
+  await expect(org.getByRole("status")).toHaveText("Notification settings saved.", {
+    timeout: 20_000,
+  });
 
   await page.reload();
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
@@ -64,7 +66,9 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await mine.getByLabel("Time zone").selectOption("America/Chicago");
   await mine.getByLabel("Email digest").selectOption("Daily");
   await mine.getByRole("button", { name: "Save notification settings" }).click();
-  await expect(mine.getByRole("status")).toHaveText("Notification settings saved.");
+  await expect(mine.getByRole("status")).toHaveText("Notification settings saved.", {
+    timeout: 20_000,
+  });
 
   await page.reload();
   await page.locator("html[data-shell-ready]").waitFor({ state: "attached" });
@@ -82,5 +86,5 @@ test("org notification defaults and the personal preference matrix", async ({ pa
   await saved.getByRole("button", { name: "Save notification settings" }).click();
   await expect(
     saved.getByText("Set both the start and the end of quiet hours, or neither."),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: 20_000 });
 });

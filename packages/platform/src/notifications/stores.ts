@@ -1,7 +1,13 @@
 import { COMPASS_SCHEME, compassSchemeUrl, isRecordKey } from "@xos/ia/handoff";
 import { PlatformDbError, recipientProfile, type PlatformDb } from "../stores.ts";
 import type { ClaimedPush, PushDevice, PushStore } from "./push.ts";
-import type { ClaimedSms, SmsInboundStore, SmsStore } from "./sms.ts";
+import type {
+  ClaimedSms,
+  ClaimedSmsSummary,
+  SmsInboundStore,
+  SmsStore,
+  SmsSummaryStore,
+} from "./sms.ts";
 import type { TranslationStore } from "./translation.ts";
 
 /**
@@ -106,9 +112,15 @@ export interface SmsStoreOptions {
 }
 
 /** SmsStore over app.claim_notification_deliveries and app.record_notification_delivery. */
-export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore {
+/**
+ * SmsStore and SmsSummaryStore over app.claim_notification_deliveries, app.claim_sms_summaries and their
+ * record RPCs (1361, 1367).
+ */
+export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore & SmsSummaryStore {
   const org = async (orgId: string) =>
     (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? undefined;
+  const inbox = async (orgId: string) =>
+    `${options.appUrl.replace(/\/$/, "")}/${text(await org(orgId), "slug")}/inbox`;
   return {
     async claimSms(limit) {
       return rows(
@@ -126,12 +138,38 @@ export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore {
     async orgName(orgId) {
       return text(await org(orgId), "name");
     },
-    async linkFor(claim) {
-      return `${options.appUrl.replace(/\/$/, "")}/${text(await org(claim.orgId), "slug")}/inbox`;
-    },
+    linkFor: (claim) => inbox(claim.orgId),
+    inboxLink: inbox,
     async record(deliveryId, outcome, providerMessageId, error) {
       await db.rpc("record_notification_delivery", {
         p_delivery_id: deliveryId,
+        p_status: outcome,
+        p_provider_message_id: providerMessageId,
+        p_error: error,
+      });
+    },
+    async claimSummaries(limit) {
+      return rows(await db.rpc("claim_sms_summaries", { p_limit: limit })).map(
+        (row): ClaimedSmsSummary => {
+          const ids = row["delivery_ids"];
+          const count = row["held_count"];
+          return {
+            orgId: text(row, "org_id"),
+            recipientPersonId: text(row, "recipient_person_id"),
+            address: text(row, "address"),
+            deliveryIds: Array.isArray(ids)
+              ? ids.filter((i): i is string => typeof i === "string")
+              : [],
+            heldCount: typeof count === "number" ? count : 0,
+            kind: text(row, "kind"),
+            messageArgs: (row["message_args"] as Row | null) ?? {},
+          };
+        },
+      );
+    },
+    async recordSummary(deliveryIds, outcome, providerMessageId, error) {
+      await db.rpc("record_sms_summary", {
+        p_delivery_ids: [...deliveryIds],
         p_status: outcome,
         p_provider_message_id: providerMessageId,
         p_error: error,

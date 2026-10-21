@@ -45,6 +45,12 @@ export interface KindDefinition {
   readonly emailTemplate: string;
   /** Actionable push category Compass registers (ADR 0030), or null for a plain push. */
   readonly pushCategory: string | null;
+  /**
+   * Whether the kind reaches the person during quiet hours, the default SMS window and their own
+   * (ADR 0033 decision 35): null when it waits; `startsWithinHours` null to always bypass, or a number of
+   * hours within which the subject must start (its `startsAt` argument), as for a shift change.
+   */
+  readonly quietHoursBypass: { readonly startsWithinHours: number | null } | null;
   /** Channels the kind can be delivered on. */
   readonly channels: readonly NotificationChannel[];
   /** Catalog keys of the kind's copy in the `email` namespace, used on every channel. */

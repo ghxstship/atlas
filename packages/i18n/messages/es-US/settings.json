@@ -642,7 +642,7 @@
       "push": "Push"
     },
     "cellLabel": "{category} por {channel}",
-    "urgent": "Urgente: llega de inmediato, incluso en horas de silencio.",
+    "urgent": "Urgente: nunca espera al resumen por correo electrónico.",
     "save": "Guardar configuración de notificaciones",
     "saved": "Configuración de notificaciones guardada.",
     "loadFailed": "No se pudo cargar la configuración de notificaciones. Vuelve a cargar la página para intentarlo de nuevo.",
@@ -671,7 +671,7 @@
       "locked": "Obligatorio por tu organización",
       "smsNote": "Los mensajes de texto solo van a un número de teléfono verificado en el que aceptaste recibirlos. Responde STOP a cualquier mensaje para dejar de recibirlos.",
       "quietTitle": "Horas de silencio y resumen",
-      "quietDescription": "Durante las horas de silencio, los mensajes de texto y las notificaciones push esperan hasta el final, salvo los urgentes. Los mensajes de texto también esperan entre las 21:00 y las 08:00 si no defines tus propias horas de silencio.",
+      "quietDescription": "Durante las horas de silencio, las notificaciones push esperan hasta el final y los mensajes de texto llegan juntos en un solo mensaje. Los mensajes de texto también esperan entre las 21:00 y las 08:00 en tu zona horaria si no defines tus propias horas de silencio. Las alertas de seguridad y los cambios en un turno que empieza en menos de 12 horas siempre llegan de inmediato.",
       "quietStart": "Inicio de las horas de silencio",
       "quietEnd": "Fin de las horas de silencio",
       "timeZone": "Zona horaria",
