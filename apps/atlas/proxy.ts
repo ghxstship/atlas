@@ -1,8 +1,10 @@
 import { getCurrentPerson } from "@xos/data";
+import { touchMySession } from "@xos/data/account-security";
+import { requestDevice } from "@xos/data/session-device";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
 import { tokenAal, type OrgAuthDecision } from "@xos/data/auth-assurance";
 import { findRoute, getNode } from "@xos/ia";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
   LAST_SEEN_COOKIE,
@@ -40,7 +42,10 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *   5. asks for the second factor (A77, Section 9): a person who holds one verifies it after the
  *      first factor, and an org's security.mfa_policy, security.session_hours and
  *      security.idle_timeout_minutes send the person to verify or sign in again before its pages
- *      (lib/auth/assurance.ts, orgAuthRedirect).
+ *      (lib/auth/assurance.ts, orgAuthRedirect);
+ *   6. records the device behind the session at most once a minute, for Personal settings, Security
+ *      (A99, migration 1561): the client address as clientAddress() reads it, the place the host
+ *      derived from it, and the user agent.
  * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
  * never open a hidden page.
  */
@@ -50,7 +55,7 @@ const NOT_FOUND_PATH = "/auth/not-found";
 /** Where a member whose network an org's IP allow-list refuses is sent. */
 const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest, event?: NextFetchEvent): Promise<NextResponse> {
   const config = env();
   // The API host (XOS_API_HOST) serves the public API only: no CSRF page check, session refresh,
   // route guard or cookie applies there (lib/api-host.ts).
@@ -210,6 +215,18 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // The device's last request, for the org idle timeout (security.idle_timeout_minutes). Last,
     // because response.cookies rewrites every Set-Cookie header from its own list when it sets one.
     result.headers.append("set-cookie", lastSeenSetCookie(now, secureSite));
+    // The same minute records the session's device for Security (A99), after the response.
+    const touched = touchMySession(db, {
+      surface: "Atlas",
+      ...requestDevice(request.headers, {
+        VERCEL: process.env["VERCEL"],
+        XOS_TRUSTED_PROXY_HOPS: config.XOS_TRUSTED_PROXY_HOPS,
+      }),
+    }).then((outcome) => {
+      if (!outcome.ok) console.error("session device not recorded", outcome.error);
+    });
+    if (event) event.waitUntil(touched);
+    else await touched;
   }
   return secure(result);
 }
@@ -219,7 +236,9 @@ export const config = {
     {
       // Calendar feeds (/ical/{token}.ics, ADR 0040) answer without a session: no cookie is read,
       // refreshed or set for them, and calendar apps get no page headers.
-      source: "/((?!api/|ical/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
+      // The OAuth token endpoint (A99) is called by apps, never with the session cookie, so no CSRF
+      // origin check or cookie applies to it either.
+      source: "/((?!api/|ical/|oauth/token|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
