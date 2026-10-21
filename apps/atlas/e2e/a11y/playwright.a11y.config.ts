@@ -18,6 +18,10 @@ const executablePath = process.env["PLAYWRIGHT_CHROMIUM_EXECUTABLE"];
 
 const shared = {
   baseURL,
+  // A browser that sends Global Privacy Control, which counts as refusing optional cookies, so the
+  // cookie banner (A82, Section 14.3) stays out of every screen; the compliance journey opens its
+  // own contexts without the signal to test the banner.
+  extraHTTPHeaders: { "Sec-GPC": "1" },
   reducedMotion: "reduce" as const,
   // The theme switch injects a style that stops transitions; the app CSP would refuse it.
   bypassCSP: true,

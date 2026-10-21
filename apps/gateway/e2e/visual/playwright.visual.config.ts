@@ -31,6 +31,10 @@ const updateSnapshots =
 
 const shared = {
   baseURL,
+  // A browser that sends Global Privacy Control, which counts as refusing optional cookies, so the
+  // cookie banner (A82, Section 14.3) stays out of every screen; the compliance journey opens its
+  // own contexts without the signal to test the banner.
+  extraHTTPHeaders: { "Sec-GPC": "1" },
   reducedMotion: "reduce" as const,
   locale: "en-US",
   // Dates the browser formats follow the demo tenant's zone wherever the run happens.

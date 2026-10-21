@@ -366,6 +366,7 @@ import {
   OrgDeletionRequestsResource,
   DeletionCertificatesResource,
   PartnerStandingGrantsResource,
+  ShareLinksResource,
   PersonCalendarFeedsResource,
   ProjectInboxesResource,
   InboundMessagesResource,
@@ -1239,6 +1240,8 @@ export class XosClient extends XosClientCore {
   readonly partnerStandingGrants: PartnerStandingGrantsResource = new PartnerStandingGrantsResource(
     this,
   );
+  /** Platform: operations on `shareLinks`. */
+  readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
   /** Platform: operations on `personCalendarFeeds`. */
   readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
   /** Platform: operations on `projectInboxes`. */

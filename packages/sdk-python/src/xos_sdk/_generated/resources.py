@@ -1116,6 +1116,10 @@ if TYPE_CHECKING:
         SettingValuePage,
         SettingValueUpdate,
         SettleClaimRequest,
+        ShareLink,
+        ShareLinkCreate,
+        ShareLinkPage,
+        ShareLinkToken,
         SharedWorkDetails,
         Shift,
         ShiftCreate,
@@ -33962,6 +33966,97 @@ class PartnerStandingGrantsResource(Resource):
         Requires the capability ``org.support_session.grant``.
         """
         return self._client.request(OPERATIONS["partnerStandingGrants.end"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class ShareLinksResource(Resource):
+    """Operations on ``shareLinks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ShareLink]:
+        """List share link rows
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /share-links`` (operation ``shareLinks.list``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request_page(OPERATIONS["shareLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ShareLink]:
+        """List share link rows
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /share-links`` (operation ``shareLinks.list``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.paginate(OPERATIONS["shareLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ShareLinkCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLinkToken]:
+        """Create a share link
+
+        Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /share-links`` (operation ``shareLinks.create``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLink]:
+        """Get a share link
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.
+
+        ``GET /share-links/{id}`` (operation ``shareLinks.get``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLink]:
+        """Revoke a share link
+
+        Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /share-links/{id}/revoke`` (operation ``shareLinks.revoke``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
 class PersonCalendarFeedsResource(Resource):

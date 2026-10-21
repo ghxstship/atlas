@@ -22,10 +22,14 @@ export interface GatewayLegalDocument {
   readonly accept: boolean;
 }
 
-/** The documents Gateway links at account creation, in the order the sign-up form names them. */
+/**
+ * The documents Gateway publishes: those it links at account creation, in the order the sign-up
+ * form names them, then the Cookie Policy the cookie banner links (Section 14.3, A82).
+ */
 export const GATEWAY_LEGAL_DOCUMENTS: readonly GatewayLegalDocument[] = [
   { slug: "worker-terms", title: "Worker Terms", version: "1.0.0-draft", accept: true },
   { slug: "privacy-policy", title: "Privacy Policy", version: "1.0.0-draft", accept: false },
+  { slug: "cookie-policy", title: "Cookie Policy", version: "1.0.0-draft", accept: false },
 ];
 
 /** A document Gateway publishes at /legal/{slug}, or undefined. */
