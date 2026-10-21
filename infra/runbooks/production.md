@@ -95,8 +95,29 @@ caller, the same on both hosts. The API sends no CORS headers on either host.
 3. Verify the domain in Resend. Then set Supabase SMTP (`promote-to-production.md`, step 6) and the function
    secrets `RESEND_API_KEY` and `XOS_EMAIL_FROM`.
 
-Reply by email (`XOS_INBOUND_DOMAIN`) needs its own domain and MX records pointing at the provider that posts
-to `inbound-email`. That domain is not chosen yet.
+Reply by email and project inboxes (`XOS_INBOUND_DOMAIN`, ADR 0040) need their own receiving domain, with MX
+records pointing at the inbound mail provider that posts each parsed message to the `inbound-email` Edge
+Function. That domain is not chosen yet. **OWNER**, once it is:
+
+1. Pick a subdomain used only for receiving, written here as `<inbound domain>` (for example
+   `inbound.<your domain>`), and choose an inbound provider that parses mail, checks DKIM and can post JSON to
+   a URL with a bearer secret.
+2. At the DNS host, add the provider's MX records for `<inbound domain>`, exactly as the provider lists them:
+
+   | Name               | Type | Value                                                |
+   | ------------------ | ---- | ---------------------------------------------------- |
+   | `<inbound domain>` | MX   | `<priority> <provider's inbound mail host>`, per row |
+
+3. Point the provider's webhook at `https://<project ref>.supabase.co/functions/v1/inbound-email` with the
+   header `Authorization: Bearer <XOS_INBOUND_SECRET>`, and have it store the raw message where it can be read
+   later, sending that path as `rawObjectPath`.
+4. Set the function secrets `XOS_INBOUND_SECRET` (a new random value the provider also holds) and
+   `XOS_INBOUND_DOMAIN=<inbound domain>`, and set `XOS_INBOUND_DOMAIN=<inbound domain>` on the `atlas` Vercel
+   project too, so Project Settings shows each project's full inbox address. Redeploy Atlas.
+5. Check: create a project inbox in Atlas (Project Settings, Project inbox), forward one message to it, and
+   find it on the project's Documents tab.
+
+Until then project inbox addresses show only their local part, and no mail arrives.
 
 ### Universal links to Compass
 
@@ -159,7 +180,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, each every minute) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 ### 3. Apps
 
@@ -211,6 +232,7 @@ Values live in Vercel, the Supabase project, EAS and GitHub. They are never comm
 | `XOS_LOG_LEVEL`               | `info` (`debug` on Preview)                                       |
 | `COMPASS_APPLE_TEAM_IDS`      | The Apple team id, once the developer account exists              |
 | `COMPASS_ANDROID_CERT_SHA256` | The Play app signing certificate fingerprint, once the app exists |
+| `XOS_INBOUND_DOMAIN`          | `<inbound domain>`, once the receiving domain exists (ADR 0040)   |
 
 ### Gateway (Vercel project `gateway`)
 
@@ -242,6 +264,9 @@ None. The site is built from the repository and the OpenAPI document. Project se
 | `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | Reply by email                                                                                                 |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | Live Stripe keys, once the owner opens billing                                                                 |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | The private address and port of clamd ("Upload scanning (ClamAV)" below); the port defaults to 3310            |
+| `XOS_SLACK_SIGNING_SECRET`                                | Slack events and slash commands (`integration-inbound`), `infra/runbooks/integrations.md`                      |
+| `XOS_XERO_WEBHOOK_KEY`                                    | Xero change notices (`integration-inbound`), once the Xero app exists                                          |
+| `XOS_QUICKBOOKS_VERIFIER_TOKEN`                           | QuickBooks Online change notices (`integration-inbound`), once the app exists                                  |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | The Edge Functions' Sentry DSN; `production`; `info`                                                           |
 | `XOS_PUSH_TRANSPORT`, `EXPO_ACCESS_TOKEN`                 | `expo` to send push ("Push and SMS" below); the access token only if enhanced push security is on              |
 | `XOS_SMS_TRANSPORT`, `TWILIO_ACCOUNT_SID`                 | `twilio` to send SMS; the account SID, `AC<32 hex characters>`                                                 |

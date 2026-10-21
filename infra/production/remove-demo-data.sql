@@ -20,7 +20,9 @@
 --        * every org whose members are all demo people
 --      so an org a demo user created, its contents, and every row a demo person created are included.
 -- Outside the tables: the demo orgs' storage objects (through the Storage API, by the wrapper) and the Vault
--- secrets of their integration connections (xos_integration_<connection id>) go too.
+-- secrets of their integration connections (xos_integration_<connection id>), the inbound webhook secrets of those
+-- connections (xos_integration_inbound_<connection id>, 1400) and the bucket credentials of their warehouse
+-- destinations (xos_warehouse_<destination id>, 1401) go too.
 -- What stays: every row the closure does not reach. Canon (xpms), the plan, capability, role and settings
 -- registries, reference data, storage buckets, cron jobs and the migration-created Vault keys carry no demo
 -- org or person and are never touched. The script refuses to run when the closure reaches xpms or migration history, and
@@ -779,9 +781,12 @@ where split_part(o.name, '/', 1) in (
     union all select user_id::text from demo_users)
   or o.owner_id in (select user_id::text from demo_users);
 
--- Vault secrets of the demo orgs' integration connections ------------------------------------------------------
+-- Vault secrets of the demo orgs' integration connections and warehouse destinations ---------------------------
 -- app.store_integration_credential keeps each connection's secret in Vault as xos_integration_<connection id>,
--- linked from private.integration_credentials without a foreign key. The migration-created keys stay.
+-- linked from private.integration_credentials without a foreign key; app.store_integration_inbound_secret keeps a
+-- connection's webhook secret as xos_integration_inbound_<connection id> (private.integration_inbound_secrets,
+-- 1400); app.store_warehouse_credential keeps a destination's bucket credential as xos_warehouse_<destination id>
+-- (private.warehouse_credentials, 1401). The migration-created keys stay.
 
 create temp table demo_vault (id uuid primary key, name text);
 insert into demo_vault (id, name)
@@ -795,9 +800,25 @@ join private.integration_credentials c on c.vault_secret_id = s.id
 where c.integration_connection_id in (select (m.key ->> 'id')::uuid from demo_marks m
                                       where m.rel = 'app.integration_connections'::regclass)
 on conflict do nothing;
+insert into demo_vault (id, name)
+select s.id, s.name from vault.secrets s
+where s.name in (select 'xos_integration_inbound_' || (m.key ->> 'id') from demo_marks m
+                 where m.rel = 'app.integration_connections'::regclass)
+   or s.id in (select i.vault_secret_id from private.integration_inbound_secrets i
+               where i.integration_connection_id in (select (m.key ->> 'id')::uuid from demo_marks m
+                                                     where m.rel = 'app.integration_connections'::regclass))
+on conflict do nothing;
+insert into demo_vault (id, name)
+select s.id, s.name from vault.secrets s
+where s.name in (select 'xos_warehouse_' || (m.key ->> 'id') from demo_marks m
+                 where m.rel = 'app.warehouse_destinations'::regclass)
+   or s.id in (select w.vault_secret_id from private.warehouse_credentials w
+               where w.warehouse_destination_id in (select (m.key ->> 'id')::uuid from demo_marks m
+                                                    where m.rel = 'app.warehouse_destinations'::regclass))
+on conflict do nothing;
 
 \echo
-\echo '== Vault secrets to remove (integration credentials of the demo orgs)'
+\echo '== Vault secrets to remove (integration credentials, webhook secrets and warehouse credentials of the demo orgs)'
 select count(*) as secrets from demo_vault;
 
 \echo

@@ -2548,51 +2548,6 @@ export interface Components {
     details?: string | null;
   };
   DsarRequestPage: { data: Array<Components["DsarRequest"]>; next_cursor: string | null };
-  EarnedMediaItem: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    project_id: string;
-    title: string;
-    outlet: string;
-    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
-    published_on: string;
-    url: string | null;
-    reach: number | null;
-    tone: "Positive" | "Neutral" | "Negative" | null;
-    source: "Manual" | "Import" | "Integration";
-    source_reference: string | null;
-    note: string | null;
-  };
-  EarnedMediaItemCreate: {
-    project_id: string;
-    title: string;
-    outlet: string;
-    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
-    published_on: string;
-    url?: string | null;
-    reach?: number | null;
-    tone?: "Positive" | "Neutral" | "Negative" | null;
-    source?: "Manual" | "Import" | "Integration";
-    source_reference?: string | null;
-    note?: string | null;
-  };
-  EarnedMediaItemPage: { data: Array<Components["EarnedMediaItem"]>; next_cursor: string | null };
-  EarnedMediaItemUpdate: {
-    title?: string;
-    outlet?: string;
-    medium?: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
-    published_on?: string;
-    url?: string | null;
-    reach?: number | null;
-    tone?: "Positive" | "Neutral" | "Negative" | null;
-    source?: "Manual" | "Import" | "Integration";
-    source_reference?: string | null;
-    note?: string | null;
-  };
   EarningCode: {
     id: string;
     org_id: string;
@@ -3500,6 +3455,33 @@ export interface Components {
   };
   ImportRowResultPage: { data: Array<Components["ImportRowResult"]>; next_cursor: string | null };
   ImportRowState: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
+  InboundMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    purpose: "Project Inbox" | "Reply";
+    inbound_address_id: string | null;
+    from_address: string;
+    subject_line: string | null;
+    body_text: string | null;
+    dkim_verified: boolean;
+    inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
+    rejection_reason: string | null;
+    received_at: string;
+    filed_document_id: string | null;
+    filed_record_id: string | null;
+    filed_by: string | null;
+    filed_at: string | null;
+    discarded_at: string | null;
+    discarded_by: string | null;
+    discard_reason: string | null;
+  };
+  InboundMessageDiscardRequest: { reason?: string };
+  InboundMessageFileRequest: { title?: string; record_id?: string };
+  InboundMessagePage: { data: Array<Components["InboundMessage"]>; next_cursor: string | null };
   Incident: {
     id: string;
     org_id: string;
@@ -4251,40 +4233,6 @@ export interface Components {
     membership_count: number;
     engagement_count: number;
   };
-  MeasurementMetric: {
-    metric_code: string;
-    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
-    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
-    base_unit_code: string;
-    aggregation: "Sum" | "Latest";
-    is_derived: boolean;
-    lower_bound: number | null;
-    upper_bound: number | null;
-    canon_domain: string | null;
-    canon_item: string | null;
-    canon_value_numeric: number | null;
-    canon_value_text: string | null;
-    canon_qualifier: string | null;
-    ordinal: number;
-  };
-  MeasurementMetricPage: {
-    data: Array<Components["MeasurementMetric"]>;
-    next_cursor: string | null;
-  };
-  MeasurementMetricTag: { metric_code: string; tag_id: string; tag: string };
-  MeasurementMetricTagPage: {
-    data: Array<Components["MeasurementMetricTag"]>;
-    next_cursor: string | null;
-  };
-  MeasurementUnit: {
-    unit_code: string;
-    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
-    factor_to_base: number;
-    unit_system: "Metric" | "Imperial" | "Either";
-    is_display: boolean;
-    ordinal: number;
-  };
-  MeasurementUnitPage: { data: Array<Components["MeasurementUnit"]>; next_cursor: string | null };
   MedicalEncounter: {
     id: string;
     org_id: string;
@@ -5207,6 +5155,19 @@ export interface Components {
     given_name: string | null;
     family_name: string | null;
   };
+  PersonCalendarFeed: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    token_hint: string;
+    last_accessed_at: string | null;
+    rotated_at: string | null;
+  };
+  PersonCalendarFeedPage: {
+    data: Array<Components["PersonCalendarFeed"]>;
+    next_cursor: string | null;
+  };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
     id: string;
@@ -5611,7 +5572,7 @@ export interface Components {
     time_zone: string;
     venue_id?: string | null;
   };
-  ProjectMeasurement: {
+  ProjectInbox: {
     id: string;
     org_id: string;
     created_at: string;
@@ -5619,111 +5580,11 @@ export interface Components {
     updated_at: string;
     updated_by: string | null;
     project_id: string;
-    metric_code: string;
-    measured_on: string;
-    value: number | null;
-    unit_code: string | null;
-    source: "Manual" | "Import" | "Integration";
-    source_reference: string | null;
-    source_uri: string | null;
-    note: string | null;
+    local_part: string;
+    disabled_at: string | null;
   };
-  ProjectMeasurementCorrection: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    project_measurement_id: string;
-    correction_kind: "Corrected" | "Withdrawn" | "Restored";
-    previous_value: number | null;
-    previous_unit_code: string | null;
-    previous_measured_on: string;
-    value: number | null;
-    unit_code: string | null;
-    measured_on: string;
-    reason: string | null;
-  };
-  ProjectMeasurementCorrectionPage: {
-    data: Array<Components["ProjectMeasurementCorrection"]>;
-    next_cursor: string | null;
-  };
-  ProjectMeasurementCreate: {
-    project_id: string;
-    metric_code: string;
-    measured_on?: string;
-    value?: number | null;
-    unit_code?: string | null;
-    source?: "Manual" | "Import" | "Integration";
-    source_reference?: string | null;
-    source_uri?: string | null;
-    note?: string | null;
-  };
-  ProjectMeasurementPage: {
-    data: Array<Components["ProjectMeasurement"]>;
-    next_cursor: string | null;
-  };
-  ProjectMeasurementSummary: {
-    project_id: string;
-    metric_code: string;
-    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
-    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
-    base_unit_code: string;
-    aggregation: "Sum" | "Latest";
-    objective_id: string | null;
-    direction: "At Least" | "At Most" | null;
-    target_value: number | null;
-    target_unit_code: string | null;
-    target_base: number | null;
-    measured_count: number;
-    unmeasured_count: number;
-    measured_base: number | null;
-    last_measured_on: string | null;
-    outcome: "Met" | "Not Met" | "Incomplete" | "Unmeasured" | null;
-  };
-  ProjectMeasurementSummaryPage: {
-    data: Array<Components["ProjectMeasurementSummary"]>;
-    next_cursor: string | null;
-  };
-  ProjectMeasurementUpdate: {
-    measured_on?: string;
-    value?: number | null;
-    unit_code?: string | null;
-    source_reference?: string | null;
-    source_uri?: string | null;
-    note?: string | null;
-    correction_reason?: string;
-  };
-  ProjectObjective: {
-    id: string;
-    org_id: string;
-    created_at: string;
-    created_by: string | null;
-    updated_at: string;
-    updated_by: string | null;
-    project_id: string;
-    metric_code: string;
-    direction: "At Least" | "At Most";
-    target_value: number;
-    unit_code: string;
-    note: string | null;
-  };
-  ProjectObjectiveCreate: {
-    project_id: string;
-    metric_code: string;
-    direction: "At Least" | "At Most";
-    target_value: number;
-    unit_code: string;
-    note?: string | null;
-  };
-  ProjectObjectivePage: { data: Array<Components["ProjectObjective"]>; next_cursor: string | null };
-  ProjectObjectiveUpdate: {
-    direction?: "At Least" | "At Most";
-    target_value?: number;
-    unit_code?: string;
-    note?: string | null;
-  };
+  ProjectInboxCreate: { project_id: string };
+  ProjectInboxPage: { data: Array<Components["ProjectInbox"]>; next_cursor: string | null };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
     id: string;
@@ -22624,6 +22485,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "calendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
   "trashItems.list": {
     module: "Platform";
     method: "get";
@@ -22755,243 +22625,6 @@ export interface Operations {
     };
     body: undefined;
     responses: { 200: Components["ProjectAuthorityPage"] };
-  };
-  "measurementMetrics.list": {
-    module: "Projects";
-    method: "get";
-    path: "/measurement-metrics";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["MeasurementMetricPage"] };
-  };
-  "measurementUnits.list": {
-    module: "Projects";
-    method: "get";
-    path: "/measurement-units";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["MeasurementUnitPage"] };
-  };
-  "measurementMetricTags.list": {
-    module: "Projects";
-    method: "get";
-    path: "/measurement-metric-tags";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["MeasurementMetricTagPage"] };
-  };
-  "projectObjectives.list": {
-    module: "Projects";
-    method: "get";
-    path: "/project-objectives";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProjectObjectivePage"] };
-  };
-  "projectObjectives.create": {
-    module: "Projects";
-    method: "post";
-    path: "/project-objectives";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ProjectObjectiveCreate"];
-    responses: { 201: Components["ProjectObjective"] };
-  };
-  "projectObjectives.get": {
-    module: "Projects";
-    method: "get";
-    path: "/project-objectives/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProjectObjective"] };
-  };
-  "projectObjectives.update": {
-    module: "Projects";
-    method: "patch";
-    path: "/project-objectives/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["ProjectObjectiveUpdate"];
-    responses: { 200: Components["ProjectObjective"] };
-  };
-  "projectObjectives.delete": {
-    module: "Projects";
-    method: "delete";
-    path: "/project-objectives/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
-  "projectMeasurements.list": {
-    module: "Projects";
-    method: "get";
-    path: "/project-measurements";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProjectMeasurementPage"] };
-  };
-  "projectMeasurements.create": {
-    module: "Projects";
-    method: "post";
-    path: "/project-measurements";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["ProjectMeasurementCreate"];
-    responses: { 201: Components["ProjectMeasurement"] };
-  };
-  "projectMeasurements.get": {
-    module: "Projects";
-    method: "get";
-    path: "/project-measurements/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProjectMeasurement"] };
-  };
-  "projectMeasurements.update": {
-    module: "Projects";
-    method: "patch";
-    path: "/project-measurements/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["ProjectMeasurementUpdate"];
-    responses: { 200: Components["ProjectMeasurement"] };
-  };
-  "projectMeasurements.delete": {
-    module: "Projects";
-    method: "delete";
-    path: "/project-measurements/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
-  "projectMeasurementCorrections.list": {
-    module: "Projects";
-    method: "get";
-    path: "/project-measurement-corrections";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProjectMeasurementCorrectionPage"] };
-  };
-  "projectMeasurementCorrections.get": {
-    module: "Projects";
-    method: "get";
-    path: "/project-measurement-corrections/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["ProjectMeasurementCorrection"] };
-  };
-  "earnedMediaItems.list": {
-    module: "Projects";
-    method: "get";
-    path: "/earned-media-items";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["EarnedMediaItemPage"] };
-  };
-  "earnedMediaItems.create": {
-    module: "Projects";
-    method: "post";
-    path: "/earned-media-items";
-    params: Record<string, never>;
-    query: Record<string, never>;
-    body: Components["EarnedMediaItemCreate"];
-    responses: { 201: Components["EarnedMediaItem"] };
-  };
-  "earnedMediaItems.get": {
-    module: "Projects";
-    method: "get";
-    path: "/earned-media-items/{id}";
-    params: { id: string };
-    query: { fields?: Components["Fields"] };
-    body: undefined;
-    responses: { 200: Components["EarnedMediaItem"] };
-  };
-  "earnedMediaItems.update": {
-    module: "Projects";
-    method: "patch";
-    path: "/earned-media-items/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: Components["EarnedMediaItemUpdate"];
-    responses: { 200: Components["EarnedMediaItem"] };
-  };
-  "earnedMediaItems.delete": {
-    module: "Projects";
-    method: "delete";
-    path: "/earned-media-items/{id}";
-    params: { id: string };
-    query: Record<string, never>;
-    body: undefined;
-    responses: { 204: null };
-  };
-  "projectMeasurementSummary.list": {
-    module: "Projects";
-    method: "get";
-    path: "/project-measurement-summary";
-    params: Record<string, never>;
-    query: {
-      limit?: Components["Limit"];
-      cursor?: Components["Cursor"];
-      fields?: Components["Fields"];
-      sort?: Components["Sort"];
-      filter?: Components["Filter"];
-    };
-    body: undefined;
-    responses: { 200: Components["ProjectMeasurementSummaryPage"] };
   };
   "cueCalls.list": {
     module: "Show";
@@ -24234,6 +23867,150 @@ export interface Operations {
     query: Record<string, never>;
     body: Components["WholesaleBillingRequest"];
     responses: { 201: Components["WholesaleStatement"] };
+  };
+  "personCalendarFeeds.list": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeedPage"] };
+  };
+  "personCalendarFeeds.create": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 201: Components["CalendarFeedToken"] };
+  };
+  "personCalendarFeeds.get": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeed"] };
+  };
+  "personCalendarFeeds.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "personCalendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
+  "projectInboxes.list": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectInboxPage"] };
+  };
+  "projectInboxes.create": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectInboxCreate"];
+    responses: { 201: Components["ProjectInbox"] };
+  };
+  "projectInboxes.get": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.replace": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/replace";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.disable": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/disable";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "inboundMessages.list": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["InboundMessagePage"] };
+  };
+  "inboundMessages.get": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.file": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/file";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageFileRequest"];
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.discard": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/discard";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageDiscardRequest"];
+    responses: { 200: Components["InboundMessage"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -25827,28 +25604,7 @@ export interface ModuleOperations {
     | "gateEvidence.create"
     | "gateEvidence.get"
     | "gateEvidence.delete"
-    | "projectAuthorities.list"
-    | "measurementMetrics.list"
-    | "measurementUnits.list"
-    | "measurementMetricTags.list"
-    | "projectObjectives.list"
-    | "projectObjectives.create"
-    | "projectObjectives.get"
-    | "projectObjectives.update"
-    | "projectObjectives.delete"
-    | "projectMeasurements.list"
-    | "projectMeasurements.create"
-    | "projectMeasurements.get"
-    | "projectMeasurements.update"
-    | "projectMeasurements.delete"
-    | "projectMeasurementCorrections.list"
-    | "projectMeasurementCorrections.get"
-    | "earnedMediaItems.list"
-    | "earnedMediaItems.create"
-    | "earnedMediaItems.get"
-    | "earnedMediaItems.update"
-    | "earnedMediaItems.delete"
-    | "projectMeasurementSummary.list";
+    | "projectAuthorities.list";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
@@ -27198,6 +26954,7 @@ export interface ModuleOperations {
     | "calendarFeeds.create"
     | "calendarFeeds.get"
     | "calendarFeeds.delete"
+    | "calendarFeeds.rotate"
     | "trashItems.list"
     | "trashItems.restore"
     | "templates.list"
@@ -27256,7 +27013,21 @@ export interface ModuleOperations {
     | "supportSessions.end"
     | "wholesaleStatements.list"
     | "wholesaleStatements.get"
-    | "wholesaleStatements.run";
+    | "wholesaleStatements.run"
+    | "personCalendarFeeds.list"
+    | "personCalendarFeeds.create"
+    | "personCalendarFeeds.get"
+    | "personCalendarFeeds.delete"
+    | "personCalendarFeeds.rotate"
+    | "projectInboxes.list"
+    | "projectInboxes.create"
+    | "projectInboxes.get"
+    | "projectInboxes.replace"
+    | "projectInboxes.disable"
+    | "inboundMessages.list"
+    | "inboundMessages.get"
+    | "inboundMessages.file"
+    | "inboundMessages.discard";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

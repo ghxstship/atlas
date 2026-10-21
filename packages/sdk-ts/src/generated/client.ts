@@ -370,6 +370,9 @@ import {
   TemplateItemsResource,
   SupportSessionsResource,
   WholesaleStatementsResource,
+  PersonCalendarFeedsResource,
+  ProjectInboxesResource,
+  InboundMessagesResource,
   WorkforceGroupsResource,
   WorkforceGroupMembersResource,
   ConversationsResource,
@@ -1248,6 +1251,12 @@ export class XosClient extends XosClientCore {
   readonly supportSessions: SupportSessionsResource = new SupportSessionsResource(this);
   /** Platform: operations on `wholesaleStatements`. */
   readonly wholesaleStatements: WholesaleStatementsResource = new WholesaleStatementsResource(this);
+  /** Platform: operations on `personCalendarFeeds`. */
+  readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
+  /** Platform: operations on `projectInboxes`. */
+  readonly projectInboxes: ProjectInboxesResource = new ProjectInboxesResource(this);
+  /** Platform: operations on `inboundMessages`. */
+  readonly inboundMessages: InboundMessagesResource = new InboundMessagesResource(this);
   /** Workforce: operations on `workforceGroups`. */
   readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
   /** Workforce: operations on `workforceGroupMembers`. */

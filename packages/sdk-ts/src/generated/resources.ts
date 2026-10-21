@@ -321,9 +321,6 @@ import type {
   DoorGuestPage,
   DsarRequest,
   DsarRequestCreate,
-  EarnedMediaItem,
-  EarnedMediaItemCreate,
-  EarnedMediaItemUpdate,
   EarningCode,
   EarningCodeCreate,
   EarningCodeUpdate,
@@ -417,6 +414,9 @@ import type {
   ImportMappingProfileCreate,
   ImportMappingProfileUpdate,
   ImportRowResult,
+  InboundMessage,
+  InboundMessageDiscardRequest,
+  InboundMessageFileRequest,
   Incident,
   IncidentCloseRequest,
   IncidentCreate,
@@ -503,9 +503,6 @@ import type {
   MarshallingLogEntry,
   MarshallingLogEntryCreate,
   Me,
-  MeasurementMetric,
-  MeasurementMetricTag,
-  MeasurementUnit,
   MedicalEncounter,
   MedicalEncounterCreate,
   MedicalEncounterUpdate,
@@ -609,6 +606,7 @@ import type {
   PermitTrackRequest,
   PermitTransitionRequest,
   Person,
+  PersonCalendarFeed,
   PersonProfile,
   PersonProfileCreate,
   PersonProfileUpdate,
@@ -655,14 +653,8 @@ import type {
   ProjectAssignmentUpdate,
   ProjectAuthority,
   ProjectCreate,
-  ProjectMeasurement,
-  ProjectMeasurementCorrection,
-  ProjectMeasurementCreate,
-  ProjectMeasurementSummary,
-  ProjectMeasurementUpdate,
-  ProjectObjective,
-  ProjectObjectiveCreate,
-  ProjectObjectiveUpdate,
+  ProjectInbox,
+  ProjectInboxCreate,
   ProjectPhaseTransition,
   ProjectShare,
   ProjectShareCreate,
@@ -32684,6 +32676,22 @@ export class CalendarFeedsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Get a new link for a calendar feed
+   *
+   * Replaces the token of one of the caller's feeds (app.rotate_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once; a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /calendar-feeds/{id}/rotate` (operation `calendarFeeds.rotate`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
+      $OPERATIONS["calendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
 }
 
 /**
@@ -33007,627 +33015,6 @@ export class ProjectAuthoritiesResource extends $Resource {
   ): AsyncGenerator<ProjectAuthority, void, undefined> {
     return this.client.paginate<ProjectAuthority>(
       $OPERATIONS["projectAuthorities.list"],
-      { query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `measurementMetrics`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class MeasurementMetricsResource extends $Resource {
-  /**
-   * List measurement metric rows
-   *
-   * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /measurement-metrics` (operation `measurementMetrics.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<MeasurementMetric>,
-    options?: $RequestOptions,
-  ): Promise<$Page<MeasurementMetric>> {
-    return this.client.requestPage<MeasurementMetric>(
-      $OPERATIONS["measurementMetrics.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List measurement metric rows
-   *
-   * A figure a project measures against its gate 1 objectives (Section 4.10): sustainability, audience, earned media or sentiment. Canon's metric table holds reference values, so each metric names the canon metric that benchmarks it where canon states one. Returns a cursor page of measurement metric rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /measurement-metrics` (operation `measurementMetrics.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<MeasurementMetric>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<MeasurementMetric, void, undefined> {
-    return this.client.paginate<MeasurementMetric>(
-      $OPERATIONS["measurementMetrics.list"],
-      { query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `measurementUnits`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class MeasurementUnitsResource extends $Resource {
-  /**
-   * List measurement unit rows
-   *
-   * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /measurement-units` (operation `measurementUnits.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<MeasurementUnit>,
-    options?: $RequestOptions,
-  ): Promise<$Page<MeasurementUnit>> {
-    return this.client.requestPage<MeasurementUnit>(
-      $OPERATIONS["measurementUnits.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List measurement unit rows
-   *
-   * A unit a figure or objective is entered in, with its exact factor to the base unit of its dimension and whether reports show the dimension in it for metric or imperial readers. Returns a cursor page of measurement unit rows the caller may see. The default order is `ordinal` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /measurement-units` (operation `measurementUnits.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<MeasurementUnit>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<MeasurementUnit, void, undefined> {
-    return this.client.paginate<MeasurementUnit>(
-      $OPERATIONS["measurementUnits.list"],
-      { query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `measurementMetricTags`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class MeasurementMetricTagsResource extends $Resource {
-  /**
-   * List measurement metric tag rows
-   *
-   * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /measurement-metric-tags` (operation `measurementMetricTags.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<MeasurementMetricTag>,
-    options?: $RequestOptions,
-  ): Promise<$Page<MeasurementMetricTag>> {
-    return this.client.requestPage<MeasurementMetricTag>(
-      $OPERATIONS["measurementMetricTags.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List measurement metric tag rows
-   *
-   * A Bible sustainability tag (Bible tab 09) a sustainability figure is reported against (Section 4.10). Returns a cursor page of measurement metric tag rows the caller may see. The default order is `metric_code`, then `tag_id` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /measurement-metric-tags` (operation `measurementMetricTags.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<MeasurementMetricTag>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<MeasurementMetricTag, void, undefined> {
-    return this.client.paginate<MeasurementMetricTag>(
-      $OPERATIONS["measurementMetricTags.list"],
-      { query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `projectObjectives`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class ProjectObjectivesResource extends $Resource {
-  /**
-   * List project objective rows
-   *
-   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /project-objectives` (operation `projectObjectives.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<ProjectObjective>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProjectObjective>> {
-    return this.client.requestPage<ProjectObjective>(
-      $OPERATIONS["projectObjectives.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List project objective rows
-   *
-   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns a cursor page of project objective rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /project-objectives` (operation `projectObjectives.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProjectObjective>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProjectObjective, void, undefined> {
-    return this.client.paginate<ProjectObjective>(
-      $OPERATIONS["projectObjectives.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a project objective
-   *
-   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Creates a project objective. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /project-objectives` (operation `projectObjectives.create`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  create(
-    body: ProjectObjectiveCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<ProjectObjective>> {
-    return this.client.request<ProjectObjective>(
-      $OPERATIONS["projectObjectives.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get a project objective
-   *
-   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Returns one project objective with its `ETag`. A project objective the caller may not see returns 404.
-   *
-   * `GET /project-objectives/{id}` (operation `projectObjectives.get`).
-   * Requires the capability `projects.gate.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<ProjectObjective>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<ProjectObjective>> {
-    return this.client.request<ProjectObjective>(
-      $OPERATIONS["projectObjectives.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update a project objective
-   *
-   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /project-objectives/{id}` (operation `projectObjectives.update`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  update(
-    id: string,
-    body: ProjectObjectiveUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<ProjectObjective>> {
-    return this.client.request<ProjectObjective>(
-      $OPERATIONS["projectObjectives.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete a project objective
-   *
-   * A measurable objective recorded at gate 1 (canon criterion G1.OBJECTIVES_STATED): one target per metric and project, which gate 8 measures against. Once gate 1 is passed only a gate approver (projects.gate.transition) sets, changes or withdraws one; every change is in the audit ledger. Soft-deletes the project objective: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /project-objectives/{id}` (operation `projectObjectives.delete`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["projectObjectives.delete"],
-      { path: { id } },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `projectMeasurements`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class ProjectMeasurementsResource extends $Resource {
-  /**
-   * List project measurement rows
-   *
-   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /project-measurements` (operation `projectMeasurements.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<ProjectMeasurement>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProjectMeasurement>> {
-    return this.client.requestPage<ProjectMeasurement>(
-      $OPERATIONS["projectMeasurements.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List project measurement rows
-   *
-   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns a cursor page of project measurement rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /project-measurements` (operation `projectMeasurements.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProjectMeasurement>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProjectMeasurement, void, undefined> {
-    return this.client.paginate<ProjectMeasurement>(
-      $OPERATIONS["projectMeasurements.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create a project measurement
-   *
-   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Creates a project measurement. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /project-measurements` (operation `projectMeasurements.create`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  create(
-    body: ProjectMeasurementCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<ProjectMeasurement>> {
-    return this.client.request<ProjectMeasurement>(
-      $OPERATIONS["projectMeasurements.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get a project measurement
-   *
-   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Returns one project measurement with its `ETag`. A project measurement the caller may not see returns 404.
-   *
-   * `GET /project-measurements/{id}` (operation `projectMeasurements.get`).
-   * Requires the capability `projects.gate.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<ProjectMeasurement>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<ProjectMeasurement>> {
-    return this.client.request<ProjectMeasurement>(
-      $OPERATIONS["projectMeasurements.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update a project measurement
-   *
-   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /project-measurements/{id}` (operation `projectMeasurements.update`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  update(
-    id: string,
-    body: ProjectMeasurementUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<ProjectMeasurement>> {
-    return this.client.request<ProjectMeasurement>(
-      $OPERATIONS["projectMeasurements.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete a project measurement
-   *
-   * A figure measured on a project (Section 4.10) for one metric, day and source. A null value records that the figure was not measured (Unmeasured), never zero. Correcting the value, unit or day needs correction_reason and writes the change to the correction ledger. Who recorded it and when are created_by and created_at. Soft-deletes the project measurement: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /project-measurements/{id}` (operation `projectMeasurements.delete`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["projectMeasurements.delete"],
-      { path: { id } },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `projectMeasurementCorrections`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class ProjectMeasurementCorrectionsResource extends $Resource {
-  /**
-   * List project measurement correction rows
-   *
-   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /project-measurement-corrections` (operation `projectMeasurementCorrections.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<ProjectMeasurementCorrection>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProjectMeasurementCorrection>> {
-    return this.client.requestPage<ProjectMeasurementCorrection>(
-      $OPERATIONS["projectMeasurementCorrections.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List project measurement correction rows
-   *
-   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns a cursor page of project measurement correction rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /project-measurement-corrections` (operation `projectMeasurementCorrections.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProjectMeasurementCorrection>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProjectMeasurementCorrection, void, undefined> {
-    return this.client.paginate<ProjectMeasurementCorrection>(
-      $OPERATIONS["projectMeasurementCorrections.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Get a project measurement correction
-   *
-   * An entry of the append-only correction ledger: a figure corrected, withdrawn or restored, with the figure before and after and the reason. Who changed it and when are created_by and created_at. Returns one project measurement correction with its `ETag`. A project measurement correction the caller may not see returns 404.
-   *
-   * `GET /project-measurement-corrections/{id}` (operation `projectMeasurementCorrections.get`).
-   * Requires the capability `projects.gate.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<ProjectMeasurementCorrection>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<ProjectMeasurementCorrection>> {
-    return this.client.request<ProjectMeasurementCorrection>(
-      $OPERATIONS["projectMeasurementCorrections.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `earnedMediaItems`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class EarnedMediaItemsResource extends $Resource {
-  /**
-   * List earned media item rows
-   *
-   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /earned-media-items` (operation `earnedMediaItems.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<EarnedMediaItem>,
-    options?: $RequestOptions,
-  ): Promise<$Page<EarnedMediaItem>> {
-    return this.client.requestPage<EarnedMediaItem>(
-      $OPERATIONS["earnedMediaItems.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List earned media item rows
-   *
-   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns a cursor page of earned media item rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /earned-media-items` (operation `earnedMediaItems.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<EarnedMediaItem>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<EarnedMediaItem, void, undefined> {
-    return this.client.paginate<EarnedMediaItem>(
-      $OPERATIONS["earnedMediaItems.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * Create an earned media item
-   *
-   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Creates an earned media item. Requires `Idempotency-Key`; a replay returns the original response. The organization is derived from the credential or the parent row, never from the body.
-   *
-   * `POST /earned-media-items` (operation `earnedMediaItems.create`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  create(
-    body: EarnedMediaItemCreate,
-    options?: $MutationOptions,
-  ): Promise<$ApiResponse<EarnedMediaItem>> {
-    return this.client.request<EarnedMediaItem>(
-      $OPERATIONS["earnedMediaItems.create"],
-      { body },
-      options,
-    );
-  }
-
-  /**
-   * Get an earned media item
-   *
-   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Returns one earned media item with its `ETag`. A earned media item the caller may not see returns 404.
-   *
-   * `GET /earned-media-items/{id}` (operation `earnedMediaItems.get`).
-   * Requires the capability `projects.gate.read`.
-   */
-  get(
-    id: string,
-    params?: $FieldsParams<EarnedMediaItem>,
-    options?: $RequestOptions,
-  ): Promise<$ApiResponse<EarnedMediaItem>> {
-    return this.client.request<EarnedMediaItem>(
-      $OPERATIONS["earnedMediaItems.get"],
-      { path: { id }, query: params },
-      options,
-    );
-  }
-
-  /**
-   * Update an earned media item
-   *
-   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Updates the fields sent; omitted fields are unchanged. Requires `If-Match` with the current `ETag`: a stale tag returns 412 and a missing tag returns 428.
-   *
-   * `PATCH /earned-media-items/{id}` (operation `earnedMediaItems.update`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  update(
-    id: string,
-    body: EarnedMediaItemUpdate,
-    options: $UpdateOptions,
-  ): Promise<$ApiResponse<EarnedMediaItem>> {
-    return this.client.request<EarnedMediaItem>(
-      $OPERATIONS["earnedMediaItems.update"],
-      { path: { id }, body },
-      options,
-    );
-  }
-
-  /**
-   * Delete an earned media item
-   *
-   * A piece of earned media coverage of a project (gate 8, G8.MEASUREMENT_REPORTED), sourced, dated and linked. The earned media figures of the measurement summary are computed from these rows. A reach the source does not report is null (Unmeasured); a tone is null until rated. Soft-deletes the earned media item: it moves to Trash and can be restored for its table's retention period.
-   *
-   * `DELETE /earned-media-items/{id}` (operation `earnedMediaItems.delete`).
-   * Requires the capability `projects.gate.evidence.write`.
-   */
-  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
-    return this.client.request<undefined>(
-      $OPERATIONS["earnedMediaItems.delete"],
-      { path: { id } },
-      options,
-    );
-  }
-}
-
-/**
- * Operations on `projectMeasurementSummary`, in the Projects module.
- *
- * Projects, scope tree, jurisdiction and gate evidence (Section 4.2).
- */
-export class ProjectMeasurementSummaryResource extends $Resource {
-  /**
-   * List project measurement summary row rows
-   *
-   * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * `GET /project-measurement-summary` (operation `projectMeasurementSummary.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  list(
-    params?: $ListParams<ProjectMeasurementSummary>,
-    options?: $RequestOptions,
-  ): Promise<$Page<ProjectMeasurementSummary>> {
-    return this.client.requestPage<ProjectMeasurementSummary>(
-      $OPERATIONS["projectMeasurementSummary.list"],
-      { query: params },
-      options,
-    );
-  }
-
-  /**
-   * List project measurement summary row rows
-   *
-   * Gate 8 measurement against the gate 1 objectives, per project and metric, in the metric's base unit. Totals cover measured figures only, with the unmeasured count beside them; with nothing measured the figure is null (Unmeasured), never zero. Returns a cursor page of project measurement summary row rows the caller may see. The default order is `project_id`, then `metric_code` ascending. Supports sparse fieldsets and the filter grammar.
-   *
-   * Iterates every item across all pages, following `next_cursor`.
-   *
-   * `GET /project-measurement-summary` (operation `projectMeasurementSummary.list`).
-   * Requires the capability `projects.gate.read`.
-   */
-  listAll(
-    params?: $ListAllParams<ProjectMeasurementSummary>,
-    options?: $RequestOptions,
-  ): AsyncGenerator<ProjectMeasurementSummary, void, undefined> {
-    return this.client.paginate<ProjectMeasurementSummary>(
-      $OPERATIONS["projectMeasurementSummary.list"],
       { query: params },
       options,
     );
@@ -36586,6 +35973,346 @@ export class WholesaleStatementsResource extends $Resource {
     return this.client.request<WholesaleStatement>(
       $OPERATIONS["wholesaleStatements.run"],
       { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `personCalendarFeeds`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class PersonCalendarFeedsResource extends $Resource {
+  /**
+   * List person calendar feed rows
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /person-calendar-feeds` (operation `personCalendarFeeds.list`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  list(
+    params?: $ListParams<PersonCalendarFeed>,
+    options?: $RequestOptions,
+  ): Promise<$Page<PersonCalendarFeed>> {
+    return this.client.requestPage<PersonCalendarFeed>(
+      $OPERATIONS["personCalendarFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List person calendar feed rows
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /person-calendar-feeds` (operation `personCalendarFeeds.list`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  listAll(
+    params?: $ListAllParams<PersonCalendarFeed>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<PersonCalendarFeed, void, undefined> {
+    return this.client.paginate<PersonCalendarFeed>(
+      $OPERATIONS["personCalendarFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a personal calendar feed
+   *
+   * Creates the caller's own feed across every org they work with (app.create_person_calendar_feed) and returns its token once. At most 20 live feeds (calendar_feed_limit: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /person-calendar-feeds` (operation `personCalendarFeeds.create`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  create(options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
+      $OPERATIONS["personCalendarFeeds.create"],
+      {},
+      options,
+    );
+  }
+
+  /**
+   * Get a person calendar feed
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns one person calendar feed with its `ETag`. A person calendar feed the caller may not see returns 404.
+   *
+   * `GET /person-calendar-feeds/{id}` (operation `personCalendarFeeds.get`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<PersonCalendarFeed>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<PersonCalendarFeed>> {
+    return this.client.request<PersonCalendarFeed>(
+      $OPERATIONS["personCalendarFeeds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a person calendar feed
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Soft-deletes the person calendar feed: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /person-calendar-feeds/{id}` (operation `personCalendarFeeds.delete`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["personCalendarFeeds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Get a new link for a personal calendar feed
+   *
+   * Replaces the feed's token (app.rotate_person_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /person-calendar-feeds/{id}/rotate` (operation `personCalendarFeeds.rotate`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
+      $OPERATIONS["personCalendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectInboxes`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class ProjectInboxesResource extends $Resource {
+  /**
+   * List project inbox rows
+   *
+   * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-inboxes` (operation `projectInboxes.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectInbox>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectInbox>> {
+    return this.client.requestPage<ProjectInbox>(
+      $OPERATIONS["projectInboxes.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project inbox rows
+   *
+   * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-inboxes` (operation `projectInboxes.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectInbox>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectInbox, void, undefined> {
+    return this.client.paginate<ProjectInbox>(
+      $OPERATIONS["projectInboxes.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project's inbox address
+   *
+   * Returns the project's live inbox address, creating it when there is none (app.create_project_inbox, projects.settings.write on the project). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-inboxes` (operation `projectInboxes.create`).
+   * Requires the capability `projects.settings.write`.
+   */
+  create(
+    body: ProjectInboxCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project inbox
+   *
+   * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns one project inbox with its `ETag`. A project inbox the caller may not see returns 404.
+   *
+   * `GET /project-inboxes/{id}` (operation `projectInboxes.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectInbox>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Replace a project's inbox address
+   *
+   * Disables the address and returns the project's new one (app.replace_project_inbox). Mail to the old address is no longer accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-inboxes/{id}/replace` (operation `projectInboxes.replace`).
+   * Requires the capability `projects.settings.write`.
+   */
+  replace(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.replace"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Turn off a project's inbox
+   *
+   * Stops the address accepting mail (app.disable_project_inbox). Mail already received stays; a disabled address never comes back. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-inboxes/{id}/disable` (operation `projectInboxes.disable`).
+   * Requires the capability `projects.settings.write`.
+   */
+  disable(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.disable"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `inboundMessages`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class InboundMessagesResource extends $Resource {
+  /**
+   * List inbound message rows
+   *
+   * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /inbound-messages` (operation `inboundMessages.list`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  list(
+    params?: $ListParams<InboundMessage>,
+    options?: $RequestOptions,
+  ): Promise<$Page<InboundMessage>> {
+    return this.client.requestPage<InboundMessage>(
+      $OPERATIONS["inboundMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List inbound message rows
+   *
+   * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /inbound-messages` (operation `inboundMessages.list`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  listAll(
+    params?: $ListAllParams<InboundMessage>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<InboundMessage, void, undefined> {
+    return this.client.paginate<InboundMessage>(
+      $OPERATIONS["inboundMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an inbound message
+   *
+   * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns one inbound message with its `ETag`. A inbound message the caller may not see returns 404.
+   *
+   * `GET /inbound-messages/{id}` (operation `inboundMessages.get`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<InboundMessage>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<InboundMessage>> {
+    return this.client.request<InboundMessage>(
+      $OPERATIONS["inboundMessages.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * File inbound mail as a document
+   *
+   * Files verified project inbox mail as a Document record of the project, optionally to a record of the project the caller can open (app.file_inbound_message); the subject, sender and text are posted as a comment on the document and the record. Mail is filed once (inbound_message_triaged: 422); unverified mail is refused (inbound_message_unverified: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /inbound-messages/{id}/file` (operation `inboundMessages.file`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  file(
+    id: string,
+    body: InboundMessageFileRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InboundMessage>> {
+    return this.client.request<InboundMessage>(
+      $OPERATIONS["inboundMessages.file"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Discard inbound mail
+   *
+   * Discards project inbox mail with an optional reason (app.discard_inbound_message). The mail is kept and the audit ledger records who discarded it and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /inbound-messages/{id}/discard` (operation `inboundMessages.discard`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  discard(
+    id: string,
+    body: InboundMessageDiscardRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InboundMessage>> {
+    return this.client.request<InboundMessage>(
+      $OPERATIONS["inboundMessages.discard"],
+      { path: { id }, body },
       options,
     );
   }

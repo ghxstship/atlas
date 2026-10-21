@@ -81,6 +81,8 @@ lookup, cookie consent, calendar feeds and certification verification.
 | R      | Denying a signature                                      | Signer name, signed body SHA-256 and time are stored; no IP or user agent is captured (residual risk)   | 0361 and 0769 suites                                  |
 | I      | Enumerating people or certifications                     | Profiles honor Public, Network and Private visibility; verification needs the holder's consent and code | 0860, 0352 and 0510 suites                            |
 | D      | Flooding consent or verification RPCs                    | Per-IP failure limits on verification and kiosk PINs; platform rate limits at the edge                  | `private.rate_limit_exceeded`                         |
+| D      | Hammering a leaked calendar feed link (ADR 0040)         | 120 fetches an hour per token; revoke or rotate ends the link; retired links answer 404                 | 1410 suite                                            |
+| S      | Locking calendar servers out with dead feed links        | Rotated and revoked token hashes are kept a year and never count as failed guesses                      | 1410 suite                                            |
 | S      | Skipping the failed-code count with a GET call (A69-001) | Every lockout and per-address helper refuses a read-only transaction first; resolvers lock the row      | 1295 suite (catalog of every volatile api_public RPC) |
 | S      | Spoofing the address a per-IP limit counts (A69-002)     | `private.request_ip` reads the gateway's appended entry past `xos.trusted_proxy_hops`, never the first  | 1296 suite                                            |
 | E      | Reaching a privileged function through a new anon grant  | The catalog test fixes the exact set of anon-callable functions                                         | `9900_security_catalog.test.sql`                      |
@@ -89,6 +91,13 @@ A GET through PostgREST runs the RPC in a read-only transaction. Before A69-001 
 failed-attempt count while a right code still returned its rows, so a link's 6-digit access code
 could be guessed without limit. Every volatile api_public RPC now refuses a read-only call with one
 fixed error before it looks anything up.
+
+The calendar feed (`api_public.calendar_feed`, replacing `calendar_feed_events`, ADR 0040) is answered by
+the Atlas and Gateway routes, which relay the client address from `clientAddress()`. Its failure limit
+counts that relayed address scoped under the address that reached PostgREST, with a ceiling of 2000 failures
+per reaching address, so callers behind the platform's servers never share one budget. Residual risk: the
+relayed address is not signed, so a direct caller can split its own budget up to that ceiling; with 256-bit
+tokens this buys no useful guessing.
 
 Residual risk: the hosted Supabase edge may add a trusted hop to `X-Forwarded-For`. Until the hop
 count is checked on staging (`infra/runbooks/hosted-security-settings.md`), a per-IP limit there may

@@ -99,7 +99,8 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `XOS_LOG_LEVEL`               | Optional | Optional | `info` in production                                                                     |
 | `COMPASS_APPLE_TEAM_IDS`      | Optional | Optional | Apple team ids, so Compass opens Atlas and Gateway links as universal links              |
 | `COMPASS_ANDROID_CERT_SHA256` | Optional | Optional | Compass signing certificate fingerprints, for Android App Links                          |
-| `XOS_TRUSTED_PROXY_HOPS`      | Optional |          | Trusted proxies in front of the one that appends the client address; `0` by default      |
+| `XOS_TRUSTED_PROXY_HOPS`      | Optional | Optional | Trusted proxies in front of the one that appends the client address; `0` by default      |
+| `XOS_INBOUND_DOMAIN`          | Optional |          | The domain project inbox mail is received on, so Project Settings shows full addresses   |
 
 Neither app ever receives the service role key. Every Supabase call runs on the server with the signed-in person's session.
 
@@ -112,7 +113,7 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch` and `api-token` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
+For a self-hosted stack, mount `supabase/functions` into the Compose stack's functions service instead. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token` and `integration-inbound` authenticate their callers themselves and are deployed without JWT verification, as `supabase/config.toml` declares.
 
 | Secret                                                    | Used by                                                                                          |
 | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -121,14 +122,14 @@ For a self-hosted stack, mount `supabase/functions` into the Compose stack's fun
 | `XOS_APP_URL`, `XOS_GATEWAY_URL`, `XOS_POSTAL_ADDRESS`    | Links and the postal address in email                                                            |
 | `XOS_EMAIL_TRANSPORT`, `XOS_EMAIL_FROM`, `RESEND_API_KEY` | Outgoing email through Resend (`XOS_EMAIL_TRANSPORT=resend`); unset, email is recorded, not sent |
 | `XOS_EMAIL_ALLOWLIST`, `XOS_EMAIL_DELIVER_TO_ANY`         | Who may receive email; set `XOS_EMAIL_DELIVER_TO_ANY=true` only in production                    |
-| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email                                                            |
+| `XOS_INBOUND_SECRET`, `XOS_INBOUND_DOMAIN`                | `inbound-email`, for replies by email and project inboxes                                        |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`              | `stripe-webhook`, only if you bill through Stripe                                                |
 | `XOS_CLAMAV_HOST`, `XOS_CLAMAV_PORT`                      | `upload-scan`, the ClamAV daemon; the port defaults to 3310 (see Upload scanning below)          |
 | `SENTRY_DSN`, `XOS_ENVIRONMENT`, `XOS_LOG_LEVEL`          | Optional error reporting and log level                                                           |
 
 ### Schedule the workers
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan` and `report-run` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run` and `integration-worker` do their work when called with the service role key. Call each one every minute. On hosted Supabase, pg_cron and pg_net can do it from the database, reading the key from Vault:
 
 ```sql
 select vault.create_secret('<service role key>', 'xos_worker_key');
@@ -143,7 +144,7 @@ select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
 $$);
 ```
 
-Repeat for the other three functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them.
+Repeat for the other five functions, or call them from any scheduler you already run. Until `upload-scan` runs, attachments cannot be downloaded and field and onboarding uploads reach only the person who uploaded them. Until `import-run` runs, imports are not read, and until `integration-worker` runs, integrations do not sync and warehouse deliveries wait. Provider apps and their webhook secrets are in `infra/runbooks/integrations.md`.
 
 ### Upload scanning
 
