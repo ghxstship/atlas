@@ -118,7 +118,18 @@
     "qualifier": "Qualifier",
     "source": "Source",
     "jurisdiction": "Jurisdiction",
-    "provenance": "Provenance"
+    "provenance": "Provenance",
+    "domains": {
+      "capacity": "Capacity",
+      "crew_logistics": "Crew logistics",
+      "metric_tag_roadmap": "Metric tag roadmap",
+      "power": "Power",
+      "restrooms_ada": "Accessible restrooms (ADA)",
+      "safety_staffing": "Safety staffing",
+      "site_services": "Site services",
+      "space_program": "Space program",
+      "tech_network": "Technology and network"
+    }
   },
   "extensions": {
     "title": "Org extensions",

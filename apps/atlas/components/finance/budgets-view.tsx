@@ -20,6 +20,7 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { exponentOf, getExponents, moneyFormatter } from "@/lib/finance/money";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
+import { orgToday } from "@/lib/shell/time-zone";
 import { deleteBudgetAction } from "@/app/[org]/finance/actions";
 import { Figures, Section, SimpleTable } from "./figures";
 import { CreateButton } from "./kit-create-button";
@@ -228,7 +229,7 @@ export async function BudgetsView({ page }: { page: FinancePage }) {
       const b = detail.data.budget;
       const target =
         query.extra["in"] && query.extra["in"] !== b.currency ? query.extra["in"] : null;
-      const today = new Date().toISOString().slice(0, 10);
+      const today = await orgToday(ctx);
       const fx = target ? findFxRate(rates.data, b.currency, target, today) : null;
       const switcher = (
         <nav

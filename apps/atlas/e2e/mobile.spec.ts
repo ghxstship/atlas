@@ -14,4 +14,15 @@ test("below md, the bottom bar carries Home, Inbox, Search, My Work and Menu", a
   await bar.getByText("Inbox", { exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/${slug}/inbox$`));
   await expect(page.getByText("Nothing needs you right now.")).toBeVisible();
+
+  // A59-001: Menu opens the navigation drawer, and choosing a page there closes it.
+  await bar.getByText("Menu", { exact: true }).click();
+  const opener = page.getByRole("button", { name: "Open navigation", expanded: true });
+  await expect(opener).toBeVisible();
+  const drawer = page.locator(`[id="${await opener.getAttribute("aria-controls")}"]`);
+  await expect(drawer).toBeVisible();
+  await expectAccessible(page);
+  await drawer.getByRole("link", { name: "Home", exact: true }).first().click();
+  await expect(page).toHaveURL(new RegExp(`/${slug}/home$`));
+  await expect(drawer).toBeHidden();
 });

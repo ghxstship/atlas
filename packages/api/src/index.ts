@@ -8,6 +8,7 @@ export {
   createApiApp,
   frozenCatalog,
   handledOperations,
+  stripBasePath,
   uncorrectedFrozenCatalog,
 } from "./app.ts";
 export type { Correction, CorrectionInput, ResolvedCorrection } from "./catalog/corrections.ts";

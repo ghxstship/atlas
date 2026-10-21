@@ -13,7 +13,7 @@ This page explains how to delete your XOS account, whether or not you have the C
 
 ## 1. Ways to Delete
 
-- **In Compass:** Profile, then Settings, then Delete Account.
+- **In Compass:** More, then Settings, then Delete Account.
 - **In Gateway or Atlas:** Settings, Account, then Delete Account.
 - **Without the app:** use the Delete Account form on this page. Enter the email address on your account. We send a confirmation link to that address, and your account is deleted when you confirm.
 

@@ -92,6 +92,8 @@ Atlas and Gateway validate their environment when they start and name every miss
 | `ATLAS_SITE_URL`              | Required |          | The public origin of Atlas, used for sign-in links and the CSRF origin check             |
 | `GATEWAY_SITE_URL`            | Optional | Required | The public origin of Gateway; Atlas uses it for advance and signing links                |
 | `GATEWAY_PLATFORM_HOSTS`      |          | Optional | Hosts that serve the platform Gateway; any other host is an organization's custom domain |
+| `XOS_API_HOST`                | Optional |          | A host name, such as `api.example.com`, on which Atlas serves only the API, at `/v1`     |
+| `DOCS_SITE_URL`               | Optional | Optional | The public origin of this docs site, for help center links                               |
 | `NEXT_PUBLIC_SENTRY_DSN`      | Optional | Optional | Error reporting; without a DSN nothing is sent to Sentry                                 |
 | `XOS_TRACES_SAMPLE_RATE`      | Optional | Optional | Trace sample rate, `0.05` by default                                                     |
 | `XOS_LOG_LEVEL`               | Optional | Optional | `info` in production                                                                     |
@@ -172,6 +174,8 @@ Create one Vercel project per app with these settings, then add the variables ab
 
 Add each custom Gateway domain to the Gateway project; organizations verify their domain in Atlas settings.
 
+To serve the API on its own host, add that host to the Atlas project too and set `XOS_API_HOST` to it. Atlas then answers `https://<that host>/v1/...` as the API at `/api/v1/...`, with the same credentials and limits, and serves no page or cookie there.
+
 ### On your own Node host
 
 ```bash
@@ -188,15 +192,16 @@ The proxy must append the client address to `X-Forwarded-For` (in nginx, `proxy_
 
 Compass reads its configuration at build time:
 
-| Variable                           | Value                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | The Supabase API URL                                                      |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The anon key                                                              |
-| `EXPO_PUBLIC_ATLAS_URL`            | The Atlas origin                                                          |
-| `EXPO_PUBLIC_GATEWAY_URL`          | The Gateway origin                                                        |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | Optional: `atlas:<host>,gateway:<host>`, so handoff links open in Compass |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Optional: your Google Web client ID, for Continue with Google             |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Optional: your Google iOS client ID, for Continue with Google on iOS      |
+| Variable                           | Value                                                                                                                                                      |
+| ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | The Supabase API URL                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | The anon key                                                                                                                                               |
+| `EXPO_PUBLIC_ATLAS_URL`            | The Atlas origin                                                                                                                                           |
+| `EXPO_PUBLIC_GATEWAY_URL`          | The Gateway origin                                                                                                                                         |
+| `EXPO_PUBLIC_DOCS_URL`             | Optional: the docs site origin, for the help center row in Settings                                                                                        |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<host>,gateway:<host>`, so handoff links open in Compass. Unset, a build claims the GHXSTSHIP hosts; set your own hosts, or an empty value for none |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Optional: your Google Web client ID, for Continue with Google                                                                                              |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Optional: your Google iOS client ID, for Continue with Google on iOS                                                                                       |
 
 Change the bundle identifier and Android package in `apps/compass/app.json` to your own, then build with EAS Build (add an `eas.json` with a `production` profile and run `eas build --platform all --profile production`) or locally with `expo prebuild` followed by an Xcode archive and a Gradle release build. Distribute through TestFlight and Google Play internal testing first.
 

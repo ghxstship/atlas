@@ -22,6 +22,7 @@ import {
   type AccessControlFormState,
 } from "@/app/[org]/settings/access-control-actions";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
+import { SecondFactor } from "@/components/auth/second-factor";
 
 /**
  * Client forms for the A52 settings panels (legal entities, IP allow-list, break-glass, access
@@ -294,32 +295,45 @@ export function RemoveNetworkButton({
 
 export function BreakGlassForm({ org }: { org: string }) {
   const { state, dispatch, pending, keep, fieldError, t } = useForm(startBreakGlassAction);
+  // A refusal for want of a second factor offers the step-up in place, then retries (A59-019).
+  const stepUp = state.error === "step_up_required";
   return (
-    <form
-      action={dispatch}
-      {...keep}
-      aria-label={t("breakGlass.startLabel")}
-      className="flex max-w-layout-form flex-col gap-12"
-      noValidate
-    >
-      <input type="hidden" name="org" value={org} />
-      <Status state={state} />
-      <Textarea
-        id="break-glass-reason"
-        name="reason"
-        label={t("breakGlass.reason")}
-        help={t("breakGlass.reasonHelp")}
-        rows={3}
-        width="100%"
-        maxLength={2000}
-        error={fieldError("reason", "reason")}
-      />
-      <div>
-        <Button type="submit" variant="danger" loading={pending}>
-          {t("breakGlass.start")}
-        </Button>
-      </div>
-    </form>
+    <div className="flex max-w-layout-form flex-col gap-12">
+      {stepUp ? (
+        <SecondFactor
+          mode="step-up"
+          onVerified={() =>
+            (document.getElementById("break-glass-form") as HTMLFormElement | null)?.requestSubmit()
+          }
+        />
+      ) : null}
+      <form
+        id="break-glass-form"
+        action={dispatch}
+        {...keep}
+        aria-label={t("breakGlass.startLabel")}
+        className="flex max-w-layout-form flex-col gap-12"
+        noValidate
+      >
+        <input type="hidden" name="org" value={org} />
+        {stepUp ? null : <Status state={state} />}
+        <Textarea
+          id="break-glass-reason"
+          name="reason"
+          label={t("breakGlass.reason")}
+          help={t("breakGlass.reasonHelp")}
+          rows={3}
+          width="100%"
+          maxLength={2000}
+          error={fieldError("reason", "reason")}
+        />
+        <div>
+          <Button type="submit" variant="danger" loading={pending}>
+            {t("breakGlass.start")}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
 

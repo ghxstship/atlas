@@ -23,6 +23,7 @@ import { withQuery, type FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
 import { sitemap } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { applyPaymentAction, saveSettlementLineAction } from "@/app/[org]/finance/actions";
 import { FinanceCollection, type RecordDetail } from "./collection";
 import { Section, SimpleTable } from "./figures";
@@ -292,7 +293,7 @@ async function PaymentsTab({ page }: { page: FinancePage }) {
               }))}
               currencies={[...c.exponents.keys()].sort()}
               defaultCurrency="USD"
-              today={new Date().toISOString().slice(0, 10)}
+              today={await orgToday(ctx)}
             />
           </FormSheet>
         ) : null

@@ -21,6 +21,7 @@ import { planHasFeature } from "@/lib/crew/plan";
 import { stateIcon } from "@/lib/crew/states";
 import { addDays, mondayOf } from "@/lib/crew/time";
 import { nodeHref } from "@/lib/shell/sitemap";
+import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -178,9 +179,8 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
 
   // Drawers: a new period suggested after the latest one, edits while Open, and new runs.
   const latest = result.data[0];
-  const suggestStart = latest
-    ? addDays(latest.endsOn, 1)
-    : mondayOf(new Date().toISOString().slice(0, 10));
+  // Pay periods are the org's (A71): this week on its calendar, never UTC's.
+  const suggestStart = latest ? addDays(latest.endsOn, 1) : mondayOf(await orgToday(crew.ctx));
   const editing = search["edit"] ? result.data.find((p) => p.id === search["edit"]) : undefined;
   const runFor = search["run"] ? result.data.find((p) => p.id === search["run"]) : undefined;
   const currencies = runFor ? await listCurrencies(db) : null;

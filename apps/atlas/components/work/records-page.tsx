@@ -1,9 +1,11 @@
 import { buildTimeline, latestBaselinePlan, listDependencies } from "@xos/data/schedule";
 import { listRecords, sortRecords, type ProjectRef, type RecordSort } from "@xos/data/work";
+import { todayIn } from "@xos/data/calendar";
 import { getNode } from "@xos/ia";
 import type { ReactNode } from "react";
 import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { CreateRecordDialog } from "./create-record";
 import {
@@ -66,7 +68,8 @@ export async function RecordsPage({
   const sortParam = param(search, "sort") as RecordSort | undefined;
   const sort =
     sortParam && SORTS.includes(sortParam) ? sortParam : view === "timeline" ? "next" : "key";
-  const today = new Date().toISOString().slice(0, 10);
+  // On a project tab the project's calendar, else the org's (A71); never the UTC date.
+  const today = todayIn(project ? project.timeZone : await getOrgTimeZone(ctx));
   const monthParam = param(search, "month");
   const month =
     monthParam && /^\d{4}-\d{2}-01$/.test(monthParam) ? monthParam : `${today.slice(0, 7)}-01`;

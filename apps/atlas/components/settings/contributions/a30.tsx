@@ -27,7 +27,7 @@ import {
   ProfilePanel,
 } from "@/components/settings/profile-panels";
 import { referenceOptions } from "@/components/settings/registry-section";
-import { SettingField } from "@/components/settings/setting-field";
+import { SettingsForm } from "@/components/settings/setting-field";
 import { InlineAlert } from "@/components/ui";
 import { defaultAccent } from "@/lib/brand/contrast";
 import { LEGAL_DOCUMENTS } from "@/lib/legal.generated";
@@ -357,8 +357,13 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
           <Heading id={`ws-${w.id}`}>
             {t("settings.workspaces.overrides", { name: w.name })}
           </Heading>
-          <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
-            {defs.map((def) => {
+          <SettingsForm
+            org={ctx.org.slug}
+            group="org"
+            label={t("settings.workspaces.overrides", { name: w.name })}
+            scopeKind="Workspace"
+            scopeId={w.id}
+            fields={defs.map((def) => {
               // The workspace value, else the org value, else the platform default (Section 4.5.6).
               const here = stored.data.find(
                 (v) => v.key === def.key && v.scopeKind === "Workspace" && v.scopeId === w.id,
@@ -375,40 +380,28 @@ async function WorkspaceOverridesPanel({ ctx }: SettingsPanelProps) {
                     ? ""
                     : formText(def.default);
               const source = here ? "Workspace" : org ? "Organization" : "Default";
-              return (
-                <li key={def.key}>
-                  <SettingField
-                    key={`${initial}:${String(orgLocked)}`}
-                    org={ctx.org.slug}
-                    group="org"
-                    def={def}
-                    label={t(def.label)}
-                    help={def.help ? t(def.help) : null}
-                    options={
-                      def.type === "choice"
-                        ? def.choices.map((c) => ({
-                            value: c,
-                            label: t(choiceLabelKey(def.key, c)),
-                          }))
-                        : (refs.get(def.key) ?? [])
-                    }
-                    initial={initial}
-                    sourceText={
-                      orgLocked
-                        ? t("settings.source.organizationLocked")
-                        : t(`settings.source.workspace${source}`)
-                    }
-                    setHere={here !== undefined}
-                    locked={false}
-                    lockedByOrg={orgLocked}
-                    canEdit={ctx.capabilities.has(def.capability)}
-                    scopeKind="Workspace"
-                    scopeId={w.id}
-                  />
-                </li>
-              );
+              return {
+                def,
+                label: t(def.label),
+                help: def.help ? t(def.help) : null,
+                options:
+                  def.type === "choice"
+                    ? def.choices.map((c) => ({
+                        value: c,
+                        label: t(choiceLabelKey(def.key, c)),
+                      }))
+                    : (refs.get(def.key) ?? []),
+                initial,
+                sourceText: orgLocked
+                  ? t("settings.source.organizationLocked")
+                  : t(`settings.source.workspace${source}`),
+                setHere: here !== undefined,
+                locked: false,
+                lockedByOrg: orgLocked,
+                canEdit: ctx.capabilities.has(def.capability),
+              };
             })}
-          </ul>
+          />
         </section>
       ))}
     </>

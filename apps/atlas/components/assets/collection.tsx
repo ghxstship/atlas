@@ -27,12 +27,15 @@ import { useState, type ReactNode } from "react";
 import { useAssetsCopy } from "./copy";
 import { CreateDialogContext } from "./dialog";
 import { CollectionViews } from "@/components/views/collection-views";
+import { displayKey, keyedTitle } from "@/lib/assets/views";
 
 /** One row of an assets collection, already shaped for every view the page offers. */
 export interface CollectionRow {
   readonly key: string;
   /** Value of `?peek=` that opens this row; rows without one do not open. */
   readonly peek?: string;
+  /** The short human key shown in the key column (an asset tag); a row id is never shown (A59-009). */
+  readonly recordKey?: string;
   readonly title: string;
   readonly meta?: string;
   readonly tone?: RecordState;
@@ -259,7 +262,7 @@ function renderView(
           {props.rows.map((row) => (
             <RecordRow
               key={row.key}
-              recordKey={row.peek ?? row.key}
+              recordKey={displayKey(row)}
               title={row.title}
               state={row.tone ?? "ready"}
               stateLabel={row.stateLabel ?? ""}
@@ -281,7 +284,11 @@ function renderView(
             label: c.label,
             cards: props.rows
               .filter((r) => r.group === c.value)
-              .map((r) => ({ key: r.key, title: r.title, ...(r.meta ? { meta: r.meta } : {}) })),
+              .map((r) => ({
+                key: r.key,
+                title: keyedTitle(r),
+                ...(r.meta ? { meta: r.meta } : {}),
+              })),
           }))}
           onOpen={(key) => open(byKey.get(key)?.peek)}
         />
@@ -291,7 +298,7 @@ function renderView(
         <Gallery label={props.title}>
           {props.rows.map((row) => {
             const card = (
-              <Card title={row.title} meta={row.stateLabel} interactive={Boolean(row.peek)}>
+              <Card title={keyedTitle(row)} meta={row.stateLabel} interactive={Boolean(row.peek)}>
                 <p className="m-0 text-text-13 text-text-secondary">{row.meta}</p>
               </Card>
             );
@@ -313,11 +320,11 @@ function renderView(
     case "calendar":
       return (
         <Calendar
-          month={props.month ?? new Date().toISOString().slice(0, 8) + "01"}
+          month={props.month ?? `${(props.today ?? new Date().toISOString()).slice(0, 7)}-01`}
           {...(props.today ? { today: props.today } : {})}
           events={props.rows
             .filter((r) => r.date)
-            .map((r) => ({ date: r.date ?? "", label: r.title, state: r.tone ?? "ready" }))}
+            .map((r) => ({ date: r.date ?? "", label: keyedTitle(r), state: r.tone ?? "ready" }))}
         />
       );
     case "resource-schedule":

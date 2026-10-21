@@ -1,3 +1,4 @@
+import { todayIn } from "@xos/data/calendar";
 import {
   fromDisplayKey,
   getEngagement,
@@ -37,6 +38,8 @@ export interface EngagementView {
   /** Representation scopes as sitemap keys (offers, advance, settlement, documents). */
   readonly scopes: readonly string[];
   readonly tabs: readonly string[];
+  /** Today on the engagement's project calendar (its time zone, 1390), as `YYYY-MM-DD`; never UTC's date. */
+  readonly today: string;
 }
 
 /** How the viewer relates to an artist engagement they do not hold: through a live representation. */
@@ -74,7 +77,7 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
     throw new Error(`Engagement ${engagementKey} did not load: ${engagement.error.kind}`);
   }
   if (ctx.brand.kind === "org" && ctx.brand.org.orgId !== engagement.data.orgId) notFound();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIn(engagement.data.projectTimeZone);
   const representation = representationFor(
     engagement.data,
     ctx.personId,
@@ -92,6 +95,7 @@ export const loadEngagementView = cache(async (engagementKey: string): Promise<E
     representation,
     scopes,
     tabs: engagementTabIds(sitemap, roleType, scopes),
+    today,
   };
 });
 

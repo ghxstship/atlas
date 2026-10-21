@@ -114,21 +114,46 @@ export function ProjectFilter({
   );
 }
 
-/** Where to go when the viewer may act but no project is in scope yet. */
-export function chooseProjectNotice(page: ModulePage, section: string): ReactNode {
+/**
+ * What the viewer sees when they may act but no project is in scope yet: the section's own sentence
+ * (A59-010: Incidents asks for the project of the incident, not about credentials) and a project
+ * picker that reopens the section on that project with its create flow open.
+ */
+export function chooseProjectNotice(
+  page: ModulePage,
+  section: string,
+  copy: { readonly choose?: string; readonly none?: string } = {},
+): ReactNode {
   const t = page.t;
+  const sentence = copy.choose ?? t("credentials.common.chooseProject");
   const first = page.projects[0];
   return first ? (
-    <EmptyStateLink
-      icon="FolderOpen"
-      sentence={t("credentials.common.chooseProject")}
-      actionLabel={t("credentials.common.openProject", { key: first.key })}
-      href={sectionHref(page, { project: first.key, section })}
-    />
+    <section
+      aria-labelledby={`choose-project-${section}`}
+      className="flex flex-col gap-12 rounded-card border border-dashed border-border-default p-16"
+    >
+      <p id={`choose-project-${section}`} className="m-0 text-text-14 text-text-primary">
+        {sentence}
+      </p>
+      <FilterBar
+        label={t("credentials.common.chooseProjectLabel")}
+        action={page.base}
+        fields={[
+          {
+            name: "project",
+            label: t("credentials.common.project"),
+            value: first.key,
+            options: page.projects.map((p) => ({ value: p.key, label: `${p.key} · ${p.name}` })),
+          },
+        ]}
+        keep={{ section, create: "1", view: param(page.search, "view") }}
+        submitLabel={t("credentials.common.continue")}
+      />
+    </section>
   ) : (
     <EmptyStateLink
       icon="FolderOpen"
-      sentence={t("credentials.common.noProjects")}
+      sentence={copy.none ?? t("credentials.common.noProjects")}
       actionLabel={t("credentials.common.goToProjects")}
       href={`/${page.ctx.org.slug}/projects`}
     />

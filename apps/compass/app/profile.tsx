@@ -4,6 +4,7 @@ import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { certificationsUrl } from "../src/domain/access";
 import { useCompass } from "../src/runtime/CompassProvider";
+import { WorkDetailsCards } from "../src/screens/WorkDetailsCards";
 import { Button, Card, ListRow, Screen, Text } from "../src/ui";
 
 /** The person, their role in Compass and, for external users, their engagements across orgs. */
@@ -34,6 +35,7 @@ export default function ProfileScreen(): ReactElement {
           ))}
         </Card>
       ) : null}
+      <WorkDetailsCards />
       {identity ? (
         <Card title={t("compass.profile.certificationsTitle")}>
           <Text tone="secondary">

@@ -92,6 +92,8 @@ Atlas y Gateway validan su entorno al iniciar y nombran cada variable faltante o
 | `ATLAS_SITE_URL`              | Obligatoria |             | El origen público de Atlas, para los enlaces de inicio de sesión y la comprobación CSRF        |
 | `GATEWAY_SITE_URL`            | Opcional    | Obligatoria | El origen público de Gateway; Atlas lo usa para los enlaces de avance y de firma               |
 | `GATEWAY_PLATFORM_HOSTS`      |             | Opcional    | Los hosts que sirven el Gateway de la plataforma; cualquier otro es un dominio personalizado   |
+| `XOS_API_HOST`                | Opcional    |             | Un nombre de host, como `api.example.com`, en el que Atlas sirve solo la API, en `/v1`         |
+| `DOCS_SITE_URL`               | Opcional    | Opcional    | El origen público de este sitio de documentación, para los enlaces al centro de ayuda          |
 | `NEXT_PUBLIC_SENTRY_DSN`      | Opcional    | Opcional    | Reporte de errores; sin DSN no se envía nada a Sentry                                          |
 | `XOS_TRACES_SAMPLE_RATE`      | Opcional    | Opcional    | Tasa de muestreo de trazas, `0.05` por defecto                                                 |
 | `XOS_LOG_LEVEL`               | Opcional    | Opcional    | `info` en producción                                                                           |
@@ -172,6 +174,8 @@ Crea un proyecto de Vercel por aplicación con estos ajustes y agrega las variab
 
 Agrega cada dominio personalizado de Gateway al proyecto de Gateway; las organizaciones verifican su dominio en los ajustes de Atlas.
 
+Para servir la API en su propio host, agrega también ese host al proyecto de Atlas y define `XOS_API_HOST` con él. Atlas responde entonces `https://<ese host>/v1/...` como la API en `/api/v1/...`, con las mismas credenciales y límites, y no sirve ninguna página ni cookie ahí.
+
 ### En tu propio servidor Node
 
 ```bash
@@ -188,15 +192,16 @@ El proxy debe añadir la dirección del cliente a `X-Forwarded-For` (en nginx, `
 
 Compass lee su configuración al compilar:
 
-| Variable                           | Valor                                                                                   |
-| ---------------------------------- | --------------------------------------------------------------------------------------- |
-| `EXPO_PUBLIC_SUPABASE_URL`         | La URL de la API de Supabase                                                            |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | La clave anónima                                                                        |
-| `EXPO_PUBLIC_ATLAS_URL`            | El origen de Atlas                                                                      |
-| `EXPO_PUBLIC_GATEWAY_URL`          | El origen de Gateway                                                                    |
-| `XOS_UNIVERSAL_LINK_HOSTS`         | Opcional: `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass |
-| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Opcional: el ID de tu cliente web de Google, para Continuar con Google                  |
-| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Opcional: el ID de tu cliente de iOS de Google, para Continuar con Google en iOS        |
+| Variable                           | Valor                                                                                                                                                                                              |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_SUPABASE_URL`         | La URL de la API de Supabase                                                                                                                                                                       |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY`    | La clave anónima                                                                                                                                                                                   |
+| `EXPO_PUBLIC_ATLAS_URL`            | El origen de Atlas                                                                                                                                                                                 |
+| `EXPO_PUBLIC_GATEWAY_URL`          | El origen de Gateway                                                                                                                                                                               |
+| `EXPO_PUBLIC_DOCS_URL`             | Opcional: el origen del sitio de documentación, para la fila del centro de ayuda en Ajustes                                                                                                        |
+| `XOS_UNIVERSAL_LINK_HOSTS`         | `atlas:<host>,gateway:<host>`, para que los enlaces de traspaso abran Compass. Sin definir, la compilación reclama los hosts de GHXSTSHIP; define tus propios hosts, o un valor vacío para ninguno |
+| `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | Opcional: el ID de tu cliente web de Google, para Continuar con Google                                                                                                                             |
+| `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` | Opcional: el ID de tu cliente de iOS de Google, para Continuar con Google en iOS                                                                                                                   |
 
 Cambia el identificador del paquete y el paquete de Android en `apps/compass/app.json` por los tuyos y compila con EAS Build (agrega un `eas.json` con un perfil `production` y ejecuta `eas build --platform all --profile production`) o localmente con `expo prebuild` seguido de un archivo de Xcode y una compilación de versión de Gradle. Distribuye primero mediante TestFlight y las pruebas internas de Google Play.
 

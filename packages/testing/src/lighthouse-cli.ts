@@ -1,12 +1,13 @@
 import { spawnSync } from "node:child_process";
 import { mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   lighthouseRc,
   lighthouseTargets,
   scorePage,
-  sessionCookieHeader,
+  SESSION_COOKIES_ENV,
+  sessionCookies,
   type AuthSession,
   type LighthouseApp,
 } from "./lighthouse.ts";
@@ -14,7 +15,9 @@ import {
 /**
  * `pnpm --filter @xos/testing lighthouse [atlas|gateway|docs]` runs Lighthouse CI against running
  * production builds (`next start`) of each app on the local stack and writes
- * node_modules/.cache/lighthouse/<app>/summary.json (kept out of formatting and the finish guard). Environment:
+ * node_modules/.cache/lighthouse/<app>/summary.json (kept out of formatting and the finish guard).
+ * Signed-in apps get a demo session in the browser's cookie jar before each page
+ * (src/lighthouse-session.cjs). Environment:
  * - SUPABASE_URL and SUPABASE_ANON_KEY: the local stack, for the signed-in pages;
  * - LH_PASSWORD: the demo password (the seed's shared demo password by default);
  * - CHROME_PATH: the Chromium build to drive;
@@ -48,20 +51,32 @@ let failed = false;
 for (const app of selected) {
   const target = lighthouseTargets[app];
   const baseUrl = baseOverride[app] ?? target.baseUrl;
-  const cookie = target.email ? sessionCookieHeader("xos-auth", await signIn(target.email)) : null;
+  const cookies = target.email ? sessionCookies("xos-auth", await signIn(target.email)) : null;
   const outputDir = join(here, "node_modules/.cache/lighthouse", app);
   mkdirSync(outputDir, { recursive: true });
   const rcPath = join(outputDir, "lighthouserc.json");
   writeFileSync(
     rcPath,
     JSON.stringify(
-      lighthouseRc({ app, baseUrl, cookie, chromePath: process.env["CHROME_PATH"], outputDir }),
+      lighthouseRc({
+        app,
+        baseUrl,
+        // lhci resolves the script against its cwd.
+        sessionScript: cookies
+          ? relative(outputDir, join(here, "src/lighthouse-session.cjs"))
+          : null,
+        chromePath: process.env["CHROME_PATH"],
+        outputDir,
+      }),
     ),
   );
-  const run = spawnSync("pnpm", ["exec", "lhci", "autorun", `--config=${rcPath}`], {
-    // lhci keeps its working files (.lighthouseci) in its cwd; keep them with the reports.
+  // The package's lhci binary, run directly: `pnpm exec` would move to the package root.
+  const run = spawnSync(join(here, "node_modules/.bin/lhci"), ["autorun", `--config=${rcPath}`], {
+    // lhci keeps its working files (.lighthouseci) in its cwd and resolves the session script
+    // against it; keep them with the reports.
     cwd: outputDir,
     stdio: "inherit",
+    env: cookies ? { ...process.env, [SESSION_COOKIES_ENV]: JSON.stringify(cookies) } : process.env,
   });
   if (run.status !== 0) failed = true;
 

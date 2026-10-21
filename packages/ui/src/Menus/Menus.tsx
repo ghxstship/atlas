@@ -10,3 +10,4 @@ export { DropdownMenu } from "./DropdownMenu.tsx";
 export { ContextMenu } from "./ContextMenu.tsx";
 export { OrgSwitcher } from "./OrgSwitcher.tsx";
 export { orgSwitcherTriggerClass } from "./orgSwitcherTriggerClass.tsx";
+export { compactChevronClass, compactLabelClass } from "./compactTriggerClass.tsx";

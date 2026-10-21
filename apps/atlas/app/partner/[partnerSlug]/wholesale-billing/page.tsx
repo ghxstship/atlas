@@ -34,6 +34,8 @@ export default async function Page({
       </PartnerFrame>
     );
   }
+  // Usage rollups and wholesale statements are kept by UTC month (0510, 1060), so the current
+  // period here is the UTC month on purpose, not the partner's calendar month.
   const period = monthStart(new Date());
   const names = new Map(clients.data.map((c) => [c.id, c.name]));
   return (

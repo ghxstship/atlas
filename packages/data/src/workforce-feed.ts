@@ -90,7 +90,7 @@ export interface FeedPost {
   readonly poll: Poll | null;
 }
 
-const POST_COLUMNS = `id, post_kind, title, body, audience_kind, project_id, team_id, role_id, group_id, author_membership_id,
+const POST_COLUMNS = `id, post_kind, title, body, audience_kind, project_id, team_id, role_id, group_id, department_code, author_membership_id,
   pinned_at, requires_acknowledgment, reactions_enabled, comments_enabled, publish_at, hidden_at, hidden_reason,
   author:memberships(${MEMBER_EMBED}), feed_reactions(membership_id, reaction_code, deleted_at),
   polls(id, question, allows_multiple, closes_at, poll_options(id, position, label, deleted_at))`;
@@ -254,6 +254,7 @@ export async function createFeedPost(
         : undefined,
     }),
     ...audienceArgs(input.audience),
+    ...args({ p_department_code: input.audience?.departmentCode ?? undefined }),
   });
 }
 

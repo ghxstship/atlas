@@ -40,8 +40,9 @@ import {
 import { recordStateOf, type KitRow, type ViewKind } from "@/components/collection-kit/types";
 import { PageHeader } from "@/components/collection-kit/ui";
 import { DataTable } from "@/components/platform/client/data-table";
-import { collectionState, today, withQuery, type SearchParams } from "@/lib/collection-kit/page";
+import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { orgToday } from "@/lib/shell/time-zone";
 import { EmptyStateLink } from "@/components/ui";
 
 const VIEWS: readonly ViewKind[] = ["table", "list", "gallery"];
@@ -61,7 +62,7 @@ export async function VendorDirectory({
   path: string;
   search: SearchParams;
 }) {
-  const state = collectionState(search, VIEWS);
+  const state = collectionState(search, VIEWS, await orgToday(ctx));
   const db = ctx.viewer.db;
   const [t, vendors, classes, rules] = await Promise.all([
     getCopy("vendors"),
@@ -337,7 +338,7 @@ async function VendorRecord({
   const className = new Map((classes.ok ? classes.data : []).map((c) => [c.id, c.name]));
   const stateLabel = (s: string) => t(`states.${s}`);
   const date = (d: string) => format.dateTime(new Date(`${d}T00:00:00`), { dateStyle: "medium" });
-  const now = today();
+  const now = await orgToday(ctx);
   return (
     <RecordPage
       backHref={backHref}

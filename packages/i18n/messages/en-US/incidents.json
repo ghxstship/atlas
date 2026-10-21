@@ -18,7 +18,7 @@
   "anySeverity": "Any severity",
   "anyState": "Any state",
   "arrivedAt": "Arrived {time}",
-  "boardEmpty": "None",
+  "boardEmpty": "No incidents in this state.",
   "close": "Close with sign-off",
   "closeHeading": "Close",
   "closeHelp": "Closing records you as the person signing off. The reporter of a critical incident cannot sign off its closure.",
@@ -100,7 +100,8 @@
     "libraryOperations": "Department channels",
     "libraryShared": "Shared and guest channels",
     "name": "Name",
-    "new": "New channel"
+    "new": "New channel",
+    "chooseProject": "Choose the project whose radio channels you want to set up."
   },
   "reason": "Reason",
   "remove": "Remove",
@@ -126,5 +127,7 @@
   "unknownPerson": "Unknown person",
   "viewAll": "View all incidents",
   "withdraw": "Withdraw",
-  "zone": "Zone"
+  "zone": "Zone",
+  "chooseProject": "Choose the project where the incident happened, then report it.",
+  "noProjects": "There are no projects you can open yet. Create a project, then come back to report incidents."
 }

@@ -21,6 +21,8 @@ export interface CompassConfig {
   readonly supabaseAnonKey: string;
   readonly gatewayUrl: string;
   readonly atlasUrl: string;
+  /** The docs site origin, for the help center link; null hides the link. */
+  readonly docsUrl: string | null;
 }
 
 /** Public build-time configuration (Expo inlines EXPO_PUBLIC_*); the anon key is public by design. */
@@ -30,6 +32,7 @@ export function readConfig(): CompassConfig {
     supabaseAnonKey: process.env["EXPO_PUBLIC_SUPABASE_ANON_KEY"] ?? "",
     gatewayUrl: process.env["EXPO_PUBLIC_GATEWAY_URL"] ?? "http://localhost:3001",
     atlasUrl: process.env["EXPO_PUBLIC_ATLAS_URL"] ?? "http://localhost:3000",
+    docsUrl: process.env["EXPO_PUBLIC_DOCS_URL"] || null,
   };
 }
 

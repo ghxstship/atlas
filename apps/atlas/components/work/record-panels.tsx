@@ -43,6 +43,7 @@ import {
 } from "./actions";
 import { fromLocalInput, toLocalInput } from "./format";
 import { duplicateRecordAction } from "./work-order-actions";
+import { describeRrule } from "@/lib/work/recurrence-text";
 
 /*
  * The interactive parts of a record's peek and full page (Record template, Section 11.6): state
@@ -586,7 +587,13 @@ export function RecurrenceForm({
       <ActionErrorAlert error={error} />
       {!canEdit ? (
         <p className="m-0 text-text-13 text-text-secondary">
-          {recurrence ? t("recurrence.rule", { rule: recurrence.rrule }) : t("recurrence.none")}
+          {recurrence
+            ? t("recurrence.rule", {
+                rule: describeRrule(recurrence.rrule, (key, values) =>
+                  t(`recurrence.${key}`, values),
+                ),
+              })
+            : t("recurrence.none")}
         </p>
       ) : (
         <form
@@ -902,7 +909,12 @@ export function ExtensionForm({
 
 // Trash ----------------------------------------------------------------------------------------------------
 
-/** Moves a record to Trash with an 8-second Undo (Section 11.7), or restores one from Trash. */
+/**
+ * Moves a record to Trash with an 8-second Undo (Section 11.7), or restores one from Trash. The Undo
+ * toast stays in the same place whichever control shows: the trash action returns the refreshed
+ * record with it, already in Trash, and a toast inside the not-trashed branch unmounted before it
+ * was ever seen (journey 70, A71).
+ */
 export function TrashControls({
   org,
   record,
@@ -915,36 +927,42 @@ export function TrashControls({
   const t = useCopy("work");
   const { pending, error, run } = useAction();
   const [undo, setUndo] = useState(false);
-  if (record.deletedAt) {
-    return (
-      <div className="flex flex-col gap-6">
-        <p className="m-0 text-text-13 text-text-secondary">{t("trash.inTrash")}</p>
-        <div>
-          <Button loading={pending} onClick={() => run(() => restoreRecordAction(org, record.id))}>
-            {t("trash.restore")}
-          </Button>
-        </div>
-        <ActionErrorAlert error={error} />
-      </div>
-    );
-  }
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <Button
-          variant="ghost"
-          icon="Trash2"
-          loading={pending}
-          onClick={() =>
-            run(
-              () => trashRecordAction(org, record.id),
-              () => setUndo(true),
-            )
-          }
-        >
-          {t("trash.move")}
-        </Button>
-      </div>
+      {record.deletedAt ? (
+        <>
+          <p className="m-0 text-text-13 text-text-secondary">{t("trash.inTrash")}</p>
+          <div>
+            <Button
+              loading={pending}
+              onClick={() =>
+                run(
+                  () => restoreRecordAction(org, record.id),
+                  () => setUndo(false),
+                )
+              }
+            >
+              {t("trash.restore")}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div>
+          <Button
+            variant="ghost"
+            icon="Trash2"
+            loading={pending}
+            onClick={() =>
+              run(
+                () => trashRecordAction(org, record.id),
+                () => setUndo(true),
+              )
+            }
+          >
+            {t("trash.move")}
+          </Button>
+        </div>
+      )}
       <ActionErrorAlert error={error} />
       <ToastRegion label={t("trash.notifications")}>
         {undo ? (
