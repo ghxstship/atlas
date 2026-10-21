@@ -29,8 +29,8 @@ Three facts shape the design. Production carries no demo tenant (ADR 0033 decisi
 - **Nobody else gets in.** Triggers refuse invitations, invite links, join requests, memberships of anyone but the owner, project shares, advance and document links, offers, integrations and webhooks.
 - **Purge.** `private.purge_expired_sandboxes` runs hourly (`xos_purge_expired_sandboxes`). It deletes every row of the org through the sanctioned tenant purge (1270), children before parents, and refuses when a row outside the sandbox references it.
   - A failed purge records its reason on the sandbox for the platform team.
-  - Storage objects cannot be deleted in SQL, so their names go to `private.sandbox_leftover_objects` for a Storage API sweep.
-  - When A79's `private.purge_organization` lands, the sandbox purge can hand it the org instead of running its own loop.
+  - Storage objects cannot be deleted in SQL. Their names, found by A79's `private.org_storage_objects` (1351), go to `private.sandbox_leftover_objects` for a Storage API sweep.
+  - A79's `private.purge_organization` (1351) serves deletions backed by a deletion certificate (a cancellation or a deletion request), and also clears storage through the Storage API. A sandbox has no certificate, so it runs its own loop over the same tenant purge. Moving sandboxes onto A79's pipeline needs a sandbox basis there, with no certificate email.
 
 ### 2. Feedback (1531)
 

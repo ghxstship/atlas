@@ -585,9 +585,10 @@ begin
   insert into pg_temp.sandbox_order (rel, ord)
   select distinct m.rel, v_ord from pg_temp.sandbox_marks m where m.rel not in (select o.rel from pg_temp.sandbox_order o);
 
-  -- Storage objects cannot be deleted in SQL: keep their names for the Storage API sweep.
+  -- Storage objects cannot be deleted in SQL: keep their names for the Storage API sweep. A79's org deletion (1351)
+  -- finds every object of an org, including onboarding uploads and objects its rows name, while the rows still exist.
   insert into private.sandbox_leftover_objects (org_id, bucket_id, object_name)
-  select p_org_id, o.bucket_id, o.name from storage.objects o where split_part(o.name, '/', 1) = p_org_id::text
+  select p_org_id, o.bucket_id, o.name from private.org_storage_objects(p_org_id) o
   on conflict do nothing;
 
   -- The sanctioned tenant purge (1270): guards let deletes of this org's rows through, and refuse a legal hold.
