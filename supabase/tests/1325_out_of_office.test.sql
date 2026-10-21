@@ -75,18 +75,18 @@ select pg_temp.as_platform();
 select set_eq($$select private.step_approver_person_ids((select id from k where key = 'policy'), 1::smallint)$$,
   $$values ((select id from world where key = 'carol'))$$, 'while the approver is away, their delegate is notified instead');
 select pg_temp.claims('carol');
-select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a')), true, 'and may decide the step');
+select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a'), 'finance.po.approve'), true, 'and may decide the step');
 select pg_temp.claims('dave');
-select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a')), false, 'nobody else may');
+select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a'), 'finance.po.approve'), false, 'nobody else may');
 select pg_temp.as_user('bob');
 select app.set_personal_setting('me.out_of_office.enabled', null, p_value_boolean => false);
 select pg_temp.as_platform();
 select set_eq($$select private.step_approver_person_ids((select id from k where key = 'policy'), 1::smallint)$$,
   $$values ((select id from world where key = 'bob'))$$, 'back in, the approver is notified again');
 select pg_temp.claims('carol');
-select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a')), false, 'and the delegate no longer decides for them');
+select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a'), 'finance.po.approve'), false, 'and the delegate no longer decides for them');
 select pg_temp.claims('bob');
-select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a')), true, 'the approver decides their own step');
+select is(private.is_step_approver(pg_temp.id('org_a'), null, pg_temp.id('bob@org_a'), 'finance.po.approve'), true, 'the approver decides their own step');
 
 select * from finish();
 rollback;

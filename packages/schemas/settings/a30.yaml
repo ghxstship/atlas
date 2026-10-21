@@ -638,6 +638,8 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
         test: supabase/tests/1325_out_of_office.test.sql
+      - consumer: supabase/migrations/1395_approval_delegation_scope.sql#private.step_approver_person_ids
+        test: supabase/tests/1395_approval_delegation_scope.test.sql
   - key: me.out_of_office.starts_on
     type: text
     input: date
