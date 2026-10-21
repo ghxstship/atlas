@@ -472,6 +472,50 @@ describe("sheets and Google Sheets links (A83)", () => {
     });
   });
 
+  it("offers Aurora's mapping step only while the org's own AI switch has mapping on", async () => {
+    // imports.ai_mapping is on by default (1402); the org's AI Features setting still decides.
+    const flagsOn = () =>
+      ok([
+        { flag_key: "imports.google_sheets", enabled: false },
+        { flag_key: "imports.ai_mapping", enabled: true },
+      ]);
+    const on = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [ok(["drafting", "mapping"])],
+    });
+    expect(await importFlags(on.db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: false, aiMapping: true },
+    });
+    // AI turned off (no features, or aurora_ai not in the plan): no step, so no column names leave.
+    const off = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [ok([])],
+    });
+    expect(await importFlags(off.db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: false, aiMapping: false },
+    });
+    const otherOnly = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [ok(["drafting"])],
+    });
+    expect(await importFlags(otherOnly.db, "o")).toEqual({
+      ok: true,
+      data: { googleSheets: false, aiMapping: false },
+    });
+    expect(otherOnly.calls.map((c) => c.target)).toEqual([
+      "rpc:org_feature_flags",
+      "rpc:ai_enabled_features",
+    ]);
+    expect(stepsOf(otherOnly.calls[1], "args")).toEqual([[{ p_org_id: "o" }]]);
+    const broken = moduleClient({
+      "rpc:org_feature_flags": [flagsOn()],
+      "rpc:ai_enabled_features": [refused("aurora_not_in_plan")],
+    });
+    expect((await importFlags(broken.db, "o")).ok).toBe(false);
+  });
+
   it("creates a Google Sheets import and imports a detected sheet", async () => {
     const link =
       "https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit";

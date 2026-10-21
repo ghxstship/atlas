@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(26);
+select plan(33);
 
 select pg_temp.as_platform();
 insert into world select 'upload_1', gen_random_uuid();
@@ -126,6 +126,25 @@ insert into app.import_job_columns (import_job_id, sheet_name, column_index, hea
 values (pg_temp.id('wb'), 'Locations', 0, 'VENUE', 'name', 'Playbook');
 select is((select suggestion_source::text from app.import_job_columns where import_job_id = pg_temp.id('wb')), 'Playbook',
   'a column records where its suggestion came from');
+
+-- Aurora's mapping step -----------------------------------------------------------------------------------------------------
+-- imports.ai_mapping is on by default, but the org's own AI switch decides: with mapping off, no column name is sent.
+select pg_temp.as_user('bob');
+select is((select enabled from app.org_feature_flags(pg_temp.id('org_a')) where flag_key = 'imports.ai_mapping'), true,
+  'imports.ai_mapping is on by default');
+select is((select count(*)::int from app.ai_enabled_features(pg_temp.id('org_a')) f where f = 'mapping'), 0,
+  'an org whose Admin has not turned mapping on has no mapping feature, so the wizard offers no Aurora step');
+select throws_ok($$select app.ai_begin_request((select id from world where key = 'org_a'), 'mapping', 'claude-sonnet-5-5')$$,
+  'XR001', 'aurora_feature_off: An Admin has not turned on mapping in Settings, AI Features.',
+  'and Aurora refuses a mapping request before any column name reaches a model');
+select lives_ok($$insert into app.ai_settings (org_id, mapping_enabled) values ((select id from world where key = 'org_a'), true)$$,
+  'an Admin turns mapping on in Settings, AI Features');
+select results_eq($$select f::text from app.ai_enabled_features((select id from world where key = 'org_a')) f$$,
+  array['mapping'], 'then the step is offered');
+select lives_ok($$update app.ai_settings set mapping_enabled = false where org_id = (select id from world where key = 'org_a')$$,
+  'an Admin turns mapping off again');
+select is((select count(*)::int from app.ai_enabled_features(pg_temp.id('org_a')) f where f = 'mapping'), 0,
+  'and the step goes away while the flag stays on');
 
 select * from finish();
 rollback;

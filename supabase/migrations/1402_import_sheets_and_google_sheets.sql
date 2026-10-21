@@ -21,7 +21,10 @@ insert into private.job_kinds (code, subject_table, max_attempts, description) v
   ('import.fetch', 'app.import_jobs', 5, 'Reads a Google Sheets link through the org''s Google Drive connection and saves it to the imports bucket for scanning.');
 
 -- The assistant's mapping step is built (the wizard calls aurora.mapColumns through the AI seam, which checks the
--- org's AI switch, plan and allowance); the flag that held it back since 0540 now defaults on.
+-- org's AI switch, plan and allowance); the flag that held it back since 0540 now defaults on. The flag never turns AI
+-- on by itself: the wizard offers the step only while app.ai_enabled_features includes mapping (an Admin turned it on
+-- in Settings, AI Features), and app.ai_begin_request refuses aurora_feature_off otherwise, so an org with AI off
+-- sends no column names.
 update private.feature_flags set default_enabled = true where flag_key = 'imports.ai_mapping';
 
 -- Import jobs ------------------------------------------------------------------------------------------------------

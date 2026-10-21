@@ -667,22 +667,36 @@ export function cancelImport(db: XosClient, importId: string): Promise<Result<st
   );
 }
 
-/** The import wizard's feature flags for an org (0540): Google Sheets links and the assistant's mapping step. */
+/**
+ * The import wizard's feature flags for an org (0540): Google Sheets links and the assistant's mapping step. The
+ * imports.ai_mapping flag is on by default (1402), so Aurora's step also needs the org's own AI switch: the
+ * mapping feature turned on by an Admin in Settings, AI Features, with aurora_ai in the plan
+ * (app.ai_enabled_features, 0650). An org that turned AI off never sees the step, and app.ai_begin_request
+ * refuses aurora_feature_off before any column name reaches a model.
+ */
 export async function importFlags(
   db: XosClient,
   orgId: string,
 ): Promise<Result<{ googleSheets: boolean; aiMapping: boolean }>> {
-  return rpc(db, "org_feature_flags", { p_org_id: orgId }, (d) => {
-    const on = new Set(
-      ((d as Raw[] | null) ?? [])
-        .filter((r) => r["enabled"] === true)
-        .map((r) => str(r["flag_key"])),
-    );
-    return {
-      googleSheets: on.has("imports.google_sheets"),
-      aiMapping: on.has("imports.ai_mapping"),
-    };
-  });
+  const flags = await rpc(
+    db,
+    "org_feature_flags",
+    { p_org_id: orgId },
+    (d) =>
+      new Set(
+        ((d as Raw[] | null) ?? [])
+          .filter((r) => r["enabled"] === true)
+          .map((r) => str(r["flag_key"])),
+      ),
+  );
+  if (!flags.ok) return flags;
+  const googleSheets = flags.data.has("imports.google_sheets");
+  if (!flags.data.has("imports.ai_mapping")) return ok({ googleSheets, aiMapping: false });
+  const features = await rpc(db, "ai_enabled_features", { p_org_id: orgId }, (d) =>
+    ((d as unknown[] | null) ?? []).map(String),
+  );
+  if (!features.ok) return features;
+  return ok({ googleSheets, aiMapping: features.data.includes("mapping") });
 }
 
 /** Rounds a similarity of 0.85 to 1 to a whole percentage for display. */

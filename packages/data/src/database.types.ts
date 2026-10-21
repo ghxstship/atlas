@@ -48641,7 +48641,7 @@ export type Database = {
           created_by: string | null;
           credential_stored_at: string | null;
           deleted_at: string | null;
-          delivery_hour_utc: number;
+          delivery_hour: number;
           destination_state: Database["app"]["Enums"]["warehouse_destination_state"];
           display_name: string;
           endpoint_url: string | null;
@@ -48666,7 +48666,7 @@ export type Database = {
           created_by?: string | null;
           credential_stored_at?: string | null;
           deleted_at?: string | null;
-          delivery_hour_utc?: number;
+          delivery_hour?: number;
           destination_state?: Database["app"]["Enums"]["warehouse_destination_state"];
           display_name: string;
           endpoint_url?: string | null;
@@ -48690,7 +48690,7 @@ export type Database = {
           created_by?: string | null;
           credential_stored_at?: string | null;
           deleted_at?: string | null;
-          delivery_hour_utc?: number;
+          delivery_hour?: number;
           destination_state?: Database["app"]["Enums"]["warehouse_destination_state"];
           display_name?: string;
           endpoint_url?: string | null;
@@ -54428,6 +54428,8 @@ export type Database = {
           provider: Database["app"]["Enums"]["warehouse_provider"];
           region: string;
           snapshot_at: string;
+          snapshot_date: string;
+          time_zone: string;
         }[];
       };
       claim_webhook_deliveries: {
