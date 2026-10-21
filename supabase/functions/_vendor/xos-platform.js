@@ -11182,6 +11182,8 @@ var platform_default$1 = {
       filed: "Filed",
       discarded: "Discarded",
     },
+    rejectedHelp:
+      "The sender's domain did not confirm this message, so it may be forged. It cannot be filed; discard it, or ask the sender to send it again.",
     filedAs: "Filed as {document} by {name} on {date}",
     filedTo: "On record {record}",
     discardedBy: "Discarded by {name} on {date}",
@@ -13157,6 +13159,8 @@ var settings_default$1 = {
       "Workspaces divide the org by office or venue group. Override settings for each one here.",
     accessReviews:
       "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    calendarFeeds:
+      "Subscribe to your schedule, or to a project you work on, from any calendar app.",
   },
   accessControls: {
     saved: "Saved.",
@@ -27813,6 +27817,8 @@ var platform_default = {
       filed: "Archivado",
       discarded: "Descartado",
     },
+    rejectedHelp:
+      "El dominio del remitente no confirmó este mensaje, así que podría ser falso. No se puede archivar; descártelo o pida al remitente que lo envíe de nuevo.",
     filedAs: "Archivado como {document} por {name} el {date}",
     filedTo: "En el registro {record}",
     discardedBy: "Descartado por {name} el {date}",
@@ -29847,6 +29853,8 @@ var settings_default = {
       "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     accessReviews:
       "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
+    calendarFeeds:
+      "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
   },
   accessControls: {
     saved: "Guardado.",
