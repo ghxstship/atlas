@@ -10,7 +10,8 @@
 --     person has not passed on or applied to
 --   * writes one app.opportunity_alerts row per new match (idempotent through its unique key), at most 25 per search
 --     a run, and notifies the person once per search and posting org with kind opportunity.matched by email and push
---     (A80's queue, so the person's preferences for the Opportunities category and their quiet hours apply: 1461)
+--     (A80's queue, so the person's preferences for the Opportunities category and their quiet hours apply: 1461).
+--     A listing several of the person's searches match is notified once: the later alerts are recorded as delivered
 -- delivered_at records when the alert was handed to the notification queue; the queue's deliveries record what each
 -- channel did.
 
@@ -118,8 +119,17 @@ begin
       on conflict (saved_search_id, opportunity_id) where deleted_at is null do nothing
       returning id into v_alert;
       if v_alert is not null then
-        v_ids := v_ids || v_alert;
         v_written := v_written + 1;
+        -- Several of a person's searches can match one listing: the first notifies, the others record the
+        -- match already told (delivered) so the person hears about each listing once.
+        if exists (select 1 from app.opportunity_alerts a2
+                   join app.saved_searches s2 on s2.id = a2.saved_search_id
+                   where s2.person_id = v_search.person_id and a2.opportunity_id = v_opp.id and a2.id <> v_alert
+                     and a2.deleted_at is null) then
+          update app.opportunity_alerts set delivered_at = now() where id = v_alert;
+        else
+          v_ids := v_ids || v_alert;
+        end if;
       end if;
     end loop;
     if v_org is not null then
@@ -130,7 +140,7 @@ begin
 end;
 $$;
 
-comment on function private.match_saved_searches(interval, integer) is 'The saved-search matcher (Section 4.4.3, A65-008), run by pg_cron every 15 minutes: for each saved search with alerts on, writes an alert for each listing published since the search was saved (at most p_lookback back) that is still Published, open to the owner (private.opportunity_open_to_person), matching the search (private.listing_matches) and neither passed on nor applied to, at most p_per_search a run, then notifies the owner once per posting org (private.notify_saved_search_matches). Idempotent: a listing alerts a search once. Returns how many alerts it wrote.';
+comment on function private.match_saved_searches(interval, integer) is 'The saved-search matcher (Section 4.4.3, A65-008), run by pg_cron every 15 minutes: for each saved search with alerts on, writes an alert for each listing published since the search was saved (at most p_lookback back) that is still Published, open to the owner (private.opportunity_open_to_person), matching the search (private.listing_matches) and neither passed on nor applied to, at most p_per_search a run, then notifies the owner once per posting org (private.notify_saved_search_matches), and once per listing across all their searches. Idempotent: a listing alerts a search once. Returns how many alerts it wrote.';
 revoke all on function private.match_saved_searches(interval, integer) from public, anon, authenticated;
 
 select cron.schedule('xos_match_saved_searches', '*/15 * * * *', 'select private.match_saved_searches()');

@@ -714,12 +714,14 @@ export async function saveOpportunity(
   db: XosClient,
   input: { readonly personId: string; readonly opportunityId: string },
 ): Promise<Result<null>> {
-  const { error } = await db.from("saved_opportunities").insert(
-    derivedRow<"saved_opportunities">({
-      person_id: input.personId,
-      opportunity_id: input.opportunityId,
-    }),
-  );
+  // Only opportunity_id is granted (0763): the guard sets the person from the session, so sending
+  // person_id was refused and Save never worked (found by A89's swipe journey).
+  void input.personId;
+  const { error } = await db
+    .from("saved_opportunities")
+    .insert(
+      derivedRow<"saved_opportunities", "person_id">({ opportunity_id: input.opportunityId }),
+    );
   return error ? fail(toDataError(error)) : ok(null);
 }
 

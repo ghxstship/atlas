@@ -1,4 +1,10 @@
-import { listMyAlerts, listMySavedSearches, listOpportunitiesById } from "@xos/data/gateway";
+import {
+  listMyAlerts,
+  listMySavedSearches,
+  listOpportunitiesById,
+  type Opportunity,
+  type OpportunityAlert,
+} from "@xos/data/gateway";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
@@ -44,10 +50,16 @@ export default async function AlertsPage() {
   const opportunities = await listOpportunitiesById(ctx.db, [...new Set(openIds)]);
   const byId = new Map((opportunities.ok ? opportunities.data : []).map((o) => [o.id, o]));
   const searchName = new Map((searches.ok ? searches.data : []).map((s) => [s.id, s.name]));
-  const matches = (alerts.ok ? alerts.data : []).flatMap((a) => {
+  // One row per listing, newest match first, naming every saved search that matched it.
+  const matches: { alert: OpportunityAlert; o: Opportunity; names: string[] }[] = [];
+  for (const a of alerts.ok ? alerts.data : []) {
     const o = byId.get(a.opportunityId);
-    return a.open && o ? [{ alert: a, o }] : [];
-  });
+    if (!a.open || !o) continue;
+    const name = searchName.get(a.savedSearchId) ?? "";
+    const seen = matches.find((m) => m.o.id === o.id);
+    if (!seen) matches.push({ alert: a, o, names: [name] });
+    else if (!seen.names.includes(name)) seen.names.push(name);
+  }
   const tabs = [
     { id: "explore", label: t("nav.gateway.primary.explore"), href: "/explore" },
     ...childTabLinks(childTabs(sitemap, "explore", ctx.nav), t),
@@ -69,7 +81,7 @@ export default async function AlertsPage() {
           </p>
         ) : (
           <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle rounded-card border border-border-subtle bg-bg-raised p-0">
-            {matches.map(({ alert, o }) => (
+            {matches.map(({ alert, o, names }) => (
               <li
                 key={alert.id}
                 className="flex flex-wrap items-center gap-x-12 gap-y-2 px-16 py-12"
@@ -88,7 +100,7 @@ export default async function AlertsPage() {
                 </div>
                 <span className="text-text-12 text-text-secondary">
                   {t("gateway.explore.alerts.matchedBy", {
-                    name: searchName.get(alert.savedSearchId) ?? "",
+                    name: names.join(", "),
                     date: formatDateTime(locale, alert.matchedAt),
                   })}
                 </span>

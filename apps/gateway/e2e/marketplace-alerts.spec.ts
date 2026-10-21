@@ -48,6 +48,12 @@ test("A65-008: a saved search alerts the crew person by email, push and on Explo
   page,
 }) => {
   const name = `Truss calls ${uniqueId().slice(-4)}`;
+  // Earlier runs' saved searches would match too, and a listing is notified once per person, under the
+  // first search that matched it; this journey starts with none.
+  await sql(
+    `update app.saved_searches set deleted_at = now() where person_id = $1 and deleted_at is null`,
+    [DEMO.crew],
+  );
   await signIn(page, "crew@example.com", "/explore?role=Crew&q=Truss");
   const save = page.getByRole("form", { name: "Save this search" });
   await save.getByLabel("Search name").fill(name);
@@ -180,7 +186,9 @@ test("A65-031: the profile strength meter links to each gap; quiet hours are the
   );
   expect(row).toEqual({ zone: "America/New_York", start: "22:00:00" });
   await expect(
-    page.getByRole("form", { name: "Notification preferences" }).getByText("Opportunities"),
+    page
+      .getByRole("form", { name: "Notification preferences" })
+      .getByText("Opportunities", { exact: true }),
   ).toBeVisible();
   await expectAccessible(page);
   // Quiet hours off again, so other journeys' pushes are not held (demo people sign in as their own id).
@@ -206,10 +214,15 @@ test("A65-031: a supplier diversity certification is shared by separate consent 
   const region = page.getByRole("region", { name: "Supplier diversity" });
   await expect(region.getByText(body)).toBeVisible();
   await expect(region.getByText(/Number ending 8842/).first()).toBeVisible();
-  const share = region.getByRole("form", { name: "Share this certification" }).last();
+  const share = region
+    .getByRole("listitem")
+    .filter({ hasText: body })
+    .getByRole("form", { name: "Share this certification" });
   await share.getByLabel("Share with").selectOption({ label: "Demo Productions" });
   await share.getByRole("button", { name: "Share" }).click();
-  await expect(region.getByRole("button", { name: "Revoke" }).first()).toBeVisible();
+  await expect(
+    region.getByRole("listitem").filter({ hasText: body }).getByRole("button", { name: "Revoke" }),
+  ).toBeVisible();
   await expectAccessible(page);
 
   const atlas = await atlasAs(browser, "owner@example.com");

@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0700_engagement_world.psql
 
-select plan(16);
+select plan(18);
 
 create function pg_temp.listing(p_key text, p_role text, p_title text, p_invitee text) returns uuid
 language plpgsql as $$
@@ -90,6 +90,18 @@ select results_eq($$select (n.message_args ->> 'count')::integer, n.message_args
   where n.recipient_person_id = pg_temp.id('nina') and n.message_args ->> 'count' <> '1'$$,
   $$values (2, '/explore/alerts'::text)$$, 'notify once per search and org, with the count, linking to Alerts');
 
+-- A second search of nina's (any role type, saved half an hour ago) also matches the three towers already notified
+-- and a new one: every match is recorded, but she hears about each listing once.
+select pg_temp.as_user('nina');
+insert into app.saved_searches (person_id, name, query_text) values (pg_temp.id('nina'), 'All towers', 'towers')
+returning id as v_search2 \gset
+insert into world values ('search_nina2', :'v_search2');
+select pg_temp.backdate('app.saved_searches', 'id', 'search_nina2', '30 minutes');
+select pg_temp.listing('opp_both', 'Vendor', 'Summer Series Twin Towers', 'nina');
+select is(private.match_saved_searches(), 5, 'the second search records its four matches and the first records the new listing');
+select is((select count(*)::integer from app.notifications where recipient_person_id = pg_temp.id('nina') and kind = 'opportunity.matched'), 3,
+  'one more notification, for the new listing only');
+
 -- Passed and applied listings, and alerts turned off.
 select pg_temp.listing('opp_m4', 'Vendor', 'Summer Series Passed Towers', 'nina');
 select pg_temp.as_user('nina');
@@ -98,7 +110,7 @@ select pg_temp.as_platform();
 select is(private.match_saved_searches(), 0, 'a listing she passed on never alerts');
 
 select pg_temp.as_user('nina');
-update app.saved_searches set alerts_enabled = false where id = pg_temp.id('search_nina');
+update app.saved_searches set alerts_enabled = false where id in (pg_temp.id('search_nina'), pg_temp.id('search_nina2'));
 select pg_temp.as_platform();
 select pg_temp.listing('opp_m5', 'Vendor', 'Summer Series Late Towers', 'nina');
 select is(private.match_saved_searches(), 0, 'a search with alerts off writes nothing');

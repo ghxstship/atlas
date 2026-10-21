@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@xos/ui";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { useRouter } from "next/navigation";
 import {
   useEffect,
@@ -148,6 +149,8 @@ export function SwipeActions({
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    // Single-key shortcuts follow the person's me.shortcuts_enabled (WCAG 2.1.4); the buttons always work.
+    if (!singleKeyShortcutsEnabled()) return;
     if (event.altKey || event.ctrlKey || event.metaKey || typing(event.target)) return;
     const key = event.key.toLowerCase();
     if (right && key === right.shortcut) {
