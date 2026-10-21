@@ -10,6 +10,11 @@ export {
   dispatchPush,
   readPushEnv,
 } from "../../src/notifications/push.ts";
-export { createSmsProvider, dispatchSms, readSmsEnv } from "../../src/notifications/sms.ts";
+export {
+  createSmsProvider,
+  dispatchSms,
+  dispatchSmsSummaries,
+  readSmsEnv,
+} from "../../src/notifications/sms.ts";
 export { pushStore, smsStore } from "../../src/notifications/stores.ts";
 export { notificationStore } from "../../src/stores.ts";

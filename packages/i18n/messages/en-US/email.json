@@ -210,6 +210,7 @@
     "message": "{orgName}: {body} {url} Reply STOP to opt out.",
     "help": "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: {helpContact}. Reply STOP to opt out.",
     "stop": "You will get no more texts from XOS notifications. Reply START to subscribe again.",
-    "start": "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out."
+    "start": "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
+    "summary": "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out."
   }
 }

@@ -318,6 +318,99 @@ export async function dispatchSms(
   return { attempted: claims.length, sent, failed, bounced };
 }
 
+// Summaries of texts held by quiet hours (ADR 0033 decision 35) -----------------------------------------------
+
+/** The held texts of one member in one org, claimed from app.claim_sms_summaries. */
+export interface ClaimedSmsSummary {
+  readonly orgId: string;
+  readonly recipientPersonId: string;
+  readonly address: string;
+  /** Every held delivery the summary settles. */
+  readonly deliveryIds: readonly string[];
+  readonly heldCount: number;
+  /** The most important held text: an urgent category first, then the latest. */
+  readonly kind: string;
+  readonly messageArgs: Readonly<Record<string, unknown>>;
+}
+
+/** What the summary sender needs from the database. */
+export interface SmsSummaryStore {
+  claimSummaries(limit: number): Promise<readonly ClaimedSmsSummary[]>;
+  recipient(personId: string): Promise<Recipient>;
+  orgName(orgId: string): Promise<string>;
+  /** The org's Inbox, where every held notification waits. */
+  inboxLink(orgId: string): Promise<string>;
+  recordSummary(
+    deliveryIds: readonly string[],
+    outcome: DeliveryOutcome,
+    providerMessageId: string | null,
+    error: string | null,
+  ): Promise<void>;
+}
+
+/**
+ * The text of a summary: one held text reads like any notification; several read as the count and the most
+ * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`).
+ */
+export async function smsSummaryBody(
+  summary: ClaimedSmsSummary,
+  store: SmsSummaryStore,
+): Promise<string> {
+  const recipient = await store.recipient(summary.recipientPersonId);
+  const locale = localeOf(recipient.locale);
+  const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
+  const args = {
+    orgName: clip(await store.orgName(summary.orgId), 40),
+    url: await store.inboxLink(summary.orgId),
+  };
+  return summary.heldCount <= 1
+    ? formatMessage(locale, "sms.message", { ...args, body: clip(text.body, 300) })
+    : formatMessage(locale, "sms.summary", {
+        ...args,
+        count: summary.heldCount,
+        body: clip(text.body, 200),
+      });
+}
+
+/**
+ * Sends one text per member and org whose quiet hours ended, settling every held delivery with its outcome:
+ * Sent, Bounced for an error a retry cannot fix, Failed otherwise (the summary retries with backoff).
+ */
+export async function dispatchSmsSummaries(
+  store: SmsSummaryStore,
+  provider: SmsProvider,
+  limit = 50,
+): Promise<SmsDispatchSummary> {
+  const summaries = await store.claimSummaries(limit);
+  let sent = 0;
+  let failed = 0;
+  let bounced = 0;
+  for (const summary of summaries) {
+    try {
+      const body = await smsSummaryBody(summary, store);
+      const result = await provider.send({
+        to: summary.address,
+        body,
+        deliveryId: summary.deliveryIds[0] ?? "",
+      });
+      await store.recordSummary(summary.deliveryIds, "Sent", result.providerMessageId, null);
+      sent += 1;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const permanent = error instanceof SmsSendError && error.permanent;
+      await store.recordSummary(
+        summary.deliveryIds,
+        permanent ? "Bounced" : "Failed",
+        null,
+        message,
+      );
+      if (permanent) bounced += 1;
+      else failed += 1;
+    }
+  }
+  return { attempted: summaries.length, sent, failed, bounced };
+}
+
 // Inbound: keywords, signatures and status callbacks ------------------------------------------------------
 
 export type SmsKeywordAction = "Opt Out" | "Opt In" | "Help";

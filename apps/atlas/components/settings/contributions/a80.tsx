@@ -1,6 +1,7 @@
 import {
   getMyNotificationMatrix,
   getMyNotificationSettings,
+  getMyNotificationTimeZone,
   getMySmsStatus,
   getOrgNotificationDefaults,
 } from "@xos/data/notification-settings";
@@ -34,12 +35,13 @@ function timeZoneOptions() {
 
 async function MyNotificationsPanel({ ctx }: SettingsPanelProps) {
   const t = await getTranslate();
-  const [matrix, settings, sms] = await Promise.all([
+  const [matrix, settings, sms, zone] = await Promise.all([
     getMyNotificationMatrix(ctx.viewer.db, ctx.org.id),
     getMyNotificationSettings(ctx.viewer.db, ctx.org.id),
     getMySmsStatus(ctx.viewer.db, ctx.org.id),
+    getMyNotificationTimeZone(ctx.viewer.db, ctx.org.id),
   ]);
-  if (!matrix.ok || !settings.ok || !sms.ok) {
+  if (!matrix.ok || !settings.ok || !sms.ok || !zone.ok) {
     return <InlineAlert tone="danger">{t("settings.notifications.loadFailed")}</InlineAlert>;
   }
   const rows: MemberRow[] = NOTIFICATION_CATEGORIES.map((c) => ({
@@ -61,7 +63,8 @@ async function MyNotificationsPanel({ ctx }: SettingsPanelProps) {
         mayText: sms.data.mayText,
       }}
       settings={{
-        timeZone: s?.timeZone ?? "UTC",
+        // The zone texts are already timed by (ADR 0033 decision 35), so saving never resets it to UTC.
+        timeZone: s?.timeZone ?? zone.data ?? "UTC",
         quietStart: s?.quietHoursStart ?? "",
         quietEnd: s?.quietHoursEnd ?? "",
         digestFrequency: s?.digestFrequency ?? "Off",
