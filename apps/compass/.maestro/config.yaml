@@ -28,6 +28,7 @@ executionOrder:
     - field-run-of-show
     - handoff-open-record
     - supervisor-kiosk
+    - supervisor-kiosk-rekey
     - crew-external-today
     - vendor-external-scan
     - account-delete
