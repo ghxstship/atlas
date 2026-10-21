@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -43,7 +43,7 @@ jobs:
         with:
           version: 2.120.0
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -85,7 +85,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -117,7 +117,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -157,7 +157,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -226,7 +226,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -270,7 +270,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -303,7 +303,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -327,7 +327,9 @@ jobs:
       - name: Semgrep rule tests and scan (semgrep/semgrep:1.140.0)
         run: sh infra/security/semgrep.sh
 
-  # Gate 11: production dependency advisories; unpatchable ones are listed in pnpm.auditConfig.
+  # Gate 11: dependency advisories. Any production advisory fails, and a critical one anywhere in the
+  # tree (build and test tooling included; malware advisories are critical). Accepted advisories, each
+  # with a reason and a review date, are in infra/security/audit-allowlist.json.
   dependency-audit:
     name: Dependency audit (gate 11)
     runs-on: ubuntu-latest
@@ -336,10 +338,76 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
       # No install, so no pnpm store to cache: setup-node's cache step would fail on the missing path.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
-      - run: pnpm audit --prod
+      - name: pnpm audit against the allowlist
+        run: node --experimental-strip-types --no-warnings infra/security/src/cli.ts audit
+
+  # Gate 11 and Section 9 supply chain: production licenses against the allowlist (packages awaiting
+  # counsel are in packages/config/license-exceptions.json), a CycloneDX SBOM of the production install
+  # kept as an artifact (releases attach theirs in release.yml), and every action pin checked against
+  # the commit of its upstream tag.
+  supply-chain:
+    name: Licenses, SBOM and action pins (gate 11)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Actions pinned to the commits of their tags (git ls-remote)
+        run: node --experimental-strip-types --no-warnings infra/security/src/cli.ts pins --remote
+      # Production dependencies only: the license check and the SBOM cover what ships.
+      - run: pnpm install --frozen-lockfile --prod
+      - name: License check
+        run: pnpm --filter @xos/config licenses:check
+      - name: CycloneDX SBOM (anchore/syft:v1.54.1) and third-party notices
+        run: sh infra/security/sbom.sh "$GITHUB_SHA" sbom
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: sbom
+          path: sbom/
+          if-no-files-found: error
+
+  # Gate 11 on the hosted staging branch: the Supabase advisors through the Management API, with the
+  # Auth and platform lints a local stack cannot show (the database job runs the local ones). Staging
+  # changes when main does, so this runs on pushes to main, not on pull requests. Needs the
+  # SUPABASE_ACCESS_TOKEN repository secret (owner step); without it the job passes with a notice.
+  # Accepted lints are in infra/security/advisors-accepted.json.
+  supabase-advisors-staging:
+    name: Supabase advisors on staging (gate 11)
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Skip without the access token
+        id: gate
+        env:
+          HAS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+        run: |
+          if [ "$HAS_TOKEN" = "true" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=Supabase advisors on staging skipped::Add the SUPABASE_ACCESS_TOKEN repository secret to run them (infra/security/README.md)."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.gate.outputs.run == 'true'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.gate.outputs.run == 'true'
+        with:
+          node-version-file: .nvmrc
+      - name: Security and performance advisors through the Management API
+        if: steps.gate.outputs.run == 'true'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          # The persistent staging branch of the production project; a repository variable overrides it.
+          PROJECT_REF: ${{ vars.SUPABASE_STAGING_PROJECT_REF || 'rmrzfolncwhnhygmfxnw' }}
+        run: node --experimental-strip-types --no-warnings infra/security/src/cli.ts advisors "$PROJECT_REF"
 
   # Gate 9, core screens: the browser runs in the pinned image; the stack and next dev run beside it.
   core-screen-visual:
@@ -353,7 +421,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
           cache: pnpm

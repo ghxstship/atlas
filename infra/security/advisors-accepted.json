@@ -1,0 +1,4 @@
+{
+  "$comment": "Supabase advisor lints accepted on the hosted staging project (infra/security/src/advisors.ts). Each entry names the lint, optionally narrows it with text from its cache_key (one table or function), and says why it is accepted. Leave the list empty rather than accept a lint without a reason; INFO lints never fail and need no entry.",
+  "accepted": []
+}
