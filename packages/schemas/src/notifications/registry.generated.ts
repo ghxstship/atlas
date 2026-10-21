@@ -82,6 +82,11 @@ export const NOTIFICATION_CATEGORIES: readonly CategoryDefinition[] = [
     order: 10,
   },
   {
+    code: "automations",
+    urgent: false,
+    order: 11,
+  },
+  {
     code: "messages",
     urgent: false,
     order: 40,
@@ -404,6 +409,42 @@ export const NOTIFICATION_KINDS: readonly KindDefinition[] = [
     copy: {
       subject: "kinds.export.ready.subject",
       body: "kinds.export.ready.body",
+    },
+  },
+  {
+    kind: "automation.notice",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.notice.subject",
+      body: "kinds.automation.notice.body",
+    },
+  },
+  {
+    kind: "automation.failed",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.failed.subject",
+      body: "kinds.automation.failed.body",
+    },
+  },
+  {
+    kind: "automation.paused",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.paused.subject",
+      body: "kinds.automation.paused.body",
     },
   },
   {

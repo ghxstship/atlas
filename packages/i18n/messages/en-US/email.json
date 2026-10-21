@@ -166,6 +166,20 @@
         "subject": "Emergency access taken in {orgName}",
         "body": "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}"
       }
+    },
+    "automation": {
+      "notice": {
+        "subject": "{title}",
+        "body": "{body} Sent by the automation {automationName}."
+      },
+      "failed": {
+        "subject": "Automation failed: {automationName}",
+        "body": "A run of {automationName} failed: {error}"
+      },
+      "paused": {
+        "subject": "Automation paused: {automationName}",
+        "body": "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you."
+      }
     }
   },
   "notification": {

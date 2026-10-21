@@ -166,6 +166,20 @@
         "subject": "Acceso de emergencia en {orgName}",
         "body": "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}"
       }
+    },
+    "automation": {
+      "notice": {
+        "subject": "{title}",
+        "body": "{body} Enviado por la automatización {automationName}."
+      },
+      "failed": {
+        "subject": "Falló la automatización: {automationName}",
+        "body": "Una ejecución de {automationName} falló: {error}"
+      },
+      "paused": {
+        "subject": "Automatización en pausa: {automationName}",
+        "body": "{automationName} está desactivada porque {reason, select, owner_left_org {{ownerName} ya no es miembro} owner_lost_capability {{ownerName} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{ownerName} no tiene inicio de sesión} other {la API se negó a actuar como {ownerName}}}. Actívala de nuevo en Configuración, Automatizaciones, y se ejecutará a tu nombre."
+      }
     }
   },
   "notification": {

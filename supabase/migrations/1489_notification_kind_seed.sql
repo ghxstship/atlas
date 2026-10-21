@@ -1,0 +1,197 @@
+-- 1489_notification_kind_seed.sql
+-- Generated from packages/schemas/notification-kinds.yaml by
+-- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand: the
+-- @xos/schemas unit tests fail when this file differs from the generator output.
+--
+-- Notification kind registry version 1 (Section 3.15, A65-021): 4 channel defaults,
+-- 7 email templates, 13 categories, 31 kinds (124 kind and channel rows),
+-- 4 kinds that bypass quiet hours (ADR 0033 decision 35).
+-- Upserts the reference rows of 0520. Rows the registry does not name are left in place and fail the
+-- drift test (1489_notification_kind_seed.test.sql); the quiet-hours bypass list is replaced as a set.
+
+-- Channel defaults ------------------------------------------------------------
+
+insert into private.channel_defaults (channel, enabled_by_default) values
+  ('In App'::app.notification_channel, true),
+  ('Email'::app.notification_channel, true),
+  ('SMS'::app.notification_channel, false),
+  ('Push'::app.notification_channel, true)
+on conflict (channel) do update set enabled_by_default = excluded.enabled_by_default;
+
+-- Email templates -------------------------------------------------------------
+
+insert into private.email_templates (code, description, transactional) values
+  ('notification', 'One notification: what happened, on which record, with a link to open it.', false),
+  ('digest', 'Several notifications gathered into one daily or weekly email.', false),
+  ('invite', 'An invitation to join an organization.', true),
+  ('report_delivery', 'A scheduled report attached as PDF, CSV or .xlsx.', false),
+  ('export_ready', 'A requested export is ready to download.', true),
+  ('import_finished', 'An import finished validating or committing.', true),
+  ('dsar_received', 'Acknowledges a data subject request and states its due date.', true)
+on conflict (code) do update set description = excluded.description, transactional = excluded.transactional;
+
+-- Categories (orders move aside first, so a reordering never collides) -------
+
+update private.notification_categories set sort_order = -sort_order
+where code in ('mentions', 'assignments', 'approvals', 'comments', 'schedule', 'finance', 'safety', 'account', 'reports', 'imports', 'automations', 'messages', 'feed');
+
+insert into private.notification_categories (code, urgent, sort_order) values
+  ('mentions', false, 1),
+  ('assignments', false, 2),
+  ('approvals', false, 3),
+  ('comments', false, 4),
+  ('schedule', false, 5),
+  ('finance', false, 6),
+  ('safety', true, 7),
+  ('account', true, 8),
+  ('reports', false, 9),
+  ('imports', false, 10),
+  ('automations', false, 11),
+  ('messages', false, 40),
+  ('feed', false, 41)
+on conflict (code) do update set urgent = excluded.urgent, sort_order = excluded.sort_order;
+
+-- Kinds by channel ------------------------------------------------------------
+
+insert into private.notification_templates (kind, channel, category_code, email_template_code) values
+  ('mention.created', 'In App'::app.notification_channel, 'mentions', null),
+  ('mention.created', 'Email'::app.notification_channel, 'mentions', 'notification'),
+  ('mention.created', 'SMS'::app.notification_channel, 'mentions', null),
+  ('mention.created', 'Push'::app.notification_channel, 'mentions', null),
+  ('assignment.created', 'In App'::app.notification_channel, 'assignments', null),
+  ('assignment.created', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('assignment.created', 'SMS'::app.notification_channel, 'assignments', null),
+  ('assignment.created', 'Push'::app.notification_channel, 'assignments', null),
+  ('approval.requested', 'In App'::app.notification_channel, 'approvals', null),
+  ('approval.requested', 'Email'::app.notification_channel, 'approvals', 'notification'),
+  ('approval.requested', 'SMS'::app.notification_channel, 'approvals', null),
+  ('approval.requested', 'Push'::app.notification_channel, 'approvals', null),
+  ('approval.decided', 'In App'::app.notification_channel, 'approvals', null),
+  ('approval.decided', 'Email'::app.notification_channel, 'approvals', 'notification'),
+  ('approval.decided', 'SMS'::app.notification_channel, 'approvals', null),
+  ('approval.decided', 'Push'::app.notification_channel, 'approvals', null),
+  ('comment.created', 'In App'::app.notification_channel, 'comments', null),
+  ('comment.created', 'Email'::app.notification_channel, 'comments', 'notification'),
+  ('comment.created', 'SMS'::app.notification_channel, 'comments', null),
+  ('comment.created', 'Push'::app.notification_channel, 'comments', null),
+  ('shift.assigned', 'In App'::app.notification_channel, 'schedule', null),
+  ('shift.assigned', 'Email'::app.notification_channel, 'schedule', 'notification'),
+  ('shift.assigned', 'SMS'::app.notification_channel, 'schedule', null),
+  ('shift.assigned', 'Push'::app.notification_channel, 'schedule', null),
+  ('shift.changed', 'In App'::app.notification_channel, 'schedule', null),
+  ('shift.changed', 'Email'::app.notification_channel, 'schedule', 'notification'),
+  ('shift.changed', 'SMS'::app.notification_channel, 'schedule', null),
+  ('shift.changed', 'Push'::app.notification_channel, 'schedule', null),
+  ('event.invited', 'In App'::app.notification_channel, 'schedule', null),
+  ('event.invited', 'Email'::app.notification_channel, 'schedule', 'notification'),
+  ('event.invited', 'SMS'::app.notification_channel, 'schedule', null),
+  ('event.invited', 'Push'::app.notification_channel, 'schedule', null),
+  ('invoice.approved', 'In App'::app.notification_channel, 'finance', null),
+  ('invoice.approved', 'Email'::app.notification_channel, 'finance', 'notification'),
+  ('invoice.approved', 'SMS'::app.notification_channel, 'finance', null),
+  ('invoice.approved', 'Push'::app.notification_channel, 'finance', null),
+  ('invoice.submitted', 'In App'::app.notification_channel, 'finance', null),
+  ('invoice.submitted', 'Email'::app.notification_channel, 'finance', 'notification'),
+  ('invoice.submitted', 'SMS'::app.notification_channel, 'finance', null),
+  ('invoice.submitted', 'Push'::app.notification_channel, 'finance', null),
+  ('invoice.scheduled', 'In App'::app.notification_channel, 'finance', null),
+  ('invoice.scheduled', 'Email'::app.notification_channel, 'finance', 'notification'),
+  ('invoice.scheduled', 'SMS'::app.notification_channel, 'finance', null),
+  ('invoice.scheduled', 'Push'::app.notification_channel, 'finance', null),
+  ('invoice.paid', 'In App'::app.notification_channel, 'finance', null),
+  ('invoice.paid', 'Email'::app.notification_channel, 'finance', 'notification'),
+  ('invoice.paid', 'SMS'::app.notification_channel, 'finance', null),
+  ('invoice.paid', 'Push'::app.notification_channel, 'finance', null),
+  ('incident.reported', 'In App'::app.notification_channel, 'safety', null),
+  ('incident.reported', 'Email'::app.notification_channel, 'safety', 'notification'),
+  ('incident.reported', 'SMS'::app.notification_channel, 'safety', null),
+  ('incident.reported', 'Push'::app.notification_channel, 'safety', null),
+  ('occupancy.threshold', 'In App'::app.notification_channel, 'safety', null),
+  ('occupancy.threshold', 'Email'::app.notification_channel, 'safety', 'notification'),
+  ('occupancy.threshold', 'SMS'::app.notification_channel, 'safety', null),
+  ('occupancy.threshold', 'Push'::app.notification_channel, 'safety', null),
+  ('weather.alert', 'In App'::app.notification_channel, 'safety', null),
+  ('weather.alert', 'Email'::app.notification_channel, 'safety', 'notification'),
+  ('weather.alert', 'SMS'::app.notification_channel, 'safety', null),
+  ('weather.alert', 'Push'::app.notification_channel, 'safety', null),
+  ('account.security_changed', 'In App'::app.notification_channel, 'account', null),
+  ('account.security_changed', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('account.security_changed', 'SMS'::app.notification_channel, 'account', null),
+  ('account.security_changed', 'Push'::app.notification_channel, 'account', null),
+  ('billing.payment_failed', 'In App'::app.notification_channel, 'account', null),
+  ('billing.payment_failed', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.payment_failed', 'SMS'::app.notification_channel, 'account', null),
+  ('billing.payment_failed', 'Push'::app.notification_channel, 'account', null),
+  ('billing.read_only', 'In App'::app.notification_channel, 'account', null),
+  ('billing.read_only', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('billing.read_only', 'SMS'::app.notification_channel, 'account', null),
+  ('billing.read_only', 'Push'::app.notification_channel, 'account', null),
+  ('access.break_glass_started', 'In App'::app.notification_channel, 'account', null),
+  ('access.break_glass_started', 'Email'::app.notification_channel, 'account', 'notification'),
+  ('access.break_glass_started', 'SMS'::app.notification_channel, 'account', null),
+  ('access.break_glass_started', 'Push'::app.notification_channel, 'account', null),
+  ('report.delivered', 'In App'::app.notification_channel, 'reports', null),
+  ('report.delivered', 'Email'::app.notification_channel, 'reports', 'report_delivery'),
+  ('report.delivered', 'SMS'::app.notification_channel, 'reports', null),
+  ('report.delivered', 'Push'::app.notification_channel, 'reports', null),
+  ('import.finished', 'In App'::app.notification_channel, 'imports', null),
+  ('import.finished', 'Email'::app.notification_channel, 'imports', 'import_finished'),
+  ('import.finished', 'SMS'::app.notification_channel, 'imports', null),
+  ('import.finished', 'Push'::app.notification_channel, 'imports', null),
+  ('export.ready', 'In App'::app.notification_channel, 'imports', null),
+  ('export.ready', 'Email'::app.notification_channel, 'imports', 'export_ready'),
+  ('export.ready', 'SMS'::app.notification_channel, 'imports', null),
+  ('export.ready', 'Push'::app.notification_channel, 'imports', null),
+  ('automation.notice', 'In App'::app.notification_channel, 'automations', null),
+  ('automation.notice', 'Email'::app.notification_channel, 'automations', 'notification'),
+  ('automation.notice', 'SMS'::app.notification_channel, 'automations', null),
+  ('automation.notice', 'Push'::app.notification_channel, 'automations', null),
+  ('automation.failed', 'In App'::app.notification_channel, 'automations', null),
+  ('automation.failed', 'Email'::app.notification_channel, 'automations', 'notification'),
+  ('automation.failed', 'SMS'::app.notification_channel, 'automations', null),
+  ('automation.failed', 'Push'::app.notification_channel, 'automations', null),
+  ('automation.paused', 'In App'::app.notification_channel, 'automations', null),
+  ('automation.paused', 'Email'::app.notification_channel, 'automations', 'notification'),
+  ('automation.paused', 'SMS'::app.notification_channel, 'automations', null),
+  ('automation.paused', 'Push'::app.notification_channel, 'automations', null),
+  ('message.received', 'In App'::app.notification_channel, 'messages', null),
+  ('message.received', 'Email'::app.notification_channel, 'messages', 'notification'),
+  ('message.received', 'SMS'::app.notification_channel, 'messages', null),
+  ('message.received', 'Push'::app.notification_channel, 'messages', null),
+  ('announcement.posted', 'In App'::app.notification_channel, 'feed', null),
+  ('announcement.posted', 'Email'::app.notification_channel, 'feed', 'notification'),
+  ('announcement.posted', 'SMS'::app.notification_channel, 'feed', null),
+  ('announcement.posted', 'Push'::app.notification_channel, 'feed', null),
+  ('survey.opened', 'In App'::app.notification_channel, 'feed', null),
+  ('survey.opened', 'Email'::app.notification_channel, 'feed', 'notification'),
+  ('survey.opened', 'SMS'::app.notification_channel, 'feed', null),
+  ('survey.opened', 'Push'::app.notification_channel, 'feed', null),
+  ('recognition.received', 'In App'::app.notification_channel, 'feed', null),
+  ('recognition.received', 'Email'::app.notification_channel, 'feed', 'notification'),
+  ('recognition.received', 'SMS'::app.notification_channel, 'feed', null),
+  ('recognition.received', 'Push'::app.notification_channel, 'feed', null),
+  ('training.assigned', 'In App'::app.notification_channel, 'assignments', null),
+  ('training.assigned', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('training.assigned', 'SMS'::app.notification_channel, 'assignments', null),
+  ('training.assigned', 'Push'::app.notification_channel, 'assignments', null),
+  ('help_request.assigned', 'In App'::app.notification_channel, 'assignments', null),
+  ('help_request.assigned', 'Email'::app.notification_channel, 'assignments', 'notification'),
+  ('help_request.assigned', 'SMS'::app.notification_channel, 'assignments', null),
+  ('help_request.assigned', 'Push'::app.notification_channel, 'assignments', null)
+on conflict (kind, channel) do update
+  set category_code = excluded.category_code, email_template_code = excluded.email_template_code;
+
+-- Kinds that bypass quiet hours (replaced as a set) -------------------------
+
+delete from private.notification_quiet_hours_bypass
+where kind not in ('shift.changed', 'incident.reported', 'occupancy.threshold', 'weather.alert');
+
+insert into private.notification_quiet_hours_bypass (kind, starts_within) values
+  ('shift.changed', interval '12 hours'),
+  ('incident.reported', null::interval),
+  ('occupancy.threshold', null::interval),
+  ('weather.alert', null::interval)
+on conflict (kind) do update set starts_within = excluded.starts_within;
+
+comment on table private.notification_templates is 'Which category each notification kind belongs to and which email template renders it, seeded from packages/schemas/notification-kinds.yaml (Section 3.15). Copy for every channel comes from the i18n catalogs keyed by kind.';
+comment on table private.notification_categories is 'Notification categories a person sets preferences for, by channel, seeded from packages/schemas/notification-kinds.yaml. Urgent categories skip the email digest; only the kinds in private.notification_quiet_hours_bypass skip quiet hours (ADR 0033 decision 35). Labels come from the i18n catalogs keyed by code.';

@@ -730,6 +730,10 @@
         "label": "Importaciones y exportaciones",
         "help": "Importaciones terminadas y exportaciones listas para descargar."
       },
+      "automations": {
+        "label": "Automatizaciones",
+        "help": "Mensajes de automatizaciones, ejecuciones fallidas y automatizaciones en pausa."
+      },
       "messages": {
         "label": "Mensajes",
         "help": "Mensajes de chat nuevos para ti o tus grupos."

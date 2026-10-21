@@ -1,4 +1,4 @@
--- 1368_notification_kind_seed.test.sql
+-- 1489_notification_kind_seed.test.sql
 -- Generated from packages/schemas/notification-kinds.yaml by
 -- `pnpm --filter @xos/schemas generate:notifications`. Never edit by hand.
 --
@@ -45,6 +45,7 @@ select set_eq(
   ('account', true, 8),
   ('reports', false, 9),
   ('imports', false, 10),
+  ('automations', false, 11),
   ('messages', false, 40),
   ('feed', false, 41)$$,
   'notification categories match notification-kinds.yaml');
@@ -140,6 +141,18 @@ select set_eq(
   ('export.ready', 'Email', 'imports', 'export_ready'),
   ('export.ready', 'SMS', 'imports', null::text),
   ('export.ready', 'Push', 'imports', null::text),
+  ('automation.notice', 'In App', 'automations', null::text),
+  ('automation.notice', 'Email', 'automations', 'notification'),
+  ('automation.notice', 'SMS', 'automations', null::text),
+  ('automation.notice', 'Push', 'automations', null::text),
+  ('automation.failed', 'In App', 'automations', null::text),
+  ('automation.failed', 'Email', 'automations', 'notification'),
+  ('automation.failed', 'SMS', 'automations', null::text),
+  ('automation.failed', 'Push', 'automations', null::text),
+  ('automation.paused', 'In App', 'automations', null::text),
+  ('automation.paused', 'Email', 'automations', 'notification'),
+  ('automation.paused', 'SMS', 'automations', null::text),
+  ('automation.paused', 'Push', 'automations', null::text),
   ('message.received', 'In App', 'messages', null::text),
   ('message.received', 'Email', 'messages', 'notification'),
   ('message.received', 'SMS', 'messages', null::text),
