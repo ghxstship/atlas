@@ -1,0 +1,114 @@
+{
+  "advance": {
+    "answered": "Respondida",
+    "empty": "Todavía no hay paquetes de coordinación previa en este proyecto. La organización los envía antes del show.",
+    "notAnswered": "Sin responder",
+    "progress": "{done} de {total} secciones respondidas",
+    "returnedBecause": "Devuelta: {reason}",
+    "title": "Paquetes de coordinación previa"
+  },
+  "between": "{from} a {to}",
+  "deliverables": {
+    "empty": "Todavía no hay entregables en este proyecto.",
+    "returned": "Devuelto: {reason}",
+    "title": "Entregables"
+  },
+  "deliveries": {
+    "arrives": "Llega",
+    "empty": "Todavía no hay entregas en este proyecto.",
+    "ships": "Sale",
+    "title": "Entregas"
+  },
+  "due": "Vence",
+  "duration": "{hours} h {minutes} min",
+  "gateway": {
+    "actions": "Para enviar, subir o responder, abre esta contratación en Gateway.",
+    "time": "Para corregir tu tiempo, abre esta contratación en Gateway."
+  },
+  "lodging": {
+    "title": "Alojamiento"
+  },
+  "onboarding": {
+    "blocking": "Necesario antes de empezar a trabajar",
+    "empty": "No hay requisitos de incorporación para esta contratación.",
+    "expires": "Vence",
+    "standing": {
+      "expired": "Vencido",
+      "returned": "Devuelto",
+      "toDo": "Pendiente",
+      "verified": "Listo",
+      "waiting": "En revisión"
+    },
+    "title": "Requisitos de incorporación"
+  },
+  "overdue": "Vencido",
+  "perDiem": {
+    "empty": "Todavía no hay viáticos en este proyecto.",
+    "title": "Días",
+    "total": "{days} días",
+    "totalTitle": "Total"
+  },
+  "progress": "{done} de {total} listos",
+  "proof": {
+    "delivered": "Entregado",
+    "documents": "Documentos de comprobación",
+    "empty": "Todavía no hay beneficios ni comprobaciones de cumplimiento en este proyecto.",
+    "entitlements": "Beneficios",
+    "waiting": "Sin entregar"
+  },
+  "purchaseOrders": {
+    "acknowledged": "La confirmaste",
+    "empty": "No te enviaron órdenes de compra en este proyecto.",
+    "notAcknowledged": "Sin confirmar",
+    "sent": "Enviada",
+    "title": "Órdenes de compra",
+    "unpriced": "Total sin precio todavía"
+  },
+  "quantity": "Cantidad {quantity} {unit}",
+  "reports": {
+    "empty": "No compartieron informes contigo en este proyecto.",
+    "expires": "El acceso termina",
+    "format": "Archivo {format}",
+    "rows": "{count} filas",
+    "shared": "Compartido",
+    "title": "Informes compartidos"
+  },
+  "rider": {
+    "empty": "Todavía no hay rider en este proyecto.",
+    "fulfilled": "Cumplida",
+    "open": "Pendiente",
+    "progress": "{done} de {total} solicitudes cumplidas",
+    "title": "Riders"
+  },
+  "settlement": {
+    "empty": "Todavía no te enviaron una liquidación en este proyecto.",
+    "net": "Neto",
+    "title": "Liquidaciones",
+    "unpriced": "Neto sin precio todavía"
+  },
+  "submittals": {
+    "empty": "No hay nada compartido contigo para revisión en este proyecto.",
+    "title": "Compartido para revisión"
+  },
+  "timeEntries": {
+    "breaks": "{minutes} min de descanso",
+    "empty": "Todavía no hay registros de tiempo en este proyecto.",
+    "open": "Todavía con entrada marcada",
+    "title": "Registros de tiempo",
+    "until": "a"
+  },
+  "timesheets": {
+    "decided": "Decidida",
+    "empty": "Todavía no hay hojas de horas en este proyecto.",
+    "submitted": "Enviada",
+    "title": "Hojas de horas"
+  },
+  "today": "Hoy",
+  "travel": {
+    "arrives": "Llega",
+    "confirmation": "Confirmación {code}",
+    "departs": "Sale",
+    "empty": "Todavía no hay viajes ni alojamiento reservados para ti en este proyecto.",
+    "title": "Viaje"
+  }
+}

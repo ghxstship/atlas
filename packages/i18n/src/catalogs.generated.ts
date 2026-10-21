@@ -8,6 +8,8 @@ import enUS_aurora from "../messages/en-US/aurora.json" with { type: "json" };
 import enUS_auroraCertificates from "../messages/en-US/auroraCertificates.json" with { type: "json" };
 import enUS_canonBrowser from "../messages/en-US/canonBrowser.json" with { type: "json" };
 import enUS_compass from "../messages/en-US/compass.json" with { type: "json" };
+import enUS_compassExpenses from "../messages/en-US/compassExpenses.json" with { type: "json" };
+import enUS_compassExternal from "../messages/en-US/compassExternal.json" with { type: "json" };
 import enUS_compassNfc from "../messages/en-US/compassNfc.json" with { type: "json" };
 import enUS_credentials from "../messages/en-US/credentials.json" with { type: "json" };
 import enUS_crew from "../messages/en-US/crew.json" with { type: "json" };
@@ -62,6 +64,8 @@ import esUS_aurora from "../messages/es-US/aurora.json" with { type: "json" };
 import esUS_auroraCertificates from "../messages/es-US/auroraCertificates.json" with { type: "json" };
 import esUS_canonBrowser from "../messages/es-US/canonBrowser.json" with { type: "json" };
 import esUS_compass from "../messages/es-US/compass.json" with { type: "json" };
+import esUS_compassExpenses from "../messages/es-US/compassExpenses.json" with { type: "json" };
+import esUS_compassExternal from "../messages/es-US/compassExternal.json" with { type: "json" };
 import esUS_compassNfc from "../messages/es-US/compassNfc.json" with { type: "json" };
 import esUS_credentials from "../messages/es-US/credentials.json" with { type: "json" };
 import esUS_crew from "../messages/es-US/crew.json" with { type: "json" };
@@ -118,6 +122,8 @@ export const enUS = {
   auroraCertificates: enUS_auroraCertificates,
   canonBrowser: enUS_canonBrowser,
   compass: enUS_compass,
+  compassExpenses: enUS_compassExpenses,
+  compassExternal: enUS_compassExternal,
   compassNfc: enUS_compassNfc,
   credentials: enUS_credentials,
   crew: enUS_crew,
@@ -175,6 +181,8 @@ export const esUS = {
   auroraCertificates: esUS_auroraCertificates,
   canonBrowser: esUS_canonBrowser,
   compass: esUS_compass,
+  compassExpenses: esUS_compassExpenses,
+  compassExternal: esUS_compassExternal,
   compassNfc: esUS_compassNfc,
   credentials: esUS_credentials,
   crew: esUS_crew,

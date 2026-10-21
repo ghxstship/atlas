@@ -114,7 +114,29 @@
       "time_entries": "time entries",
       "zones": "zones",
       "other": "other data",
-      "roles": "job titles"
+      "roles": "job titles",
+      "budget_lines": "budget lines",
+      "expenses": "expenses",
+      "timesheets": "timesheets",
+      "per_diems": "per diem",
+      "travel_segments": "travel",
+      "lodging": "lodging",
+      "onboarding_items": "onboarding items",
+      "purchase_orders": "purchase orders",
+      "po_lines": "purchase order lines",
+      "deliveries": "deliveries",
+      "shared_records": "records shared for review",
+      "deliverables": "deliverables",
+      "advance_packets": "advance packets",
+      "advance_sections": "advance sections",
+      "advance_submissions": "advance answers",
+      "riders": "riders",
+      "rider_lines": "rider asks",
+      "settlements": "settlements",
+      "settlement_lines": "settlement lines",
+      "shared_reports": "shared reports",
+      "sponsor_entitlements": "sponsor entitlements",
+      "engagement_documents": "engagement documents"
     }
   },
   "queue": {
@@ -169,7 +191,8 @@
       "dock_slots": "Dock check-in",
       "gate_queue": "Gate arrival",
       "marshalling_log": "Marshalling entry",
-      "fulfillments": "Fulfillment"
+      "fulfillments": "Fulfillment",
+      "expenses": "Expense"
     },
     "punchActions": {
       "in": "Clock in",
@@ -212,7 +235,8 @@
       "serverShift": "Shift on {day} at {start}, now {state}",
       "serverState": "{title}, now {state}",
       "serverCue": "{label}, called at {time}",
-      "serverGeneric": "The server holds a different version of this {kind}."
+      "serverGeneric": "The server holds a different version of this {kind}.",
+      "expenseReceipt": "Expense: {description}, {day}"
     },
     "refusedPermission": "The server refused this change: your role cannot do this on this project. Ask your supervisor to check your access.",
     "refusedTechnical": "The server could not save this change. Send it again, or keep the server's version and tell your supervisor."

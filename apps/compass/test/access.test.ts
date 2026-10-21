@@ -181,20 +181,34 @@ describe("navigation from the sitemap", () => {
     expect(client.find((m) => m.id === "run-of-show")?.readOnly).toBe(true);
   });
 
-  it("gathers the entries Compass does not render behind one link out (A59-026)", () => {
+  it("renders every More entry as a Compass screen since A92 (A59-026 kept for any later entry)", () => {
     const crew = moreSections("crew");
-    expect(crew.native.map((m) => m.id)).toEqual(["offline-queue", "profile", "settings"]);
-    expect(crew.elsewhere.map((m) => m.id)).toEqual([
+    expect(crew.native.map((m) => m.id)).toEqual([
       "timesheets",
       "per-diem",
       "travel-and-lodging",
       "onboarding",
+      "offline-queue",
+      "profile",
+      "settings",
     ]);
-    expect(moreSections("field").elsewhere.map((m) => m.id)).toEqual(["expenses"]);
+    expect(moreSections("field").native.map((m) => m.id)).toContain("expenses");
     expect(moreSections("client").native.map((m) => m.id)).toContain("run-of-show");
-    for (const audience of ["field", "crew", "vendor", "sponsor", "artist"] as const) {
+    for (const audience of [
+      "field",
+      "field-supervisor",
+      "client",
+      "vendor",
+      "contractor",
+      "crew",
+      "staff",
+      "artist",
+      "artist-representative",
+      "sponsor",
+    ] as const) {
       const { native, elsewhere } = moreSections(audience);
-      expect([...native, ...elsewhere]).toHaveLength(moreMenu(audience).length);
+      expect(elsewhere, audience).toEqual([]);
+      expect(native).toHaveLength(moreMenu(audience).length);
     }
     const urls = { atlasUrl: "https://atlas.test/", gatewayUrl: "https://gateway.test" };
     expect(elsewhereLink("crew", urls)).toEqual({

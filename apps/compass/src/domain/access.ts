@@ -56,7 +56,8 @@ export type Feature =
   | "logistics.dock"
   | "logistics.yard"
   | "logistics.release"
-  | "hospitality.fulfillment";
+  | "hospitality.fulfillment"
+  | "expenses.submit";
 
 export type Denial =
   /** The role type never has this feature (Section 4.5.7). */
@@ -97,6 +98,7 @@ const INTERNAL_CAPABILITY: Readonly<Record<Feature, string | null>> = {
   "logistics.yard": "logistics.yard.write",
   "logistics.release": "logistics.release.approve",
   "hospitality.fulfillment": "hospitality.fulfillment.write",
+  "expenses.submit": "finance.expense.write",
 };
 
 /** External role types per feature (Section 4.5.7 role table and the sitemap's scan modes). */
@@ -129,6 +131,7 @@ const EXTERNAL_ROLES: Readonly<Record<Feature, readonly Audience[]>> = {
   "logistics.yard": [],
   "logistics.release": [],
   "hospitality.fulfillment": [],
+  "expenses.submit": [],
 };
 
 /** Internal-only features that also need the supervisor audience (Section 4.5.7 supervisor mode). */
@@ -243,6 +246,22 @@ export const NATIVE_MORE: ReadonlySet<string> = new Set([
   "offline-queue",
   "profile",
   "settings",
+  // A92 (A65-011 parts 1 and 2): expenses, and every external role type's entries (src/domain/external.ts).
+  "expenses",
+  "timesheets",
+  "per-diem",
+  "travel-and-lodging",
+  "onboarding",
+  "purchase-orders",
+  "deliveries",
+  "submittals",
+  "time-entries",
+  "deliverables",
+  "advance-summary",
+  "rider",
+  "settlement",
+  "reports",
+  "proof-of-performance",
 ]);
 
 export interface MoreSections {

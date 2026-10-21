@@ -23,20 +23,30 @@ export interface DownloadOptions {
   readonly only?: readonly string[];
 }
 
-async function fetchSource(client: SupabaseClient, source: Source, projectId: string | null) {
+async function fetchSource(
+  client: SupabaseClient,
+  source: Source,
+  projectId: string | null,
+  personId: string | null,
+) {
   let query = client.schema(source.schema).from(source.relation).select(source.select);
   const domain = CANON_DOMAIN[source.table];
   if (domain) query = query.eq("enum_domain", domain);
   if (projectId && source.projectColumn) query = query.eq(source.projectColumn, projectId);
+  if (personId && source.personColumn) query = query.eq(source.personColumn, personId);
   return query;
 }
 
-/** External cues carry no project; it comes from their running order, so the scope check can place them. */
-function enrich(table: string, rows: Row[], pulled: ReadonlyMap<string, Row[]>): Row[] {
-  if (table !== "cues") return rows;
-  const project = new Map((pulled.get("run_of_show") ?? []).map((r) => [r.id, r["project_id"]]));
+/**
+ * Rows that carry no project (external cues, purchase order lines, rider lines) take it from their parent's row
+ * pulled earlier in this download, so the scope check can place them. Their sources name the parent.
+ */
+function enrich(source: Source, rows: Row[], pulled: ReadonlyMap<string, Row[]>): Row[] {
+  const parent = source.parent;
+  if (!parent) return rows;
+  const project = new Map((pulled.get(parent.table) ?? []).map((r) => [r.id, r["project_id"]]));
   return rows.map((r) =>
-    r["project_id"] ? r : { ...r, project_id: project.get(String(r["run_of_show_id"])) ?? null },
+    r["project_id"] ? r : { ...r, project_id: project.get(String(r[parent.column])) ?? null },
   );
 }
 
@@ -52,13 +62,18 @@ export async function downloadAll({
   const pulled = new Map<string, Row[]>();
   for (const source of sourcesFor(session.scope.audience)) {
     if (only && !only.includes(source.table)) continue;
-    const { data, error } = await fetchSource(client, source, projectId);
+    const { data, error } = await fetchSource(
+      client,
+      source,
+      projectId,
+      session.scope.personIds[0] ?? null,
+    );
     if (error) {
       failed.push({ table: source.table, message: error.message });
       continue;
     }
     const rows = enrich(
-      source.table,
+      source,
       toLocalRows(source, (data ?? []) as unknown as Record<string, unknown>[]) as Row[],
       pulled,
     );

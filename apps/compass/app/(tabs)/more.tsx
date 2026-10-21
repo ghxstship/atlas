@@ -20,13 +20,28 @@ const ICONS: Readonly<Record<string, string>> = {
   "offline-queue": "refresh-cw",
   profile: "user",
   settings: "settings",
+  expenses: "receipt",
+  timesheets: "clock",
+  "per-diem": "banknote",
+  "travel-and-lodging": "plane",
+  onboarding: "list-checks",
+  "purchase-orders": "file-text",
+  deliveries: "truck",
+  submittals: "file-check",
+  "time-entries": "clock",
+  deliverables: "file-check",
+  "advance-summary": "clipboard-list",
+  rider: "clipboard-list",
+  settlement: "banknote",
+  reports: "chart-column",
+  "proof-of-performance": "megaphone",
 };
 
 /**
- * The More menu in the sitemap's order for the person's role (Section 4.5.7). Compass's own screens
- * are listed; the entries it does not render yet (timesheets, per diem, purchase orders, expenses
- * and the rest) are named on one row that opens Gateway or Atlas directly, instead of one "this is
- * in Gateway" page per entry (finding A59-026).
+ * The More menu in the sitemap's order for the person's role (Section 4.5.7). Every entry is a Compass
+ * screen since A92 (expenses and the external role types' entries); an entry Compass does not render
+ * would be named on one row that opens Gateway or Atlas directly, instead of one "this is in Gateway"
+ * page per entry (finding A59-026).
  */
 export default function MoreScreen(): ReactElement {
   const { t, i18n } = useTranslation();

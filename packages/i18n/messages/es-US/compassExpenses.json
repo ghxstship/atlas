@@ -1,0 +1,60 @@
+{
+  "add": {
+    "camera": "Tomar foto del recibo",
+    "library": "Elegir una foto",
+    "noLines": "No hay partidas del presupuesto en las que puedas registrar gastos en este proyecto. Pide a tu productor que te agregue al presupuesto.",
+    "sentence": "Toma una foto del recibo. Aurora completa lo que puede leer; tú revisas cada campo antes de guardar.",
+    "title": "Agregar un gasto"
+  },
+  "aurora": {
+    "failed": "Aurora no pudo leer este recibo. Ingresa los datos tú mismo.",
+    "fieldMissing": "No aparece en el recibo. Ingrésalo tú mismo.",
+    "fieldRead": "Leído por Aurora, con {percent} % de certeza. Revísalo.",
+    "limit": "Tu organización usó las solicitudes de Aurora de este mes. Ingresa los datos tú mismo.",
+    "noAnswer": "Aurora no encontró los datos en este recibo. Ingrésalos tú mismo.",
+    "notInPlan": "El plan de tu organización no incluye Aurora. Ingresa los datos tú mismo.",
+    "off": "La lectura de recibos está desactivada en tu organización. Ingresa los datos tú mismo.",
+    "offline": "No tienes conexión. Ingresa los datos; el gasto y su foto se suben cuando vuelvas a estar en línea.",
+    "otherCurrency": "El recibo está en {receipt} y este presupuesto está en {budget}. Ingresa el importe en {budget}.",
+    "read": "Aurora leyó el recibo. Revisa cada campo antes de guardar.",
+    "reading": "Aurora está leyendo el recibo. Puedes empezar a escribir."
+  },
+  "camera": {
+    "hint": "Coloca el recibo plano, con buena luz y el total a la vista.",
+    "take": "Tomar foto",
+    "title": "Foto del recibo"
+  },
+  "form": {
+    "amount": "Importe",
+    "amountIn": "Importe en {currency}",
+    "chooseLine": "Elegir una partida del presupuesto",
+    "date": "Fecha del recibo",
+    "dateHelp": "Año, mes y día, por ejemplo 2027-06-10.",
+    "description": "Qué se compró",
+    "line": "Partida del presupuesto",
+    "lineChosen": "{number}. {line} ({budget})",
+    "photo": "La foto del recibo",
+    "retake": "Volver a tomar la foto",
+    "save": "Guardar gasto"
+  },
+  "list": {
+    "empty": "Todavía no hay gastos. Agrega uno a partir de un recibo.",
+    "title": "Tus gastos",
+    "waiting": "Pendiente de subir"
+  },
+  "problem": {
+    "amount": "Ingresa un importe mayor que cero.",
+    "date": "Ingresa la fecha como año-mes-día.",
+    "description": "Indica qué se compró, en hasta 500 caracteres.",
+    "future": "La fecha es posterior a hoy en el calendario del proyecto.",
+    "line": "Elige la partida del presupuesto a la que se registra el gasto."
+  },
+  "saved": "Gasto guardado. Se sube con su foto cuando estés en línea.",
+  "state": {
+    "approved": "Aprobado",
+    "canceled": "Cancelado",
+    "paid": "Pagado",
+    "proposed": "Enviado",
+    "rejected": "Rechazado"
+  }
+}

@@ -114,7 +114,29 @@
       "time_entries": "horas trabajadas",
       "zones": "zonas",
       "other": "otros datos",
-      "roles": "puestos"
+      "roles": "puestos",
+      "budget_lines": "partidas del presupuesto",
+      "expenses": "gastos",
+      "timesheets": "hojas de horas",
+      "per_diems": "viáticos",
+      "travel_segments": "viajes",
+      "lodging": "alojamiento",
+      "onboarding_items": "requisitos de incorporación",
+      "purchase_orders": "órdenes de compra",
+      "po_lines": "líneas de órdenes de compra",
+      "deliveries": "entregas",
+      "shared_records": "registros compartidos para revisión",
+      "deliverables": "entregables",
+      "advance_packets": "paquetes de coordinación previa",
+      "advance_sections": "secciones de coordinación previa",
+      "advance_submissions": "respuestas de coordinación previa",
+      "riders": "riders",
+      "rider_lines": "solicitudes del rider",
+      "settlements": "liquidaciones",
+      "settlement_lines": "líneas de liquidación",
+      "shared_reports": "informes compartidos",
+      "sponsor_entitlements": "beneficios del patrocinador",
+      "engagement_documents": "documentos de la contratación"
     }
   },
   "queue": {
@@ -169,7 +191,8 @@
       "dock_slots": "Llegada al muelle",
       "gate_queue": "Llegada a la puerta",
       "marshalling_log": "Entrada de maniobras",
-      "fulfillments": "Entrega"
+      "fulfillments": "Entrega",
+      "expenses": "Gasto"
     },
     "punchActions": {
       "in": "Registrar entrada",
@@ -212,7 +235,8 @@
       "serverShift": "Turno del {day} a las {start}, ahora {state}",
       "serverState": "{title}, ahora {state}",
       "serverCue": "{label}, dado a las {time}",
-      "serverGeneric": "El servidor tiene otra versión de este registro: {kind}."
+      "serverGeneric": "El servidor tiene otra versión de este registro: {kind}.",
+      "expenseReceipt": "Gasto: {description}, {day}"
     },
     "refusedPermission": "El servidor rechazó este cambio: tu rol no puede hacer esto en este proyecto. Pide a tu supervisor que revise tu acceso.",
     "refusedTechnical": "El servidor no pudo guardar este cambio. Envíalo de nuevo, o conserva la versión del servidor y avisa a tu supervisor."
