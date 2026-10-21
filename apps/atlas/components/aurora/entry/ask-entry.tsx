@@ -50,7 +50,7 @@ export function AskFilterEntry({ catalog }: { catalog: AskCatalog }) {
         type="search"
         label={t("label")}
         help={t("help", { collection: catalog.label })}
-        placeholder={t("placeholder")}
+        placeholder={t("example")}
         maxLength={500}
         width={360}
         value={sentence}

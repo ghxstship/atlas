@@ -330,7 +330,7 @@
     "ask": {
       "label": "Filtrar en lenguaje natural",
       "help": "Describa las {collection} que quiere ver. Aurora arma el filtro y usted lo revisa antes de aplicarlo.",
-      "placeholder": "Por ejemplo: facturas vencidas de Acme",
+      "example": "Por ejemplo: facturas vencidas de Acme",
       "button": "Armar filtro",
       "title": "Filtrar {collection} con Aurora",
       "ready": "Aurora armó un filtro: {filters}. Revíselo antes de aplicarlo.",

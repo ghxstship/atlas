@@ -232,7 +232,7 @@ test("drafting: an SOP and an advance packet section are drafted into their edit
   ).data.find((p) => p.sent_at === null);
   test.skip(!open, "The demo seed has no unsent advance packet.");
   await page.goto(`/${ORG}/advancing/packets?peek=${open?.id ?? ""}&full=1`);
-  const sections = page.locator("#packet-sections");
+  const sections = page.locator('section[aria-labelledby="packet-sections"]');
   await sections.getByRole("button", { name: "Draft with Aurora" }).click();
   const section = page.getByRole("dialog", { name: "Draft a section with Aurora" });
   await expect(section.getByText(/^Sent: /).first()).toBeVisible();

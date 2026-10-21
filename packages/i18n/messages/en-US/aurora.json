@@ -330,7 +330,7 @@
     "ask": {
       "label": "Filter in plain language",
       "help": "Describe the {collection} you want to see. Aurora builds the filter and you check it before it applies.",
-      "placeholder": "For example: overdue invoices from Acme",
+      "example": "For example: overdue invoices from Acme",
       "button": "Build filter",
       "title": "Filter {collection} with Aurora",
       "ready": "Aurora built a filter: {filters}. Review it before you apply it.",
