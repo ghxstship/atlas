@@ -136,6 +136,7 @@ test("break-glass: the Owner verifies in place and takes emergency access (A59-0
   await expect(panel.getByRole("button", { name: "Take emergency access" })).toBeVisible();
 });
 
+// security.mfa_policy set to everyone, through Settings, Security.
 test("an org that requires a second factor sends a member without one to set it up", async ({
   page,
 }) => {

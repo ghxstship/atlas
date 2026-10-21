@@ -25,7 +25,9 @@ interface OrgAuthRow {
 
 /**
  * What the session owes before Compass opens: with `orgId`, also what that org's security settings ask
- * (`app.my_org_auth_status`, migration 1330). Authenticator apps are the second factor Compass can verify.
+ * (`app.my_org_auth_status`, migration 1330): a second factor security.mfa_policy asks of the person's roles, and
+ * signing in again once security.session_hours has passed. Authenticator apps are the second factor Compass can
+ * verify.
  */
 export async function secondFactorGate(
   client: SupabaseClient,

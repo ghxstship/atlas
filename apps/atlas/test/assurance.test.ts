@@ -36,6 +36,7 @@ describe("where a session that owes something goes (A77)", () => {
     expect(secondFactorRedirect("//evil.example", "")).toBe("/auth/mfa?next=%2F");
   });
 
+  // security.mfa_policy asks to verify; security.session_hours and security.idle_timeout_minutes to sign in again.
   it("sends an org's decision to verify or to sign in again", () => {
     expect(orgAuthRedirect("ok", "acme", "/acme/home", "")).toBeNull();
     expect(orgAuthRedirect("mfa", "acme", "/acme/home", "")).toBe(
@@ -55,6 +56,7 @@ describe("where a session that owes something goes (A77)", () => {
     expect(parseLastSeen("soon")).toBeNull();
   });
 
+  // The record security.idle_timeout_minutes judges.
   it("records the last-seen time at most once a minute, so actions do not refresh the page each time", () => {
     const at = 1792503122000;
     expect(recordsLastSeen(null, at)).toBe(true);

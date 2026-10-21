@@ -51,6 +51,7 @@ describe("the second factor in Compass (A77)", () => {
     });
   });
 
+  // security.mfa_policy asks a factor; security.session_hours has ended the session.
   it("follows the org: a required factor to verify or set up elsewhere, an ended session to sign in again", async () => {
     const none = client({
       current: "aal1",

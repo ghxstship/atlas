@@ -123,9 +123,15 @@ settings:
     label: settings.fields.mfaPolicy.label
     help: settings.fields.mfaPolicy.help
     pages: { org: settings.security }
-    deferred:
-      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
-      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
+    enforced_by:
+      - consumer: supabase/migrations/1330_auth_assurance.sql#private.mfa_required
+        test: supabase/tests/1330_auth_assurance.test.sql
+      - consumer: apps/atlas/proxy.ts#orgAuthRedirect
+        test: apps/atlas/e2e/a77-auth.spec.ts
+      - consumer: packages/api/src/runtime/auth.ts#createSessionRulesCheck
+        test: packages/api/test/auth.test.ts
+      - consumer: apps/compass/src/runtime/assurance.ts#secondFactorGate
+        test: apps/compass/test/assurance.test.ts
   - key: security.session_hours
     type: integer
     min: 1
@@ -136,9 +142,17 @@ settings:
     label: settings.fields.sessionHours.label
     help: settings.fields.sessionHours.help
     pages: { org: settings.security }
-    deferred:
-      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
-      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
+    enforced_by:
+      - consumer: supabase/migrations/1330_auth_assurance.sql#app.my_org_auth_status
+        test: supabase/tests/1330_auth_assurance.test.sql
+      - consumer: apps/atlas/lib/auth/assurance.ts#orgAuthRedirect
+        test: apps/atlas/test/assurance.test.ts
+      - consumer: packages/data/src/auth-assurance.ts#orgAuthDecision
+        test: packages/data/test/auth-assurance.test.ts
+      - consumer: packages/api/src/runtime/auth.ts#createSessionRulesCheck
+        test: packages/api/test/auth.test.ts
+      - consumer: apps/compass/src/runtime/assurance.ts#secondFactorGate
+        test: apps/compass/test/assurance.test.ts
   - key: security.idle_timeout_minutes
     type: integer
     min: 5
@@ -149,9 +163,13 @@ settings:
     label: settings.fields.idleTimeout.label
     help: settings.fields.idleTimeout.help
     pages: { org: settings.security }
-    deferred:
-      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
-      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
+    enforced_by:
+      - consumer: supabase/migrations/1330_auth_assurance.sql#app.my_org_auth_status
+        test: supabase/tests/1330_auth_assurance.test.sql
+      - consumer: apps/atlas/proxy.ts#recordsLastSeen
+        test: apps/atlas/test/assurance.test.ts
+      - consumer: packages/data/src/auth-assurance.ts#orgAuthDecision
+        test: packages/data/test/auth-assurance.test.ts
   - key: security.ip_allowlist
     type: boolean
     default: false

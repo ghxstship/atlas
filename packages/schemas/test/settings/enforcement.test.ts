@@ -56,9 +56,6 @@ describe("every setting takes effect or says why not", () => {
       "communication.auto_translate",
       "me.captions",
       "numbering.record_key_format",
-      "security.idle_timeout_minutes",
-      "security.mfa_policy",
-      "security.session_hours",
     ]);
     for (const key of deferred) {
       const e = enforcement.get(key);

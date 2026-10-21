@@ -182,8 +182,9 @@ export async function getOrgAuthStatus(
 export type OrgAuthDecision = "ok" | "mfa" | "session-expired" | "idle";
 
 /**
- * The guard's decision for an org (Section 9): a session past the org's lifetime or idle longer than its timeout
- * signs in again; a session the policy asks a second factor of verifies one first. `lastSeenAt` is the device's
+ * The guard's decision for an org (Section 9): a session past the org's lifetime (security.session_hours) or idle
+ * longer than its timeout (security.idle_timeout_minutes) signs in again; a session the policy (security.mfa_policy)
+ * asks a second factor of verifies one first. `lastSeenAt` is the device's
  * last request; activity before the sign-in does not count against it.
  */
 export function orgAuthDecision(

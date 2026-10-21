@@ -129,6 +129,7 @@ describe("assurance", () => {
   });
 });
 
+// security.mfa_policy, security.session_hours and security.idle_timeout_minutes, as app.my_org_auth_status reports them.
 describe("org auth status and the guard's decision", () => {
   const base: OrgAuthStatus = {
     mfaRequired: false,

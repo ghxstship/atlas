@@ -184,7 +184,7 @@ describe("bearer session tokens", () => {
   });
 });
 
-describe("org session rules (A77, migration 1330)", () => {
+describe("org session rules: security.mfa_policy and security.session_hours (A77, migration 1330)", () => {
   it("refuses a session the org's MFA policy asks a second factor of, and admits a verified one", async () => {
     const owed = fakeSupabase([ORG_A], { sessionRules: { mfa_required: true } });
     const refused = resolve(owed.authenticate, { authorization: `Bearer ${VALID}` });

@@ -92,7 +92,8 @@ export type SessionRule = "ok" | "mfa" | "session-expired";
 
 /**
  * Whether a session meets an org's security settings (A77, migration 1330, `app.my_org_auth_status`): a second
- * factor its MFA policy asks of the caller's roles, and a sign-in no older than its session lifetime. The answer is
+ * factor its MFA policy (security.mfa_policy) asks of the caller's roles, and a sign-in no older than its session
+ * lifetime (security.session_hours). The answer is
  * reused for `ttlMs` per token and org, never past the moment the session's lifetime ends. API keys are exempt (the
  * database says so too), so callers ask only for sessions.
  */

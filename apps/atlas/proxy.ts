@@ -38,8 +38,9 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *   4. guards routes from the sitemap: signed-out visitors go to sign in, and a route the viewer
  *      may not see renders the 404 page with status 404, never 403 (ADR 0006);
  *   5. asks for the second factor (A77, Section 9): a person who holds one verifies it after the
- *      first factor, and an org's MFA policy, session lifetime and idle timeout send the person to
- *      verify or sign in again before its pages (lib/auth/assurance.ts).
+ *      first factor, and an org's security.mfa_policy, security.session_hours and
+ *      security.idle_timeout_minutes send the person to verify or sign in again before its pages
+ *      (lib/auth/assurance.ts, orgAuthRedirect).
  * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
  * never open a hidden page.
  */
