@@ -3466,6 +3466,7 @@ var compliance_default$1 = {
       locked: "Locked after 5 wrong codes",
       expired: "Expired",
       revoke: "Revoke",
+      made: "Made {date}",
     },
     errors: {
       share_link_restricted: "Restricted files are never shared by link.",
@@ -3511,6 +3512,58 @@ var compliance_default$1 = {
     step_up_required:
       "Downloading a Restricted file needs a second sign-in factor. Sign in again with your second factor, then try again.",
     notFound: "This file is not available.",
+  },
+  cookies: {
+    title: "Cookies",
+    body: "We use cookies to keep you signed in and to remember this choice. With your permission we also remember your language, theme and last workspace for 12 months instead of this visit. We use no advertising or tracking cookies.",
+    policy: "Cookie Policy",
+    settingsLink: "Cookie settings",
+    acceptAll: "Accept all",
+    rejectAll: "Reject all",
+    choose: "Choose cookies",
+    necessary: "Strictly necessary: sign-in, security and this choice. Always on.",
+    preferences:
+      "Preferences: remember your language, theme, workspace and last organization for 12 months.",
+    performance:
+      "Performance: page timing and error reports. We set no performance cookies today; your choice applies if we ever add one.",
+    save: "Save choices",
+    settingsTitle: "Cookie settings",
+    settingsLead:
+      "Choose which cookies Atlas may set in this browser. Your choice is also kept on our servers as a record.",
+    gpc: "Your browser sends Global Privacy Control. We treat it as a refusal of every cookie that is not strictly necessary, so the choices below stay off while it is on.",
+    categories: "Categories",
+    current: {
+      none: "You have not chosen yet.",
+      choice: "Your choice: Preferences {preferences}, Performance {performance}.",
+      on: "on",
+      off: "off",
+    },
+    table: {
+      caption: "Cookies Atlas sets",
+      name: "Name",
+      category: "Category",
+      purpose: "What it does",
+      categories: {
+        necessary: "Strictly necessary",
+        preferences: "Preferences",
+      },
+      purposes: {
+        session: "Keeps you signed in for your organization's session lifetime.",
+        consent: "Remembers this choice for 12 months.",
+        viewAs: "Keeps a View as preview an Admin started, for up to an hour.",
+        locale: "Remembers the language you chose.",
+        theme: "Remembers the light or dark theme you chose.",
+        workspace: "Remembers the workspace filter you chose.",
+        lastOrg: "Opens the organization you used last.",
+        acting: "Remembers the account this browser acts for.",
+      },
+    },
+    gatewayBody:
+      "We use cookies to keep you signed in and to remember this choice. With your permission we also remember your language and theme for 12 months instead of this visit. We use no advertising or tracking cookies.",
+    gatewayPreferences: "Preferences: remember your language and theme for 12 months.",
+    gatewaySettingsLead:
+      "Choose which cookies Gateway may set in this browser. Your choice is also kept on our servers as a record.",
+    gatewayTableCaption: "Cookies Gateway sets",
   },
 };
 var credentials_default$1 = {
@@ -4952,6 +5005,21 @@ var email_default$1 = {
     subject: "We received your {requestType} request",
     heading: "Request received",
     body: "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirm your subscription to XOS subprocessor changes",
+    heading: "Confirm your subscription",
+    body: "You asked to hear about changes to the XOS Subprocessor List. Confirm within 7 days to start receiving notices.",
+    ignore: "If you did not ask for this, ignore this email and nothing will be sent.",
+    confirm: "Confirm subscription",
+  },
+  subprocessor_notice: {
+    subject: "XOS Subprocessor List changes on {effectiveOn, date, long}",
+    heading: "Subprocessor List {listVersion}",
+    intro:
+      "We will change our Subprocessor List on {effectiveOn, date, long}, at least 30 days from this notice.",
+    objection: "A customer may object under Section 7.3 of the Data Processing Agreement.",
+    review: "Read the Subprocessor List",
   },
 };
 var finance_default$1 = {
@@ -6962,6 +7030,7 @@ var gateway_default$1 = {
       password: "Password",
       passwordHelp:
         "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
+      age: "I am 16 or older.",
     },
     or: "or",
     usePassword: "Use a password",
@@ -7044,6 +7113,7 @@ var gateway_default$1 = {
       passwordContext:
         "Choose a password that does not contain your name, your email or a product name such as Gateway.",
       terms: "Accept the Worker Terms to create your account: tick the box above the button.",
+      age: "Confirm that you are 16 or older. XOS accounts are for people 16 and over.",
     },
   },
   work: {
@@ -13482,6 +13552,7 @@ var shell_default$1 = {
       orgName: "Organization name",
       orgSlug: "Web address",
       orgSlugHelp: "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
+      age: "I am 16 or older.",
     },
     or: "or",
     signIn: {
@@ -13575,6 +13646,7 @@ var shell_default$1 = {
       accept: "Accept the Terms of Service and the Data Processing Agreement to continue.",
       slug_taken: "That web address is already in use. Choose another.",
       slug_reserved: "That web address is reserved by Atlas. Choose another.",
+      age: "Confirm that you are 16 or older. XOS accounts are for people 16 and over.",
     },
     networkRestricted: {
       title: "Your network is not allowed",
@@ -19997,6 +20069,7 @@ var compliance_default = {
       locked: "Bloqueado tras 5 códigos incorrectos",
       expired: "Vencido",
       revoke: "Revocar",
+      made: "Creado el {date}",
     },
     errors: {
       share_link_restricted: "Los archivos restringidos nunca se comparten por enlace.",
@@ -20047,6 +20120,60 @@ var compliance_default = {
     step_up_required:
       "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
     notFound: "Este archivo no está disponible.",
+  },
+  cookies: {
+    title: "Cookies",
+    body: "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma, tema y último espacio de trabajo durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    policy: "Política de cookies",
+    settingsLink: "Configuración de cookies",
+    acceptAll: "Aceptar todas",
+    rejectAll: "Rechazar todas",
+    choose: "Elegir cookies",
+    necessary:
+      "Estrictamente necesarias: inicio de sesión, seguridad y esta elección. Siempre activas.",
+    preferences:
+      "Preferencias: recordar tu idioma, tema, espacio de trabajo y última organización durante 12 meses.",
+    performance:
+      "Rendimiento: tiempos de página e informes de errores. Hoy no usamos cookies de rendimiento; tu elección se aplica si alguna vez agregamos una.",
+    save: "Guardar elección",
+    settingsTitle: "Configuración de cookies",
+    settingsLead:
+      "Elige qué cookies puede usar Atlas en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    gpc: "Tu navegador envía Global Privacy Control. Lo tratamos como un rechazo de toda cookie que no sea estrictamente necesaria, así que las opciones de abajo quedan desactivadas mientras esté activo.",
+    categories: "Categorías",
+    current: {
+      none: "Todavía no has elegido.",
+      choice: "Tu elección: Preferencias {preferences}, Rendimiento {performance}.",
+      on: "activadas",
+      off: "desactivadas",
+    },
+    table: {
+      caption: "Cookies que usa Atlas",
+      name: "Nombre",
+      category: "Categoría",
+      purpose: "Para qué sirve",
+      categories: {
+        necessary: "Estrictamente necesaria",
+        preferences: "Preferencias",
+      },
+      purposes: {
+        session: "Mantiene tu sesión iniciada durante el tiempo que fija tu organización.",
+        consent: "Recuerda esta elección durante 12 meses.",
+        viewAs:
+          "Mantiene una vista previa Ver como que inició un administrador, hasta por una hora.",
+        locale: "Recuerda el idioma que elegiste.",
+        theme: "Recuerda el tema claro u oscuro que elegiste.",
+        workspace: "Recuerda el filtro de espacio de trabajo que elegiste.",
+        lastOrg: "Abre la organización que usaste por última vez.",
+        acting: "Recuerda la cuenta por la que actúa este navegador.",
+      },
+    },
+    gatewayBody:
+      "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma y tema durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    gatewayPreferences: "Preferencias: recordar tu idioma y tema durante 12 meses.",
+    gatewaySettingsLead:
+      "Elige qué cookies puede usar Gateway en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    gatewayTableCaption: "Cookies que usa Gateway",
   },
 };
 var credentials_default = {
@@ -21523,6 +21650,22 @@ var email_default = {
     subject: "Recibimos tu solicitud de {requestType}",
     heading: "Solicitud recibida",
     body: "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirma tu suscripción a los cambios de subencargados de XOS",
+    heading: "Confirma tu suscripción",
+    body: "Pediste recibir avisos de cambios en la Lista de subencargados de XOS. Confirma en un plazo de 7 días para empezar a recibirlos.",
+    ignore: "Si no lo pediste, ignora este correo y no se enviará nada.",
+    confirm: "Confirmar suscripción",
+  },
+  subprocessor_notice: {
+    subject: "La Lista de subencargados de XOS cambia el {effectiveOn, date, long}",
+    heading: "Lista de subencargados {listVersion}",
+    intro:
+      "Cambiaremos nuestra Lista de subencargados el {effectiveOn, date, long}, al menos 30 días después de este aviso.",
+    objection:
+      "Un cliente puede oponerse según la Sección 7.3 del Acuerdo de Tratamiento de Datos.",
+    review: "Leer la Lista de subencargados",
   },
 };
 var finance_default = {
@@ -23445,6 +23588,7 @@ var gateway_default = {
       password: "Contraseña",
       passwordHelp:
         "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
+      age: "Tengo 16 años o más.",
     },
     or: "o",
     usePassword: "Usar contraseña",
@@ -23530,6 +23674,7 @@ var gateway_default = {
         "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
       terms:
         "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
+      age: "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante.",
     },
   },
   work: {
@@ -30143,6 +30288,7 @@ var shell_default = {
       orgName: "Nombre de la organización",
       orgSlug: "Dirección web",
       orgSlugHelp: "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
+      age: "Tengo 16 años o más.",
     },
     or: "o",
     signIn: {
@@ -30239,6 +30385,7 @@ var shell_default = {
         "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       slug_taken: "Esa dirección web ya está en uso. Elige otra.",
       slug_reserved: "Atlas reserva esa dirección web. Elige otra.",
+      age: "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante.",
     },
     networkRestricted: {
       title: "Su red no está permitida",
@@ -35771,6 +35918,59 @@ var templates = {
       };
     },
   },
+  subprocessor_confirm: {
+    transactional: true,
+    compose: ({ confirmUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_confirm.subject");
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_confirm.heading"),
+          transactional: true,
+          action: {
+            label: ctx.t("subprocessor_confirm.confirm"),
+            url: confirmUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.body") }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.ignore") }),
+          ],
+        }),
+      };
+    },
+  },
+  subprocessor_notice: {
+    transactional: false,
+    compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_notice.subject", { effectiveOn });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_notice.heading", { listVersion }),
+          transactional: false,
+          action: {
+            label: ctx.t("subprocessor_notice.review"),
+            url: listUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("subprocessor_notice.intro", { effectiveOn }),
+            }),
+            /* @__PURE__ */ jsx(Paragraph, { children: summary }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
+          ],
+        }),
+      };
+    },
+  },
 };
 //#endregion
 //#region ../email/src/render.ts
@@ -35841,6 +36041,111 @@ async function sendEmail(request) {
     ...(request.replyTo === void 0 ? {} : { replyTo: request.replyTo }),
     ...(request.deliveryId === void 0 ? {} : { idempotencyKey: `delivery-${request.deliveryId}` }),
   });
+}
+//#endregion
+//#region src/legal/platform-emails.ts
+function str$1(value, what) {
+  if (typeof value !== "string" || value.length === 0) throw new Error(`Missing ${what}`);
+  return value;
+}
+/** The Subprocessor List page, and its confirmation and unsubscribe links. */
+function subprocessorLinks(appUrl) {
+  const list = new URL("/legal/subprocessors", appUrl);
+  return {
+    list: list.toString(),
+    confirm: (token) => `${list.toString()}?confirm=${encodeURIComponent(token)}`,
+    unsubscribe: (token) => `${list.toString()}?unsubscribe=${encodeURIComponent(token)}`,
+  };
+}
+/** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
+async function dispatchPlatformEmails(store, transport, options, limit = 25) {
+  const claims = await store.claim(limit);
+  const links = subprocessorLinks(options.appUrl);
+  let sent = 0;
+  let failed = 0;
+  for (const claim of claims)
+    try {
+      const unsubscribeToken =
+        typeof claim.args["unsubscribe_token"] === "string"
+          ? claim.args["unsubscribe_token"]
+          : null;
+      const sender = {
+        orgName: options.senderName,
+        postalAddress: options.postalAddress,
+        preferencesUrl: options.appUrl,
+        ...(unsubscribeToken ? { unsubscribeUrl: links.unsubscribe(unsubscribeToken) } : {}),
+      };
+      const common = {
+        transport,
+        locale: claim.locale,
+        timeZone: "UTC",
+        sender,
+        recipientName: claim.to,
+        from: options.from,
+        to: claim.to,
+        deliveryId: claim.id,
+      };
+      const result =
+        claim.template === "subprocessor_confirm"
+          ? await sendEmail({
+              ...common,
+              template: "subprocessor_confirm",
+              props: {
+                confirmUrl: links.confirm(str$1(claim.args["confirm_token"], "confirm_token")),
+              },
+            })
+          : await sendEmail({
+              ...common,
+              template: "subprocessor_notice",
+              props: {
+                listVersion: str$1(claim.args["list_version"], "list_version"),
+                summary: str$1(claim.args["summary"], "summary"),
+                effectiveOn: /* @__PURE__ */ new Date(
+                  `${str$1(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                ),
+                listUrl: links.list,
+              },
+            });
+      await store.finish(claim.id, true, result.providerMessageId, null);
+      sent += 1;
+    } catch (error) {
+      failed += 1;
+      await store.finish(
+        claim.id,
+        false,
+        null,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  return {
+    attempted: claims.length,
+    sent,
+    failed,
+  };
+}
+/** PlatformEmailStore over the service-role database seam (app.claim_platform_emails, 1382). */
+function platformEmailStore(db) {
+  return {
+    async claim(limit) {
+      return ((await db.rpc("claim_platform_emails", { p_limit: limit })) ?? []).map((r) => ({
+        id: str$1(r["id"], "id"),
+        template: str$1(r["template"], "template"),
+        to: str$1(r["to_email"], "to_email"),
+        locale: typeof r["locale"] === "string" && isLocale(r["locale"]) ? r["locale"] : "en-US",
+        args: r["args"] ?? {},
+      }));
+    },
+    async finish(id, sent, providerMessageId, error) {
+      return String(
+        await db.rpc("finish_platform_email", {
+          p_id: id,
+          p_sent: sent,
+          p_provider_message_id: providerMessageId,
+          p_error: error,
+        }),
+      );
+    },
+  };
 }
 //#endregion
 //#region src/notifications/dispatch.ts
@@ -39437,6 +39742,7 @@ export {
   createStripeClient,
   createTransport,
   dispatchEmail,
+  dispatchPlatformEmails,
   dispatchWebhooks,
   edgeFunctionName,
   extraSeatForLookupKey,
@@ -39460,6 +39766,7 @@ export {
   passThroughScanner,
   planForLookupKey,
   planRegistry,
+  platformEmailStore,
   readBillingEnv,
   readEmailEnv,
   readZipDirectory,
@@ -39482,6 +39789,7 @@ export {
   sniffFamilies,
   stagedUploadTarget,
   stripQuotedText,
+  subprocessorLinks,
   supabaseDb,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,

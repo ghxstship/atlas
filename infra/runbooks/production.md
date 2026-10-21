@@ -159,7 +159,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, each every minute) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `subprocessor-notices`, each every minute) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 ### 3. Apps
 

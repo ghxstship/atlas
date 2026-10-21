@@ -128,7 +128,7 @@ En una pila autoalojada, monta `supabase/functions` en el servicio de funciones 
 
 ### Programa las funciones de trabajo
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan` y `report-run` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run` y `subprocessor-notices` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
 
 ```sql
 select vault.create_secret('<service role key>', 'xos_worker_key');
@@ -143,7 +143,7 @@ select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
 $$);
 ```
 
-Repite para las otras tres funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió.
+Repite para las otras cuatro funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió.
 
 ### Análisis de archivos subidos
 
