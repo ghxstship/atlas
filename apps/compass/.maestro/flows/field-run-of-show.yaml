@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Follow the live run of show in show mode
+# Follow the live run of show in show mode.
+# Named after its file: config.yaml orders flows by name.
+name: field-run-of-show
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml

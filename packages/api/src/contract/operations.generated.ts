@@ -3455,6 +3455,33 @@ export interface Components {
   };
   ImportRowResultPage: { data: Array<Components["ImportRowResult"]>; next_cursor: string | null };
   ImportRowState: "Valid" | "Invalid" | "Written" | "Refused" | "Skipped";
+  InboundMessage: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    purpose: "Project Inbox" | "Reply";
+    inbound_address_id: string | null;
+    from_address: string;
+    subject_line: string | null;
+    body_text: string | null;
+    dkim_verified: boolean;
+    inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
+    rejection_reason: string | null;
+    received_at: string;
+    filed_document_id: string | null;
+    filed_record_id: string | null;
+    filed_by: string | null;
+    filed_at: string | null;
+    discarded_at: string | null;
+    discarded_by: string | null;
+    discard_reason: string | null;
+  };
+  InboundMessageDiscardRequest: { reason?: string };
+  InboundMessageFileRequest: { title?: string; record_id?: string };
+  InboundMessagePage: { data: Array<Components["InboundMessage"]>; next_cursor: string | null };
   Incident: {
     id: string;
     org_id: string;
@@ -5128,6 +5155,19 @@ export interface Components {
     given_name: string | null;
     family_name: string | null;
   };
+  PersonCalendarFeed: {
+    id: string;
+    created_at: string;
+    updated_at: string;
+    person_id: string;
+    token_hint: string;
+    last_accessed_at: string | null;
+    rotated_at: string | null;
+  };
+  PersonCalendarFeedPage: {
+    data: Array<Components["PersonCalendarFeed"]>;
+    next_cursor: string | null;
+  };
   PersonPage: { data: Array<Components["Person"]>; next_cursor: string | null };
   PersonProfile: {
     id: string;
@@ -5532,6 +5572,19 @@ export interface Components {
     time_zone: string;
     venue_id?: string | null;
   };
+  ProjectInbox: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    local_part: string;
+    disabled_at: string | null;
+  };
+  ProjectInboxCreate: { project_id: string };
+  ProjectInboxPage: { data: Array<Components["ProjectInbox"]>; next_cursor: string | null };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
     id: string;
@@ -22467,6 +22520,15 @@ export interface Operations {
     body: undefined;
     responses: { 204: null };
   };
+  "calendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
   "trashItems.list": {
     module: "Platform";
     method: "get";
@@ -23882,6 +23944,150 @@ export interface Operations {
     query: Record<string, never>;
     body: undefined;
     responses: { 200: Components["ShareLink"] };
+  };
+  "personCalendarFeeds.list": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeedPage"] };
+  };
+  "personCalendarFeeds.create": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 201: Components["CalendarFeedToken"] };
+  };
+  "personCalendarFeeds.get": {
+    module: "Platform";
+    method: "get";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["PersonCalendarFeed"] };
+  };
+  "personCalendarFeeds.delete": {
+    module: "Platform";
+    method: "delete";
+    path: "/person-calendar-feeds/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "personCalendarFeeds.rotate": {
+    module: "Platform";
+    method: "post";
+    path: "/person-calendar-feeds/{id}/rotate";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["CalendarFeedToken"] };
+  };
+  "projectInboxes.list": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectInboxPage"] };
+  };
+  "projectInboxes.create": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectInboxCreate"];
+    responses: { 201: Components["ProjectInbox"] };
+  };
+  "projectInboxes.get": {
+    module: "Platform";
+    method: "get";
+    path: "/project-inboxes/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.replace": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/replace";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "projectInboxes.disable": {
+    module: "Platform";
+    method: "post";
+    path: "/project-inboxes/{id}/disable";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ProjectInbox"] };
+  };
+  "inboundMessages.list": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["InboundMessagePage"] };
+  };
+  "inboundMessages.get": {
+    module: "Platform";
+    method: "get";
+    path: "/inbound-messages/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.file": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/file";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageFileRequest"];
+    responses: { 200: Components["InboundMessage"] };
+  };
+  "inboundMessages.discard": {
+    module: "Platform";
+    method: "post";
+    path: "/inbound-messages/{id}/discard";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["InboundMessageDiscardRequest"];
+    responses: { 200: Components["InboundMessage"] };
   };
   "workforceGroups.list": {
     module: "Workforce";
@@ -26825,6 +27031,7 @@ export interface ModuleOperations {
     | "calendarFeeds.create"
     | "calendarFeeds.get"
     | "calendarFeeds.delete"
+    | "calendarFeeds.rotate"
     | "trashItems.list"
     | "trashItems.restore"
     | "templates.list"
@@ -26887,7 +27094,21 @@ export interface ModuleOperations {
     | "shareLinks.list"
     | "shareLinks.create"
     | "shareLinks.get"
-    | "shareLinks.revoke";
+    | "shareLinks.revoke"
+    | "personCalendarFeeds.list"
+    | "personCalendarFeeds.create"
+    | "personCalendarFeeds.get"
+    | "personCalendarFeeds.delete"
+    | "personCalendarFeeds.rotate"
+    | "projectInboxes.list"
+    | "projectInboxes.create"
+    | "projectInboxes.get"
+    | "projectInboxes.replace"
+    | "projectInboxes.disable"
+    | "inboundMessages.list"
+    | "inboundMessages.get"
+    | "inboundMessages.file"
+    | "inboundMessages.discard";
   Workforce:
     | "workforceGroups.list"
     | "workforceGroups.create"

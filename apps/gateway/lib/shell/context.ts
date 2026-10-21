@@ -5,10 +5,13 @@ import {
   type ExternalAccount,
   type XosClient,
 } from "@xos/data/gateway";
+import { tokenAal } from "@xos/data/auth-assurance";
 import type { NavContext } from "@xos/ia";
+import type { Route } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { resolveBrand, type GatewayBrand } from "@/lib/brand/brand";
 import { env, platformHosts } from "@/lib/env";
 import { doesPaidWork } from "@/lib/engagement-state";
@@ -67,6 +70,15 @@ export const getGatewayContext = cache(async (): Promise<GatewayContext | null> 
   const { data } = await db.auth.getUser();
   const user = data.user;
   if (!user) return null;
+  // A server action that signs in and redirects renders its target in the same request, past the proxy, so a
+  // second factor the person holds is asked for here too (A77).
+  if ((user.factors ?? []).some((f) => f.status === "verified")) {
+    const { data: current } = await db.auth.getSession();
+    if (tokenAal(current.session?.access_token) === "aal1") {
+      const here = (await headers()).get("x-gateway-path") ?? "/home";
+      redirect(secondFactorRedirect(here, "") as Route);
+    }
+  }
   const [person, accounts, roleTypes, cookieStore, facts] = await Promise.all([
     getCurrentPerson(db, user.id),
     listMyAccounts(db),

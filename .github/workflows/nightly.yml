@@ -247,6 +247,9 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.3.app
           export EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:55421
           export EXPO_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+          # The runner has no audio input, so the simulator could never record a voice note: this test
+          # build swaps in the silent fake recorder (src/runtime/voiceRecorder.ts; refused in EAS builds).
+          export EXPO_PUBLIC_XOS_FAKE_RECORDER=1
           pnpm exec expo prebuild --platform ios --no-install
           (cd ios && pod install)
           # The Intel runner's simulator is x86_64; one architecture instead of two halves the build.
@@ -265,8 +268,14 @@ jobs:
           for service in location-always camera microphone; do
             xcrun simctl privacy "$UDID" grant "$service" pro.ghxstship.compass || true
           done
-      - name: Run the field flows (airplane mode runs on Android)
-        run: apps/compass/scripts/maestro-ci.sh --exclude-tags airplane-mode
+      # Maestro sets airplane mode only on Android. For the airplane-mode flows on iOS, the network helper
+      # (apps/compass/scripts/maestro-network.ts) stops and restarts the CI stack's API gateway instead.
+      - name: Run the field flows, the offline ones through the network helper
+        run: |
+          SUPABASE_PROJECT_ID=xos4 node --experimental-strip-types --no-warnings \
+            apps/compass/scripts/maestro-network.ts serve &
+          sleep 1
+          apps/compass/scripts/maestro-ci.sh
       - if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:

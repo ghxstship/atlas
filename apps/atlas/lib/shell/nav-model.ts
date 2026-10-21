@@ -14,8 +14,9 @@ import { fillRoute } from "@xos/ia";
 /**
  * The navigation model of the Atlas shell, generated from the sitemap for one viewer (Section 4.5.2):
  * the always-visible top items, the pinned Projects entry, the module groups with the role's default
- * groups expanded, the footer, the account entry, the phone bottom bar and the command menu index.
- * No navigation item is written in a component; everything here comes from ia/sitemap.yaml.
+ * groups expanded and the person's own order and hidden items applied, the footer, the account entry,
+ * the phone bottom bar and the command menu index with its shortcut hints. No navigation item is
+ * written in a component; everything here comes from ia/sitemap.yaml.
  */
 
 export interface NavLinkModel {
@@ -46,7 +47,17 @@ export interface CommandGroupModel {
     readonly label: string;
     readonly href: string;
     readonly icon: string;
+    /** The keys that open the page, as people read them (`G F`), when it has a shortcut. */
+    readonly shortcut?: string;
   }[];
+}
+
+/** One row of a person's sidebar layout (app.sidebar_item_preferences, Section 4.5.2). */
+export interface SidebarLayoutEntry {
+  /** A module group (group.production) or one of its items (finance). */
+  readonly nodeId: string;
+  readonly sortOrder: number;
+  readonly hidden: boolean;
 }
 
 export interface ShellNav {
@@ -108,6 +119,38 @@ export const ROLE_PERSONA: Readonly<Record<SystemRoleCode, string | null>> = {
 
 type Translate = (key: string) => string;
 
+/**
+ * Items in the person's order: those they placed by position, then any they never placed (a module
+ * added since) in the default order.
+ */
+export function orderByLayout<T extends { readonly id: string }>(
+  items: readonly T[],
+  layout: ReadonlyMap<string, SidebarLayoutEntry>,
+): T[] {
+  const placed = items
+    .filter((i) => layout.has(i.id))
+    .sort((a, b) => (layout.get(a.id)?.sortOrder ?? 0) - (layout.get(b.id)?.sortOrder ?? 0));
+  return [...placed, ...items.filter((i) => !layout.has(i.id))];
+}
+
+/** The sitemap nodes a person may place or hide in their sidebar: module groups and their items. */
+export function sidebarNodeIds(sitemap: Sitemap): ReadonlySet<string> {
+  const ids = new Set<string>();
+  for (const group of sitemap.nodes.filter((n) => n.placement === "sidebar")) {
+    ids.add(group.id);
+    for (const child of group.children ?? []) ids.add(child.id);
+  }
+  return ids;
+}
+
+/** Items in the person's order without the ones they hid. */
+function arrange<T extends { readonly id: string }>(
+  items: readonly T[],
+  layout: ReadonlyMap<string, SidebarLayoutEntry>,
+): T[] {
+  return orderByLayout(items, layout).filter((i) => !layout.get(i.id)?.hidden);
+}
+
 function link(node: SitemapNode, params: Record<string, string>, t: Translate): NavLinkModel[] {
   if (node.route === undefined) return [];
   return [
@@ -129,9 +172,14 @@ export function buildShellNav(
     readonly persona?: string | null;
     readonly params: Record<string, string>;
     readonly t: Translate;
+    /** The person's own order and hidden items; empty or absent is the role default. */
+    readonly layout?: readonly SidebarLayoutEntry[];
+    /** Shortcut keys as people read them, by the sitemap node they open, for command menu hints. */
+    readonly hints?: Readonly<Record<string, string>>;
   },
 ): ShellNav {
   const { nav, params, t } = input;
+  const layout = new Map((input.layout ?? []).map((entry) => [entry.nodeId, entry]));
   const visible = (id: string) => isNodeVisible(sitemap, id, nav);
   const navigable = (ids: readonly string[]) =>
     ids.filter((id) => getNode(sitemap, id).navigable && visible(id));
@@ -146,17 +194,22 @@ export function buildShellNav(
   const persona = input.persona ?? (input.role ? ROLE_PERSONA[input.role] : null);
   const expanded = new Set(persona ? expandedGroups(sitemap, persona) : []);
 
-  const groups = sitemap.nodes
-    .filter((n) => n.placement === "sidebar" && visible(n.id))
-    .map((group) => ({
-      id: group.id,
-      label: t(group.label),
-      expanded: expanded.has(group.id),
-      items: (group.children ?? [])
-        .filter((c) => !shownAbove.has(c.id) && visible(c.id))
-        .flatMap((c) => link(c, params, t)),
-    }))
-    .filter((g) => g.items.length > 0);
+  const groups = arrange(
+    sitemap.nodes
+      .filter((n) => n.placement === "sidebar" && visible(n.id))
+      .map((group) => ({
+        id: group.id,
+        label: t(group.label),
+        expanded: expanded.has(group.id),
+        items: arrange(
+          (group.children ?? [])
+            .filter((c) => !shownAbove.has(c.id) && visible(c.id))
+            .flatMap((c) => link(c, params, t)),
+          layout,
+        ),
+      })),
+    layout,
+  ).filter((g) => g.items.length > 0);
 
   const footer = sitemap.nodes
     .filter((n) => n.placement === "footer")
@@ -183,10 +236,12 @@ export function buildShellNav(
     const topNode = getNode(sitemap, entry.id).ancestors.find((a) => a.navigable)?.node;
     const label = t(topNode?.label ?? entry.label);
     const items = byGroup.get(label) ?? [];
+    const shortcut = input.hints?.[entry.id];
     items.push({
       label: [...entry.context.slice(1), entry.label].map(t).join(" / "),
       href: fillRoute(entry.route, params),
       icon: NAV_ICONS[topNode?.id ?? entry.id] ?? "Circle",
+      ...(shortcut ? { shortcut } : {}),
     });
     byGroup.set(label, items);
   }

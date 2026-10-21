@@ -1173,5 +1173,42 @@
         "unexpected": "Something went wrong on our side. Try again in a moment."
       }
     }
+  },
+  "create": {
+    "button": "Create",
+    "title": "Create",
+    "prompt": "What do you want to create?",
+    "here": "On this page",
+    "more": "Everything else",
+    "kinds": {
+      "project": "Project",
+      "record": "Record",
+      "workOrder": "Work order",
+      "punchList": "Punch list",
+      "milestone": "Milestone",
+      "runOfShow": "Run of show",
+      "advancePacket": "Advance packet",
+      "venue": "Venue",
+      "shipment": "Shipment",
+      "fulfillment": "Hospitality fulfillment",
+      "inspection": "Inspection",
+      "incident": "Incident",
+      "requisition": "Requisition",
+      "posting": "Opportunity posting",
+      "shift": "Shift",
+      "timeEntry": "Time entry",
+      "budget": "Budget",
+      "expense": "Expense",
+      "changeOrder": "Change order",
+      "invoice": "Invoice",
+      "rfq": "Request for quotation",
+      "purchaseOrder": "Purchase order",
+      "vendor": "Vendor",
+      "sop": "Standard operating procedure",
+      "document": "Document"
+    }
+  },
+  "keys": {
+    "goHint": "Go to: press one of these keys after {key}, or Esc to cancel."
   }
 }

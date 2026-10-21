@@ -578,6 +578,10 @@ if TYPE_CHECKING:
         ImportMappingProfileUpdate,
         ImportRowResult,
         ImportRowResultPage,
+        InboundMessage,
+        InboundMessageDiscardRequest,
+        InboundMessageFileRequest,
+        InboundMessagePage,
         Incident,
         IncidentCloseRequest,
         IncidentCreate,
@@ -830,6 +834,8 @@ if TYPE_CHECKING:
         PermitTrackRequest,
         PermitTransitionRequest,
         Person,
+        PersonCalendarFeed,
+        PersonCalendarFeedPage,
         PersonPage,
         PersonProfile,
         PersonProfileCreate,
@@ -892,6 +898,9 @@ if TYPE_CHECKING:
         ProjectAuthority,
         ProjectAuthorityPage,
         ProjectCreate,
+        ProjectInbox,
+        ProjectInboxCreate,
+        ProjectInboxPage,
         ProjectPage,
         ProjectPhaseTransition,
         ProjectPhaseTransitionPage,
@@ -30575,6 +30584,22 @@ class CalendarFeedsResource(Resource):
         """
         return self._client.request(OPERATIONS["calendarFeeds.delete"], path={"id": id}, options=options)
 
+    def rotate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedToken]:
+        """Get a new link for a calendar feed
+
+        Replaces the token of one of the caller's feeds (app.rotate_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once; a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /calendar-feeds/{id}/rotate`` (operation ``calendarFeeds.rotate``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["calendarFeeds.rotate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
 
 class TrashItemsResource(Resource):
     """Operations on ``trashItems``, in the Platform module."""
@@ -33624,6 +33649,311 @@ class ShareLinksResource(Resource):
         Requires the capability ``data.export.run``.
         """
         return self._client.request(OPERATIONS["shareLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class PersonCalendarFeedsResource(Resource):
+    """Operations on ``personCalendarFeeds``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[PersonCalendarFeed]:
+        """List person calendar feed rows
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /person-calendar-feeds`` (operation ``personCalendarFeeds.list``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request_page(OPERATIONS["personCalendarFeeds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[PersonCalendarFeed]:
+        """List person calendar feed rows
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /person-calendar-feeds`` (operation ``personCalendarFeeds.list``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.paginate(OPERATIONS["personCalendarFeeds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedToken]:
+        """Create a personal calendar feed
+
+        Creates the caller's own feed across every org they work with (app.create_person_calendar_feed) and returns its token once. At most 20 live feeds (calendar_feed_limit: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /person-calendar-feeds`` (operation ``personCalendarFeeds.create``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.create"], idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PersonCalendarFeed]:
+        """Get a person calendar feed
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns one person calendar feed with its `ETag`. A person calendar feed the caller may not see returns 404.
+
+        ``GET /person-calendar-feeds/{id}`` (operation ``personCalendarFeeds.get``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a person calendar feed
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Soft-deletes the person calendar feed: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /person-calendar-feeds/{id}`` (operation ``personCalendarFeeds.delete``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.delete"], path={"id": id}, options=options)
+
+    def rotate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedToken]:
+        """Get a new link for a personal calendar feed
+
+        Replaces the feed's token (app.rotate_person_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /person-calendar-feeds/{id}/rotate`` (operation ``personCalendarFeeds.rotate``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.rotate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class ProjectInboxesResource(Resource):
+    """Operations on ``projectInboxes``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectInbox]:
+        """List project inbox rows
+
+        A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-inboxes`` (operation ``projectInboxes.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectInboxes.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectInbox]:
+        """List project inbox rows
+
+        A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-inboxes`` (operation ``projectInboxes.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectInboxes.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectInboxCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Create a project's inbox address
+
+        Returns the project's live inbox address, creating it when there is none (app.create_project_inbox, projects.settings.write on the project). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-inboxes`` (operation ``projectInboxes.create``).
+        Requires the capability ``projects.settings.write``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Get a project inbox
+
+        A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns one project inbox with its `ETag`. A project inbox the caller may not see returns 404.
+
+        ``GET /project-inboxes/{id}`` (operation ``projectInboxes.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def replace(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Replace a project's inbox address
+
+        Disables the address and returns the project's new one (app.replace_project_inbox). Mail to the old address is no longer accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-inboxes/{id}/replace`` (operation ``projectInboxes.replace``).
+        Requires the capability ``projects.settings.write``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.replace"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def disable(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Turn off a project's inbox
+
+        Stops the address accepting mail (app.disable_project_inbox). Mail already received stays; a disabled address never comes back. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-inboxes/{id}/disable`` (operation ``projectInboxes.disable``).
+        Requires the capability ``projects.settings.write``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.disable"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class InboundMessagesResource(Resource):
+    """Operations on ``inboundMessages``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[InboundMessage]:
+        """List inbound message rows
+
+        Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /inbound-messages`` (operation ``inboundMessages.list``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request_page(OPERATIONS["inboundMessages.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[InboundMessage]:
+        """List inbound message rows
+
+        Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /inbound-messages`` (operation ``inboundMessages.list``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.paginate(OPERATIONS["inboundMessages.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InboundMessage]:
+        """Get an inbound message
+
+        Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns one inbound message with its `ETag`. A inbound message the caller may not see returns 404.
+
+        ``GET /inbound-messages/{id}`` (operation ``inboundMessages.get``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["inboundMessages.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def file(
+        self,
+        id: str,
+        body: InboundMessageFileRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InboundMessage]:
+        """File inbound mail as a document
+
+        Files verified project inbox mail as a Document record of the project, optionally to a record of the project the caller can open (app.file_inbound_message); the subject, sender and text are posted as a comment on the document and the record. Mail is filed once (inbound_message_triaged: 422); unverified mail is refused (inbound_message_unverified: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /inbound-messages/{id}/file`` (operation ``inboundMessages.file``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["inboundMessages.file"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def discard(
+        self,
+        id: str,
+        body: InboundMessageDiscardRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InboundMessage]:
+        """Discard inbound mail
+
+        Discards project inbox mail with an optional reason (app.discard_inbound_message). The mail is kept and the audit ledger records who discarded it and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /inbound-messages/{id}/discard`` (operation ``inboundMessages.discard``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["inboundMessages.discard"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class WorkforceGroupsResource(Resource):

@@ -21,6 +21,7 @@ import {
   unblockAction,
   type AccessControlFormState,
 } from "@/app/[org]/settings/access-control-actions";
+import { useStepUpForm } from "@/components/auth/security/step-up";
 import { useKeepInput } from "@/components/collection-kit/keep-input";
 
 /**
@@ -292,34 +293,42 @@ export function RemoveNetworkButton({
 
 // Break-glass -----------------------------------------------------------------------------------------------
 
+const stepUpRefused = (state: AccessControlFormState) => state.error === "step_up_required";
+
+/** Break-glass: the database asks for a recent second factor; the step-up dialog gets one and resubmits (A59-019). */
 export function BreakGlassForm({ org }: { org: string }) {
   const { state, dispatch, pending, keep, fieldError, t } = useForm(startBreakGlassAction);
+  const stepUpDialog = useStepUpForm(state, stepUpRefused, keep.ref);
+  // The dialog renders outside the form: React bubbles a portal's submit event to its tree parents.
   return (
-    <form
-      action={dispatch}
-      {...keep}
-      aria-label={t("breakGlass.startLabel")}
-      className="flex max-w-layout-form flex-col gap-12"
-      noValidate
-    >
-      <input type="hidden" name="org" value={org} />
-      <Status state={state} />
-      <Textarea
-        id="break-glass-reason"
-        name="reason"
-        label={t("breakGlass.reason")}
-        help={t("breakGlass.reasonHelp")}
-        rows={3}
-        width="100%"
-        maxLength={2000}
-        error={fieldError("reason", "reason")}
-      />
-      <div>
-        <Button type="submit" variant="danger" loading={pending}>
-          {t("breakGlass.start")}
-        </Button>
-      </div>
-    </form>
+    <>
+      {stepUpDialog}
+      <form
+        action={dispatch}
+        {...keep}
+        aria-label={t("breakGlass.startLabel")}
+        className="flex max-w-layout-form flex-col gap-12"
+        noValidate
+      >
+        <input type="hidden" name="org" value={org} />
+        <Status state={state} />
+        <Textarea
+          id="break-glass-reason"
+          name="reason"
+          label={t("breakGlass.reason")}
+          help={t("breakGlass.reasonHelp")}
+          rows={3}
+          width="100%"
+          maxLength={2000}
+          error={fieldError("reason", "reason")}
+        />
+        <div>
+          <Button type="submit" variant="danger" loading={pending}>
+            {t("breakGlass.start")}
+          </Button>
+        </div>
+      </form>
+    </>
   );
 }
 

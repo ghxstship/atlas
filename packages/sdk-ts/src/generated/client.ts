@@ -363,6 +363,9 @@ import {
   SupportSessionsResource,
   WholesaleStatementsResource,
   ShareLinksResource,
+  PersonCalendarFeedsResource,
+  ProjectInboxesResource,
+  InboundMessagesResource,
   WorkforceGroupsResource,
   WorkforceGroupMembersResource,
   ConversationsResource,
@@ -1223,6 +1226,12 @@ export class XosClient extends XosClientCore {
   readonly wholesaleStatements: WholesaleStatementsResource = new WholesaleStatementsResource(this);
   /** Platform: operations on `shareLinks`. */
   readonly shareLinks: ShareLinksResource = new ShareLinksResource(this);
+  /** Platform: operations on `personCalendarFeeds`. */
+  readonly personCalendarFeeds: PersonCalendarFeedsResource = new PersonCalendarFeedsResource(this);
+  /** Platform: operations on `projectInboxes`. */
+  readonly projectInboxes: ProjectInboxesResource = new ProjectInboxesResource(this);
+  /** Platform: operations on `inboundMessages`. */
+  readonly inboundMessages: InboundMessagesResource = new InboundMessagesResource(this);
   /** Workforce: operations on `workforceGroups`. */
   readonly workforceGroups: WorkforceGroupsResource = new WorkforceGroupsResource(this);
   /** Workforce: operations on `workforceGroupMembers`. */

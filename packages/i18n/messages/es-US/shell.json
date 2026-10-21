@@ -1173,5 +1173,42 @@
         "unexpected": "Algo salió mal de nuestro lado. Vuelve a intentarlo en un momento."
       }
     }
+  },
+  "create": {
+    "button": "Crear",
+    "title": "Crear",
+    "prompt": "¿Qué quieres crear?",
+    "here": "En esta página",
+    "more": "Todo lo demás",
+    "kinds": {
+      "project": "Proyecto",
+      "record": "Registro",
+      "workOrder": "Orden de trabajo",
+      "punchList": "Lista de pendientes",
+      "milestone": "Hito",
+      "runOfShow": "Guion del show",
+      "advancePacket": "Paquete de avance",
+      "venue": "Recinto",
+      "shipment": "Envío",
+      "fulfillment": "Servicio de hospitalidad",
+      "inspection": "Inspección",
+      "incident": "Incidente",
+      "requisition": "Requisición",
+      "posting": "Publicación de oportunidad",
+      "shift": "Turno",
+      "timeEntry": "Registro de tiempo",
+      "budget": "Presupuesto",
+      "expense": "Gasto",
+      "changeOrder": "Orden de cambio",
+      "invoice": "Factura",
+      "rfq": "Solicitud de cotización",
+      "purchaseOrder": "Orden de compra",
+      "vendor": "Proveedor",
+      "sop": "Procedimiento operativo estándar",
+      "document": "Documento"
+    }
+  },
+  "keys": {
+    "goHint": "Ir a: presiona una de estas teclas después de {key}, o Esc para cancelar."
   }
 }

@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Vendor reaches purchase orders and deliveries in Gateway, never internal tools
+# Vendor reaches purchase orders and deliveries in Gateway, never internal tools.
+# Named after its file: config.yaml orders flows by name.
+name: vendor-external-scan
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml

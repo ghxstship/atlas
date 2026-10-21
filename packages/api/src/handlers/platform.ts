@@ -8,7 +8,8 @@
  * app.mark_notifications_read and calendar feeds created through app.create_calendar_feed, which
  * returns the feed token once. Approvals, Trash, templates and org state labels are A33's
  * (handlers/parts/workflow.ts). Support sessions, wholesale statements, acting on a notification and
- * the import dry run and commit request are A36's (handlers/parts/a36.ts); the import worker validates
+ * the import dry run and commit request are A36's (handlers/parts/a36.ts); calendar feed rotation,
+ * personal feeds, project inboxes and inbound mail are A84's (handlers/parts/a84.ts); the import worker validates
  * and writes the rows with the service role.
  */
 import type { XosClient } from "@xos/data";
@@ -24,6 +25,7 @@ import type { ListQuery } from "../runtime/listing.ts";
 import { selectColumns } from "../runtime/pagination.ts";
 import { viewsHelpSupportHandlers } from "./parts/views-help-support.ts";
 import { a36Handlers } from "./parts/a36.ts";
+import { a84Handlers } from "./parts/a84.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
 import { shareLinkHandlers } from "./parts/share-links.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
@@ -260,6 +262,7 @@ export const handlers = defineHandlers("Platform", {
   ...(workflowHandlers as unknown as HandlerSet<"Platform">),
   ...(a36Handlers as unknown as HandlerSet<"Platform">),
   ...shareLinkHandlers,
+  ...(a84Handlers as unknown as HandlerSet<"Platform">),
 
   ...handlersFor("Platform", commentThreads),
   "commentThreads.update": async ({ params, body, ifMatch }, context) => {

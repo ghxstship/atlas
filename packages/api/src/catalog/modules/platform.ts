@@ -15,6 +15,7 @@ import {
 } from "./parts/views-help-support.ts";
 import { a36Actions, a36Capabilities, a36Corrections, a36Resources } from "./parts/a36.ts";
 import { shareLinkCapabilities, shareLinkResources } from "./parts/share-links.ts";
+import { a84Actions, a84Capabilities, a84Resources, CalendarFeedToken } from "./parts/a84.ts";
 import {
   workflowActions,
   workflowCapabilities,
@@ -32,20 +33,6 @@ const tableName = (description: string) =>
     .string()
     .regex(/^[a-z][a-z0-9_]*$/)
     .meta({ description, example: "records" });
-
-const CalendarFeedToken = z
-  .object({
-    calendar_feed_id: fields.ref("calendar feed"),
-    feed_token: z.string().min(1).meta({
-      description:
-        "The token of the feed's subscription URL. Shown once; only its hash is stored, and revoking the feed ends it.",
-      example: "cal_9fQ2mX4vT7kL1pR8",
-    }),
-  })
-  .meta({
-    id: "CalendarFeedToken",
-    description: "A newly created calendar feed and its subscription token, shown once.",
-  });
 
 /** The create verb as a collection action at the same path, answering `response` with 201. */
 const createAnswering =
@@ -72,13 +59,15 @@ export const additions = defineAdditions("Platform", {
     ...workflowResources,
     ...a36Resources,
     ...shareLinkResources,
+    ...a84Resources,
   ],
-  actions: { ...workflowActions, ...a36Actions },
+  actions: { ...workflowActions, ...a36Actions, ...a84Actions },
   capabilities: {
     ...viewsHelpSupportCapabilities,
     ...workflowCapabilities,
     ...a36Capabilities,
     ...shareLinkCapabilities,
+    ...a84Capabilities,
   },
   corrections: [
     ...workflowCorrections,

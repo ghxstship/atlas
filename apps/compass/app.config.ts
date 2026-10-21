@@ -79,6 +79,19 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
 }
 
 /**
+ * Refuses test-only switches in a build meant for people. EXPO_PUBLIC_XOS_FAKE_RECORDER (A66) swaps the
+ * voice-note microphone for a silent fake in Maestro test builds (src/runtime/voiceRecorder.ts); EAS
+ * builds are the ones that reach TestFlight, Play and the stores (ADR 0033), so none carries it, whatever
+ * the profile. The release guard below (releaseConfigProblems) checks the server URLs of release profiles.
+ */
+export function refuseTestOnlySwitches(env: Readonly<Record<string, string | undefined>>): void {
+  if (env["EXPO_PUBLIC_XOS_FAKE_RECORDER"] === "1" && env["EAS_BUILD"] === "true")
+    throw new Error(
+      "EXPO_PUBLIC_XOS_FAKE_RECORDER is for local and CI Maestro builds only; unset it for EAS builds.",
+    );
+}
+
+/**
  * Sign in with Google (ADR 0036). Google returns to an iOS app through a URL scheme made from its iOS
  * client ID (`com.googleusercontent.apps.<id>`), which the SDK's config plugin adds to Info.plist.
  * EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID is public; unset, the plugin is left out (without options it would
@@ -184,8 +197,9 @@ export function withStoreBuild(config: ExpoConfig, env: Env, iconPresent = false
   };
 }
 
-export default ({ config, projectRoot }: ConfigContext): ExpoConfig =>
-  withStoreBuild(
+export default ({ config, projectRoot }: ConfigContext): ExpoConfig => {
+  refuseTestOnlySwitches(process.env);
+  return withStoreBuild(
     withGoogleSignIn(
       withUniversalLinks(
         config as ExpoConfig,
@@ -196,3 +210,4 @@ export default ({ config, projectRoot }: ConfigContext): ExpoConfig =>
     process.env,
     existsSync(join(projectRoot, APP_ICON)),
   );
+};

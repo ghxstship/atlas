@@ -14,6 +14,7 @@ import type { Route } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { authErrorKey } from "@/lib/auth/errors";
 import { newPassword, passwordHasContextWords } from "@/lib/auth/password";
 import { clientIp, signupAcceptances } from "@/lib/auth/legal";
@@ -88,9 +89,13 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
   const db = await createServerSupabase();
-  const { error } = await db.auth.signInWithPassword(parsed.data);
+  const { data, error } = await db.auth.signInWithPassword(parsed.data);
   if (error) return { error: authErrorKey(error), values };
-  redirect(safeNext(form.get("next")) as Route);
+  const next = safeNext(form.get("next"));
+  // A person who holds a second factor verifies it before any page (A77). The proxy would ask too, but this
+  // response renders its target without passing the proxy, so the address bar would keep the target.
+  const holdsFactor = (data.user.factors ?? []).some((f) => f.status === "verified");
+  redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
 }
 
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {

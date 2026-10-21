@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Check badges at the Main Gate
+# Check badges at the Main Gate.
+# Named after its file: config.yaml orders flows by name.
+name: field-gate-scan
 ---
 # The Main Gate zone sits at seed 0217's Northwind Pier venue; Field members see it because the project's
 # access grid names it (migration 1092).

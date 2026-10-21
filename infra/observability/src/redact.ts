@@ -154,6 +154,11 @@ const VALUE_PATTERNS: readonly ValuePattern[] = [
     pattern: /\b(?:xadv|xagr|xcal|xdoc|xinv|xlnk|xos_scim)_[0-9a-f]{16,}\b/gi,
     replace: "[token]",
   },
+  // A84: whatever follows /ical/ is a feed token or a guess at one, whatever its shape (a mistyped,
+  // truncated or uppercased link), and signed reply addresses (r-<thread>-<person>-<signature>)
+  // are bearer secrets too, even outside a full email address.
+  { pattern: /(\/ical\/)[^/?#\s"'<>]+/gi, replace: (_m, prefix) => `${prefix}[token]` },
+  { pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi, replace: "[token]" },
   { pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g, replace: "[api-key]" },
   {
     pattern:
