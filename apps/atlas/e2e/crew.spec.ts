@@ -1,4 +1,4 @@
-import { expect as baseExpect, test, type Browser, type Page } from "./engine-test";
+import { expect as baseExpect, settle, test, type Browser, type Page } from "./engine-test";
 import {
   createOrganization,
   expectAccessible,
@@ -37,6 +37,8 @@ async function expectAccessibleInBothThemes(page: Page) {
   await settled(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
+  // Leave the page hydrated: callers act next, and a click before hydration is lost (A71, A77).
+  await settle(page);
 }
 
 interface Crew {
