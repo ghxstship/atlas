@@ -1,14 +1,7 @@
 "use client";
 
-import {
-  Button,
-  EmptyState,
-  ErrorState,
-  InlineAlert,
-  RefusalNotice,
-  Skeleton,
-  type ButtonProps,
-} from "@xos/ui";
+import { Button, EmptyState, ErrorState, InlineAlert, Skeleton, type ButtonProps } from "@xos/ui";
+import { RefusalNotice } from "@/components/refusal-notice";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";

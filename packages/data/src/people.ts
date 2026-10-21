@@ -8,6 +8,7 @@ import {
   type MemberRef,
   type TransitionEntry,
 } from "./crew/shared.ts";
+import { fillPersonNames } from "./person-names.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
@@ -840,7 +841,7 @@ export async function listOffers(
   let query = db
     .from("offers")
     .select(
-      "id, application_id, offer_state, created_at, application:applications!offers_application_id_fkey(opportunity_id, applicant:people!applications_applicant_person_id_fkey(full_name), opportunity:opportunities!applications_opportunity_id_fkey(title)), versions:offer_versions(version_number, amount_minor, currency_code, rate_type, starts_on, ends_on, expires_at)",
+      "id, application_id, offer_state, created_at, application:applications!offers_application_id_fkey(opportunity_id, applicant_person_id, applicant:people!applications_applicant_person_id_fkey(full_name), opportunity:opportunities!applications_opportunity_id_fkey(title)), versions:offer_versions(version_number, amount_minor, currency_code, rate_type, starts_on, ends_on, expires_at)",
     )
     .eq("org_id", filter.orgId)
     .is("deleted_at", null)
@@ -856,6 +857,7 @@ export async function listOffers(
     created_at: string;
     application: {
       opportunity_id: string;
+      applicant_person_id: string | null;
       applicant: { full_name: string | null } | null;
       opportunity: { title: string } | null;
     } | null;
@@ -869,8 +871,16 @@ export async function listOffers(
       expires_at: string | null;
     }> | null;
   }>;
+  const named = await fillPersonNames(
+    db,
+    rows,
+    (r) => r.application?.applicant_person_id,
+    (r) => r.application?.applicant?.full_name,
+    (r, full_name) =>
+      r.application ? { ...r, application: { ...r.application, applicant: { full_name } } } : r,
+  );
   return ok(
-    rows.map((r) => {
+    named.map((r) => {
       const latest = [...(r.versions ?? [])].sort((a, b) => b.version_number - a.version_number)[0];
       return {
         id: r.id,
@@ -987,11 +997,14 @@ export async function listCertificationHolders(
   if (filter.personId) query = query.eq("person_id", filter.personId);
   const { data, error } = await query;
   if (error) return fail(toDataError(error));
-  return ok(
-    (data as unknown as HolderRow[])
-      .map(toHolder)
-      .sort((a, b) => (a.expiresOn ?? "9999").localeCompare(b.expiresOn ?? "9999")),
+  const holders = await fillPersonNames(
+    db,
+    (data as unknown as HolderRow[]).map(toHolder),
+    (h) => h.personId,
+    (h) => h.personName,
+    (h, personName) => ({ ...h, personName }),
   );
+  return ok(holders.sort((a, b) => (a.expiresOn ?? "9999").localeCompare(b.expiresOn ?? "9999")));
 }
 
 export async function getCertificationHolder(
@@ -1006,7 +1019,14 @@ export async function getCertificationHolder(
     .maybeSingle();
   if (error) return fail(toDataError(error));
   if (!data) return fail({ kind: "not-found" });
-  return ok(toHolder(data as unknown as HolderRow));
+  const [holder] = await fillPersonNames(
+    db,
+    [toHolder(data as unknown as HolderRow)],
+    (h) => h.personId,
+    (h) => h.personName,
+    (h, personName) => ({ ...h, personName }),
+  );
+  return ok(holder as CertificationHolder);
 }
 
 /** Records a certificate held by someone else; the recorder is the verifier and never the holder. */

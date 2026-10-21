@@ -40,8 +40,15 @@ async function createProject(page: Page, slug: string, key: string, name: string
 
 /** Attests rank 4 evidence for one criterion from the Gates tab. */
 async function attest(page: Page, criterion: string) {
-  await page.getByRole("button", { name: `Attest evidence for ${criterion}` }).click();
-  const dialog = page.getByRole("dialog", { name: `Attest evidence for ${criterion}` });
+  // The button and dialog name the criterion by its sentence; its row carries the code (A59-017).
+  await page
+    .locator("li")
+    .filter({ has: page.locator(".font-mono", { hasText: criterion }) })
+    .last()
+    .getByRole("button", { name: /^Attest evidence for / })
+    .click();
+  const dialog = page.getByRole("dialog", { name: /^Attest evidence for / });
+  await expect(dialog).toContainText(`Criterion ${criterion}`);
   await dialog
     .getByLabel("Document link or record key")
     .fill(`https://docs.example.com/${criterion.toLowerCase().replace(/[._]/g, "-")}.pdf`);

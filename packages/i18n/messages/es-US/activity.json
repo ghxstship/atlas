@@ -27,7 +27,8 @@
     },
     "loadErrorTitle": "La actividad no se cargó",
     "loadError": "No se pudo cargar la actividad. Revisa tu conexión e inténtalo de nuevo.",
-    "retry": "Intentar de nuevo"
+    "retry": "Intentar de nuevo",
+    "times": "{count, plural, one {una vez} other {# veces}}"
   },
   "audit": {
     "title": "Registro de auditoría",
@@ -45,7 +46,15 @@
     "systemActor": "Sistema",
     "older": "Mostrar entradas anteriores",
     "newest": "Volver a lo más reciente",
-    "changedFields": "{count, plural, one {# campo} other {# campos}}"
+    "changedFields": "{count, plural, one {# campo} other {# campos}}",
+    "ops": {
+      "insert": "Creó",
+      "update": "Actualizó",
+      "delete": "Eliminó",
+      "other": "Cambió"
+    },
+    "actionText": "{op} {subject}",
+    "code": "Código"
   },
   "verbs": {
     "accepted": "aceptó",
@@ -189,6 +198,33 @@
     "vendor": "un proveedor",
     "work_order": "una orden de trabajo",
     "work_order_bid": "una oferta de orden de trabajo",
-    "fallback": "un registro"
+    "fallback": "un registro",
+    "budget_line": "una línea de presupuesto",
+    "budget": "un presupuesto",
+    "membership": "una membresía",
+    "membership_role": "un rol de miembro",
+    "account_membership": "una membresía de cuenta",
+    "account_membership_role": "un rol de cuenta",
+    "spend_authority": "una autoridad de gasto",
+    "accounting_period": "un período contable",
+    "radio_channel": "un canal de radio",
+    "sop": "un procedimiento operativo estándar",
+    "setting_value": "una configuración",
+    "journal_entry": "un asiento contable",
+    "journal_line": "una línea de asiento",
+    "credential_category": "una categoría de credencial",
+    "subscription": "una suscripción",
+    "purchase_order": "una orden de compra",
+    "po_line": "una línea de orden de compra",
+    "goods_receipt": "una recepción de mercancía",
+    "invoice_line": "una línea de factura",
+    "certification": "una certificación",
+    "document": "un documento",
+    "org_domain": "un dominio",
+    "submittal": "un envío técnico",
+    "sponsor_asset": "un activo de patrocinio",
+    "cost_center": "un centro de costos",
+    "time_off_request": "una solicitud de tiempo libre",
+    "access_grid": "una entrada de la matriz de acceso"
   }
 }

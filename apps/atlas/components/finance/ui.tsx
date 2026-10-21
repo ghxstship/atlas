@@ -8,10 +8,10 @@ export {
   CoordinateMatrix,
   PageHeader,
   PropertyList,
-  RefusalNotice,
   StateChip,
   TemplateCollection,
   TemplateDashboard,
   TemplateGridEditor,
   TemplateRecord,
 } from "@xos/ui";
+export { RefusalNotice } from "@/components/refusal-notice";
