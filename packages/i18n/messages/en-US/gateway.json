@@ -1387,6 +1387,14 @@
         "finance": {
           "label": "Invoices and payments",
           "help": "Each step of your invoices: received, approved, payment scheduled and paid. Updates always show on Home."
+        },
+        "opportunities": {
+          "label": "Opportunities",
+          "help": "New opportunities that match your saved searches, as Explore Alerts lists them."
+        },
+        "expiry_reminders": {
+          "label": "Expiry reminders",
+          "help": "Certifications, documents, your passport and onboarding items that expire in 30, 7 and 1 days."
         }
       },
       "errors": {

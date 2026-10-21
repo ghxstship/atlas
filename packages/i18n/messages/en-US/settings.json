@@ -269,6 +269,10 @@
     "messageTranslation": {
       "label": "Translate chat messages",
       "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
+    },
+    "supplierDiversityProgram": {
+      "label": "Supplier diversity program",
+      "help": "Lets vendors and freelancers share their supplier diversity certifications with your organization. Each shares by separate consent and can revoke it at any time. Turned off, nothing can be shared and shared certifications are hidden."
     }
   },
   "choices": {
@@ -737,6 +741,14 @@
       "feed": {
         "label": "Feed",
         "help": "Announcements, surveys and recognition."
+      },
+      "opportunities": {
+        "label": "Opportunities",
+        "help": "New opportunities that match your saved searches."
+      },
+      "expiry_reminders": {
+        "label": "Expiry reminders",
+        "help": "Certifications, documents and onboarding items that expire in 30, 7 and 1 days."
       }
     }
   },

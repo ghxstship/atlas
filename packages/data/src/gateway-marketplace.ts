@@ -1,4 +1,4 @@
-import type { XosClient } from "./client.ts";
+import type { Database, XosClient } from "./client.ts";
 import {
   derivedRow,
   external,
@@ -545,7 +545,10 @@ export function bidTotal(
 
 // Saved searches and reports ----------------------------------------------------------------------
 
-/** Saves a marketplace search; alerts go out by email and push when enabled. */
+/**
+ * Saves a marketplace search; alerts go out by email and push when enabled. The optional filters are
+ * the ones Explore shows (A89, migration 1460), so the matcher alerts exactly what the search found.
+ */
 export async function saveSearch(
   db: XosClient,
   input: {
@@ -555,8 +558,16 @@ export async function saveSearch(
     readonly startsAfter: string | null;
     readonly endsBefore: string | null;
     readonly orgId: string | null;
+    readonly query?: string | null;
+    readonly discCode?: string | null;
+    readonly catUrid?: string | null;
+    readonly certificationName?: string | null;
+    readonly near?: MarketplacePoint | null;
+    readonly minPayMinor?: number | null;
   },
 ): Promise<Result<{ savedSearchId: string }>> {
+  const query = input.query?.trim() ?? "";
+  const certification = input.certificationName?.trim() ?? "";
   const { data, error } = await db
     .from("saved_searches")
     .insert({
@@ -566,6 +577,21 @@ export async function saveSearch(
       starts_after: input.startsAfter,
       ends_before: input.endsBefore,
       org_id: input.orgId,
+      ...(query ? { query_text: query } : {}),
+      ...(input.discCode ? { disc_code: input.discCode } : {}),
+      ...(input.catUrid ? { cat_urid: input.catUrid } : {}),
+      ...(certification ? { certification_name: certification } : {}),
+      ...(input.near
+        ? {
+            near_label: input.near.label,
+            near_latitude: input.near.latitude,
+            near_longitude: input.near.longitude,
+            radius_km: input.near.radiusKm,
+          }
+        : {}),
+      ...(input.minPayMinor !== undefined && input.minPayMinor !== null
+        ? { min_rate_minor: input.minPayMinor, currency_code: "USD" }
+        : {}),
     })
     .select("id")
     .single();
@@ -599,13 +625,45 @@ export interface SavedSearch {
   readonly startsAfter: string | null;
   readonly endsBefore: string | null;
   readonly alertsEnabled: boolean;
+  readonly query: string | null;
+  readonly discCode: string | null;
+  readonly catUrid: string | null;
+  readonly certificationName: string | null;
+  readonly near: MarketplacePoint | null;
+  readonly minPayMinor: number | null;
+}
+
+function savedPoint(row: {
+  near_label?: string | null;
+  near_latitude?: number | null;
+  near_longitude?: number | null;
+  radius_km?: number | null;
+}): MarketplacePoint | null {
+  if (
+    row.near_latitude === null ||
+    row.near_latitude === undefined ||
+    row.near_longitude === null ||
+    row.near_longitude === undefined ||
+    row.radius_km === null ||
+    row.radius_km === undefined
+  ) {
+    return null;
+  }
+  return {
+    label: row.near_label ?? "",
+    latitude: row.near_latitude,
+    longitude: row.near_longitude,
+    radiusKm: Number(row.radius_km),
+  };
 }
 
 /** The caller's saved searches (api_external.my_saved_searches), by name. */
 export async function listMySavedSearches(db: XosClient): Promise<Result<SavedSearch[]>> {
   const { data, error } = await external(db)
     .from("my_saved_searches")
-    .select("id, name, role_type, starts_after, ends_before, alerts_enabled")
+    .select(
+      "id, name, role_type, starts_after, ends_before, alerts_enabled, query_text, disc_code, cat_urid, certification_name, near_label, near_latitude, near_longitude, radius_km, min_rate_minor",
+    )
     .order("name", { ascending: true });
   if (error) return fail(toDataError(error));
   return ok(
@@ -616,6 +674,12 @@ export async function listMySavedSearches(db: XosClient): Promise<Result<SavedSe
       startsAfter: row.starts_after,
       endsBefore: row.ends_before,
       alertsEnabled: row.alerts_enabled ?? false,
+      query: row.query_text ?? null,
+      discCode: row.disc_code ?? null,
+      catUrid: row.cat_urid ?? null,
+      certificationName: row.certification_name ?? null,
+      near: savedPoint(row),
+      minPayMinor: row.min_rate_minor ?? null,
     })),
   );
 }
@@ -701,4 +765,220 @@ export async function removeSavedSearch(db: XosClient, id: string): Promise<Resu
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
   return error ? fail(toDataError(error)) : ok(null);
+}
+
+// Ranked search, places, passing and alerts (A89, migrations 1460 to 1462) --------------------------
+
+/** A place to search near: a label and a WGS 84 point, with the radius in kilometers. */
+export interface MarketplacePoint {
+  readonly label: string;
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly radiusKm: number;
+}
+
+/** How Explore orders listings: by the recommendation score, or by the soonest deadline. */
+export type MarketplaceSort = "recommended" | "soonest";
+
+export interface MarketplaceFilter {
+  readonly query?: string;
+  readonly roleTypes?: readonly ExternalRoleType[];
+  /** Canon discipline (DDDD.DD): listings whose category belongs to it. */
+  readonly discCode?: string;
+  /** Canon category URID (DDDD.DD.DD). */
+  readonly catUrid?: string;
+  readonly startsAfter?: string;
+  readonly endsBefore?: string;
+  readonly minPayMinor?: number;
+  /** A required certification, by name. */
+  readonly certificationName?: string;
+  readonly near?: MarketplacePoint;
+  readonly orgId?: string;
+  readonly sort?: MarketplaceSort;
+  /** Include the listings the caller passed on, marked as passed. */
+  readonly includePassed?: boolean;
+  readonly limit?: number;
+}
+
+/** The recommendation factors of one listing, as the How ranking works page lists them. */
+export interface RecommendationParts {
+  readonly score: number;
+  readonly skills: number;
+  readonly certifications: number;
+  readonly location: number;
+  readonly availability: number;
+  readonly certificationsRequired: number;
+  readonly certificationsMet: number;
+}
+
+export interface RankedOpportunity extends Opportunity {
+  readonly recommendation: RecommendationParts;
+  /** Kilometers from the place searched near; null without one or when the venue is not located. */
+  readonly distanceKm: number | null;
+  readonly saved: boolean;
+  readonly passed: boolean;
+}
+
+/** The most points each factor gives (migration 1460, private.recommendation_points). */
+export const RECOMMENDATION_WEIGHTS = {
+  skills: 40,
+  certifications: 30,
+  location: 20,
+  availability: 10,
+} as const;
+
+type SearchRow = Database["app"]["Functions"]["search_marketplace"]["Returns"][number];
+
+function toRanked(row: SearchRow): RankedOpportunity {
+  return {
+    id: row.id,
+    key: toDisplayKey("opportunity", row.id),
+    orgId: row.org_id,
+    orgName: row.org_name,
+    orgVerified: row.org_verified ?? false,
+    title: row.title,
+    description: row.description,
+    roleType: row.role_type,
+    roleCode: row.role_code,
+    catUrid: row.cat_urid,
+    venueName: row.venue_name,
+    venueLocality: row.venue_locality,
+    venueLatitude: row.venue_latitude,
+    venueLongitude: row.venue_longitude,
+    jurisdictionId: row.jurisdiction_id,
+    startsOn: row.starts_on,
+    endsOn: row.ends_on,
+    visibility: row.visibility,
+    rateType: row.rate_type,
+    payMinMinor: row.pay_min_minor,
+    payMaxMinor: row.pay_max_minor,
+    currency: row.currency_code,
+    rateOnRequest: row.rate_on_request ?? row.rate_type === null,
+    deadlineAt: row.deadline_at,
+    minimumAge: row.minimum_age,
+    state: row.opportunity_state,
+    positionCount: row.position_count ?? 0,
+    recommendation: {
+      score: row.recommendation_score ?? 0,
+      skills: row.skill_points ?? 0,
+      certifications: row.certification_points ?? 0,
+      location: row.location_points ?? 0,
+      availability: row.availability_points ?? 0,
+      certificationsRequired: row.certifications_required ?? 0,
+      certificationsMet: row.certifications_met ?? 0,
+    },
+    distanceKm: row.distance_km === null ? null : Number(row.distance_km),
+    saved: row.is_saved ?? false,
+    passed: row.is_passed ?? false,
+  };
+}
+
+/**
+ * The marketplace RPC (app.search_marketplace): Published listings open to the caller, filtered,
+ * without the ones they passed on, ranked by the recommendation score from their own profile
+ * (skills, certifications, location, availability) or by the soonest deadline. No placement can
+ * be bought: nothing an org pays for enters the score.
+ */
+export async function searchMarketplace(
+  db: XosClient,
+  filter: MarketplaceFilter = {},
+): Promise<Result<RankedOpportunity[]>> {
+  const term = filter.query?.trim() ?? "";
+  const certification = filter.certificationName?.trim() ?? "";
+  const { data, error } = await db.rpc("search_marketplace", {
+    ...(term ? { p_query: term } : {}),
+    ...(filter.roleTypes && filter.roleTypes.length > 0
+      ? { p_role_types: [...filter.roleTypes] }
+      : {}),
+    ...(filter.discCode ? { p_disc_code: filter.discCode } : {}),
+    ...(filter.catUrid ? { p_cat_urid: filter.catUrid } : {}),
+    ...(filter.startsAfter ? { p_starts_after: filter.startsAfter } : {}),
+    ...(filter.endsBefore ? { p_ends_before: filter.endsBefore } : {}),
+    ...(filter.minPayMinor !== undefined
+      ? { p_min_pay_minor: filter.minPayMinor, p_currency_code: "USD" }
+      : {}),
+    ...(certification ? { p_certification_name: certification } : {}),
+    ...(filter.near
+      ? {
+          p_near_latitude: filter.near.latitude,
+          p_near_longitude: filter.near.longitude,
+          p_radius_km: filter.near.radiusKm,
+        }
+      : {}),
+    ...(filter.orgId ? { p_org_id: filter.orgId } : {}),
+    p_sort: filter.sort ?? "recommended",
+    p_include_passed: filter.includePassed ?? false,
+    p_limit: filter.limit ?? 100,
+  });
+  if (error) return fail(toDataError(error));
+  return ok((data ?? []).map(toRanked));
+}
+
+export interface MarketplacePlace {
+  readonly label: string;
+  readonly latitude: number;
+  readonly longitude: number;
+  readonly listingCount: number;
+}
+
+/** Places to search near: localities of located venues among the listings open to the caller. */
+export async function listMarketplacePlaces(db: XosClient): Promise<Result<MarketplacePlace[]>> {
+  const { data, error } = await db.rpc("marketplace_places");
+  if (error) return fail(toDataError(error));
+  return ok(
+    (data ?? []).map((row) => ({
+      label: row.label,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      listingCount: row.listing_count,
+    })),
+  );
+}
+
+/** Passes on a listing (Section 11.12: swipe left to pass): it leaves Explore and alerts until undone. */
+export async function passOpportunity(db: XosClient, opportunityId: string): Promise<Result<null>> {
+  const { error } = await db
+    .from("passed_opportunities")
+    .insert(derivedRow<"passed_opportunities", "person_id">({ opportunity_id: opportunityId }));
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+/** Undoes a pass (soft delete), so the listing comes back to Explore. */
+export async function undoPass(db: XosClient, opportunityId: string): Promise<Result<null>> {
+  const { error } = await db
+    .from("passed_opportunities")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("opportunity_id", opportunityId)
+    .is("deleted_at", null);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
+export interface OpportunityAlert {
+  readonly id: string;
+  readonly savedSearchId: string;
+  readonly opportunityId: string;
+  readonly matchedAt: string;
+  readonly deliveredAt: string | null;
+  /** False once the listing is no longer open to the caller; its details are then hidden. */
+  readonly open: boolean;
+}
+
+/** The caller's recent alert matches (api_external.my_opportunity_alerts), newest first. */
+export async function listMyAlerts(db: XosClient, limit = 50): Promise<Result<OpportunityAlert[]>> {
+  const { data, error } = await external(db)
+    .from("my_opportunity_alerts")
+    .select("id, saved_search_id, opportunity_id, matched_at, delivered_at, is_open")
+    .order("matched_at", { ascending: false })
+    .limit(limit);
+  if (error) return fail(toDataError(error));
+  return ok(
+    data.map((row) => ({
+      id: req(row.id, "my_opportunity_alerts.id"),
+      savedSearchId: req(row.saved_search_id, "my_opportunity_alerts.saved_search_id"),
+      opportunityId: req(row.opportunity_id, "my_opportunity_alerts.opportunity_id"),
+      matchedAt: req(row.matched_at, "my_opportunity_alerts.matched_at"),
+      deliveredAt: row.delivered_at,
+      open: row.is_open ?? false,
+    })),
+  );
 }

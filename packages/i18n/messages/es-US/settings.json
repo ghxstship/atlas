@@ -269,6 +269,10 @@
     "messageTranslation": {
       "label": "Traducir mensajes del chat",
       "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
+    },
+    "supplierDiversityProgram": {
+      "label": "Programa de diversidad de proveedores",
+      "help": "Permite que proveedores y profesionales independientes compartan sus certificaciones de diversidad de proveedores con su organización. Cada uno comparte con un consentimiento aparte y puede revocarlo en cualquier momento. Desactivado, no se puede compartir nada y las certificaciones compartidas quedan ocultas."
     }
   },
   "choices": {
@@ -737,6 +741,14 @@
       "feed": {
         "label": "Noticias",
         "help": "Anuncios, encuestas y reconocimientos."
+      },
+      "opportunities": {
+        "label": "Oportunidades",
+        "help": "Nuevas oportunidades que coinciden con sus búsquedas guardadas."
+      },
+      "expiry_reminders": {
+        "label": "Recordatorios de vencimiento",
+        "help": "Certificaciones, documentos y elementos de incorporación que vencen en 30, 7 y 1 días."
       }
     }
   },

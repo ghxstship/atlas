@@ -1387,6 +1387,14 @@
         "finance": {
           "label": "Facturas y pagos",
           "help": "Cada paso de sus facturas: recibida, aprobada, pago programado y pagada. Las novedades siempre aparecen en Inicio."
+        },
+        "opportunities": {
+          "label": "Oportunidades",
+          "help": "Nuevas oportunidades que coinciden con sus búsquedas guardadas, como las muestra Explorar, Alertas."
+        },
+        "expiry_reminders": {
+          "label": "Recordatorios de vencimiento",
+          "help": "Certificaciones, documentos, su pasaporte y elementos de incorporación que vencen en 30, 7 y 1 días."
         }
       },
       "errors": {
