@@ -416,6 +416,9 @@ import type {
   ImportMappingProfileCreate,
   ImportMappingProfileUpdate,
   ImportRowResult,
+  InboundMessage,
+  InboundMessageDiscardRequest,
+  InboundMessageFileRequest,
   Incident,
   IncidentCloseRequest,
   IncidentCreate,
@@ -605,6 +608,7 @@ import type {
   PermitTrackRequest,
   PermitTransitionRequest,
   Person,
+  PersonCalendarFeed,
   PersonProfile,
   PersonProfileCreate,
   PersonProfileUpdate,
@@ -651,6 +655,8 @@ import type {
   ProjectAssignmentUpdate,
   ProjectAuthority,
   ProjectCreate,
+  ProjectInbox,
+  ProjectInboxCreate,
   ProjectPhaseTransition,
   ProjectShare,
   ProjectShareCreate,
@@ -32672,6 +32678,22 @@ export class CalendarFeedsResource extends $Resource {
       options,
     );
   }
+
+  /**
+   * Get a new link for a calendar feed
+   *
+   * Replaces the token of one of the caller's feeds (app.rotate_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once; a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /calendar-feeds/{id}/rotate` (operation `calendarFeeds.rotate`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
+      $OPERATIONS["calendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
 }
 
 /**
@@ -35968,6 +35990,346 @@ export class WholesaleStatementsResource extends $Resource {
     return this.client.request<WholesaleStatement>(
       $OPERATIONS["wholesaleStatements.run"],
       { body },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `personCalendarFeeds`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class PersonCalendarFeedsResource extends $Resource {
+  /**
+   * List person calendar feed rows
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /person-calendar-feeds` (operation `personCalendarFeeds.list`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  list(
+    params?: $ListParams<PersonCalendarFeed>,
+    options?: $RequestOptions,
+  ): Promise<$Page<PersonCalendarFeed>> {
+    return this.client.requestPage<PersonCalendarFeed>(
+      $OPERATIONS["personCalendarFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List person calendar feed rows
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /person-calendar-feeds` (operation `personCalendarFeeds.list`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  listAll(
+    params?: $ListAllParams<PersonCalendarFeed>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<PersonCalendarFeed, void, undefined> {
+    return this.client.paginate<PersonCalendarFeed>(
+      $OPERATIONS["personCalendarFeeds.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a personal calendar feed
+   *
+   * Creates the caller's own feed across every org they work with (app.create_person_calendar_feed) and returns its token once. At most 20 live feeds (calendar_feed_limit: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /person-calendar-feeds` (operation `personCalendarFeeds.create`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  create(options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
+      $OPERATIONS["personCalendarFeeds.create"],
+      {},
+      options,
+    );
+  }
+
+  /**
+   * Get a person calendar feed
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns one person calendar feed with its `ETag`. A person calendar feed the caller may not see returns 404.
+   *
+   * `GET /person-calendar-feeds/{id}` (operation `personCalendarFeeds.get`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<PersonCalendarFeed>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<PersonCalendarFeed>> {
+    return this.client.request<PersonCalendarFeed>(
+      $OPERATIONS["personCalendarFeeds.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Delete a person calendar feed
+   *
+   * A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Soft-deletes the person calendar feed: it moves to Trash and can be restored for its table's retention period.
+   *
+   * `DELETE /person-calendar-feeds/{id}` (operation `personCalendarFeeds.delete`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  delete(id: string, options?: $RequestOptions): Promise<$ApiResponse<undefined>> {
+    return this.client.request<undefined>(
+      $OPERATIONS["personCalendarFeeds.delete"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Get a new link for a personal calendar feed
+   *
+   * Replaces the feed's token (app.rotate_person_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /person-calendar-feeds/{id}/rotate` (operation `personCalendarFeeds.rotate`).
+   * Requires the capability `me.calendar_feeds.write`.
+   */
+  rotate(id: string, options?: $MutationOptions): Promise<$ApiResponse<CalendarFeedToken>> {
+    return this.client.request<CalendarFeedToken>(
+      $OPERATIONS["personCalendarFeeds.rotate"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `projectInboxes`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class ProjectInboxesResource extends $Resource {
+  /**
+   * List project inbox rows
+   *
+   * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /project-inboxes` (operation `projectInboxes.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  list(
+    params?: $ListParams<ProjectInbox>,
+    options?: $RequestOptions,
+  ): Promise<$Page<ProjectInbox>> {
+    return this.client.requestPage<ProjectInbox>(
+      $OPERATIONS["projectInboxes.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List project inbox rows
+   *
+   * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /project-inboxes` (operation `projectInboxes.list`).
+   * Requires the capability `projects.project.read`.
+   */
+  listAll(
+    params?: $ListAllParams<ProjectInbox>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ProjectInbox, void, undefined> {
+    return this.client.paginate<ProjectInbox>(
+      $OPERATIONS["projectInboxes.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a project's inbox address
+   *
+   * Returns the project's live inbox address, creating it when there is none (app.create_project_inbox, projects.settings.write on the project). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-inboxes` (operation `projectInboxes.create`).
+   * Requires the capability `projects.settings.write`.
+   */
+  create(
+    body: ProjectInboxCreate,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.create"],
+      { body },
+      options,
+    );
+  }
+
+  /**
+   * Get a project inbox
+   *
+   * A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns one project inbox with its `ETag`. A project inbox the caller may not see returns 404.
+   *
+   * `GET /project-inboxes/{id}` (operation `projectInboxes.get`).
+   * Requires the capability `projects.project.read`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ProjectInbox>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Replace a project's inbox address
+   *
+   * Disables the address and returns the project's new one (app.replace_project_inbox). Mail to the old address is no longer accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-inboxes/{id}/replace` (operation `projectInboxes.replace`).
+   * Requires the capability `projects.settings.write`.
+   */
+  replace(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.replace"],
+      { path: { id } },
+      options,
+    );
+  }
+
+  /**
+   * Turn off a project's inbox
+   *
+   * Stops the address accepting mail (app.disable_project_inbox). Mail already received stays; a disabled address never comes back. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /project-inboxes/{id}/disable` (operation `projectInboxes.disable`).
+   * Requires the capability `projects.settings.write`.
+   */
+  disable(id: string, options?: $MutationOptions): Promise<$ApiResponse<ProjectInbox>> {
+    return this.client.request<ProjectInbox>(
+      $OPERATIONS["projectInboxes.disable"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `inboundMessages`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class InboundMessagesResource extends $Resource {
+  /**
+   * List inbound message rows
+   *
+   * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /inbound-messages` (operation `inboundMessages.list`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  list(
+    params?: $ListParams<InboundMessage>,
+    options?: $RequestOptions,
+  ): Promise<$Page<InboundMessage>> {
+    return this.client.requestPage<InboundMessage>(
+      $OPERATIONS["inboundMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List inbound message rows
+   *
+   * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /inbound-messages` (operation `inboundMessages.list`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  listAll(
+    params?: $ListAllParams<InboundMessage>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<InboundMessage, void, undefined> {
+    return this.client.paginate<InboundMessage>(
+      $OPERATIONS["inboundMessages.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Get an inbound message
+   *
+   * Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns one inbound message with its `ETag`. A inbound message the caller may not see returns 404.
+   *
+   * `GET /inbound-messages/{id}` (operation `inboundMessages.get`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<InboundMessage>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<InboundMessage>> {
+    return this.client.request<InboundMessage>(
+      $OPERATIONS["inboundMessages.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * File inbound mail as a document
+   *
+   * Files verified project inbox mail as a Document record of the project, optionally to a record of the project the caller can open (app.file_inbound_message); the subject, sender and text are posted as a comment on the document and the record. Mail is filed once (inbound_message_triaged: 422); unverified mail is refused (inbound_message_unverified: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /inbound-messages/{id}/file` (operation `inboundMessages.file`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  file(
+    id: string,
+    body: InboundMessageFileRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InboundMessage>> {
+    return this.client.request<InboundMessage>(
+      $OPERATIONS["inboundMessages.file"],
+      { path: { id }, body },
+      options,
+    );
+  }
+
+  /**
+   * Discard inbound mail
+   *
+   * Discards project inbox mail with an optional reason (app.discard_inbound_message). The mail is kept and the audit ledger records who discarded it and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /inbound-messages/{id}/discard` (operation `inboundMessages.discard`).
+   * Requires the capability `knowledge.document.write`.
+   */
+  discard(
+    id: string,
+    body: InboundMessageDiscardRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<InboundMessage>> {
+    return this.client.request<InboundMessage>(
+      $OPERATIONS["inboundMessages.discard"],
+      { path: { id }, body },
       options,
     );
   }

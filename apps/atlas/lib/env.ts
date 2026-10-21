@@ -31,6 +31,16 @@ const EnvSchema = z.object({
   COMPASS_APPLE_TEAM_IDS: z.string().optional(),
   COMPASS_ANDROID_CERT_SHA256: z.string().optional(),
   /**
+   * WebAuthn relying party for security keys as a second factor (Section 9), the same values as Supabase
+   * Auth's [auth.webauthn] rp_id and rp_origins: the registrable domain, and the https origins of Atlas and
+   * Gateway, comma-separated. Unset, people add authenticator apps and passkeys but not security keys.
+   */
+  WEBAUTHN_RP_ID: z
+    .string()
+    .regex(/^[a-z0-9.-]+$/)
+    .optional(),
+  WEBAUTHN_RP_ORIGINS: z.string().optional(),
+  /**
    * Trusted proxies in front of the one that appends the client address to X-Forwarded-For
    * (A69-003). Unset (0) on Vercel and behind one proxy; 1 behind a CDN and a proxy, and so on.
    */
@@ -52,6 +62,17 @@ const EnvSchema = z.object({
     .optional(),
   /** Public origin of the docs site, for help center and API reference links. Unset, none show. */
   DOCS_SITE_URL: z.url({ protocol: /^https?$/ }).optional(),
+  /**
+   * The domain project inbox mail is received on (Section 4.6.5, ADR 0040), the same value the
+   * inbound-email Edge Function reads. Unset, Atlas shows each inbox's local part and says the
+   * receiving domain is not set up yet.
+   */
+  XOS_INBOUND_DOMAIN: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(HOST_NAME, "Use a domain such as inbound.example.com, without @ or a scheme.")
+    .optional(),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

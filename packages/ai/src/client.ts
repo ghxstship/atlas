@@ -215,6 +215,16 @@ export interface AuroraClient {
     subject_id: string;
     items: readonly { collection: string; id: string }[];
   }): Promise<AuroraCall<AuroraApiResult>>;
+  /** Import column suggestions (aurora.mapColumns): a target field or null per column, with a confidence. */
+  mapColumns(input: {
+    collection: string;
+    columns: readonly { header: string; samples: readonly string[] }[];
+    fields: readonly { name: string; description: string }[];
+  }): Promise<
+    AuroraCall<
+      AuroraApiResult<readonly { column: string; field: string | null; confidence: number }[]>
+    >
+  >;
   bindCode(input: {
     code: string;
     description: string | null;
@@ -310,6 +320,7 @@ export function createAuroraClient(options: AuroraClientOptions): AuroraClient {
     extract: (input) => call("POST", "/aurora/extract", input),
     draft: (input) => call("POST", "/aurora/draft", input),
     summarize: (input) => call("POST", "/aurora/summarize", input),
+    mapColumns: (input) => call("POST", "/aurora/map-columns", input),
     bindCode: (input) => call("POST", "/aurora/bind-code", input),
     preview: (input) => call("POST", "/aurora/preview", input),
     suggestion: (id) => call("GET", `/ai-suggestions/${encodeURIComponent(id)}`),

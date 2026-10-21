@@ -67,6 +67,17 @@ function fakeAuth(options: { jwks?: "ok" | "down" } = {}) {
     if (url.pathname === "/rest/v1/rpc/network_access") {
       return json([{ enforced: false, allowed: true, covered: false }]);
     }
+    // The org's session rules (A77, migration 1330): a session that meets them.
+    if (url.pathname === "/rest/v1/rpc/my_org_auth_status") {
+      return json([
+        {
+          mfa_required: false,
+          mfa_verified: false,
+          session_expired: false,
+          session_expires_at: null,
+        },
+      ]);
+    }
     return json({ message: `unexpected ${url.pathname}` }, 404);
   };
   return { calls, fetcher };
