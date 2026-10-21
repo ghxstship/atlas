@@ -20,6 +20,7 @@ import {
   soundsOn,
   themeOptionsOf,
   valuesFromRows,
+  withQueuedSetting,
 } from "../src/domain/settings";
 import { buildShiftAction, type ShiftRow } from "../src/domain/shifts";
 
@@ -71,6 +72,22 @@ describe("personal accessibility", () => {
     expect(hapticsOn(true, values({ "me.haptics": false }))).toBe(false);
     expect(hapticsOn(false, values({ "me.haptics": true }))).toBe(true);
     expect(hapticsOn(true, NO_VALUES)).toBe(true);
+  });
+
+  it("keeps the Haptics switch where the person put it while the change is queued", () => {
+    // The last resolve said on; the person turns Haptics off and the change waits in the outbox.
+    const resolved = values({ "me.haptics": true });
+    const off = {
+      op: "rpc",
+      target: "set_personal_setting",
+      payload: { p_setting_key: "me.haptics", p_value_boolean: false },
+    };
+    expect(hapticsOn(false, withQueuedSetting(resolved, off))).toBe(false);
+    expect(hapticsOn(false, resolved)).toBe(true);
+    // Other mutations and keys Compass does not read leave the values as they are.
+    const theme = { ...off, payload: { p_setting_key: "me.theme", p_value_text: "light" } };
+    expect(withQueuedSetting(resolved, theme)).toBe(resolved);
+    expect(withQueuedSetting(resolved, { op: "update", payload: {} })).toBe(resolved);
   });
 
   it("silences the camera shutter while me.sounds is off", () => {

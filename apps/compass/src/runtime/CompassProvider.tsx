@@ -33,6 +33,7 @@ import {
   COMPASS_SETTING_KEYS,
   NO_VALUES,
   valuesFromRows,
+  withQueuedSetting,
   type ResolvedValues,
 } from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
@@ -363,6 +364,14 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     async (input: MutationInput) => {
       if (!engine) throw new Error("the local store is still opening");
       const mutation = await engine.outbox.enqueue(input);
+      // A personal setting changed here applies now, before the outbox sends it (me.haptics, A65-001).
+      setResolvedSettings((current) => {
+        const next = withQueuedSetting(current, input);
+        if (next !== current) {
+          void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(next)));
+        }
+        return next;
+      });
       void engine.drain();
       return mutation.id;
     },

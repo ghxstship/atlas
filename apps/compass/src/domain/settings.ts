@@ -49,6 +49,34 @@ export function themeOptionsOf(values: ResolvedValues): ThemeOptions {
   };
 }
 
+/**
+ * The resolved values with a personal setting the person just changed on this device (a queued
+ * set_personal_setting), before the outbox sends it and the next resolve confirms it. A switch bound to a
+ * resolved value, such as Haptics (me.haptics), then shows the change at once instead of snapping back.
+ * Returns the same map for any other mutation or a key Compass does not read.
+ */
+export function withQueuedSetting(
+  values: ResolvedValues,
+  input: {
+    readonly op: string;
+    readonly target?: string | undefined;
+    readonly payload: Readonly<Record<string, unknown>>;
+  },
+): ResolvedValues {
+  if (input.op !== "rpc" || input.target !== "set_personal_setting") return values;
+  const key = input.payload["p_setting_key"];
+  if (typeof key !== "string" || !COMPASS_SETTING_KEYS.includes(key)) return values;
+  const next = new Map(values);
+  next.set(
+    key,
+    input.payload["p_value_text"] ??
+      input.payload["p_value_boolean"] ??
+      input.payload["p_value_integer"] ??
+      null,
+  );
+  return next;
+}
+
 /** Haptic feedback follows the person's me.haptics once known, and the device switch until then. */
 export function hapticsOn(device: boolean, values: ResolvedValues): boolean {
   const value = values.get("me.haptics");
