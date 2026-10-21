@@ -350,7 +350,9 @@ export interface SmsSummaryStore {
 
 /**
  * The text of a summary: one held text reads like any notification; several read as the count and the most
- * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`).
+ * important one, with the Inbox link and the opt-out line (catalog `email.sms.summary`). When the most
+ * important text cannot render, several held texts still go out as the count alone (`email.sms.summaryCount`),
+ * so one bad text never sinks the texts held with it.
  */
 export async function smsSummaryBody(
   summary: ClaimedSmsSummary,
@@ -358,18 +360,25 @@ export async function smsSummaryBody(
 ): Promise<string> {
   const recipient = await store.recipient(summary.recipientPersonId);
   const locale = localeOf(recipient.locale);
-  const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
   const args = {
     orgName: clip(await store.orgName(summary.orgId), 40),
     url: await store.inboxLink(summary.orgId),
   };
-  return summary.heldCount <= 1
-    ? formatMessage(locale, "sms.message", { ...args, body: clip(text.body, 300) })
-    : formatMessage(locale, "sms.summary", {
-        ...args,
-        count: summary.heldCount,
-        body: clip(text.body, 200),
-      });
+  if (summary.heldCount <= 1) {
+    const text = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone);
+    return formatMessage(locale, "sms.message", { ...args, body: clip(text.body, 300) });
+  }
+  let body: string;
+  try {
+    body = notificationText(summary.kind, summary.messageArgs, locale, recipient.timeZone).body;
+  } catch {
+    return formatMessage(locale, "sms.summaryCount", { ...args, count: summary.heldCount });
+  }
+  return formatMessage(locale, "sms.summary", {
+    ...args,
+    count: summary.heldCount,
+    body: clip(body, 200),
+  });
 }
 
 /**

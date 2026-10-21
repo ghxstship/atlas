@@ -1231,6 +1231,56 @@ describe("texts held by quiet hours go out as one summary", () => {
     ]);
   });
 
+  it("sends the count alone when the most important held text cannot render", async () => {
+    const provider = new RecordingSmsProvider();
+    const broken = { kind: "message.received", messageArgs: { conversation_id: "c1" } };
+    const { store, records } = summaryStore([
+      held(broken),
+      held({ ...broken, recipientPersonId: "p2", deliveryIds: ["d4", "d5"], heldCount: 2 }),
+      held({ ...broken, deliveryIds: ["d6"], heldCount: 1 }),
+    ]);
+    await expect(dispatchSmsSummaries(store, provider)).resolves.toEqual({
+      attempted: 3,
+      sent: 2,
+      failed: 1,
+      bounced: 0,
+    });
+    expect(provider.sent.map((m) => m.body)).toEqual([
+      "Northwind Live: 3 updates came in during your quiet hours. Open your Inbox to read them: https://atlas.xos.test/northwind-live/inbox Reply STOP to opt out.",
+      "Northwind Live: 2 novedades llegaron durante tus horas de silencio. Ábrelas en tu Bandeja de entrada: https://atlas.xos.test/northwind-live/inbox Responde STOP para cancelar.",
+    ]);
+    // A single held text has nothing else to fall back to: it fails and retries as before.
+    expect(records.map((r) => [r[0], r[1]])).toEqual([
+      [["d1", "d2", "d3"], "Sent"],
+      [["d4", "d5"], "Sent"],
+      [["d6"], "Failed"],
+    ]);
+  });
+
+  it("renders every workforce kind from the arguments its emitter stores, with the actor private.notify adds (1393)", () => {
+    const startsAt = "2026-10-23T18:00:00Z";
+    const emitted: Record<string, Readonly<Record<string, unknown>>> = {
+      "message.received": { conversation_id: "c1", kind: "Text" },
+      "announcement.posted": { title: "Gate C opens at noon", requires_acknowledgment: false },
+      "survey.opened": { title: "Load-in pulse", anonymous: true },
+      "recognition.received": { title: "Thanks for the save at load-out" },
+      "event.invited": { title: "Crew briefing", startsAt, event_kind: "Meeting" },
+      "training.assigned": { title: "Working at height", due_on: "2026-11-01" },
+    };
+    for (const [kind, args] of Object.entries(emitted)) {
+      expect(() => notificationText(kind, args, "en-US", "America/New_York"), kind).toThrow();
+      for (const locale of locales) {
+        const text = notificationText(
+          kind,
+          { ...args, actorName: "Dave Lindqvist" },
+          locale,
+          "America/New_York",
+        );
+        expect(text.body, `${kind} ${locale}`).toContain("Dave Lindqvist");
+      }
+    }
+  });
+
   it("claims and records summaries through the 1367 RPCs", async () => {
     const { db, calls } = fakeDb(
       {

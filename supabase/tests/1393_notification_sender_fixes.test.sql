@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(8);
+select plan(14);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -87,6 +87,47 @@ insert into n values ('a4', private.notify(pg_temp.id('org_a'), pg_temp.id('dave
 select pg_temp.morning();
 select is((select count(*)::integer from app.claim_sms_summaries()), 0, 'no summary goes when every held text is unsubscribed');
 select is((pg_temp.sms((select id from n where key = 'a4'))).message_status::text, 'Suppressed', 'and the held text is settled');
+
+-- 3. Every notification names its actor ------------------------------------------------------------------------------------
+create function pg_temp.actor(p_recipient text, p_kind text) returns text
+language sql as $$
+  select n.message_args ->> 'actorName' from app.notifications n
+  where n.recipient_person_id = pg_temp.id(p_recipient) and n.kind = p_kind order by n.created_at desc, n.id desc limit 1
+$$;
+
+create temporary table c (key text primary key, id uuid);
+grant select, insert on c to public;
+select pg_temp.as_user('dave');
+insert into c values ('dm', app.start_direct_conversation(pg_temp.id('org_a'), pg_temp.id('erin@org_a')));
+select app.send_chat_message((select id from c where key = 'dm'), 'Truck two is at the dock.');
+select pg_temp.as_platform();
+select is(pg_temp.actor('erin', 'message.received'), 'Dave Lindqvist', 'a chat message names its sender');
+
+select pg_temp.as_user('erin');
+select app.set_personal_setting('me.out_of_office.enabled', null, p_value_boolean => true);
+select app.set_personal_setting('me.out_of_office.auto_reply', null, p_value_text => 'Off until Monday. Ask Carol.');
+select pg_temp.as_user('dave');
+select app.send_chat_message((select id from c where key = 'dm'), 'Can you check the rider?');
+select pg_temp.as_platform();
+select is(pg_temp.actor('dave', 'message.received'), 'Erin Castillo', 'an automatic reply names the person away, not the sender it answers');
+
+select pg_temp.as_user('alice');
+insert into c values ('post', app.create_feed_post(pg_temp.id('org_a'), 'Announcement', 'Gate C opens at noon.', 'Gate C',
+  p_publish_at => now() + interval '1 hour'));
+select pg_temp.as_platform();
+update app.feed_posts set publish_at = now() - interval '1 minute' where id = (select id from c where key = 'post');
+select private.publish_due_feed_posts();
+select is(pg_temp.actor('dave', 'announcement.posted'), 'Alice Moreno', 'a scheduled post published by the job names its author');
+
+select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'survey.opened', null, null, null, '{"title": "Load-in pulse"}');
+select is(pg_temp.actor('dave', 'survey.opened'), 'Northwind Live', 'with nobody signed in, the org is the actor');
+select pg_temp.claims('carol');
+select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'recognition.received', null, null, null, '{"title": "Great save"}');
+select is(pg_temp.actor('dave', 'recognition.received'), 'Carol Nguyen', 'otherwise the signed-in person is');
+select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', null, null, null,
+  '{"title": "Catering", "actorName": "Bob Okafor"}');
+select is(pg_temp.actor('dave', 'approval.requested'), 'Bob Okafor', 'an emitter''s own actor is kept');
+select pg_temp.as_platform();
 
 select * from finish();
 rollback;
