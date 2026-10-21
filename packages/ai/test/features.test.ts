@@ -110,15 +110,15 @@ describe("document extraction", () => {
     expect(log.completed[0]?.prompt).toContain("[document application/pdf]");
   });
 
-  it("proposes each quote line as its own change", async () => {
+  it("proposes a quote as an RFQ response with each quoted line as its own change", async () => {
     const model = new ScriptedModel([
       toolCall("record_fields", {
         fields: [
           {
-            field_path: "notes",
-            value: "Net 30.",
+            field_path: "currency_code",
+            value: "USD",
             confidence: 0.8,
-            source_excerpt: "Terms: Net 30",
+            source_excerpt: "All prices USD",
             missing: null,
           },
         ],
@@ -147,7 +147,7 @@ describe("document extraction", () => {
                 missing: null,
               },
               {
-                field_path: "currency",
+                field_path: "currency_code",
                 value: "USD",
                 confidence: 0.9,
                 source_excerpt: "USD",
@@ -166,10 +166,52 @@ describe("document extraction", () => {
       subject: null,
     });
     expect(log.proposed.map((p) => p.change.operationId)).toEqual([
-      "bids.create",
-      "bidLines.create",
+      "rfqResponses.create",
+      "rfqResponseLines.create",
+    ]);
+    // The quote states no validity date: NO_ANSWER, never guessed.
+    expect(log.proposed[0]?.change.fields).toEqual([
+      expect.objectContaining({ field_path: "valid_until", refusal: "NO_ANSWER" }),
+      expect.objectContaining({ field_path: "currency_code", value: "USD" }),
     ]);
     expect(log.proposed[1]?.change.fields.every((f) => f.refusal === undefined)).toBe(true);
+  });
+
+  it("names the field paths of the invoice and expense create bodies", async () => {
+    const model = new ScriptedModel([
+      toolCall("record_fields", {
+        fields: [
+          {
+            field_path: "invoice_number",
+            value: "BW-20417",
+            confidence: 0.9,
+            source_excerpt: "Invoice No. BW-20417",
+            missing: null,
+          },
+          {
+            field_path: "currency_code",
+            value: "USD",
+            confidence: 0.9,
+            source_excerpt: "USD 18,450.00",
+            missing: null,
+          },
+        ],
+      }),
+    ]);
+    const { store, log } = memoryStore();
+    await extractDocument(context(model, store), {
+      kind: "invoice",
+      document: pdf,
+      fileName: "i.pdf",
+      subject: null,
+    });
+    expect(log.proposed[0]?.change.operationId).toBe("invoices.create");
+    expect(log.proposed[0]?.change.fields.map((f) => f.field_path)).toEqual([
+      "invoice_number",
+      "issued_on",
+      "due_on",
+      "currency_code",
+    ]);
   });
 
   it("returns NO ANSWER when nothing could be read", async () => {
@@ -333,6 +375,66 @@ describe("ask in plain language", () => {
     expect(check("city", "is_null", "maybe")).toBe("is_null takes true or false.");
     expect(check("city", "eq", "Miami", ["-weather"])).toBe("permits cannot sort by -weather.");
     expect(toQuery([], [])).toBe("");
+  });
+
+  it("keeps a page's own filters to the operators they take and describes them to the model", async () => {
+    const page: FilterCollection[] = [
+      {
+        collection: "invoices",
+        fields: [
+          {
+            name: "overdue",
+            type: "boolean",
+            description: "Unpaid invoices past their due date on the org's calendar.",
+            ops: ["eq"],
+          },
+          { name: "q", type: "string", description: "Number or party name.", ops: ["contains"] },
+        ],
+      },
+    ];
+    expect(
+      validateFilter(page, {
+        collection: "invoices",
+        conditions: [
+          { field: "overdue", op: "eq", value: "true" },
+          { field: "q", op: "contains", value: "Acme" },
+        ],
+        sort: [],
+      }),
+    ).toBeNull();
+    expect(
+      validateFilter(page, {
+        collection: "invoices",
+        conditions: [{ field: "q", op: "eq", value: "Acme" }],
+        sort: [],
+      }),
+    ).toBe("q cannot be filtered with eq.");
+    const model = new ScriptedModel([
+      toolCall("build_filter", {
+        collection: "invoices",
+        name: "Overdue Acme Invoices",
+        conditions: [
+          { field: "overdue", op: "eq", value: "true" },
+          { field: "q", op: "contains", value: "Acme" },
+        ],
+        sort: [],
+      }),
+    ]);
+    const { store } = memoryStore();
+    const result = await buildFilter(context(model, store), {
+      sentence: "overdue invoices from Acme",
+      catalog: page,
+      timeZone: "America/New_York",
+    });
+    expect(result).toMatchObject({
+      kind: "answer",
+      value: { query: "filter[overdue][eq]=true&filter[q][contains]=Acme" },
+    });
+    const sent = model.requests[0]?.messages[0]?.content[0];
+    expect(sent?.type === "text" ? sent.text : "").toContain(
+      "Unpaid invoices past their due date on the org's calendar.",
+    );
+    expect(model.requests[0]?.system).toContain("use only those operators");
   });
 });
 
@@ -515,9 +617,17 @@ describe("mapping help", () => {
     const input = { code: "0012345678905", description: "LED PANEL 500", candidates };
     expect(await suggestCatalogBinding(context(model, store), input)).toMatchObject({
       kind: "answer",
-      value: { elementId: "5000.01.01-NWL-0001" },
+      value: { elementId: "5000.01.01-NWL-0001", name: "LED Wall Panel", urid: "5000.01.01" },
     });
     expect(log.proposed[0]?.change.operationId).toBe("catalogBindings.create");
+    // The proposal is the catalogBindings.create body: the element and its name, nothing else.
+    expect(log.proposed[0]?.change.fields).toEqual([
+      { field_path: "element_id", value: "5000.01.01-NWL-0001", confidence: 0.8 },
+      { field_path: "name", value: "LED Wall Panel", confidence: 0.8 },
+    ]);
+    expect(log.proposed[0]?.change.summary).toBe(
+      "Bind code 0012345678905 to LED Wall Panel (5000.01.01).",
+    );
     expect(await suggestCatalogBinding(context(model, store), input)).toMatchObject({
       kind: "no-answer",
       missing: "None of the catalog candidates matches this code.",
