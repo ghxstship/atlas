@@ -19,16 +19,18 @@
 --     newest first. app.record_recent_view (invoker: only something the person can read is recorded) keeps at most
 --     50 per person and org; rows go after 90 days, and all of a person's rows go when the person is deleted.
 --     app.recent_items lists them before anything is typed, again under the caller's row level security.
---   * app.search_embeddings: one pgvector embedding (1024 dimensions) per published document, SOP and handbook
+--   * app.search_embeddings: one pgvector embedding (384 dimensions) per published document, SOP and handbook
 --     article of an org with search.semantic_enabled on. The worker (packages/data/src/search-embeddings.ts, the
---     search-embed Edge Function) fills it through the embedding provider seam in @xos/ai with the service role:
+--     search-embed Edge Function) fills it with Supabase's built-in gte-small model through the embedding seam
+--     in @xos/ai, with the service role:
 --     app.search_embedding_backlog hands it the text to embed, built only from columns no classification marks
 --     Restricted and never from a table excluded from AI features; app.store_search_embedding stores a vector only
 --     while the text it was made from is still current and the org still has semantic search on;
 --     app.retire_search_embeddings deletes the vectors of sources that are gone, unpublished or in an org that
 --     turned semantic search off. A person reads an embedding only when they can read its source.
 --   * search.semantic_enabled (packages/schemas/settings/a87.yaml): off by default, set by an Admin on Settings,
---     AI features. Choosing the embedding provider is an owner decision (a new subprocessor).
+--     AI features. gte-small runs inside the Supabase Edge Runtime, so no text goes to a new subprocessor; any
+--     other provider would be one, and an owner decision.
 
 select private.define_setting('search.semantic_enabled', 'Boolean', 'org.ai.write', array['organization'], false, p_default_boolean => false);
 
@@ -215,7 +217,7 @@ create table app.search_embeddings (
   content_sha256 text not null,
   provider text not null,
   model text not null,
-  embedding extensions.vector(1024) not null,
+  embedding extensions.vector(384) not null,
   embedded_at timestamptz not null default now(),
   constraint search_embeddings_source_table check (source_table in ('documents', 'sops', 'handbook_articles')),
   constraint search_embeddings_checksum_format check (content_sha256 ~ '^[0-9a-f]{64}$'),
@@ -233,7 +235,7 @@ call private.describe('app.search_embeddings', 'Semantic search index (Section 5
   'content_sha256', 'SHA-256 of the text that was embedded, lowercase hex; a different hash means the source changed.',
   'provider', 'Embedding provider, for example local-hash in tests.',
   'model', 'Provider model that made the vector; vectors of another model are never compared.',
-  'embedding', 'The vector, 1024 dimensions, compared by cosine distance.',
+  'embedding', 'The vector, 384 dimensions, compared by cosine distance.',
   'embedded_at', 'When the vector was made.'
 ]);
 
@@ -361,8 +363,8 @@ begin
   if encode(extensions.digest(v_source.content, 'sha256'), 'hex') is distinct from p_content_sha256 then
     perform private.refuse('search_source_changed', 'The source changed after its text was read; embed the current text.');
   end if;
-  if extensions.vector_dims(p_embedding) <> 1024 then
-    perform private.refuse('search_embedding_dimensions', 'Embeddings have 1024 dimensions.');
+  if extensions.vector_dims(p_embedding) <> 384 then
+    perform private.refuse('search_embedding_dimensions', 'Embeddings have 384 dimensions, the width of gte-small.');
   end if;
   insert into app.search_embeddings (org_id, source_table, source_id, content_sha256, provider, model, embedding, embedded_at)
   values (v_source.org_id, p_source_table, p_source_id, p_content_sha256, p_provider, p_model, p_embedding, now())
@@ -374,7 +376,7 @@ begin
 end;
 $$;
 
-comment on function app.store_search_embedding(text, uuid, text, text, text, extensions.vector) is 'Embedding worker API (service role): stores the vector of a source''s text, replacing the previous one. Refused when the source is gone or unpublished, its org has semantic search off, the text changed since the backlog read it, or the vector does not have 1024 dimensions.';
+comment on function app.store_search_embedding(text, uuid, text, text, text, extensions.vector) is 'Embedding worker API (service role): stores the vector of a source''s text, replacing the previous one. Refused when the source is gone or unpublished, its org has semantic search off, the text changed since the backlog read it, or the vector does not have 384 dimensions.';
 revoke all on function app.store_search_embedding(text, uuid, text, text, text, extensions.vector) from public, anon, authenticated;
 grant execute on function app.store_search_embedding(text, uuid, text, text, text, extensions.vector) to service_role;
 
@@ -398,6 +400,59 @@ $$;
 comment on function app.retire_search_embeddings() is 'Embedding worker API (service role): deletes the vectors of sources that are gone or unpublished, or whose org turned semantic search off, and returns how many.';
 revoke all on function app.retire_search_embeddings() from public, anon, authenticated;
 grant execute on function app.retire_search_embeddings() to service_role;
+
+-- Title candidates -----------------------------------------------------------------------------------------------------
+-- Row level security evaluates the policy before any condition that is not leakproof, and the text search match is not,
+-- so under RLS a title search cannot use its GIN index and reads every row of the org. This helper finds the matching
+-- titles through the index as the definer, keeps only the rows the caller's own read policy admits (the table's SELECT
+-- policies, read from the catalog, so it never drifts from them), and returns their ids; app.global_search then reads
+-- those rows again as the caller, under row level security. It returns nothing the caller could not read.
+
+create or replace function private.read_policy_predicate(p_table regclass)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select '(' || coalesce((
+      select string_agg('(' || p.qual || ')', ' or ')
+      from pg_catalog.pg_policies p
+      where format('%I.%I', p.schemaname, p.tablename)::regclass = p_table and p.permissive = 'PERMISSIVE'
+        and p.cmd in ('SELECT', 'ALL') and (p.roles && array['authenticated', 'public']::name[])), 'false') || ')'
+    || coalesce((
+      select ' and ' || string_agg('(' || p.qual || ')', ' and ')
+      from pg_catalog.pg_policies p
+      where format('%I.%I', p.schemaname, p.tablename)::regclass = p_table and p.permissive = 'RESTRICTIVE'
+        and p.cmd in ('SELECT', 'ALL') and (p.roles && array['authenticated', 'public']::name[])), '');
+$$;
+
+comment on function private.read_policy_predicate(regclass) is 'The SQL condition the authenticated role''s SELECT policies of a table apply: the permissive policies joined by OR, the restrictive ones by AND (A87).';
+revoke all on function private.read_policy_predicate(regclass) from public, anon, authenticated;
+
+create or replace function app.search_title_candidates(p_table text, p_org_id uuid, p_query tsquery, p_limit integer default 500)
+returns setof uuid
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if p_table is null or p_table not in ('records', 'incidents') or p_query is null or auth.uid() is null then
+    return;
+  end if;
+  perform private.require_membership_in(p_org_id);
+  return query execute format(
+    'select t.id from (select * from app.%I where org_id = $1 and deleted_at is null and to_tsvector(''simple'', title) @@ $2 and %s) t '
+    'order by ts_rank_cd(to_tsvector(''simple'', t.title), $2, 32) desc, t.updated_at desc limit $3',
+    p_table, private.read_policy_predicate(format('app.%I', p_table)::regclass))
+  using p_org_id, p_query, least(greatest(coalesce(p_limit, 500), 1), 1000);
+end;
+$$;
+
+comment on function app.search_title_candidates(text, uuid, tsquery, integer) is 'For app.global_search: ids of records or incidents of an org whose title matches the query, found through the title index, best first, among the rows the caller''s own read policy admits. app.global_search reads them again under row level security (A87).';
+revoke all on function app.search_title_candidates(text, uuid, tsquery, integer) from public, anon;
+grant execute on function app.search_title_candidates(text, uuid, tsquery, integer) to authenticated, service_role;
 
 -- The search -----------------------------------------------------------------------------------------------------------
 
@@ -457,6 +512,10 @@ declare
   v_term text;
   v_allowed text[] := array['record', 'incident', 'person', 'document', 'sop', 'article'];
   v_project_ids uuid[];
+  v_record_ids uuid[] := '{}';
+  v_key_record_ids uuid[] := '{}';
+  v_incident_ids uuid[] := '{}';
+  v_key_incident_ids uuid[] := '{}';
   v_exclude_project_ids uuid[];
   v_assignee_ids uuid[];
   v_exclude_assignee_ids uuid[];
@@ -626,32 +685,81 @@ begin
       where di.disc_code::text = any (v_depts)
          or di.discipline::text ilike any (array(select replace(replace(x, '%', ''), '_', '') || '%' from unnest(v_depts) x)));
   end if;
-  v_semantic := p_embedding is not null and v_ctx.semantic_enabled and extensions.vector_dims(p_embedding) = 1024
+  v_semantic := p_embedding is not null and v_ctx.semantic_enabled and extensions.vector_dims(p_embedding) = 384
     and v_allowed && array['document', 'sop', 'article'];
+
+  -- Records and incidents: the titles the GIN index finds among the rows the caller's read policy admits
+  -- (app.search_title_candidates), and exact keys. Both are read again below, here, with the caller's own row level
+  -- security, which stays the only judge of what they see.
+  if v_text is not null and 'record' = any (v_allowed) then
+    v_record_ids := array(select app.search_title_candidates('records', p_org_id, v_text, 500));
+  end if;
+  if v_text is not null and 'incident' = any (v_allowed) then
+    v_incident_ids := array(select app.search_title_candidates('incidents', p_org_id, v_text, 500));
+  end if;
+  if cardinality(v_keys) > 0 then
+    v_key_record_ids := array(
+      select r.id from unnest(v_keys) k
+      join app.projects p on p.org_id = p_org_id and p.deleted_at is null and upper(p.project_key) = split_part(k, '-', 1)
+      join app.records r on r.project_id = p.id and r.record_number = split_part(k, '-', 2)::bigint);
+    v_key_incident_ids := array(
+      select i.id from unnest(v_keys) k
+      join app.projects p on p.org_id = p_org_id and p.deleted_at is null and upper(p.project_key) = split_part(k, '-', 1)
+      join app.incidents i on i.project_id = p.id and i.incident_number = split_part(k, '-', 2)::bigint);
+  end if;
 
   return query
   with
-  key_hits as (
-    select r.id, r.record_number, p.project_key, p.id as project_id
-    from unnest(v_keys) k
-    join app.projects p on p.org_id = p_org_id and p.deleted_at is null and upper(p.project_key) = split_part(k, '-', 1)
-    join app.records r on r.project_id = p.id and r.record_number = split_part(k, '-', 2)::bigint
-  ),
   record_hits as (
     select 'record'::text as result_type, r.id, p.project_key || '-' || r.record_number::text as result_key, r.title,
       r.record_kind::text as record_kind, r.record_state::text as state, p.project_key::text as project_key,
       r.updated_at as dated_at,
-      case when r.id in (select kh.id from key_hits kh) then 1.0
+      case when r.id = any (v_key_record_ids) then 1.0
            when v_text is null then 0.5
            else least(1.0, ts_rank_cd(to_tsvector('simple', r.title), v_text, 32) * 4) end::real as relevance,
-      case when r.id in (select kh.id from key_hits kh) then 'key' when v_text is null then 'filter' else 'text' end as matched
-    from app.records r
+      case when r.id = any (v_key_record_ids) then 'key' when v_text is null then 'filter' else 'text' end as matched
+    from (
+      -- Words and keys: the candidates, by primary key.
+      select r.* from app.records r
+      where r.id = any (v_record_ids || v_key_record_ids) and r.org_id = p_org_id and r.deleted_at is null
+      union all
+      -- Filters alone: newest first through records_org_updated_idx, stopping at the limit.
+      (select r.* from app.records r
+       where not v_has_text and r.org_id = p_org_id and r.deleted_at is null
+          and (v_not is null or not (to_tsvector('simple', r.title) @@ v_not))
+          and (cardinality(v_kinds) = 0 or lower(r.record_kind) = any (v_kinds))
+          and not (lower(r.record_kind) = any (v_exclude_kinds))
+          and (v_project_ids is null or r.project_id = any (v_project_ids))
+          and (v_exclude_project_ids is null or not (r.project_id = any (v_exclude_project_ids)))
+          and (cardinality(v_statuses) = 0
+               or lower(replace(r.record_state, ' ', '')) = any (v_statuses)
+               or ('open' = any (v_statuses) and r.record_state not in ('Complete', 'Canceled'))
+               or ('closed' = any (v_statuses) and r.record_state in ('Complete', 'Canceled')))
+          and not (lower(replace(r.record_state, ' ', '')) = any (v_exclude_statuses))
+          and not ('open' = any (v_exclude_statuses) and r.record_state not in ('Complete', 'Canceled'))
+          and not ('closed' = any (v_exclude_statuses) and r.record_state in ('Complete', 'Canceled'))
+          and (not ('blocked' = any (v_is)) or r.record_state = 'Blocked')
+          and (not ('open' = any (v_is)) or r.record_state not in ('Complete', 'Canceled'))
+          and (not ('closed' = any (v_is)) or r.record_state in ('Complete', 'Canceled'))
+          and (not ('overdue' = any (v_is)) or (r.due_at < v_today_start and r.record_state not in ('Complete', 'Canceled')))
+          and (v_assignee_ids is null or r.owner_party_id = any (v_assignee_ids) or r.accountable_party_id = any (v_assignee_ids)
+               or exists (select 1 from app.record_assignments ra join app.memberships m on m.id = ra.membership_id
+                          where ra.record_id = r.id and ra.deleted_at is null and m.person_id = any (v_assignee_ids)))
+          and (v_exclude_assignee_ids is null or not (
+               coalesce(r.owner_party_id = any (v_exclude_assignee_ids), false) or coalesce(r.accountable_party_id = any (v_exclude_assignee_ids), false)
+               or exists (select 1 from app.record_assignments ra join app.memberships m on m.id = ra.membership_id
+                          where ra.record_id = r.id and ra.deleted_at is null and m.person_id = any (v_exclude_assignee_ids))))
+          and (v_phase_codes is null or r.phase_code = any (v_phase_codes))
+          and (v_urid_prefixes is null or exists (select 1 from unnest(v_urid_prefixes) u where r.urid like u || '%'))
+          and (v_after is null or r.updated_at >= v_after)
+          and (v_before is null or r.updated_at < v_before)
+          and (v_due_after is null or r.due_at >= v_due_after)
+          and (v_due_before is null or r.due_at < v_due_before)
+       order by r.updated_at desc
+       limit v_limit)
+    ) r
     left join app.projects p on p.id = r.project_id
-    where 'record' = any (v_allowed) and r.org_id = p_org_id and r.deleted_at is null
-      and (
-        (v_text is not null and to_tsvector('simple', r.title) @@ v_text)
-        or r.id in (select kh.id from key_hits kh)
-        or (not v_has_text))
+    where 'record' = any (v_allowed)
       and (v_not is null or not (to_tsvector('simple', r.title) @@ v_not))
       and (cardinality(v_kinds) = 0 or lower(r.record_kind) = any (v_kinds))
       and not (lower(r.record_kind) = any (v_exclude_kinds))
@@ -687,20 +795,35 @@ begin
   incident_hits as (
     select 'incident'::text, i.id, p.project_key || '-' || i.incident_number::text, i.title, null::text,
       i.incident_state::text, p.project_key::text, i.occurred_at,
-      case when ik.is_key then 1.0
+      case when i.id = any (v_key_incident_ids) then 1.0
            when v_text is null then 0.5
            else least(1.0, ts_rank_cd(to_tsvector('simple', i.title), v_text, 32) * 4) end::real,
-      case when ik.is_key then 'key' when v_text is null then 'filter' else 'text' end
-    from app.incidents i
+      case when i.id = any (v_key_incident_ids) then 'key' when v_text is null then 'filter' else 'text' end
+    from (
+      select i.* from app.incidents i
+      where i.id = any (v_incident_ids || v_key_incident_ids) and i.org_id = p_org_id and i.deleted_at is null
+      union all
+      (select i.* from app.incidents i
+       where not v_has_text and i.org_id = p_org_id and i.deleted_at is null
+          and (v_not is null or not (to_tsvector('simple', i.title) @@ v_not))
+          and (v_project_ids is null or i.project_id = any (v_project_ids))
+          and (v_exclude_project_ids is null or not (i.project_id = any (v_exclude_project_ids)))
+          and (cardinality(v_statuses) = 0
+               or lower(i.incident_state::text) = any (v_statuses)
+               or ('open' = any (v_statuses) and i.incident_state <> 'Closed')
+               or ('closed' = any (v_statuses) and i.incident_state = 'Closed'))
+          and not (lower(i.incident_state::text) = any (v_exclude_statuses))
+          and not ('open' = any (v_exclude_statuses) and i.incident_state <> 'Closed')
+          and not ('closed' = any (v_exclude_statuses) and i.incident_state = 'Closed')
+          and (not ('open' = any (v_is)) or i.incident_state <> 'Closed')
+          and (not ('closed' = any (v_is)) or i.incident_state = 'Closed')
+          and (v_after is null or i.occurred_at >= v_after)
+          and (v_before is null or i.occurred_at < v_before)
+       order by i.occurred_at desc
+       limit v_limit)
+    ) i
     left join app.projects p on p.id = i.project_id
-    cross join lateral (
-      select exists (select 1 from unnest(v_keys) k where upper(p.project_key) = split_part(k, '-', 1)
-                                                      and i.incident_number = split_part(k, '-', 2)::bigint) as is_key) ik
-    where 'incident' = any (v_allowed) and i.org_id = p_org_id and i.deleted_at is null
-      and (
-        (v_text is not null and to_tsvector('simple', i.title) @@ v_text)
-        or ik.is_key
-        or (not v_has_text))
+    where 'incident' = any (v_allowed)
       and (v_not is null or not (to_tsvector('simple', i.title) @@ v_not))
       and (v_project_ids is null or i.project_id = any (v_project_ids))
       and (v_exclude_project_ids is null or not (i.project_id = any (v_exclude_project_ids)))

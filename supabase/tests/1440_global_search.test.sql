@@ -7,7 +7,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(49);
+select plan(52);
 
 create temporary table s (key text primary key, id uuid, txt text);
 grant select, insert, update on s to public;
@@ -24,10 +24,10 @@ begin
   return coalesce(v, '');
 end $$;
 
--- A unit vector of 1,024 dimensions with a 1 at position p.
+-- A unit vector of 384 dimensions with a 1 at position p.
 create function pg_temp.unit(p integer) returns extensions.vector
 language sql immutable as $$
-  select ('[' || array_to_string(array(select case when i = p then 1 else 0 end from generate_series(1, 1024) i), ',') || ']')::extensions.vector
+  select ('[' || array_to_string(array(select case when i = p then 1 else 0 end from generate_series(1, 384) i), ',') || ']')::extensions.vector
 $$;
 
 -- World: records in NWL (dave, erin and frank are members) and NWX (no members), an incident, an SOP, a document,
@@ -81,6 +81,13 @@ select is(pg_temp.keys('dave', 'org_a', '{"terms": ["har"]}'), 'SOP-101', 'the l
 select pg_temp.as_user('dave');
 select throws_ok($$select * from app.global_search(pg_temp.id('org_b'), '{"terms": ["truss"]}')$$, '42501', null,
   'searching an org the caller does not belong to is refused');
+select is((select count(*)::integer from app.search_title_candidates('records', pg_temp.id('org_a'), to_tsquery('simple', 'hang:*'))), 1,
+  'title candidates come only from rows the caller''s own read policy admits (not NWX)');
+select is((select count(*)::integer from app.search_title_candidates('people', pg_temp.id('org_a'), to_tsquery('simple', 'hang:*'))), 0,
+  'title candidates are offered for records and incidents only');
+select pg_temp.as_user('alice');
+select is((select count(*)::integer from app.search_title_candidates('records', pg_temp.id('org_a'), to_tsquery('simple', 'hang:*'))), 2,
+  'the owner''s candidates span both projects');
 select pg_temp.as_platform();
 
 -- Operators -----------------------------------------------------------------------------------------------------------
@@ -175,28 +182,28 @@ select is((select count(*)::integer from app.recent_views where person_id = pg_t
 update app.people set deleted_at = null where id = pg_temp.id('dave');
 
 -- The semantic index ----------------------------------------------------------------------------------------------------
-select is((select count(*)::integer from app.search_embedding_backlog('local-hash', 'local-hash-1024', 50) b where b.org_id = pg_temp.id('org_a')), 0,
+select is((select count(*)::integer from app.search_embedding_backlog('local-hash', 'local-hash-384', 50) b where b.org_id = pg_temp.id('org_a')), 0,
   'nothing is offered for embedding while the org has search.semantic_enabled off');
 select pg_temp.as_user('bob');
 select app.set_setting(pg_temp.id('org_a'), 'search.semantic_enabled', 'Organization', pg_temp.id('org_a'), null, true, null, false);
 select pg_temp.as_platform();
-select is((select string_agg(b.source_table, ',' order by b.source_table) from app.search_embedding_backlog('local-hash', 'local-hash-1024', 50) b
+select is((select string_agg(b.source_table, ',' order by b.source_table) from app.search_embedding_backlog('local-hash', 'local-hash-384', 50) b
            where b.org_id = pg_temp.id('org_a')), 'documents,sops', 'with it on, the published SOP and the document are offered');
 insert into private.column_classifications (table_name, column_name, classification, read_capability)
   values ('app.sops', 'body', 'Restricted', 'knowledge.sop.write')
   on conflict do nothing;
-select is((select b.content from app.search_embedding_backlog('local-hash', 'local-hash-1024', 50) b where b.source_id = (select id from s where key = 'sop')),
+select is((select b.content from app.search_embedding_backlog('local-hash', 'local-hash-384', 50) b where b.source_id = (select id from s where key = 'sop')),
   'Working at Height', 'a column classified Restricted never reaches the embedding provider');
 delete from private.column_classifications where table_name = 'app.sops' and column_name = 'body' and classification = 'Restricted';
-update s set txt = (select b.content_sha256 from app.search_embedding_backlog('local-hash', 'local-hash-1024', 50) b where b.source_id = s.id) where key = 'sop';
-select throws_ok(format($$select app.store_search_embedding('sops', %L, %L, 'local-hash', 'local-hash-1024', pg_temp.unit(1))$$,
+update s set txt = (select b.content_sha256 from app.search_embedding_backlog('local-hash', 'local-hash-384', 50) b where b.source_id = s.id) where key = 'sop';
+select throws_ok(format($$select app.store_search_embedding('sops', %L, %L, 'local-hash', 'local-hash-384', pg_temp.unit(1))$$,
   (select id from s where key = 'sop'), repeat('0', 64)), 'XR001', null, 'a vector for text that has since changed is refused');
-select lives_ok(format($$select app.store_search_embedding('sops', %L, %L, 'local-hash', 'local-hash-1024', pg_temp.unit(1))$$,
+select lives_ok(format($$select app.store_search_embedding('sops', %L, %L, 'local-hash', 'local-hash-384', pg_temp.unit(1))$$,
   (select id from s where key = 'sop'), (select txt from s where key = 'sop')), 'the worker stores the vector of the current text');
 select pg_temp.as_user('dave');
-select throws_ok($$select * from app.search_embedding_backlog('local-hash', 'local-hash-1024', 5)$$, '42501', null,
+select throws_ok($$select * from app.search_embedding_backlog('local-hash', 'local-hash-384', 5)$$, '42501', null,
   'only the service role reads the embedding backlog');
-select is((select count(*)::integer from app.global_search(pg_temp.id('org_a'), '{"terms": ["climbing"], "model": "local-hash-1024"}', pg_temp.unit(1)) g
+select is((select count(*)::integer from app.global_search(pg_temp.id('org_a'), '{"terms": ["climbing"], "model": "local-hash-384"}', pg_temp.unit(1)) g
            where g.result_type = 'sop' and g.matched = 'semantic'), 1,
   'a nearby vector finds the SOP although no word matches, blended into the same results');
 select is((select count(*)::integer from app.global_search(pg_temp.id('org_a'), '{"terms": ["climbing"], "model": "other-model"}', pg_temp.unit(1))), 0,
