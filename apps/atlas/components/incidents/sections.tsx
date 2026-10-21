@@ -77,6 +77,7 @@ import {
   withdrawAction,
 } from "@/lib/incidents/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
+import { rememberView } from "@/lib/shell/recents";
 import { instantToLocal } from "@/lib/operations/time";
 import { DocumentActions } from "@/components/documents/document-actions";
 
@@ -456,6 +457,8 @@ async function IncidentRecord({
     listMedicalEncounters(db, incident.id),
     listMembers(db, page.ctx.org.id),
     listProjectZones(db, page.ctx.org.id, project?.venueId ?? null),
+    // The command menu's recent items (Section 11.7), last so no read above changes position.
+    rememberView(page.ctx, "incidents", incident.id),
   ]);
   const canWrite = can(page, "safety.incident.write") && incident.state !== "Closed";
   const canDispatch = can(page, "safety.incident.dispatch") && incident.state !== "Closed";

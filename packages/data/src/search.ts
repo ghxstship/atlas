@@ -1,196 +1,185 @@
 import type { XosClient } from "./client.ts";
-import { ok, type Result } from "./result.ts";
+import { fail, ok, toDataError, type Result } from "./result.ts";
+import type { SearchRequest } from "./search-query.ts";
 import { untyped } from "./untyped.ts";
 
 /**
- * Search for the command menu (Section 11.10 item 1, Section 11.7; finding A59-015): records and
- * incidents by key (`NWS-12`) or title, records of the kinds the query names, and members by name.
- * Every read runs under the reader's row level security, so a person finds only what they may read.
- * A lookup that fails leaves its group empty; the menu still shows pages and settings.
+ * Global search for the command menu (Section 11.10 item 1, Section 11.7; findings A59-015 and A65-005).
+ * Thin wrappers over migration 1440:
+ *   * `globalSearch`: app.global_search, SECURITY INVOKER, so the reader's row level security decides every
+ *     row; it takes the structured request `@xos/data/search-query` builds and an optional query vector;
+ *   * `recentItems` and `recordRecentView`: what the person opened, newest first, at most 50;
+ *   * `searchContext`: the person, the org's calendar and whether the org has semantic search on.
  */
 
+export type SearchResultType = "record" | "incident" | "person" | "document" | "sop" | "article";
+
+/** How a result matched: a record key, words, meaning, both, or filters alone. */
+export type SearchMatch = "key" | "text" | "semantic" | "both" | "filter";
+
 export interface SearchHit {
-  readonly kind: "record" | "incident";
+  readonly type: SearchResultType;
   readonly id: string;
-  /** The human key, for example NWS-12. */
-  readonly key: string;
+  /** The human key (NWL-12, SOP-001), or null for people, documents and articles. */
+  readonly key: string | null;
   readonly title: string;
-  /** The record kind (Task, Permit, ...), or null for an incident. */
+  /** The record kind (Task, Permit), or null for anything but a record. */
   readonly recordKind: string | null;
-  readonly projectKey: string;
+  /** The record or incident state, or Draft and Published for SOPs. */
+  readonly state: string | null;
+  readonly projectKey: string | null;
+  /** The date the item last changed (an incident's: when it happened). */
+  readonly datedAt: string | null;
+  readonly rank: number;
+  readonly matched: SearchMatch;
 }
 
-export interface PersonHit {
-  readonly personId: string;
-  readonly name: string;
+export interface RecentItem {
+  readonly type: Exclude<SearchResultType, "person">;
+  readonly id: string;
+  readonly key: string | null;
+  readonly title: string;
+  readonly recordKind: string | null;
+  readonly state: string | null;
+  readonly projectKey: string | null;
+  readonly viewedAt: string;
 }
 
-export interface SearchResults {
-  readonly hits: readonly SearchHit[];
-  readonly people: readonly PersonHit[];
+export interface SearchContext {
+  readonly personId: string | null;
+  readonly timeZone: string;
+  /** Today on the org's calendar, `YYYY-MM-DD`. */
+  readonly today: string;
+  readonly semanticEnabled: boolean;
 }
 
-const KEY = /^([A-Za-z][A-Za-z0-9]{1,9})-(\d{1,7})$/;
+/** Tables a recent view may name (app.recent_views.subject_table). */
+export type RecentViewTable = "records" | "incidents" | "documents" | "sops" | "handbook_articles";
 
-function like(term: string): string {
-  return `%${term.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
-}
+const TYPES = new Set<SearchResultType>([
+  "record",
+  "incident",
+  "person",
+  "document",
+  "sop",
+  "article",
+]);
+const MATCHES = new Set<SearchMatch>(["key", "text", "semantic", "both", "filter"]);
 
 type Row = Record<string, unknown>;
 
-async function read(query: PromiseLike<{ data: unknown; error: unknown }>): Promise<Row[]> {
-  try {
-    const { data, error } = await query;
-    return error || !Array.isArray(data) ? [] : (data as Row[]);
-  } catch {
-    return [];
-  }
+function text(value: unknown): string | null {
+  return typeof value === "string" && value !== "" ? value : null;
 }
 
-function projectKeyOf(row: Row): string {
-  const project = row["project"] as { project_key?: string } | null | undefined;
-  return project?.project_key ?? "";
+function toHit(row: Row): SearchHit | null {
+  const type = row["result_type"] as SearchResultType;
+  const id = text(row["result_id"]);
+  if (!TYPES.has(type) || !id) return null;
+  const matched = row["matched"] as SearchMatch;
+  return {
+    type,
+    id,
+    key: text(row["result_key"]),
+    title: text(row["title"]) ?? "",
+    recordKind: text(row["record_kind"]),
+    state: text(row["state"]),
+    projectKey: text(row["project_key"]),
+    datedAt: text(row["dated_at"]),
+    rank: Number(row["rank"] ?? 0),
+    matched: MATCHES.has(matched) ? matched : "text",
+  };
 }
 
 /**
- * Search one org. `kinds` are record kinds whose name the query matches (the caller compares the
- * query with each kind's label in the person's language); `incidents` asks for recent incidents when
- * the query names incidents.
+ * Searches one org. `embedding` is the query vector in pgvector's text form and `model` the model
+ * that made it; both are ignored unless the org has semantic search on.
  */
-export async function searchOrg(
+export async function globalSearch(
   db: XosClient,
   input: {
     readonly orgId: string;
-    readonly query: string;
-    readonly kinds?: readonly string[];
-    readonly incidents?: boolean;
+    readonly request: SearchRequest;
+    readonly embedding?: string | null;
+    readonly model?: string | null;
     readonly limit?: number;
+    readonly minSimilarity?: number;
   },
-): Promise<Result<SearchResults>> {
-  const term = input.query.trim();
-  if (term.length < 2) return ok({ hits: [], people: [] });
-  const limit = input.limit ?? 6;
-  const u = untyped(db);
-  const recordColumns =
-    "id, record_number, title, record_kind, project:projects!records_project_id_fkey!inner(project_key)";
-  const incidentColumns =
-    "id, incident_number, title, project:projects!incidents_project_id_fkey!inner(project_key)";
-  const key = KEY.exec(term);
-  const queries: Promise<Row[]>[] = [];
-  if (key) {
-    const projectKey = (key[1] as string).toUpperCase();
-    const number = Number(key[2]);
-    queries.push(
-      read(
-        u
-          .from("records")
-          .select(recordColumns)
-          .eq("org_id", input.orgId)
-          .is("deleted_at", null)
-          .eq("project.project_key", projectKey)
-          .eq("record_number", number)
-          .limit(1),
-      ),
-      read(
-        u
-          .from("incidents")
-          .select(incidentColumns)
-          .eq("org_id", input.orgId)
-          .is("deleted_at", null)
-          .eq("project.project_key", projectKey)
-          .eq("incident_number", number)
-          .limit(1),
-      ),
-    );
-  } else {
-    queries.push(
-      read(
-        u
-          .from("records")
-          .select(recordColumns)
-          .eq("org_id", input.orgId)
-          .is("deleted_at", null)
-          .ilike("title", like(term))
-          .order("updated_at", { ascending: false })
-          .limit(limit),
-      ),
-      read(
-        u
-          .from("incidents")
-          .select(incidentColumns)
-          .eq("org_id", input.orgId)
-          .is("deleted_at", null)
-          .ilike("title", like(term))
-          .order("occurred_at", { ascending: false })
-          .limit(limit),
-      ),
-    );
-    if (input.kinds && input.kinds.length > 0) {
-      queries.push(
-        read(
-          u
-            .from("records")
-            .select(recordColumns)
-            .eq("org_id", input.orgId)
-            .is("deleted_at", null)
-            .in("record_kind", [...input.kinds])
-            .order("updated_at", { ascending: false })
-            .limit(limit),
-        ),
-      );
-    }
-    if (input.incidents) {
-      queries.push(
-        read(
-          u
-            .from("incidents")
-            .select(incidentColumns)
-            .eq("org_id", input.orgId)
-            .is("deleted_at", null)
-            .order("occurred_at", { ascending: false })
-            .limit(limit),
-        ),
-      );
-    }
-  }
-  const people = key
-    ? Promise.resolve([] as Row[])
-    : read(
-        u
-          .from("memberships")
-          .select("person_id, person:people!memberships_person_id_fkey!inner(full_name)")
-          .eq("org_id", input.orgId)
-          .is("deleted_at", null)
-          .ilike("person.full_name", like(term))
-          .limit(limit),
-      );
-  const [found, members] = await Promise.all([Promise.all(queries), people]);
-  const seen = new Set<string>();
-  const hits: SearchHit[] = [];
-  for (const row of found.flat()) {
-    const id = String(row["id"]);
-    if (seen.has(id)) continue;
-    seen.add(id);
-    const projectKey = projectKeyOf(row);
-    const isRecord = "record_number" in row;
-    const number = Number(isRecord ? row["record_number"] : row["incident_number"]);
-    hits.push({
-      kind: isRecord ? "record" : "incident",
+): Promise<Result<readonly SearchHit[]>> {
+  const { data, error } = await untyped(db).rpc("global_search", {
+    p_org_id: input.orgId,
+    p_query: input.model ? { ...input.request, model: input.model } : input.request,
+    p_embedding: input.embedding ?? null,
+    p_limit: input.limit ?? 8,
+    p_min_similarity: input.minSimilarity ?? 0.35,
+  });
+  if (error) return fail(toDataError(error));
+  const rows = Array.isArray(data) ? (data as Row[]) : [];
+  return ok(rows.map(toHit).filter((h): h is SearchHit => h !== null));
+}
+
+/** The person's recently opened items in an org, newest first. */
+export async function recentItems(
+  db: XosClient,
+  orgId: string,
+  limit = 50,
+): Promise<Result<readonly RecentItem[]>> {
+  const { data, error } = await untyped(db).rpc("recent_items", {
+    p_org_id: orgId,
+    p_limit: limit,
+  });
+  if (error) return fail(toDataError(error));
+  const rows = Array.isArray(data) ? (data as Row[]) : [];
+  const items: RecentItem[] = [];
+  for (const row of rows) {
+    const type = row["result_type"] as RecentItem["type"];
+    const id = text(row["result_id"]);
+    const viewedAt = text(row["viewed_at"]);
+    if (!id || !viewedAt || type === ("person" as string) || !TYPES.has(type)) continue;
+    items.push({
+      type,
       id,
-      key: `${projectKey}-${number}`,
-      title: String(row["title"] ?? ""),
-      recordKind: isRecord ? String(row["record_kind"] ?? "") : null,
-      projectKey,
+      key: text(row["result_key"]),
+      title: text(row["title"]) ?? "",
+      recordKind: text(row["record_kind"]),
+      state: text(row["state"]),
+      projectKey: text(row["project_key"]),
+      viewedAt,
     });
   }
-  const names = new Map<string, string>();
-  for (const m of members) {
-    const person = m["person"] as { full_name?: string | null } | null;
-    const id = String(m["person_id"] ?? "");
-    if (id && person?.full_name && !names.has(id)) names.set(id, person.full_name);
+  return ok(items);
+}
+
+/**
+ * Records that the person opened something. Never throws and never fails the page that called it: a
+ * view that is not recorded only leaves the recent list as it was.
+ */
+export async function recordRecentView(
+  db: XosClient,
+  input: { readonly orgId: string; readonly table: RecentViewTable; readonly id: string },
+): Promise<boolean> {
+  try {
+    const { data, error } = await untyped(db).rpc("record_recent_view", {
+      p_org_id: input.orgId,
+      p_subject_table: input.table,
+      p_subject_id: input.id,
+    });
+    return !error && data === true;
+  } catch {
+    return false;
   }
+}
+
+/** The search context of the signed-in member of an org. */
+export async function searchContext(db: XosClient, orgId: string): Promise<Result<SearchContext>> {
+  const { data, error } = await untyped(db).rpc("search_context", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  const row = (Array.isArray(data) ? data[0] : data) as Row | undefined;
+  if (!row) return fail({ kind: "not-found" });
   return ok({
-    hits: hits.slice(0, limit * 2),
-    people: [...names].map(([personId, name]) => ({ personId, name })),
+    personId: text(row["person_id"]),
+    timeZone: text(row["time_zone"]) ?? "UTC",
+    today: text(row["org_today"]) ?? "",
+    semanticEnabled: row["semantic_enabled"] === true,
   });
 }

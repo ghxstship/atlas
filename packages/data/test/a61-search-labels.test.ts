@@ -2,96 +2,12 @@ import { describe, expect, it } from "vitest";
 import { labelActivity, type ActivityEntry } from "../src/activity.ts";
 import { isPartnerOrganization } from "../src/identity.ts";
 import { fillPersonNames, personNames } from "../src/person-names.ts";
-import { searchOrg } from "../src/search.ts";
 import { errorResponse, fakeClient, okResponse } from "./fake-client.ts";
 
-/** A61 (RRR-106): command menu search, activity labels, name resolution and the partner condition. */
-
-describe("searchOrg (A59-015)", () => {
-  it("finds a record and an incident by key, without a people search", async () => {
-    const { db, calls } = fakeClient({
-      "from:records": [
-        okResponse([
-          {
-            id: "r1",
-            record_number: 12,
-            title: "Production Meeting",
-            record_kind: "Meeting",
-            project: { project_key: "NWS" },
-          },
-        ]),
-      ],
-      "from:incidents": [okResponse([])],
-    });
-    const result = await searchOrg(db, { orgId: "o1", query: "nws-12" });
-    expect(result.ok && result.data).toEqual({
-      hits: [
-        {
-          kind: "record",
-          id: "r1",
-          key: "NWS-12",
-          title: "Production Meeting",
-          recordKind: "Meeting",
-          projectKey: "NWS",
-        },
-      ],
-      people: [],
-    });
-    expect(calls[0]?.steps).toContainEqual(["eq", ["project.project_key", "NWS"]]);
-    expect(calls[0]?.steps).toContainEqual(["eq", ["record_number", 12]]);
-  });
-
-  it("searches titles, named kinds, incidents and members, without duplicates", async () => {
-    const meeting = {
-      id: "r1",
-      record_number: 12,
-      title: "Permit walk",
-      record_kind: "Permit",
-      project: { project_key: "NWS" },
-    };
-    const { db, calls } = fakeClient({
-      "from:records": [okResponse([meeting]), okResponse([meeting])],
-      "from:incidents": [
-        okResponse([]),
-        okResponse([
-          { id: "i1", incident_number: 32, title: "Slip at dock", project: { project_key: "NWS" } },
-        ]),
-      ],
-      "from:memberships": [
-        okResponse([
-          { person_id: "p1", person: { full_name: "Demo Producer" } },
-          { person_id: "p1", person: { full_name: "Demo Producer" } },
-        ]),
-      ],
-    });
-    const result = await searchOrg(db, {
-      orgId: "o1",
-      query: "per 100%",
-      kinds: ["Permit"],
-      incidents: true,
-    });
-    expect(result.ok && result.data.hits.map((h) => h.key)).toEqual(["NWS-12", "NWS-32"]);
-    expect(result.ok && result.data.people).toEqual([{ personId: "p1", name: "Demo Producer" }]);
-    expect(calls[0]?.steps).toContainEqual(["ilike", ["title", "%per 100\\%%"]]);
-    expect(calls[2]?.steps).toContainEqual(["in", ["record_kind", ["Permit"]]]);
-  });
-
-  it("answers nothing for a one-letter query and leaves failed groups empty", async () => {
-    const { db } = fakeClient({
-      "from:records": [errorResponse("XX000", "boom")],
-      "from:incidents": [errorResponse("XX000", "boom")],
-      "from:memberships": [errorResponse("XX000", "boom")],
-    });
-    expect(await searchOrg(db, { orgId: "o1", query: "a" })).toEqual({
-      ok: true,
-      data: { hits: [], people: [] },
-    });
-    expect(await searchOrg(db, { orgId: "o1", query: "abc" })).toEqual({
-      ok: true,
-      data: { hits: [], people: [] },
-    });
-  });
-});
+/**
+ * A61 (RRR-106): activity labels, name resolution and the partner condition. The command menu search
+ * moved to app.global_search (A87, test/search.test.ts).
+ */
 
 function entry(partial: Partial<ActivityEntry>): ActivityEntry {
   return {

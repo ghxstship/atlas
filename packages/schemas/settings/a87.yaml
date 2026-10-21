@@ -1,10 +1,10 @@
 # Settings registry: A87 (global search, RRR-132, finding A65-005). Section 4.5.6.
 # Field reference: see a30.yaml.
 #
-# Semantic search sends the text of the org's published documents, SOPs and handbook articles, and the words
-# people search with, to an embedding provider (a subprocessor the owner chooses, legal/OWNER_INPUTS.md). It is
-# off twice over: no provider runs unless XOS_SEARCH_EMBEDDINGS names one, and an org takes part only when an
-# Admin turns this on.
+# Semantic search embeds the text of the org's published documents, SOPs and handbook articles, and the words
+# people search with, with Supabase's built-in gte-small model in the search-embed Edge Function, so no text
+# goes to another provider. An org takes part only when an Admin turns this on; XOS_SEARCH_EMBEDDINGS=off turns
+# the model off for every org.
 contributor: a87
 settings:
   # AI features ---------------------------------------------------------------------------------------------
@@ -19,3 +19,5 @@ settings:
     enforced_by:
       - consumer: supabase/migrations/1440_global_search.sql#app.search_embedding_backlog
         test: supabase/tests/1440_global_search.test.sql
+      - consumer: apps/atlas/lib/shell/search-index.ts#queryVector
+        test: apps/atlas/test/search-index.test.ts

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Checkbox, Input, MoreFields, Select, Textarea } from "@xos/ui";
+import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useActionState, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import type { SettingDefinition } from "@xos/schemas/settings";
@@ -87,6 +88,15 @@ export function SettingsForm(props: SettingsFormProps) {
   const [seen, setSeen] = useState(state.at);
   const errors = state.errors ?? {};
   const failed = Object.keys(errors);
+  // `?setting=<key>`, from the command menu's settings results (Section 11.11): open the field.
+  const focusKey = useSearchParams().get("setting");
+  const focusing = focusKey !== null && props.fields.some((f) => f.def.key === focusKey);
+  useEffect(() => {
+    if (!focusing || focusKey === null) return;
+    const el = document.getElementById(`${id}-${focusKey}`);
+    el?.scrollIntoView({ block: "center" });
+    el?.focus({ preventScroll: true });
+  }, [focusing, focusKey, id]);
 
   // A finished save clears the staged changes that saved; the ones that failed stay changed.
   if (state.at !== seen) {
@@ -302,7 +312,7 @@ export function SettingsForm(props: SettingsFormProps) {
         {shown.map(field)}
       </ul>
       {more.length > 0 ? (
-        <MoreFields open={more.some((f) => f.def.key in errors)}>
+        <MoreFields open={more.some((f) => f.def.key in errors || f.def.key === focusKey)}>
           <ul className="m-0 flex list-none flex-col divide-y divide-border-subtle p-0">
             {more.map(field)}
           </ul>

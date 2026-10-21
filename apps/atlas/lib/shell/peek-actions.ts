@@ -3,6 +3,7 @@
 import { getRecordByKey, listStateHistory } from "@xos/data/work";
 import { z } from "zod";
 import { getOrgContext } from "./context";
+import { rememberView } from "./recents";
 
 /** What the shell's global peek shows for a record key (Section 4.5.3). */
 export interface ShellPeekRecord {
@@ -55,7 +56,11 @@ export async function loadShellPeekAction(
     return { ok: false, reason: "unexpected" };
   }
   const r = found.data;
-  const history = await listStateHistory(ctx.viewer.db, r.id);
+  const [history] = await Promise.all([
+    listStateHistory(ctx.viewer.db, r.id),
+    // The command menu's recent items (Section 11.7).
+    rememberView(ctx, "records", r.id),
+  ]);
   return {
     ok: true,
     record: {

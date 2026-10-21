@@ -272,7 +272,7 @@
     },
     "semanticSearch": {
       "label": "Búsqueda semántica",
-      "help": "La búsqueda también encuentra documentos, SOP y artículos del manual por su significado, no solo por sus palabras. Su texto y las palabras que se buscan se envían al proveedor de embeddings, un subencargado. Desactivada de forma predeterminada."
+      "help": "La búsqueda también encuentra documentos, SOP y artículos del manual por su significado, no solo por sus palabras. Su texto y las palabras que se buscan se procesan con el modelo de embeddings integrado de Supabase, dentro de la plataforma; nada se envía a otro proveedor. Desactivada de forma predeterminada."
     }
   },
   "choices": {

@@ -12971,6 +12971,10 @@ var settings_default$1 = {
       label: "Translate chat messages",
       help: "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default.",
     },
+    semanticSearch: {
+      label: "Semantic search",
+      help: "Search also finds documents, SOPs and handbook articles by meaning, not only by their words. Their text and the words people search with are processed by Supabase's built-in embedding model, inside the platform; nothing goes to another provider. Off by default.",
+    },
   },
   choices: {
     shell_start_page: {
@@ -13969,8 +13973,11 @@ var shell_default$1 = {
       actions: "Actions",
       records: "Records",
       people: "People",
+      recent: "Recent",
+      documents: "Documents",
+      settings: "Settings",
+      operators: "Search operators",
     },
-    incident: "Incident",
     actions: {
       newProject: "New project",
       newRecord: "New record",
@@ -13978,6 +13985,25 @@ var shell_default$1 = {
       approveTimesheets: "Approve timesheets",
       openApprovals: "Open approvals",
       openInbox: "Open Inbox",
+    },
+    types: {
+      incident: "Incident",
+      person: "Person",
+      document: "Document",
+      sop: "SOP",
+      article: "Handbook article",
+    },
+    related: "Related",
+    filters: "Search filters",
+    notUnderstood: "{token} is not understood",
+    operators: {
+      type: "Records of a kind, people or documents",
+      project: "A project, by key or name",
+      assignee: "Assigned to you, or to someone by name",
+      status: "A state, open or closed",
+      after: "Changed after a date, today or 7 days ago",
+      due: "Due within 7 days, today or overdue",
+      phrase: "Words together in quotes; a minus leaves a word out",
     },
   },
 };
@@ -29868,6 +29894,10 @@ var settings_default = {
       label: "Traducir mensajes del chat",
       help: "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada.",
     },
+    semanticSearch: {
+      label: "Búsqueda semántica",
+      help: "La búsqueda también encuentra documentos, SOP y artículos del manual por su significado, no solo por sus palabras. Su texto y las palabras que se buscan se procesan con el modelo de embeddings integrado de Supabase, dentro de la plataforma; nada se envía a otro proveedor. Desactivada de forma predeterminada.",
+    },
   },
   choices: {
     shell_start_page: {
@@ -30884,8 +30914,11 @@ var shell_default = {
       actions: "Acciones",
       records: "Registros",
       people: "Personas",
+      recent: "Recientes",
+      documents: "Documentos",
+      settings: "Configuración",
+      operators: "Operadores de búsqueda",
     },
-    incident: "Incidente",
     actions: {
       newProject: "Nuevo proyecto",
       newRecord: "Nuevo registro",
@@ -30893,6 +30926,25 @@ var shell_default = {
       approveTimesheets: "Aprobar hojas de horas",
       openApprovals: "Abrir aprobaciones",
       openInbox: "Abrir Bandeja",
+    },
+    types: {
+      incident: "Incidente",
+      person: "Persona",
+      document: "Documento",
+      sop: "SOP",
+      article: "Artículo del manual",
+    },
+    related: "Relacionado",
+    filters: "Filtros de búsqueda",
+    notUnderstood: "No se entiende {token}",
+    operators: {
+      type: "Registros de un tipo, personas o documentos",
+      project: "Un proyecto, por clave o nombre",
+      assignee: "Asignado a usted, o a alguien por su nombre",
+      status: "Un estado, abierto o cerrado",
+      after: "Cambiado después de una fecha, hoy o hace 7 días",
+      due: "Vence en 7 días, hoy o vencido",
+      phrase: "Palabras juntas entre comillas; un signo menos excluye una palabra",
     },
   },
 };

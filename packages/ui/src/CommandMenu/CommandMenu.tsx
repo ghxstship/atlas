@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { Command } from "cmdk";
 import { Dialog as RDialog } from "radix-ui";
 import type {
@@ -22,12 +22,16 @@ export interface CommandItem {
   shortcut?: string;
   selected?: boolean;
   onSelect?: () => void;
+  /** Keeps the menu open after the item runs, for an item that edits the search (an operator hint). */
+  keepOpen?: boolean;
 }
 
 export type CommandMenuProps = Omit<ReferenceCommandMenuProps, "groups"> & {
   groups: { label: string; items: CommandItem[] }[];
-  /** Called as the search text changes, for server-side results. */
+  /** Called as the search text changes, for server-side results. With `query`, the text is controlled. */
   onQueryChange?: (query: string) => void;
+  /** Shown between the search field and the results, for example the filters a query recognized. */
+  header?: ReactNode;
   /** Dialog mode: the menu opens over the page. Omit `open` to render the palette inline. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -47,10 +51,11 @@ function Palette({
   groups,
   onQueryChange,
   filter = true,
+  header,
   onClose,
 }: CommandMenuProps & { onClose?: () => void }) {
   const t = useT();
-  const [search, setSearch] = useControllable<string>(undefined, query ?? "", onQueryChange);
+  const [search, setSearch] = useControllable<string>(query, "", onQueryChange);
   const selected = groups.flatMap((g) =>
     g.items.filter((i) => i.selected).map((i) => itemValue(g.label, i)),
   )[0];
@@ -72,6 +77,7 @@ function Palette({
         />
         <Kbd>{t("key.esc")}</Kbd>
       </div>
+      {header}
       <Command.Empty className="px-16 py-12 text-text-secondary">{t("list.noMatch")}</Command.Empty>
       <Command.List
         label={t("command.results")}
@@ -89,7 +95,7 @@ function Palette({
                 value={itemValue(g.label, item)}
                 onSelect={() => {
                   item.onSelect?.();
-                  onClose?.();
+                  if (!item.keepOpen) onClose?.();
                 }}
                 className={cx(
                   "flex items-center gap-8 h-row-default px-8 rounded-control text-text-primary cursor-pointer",

@@ -382,6 +382,15 @@ export const HELP_CONTENT: HelpIndex = {
         order: 13,
       },
       {
+        slug: "search",
+        title: "Search",
+        summary:
+          "Find any record, person, document, setting or page from the command menu, and narrow a search with operators.",
+        kind: "guide",
+        nodes: ["*"],
+        order: 6,
+      },
+      {
         slug: "show",
         title: "Run of show, day sheets and call sheets",
         summary:
@@ -814,6 +823,15 @@ export const HELP_CONTENT: HelpIndex = {
         kind: "page",
         nodes: ["project.scope"],
         order: 13,
+      },
+      {
+        slug: "search",
+        title: "Búsqueda",
+        summary:
+          "Encuentre cualquier registro, persona, documento, configuración o página desde el menú de comandos, y acote una búsqueda con operadores.",
+        kind: "guide",
+        nodes: ["*"],
+        order: 6,
       },
       {
         slug: "show",

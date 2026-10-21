@@ -32,6 +32,7 @@ import {
 import type { Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
 import { orgToday } from "@/lib/shell/time-zone";
 import { REFUSALS, workforceCopy } from "./shared";
 
@@ -82,6 +83,8 @@ export async function HandbookSection({
     sections.data.find((s) => s.id === id)?.name ?? t("handbook.noSection");
   const visible = canWrite ? articles.data : articles.data.filter((a) => a.state === "Published");
   const selected = state.peek ? visible.find((a) => a.id === state.peek) : undefined;
+  // The command menu's recent items (Section 11.7).
+  if (selected) await rememberView(ctx, "handbook_articles", selected.id);
   const outstanding = visible.filter(
     (a) => a.mandatory && a.state === "Published" && !a.acknowledgedByMe,
   );

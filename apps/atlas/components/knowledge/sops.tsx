@@ -34,6 +34,7 @@ import { InlineAlert, PageHeader } from "@/components/collection-kit/ui";
 import { getCopy, type Copy } from "@/lib/collection-kit/i18n";
 import { collectionState, withQuery, type SearchParams } from "@/lib/collection-kit/page";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
 import { orgToday } from "@/lib/shell/time-zone";
 
 const VIEWS: readonly ViewKind[] = ["list", "table"];
@@ -80,6 +81,8 @@ export async function SopsSection({
   const canPublish = ctx.capabilities.has("knowledge.sop.publish");
   const when = (d: string) => format.dateTime(new Date(d), { dateStyle: "medium" });
   const selected = state.peek ? sops.data.find((s) => s.id === state.peek) : undefined;
+  // The command menu's recent items (Section 11.7).
+  if (selected) await rememberView(ctx, "sops", selected.id);
   const properties = (s: Sop) => [
     {
       label: t("sops.version"),

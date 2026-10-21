@@ -272,7 +272,7 @@
     },
     "semanticSearch": {
       "label": "Semantic search",
-      "help": "Search also finds documents, SOPs and handbook articles by meaning, not only by their words. Their text and the words people search with are sent to the embedding provider, a subprocessor. Off by default."
+      "help": "Search also finds documents, SOPs and handbook articles by meaning, not only by their words. Their text and the words people search with are processed by Supabase's built-in embedding model, inside the platform; nothing goes to another provider. Off by default."
     }
   },
   "choices": {

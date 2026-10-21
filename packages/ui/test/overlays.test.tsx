@@ -452,6 +452,37 @@ describe("CommandMenu", () => {
     await userEvent.click(within(dialog).getByText("Create Record"));
     expect(screen.queryByRole("dialog")).toBeNull();
   });
+
+  it("controls the search text, shows a header and keeps open for an item that edits the search", async () => {
+    function App() {
+      const [open, setOpen] = useStateHook(true);
+      const [query, setQuery] = useStateHook("");
+      return (
+        <CommandMenu
+          open={open}
+          onOpenChange={setOpen}
+          filter={false}
+          query={query}
+          onQueryChange={setQuery}
+          header={<p>Filters: {query || "none"}</p>}
+          groups={[
+            {
+              label: "Search operators",
+              items: [{ label: "type:", keepOpen: true, onSelect: () => setQuery("type:") }],
+            },
+          ]}
+        />
+      );
+    }
+    render(<App />);
+    const dialog = await screen.findByRole("dialog", { name: "Command menu" });
+    expect(within(dialog).getByText("Filters: none")).toBeTruthy();
+    await userEvent.click(within(dialog).getByText("type:"));
+    expect(screen.getByRole("dialog")).toBeTruthy();
+    expect((screen.getByRole("combobox") as HTMLInputElement).value).toBe("type:");
+    expect(within(dialog).getByText("Filters: type:")).toBeTruthy();
+    await expectAccessible(document.body);
+  });
 });
 
 describe("Tabs, SegmentedControl and Accordion", () => {

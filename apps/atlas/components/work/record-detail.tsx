@@ -29,6 +29,7 @@ import { InlineAlert, PropertyList } from "./ui";
 import { getFormatter, getLocale } from "next-intl/server";
 import { ActualsForm, DependencyEditor } from "@/components/schedule/schedule-panels";
 import type { OrgContext } from "@/lib/shell/context";
+import { rememberView } from "@/lib/shell/recents";
 import { getTranslate } from "@/lib/shell/translate";
 import { CollabPanels } from "./collab";
 import { formatWhen, slipAmount } from "./format";
@@ -130,6 +131,8 @@ export async function loadRecordDetail(ctx: OrgContext, key: string): Promise<Re
     getPunchItemForRecord(db, record.id),
     listThreads(db, subject),
     listAttachments(db, subject),
+    // The command menu's recent items (Section 11.7); beside the reads, so it adds no wait.
+    rememberView(ctx, "records", record.id),
   ]);
   return {
     record,
