@@ -9,6 +9,7 @@
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
     "./conversation": "./src/conversation.ts",
+    "./embeddings": "./src/embeddings.ts",
     "./anthropic": "./src/anthropic.ts",
     "./config/models.json": "./config/models.json"
   },
