@@ -5032,6 +5032,20 @@ var email_default$1 = {
         body: "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}",
       },
     },
+    automation: {
+      notice: {
+        subject: "{title}",
+        body: "{body} Sent by the automation {automationName}.",
+      },
+      failed: {
+        subject: "Automation failed: {automationName}",
+        body: "A run of {automationName} failed: {error}",
+      },
+      paused: {
+        subject: "Automation paused: {automationName}",
+        body: "{automationName} is off because {reason, select, owner_left_org {{ownerName} is no longer a member} owner_lost_capability {{ownerName} can no longer manage automations} owner_cannot_sign_in {{ownerName} has no sign-in} other {the API refused to act as {ownerName}}}. Turn it on again in Settings, Automations, and it runs as you.",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -14008,6 +14022,10 @@ var settings_default$1 = {
         label: "Imports and exports",
         help: "Imports that finished and exports ready to download.",
       },
+      automations: {
+        label: "Automations",
+        help: "Messages from automations, failed runs and paused automations.",
+      },
       messages: {
         label: "Messages",
         help: "New chat messages to you or your groups.",
@@ -22342,6 +22360,20 @@ var email_default = {
       break_glass_started: {
         subject: "Acceso de emergencia en {orgName}",
         body: "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}",
+      },
+    },
+    automation: {
+      notice: {
+        subject: "{title}",
+        body: "{body} Enviado por la automatización {automationName}.",
+      },
+      failed: {
+        subject: "Falló la automatización: {automationName}",
+        body: "Una ejecución de {automationName} falló: {error}",
+      },
+      paused: {
+        subject: "Automatización en pausa: {automationName}",
+        body: "{automationName} está desactivada porque {reason, select, owner_left_org {{ownerName} ya no es miembro} owner_lost_capability {{ownerName} ya no puede gestionar automatizaciones} owner_cannot_sign_in {{ownerName} no tiene inicio de sesión} other {la API se negó a actuar como {ownerName}}}. Actívala de nuevo en Configuración, Automatizaciones, y se ejecutará a tu nombre.",
       },
     },
   },
@@ -31420,6 +31452,10 @@ var settings_default = {
         label: "Importaciones y exportaciones",
         help: "Importaciones terminadas y exportaciones listas para descargar.",
       },
+      automations: {
+        label: "Automatizaciones",
+        help: "Mensajes de automatizaciones, ejecuciones fallidas y automatizaciones en pausa.",
+      },
       messages: {
         label: "Mensajes",
         help: "Mensajes de chat nuevos para ti o tus grupos.",
@@ -36868,7 +36904,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$7(name) {
+function text$8(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -36897,12 +36933,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$7("heading-20"),
+    ...text$8("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$7("label-13"),
+    ...text$8("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -36914,7 +36950,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$7("text-12"),
+    ...text$8("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -36924,7 +36960,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$7("text-14"),
+      ...text$8("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -37090,7 +37126,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$7("text-14"),
+                          ...text$8("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -37712,6 +37748,42 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "automation.notice",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.notice.subject",
+      body: "kinds.automation.notice.body",
+    },
+  },
+  {
+    kind: "automation.failed",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.failed.subject",
+      body: "kinds.automation.failed.body",
+    },
+  },
+  {
+    kind: "automation.paused",
+    category: "automations",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.automation.paused.subject",
+      body: "kinds.automation.paused.body",
+    },
+  },
+  {
     kind: "message.received",
     category: "messages",
     emailTemplate: "notification",
@@ -37835,7 +37907,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1368_notification_kind_seed.sql"
+"supabase/migrations/1489_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -38967,7 +39039,7 @@ function supabaseDb(client) {
 function rows$3(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$6(row, key) {
+function text$7(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -38991,7 +39063,7 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text$6(row, "stripe_event_row_id");
+      const rowId = text$7(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
@@ -39047,11 +39119,11 @@ function webhookStore(db) {
   return {
     async claim(limit) {
       return rows$3(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$6(row, "delivery_id"),
-        url: text$6(row, "url"),
-        eventType: text$6(row, "event_type"),
-        body: text$6(row, "body"),
-        signature: text$6(row, "signature"),
+        deliveryId: text$7(row, "delivery_id"),
+        url: text$7(row, "url"),
+        eventType: text$7(row, "event_type"),
+        body: text$7(row, "body"),
+        signature: text$7(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -39094,7 +39166,7 @@ async function recipientProfile(db, personId) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text$6((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$7((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
       return rows$3(
@@ -39103,12 +39175,12 @@ function notificationStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$6(row, "delivery_id"),
-        orgId: text$6(row, "org_id"),
-        recipientPersonId: text$6(row, "recipient_person_id"),
-        address: text$6(row, "address"),
-        kind: text$6(row, "kind"),
-        emailTemplateCode: text$6(row, "email_template_code"),
+        deliveryId: text$7(row, "delivery_id"),
+        orgId: text$7(row, "org_id"),
+        recipientPersonId: text$7(row, "recipient_person_id"),
+        address: text$7(row, "address"),
+        kind: text$7(row, "kind"),
+        emailTemplateCode: text$7(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$2(row, "subject_table"),
         subjectId: optionalText$2(row, "subject_id"),
@@ -39116,8 +39188,8 @@ function notificationStore(db, options) {
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$6(org, "slug");
-      const name = text$6(org, "name");
+      const slug = text$7(org, "slug");
+      const name = text$7(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -39203,7 +39275,7 @@ async function kioskPunch(db, input) {
 function rows$2(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$5(row, key) {
+function text$6(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -39258,12 +39330,12 @@ function pushStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$5(row, "delivery_id"),
-        notificationId: text$5(row, "notification_id"),
-        orgId: text$5(row, "org_id"),
-        recipientPersonId: text$5(row, "recipient_person_id"),
-        kind: text$5(row, "kind"),
-        categoryCode: text$5(row, "category_code"),
+        deliveryId: text$6(row, "delivery_id"),
+        notificationId: text$6(row, "notification_id"),
+        orgId: text$6(row, "org_id"),
+        recipientPersonId: text$6(row, "recipient_person_id"),
+        kind: text$6(row, "kind"),
+        categoryCode: text$6(row, "category_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
@@ -39288,7 +39360,7 @@ function pushStore(db) {
     },
     async claimReceipts(limit) {
       return rows$2(await db.rpc("claim_push_receipts", { p_limit: limit })).map((r) =>
-        text$5(r, "ticket_id"),
+        text$6(r, "ticket_id"),
       );
     },
     async recordReceipts(receipts) {
@@ -39306,7 +39378,7 @@ function smsStore(db, options) {
   const org = async (orgId) =>
     (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
   const inbox = async (orgId) =>
-    `${options.appUrl.replace(/\/$/, "")}/${text$5(await org(orgId), "slug")}/inbox`;
+    `${options.appUrl.replace(/\/$/, "")}/${text$6(await org(orgId), "slug")}/inbox`;
   return {
     async claimSms(limit) {
       return rows$2(
@@ -39315,17 +39387,17 @@ function smsStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$5(row, "delivery_id"),
-        orgId: text$5(row, "org_id"),
-        recipientPersonId: text$5(row, "recipient_person_id"),
-        address: text$5(row, "address"),
-        kind: text$5(row, "kind"),
+        deliveryId: text$6(row, "delivery_id"),
+        orgId: text$6(row, "org_id"),
+        recipientPersonId: text$6(row, "recipient_person_id"),
+        address: text$6(row, "address"),
+        kind: text$6(row, "kind"),
         messageArgs: row["message_args"] ?? {},
       }));
     },
     recipient: (personId) => recipientProfile(db, personId),
     async orgName(orgId) {
-      return text$5(await org(orgId), "name");
+      return text$6(await org(orgId), "name");
     },
     linkFor: (claim) => inbox(claim.orgId),
     inboxLink: inbox,
@@ -39342,12 +39414,12 @@ function smsStore(db, options) {
         const ids = row["delivery_ids"];
         const count = row["held_count"];
         return {
-          orgId: text$5(row, "org_id"),
-          recipientPersonId: text$5(row, "recipient_person_id"),
-          address: text$5(row, "address"),
+          orgId: text$6(row, "org_id"),
+          recipientPersonId: text$6(row, "recipient_person_id"),
+          address: text$6(row, "address"),
           deliveryIds: Array.isArray(ids) ? ids.filter((i) => typeof i === "string") : [],
           heldCount: typeof count === "number" ? count : 0,
-          kind: text$5(row, "kind"),
+          kind: text$6(row, "kind"),
           messageArgs: row["message_args"] ?? {},
         };
       });
@@ -39393,7 +39465,7 @@ function translationStore(db) {
       });
       if (row === null || optionalText$1(row, "deleted_at") !== null) return null;
       return {
-        orgId: text$5(row, "org_id"),
+        orgId: text$6(row, "org_id"),
         body: optionalText$1(row, "body"),
         language: optionalText$1(row, "language"),
       };
@@ -40156,7 +40228,7 @@ async function runUploadScans(options) {
 function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$4(row, key) {
+function text$5(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -40181,8 +40253,8 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        jobId: text$4(row, "id"),
-        attachmentVersionId: text$4(row, "subject_id"),
+        jobId: text$5(row, "id"),
+        attachmentVersionId: text$5(row, "subject_id"),
         attempts: count(row, "attempts"),
       }));
     },
@@ -40194,11 +40266,11 @@ function scanStore(db) {
       );
       if (row === null) return null;
       return {
-        objectName: text$4(row, "object_name"),
-        filename: text$4(row, "filename"),
-        contentType: text$4(row, "content_type"),
+        objectName: text$5(row, "object_name"),
+        filename: text$5(row, "filename"),
+        contentType: text$5(row, "content_type"),
         checksumSha256: optionalText(row, "checksum_sha256"),
-        scanStatus: text$4(row, "scan_status"),
+        scanStatus: text$5(row, "scan_status"),
       };
     },
     async recordAttachmentScan(attachmentVersionId, clean, detail) {
@@ -40226,9 +40298,9 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        objectScanId: text$4(row, "object_scan_id"),
-        bucketId: text$4(row, "bucket_id"),
-        objectName: text$4(row, "object_name"),
+        objectScanId: text$5(row, "object_scan_id"),
+        bucketId: text$5(row, "bucket_id"),
+        objectName: text$5(row, "object_name"),
         contentType: optionalText(row, "content_type"),
         attempts: count(row, "attempts"),
       }));
@@ -40572,11 +40644,11 @@ var VALUE_PATTERNS = [
     replace: "[ip]",
   },
 ];
-var UUID$2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var UUID$3 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 var DEFAULT_MAX_DEPTH = 8;
 var DEFAULT_MAX_STRING = 4096;
 function redactString(input, maxLength = DEFAULT_MAX_STRING) {
-  if (UUID$2.test(input)) return input;
+  if (UUID$3.test(input)) return input;
   let out = input;
   for (const { pattern, replace } of VALUE_PATTERNS) {
     pattern.lastIndex = 0;
@@ -42145,7 +42217,7 @@ async function runReportJobs(options) {
   }
   return results;
 }
-function text$3(row, key) {
+function text$4(row, key) {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
@@ -42168,8 +42240,8 @@ function supabaseReportRunStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text$3(r, "id"),
-        runId: text$3(r, "subject_id"),
+        jobId: text$4(r, "id"),
+        runId: text$4(r, "subject_id"),
       }));
     },
     async run(runId) {
@@ -42183,11 +42255,11 @@ function supabaseReportRunStore(client) {
       if (!data) return null;
       const row = data;
       return {
-        orgId: text$3(row, "org_id"),
-        reportDefinitionId: text$3(row, "report_definition_id"),
-        membershipId: text$3(row, "run_for_membership_id"),
-        exportFormat: text$3(row, "export_format"),
-        runStatus: text$3(row, "run_status"),
+        orgId: text$4(row, "org_id"),
+        reportDefinitionId: text$4(row, "report_definition_id"),
+        membershipId: text$4(row, "run_for_membership_id"),
+        exportFormat: text$4(row, "export_format"),
+        runStatus: text$4(row, "run_status"),
       };
     },
     async definition(id, membershipId) {
@@ -42468,7 +42540,7 @@ function resendMailer(client, from, allowed) {
     },
   };
 }
-var text$2 = (row, key) => {
+var text$3 = (row, key) => {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
@@ -42502,25 +42574,25 @@ function supabaseReportDeliveryStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text$2(r, "id"),
-        deliveryId: text$2(r, "subject_id"),
+        jobId: text$3(r, "id"),
+        deliveryId: text$3(r, "subject_id"),
       }));
     },
     async delivery(id) {
       const r = (await call("report_delivery", { p_delivery_id: id }))?.[0];
       if (!r) return null;
       return {
-        deliveryId: text$2(r, "delivery_id"),
-        orgName: text$2(r, "org_name"),
-        reportName: text$2(r, "report_name"),
-        exportFormat: text$2(r, "export_format"),
+        deliveryId: text$3(r, "delivery_id"),
+        orgName: text$3(r, "org_name"),
+        reportName: text$3(r, "report_name"),
+        exportFormat: text$3(r, "export_format"),
         storagePath: textOrNull(r, "storage_object_path"),
         rowCount: numberOrNull(r, "row_count"),
         unpricedCount: numberOrNull(r, "unpriced_count"),
         recipientEmail: textOrNull(r, "recipient_email"),
         recipientName: textOrNull(r, "recipient_name"),
-        status: text$2(r, "delivery_status"),
-        scheduledFor: text$2(r, "scheduled_for"),
+        status: text$3(r, "delivery_status"),
+        scheduledFor: text$3(r, "scheduled_for"),
       };
     },
     async finish(id, outcome) {
@@ -43775,7 +43847,7 @@ async function runIntegrationJobs(options) {
   const outcomes = [];
   for (const job of jobs)
     try {
-      const outcome = await runOne$1(options, job);
+      const outcome = await runOne$2(options, job);
       await options.queue.finish(job.id, true, null);
       outcomes.push(outcome);
     } catch (error) {
@@ -43790,7 +43862,7 @@ async function runIntegrationJobs(options) {
     }
   return outcomes;
 }
-async function runOne$1(options, job) {
+async function runOne$2(options, job) {
   const runId = job.subjectId;
   let run;
   try {
@@ -45719,7 +45791,7 @@ function token$1(context) {
     });
   return context.credential.token;
 }
-var text$1 = (value, fallback) =>
+var text$2 = (value, fallback) =>
   typeof value === "string" && value.length > 0 ? value : fallback;
 /** The message for one routed event, in the org's locale. Unknown event types get the generic line. */
 function notificationText$1(event, t) {
@@ -45727,18 +45799,18 @@ function notificationText$1(event, t) {
   switch (event.eventType) {
     case "record.created":
       return t("chat.event.recordCreated", {
-        kind: text$1(event.data["record_kind"], "record"),
+        kind: text$2(event.data["record_kind"], "record"),
         project,
-        title: text$1(event.data["title"], ""),
+        title: text$2(event.data["title"], ""),
       });
     case "record.state_changed":
       return t("chat.event.recordStateChanged", {
         project,
-        from: text$1(event.data["from_state"], ""),
-        to: text$1(event.data["to_state"], ""),
+        from: text$2(event.data["from_state"], ""),
+        to: text$2(event.data["to_state"], ""),
       });
     case "project.created":
-      return t("chat.event.projectCreated", { name: text$1(event.data["name"], project) });
+      return t("chat.event.projectCreated", { name: text$2(event.data["name"], project) });
     case "invoice.issued":
       return t("chat.event.invoiceIssued", { project });
     case "incident.reported":
@@ -47044,7 +47116,7 @@ function verifySharedToken(expected, received) {
 }
 var MAX_LINKS = 20;
 var MAX_CHANGES = 50;
-var UUID$1 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var UUID$2 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function problem(status, title) {
   return new Response(
     JSON.stringify({
@@ -47192,7 +47264,7 @@ async function slackCommand(request, body, deps) {
 }
 /** A connection of the named provider, by the id in the endpoint path, that is not disconnected. */
 async function pathConnection(segment, provider, deps) {
-  if (segment === void 0 || !UUID$1.test(segment)) return null;
+  if (segment === void 0 || !UUID$2.test(segment)) return null;
   const connection = await deps.store.connection(segment);
   return connection !== null &&
     connection.providerCode === provider &&
@@ -47609,12 +47681,12 @@ function supabaseInboundEventStore(db) {
     },
   };
 }
-function base64url(bytes) {
+function base64url$1(bytes) {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-var encode = (value) => base64url(new TextEncoder().encode(JSON.stringify(value)));
+var encode$1 = (value) => base64url$1(new TextEncoder().encode(JSON.stringify(value)));
 /** An HS256 JWT acting as `userId` for CHAT_SESSION_SECONDS, marked as a chat session in `amr`. */
 async function mintChatSession(
   userId,
@@ -47623,10 +47695,10 @@ async function mintChatSession(
   nowSeconds = Math.floor(Date.now() / 1e3),
 ) {
   if (signingKey.length < 32) throw new Error("The JWT signing key is too short.");
-  const head = `${encode({
+  const head = `${encode$1({
     alg: "HS256",
     typ: "JWT",
-  })}.${encode({
+  })}.${encode$1({
     iss: issuer,
     sub: userId,
     aud: "authenticated",
@@ -47652,7 +47724,7 @@ async function mintChatSession(
     ["sign"],
   );
   const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
-  return `${head}.${base64url(new Uint8Array(signature))}`;
+  return `${head}.${base64url$1(new Uint8Array(signature))}`;
 }
 //#endregion
 //#region ../integrations/src/warehouse/parquet.ts
@@ -48421,7 +48493,7 @@ function publishedSchema(columns) {
     })),
   };
 }
-async function runOne(deliveryId, options) {
+async function runOne$1(deliveryId, options) {
   let delivery;
   try {
     delivery = await options.store.claim(deliveryId);
@@ -48472,7 +48544,7 @@ async function runWarehouseDeliveries(options) {
   const outcomes = [];
   for (const job of jobs)
     try {
-      outcomes.push(await runOne(job.subjectId, options));
+      outcomes.push(await runOne$1(job.subjectId, options));
       await options.queue.finish(job.id, true, null);
     } catch (error) {
       await options.queue.finish(
@@ -49097,7 +49169,7 @@ var UnreadableUploadError = class extends Error {
 };
 var INTEGER = /^-?\d+$/;
 var CURRENCY = /^[A-Z]{3}$/;
-var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+var UUID$1 = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function isTimeZone(zone) {
   try {
     new Intl.DateTimeFormat("en-US", { timeZone: zone });
@@ -49474,7 +49546,7 @@ var TABLES = {
   vendor_products: "vendor_products",
   asset_units: "asset_units",
 };
-function text(row, key) {
+function text$1(row, key) {
   const v = row?.[key];
   if (typeof v !== "string") throw new Error(`Expected text in ${key} of the database response.`);
   return v;
@@ -49533,7 +49605,7 @@ function supabaseImportStore(client) {
             cp["counterparty_name"].toLowerCase() === name.toLowerCase()
           );
         });
-        return match ? text(match, "id") : null;
+        return match ? text$1(match, "id") : null;
       },
       async elementExists(id) {
         return (
@@ -49551,10 +49623,10 @@ function supabaseImportStore(client) {
           .is("deleted_at", null)
           .limit(1);
         const row = await one(
-          UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
+          UUID$1.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
           "asset classes",
         );
-        return row ? text(row, "id") : null;
+        return row ? text$1(row, "id") : null;
       },
       async venueId(orgId, idOrName) {
         const query = app
@@ -49564,10 +49636,10 @@ function supabaseImportStore(client) {
           .is("deleted_at", null)
           .limit(1);
         const row = await one(
-          UUID.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
+          UUID$1.test(idOrName) ? query.eq("id", idOrName) : query.ilike("name", idOrName),
           "venues",
         );
-        return row ? text(row, "id") : null;
+        return row ? text$1(row, "id") : null;
       },
       async strongKeyMatch(orgId, targetCode, values) {
         const table = TABLES[targetCode];
@@ -49580,7 +49652,7 @@ function supabaseImportStore(client) {
           .limit(1);
         for (const [k, v] of Object.entries(values)) query = query.eq(k, v);
         const row = await one(query, table);
-        return row ? text(row, "id") : null;
+        return row ? text$1(row, "id") : null;
       },
       async create(orgId, targetCode, values) {
         if (targetCode === "counterparties") {
@@ -49609,12 +49681,12 @@ function supabaseImportStore(client) {
             .from("counterparties")
             .insert({
               org_id: orgId,
-              organization_id: text(org, "id"),
+              organization_id: text$1(org, "id"),
               counterparty_type: values["counterparty_type"] ?? null,
             })
             .select("id");
           if (error) throw new ImportWriteError(error.message);
-          return text(data[0], "id");
+          return text$1(data[0], "id");
         }
         const table = TABLES[targetCode];
         if (!table) throw new ImportWriteError(`${targetCode} is not an import target.`);
@@ -49626,7 +49698,7 @@ function supabaseImportStore(client) {
           })
           .select("id");
         if (error) throw new ImportWriteError(error.message);
-        return text(data[0], "id");
+        return text$1(data[0], "id");
       },
       async update(targetCode, id, values) {
         const table = TABLES[targetCode];
@@ -49655,8 +49727,8 @@ function supabaseImportStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text(r, "id"),
-        subjectId: text(r, "subject_id"),
+        jobId: text$1(r, "id"),
+        subjectId: text$1(r, "subject_id"),
       }));
     },
     async finishJob(jobId, succeeded, error) {
@@ -49682,13 +49754,13 @@ function supabaseImportStore(client) {
       const optional = (key) => (typeof row?.[key] === "string" ? row[key] : null);
       return row
         ? {
-            id: text(row, "id"),
-            orgId: text(row, "org_id"),
-            targetCode: text(row, "target_code"),
-            source: text(row, "source"),
-            path: text(row, "storage_object_path"),
-            filename: text(row, "original_filename"),
-            status: text(row, "import_status"),
+            id: text$1(row, "id"),
+            orgId: text$1(row, "org_id"),
+            targetCode: text$1(row, "target_code"),
+            source: text$1(row, "source"),
+            path: text$1(row, "storage_object_path"),
+            filename: text$1(row, "original_filename"),
+            status: text$1(row, "import_status"),
             profileId: optional("import_mapping_profile_id"),
             sheetName: optional("sheet_name"),
             sourceUrl: optional("source_url"),
@@ -49736,15 +49808,15 @@ function supabaseImportStore(client) {
         columns: (columns.data ?? [])
           .filter((c) => typeof c["header"] === "string" && typeof c["target"] === "string")
           .map((c) => ({
-            sheet: text(c, "sheet_name"),
-            header: text(c, "header"),
-            target: text(c, "target"),
+            sheet: text$1(c, "sheet_name"),
+            header: text$1(c, "header"),
+            target: text$1(c, "target"),
           })),
         sheets: (sheets.data ?? [])
           .filter((s) => typeof s["entity"] === "string")
           .map((s) => ({
-            sheet: text(s, "sheet_name"),
-            entity: text(s, "entity"),
+            sheet: text$1(s, "sheet_name"),
+            entity: text$1(s, "entity"),
           })),
       };
     },
@@ -49755,14 +49827,14 @@ function supabaseImportStore(client) {
       if (error) throw new Error(`import_target_fields: ${error.message}`);
       const byTarget = /* @__PURE__ */ new Map();
       for (const f of data ?? []) {
-        const code = text(f, "target_code");
+        const code = text$1(f, "target_code");
         const entry = byTarget.get(code) ?? {
           code,
           fields: [],
           required: [],
         };
-        entry.fields.push(text(f, "field_name"));
-        if (f["required"] === true) entry.required.push(text(f, "field_name"));
+        entry.fields.push(text$1(f, "field_name"));
+        if (f["required"] === true) entry.required.push(text$1(f, "field_name"));
         byTarget.set(code, entry);
       }
       return [...byTarget.values()].sort((a, b) => a.code.localeCompare(b.code));
@@ -49782,7 +49854,7 @@ function supabaseImportStore(client) {
       );
       if (!connection) return null;
       const secret = await call("read_integration_credential", {
-        p_connection_id: text(connection, "id"),
+        p_connection_id: text$1(connection, "id"),
       });
       return typeof secret === "string" ? secret : null;
     },
@@ -49810,7 +49882,7 @@ function supabaseImportStore(client) {
         app.from("import_batches").select("import_job_id").eq("id", batchId),
         "import_batches",
       );
-      return row ? text(row, "import_job_id") : null;
+      return row ? text$1(row, "import_job_id") : null;
     },
     async scanStatus(path) {
       const status = await call("object_scan_status", {
@@ -49831,7 +49903,7 @@ function supabaseImportStore(client) {
         .eq("target_code", targetCode);
       if (error) throw new Error(`import_target_fields: ${error.message}`);
       return (data ?? []).map((f) => ({
-        name: text(f, "field_name"),
+        name: text$1(f, "field_name"),
         required: f["required"] === true,
         strongKey: f["strong_key"] === true,
       }));
@@ -49844,7 +49916,10 @@ function supabaseImportStore(client) {
         .is("deleted_at", null);
       if (error) throw new Error(`import_mapping_profile_fields: ${error.message}`);
       return new Map(
-        (data ?? []).map((r) => [text(r, "source_header").toLowerCase(), text(r, "field_name")]),
+        (data ?? []).map((r) => [
+          text$1(r, "source_header").toLowerCase(),
+          text$1(r, "field_name"),
+        ]),
       );
     },
     async setStatus(jobId, status) {
@@ -49933,13 +50008,13 @@ function supabaseImportStore(client) {
           (m) => m["decision"] === "Merged" && m["deleted_at"] === null,
         );
         return {
-          id: text(r, "id"),
+          id: text$1(r, "id"),
           rowNumber: Number(r["row_number"]),
-          matchedId: match ? text(match, "target_id") : null,
+          matchedId: match ? text$1(match, "target_id") : null,
           mergeInto: merged
             ? {
-                table: text(merged, "candidate_table"),
-                id: text(merged, "candidate_id"),
+                table: text$1(merged, "candidate_table"),
+                id: text$1(merged, "candidate_id"),
               }
             : null,
         };
@@ -49971,6 +50046,1039 @@ function supabaseImportStore(client) {
     },
   };
 }
+z.enum(["NO_ANSWER", "UNRATIFIED", "REFUSE"]).meta({
+  id: "Refusal",
+  description:
+    "Refusal outcome (Section 3.7). NO_ANSWER: the data does not support an answer. UNRATIFIED: the value is proposed and not ratified. REFUSE: a rule forbids the action.",
+  example: "REFUSE",
+});
+/** The nine record states (Section 3.10). */
+var RecordState = z
+  .enum([
+    "Proposed",
+    "Ready",
+    "Scheduled",
+    "Active",
+    "Blocked",
+    "In Review",
+    "Complete",
+    "Deferred",
+    "Canceled",
+  ])
+  .meta({
+    id: "RecordState",
+    description:
+      "Record state (Section 3.10). Blocked names its blocker, Deferred carries a replan reason, Canceled is retained.",
+    example: "Scheduled",
+  });
+z.enum(["Draft", "Pending Approval", "Published", "Paused", "Filled", "Closed", "Canceled"]).meta({
+  id: "OpportunityState",
+  description: "Opportunity lifecycle state.",
+  example: "Published",
+});
+z.enum([
+  "Submitted",
+  "In Review",
+  "Shortlisted",
+  "Offered",
+  "Accepted",
+  "Declined",
+  "Withdrawn",
+  "Not Selected",
+]).meta({
+  id: "ApplicationState",
+  description: "Application lifecycle state.",
+  example: "Submitted",
+});
+z.enum(["Onboarding", "Blocked", "Active", "Closing", "Complete", "Canceled"]).meta({
+  id: "EngagementState",
+  description:
+    "Engagement lifecycle state. Active requires every blocking onboarding item to pass.",
+  example: "Onboarding",
+});
+z.enum(["Open", "In Period", "Closing", "Closed", "Audited", "Archived"]).meta({
+  id: "AccountingPeriodState",
+  description: "Accounting period lifecycle. A closed period refuses postings.",
+  example: "Open",
+});
+z.enum(["Valid", "Invalid", "Written", "Refused", "Skipped"]).meta({
+  id: "ImportRowState",
+  description: "Import row result state.",
+  example: "Valid",
+});
+z.enum(["Met", "Gap", "Unknown"]).meta({
+  id: "ReconciliationResult",
+  description:
+    "Requirement against capability result. Unknown against a critical requirement is a gap at gate 3.",
+  example: "Met",
+});
+z.enum(["require", "provide"]).meta({
+  id: "Direction",
+  description: "Require (a requirement) or provide (a capability).",
+  example: "require",
+});
+z.enum([
+  "Client",
+  "Vendor",
+  "Contractor",
+  "Crew",
+  "Staff",
+  "Artist",
+  "Artist Representative",
+  "Sponsor",
+]).meta({
+  id: "ExternalRoleType",
+  description: "External role type (Section 4.4.2).",
+  example: "Crew",
+});
+z.enum(["Owner", "Admin", "Manager", "Member", "Collaborator", "Field", "Viewer"]).meta({
+  id: "OrgRole",
+  description: "Platform role in band order (Section 8).",
+  example: "Manager",
+});
+z.enum(["Producer", "Department Head", "Coordinator", "Field Supervisor", "Field"]).meta({
+  id: "ProjectRole",
+  description: "Project role (Section 8).",
+  example: "Producer",
+});
+z.enum(["Account Owner", "Account Admin", "Account Finance", "Account Member"]).meta({
+  id: "AccountRole",
+  description: "Role inside an external account.",
+  example: "Account Finance",
+});
+z.enum(["Invited", "Pool", "Network", "Public"]).meta({
+  id: "OpportunityVisibility",
+  description: "Who can see an opportunity.",
+  example: "Pool",
+});
+z.enum(["Public", "Network", "Private"]).meta({
+  id: "ProfileVisibility",
+  description:
+    "Profile visibility. Sections and fields may be set lower than the profile, never higher.",
+  example: "Private",
+});
+z.enum(["Preferred", "Approved", "Do Not Engage"]).meta({
+  id: "PoolLevel",
+  description:
+    "Talent or vendor pool level. Do Not Engage is internal only and needs a reason and review date.",
+  example: "Preferred",
+});
+z.enum(["Hourly", "Day", "Flat", "Milestone", "Bid"]).meta({
+  id: "RateType",
+  description: "Compensation rate type.",
+  example: "Day",
+});
+z.enum(["Public", "Internal", "Confidential", "Restricted"]).meta({
+  id: "Classification",
+  description: "Column classification (Section 8.3).",
+  example: "Restricted",
+});
+z.enum(["Offers", "Advance", "Settlement", "Documents"]).meta({
+  id: "RepresentationScope",
+  description: "Scope a representation delegates.",
+  example: "Advance",
+});
+z.enum(["Vendor Of", "Client Of", "Partner Of", "Represents"]).meta({
+  id: "OrganizationRelationshipKind",
+  description: "Kind of relationship one organization holds to another.",
+  example: "Vendor Of",
+});
+z.enum(["Lodging", "Catering", "Travel", "Amenity"]).meta({
+  id: "FulfillmentKind",
+  description: "Hospitality fulfillment kind.",
+  example: "Lodging",
+});
+z.enum([
+  "Purchase Order",
+  "Change Order",
+  "Expense",
+  "Invoice Approval",
+  "Contract",
+  "Payroll Run",
+]).meta({
+  id: "SpendDocumentType",
+  description: "Document type a spend limit applies to.",
+  example: "Purchase Order",
+});
+z.enum(["CSV", "XLSX", "PDF"]).meta({
+  id: "ExportFormat",
+  description: "Export file format.",
+  example: "CSV",
+});
+z.enum(["Personal", "Project", "Team", "Workspace", "Organization", "Platform"]).meta({
+  id: "SettingScope",
+  description: "Scope a setting value applies to, most specific first (Section 4.5.6).",
+  example: "Organization",
+});
+//#endregion
+//#region ../schemas/src/automations/model.ts
+/**
+ * Automations (A91, ADR 0047, finding A65-010): the JSON document form of an automation's conditions and actions.
+ * The API, Atlas and the worker exchange these documents; the database stores them as rows (migration 1480,
+ * app.automation_conditions and app.automation_actions) and validates them with its SQL twins,
+ * private.automation_conditions_refusal and private.automation_actions_refusal. `automation.schema.json` beside
+ * this package's package.json is the JSON Schema rendering of these Zod schemas (generate:automations).
+ *
+ * Both validators run the shared vectors in ./vectors.json, so a document one accepts the other accepts. JSON Schema
+ * cannot say everything the Zod schema checks (the total of 20 conditions and groups, a title that is not only
+ * spaces); the refinements carry those, and the database checks them again.
+ */
+/** Limits shared with the database (1480, 1481). */
+var AUTOMATION_LIMITS = {
+  conditions: 20,
+  actions: 10,
+  name: 120,
+  description: 500,
+  title: 200,
+  body: 2e3,
+  value: 1e3,
+  dueInDays: 365,
+  pathSegments: 8,
+  /** private.automation_max_depth(): runs deeper in an automation-caused chain are Skipped (loop_depth). */
+  maxDepth: 3,
+  /** private.automation_hourly_run_limit(): runs an org may start in an hour. */
+  runsPerHour: 1e3,
+};
+/** A path into the event body: lower-case segments joined by dots, at most eight. */
+var FIELD_PATH = /^[a-z][a-z0-9_]*(\.[a-z0-9_]+){0,7}$/;
+/** An id as the database writes it. */
+var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/** An event type of the catalog (private.domain_event_types). */
+var EVENT_TYPE = /^[a-z][a-z_]*\.[a-z][a-z_]*$/;
+/** Trims spaces only, as Postgres btrim does by default. */
+function trimSpaces(text) {
+  return text.replace(/^ +| +$/g, "");
+}
+/** Length in code points, as Postgres char_length counts. */
+function codePoints(text) {
+  return Array.from(text).length;
+}
+var field = z.string().regex(FIELD_PATH).meta({
+  description: "Path into the event, such as data.record_kind.",
+  example: "data.record_kind",
+});
+var valueText = z
+  .string()
+  .max(AUTOMATION_LIMITS.value)
+  .refine((v) => codePoints(v) <= AUTOMATION_LIMITS.value, {
+    message: "At most 1,000 characters.",
+  });
+var IsNullCondition = z
+  .object({
+    field,
+    operator: z.literal("is_null"),
+    value: z
+      .enum(["true", "false"])
+      .nullable()
+      .optional()
+      .meta({
+        description: "true (or absent) holds for a missing value, false for a present one.",
+      }),
+  })
+  .strict();
+var InCondition = z
+  .object({
+    field,
+    operator: z.literal("in"),
+    value: valueText
+      .regex(/[^, ]/, { message: "List at least one value, separated by commas." })
+      .meta({
+        description: "Comma-separated values, each trimmed.",
+        example: "Build, Task",
+      }),
+  })
+  .strict();
+var ValueCondition = z
+  .object({
+    field,
+    operator: z.enum(["eq", "ne", "lt", "lte", "gt", "gte", "contains"]),
+    value: valueText.meta({
+      description: "Value compared, as text.",
+      example: "Task",
+    }),
+  })
+  .strict();
+var AutomationCondition = z.union([ValueCondition, InCondition, IsNullCondition]).meta({
+  id: "AutomationCondition",
+  description:
+    "One condition: a path of the event, an API filter operator (ADR 0003) and a text value. Numbers compare numerically, strings by code point; contains folds ASCII case or finds an array element; every operator but is_null is false on a missing value.",
+});
+var conditionList = z.array(AutomationCondition).min(1).max(AUTOMATION_LIMITS.conditions);
+var AutomationConditionGroup = z
+  .union([z.object({ all: conditionList }).strict(), z.object({ any: conditionList }).strict()])
+  .meta({
+    id: "AutomationConditionGroup",
+    description: "A group of conditions that all, or any one, must hold. Groups nest one level.",
+  });
+var item = z.union([AutomationCondition, AutomationConditionGroup]);
+var itemList = z.array(item).max(AUTOMATION_LIMITS.conditions);
+/** Conditions and groups in a document, counted as the database counts them. */
+function countConditions(items) {
+  return items.reduce((total, entry) => {
+    if ("all" in entry) return total + 1 + entry.all.length;
+    if ("any" in entry) return total + 1 + entry.any.length;
+    return total + 1;
+  }, 0);
+}
+var withinTotal = (items) => countConditions(items) <= AUTOMATION_LIMITS.conditions;
+var totalMessage = { message: "An automation has at most 20 conditions and groups." };
+var AutomationConditions = z
+  .union([
+    z.object({ all: itemList.refine(withinTotal, totalMessage) }).strict(),
+    z.object({ any: itemList.refine(withinTotal, totalMessage) }).strict(),
+  ])
+  .meta({
+    id: "AutomationConditions",
+    description:
+      'An automation\'s conditions: {"all": [...]} or {"any": [...]} of conditions and one-level groups, at most 20 in all. An empty list always holds.',
+    example: {
+      all: [
+        {
+          field: "data.record_kind",
+          operator: "eq",
+          value: "Task",
+        },
+      ],
+    },
+  });
+var title = z
+  .string()
+  .min(1)
+  .max(AUTOMATION_LIMITS.title)
+  .refine((t) => {
+    const n = codePoints(trimSpaces(t));
+    return n >= 1 && n <= AUTOMATION_LIMITS.title;
+  }, "1 to 200 characters.")
+  .meta({
+    description: "Text; event paths in double braces are filled in, such as {{data.title}}.",
+    example: "Review {{data.title}}",
+  });
+var body = z
+  .string()
+  .min(1)
+  .max(AUTOMATION_LIMITS.body)
+  .refine((t) => {
+    const n = codePoints(trimSpaces(t));
+    return n >= 1 && n <= AUTOMATION_LIMITS.body;
+  }, "1 to 2,000 characters.")
+  .meta({
+    description: "Text; event paths in double braces are filled in, such as {{data.title}}.",
+    example: "Picked up {{data.title}}.",
+  });
+var id = (description) =>
+  z.string().regex(UUID).meta({
+    description,
+    example: "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+  });
+var CreateTask = z
+  .object({
+    type: z.literal("create_task"),
+    title,
+    project_id: id(
+      "Project the Task goes in, under its engagement root; null for the event's project.",
+    )
+      .nullable()
+      .optional(),
+    phase_code: z
+      .string()
+      .regex(/^[A-Z]{3}$/)
+      .meta({
+        description: "Gated phase of the Task.",
+        example: "SCP",
+      }),
+    xyz: z.enum(["X", "Y", "Z"]).meta({
+      description: "Declared XYZ tag of the Task.",
+      example: "Y",
+    }),
+    due_in_days: z.int().min(0).max(AUTOMATION_LIMITS.dueInDays).nullable().optional().meta({
+      description: "Due at 17:00 on the org's calendar this many days after the run.",
+      example: 2,
+    }),
+  })
+  .strict();
+var STATES_WITH_NOTES = ["Blocked", "Deferred"];
+var PLAIN_STATES = RecordState.options.filter((s) => !STATES_WITH_NOTES.includes(s));
+var UpdateStatus = z.union([
+  z
+    .object({
+      type: z.literal("update_status"),
+      to_state: z
+        .enum(PLAIN_STATES)
+        .meta({ description: "Record state the subject record moves to." }),
+      note: body.nullable().optional(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal("update_status"),
+      to_state: z.enum(STATES_WITH_NOTES),
+      note: body.meta({ description: "The blocker (Blocked) or the replan reason (Deferred)." }),
+    })
+    .strict(),
+]);
+var Assign = z
+  .object({
+    type: z.literal("assign"),
+    assignee_person_id: id("Member who becomes the subject record's owner."),
+  })
+  .strict();
+var AddComment = z
+  .object({
+    type: z.literal("add_comment"),
+    body,
+  })
+  .strict();
+var Notify = z
+  .object({
+    type: z.literal("notify"),
+    recipient_person_id: id("Member who receives the notification."),
+    title,
+    body: body.nullable().optional(),
+  })
+  .strict();
+var CallWebhook = z
+  .object({
+    type: z.literal("call_webhook"),
+    webhook_endpoint_id: id("The org's webhook endpoint."),
+  })
+  .strict();
+var AutomationAction = z
+  .union([CreateTask, UpdateStatus, Assign, AddComment, Notify, CallWebhook])
+  .meta({
+    id: "AutomationAction",
+    description:
+      "One action, run in order as the owner through a public API operation: create_task (records.create), update_status (records.transition), assign (records.update), add_comment (comments.postOnSubject), notify (automationRuns.notify) or call_webhook (automationRuns.deliverWebhook).",
+  });
+var AutomationActions = z
+  .array(AutomationAction)
+  .min(1)
+  .max(AUTOMATION_LIMITS.actions)
+  .meta({
+    id: "AutomationActions",
+    description: "An automation's 1 to 10 actions, in the order they run.",
+    example: [
+      {
+        type: "add_comment",
+        body: "Picked up {{data.title}}.",
+      },
+    ],
+  });
+z.object({
+  name: z.string().min(1).max(AUTOMATION_LIMITS.name).meta({
+    description: "Name shown in Settings, Automations.",
+    example: "Pick up new tasks",
+  }),
+  description: z.string().max(AUTOMATION_LIMITS.description).nullable().optional(),
+  trigger_event_type: z.string().regex(EVENT_TYPE).meta({
+    description: "Domain event type from the catalog (GET /webhook-events).",
+    example: "record.created",
+  }),
+  conditions: AutomationConditions,
+  actions: AutomationActions,
+  enabled: z.boolean().optional(),
+})
+  .strict()
+  .meta({
+    id: "AutomationDefinition",
+    description: "An automation: its trigger, conditions and actions.",
+  });
+//#endregion
+//#region ../schemas/src/automations/evaluate.ts
+/**
+ * The automation evaluator (A91, ADR 0047): conditions over an event body, and the templates actions fill in. This
+ * is the TypeScript twin of private.automation_conditions_match (migration 1480); the database evaluates when an
+ * event happens, and Atlas evaluates here to test a draft against a sample event without a round trip. Both run
+ * ./vectors.json. Nothing here evaluates code: a condition is a path, an operator and a text value.
+ *
+ * The rules, as in the SQL:
+ *   - a field is a dotted path; a segment reads an object key, or an array index when it is digits. A missing path
+ *     and JSON null are both missing
+ *   - every operator but is_null is false on a missing value
+ *   - eq: a number equals a numeric value (-?digits with an optional fraction) numerically, a boolean equals true or
+ *     false, a string equals exactly; objects and arrays equal nothing. ne is not eq
+ *   - lt, lte, gt and gte: numbers numerically, strings by code point; anything else is false
+ *   - in: eq against any of the comma-separated values, each with spaces trimmed, empty ones skipped
+ *   - contains: a string contains the value with ASCII letters folded to lower case; an array has an element that eq
+ *     the value
+ *   - is_null: value true (or none) holds for a missing value, false for a present one
+ *   - a group holds when all (or any) of its items hold; an empty group holds
+ */
+/** The value at a dotted path of an event, or undefined for a missing path or JSON null. */
+function valueAt(event, field) {
+  let current = event;
+  for (const segment of field.split(".")) {
+    if (Array.isArray(current)) {
+      if (!/^[0-9]+$/.test(segment)) return void 0;
+      current = current[Number(segment)];
+    } else if (typeof current === "object" && current !== null)
+      current = Object.hasOwn(current, segment) ? current[segment] : void 0;
+    else return;
+    if (current === void 0) return void 0;
+  }
+  return current === null ? void 0 : current;
+}
+/** `{{ path }}` placeholders of a template. */
+var PLACEHOLDER = /\{\{\s*([a-z][a-z0-9_]*(?:\.[a-z0-9_]+){0,7})\s*\}\}/g;
+function display(value) {
+  if (value === void 0 || value === null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
+}
+/**
+ * Fills a template's `{{ path }}` placeholders from the event: text as it is, numbers and booleans as written,
+ * objects and arrays as JSON, missing values as nothing. Anything else in braces stays as typed.
+ */
+function renderTemplate(template, event) {
+  return template.replace(PLACEHOLDER, (_whole, path) => display(valueAt(event, path)));
+}
+/** A rendered template trimmed of spaces and cut to `limit` code points, as the action's API field allows. */
+function renderField(template, event, limit) {
+  const text = trimSpaces(renderTemplate(template, event));
+  const chars = Array.from(text);
+  return chars.length <= limit ? text : trimSpaces(chars.slice(0, limit).join(""));
+}
+//#endregion
+//#region ../data/src/automation-runner.ts
+/**
+ * The automation worker (A91, ADR 0047; migration 1481): one pass over the queued automation.run jobs, the logic the
+ * automation-run Edge Function runs on a schedule. Every action is a public API call made as the automation's owner
+ * with a short-lived token minted for that person, so row level security and capabilities decide every write; the
+ * service role only claims jobs and writes the runs ledger. The database decides before each run whether the owner
+ * may still act (app.begin_automation_run, fail closed) and settles each run through the job queue's backoff
+ * (app.finish_automation_run).
+ *
+ * Failures are sorted by what can fix them: 401 and 403 mean the API refused the owner, so the run fails and the
+ * automation pauses with a notice (refused); 408, 409, 425, 429, 5xx and a network error may pass, so the job queue
+ * retries the run from the failed step (retry); anything else fails the run for good (failed). Each POST carries an
+ * Idempotency-Key per run and action, so a retry never repeats a write the API already made.
+ *
+ * The token is an HS256 JWT signed with the project's JWT secret (XOS_API_JWT_SIGNING_KEY, the same secret api-token
+ * and A83's chat sessions use), valid for two minutes, minted per action and never stored or logged. Its claims carry
+ * the org it is bound to and the run (xos_automation_run_id), which the fan-out trigger reads to keep automation-caused
+ * chains within private.automation_max_depth().
+ */
+var AUTOMATION_RUN_JOB = "automation.run";
+function text(row, key) {
+  const value = row[key];
+  if (typeof value !== "string") throw new Error(`Expected text in ${key}.`);
+  return value;
+}
+/** AutomationRunStore over a service-role Supabase client. */
+function supabaseAutomationRunStore(client) {
+  const app = client.schema("app");
+  const call = async (fn, args) => {
+    const { data, error } = await app.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data;
+  };
+  return {
+    async claim(worker, limit) {
+      return (
+        (await call("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: "automation.run",
+          p_limit: limit,
+        })) ?? []
+      ).map((r) => ({
+        jobId: text(r, "id"),
+        runId: text(r, "subject_id"),
+      }));
+    },
+    async begin(runId, jobId) {
+      return await call("begin_automation_run", {
+        p_run_id: runId,
+        p_job_id: jobId,
+      });
+    },
+    async recordStep(step) {
+      await call("record_automation_step", {
+        p_run_id: step.runId,
+        p_position: step.position,
+        p_action_id: step.actionId,
+        p_action_type: step.actionType,
+        p_operation_id: step.operationId,
+        p_step_status: step.status,
+        p_request_body: step.request ?? null,
+        p_response_body: step.response ?? null,
+        p_http_status: step.httpStatus,
+        p_error_code: step.errorCode,
+        p_error_message: step.errorMessage,
+        p_started_at: step.startedAt,
+        p_duration_ms: step.durationMs,
+      });
+    },
+    async finish(runId, jobId, outcome, errorCode, errorMessage) {
+      return String(
+        await call("finish_automation_run", {
+          p_run_id: runId,
+          p_job_id: jobId,
+          p_outcome: outcome,
+          p_error_code: errorCode,
+          p_error_message: errorMessage,
+        }),
+      );
+    },
+  };
+}
+function base64url(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+var encode = (value) => base64url(new TextEncoder().encode(JSON.stringify(value)));
+/** The claims of an owner token: an ordinary session of the owner, bound to the org and marked with the run. */
+function ownerTokenClaims(input) {
+  return {
+    iss: input.issuer,
+    sub: input.userId,
+    aud: "authenticated",
+    role: "authenticated",
+    iat: input.nowSeconds,
+    exp: input.nowSeconds + 120,
+    org_id: input.orgId,
+    is_anonymous: false,
+    amr: [
+      {
+        method: "xos_automation",
+        timestamp: input.nowSeconds,
+      },
+    ],
+    xos_automation_id: input.automationId,
+    xos_automation_run_id: input.runId,
+  };
+}
+/** An HS256 JWT acting as the automation's owner for OWNER_TOKEN_SECONDS. */
+async function mintOwnerToken(input) {
+  if (input.signingKey.length < 32) throw new Error("The JWT signing key is too short.");
+  const head = `${encode({
+    alg: "HS256",
+    typ: "JWT",
+  })}.${encode(ownerTokenClaims(input))}`;
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(input.signingKey),
+    {
+      name: "HMAC",
+      hash: "SHA-256",
+    },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(head));
+  return `${head}.${base64url(new Uint8Array(signature))}`;
+}
+/** A failed step and what can fix it. */
+var StepFailure = class extends Error {
+  kind;
+  code;
+  httpStatus;
+  response;
+  constructor(kind, code, message, httpStatus = null, response = null) {
+    super(message);
+    this.kind = kind;
+    this.code = code;
+    this.httpStatus = httpStatus;
+    this.response = response;
+    this.name = "StepFailure";
+  }
+};
+var RETRYABLE = /* @__PURE__ */ new Set([408, 409, 425, 429]);
+/** The failure an API answer means (see the module comment). */
+function failureOf(answer) {
+  const problem = answer.body ?? {};
+  const rule = typeof problem.rule === "string" ? problem.rule : null;
+  const message =
+    typeof problem.detail === "string"
+      ? problem.detail
+      : typeof problem.title === "string"
+        ? problem.title
+        : `The API answered ${answer.status}.`;
+  const response = summarize(answer.body);
+  if (answer.status === 401 || answer.status === 403)
+    return new StepFailure("refused", "owner_access_refused", message, answer.status, response);
+  if (RETRYABLE.has(answer.status) || answer.status >= 500)
+    return new StepFailure(
+      "retry",
+      answer.status === 429 ? "api_rate_limited" : "api_unavailable",
+      message,
+      answer.status,
+      response,
+    );
+  return new StepFailure(
+    "failed",
+    (rule ?? `http_${answer.status}`).toLowerCase().replace(/[^a-z0-9_]/g, "_"),
+    message,
+    answer.status,
+    response,
+  );
+}
+var KEPT = [
+  "id",
+  "record_state",
+  "title",
+  "comment_thread_id",
+  "notification_id",
+  "webhook_delivery_id",
+  "type",
+  "status",
+  "detail",
+  "rule",
+];
+/** An API answer trimmed to its identifying fields or the problem it reported, for the ledger. */
+function summarize(body) {
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return null;
+  const kept = Object.fromEntries(KEPT.filter((k) => k in body).map((k) => [k, body[k]]));
+  return Object.keys(kept).length > 0 ? kept : null;
+}
+function apiCaller(fetcher, baseUrl, token) {
+  const base = baseUrl.replace(/\/$/, "");
+  return async (method, path, options = {}) => {
+    const headers = {
+      Authorization: `Bearer ${await token()}`,
+      Accept: "application/json",
+      "Accept-Language": "en-US",
+    };
+    if (options.body !== void 0) headers["Content-Type"] = "application/json";
+    if (options.idempotencyKey) headers["Idempotency-Key"] = options.idempotencyKey;
+    if (options.ifMatch) headers["If-Match"] = options.ifMatch;
+    let response;
+    try {
+      response = await fetcher(`${base}${path}`, {
+        method,
+        headers,
+        ...(options.body === void 0 ? {} : { body: JSON.stringify(options.body) }),
+        signal: AbortSignal.timeout(2e4),
+      });
+    } catch (error) {
+      throw new StepFailure(
+        "retry",
+        "api_unreachable",
+        `The API could not be reached: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    const raw = await response.text();
+    let body;
+    try {
+      body = raw === "" ? null : JSON.parse(raw);
+    } catch {
+      body = null;
+    }
+    return {
+      status: response.status,
+      body,
+    };
+  };
+}
+async function expectSuccess(answer) {
+  const settled = await answer;
+  if (settled.status < 200 || settled.status > 299) throw failureOf(settled);
+  return settled;
+}
+function eventText(event, ...path) {
+  let current = event;
+  for (const key of path) {
+    if (typeof current !== "object" || current === null) return null;
+    current = current[key];
+  }
+  return typeof current === "string" && current !== "" ? current : null;
+}
+function subjectRecord(event) {
+  const id = eventText(event, "subject", "id");
+  if (eventText(event, "subject", "table") !== "records" || id === null)
+    throw new StepFailure(
+      "failed",
+      "automation_subject_not_record",
+      "This action works on a record, and the event's subject is not one.",
+    );
+  return id;
+}
+function filled(template, event, limit, what) {
+  const value = renderField(template ?? "", event, limit);
+  if (value === "")
+    throw new StepFailure(
+      "failed",
+      "automation_text_empty",
+      `The ${what} came out empty for this event.`,
+    );
+  return value;
+}
+var idempotencyKey = (run, action) => `automation-${run.run_id}-${action.position}`;
+async function createTask(action, { run, api }) {
+  const projectId = action.project_id ?? eventText(run.event, "project_id");
+  if (projectId === null)
+    throw new StepFailure(
+      "failed",
+      "automation_no_project",
+      "The event has no project and the action names none, so there is nowhere to create the Task.",
+    );
+  const roots = await expectSuccess(
+    api(
+      "GET",
+      `/scope-nodes?${new URLSearchParams({
+        "filter[project_id][eq]": projectId,
+        "filter[parent_id][is_null]": "true",
+        fields: "id",
+        limit: "1",
+      }).toString()}`,
+    ),
+  );
+  const root = (roots.body?.data ?? [])[0]?.id;
+  if (typeof root !== "string")
+    throw new StepFailure(
+      "failed",
+      "automation_project_unknown",
+      "The person this automation runs as cannot see the project, or it has no engagement root.",
+      roots.status,
+    );
+  const body = {
+    scope_node_id: root,
+    record_kind: "Task",
+    title: filled(action.title, run.event, AUTOMATION_LIMITS.title, "Task title"),
+    phase_code: action.phase_code,
+    xyz: action.xyz,
+    external_visibility: [],
+    ...(action.due_at ? { due_at: action.due_at } : {}),
+  };
+  return {
+    status: "Succeeded",
+    operationId: "records.create",
+    request: body,
+    answer: await expectSuccess(
+      api("POST", "/records", {
+        body,
+        idempotencyKey: idempotencyKey(run, action),
+      }),
+    ),
+  };
+}
+async function updateStatus(action, { run, api }) {
+  const id = subjectRecord(run.event);
+  const current = await expectSuccess(api("GET", `/records/${id}?fields=id,record_state`));
+  const state = current.body?.record_state;
+  if (state === action.to_state)
+    return {
+      status: "Skipped",
+      operationId: "records.transition",
+      request: { to_state: action.to_state },
+      answer: current,
+    };
+  const note = action.body ? renderField(action.body, run.event, AUTOMATION_LIMITS.body) : null;
+  const body = {
+    expected_state: state,
+    to_state: action.to_state,
+    ...(action.to_state === "Blocked" && note ? { blocker_text: note } : {}),
+    ...(action.to_state === "Deferred" && note ? { replan_reason: note } : {}),
+  };
+  return {
+    status: "Succeeded",
+    operationId: "records.transition",
+    request: body,
+    answer: await expectSuccess(
+      api("POST", `/records/${id}/transitions`, {
+        body,
+        idempotencyKey: idempotencyKey(run, action),
+      }),
+    ),
+  };
+}
+async function assign(action, { run, api }) {
+  const id = subjectRecord(run.event);
+  const body = { owner_party_id: action.assignee_person_id };
+  return {
+    status: "Succeeded",
+    operationId: "records.update",
+    request: body,
+    answer: await expectSuccess(
+      api("PATCH", `/records/${id}`, {
+        body,
+        ifMatch: "*",
+      }),
+    ),
+  };
+}
+async function addComment(action, { run, api }) {
+  const table = eventText(run.event, "subject", "table");
+  const subjectId = eventText(run.event, "subject", "id");
+  if (table === null || subjectId === null)
+    throw new StepFailure(
+      "failed",
+      "automation_no_subject",
+      "The event has no subject to comment on.",
+    );
+  const body = {
+    subject_table: table,
+    subject_id: subjectId,
+    body: filled(action.body, run.event, AUTOMATION_LIMITS.body, "comment"),
+  };
+  return {
+    status: "Succeeded",
+    operationId: "comments.postOnSubject",
+    request: body,
+    answer: await expectSuccess(
+      api("POST", "/comments/on-subject", {
+        body,
+        idempotencyKey: idempotencyKey(run, action),
+      }),
+    ),
+  };
+}
+async function notify(action, { run, api }) {
+  const message = action.body ? renderField(action.body, run.event, AUTOMATION_LIMITS.body) : "";
+  const body = {
+    recipient_person_id: action.recipient_person_id,
+    title: filled(action.title, run.event, AUTOMATION_LIMITS.title, "notification title"),
+    ...(message === "" ? {} : { body: message }),
+  };
+  return {
+    status: "Succeeded",
+    operationId: "automationRuns.notify",
+    request: body,
+    answer: await expectSuccess(
+      api("POST", `/automation-runs/${run.run_id}/notices`, {
+        body,
+        idempotencyKey: idempotencyKey(run, action),
+      }),
+    ),
+  };
+}
+async function callWebhook(action, { run, api }) {
+  const body = { webhook_endpoint_id: action.webhook_endpoint_id };
+  return {
+    status: "Succeeded",
+    operationId: "automationRuns.deliverWebhook",
+    request: body,
+    answer: await expectSuccess(
+      api("POST", `/automation-runs/${run.run_id}/webhook-deliveries`, {
+        body,
+        idempotencyKey: idempotencyKey(run, action),
+      }),
+    ),
+  };
+}
+var ACTIONS = {
+  create_task: createTask,
+  update_status: updateStatus,
+  assign,
+  add_comment: addComment,
+  notify,
+  call_webhook: callWebhook,
+};
+/** Runs one claimed run: its remaining actions in order, then settles it. */
+async function runOne(deps, job) {
+  const now = deps.now ?? Date.now;
+  const begun = await deps.store.begin(job.runId, job.jobId);
+  if (begun.outcome !== "run")
+    return {
+      runId: job.runId,
+      outcome: begun.outcome,
+      status: null,
+      errorCode: begun.error_code ?? null,
+    };
+  const api = apiCaller(deps.fetch, deps.apiBaseUrl, () =>
+    mintOwnerToken({
+      userId: begun.owner_user_id,
+      orgId: begun.org_id,
+      automationId: begun.automation_id,
+      runId: begun.run_id,
+      signingKey: deps.signingKey,
+      issuer: deps.issuer,
+      nowSeconds: Math.floor(now() / 1e3),
+    }),
+  );
+  const done = new Set(begun.completed);
+  let failure = null;
+  for (const action of [...begun.actions].sort((a, b) => a.position - b.position)) {
+    if (done.has(action.position)) continue;
+    const started = now();
+    const step = {
+      runId: begun.run_id,
+      position: action.position,
+      actionId: action.action_id,
+      actionType: action.type,
+      startedAt: new Date(started).toISOString(),
+    };
+    try {
+      const run = ACTIONS[action.type];
+      if (run === void 0)
+        throw new StepFailure(
+          "failed",
+          "automation_action_unknown",
+          `${action.type} is not an action.`,
+        );
+      const result = await run(action, {
+        run: begun,
+        api,
+      });
+      await deps.store.recordStep({
+        ...step,
+        operationId: result.operationId,
+        status: result.status,
+        request: result.request,
+        response: summarize(result.answer.body),
+        httpStatus: result.answer.status,
+        errorCode: null,
+        errorMessage: null,
+        durationMs: Math.max(0, Math.round(now() - started)),
+      });
+    } catch (error) {
+      failure =
+        error instanceof StepFailure
+          ? error
+          : new StepFailure(
+              "retry",
+              "worker_error",
+              error instanceof Error ? error.message : String(error),
+            );
+      await deps.store.recordStep({
+        ...step,
+        operationId: null,
+        status: "Failed",
+        request: null,
+        response: failure.response,
+        httpStatus: failure.httpStatus,
+        errorCode: failure.code,
+        errorMessage: failure.message.slice(0, 2e3),
+        durationMs: Math.max(0, Math.round(now() - started)),
+      });
+      break;
+    }
+  }
+  const status = await deps.store.finish(
+    begun.run_id,
+    job.jobId,
+    failure === null ? "succeeded" : failure.kind,
+    failure?.code ?? null,
+    failure?.message.slice(0, 2e3) ?? null,
+  );
+  return {
+    runId: begun.run_id,
+    outcome: "run",
+    status,
+    errorCode: failure?.code ?? null,
+  };
+}
+/** One pass of the automation worker: claims up to `limit` jobs (10 by default) and runs each in turn. */
+async function runAutomationJobs(deps) {
+  const jobs = await deps.store.claim(deps.worker, deps.limit ?? 10);
+  const results = [];
+  for (const job of jobs)
+    try {
+      results.push(await runOne(deps, job));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await deps.store
+        .finish(job.runId, job.jobId, "retry", "worker_error", message)
+        .catch(() => null);
+      results.push({
+        runId: job.runId,
+        outcome: "error",
+        status: null,
+        errorCode: "worker_error",
+      });
+    }
+  return results;
+}
 //#endregion
 //#region edge/entry.ts
 /**
@@ -49988,6 +51096,7 @@ var planRegistry = parsePlanRegistry(plans_default);
 //#endregion
 export {
   ATTACHMENT_SCAN_JOB,
+  AUTOMATION_RUN_JOB,
   BillingNotConfiguredError,
   CLAMAV_DEFAULT_PORT,
   EXPO_PUSH_RECEIPTS_URL,
@@ -50095,6 +51204,7 @@ export {
   requestIdFor,
   resendMailer,
   resolvePriceId,
+  runAutomationJobs,
   runImportJobs,
   runIntegrationRuntime,
   runReportDeliveries,
@@ -50118,6 +51228,7 @@ export {
   staticAccessToken,
   stripQuotedText,
   supabaseAuthAdmin,
+  supabaseAutomationRunStore,
   supabaseCommunicationSource,
   supabaseDb,
   supabaseImportStore,

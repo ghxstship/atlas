@@ -26,6 +26,7 @@ export {
   supabaseScimStore,
 } from "../../integrations/src/identity/scim.ts";
 export * from "./integrations.ts";
+export * from "./automations.ts";
 
 /** The plan registry the bundle was built from. */
 export const planRegistry: PlanRegistry = parsePlanRegistry(plansYaml);
