@@ -15,7 +15,10 @@ import {
   type PunchRefusal,
 } from "../../src/domain/clock";
 import { formatCountdown, showState, showsCountdown, type Cue } from "../../src/domain/show";
+import { todayIn } from "@xos/data/calendar";
 import { punchAnnouncementKey } from "../../src/domain/announce";
+import { itemZone } from "../../src/domain/orgs";
+import { CombinedToday } from "../../src/screens/CombinedToday";
 import { formatDistance } from "../../src/domain/settings";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
 import { useClockLiveActivity, useLockScreenPunchDrain } from "../../src/runtime/liveActivity";
@@ -269,7 +272,7 @@ export default function TodayScreen(): ReactElement {
   const { t } = useTranslation();
   const roleTitle = useRoleTitle();
   const router = useRouter();
-  const { resolved, projectId, refresh } = useCompass();
+  const { resolved, projectId, refresh, personZone } = useCompass();
   const [refreshing, setRefreshing] = useState(false);
   const [clockState, setClockState] = useState<"out" | "on" | "break">("out");
   const identity = resolved?.identity;
@@ -278,6 +281,10 @@ export default function TodayScreen(): ReactElement {
     "day_sheets",
     (d) => d.project_id === projectId,
   );
+  const { rows: projectRows } = useRows<Row & { time_zone?: string | null }>(
+    "projects",
+    (p) => p.id === projectId,
+  );
   if (!identity)
     return (
       <Screen title={t("compass.today.title")}>
@@ -285,7 +292,10 @@ export default function TodayScreen(): ReactElement {
       </Screen>
     );
   const canClock = access(identity, "clock", projectId).allowed;
-  const today = new Date().toISOString().slice(0, 10);
+  // Today on the project's calendar (A71), never the UTC date, which is tomorrow every evening in the Americas.
+  const today = todayIn(itemZone(null, projectRows[0]?.time_zone, personZone));
+  // A person in several orgs sees every org's day, grouped with brand chips (Section 4.5.7).
+  const combined = (resolved?.contexts.length ?? 0) > 1;
   const me = {
     membershipId: identity.membershipId,
     engagementIds: operationalEngagements(identity, null).map((e) => e.id),
@@ -322,7 +332,9 @@ export default function TodayScreen(): ReactElement {
       <StorageResetNotice />
       <SyncBanner />
       {canClock && projectId ? <ClockCard current={workingCard} onState={setClockState} /> : null}
-      {blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
+      {combined ? <CombinedToday clockState={clockState} /> : null}
+      {!combined &&
+      blocks.some((b) => ["shifts", "engaged-shifts-and-positions", "call-times"].includes(b)) ? (
         upcoming.length > 0 ? (
           upcoming.slice(0, 3).map((s) => (
             <ShiftCard
@@ -362,14 +374,15 @@ export default function TodayScreen(): ReactElement {
           />
         )
       ) : null}
-      {blocks.includes("day-sheet") ? (
+      {!combined && blocks.includes("day-sheet") ? (
         <Card title={t("nav.compass.content.daySheet")}>
           <Text tone={sheet ? "primary" : "secondary"}>
             {sheet ? sheet.body : t("compass.today.noDaySheet")}
           </Text>
         </Card>
       ) : null}
-      {projectId &&
+      {!combined &&
+      projectId &&
       (blocks.includes("run-of-show") ||
         blocks.includes("set-time") ||
         blocks.includes("show-day-schedule")) ? (

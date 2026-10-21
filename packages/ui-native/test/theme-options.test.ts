@@ -54,4 +54,28 @@ describe("theme options", () => {
     );
     expect(html).toContain(`15:${baseTokens.duration.reduced}:true`);
   });
+
+  it("applies a tenant brand's colors only in the themes it names (Section 12)", () => {
+    const brandColors = { light: { accentDefault: "#0B6E4F", accentText: "#0B6E4F" } };
+    const light = createTheme("light", { brandColors });
+    expect(light.color.accentDefault).toBe("#0B6E4F");
+    expect(light.color.accentText).toBe("#0B6E4F");
+    expect(light.color.bgCanvas).toBe(themes.light.color.bgCanvas);
+    expect(createTheme("dark", { brandColors }).color.accentDefault).toBe(
+      themes.dark.color.accentDefault,
+    );
+    function Probe(): ReactElement {
+      return createElement("span", null, useTheme().color.accentDefault);
+    }
+    const render = (preference: "light" | "dark") =>
+      renderToStaticMarkup(
+        createElement(ThemeProvider, {
+          preference,
+          options: { brandColors },
+          children: createElement(Probe),
+        }),
+      );
+    expect(render("light")).toContain("#0B6E4F");
+    expect(render("dark")).toContain(themes.dark.color.accentDefault);
+  });
 });

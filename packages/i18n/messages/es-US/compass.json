@@ -231,6 +231,17 @@
     "orgChip": "{org}",
     "nextCueAt": "Previsto para el {day} a las {time}"
   },
+  "orgs": {
+    "title": "Organizaciones",
+    "chip": "Organización: {org}",
+    "switch": "Organización: {org}. Cambiar de organización",
+    "switchHint": "Muestra las organizaciones para las que trabajas.",
+    "change": "Cambiar",
+    "member": "Miembro",
+    "engaged": "Contratado",
+    "combinedTitle": "Hoy en todas tus organizaciones",
+    "nothingToday": "Nada para hoy."
+  },
   "clock": {
     "in": "Marcar entrada",
     "onShift": "En turno",

@@ -5,6 +5,7 @@
 import {
   Ban,
   BookOpen,
+  Building2,
   Calendar,
   Camera,
   Check,
@@ -48,6 +49,7 @@ import {
   Truck,
   User,
   Users,
+  Wallet,
   X,
   type LucideIcon,
 } from "lucide-react-native";
@@ -55,6 +57,7 @@ import {
 export const ICONS: Readonly<Record<string, LucideIcon>> = {
   ban: Ban,
   "book-open": BookOpen,
+  "building-2": Building2,
   calendar: Calendar,
   camera: Camera,
   check: Check,
@@ -98,5 +101,6 @@ export const ICONS: Readonly<Record<string, LucideIcon>> = {
   truck: Truck,
   user: User,
   users: Users,
+  wallet: Wallet,
   x: X,
 };
