@@ -132,7 +132,7 @@
     },
     "recordKeyFormat": {
       "label": "Record key format",
-      "help": "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}-{SEQ}'."
+      "help": "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}'-'{SEQ}'."
     },
     "numberPadding": {
       "label": "Number padding",

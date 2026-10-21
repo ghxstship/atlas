@@ -12771,7 +12771,7 @@ var settings_default$1 = {
     },
     recordKeyFormat: {
       label: "Record key format",
-      help: "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}-{SEQ}'.",
+      help: "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}'-'{SEQ}'.",
     },
     numberPadding: {
       label: "Number padding",
@@ -29593,7 +29593,7 @@ var settings_default = {
     },
     recordKeyFormat: {
       label: "Formato de la clave de registro",
-      help: "Usa '{PROJECT}' y '{SEQ}', por ejemplo '{PROJECT}-{SEQ}'.",
+      help: "Usa '{PROJECT}' y '{SEQ}', por ejemplo '{PROJECT}'-'{SEQ}'.",
     },
     numberPadding: {
       label: "Relleno de números",
