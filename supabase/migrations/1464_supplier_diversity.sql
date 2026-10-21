@@ -276,6 +276,14 @@ comment on function private.my_supplier_diversity_ids() is 'Supplier diversity c
 revoke all on function private.my_supplier_diversity_ids() from public, anon;
 grant execute on function private.my_supplier_diversity_ids() to authenticated, service_role;
 
+-- Revoking stays possible while an org is canceled and read-only (Section 14.7, GDPR Article 7(3)): consent is
+-- withdrawn as easily as it was given. New shares with a read-only org are refused by app.share_supplier_diversity.
+-- The access log records permitted acts, like the audit ledger.
+insert into private.read_only_exempt_tables (table_name, rationale) values
+  ('app.supplier_diversity_shares', 'An owner revokes a supplier diversity share at any time; new shares with a read-only org are refused by the RPC.'),
+  ('app.supplier_diversity_events', 'The supplier diversity access log records permitted acts, like the audit ledger.');
+drop trigger if exists t15_refuse_read_only_org on app.supplier_diversity_shares;
+
 call private.install_policies('app.supplier_diversity_shares',
   $$supplier_diversity_certification_id in (select private.my_supplier_diversity_ids())
     or org_id in (select private.orgs_with_capability('vendors.vendor.read'))$$);
@@ -318,6 +326,9 @@ begin
   end if;
   if not private.supplier_diversity_program_on(p_org_id) then
     perform private.refuse('supplier_diversity_no_program', 'This organization does not run a supplier diversity program, so it takes no diversity certifications.');
+  end if;
+  if private.org_read_only(p_org_id) then
+    perform private.refuse('org_read_only', 'This organization is canceled and read-only, so it takes no new shares.');
   end if;
   select s.id into v_id from app.supplier_diversity_shares s
   where s.org_id = p_org_id and s.supplier_diversity_certification_id = p_certification_id and s.revoked_at is null and s.deleted_at is null;
