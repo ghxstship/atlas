@@ -2548,6 +2548,51 @@ export interface Components {
     details?: string | null;
   };
   DsarRequestPage: { data: Array<Components["DsarRequest"]>; next_cursor: string | null };
+  EarnedMediaItem: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    title: string;
+    outlet: string;
+    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on: string;
+    url: string | null;
+    reach: number | null;
+    tone: "Positive" | "Neutral" | "Negative" | null;
+    source: "Manual" | "Import" | "Integration";
+    source_reference: string | null;
+    note: string | null;
+  };
+  EarnedMediaItemCreate: {
+    project_id: string;
+    title: string;
+    outlet: string;
+    medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on: string;
+    url?: string | null;
+    reach?: number | null;
+    tone?: "Positive" | "Neutral" | "Negative" | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    note?: string | null;
+  };
+  EarnedMediaItemPage: { data: Array<Components["EarnedMediaItem"]>; next_cursor: string | null };
+  EarnedMediaItemUpdate: {
+    title?: string;
+    outlet?: string;
+    medium?: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+    published_on?: string;
+    url?: string | null;
+    reach?: number | null;
+    tone?: "Positive" | "Neutral" | "Negative" | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    note?: string | null;
+  };
   EarningCode: {
     id: string;
     org_id: string;
@@ -4233,6 +4278,40 @@ export interface Components {
     membership_count: number;
     engagement_count: number;
   };
+  MeasurementMetric: {
+    metric_code: string;
+    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    base_unit_code: string;
+    aggregation: "Sum" | "Latest";
+    is_derived: boolean;
+    lower_bound: number | null;
+    upper_bound: number | null;
+    canon_domain: string | null;
+    canon_item: string | null;
+    canon_value_numeric: number | null;
+    canon_value_text: string | null;
+    canon_qualifier: string | null;
+    ordinal: number;
+  };
+  MeasurementMetricPage: {
+    data: Array<Components["MeasurementMetric"]>;
+    next_cursor: string | null;
+  };
+  MeasurementMetricTag: { metric_code: string; tag_id: string; tag: string };
+  MeasurementMetricTagPage: {
+    data: Array<Components["MeasurementMetricTag"]>;
+    next_cursor: string | null;
+  };
+  MeasurementUnit: {
+    unit_code: string;
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    factor_to_base: number;
+    unit_system: "Metric" | "Imperial" | "Either";
+    is_display: boolean;
+    ordinal: number;
+  };
+  MeasurementUnitPage: { data: Array<Components["MeasurementUnit"]>; next_cursor: string | null };
   MedicalEncounter: {
     id: string;
     org_id: string;
@@ -5585,6 +5664,119 @@ export interface Components {
   };
   ProjectInboxCreate: { project_id: string };
   ProjectInboxPage: { data: Array<Components["ProjectInbox"]>; next_cursor: string | null };
+  ProjectMeasurement: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    metric_code: string;
+    measured_on: string;
+    value: number | null;
+    unit_code: string | null;
+    source: "Manual" | "Import" | "Integration";
+    source_reference: string | null;
+    source_uri: string | null;
+    note: string | null;
+  };
+  ProjectMeasurementCorrection: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_measurement_id: string;
+    correction_kind: "Corrected" | "Withdrawn" | "Restored";
+    previous_value: number | null;
+    previous_unit_code: string | null;
+    previous_measured_on: string;
+    value: number | null;
+    unit_code: string | null;
+    measured_on: string;
+    reason: string | null;
+  };
+  ProjectMeasurementCorrectionPage: {
+    data: Array<Components["ProjectMeasurementCorrection"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementCreate: {
+    project_id: string;
+    metric_code: string;
+    measured_on?: string;
+    value?: number | null;
+    unit_code?: string | null;
+    source?: "Manual" | "Import" | "Integration";
+    source_reference?: string | null;
+    source_uri?: string | null;
+    note?: string | null;
+  };
+  ProjectMeasurementPage: {
+    data: Array<Components["ProjectMeasurement"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementSummary: {
+    project_id: string;
+    metric_code: string;
+    family: "Sustainability" | "Audience" | "Earned Media" | "Sentiment";
+    dimension: "Mass" | "Volume" | "Energy" | "Emissions" | "Count" | "Percent";
+    base_unit_code: string;
+    aggregation: "Sum" | "Latest";
+    objective_id: string | null;
+    direction: "At Least" | "At Most" | null;
+    target_value: number | null;
+    target_unit_code: string | null;
+    target_base: number | null;
+    measured_count: number;
+    unmeasured_count: number;
+    measured_base: number | null;
+    last_measured_on: string | null;
+    outcome: "Met" | "Not Met" | "Incomplete" | "Unmeasured" | null;
+  };
+  ProjectMeasurementSummaryPage: {
+    data: Array<Components["ProjectMeasurementSummary"]>;
+    next_cursor: string | null;
+  };
+  ProjectMeasurementUpdate: {
+    measured_on?: string;
+    value?: number | null;
+    unit_code?: string | null;
+    source_reference?: string | null;
+    source_uri?: string | null;
+    note?: string | null;
+    correction_reason?: string;
+  };
+  ProjectObjective: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    project_id: string;
+    metric_code: string;
+    direction: "At Least" | "At Most";
+    target_value: number;
+    unit_code: string;
+    note: string | null;
+  };
+  ProjectObjectiveCreate: {
+    project_id: string;
+    metric_code: string;
+    direction: "At Least" | "At Most";
+    target_value: number;
+    unit_code: string;
+    note?: string | null;
+  };
+  ProjectObjectivePage: { data: Array<Components["ProjectObjective"]>; next_cursor: string | null };
+  ProjectObjectiveUpdate: {
+    direction?: "At Least" | "At Most";
+    target_value?: number;
+    unit_code?: string;
+    note?: string | null;
+  };
   ProjectPage: { data: Array<Components["Project"]>; next_cursor: string | null };
   ProjectPhaseTransition: {
     id: string;
@@ -22626,6 +22818,243 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["ProjectAuthorityPage"] };
   };
+  "measurementMetrics.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-metrics";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementMetricPage"] };
+  };
+  "measurementUnits.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-units";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementUnitPage"] };
+  };
+  "measurementMetricTags.list": {
+    module: "Projects";
+    method: "get";
+    path: "/measurement-metric-tags";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["MeasurementMetricTagPage"] };
+  };
+  "projectObjectives.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-objectives";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectObjectivePage"] };
+  };
+  "projectObjectives.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-objectives";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectObjectiveCreate"];
+    responses: { 201: Components["ProjectObjective"] };
+  };
+  "projectObjectives.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectObjective"] };
+  };
+  "projectObjectives.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectObjectiveUpdate"];
+    responses: { 200: Components["ProjectObjective"] };
+  };
+  "projectObjectives.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-objectives/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurements.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurements";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementPage"] };
+  };
+  "projectMeasurements.create": {
+    module: "Projects";
+    method: "post";
+    path: "/project-measurements";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ProjectMeasurementCreate"];
+    responses: { 201: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["ProjectMeasurementUpdate"];
+    responses: { 200: Components["ProjectMeasurement"] };
+  };
+  "projectMeasurements.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/project-measurements/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurementCorrections.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-corrections";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementCorrectionPage"] };
+  };
+  "projectMeasurementCorrections.get": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-corrections/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementCorrection"] };
+  };
+  "earnedMediaItems.list": {
+    module: "Projects";
+    method: "get";
+    path: "/earned-media-items";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["EarnedMediaItemPage"] };
+  };
+  "earnedMediaItems.create": {
+    module: "Projects";
+    method: "post";
+    path: "/earned-media-items";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["EarnedMediaItemCreate"];
+    responses: { 201: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.get": {
+    module: "Projects";
+    method: "get";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.update": {
+    module: "Projects";
+    method: "patch";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: Components["EarnedMediaItemUpdate"];
+    responses: { 200: Components["EarnedMediaItem"] };
+  };
+  "earnedMediaItems.delete": {
+    module: "Projects";
+    method: "delete";
+    path: "/earned-media-items/{id}";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 204: null };
+  };
+  "projectMeasurementSummary.list": {
+    module: "Projects";
+    method: "get";
+    path: "/project-measurement-summary";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ProjectMeasurementSummaryPage"] };
+  };
   "cueCalls.list": {
     module: "Show";
     method: "get";
@@ -25604,7 +26033,28 @@ export interface ModuleOperations {
     | "gateEvidence.create"
     | "gateEvidence.get"
     | "gateEvidence.delete"
-    | "projectAuthorities.list";
+    | "projectAuthorities.list"
+    | "measurementMetrics.list"
+    | "measurementUnits.list"
+    | "measurementMetricTags.list"
+    | "projectObjectives.list"
+    | "projectObjectives.create"
+    | "projectObjectives.get"
+    | "projectObjectives.update"
+    | "projectObjectives.delete"
+    | "projectMeasurements.list"
+    | "projectMeasurements.create"
+    | "projectMeasurements.get"
+    | "projectMeasurements.update"
+    | "projectMeasurements.delete"
+    | "projectMeasurementCorrections.list"
+    | "projectMeasurementCorrections.get"
+    | "earnedMediaItems.list"
+    | "earnedMediaItems.create"
+    | "earnedMediaItems.get"
+    | "earnedMediaItems.update"
+    | "earnedMediaItems.delete"
+    | "projectMeasurementSummary.list";
   Activity: "activityEvents.list" | "activityEvents.get";
   Schedule:
     | "scheduleBaselines.list"
