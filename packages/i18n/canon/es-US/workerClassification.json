@@ -1,0 +1,7 @@
+{
+  "EMPLOYEE": "Empleado",
+  "INDEPENDENT_CONTRACTOR": "Contratista independiente",
+  "UNPAID_INTERN": "Pasante no remunerado",
+  "VENDOR_SUPPLIED": "Aportado por proveedor",
+  "VOLUNTEER": "Voluntario"
+}

@@ -26,7 +26,8 @@
     "translate:all": "node --experimental-strip-types --no-warnings scripts/translate.ts all",
     "translate:glossary": "node --experimental-strip-types --no-warnings scripts/translate.ts glossary",
     "translate:check": "node --experimental-strip-types --no-warnings scripts/translate.ts check",
-    "translate:lock": "node --experimental-strip-types --no-warnings scripts/translate.ts lock"
+    "translate:lock": "node --experimental-strip-types --no-warnings scripts/translate.ts lock",
+    "canon:sql": "node --experimental-strip-types --no-warnings scripts/canon-sql.ts"
   },
   "devDependencies": {
     "@formatjs/icu-messageformat-parser": "3.5.21",

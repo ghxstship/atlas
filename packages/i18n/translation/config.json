@@ -3,11 +3,11 @@
   "source": { "locale": "en-US", "google": "en" },
   "targets": [
     { "locale": "es-US", "google": "es-US" },
-    { "locale": "fr-FR", "google": "fr", "partial": true, "surfaces": ["catalogs"] },
-    { "locale": "de-DE", "google": "de", "partial": true, "surfaces": ["catalogs"] },
-    { "locale": "it-IT", "google": "it", "partial": true, "surfaces": ["catalogs"] },
-    { "locale": "pt-BR", "google": "pt", "partial": true, "surfaces": ["catalogs"] },
-    { "locale": "ja-JP", "google": "ja", "partial": true, "surfaces": ["catalogs"] }
+    { "locale": "fr-FR", "google": "fr", "partial": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "de-DE", "google": "de", "partial": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "it-IT", "google": "it", "partial": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "pt-BR", "google": "pt", "partial": true, "surfaces": ["catalogs", "canon"] },
+    { "locale": "ja-JP", "google": "ja", "partial": true, "surfaces": ["catalogs", "canon"] }
   ],
   "google": {
     "location": "us-central1",
@@ -36,7 +36,8 @@
       "kind": "markdown",
       "path": "apps/docs/content/guides/{locale}",
       "frontMatter": ["title", "summary"]
-    }
+    },
+    { "id": "canon", "kind": "catalog", "path": "packages/i18n/canon/{locale}", "partial": true }
   ],
   "memoryDir": "packages/i18n/translation/memory",
   "review": { "locale": "es-US", "reportDir": "docs/i18n/review" },
