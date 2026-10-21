@@ -4,7 +4,8 @@ import type { BrowserContext, Locator, Page } from "@playwright/test";
  * Making a page screenshot repeatable (Section 18, gate 9). The four modes each core screen is
  * rendered in, the wait for a page to finish drawing, and the volatile regions that are masked:
  * dates, times, relative times and generated ids, which change between runs on the same seed.
- * apps/gateway/e2e/visual/stable.ts keeps the same code for Gateway.
+ * apps/gateway/e2e/visual/stable.ts keeps the same code for Gateway, except that Atlas also gives
+ * each masked element one fixed text so its box is the same size on every date (A71).
  */
 
 export const MODES = ["dark", "light", "rtl", "sunlight"] as const;
@@ -103,6 +104,15 @@ export async function volatileRegions(page: Page): Promise<Locator> {
           ["date", "datetime-local", "time", "month", "week"].includes(el.type));
       if (timeLike || volatile.some((re) => re.test(text))) {
         el.setAttribute("data-visual-mask", "");
+        // The mask covers the element's box, and a date's width changes with the date ("Nov 3"
+        // against "Oct 26"), so a masked cell still moved the shot every day, most visibly in right
+        // to left where the box grows from the start edge (A71). One fixed text gives every volatile
+        // element the same footprint on every run.
+        for (const node of el.childNodes) {
+          if (node.nodeType === Node.TEXT_NODE && (node.textContent ?? "").trim() !== "") {
+            node.textContent = "0000-00-00 00:00";
+          }
+        }
       }
     }
   });

@@ -33,6 +33,11 @@ const kindSchema = z.strictObject({
   email_template: z.string().regex(CODE).optional(),
   push_category: z.string().regex(CODE).optional(),
   channels: z.array(z.enum(NOTIFICATION_CHANNELS)).min(1).optional(),
+  // true: always reaches the person at once; { starts_within_hours }: only while the subject (for
+  // example a shift, through the startsAt argument) starts within that many hours.
+  bypasses_quiet_hours: z
+    .union([z.literal(true), z.strictObject({ starts_within_hours: z.int().min(1).max(72) })])
+    .optional(),
 });
 
 const registrySchema = z.strictObject({
@@ -110,12 +115,23 @@ export function parseNotificationRegistry(text: string): NotificationKindRegistr
       issues.push(`kind ${k.kind}: every kind is shown in the app (In App)`);
     if (k.push_category !== undefined && !channels.includes("Push"))
       issues.push(`kind ${k.kind}: a push category needs the Push channel`);
+    if (k.bypasses_quiet_hours !== undefined && !channels.some((c) => c === "SMS" || c === "Push"))
+      issues.push(
+        `kind ${k.kind}: only SMS and Push keep quiet hours, so a bypass needs one of them`,
+      );
     used.add(k.category);
     return {
       kind: k.kind,
       category: k.category,
       emailTemplate,
       pushCategory: k.push_category ?? null,
+      quietHoursBypass:
+        k.bypasses_quiet_hours === undefined
+          ? null
+          : {
+              startsWithinHours:
+                k.bypasses_quiet_hours === true ? null : k.bypasses_quiet_hours.starts_within_hours,
+            },
       channels: NOTIFICATION_CHANNELS.filter((c) => channels.includes(c)),
       copy: copyKeys(k.kind),
     };

@@ -131,7 +131,17 @@
     "agreement_transition_not_allowed": "An agreement cannot make that move from its current state.",
     "agreement_token_validity": "A signing link is valid for 1 to 90 days.",
     "credential_self_issue": "Nobody records their own certificate. Ask another verifier to record it.",
-    "certification_holder_immutable": "A certificate record keeps its holder, verifier and code. Remove it and record it again."
+    "certification_holder_immutable": "A certificate record keeps its holder, verifier and code. Remove it and record it again.",
+    "swap_not_allowed": "This project does not allow shift swaps. Ask your supervisor to cover the shift.",
+    "swap_needs_approval": "A supervisor approves swaps on this project. Wait for their decision.",
+    "shift_claim_waiting": "You already claimed this shift. A supervisor decides.",
+    "shift_claim_decided": "This claim was already decided or withdrawn. Reload to see where it stands.",
+    "shift_claim_reason": "Say why the claim is rejected.",
+    "shift_claim_not_most_senior": "Under the seniority rule the shift goes to the most senior claimant. Use Give to the most senior.",
+    "shift_claim_none": "Nobody is waiting on this shift.",
+    "sod_shift_claim_self": "You cannot approve your own claim. Another supervisor decides it.",
+    "punch_location_required": "This project needs your location to clock in. Clock in on site from Compass with location on.",
+    "punch_outside_geofence": "You are outside the project's geofence. Clock in on site."
   },
   "states": {
     "shift": {
@@ -366,7 +376,10 @@
     "empty": "No swap requests. Crew ask to hand a shift to someone else from the shift itself.",
     "emptyFiltered": "No swaps in this state. Clear the filter to see every request.",
     "viewShifts": "View shifts",
-    "caption": "Shift swaps"
+    "caption": "Shift swaps",
+    "accept": "Accept swap",
+    "acceptTitle": "Take this shift?",
+    "acceptReason": "I can work this shift."
   },
   "entries": {
     "title": "{name} · {day}",
@@ -549,5 +562,24 @@
     "errorTitle": "This page did not load",
     "errorBody": "The list could not be read just now. Your data is safe; try again, and if it keeps failing, share the reference with support.",
     "retry": "Try again"
+  },
+  "claims": {
+    "title": "Waiting claims",
+    "waiting": "Your claim is waiting for a supervisor to decide.",
+    "withdraw": "Withdraw claim",
+    "withdrawTitle": "Withdraw your claim on this shift?",
+    "award": "Give to the most senior",
+    "awardTitle": "Give this shift to the most senior claimant?",
+    "awardReason": "Awarded by seniority.",
+    "approve": "Approve",
+    "approveTitle": "Give this shift to {name}?",
+    "approveReason": "Claim approved.",
+    "reject": "Reject",
+    "rejectTitle": "Reject the claim from {name}?",
+    "ruleHelp": {
+      "approval": "A supervisor approves each claim on this project.",
+      "seniority": "Claims wait, and the shift goes to the most senior claimant.",
+      "first-come": "The first person to claim the shift gets it."
+    }
   }
 }

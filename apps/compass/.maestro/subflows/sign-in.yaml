@@ -15,13 +15,21 @@ appId: pro.ghxstship.compass
     file: open-dev-bundle.yaml
 - extendedWaitUntil:
     visible:
-      id: "sign-in|tab-bar"
+      id: "sign-in|tab-bar|identity-failed"
     timeout: 120000
 - runFlow:
     when:
       visible:
         id: "tab-bar"
     file: sign-out.yaml
+# A session whose access did not load (left by an earlier flow) signs out from its error screen.
+- runFlow:
+    when:
+      visible:
+        id: "identity-failed"
+    commands:
+      - tapOn:
+          id: "identity-failed-sign-out"
 - extendedWaitUntil:
     visible:
       id: "sign-in"
@@ -37,15 +45,60 @@ appId: pro.ghxstship.compass
 - hideKeyboard
 - tapOn:
     id: "sign-in-submit"
-# iOS offers to save the password after a password sign-in; it covers the app until answered.
+# iOS offers to save the password after a password sign-in; it covers the app, hiding the screen
+# underneath from Maestro, until answered. Android offers none, so the wait for it may time out.
 - extendedWaitUntil:
-    visible: "Not Now|Today"
-    timeout: 30000
+    visible: "Not Now"
+    timeout: 15000
+    optional: true
 - runFlow:
     when:
       visible: "Not Now"
     commands:
       - tapOn: "Not Now"
+# A heavily loaded simulator can drop typed characters, and the sign-in is then refused: type both
+# fields once more, as a person would after the refusal.
+- runFlow:
+    when:
+      visible: "That email and password do not match.*"
+    commands:
+      - tapOn:
+          id: "sign-in-email"
+      - eraseText: 60
+      - inputText: ${EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - eraseText: 60
+      - inputText: ${XOS_DEMO_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Not Now"
+          timeout: 15000
+          optional: true
+      - runFlow:
+          when:
+            visible: "Not Now"
+          commands:
+            - tapOn: "Not Now"
+- extendedWaitUntil:
+    visible:
+      id: "tab-bar|identity-failed"
+    timeout: 30000
+# A loaded local stack can time out the first read of the person's access; the error screen offers Try
+# Again, as a person would use it.
+- repeat:
+    times: 3
+    while:
+      visible:
+        id: "identity-failed"
+    commands:
+      - tapOn: "Try Again"
+      - extendedWaitUntil:
+          visible:
+            id: "tab-bar|identity-failed"
+          timeout: 60000
 - extendedWaitUntil:
     visible:
       id: "tab-bar"

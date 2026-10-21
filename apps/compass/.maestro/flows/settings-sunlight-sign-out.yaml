@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Switch to Sunlight and sign out, which wipes the device
+# Switch to Sunlight and sign out, which wipes the device.
+# Named after its file: config.yaml orders flows by name.
+name: settings-sunlight-sign-out
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml

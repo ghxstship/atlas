@@ -504,9 +504,9 @@
     },
     "tabs": {
       "today": "Hoy",
-      "schedule": "Horario",
+      "schedule": "Agenda",
       "scan": "Escanear",
-      "inbox": "Bandeja de entrada",
+      "inbox": "Bandeja",
       "more": "Más",
       "crew": "Equipo técnico"
     },

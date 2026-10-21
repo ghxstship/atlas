@@ -15,12 +15,15 @@ export {
 } from "./lib/i18n.ts";
 export {
   XOSProvider,
+  PreferencesProvider,
   useLocale,
   useT,
   useFormat,
+  usePreferences,
   type XOSProviderProps,
   type Translate,
 } from "./lib/context.tsx";
+export * from "./lib/preferences.ts";
 export {
   applyTheme,
   resolveTheme,

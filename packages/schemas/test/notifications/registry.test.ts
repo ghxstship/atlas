@@ -64,6 +64,18 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       },
     });
     expect(notificationKind("export.ready")?.emailTemplate).toBe("export_ready");
+    // ADR 0033 decision 35: a short, reviewable bypass list; mandatory or urgent categories alone never bypass.
+    expect(
+      registry.kinds
+        .filter((k) => k.quietHoursBypass !== null)
+        .map((k) => [k.kind, k.quietHoursBypass?.startsWithinHours]),
+    ).toEqual([
+      ["shift.changed", 12],
+      ["incident.reported", null],
+      ["occupancy.threshold", null],
+      ["weather.alert", null],
+    ]);
+    expect(notificationKind("account.security_changed")?.quietHoursBypass).toBeNull();
     expect(notificationKind("no.such_kind")).toBeUndefined();
   });
 
@@ -94,9 +106,12 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
     expect(sql).toContain(
       "('approval.requested', 'Push'::app.notification_channel, 'approvals', null)",
     );
-    expect(sql).not.toMatch(/\bdelete\b/);
+    // Only the bypass list, which the registry alone writes, is replaced as a set; kinds are never deleted.
+    expect(sql.match(/\bdelete\b/g)).toHaveLength(1);
     const drift = renderNotificationDriftTest(registry);
-    expect(drift).toContain("select plan(4);");
+    expect(drift).toContain("select plan(5);");
+    expect(drift).toContain("('shift.changed', interval '12 hours')");
+    expect(sql).toContain("delete from private.notification_quiet_hours_bypass");
     expect(drift).toContain("('report.delivered', 'SMS', 'reports', null::text)");
   });
 
@@ -139,6 +154,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
         "kind weather.alert: unknown category weather",
         "kind weather.alert: every kind is shown in the app (In App)",
         "kind weather.alert: a push category needs the Push channel",
+        "kind weather.alert: only SMS and Push keep quiet hours, so a bypass needs one of them",
         "category comments has no kind",
       ]),
     );

@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Journey 19, look up, check out and return an asset by scan, see the custody ledger
+# Journey 19, look up, check out and return an asset by scan, see the custody ledger.
+# Named after its file: config.yaml orders flows by name.
+name: desk-asset-custody
 ---
 # The gear desk (the Producer, whose asset reach is the whole org) handles AUD-0042, tagged with GTIN
 # 09501101530003 in seed 0217. The simulator has no camera, so codes are typed into the manual entry.

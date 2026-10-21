@@ -35,6 +35,8 @@ export type CommandMenuProps = Omit<ReferenceCommandMenuProps, "groups"> & {
   hotkey?: boolean;
   /** Turn off client filtering when the results come from a server search. */
   filter?: boolean;
+  /** Names the menu for assistive technology; the command menu's own name by default. */
+  label?: string;
 };
 
 function itemValue(group: string, item: CommandItem): string {
@@ -47,6 +49,7 @@ function Palette({
   groups,
   onQueryChange,
   filter = true,
+  label,
   onClose,
 }: CommandMenuProps & { onClose?: () => void }) {
   const t = useT();
@@ -56,7 +59,7 @@ function Palette({
   )[0];
   return (
     <Command
-      label={t("command.label")}
+      label={label ?? t("command.label")}
       shouldFilter={filter}
       loop
       {...(selected ? { defaultValue: selected } : {})}
@@ -145,7 +148,7 @@ export function CommandMenu({
             onCloseAutoFocus={returnFocus}
             className="pointer-events-auto h-fit max-w-full"
           >
-            <RDialog.Title className="sr-only">{t("command.label")}</RDialog.Title>
+            <RDialog.Title className="sr-only">{props.label ?? t("command.label")}</RDialog.Title>
             <Palette {...props} onClose={() => setOpen(false)} />
           </RDialog.Content>
         </div>

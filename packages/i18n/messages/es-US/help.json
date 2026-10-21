@@ -25,14 +25,58 @@
   },
   "shortcuts": {
     "title": "Atajos de teclado",
+    "groups": {
+      "general": "General",
+      "go": "Ir a",
+      "lists": "Listas",
+      "inbox": "Bandeja de entrada"
+    },
     "command": "Abrir el menú de comandos",
+    "search": "Buscar páginas y ajustes",
+    "create": "Crear algo nuevo",
     "help": "Abrir la ayuda de esta página",
     "focus": "Activar o desactivar el modo de enfoque",
+    "aurora": "Preguntar a Aurora",
     "close": "Cerrar un menú, diálogo o panel",
-    "move": "Moverse entre filas",
+    "next": "Fila siguiente",
+    "previous": "Fila anterior",
     "open": "Abrir el registro enfocado",
     "select": "Seleccionar la fila enfocada",
-    "all": "Todos los atajos"
+    "all": "Todos los atajos",
+    "go": {
+      "home": "Ir a Inicio",
+      "inbox": "Ir a la Bandeja de entrada",
+      "myWork": "Ir a Mi trabajo",
+      "projects": "Ir a Proyectos",
+      "schedule": "Ir a Cronograma",
+      "work": "Ir a Trabajo",
+      "show": "Ir a Show",
+      "advancing": "Ir a Coordinación previa",
+      "places": "Ir a Lugares",
+      "logistics": "Ir a Logística",
+      "hospitality": "Ir a Hospitalidad",
+      "assets": "Ir a Activos",
+      "credentials": "Ir a Acreditaciones",
+      "safety": "Ir a Seguridad operativa",
+      "people": "Ir a Personas",
+      "opportunities": "Ir a Oportunidades",
+      "crew": "Ir a Equipo técnico",
+      "finance": "Ir a Finanzas",
+      "procurement": "Ir a Compras",
+      "vendors": "Ir a Proveedores",
+      "knowledge": "Ir a Conocimiento",
+      "reports": "Ir a Informes",
+      "canon": "Ir a Canon",
+      "activity": "Ir a Actividad",
+      "settings": "Ir a Configuración"
+    },
+    "inbox": {
+      "approve": "Aprobar el elemento enfocado",
+      "reject": "Rechazar el elemento enfocado con un motivo",
+      "done": "Marcar como hecho el elemento enfocado",
+      "snooze": "Posponer el elemento enfocado hasta mañana"
+    },
+    "customize": "Cambiar atajos"
   },
   "whatsNew": {
     "title": "Novedades",
@@ -186,6 +230,13 @@
     "screenshotHelp": "Una imagen PNG, JPEG o WebP de hasta 5 MB. Solo usted y el equipo de soporte de la plataforma pueden abrirla.",
     "screenshotNeedsConsent": "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     "screenshotTooBig": "Esa imagen supera los 5 MB. Elija una más pequeña."
+  },
+  "orgSupport": {
+    "title": "Soporte de tu organización",
+    "email": "Correo",
+    "hours": "Horario",
+    "link": "Guías",
+    "linkLabel": "Abrir las guías de tu organización"
   },
   "gateway": {
     "general": "En todo Gateway",

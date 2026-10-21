@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react"
 import { Direction, Popover as RPopover } from "radix-ui";
 import type { Option } from "../types/reference";
 import { cx } from "../lib/cx.ts";
-import { useLocale, useT } from "../lib/context.tsx";
+import { useLocale, usePreferences, useT } from "../lib/context.tsx";
 import { monthCells, monthTitle, parseIso, toIso, weekStart, weekdayNames } from "../lib/format.ts";
 import { Icon } from "../Icon/Icon.tsx";
 import { iconButtonClass } from "../Button/Button.tsx";
@@ -172,6 +172,7 @@ export function shiftMonth(iso: string, months: number): string {
  */
 export function MonthGrid({ year, month, focused, onFocusDate, onPick, mark }: GridProps) {
   const locale = useLocale();
+  const { weekStart: firstDay } = usePreferences();
   const dir = Direction.useDirection();
   const refs = useRef(new Map<string, HTMLButtonElement>());
   const title = monthTitle(locale, year, month);
@@ -182,7 +183,7 @@ export function MonthGrid({ year, month, focused, onFocusDate, onPick, mark }: G
     const ahead = dir === "rtl" ? "ArrowLeft" : "ArrowRight";
     const behind = dir === "rtl" ? "ArrowRight" : "ArrowLeft";
     const { y, m, d } = parseIso(iso);
-    const dow = (new Date(y, m, d).getDay() - weekStart(locale) + 7) % 7;
+    const dow = (new Date(y, m, d).getDay() - weekStart(locale, firstDay) + 7) % 7;
     const next =
       e.key === ahead
         ? shiftIso(iso, 1)
@@ -210,7 +211,7 @@ export function MonthGrid({ year, month, focused, onFocusDate, onPick, mark }: G
     <table role="grid" aria-label={title} className="border-collapse">
       <thead>
         <tr>
-          {weekdayNames(locale).map((d) => (
+          {weekdayNames(locale, firstDay).map((d) => (
             <th
               key={d}
               scope="col"
@@ -222,7 +223,7 @@ export function MonthGrid({ year, month, focused, onFocusDate, onPick, mark }: G
         </tr>
       </thead>
       <tbody>
-        {monthCells(locale, year, month).map((week, wi) => (
+        {monthCells(locale, year, month, firstDay).map((week, wi) => (
           <tr key={wi}>
             {week.map((d, di) => {
               if (d === null) return <td key={di} />;

@@ -10,6 +10,9 @@ settings:
     label: workforce.settings.readReceipts.label
     help: workforce.settings.readReceipts.help
     pages: { org: settings.communication }
+    enforced_by:
+      - consumer: supabase/migrations/1010_workforce_settings_directory.sql#app.conversation_read_receipts
+        test: supabase/tests/1010_workforce_settings_directory.test.sql
   - key: communication.feed_reactions_default
     type: boolean
     default: true
@@ -18,6 +21,11 @@ settings:
     label: workforce.settings.feedReactions.label
     help: workforce.settings.feedReactions.help
     pages: { org: settings.communication }
+    enforced_by:
+      - consumer: supabase/migrations/1391_feed_post_defaults_and_departments.sql#app.create_feed_post
+        test: supabase/tests/1324_communication_settings.test.sql
+      - consumer: apps/atlas/lib/shell/org-settings.ts#feedSwitchDefaults
+        test: apps/atlas/test/org-settings.test.ts
   - key: communication.feed_comments_default
     type: boolean
     default: true
@@ -26,6 +34,11 @@ settings:
     label: workforce.settings.feedComments.label
     help: workforce.settings.feedComments.help
     pages: { org: settings.communication }
+    enforced_by:
+      - consumer: supabase/migrations/1391_feed_post_defaults_and_departments.sql#app.create_feed_post
+        test: supabase/tests/1324_communication_settings.test.sql
+      - consumer: apps/atlas/lib/shell/org-settings.ts#feedSwitchDefaults
+        test: apps/atlas/test/org-settings.test.ts
   - key: workforce.work_phone
     type: text
     max_length: 32
@@ -34,3 +47,6 @@ settings:
     label: workforce.settings.workPhone.label
     help: workforce.settings.workPhone.help
     pages: { personal: me.work-details }
+    enforced_by:
+      - consumer: supabase/migrations/1010_workforce_settings_directory.sql
+        test: supabase/tests/1010_workforce_settings_directory.test.sql

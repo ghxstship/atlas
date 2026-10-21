@@ -36,11 +36,11 @@ interface Answer {
 }
 
 /**
- * The shell's command menu (Cmd or Ctrl+K, and `/`): common actions, records and incidents by key
- * or title, people, every page the person may open and the help articles (Section 11.10 item 1,
- * A59-015). Pages and help ship with the shell; actions, records and people come from a server
- * action as the person types, scoped by row level security, so no org data is in the route bundle.
- * It loads the first time it opens (A24-009); the shell frame owns the shortcuts.
+ * The shell's command menu (Cmd or Ctrl+K, and `/`, by default): common actions, records and incidents
+ * by key or title, people, every page the person may open with the keys of its navigation shortcut, and
+ * the help articles (Section 11.10 item 1, A59-015). Pages and help ship with the shell; actions, records
+ * and people come from a server action as the person types, scoped by row level security, so no org data
+ * is in the route bundle. It loads the first time it opens (A24-009); the shell frame owns the shortcuts.
  */
 export function ShellCommand({ open, onOpenChange, commands, locale, go }: ShellCommandProps) {
   const t = useTranslations();
@@ -70,17 +70,27 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
   const close = () => onOpenChange(false);
   // A peek where the shell opens it, else the record page (lib/shell/peek).
   const peekHref = (key: string) => shellPeekHref(org, pathname, search.toString(), key);
+  // An action that opens a page shows that page's navigation shortcut, as the page entry does.
+  const shortcutOf = new Map<string, string>(
+    commands.flatMap((g) =>
+      g.items.flatMap((i) => (i.shortcut ? [[i.href, i.shortcut] as const] : [])),
+    ),
+  );
   const found = answer.groups.map((g) => ({
     label: g.label,
-    items: g.items.map((item) => ({
-      label: item.label,
-      icon: item.icon,
-      ...(item.code ? { code: item.code } : {}),
-      onSelect: () => {
-        close();
-        go(item.peek ? peekHref(item.peek) : (item.href ?? pathname));
-      },
-    })),
+    items: g.items.map((item) => {
+      const shortcut = item.href === undefined ? undefined : shortcutOf.get(item.href);
+      return {
+        label: item.label,
+        icon: item.icon,
+        ...(item.code ? { code: item.code } : {}),
+        ...(shortcut ? { shortcut } : {}),
+        onSelect: () => {
+          close();
+          go(item.peek ? peekHref(item.peek) : (item.href ?? pathname));
+        },
+      };
+    }),
   }));
   return (
     <CommandMenu
@@ -99,6 +109,7 @@ export function ShellCommand({ open, onOpenChange, commands, locale, go }: Shell
           items: g.items.map((item) => ({
             label: item.label,
             icon: item.icon,
+            ...(item.shortcut ? { shortcut: item.shortcut } : {}),
             onSelect: () => {
               onOpenChange(false);
               go(item.href);

@@ -2,17 +2,22 @@
 
 import { Button, InlineAlert, Textarea } from "@xos/ui";
 import { useTranslations } from "next-intl";
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import {
   takeEmergencyAccessAction,
   type EmergencyAccessState,
 } from "@/app/auth/network-restricted/actions";
+import { useStepUpForm } from "@/components/auth/security/step-up";
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
-import { SecondFactor } from "./second-factor";
 
 type Translate = (key: string) => string;
 
-/** The Owner's emergency access form on the network-restricted page. */
+const stepUpRefused = (state: EmergencyAccessState) => state.error === "step_up_required";
+
+/**
+ * The Owner's emergency access form on the network-restricted page. Break-glass needs a second factor passed in
+ * the last 15 minutes; the step-up dialog asks for it (or sets one up) and resubmits (A59-019).
+ */
 export function EmergencyAccessForm({ org }: { org: string }) {
   const t = useTranslations("shell.auth.networkRestricted");
   const tErr = useTranslations("settings.accessControls.errors") as unknown as Translate;
@@ -20,22 +25,14 @@ export function EmergencyAccessForm({ org }: { org: string }) {
     takeEmergencyAccessAction,
     {},
   );
-  // Without a second factor, verify (or set one up) in place, then retry (A59-019).
-  const stepUp = state.error === "step_up_required";
+  const form = useRef<HTMLFormElement>(null);
+  const stepUpDialog = useStepUpForm(state, stepUpRefused, form);
+  // The dialog renders outside the form: React bubbles a portal's submit event to its tree parents.
   return (
-    <div className="flex w-full flex-col gap-12 text-start">
-      {stepUp ? (
-        <SecondFactor
-          mode="step-up"
-          onVerified={() =>
-            (
-              document.getElementById("emergency-access-form") as HTMLFormElement | null
-            )?.requestSubmit()
-          }
-        />
-      ) : null}
+    <>
+      {stepUpDialog}
       <form
-        id="emergency-access-form"
+        ref={form}
         action={action}
         onSubmit={keepInputOnSubmit(action)}
         aria-label={t("ownerTitle")}
@@ -43,9 +40,7 @@ export function EmergencyAccessForm({ org }: { org: string }) {
         noValidate
       >
         <input type="hidden" name="org" value={org} />
-        {state.error && !stepUp ? (
-          <InlineAlert tone="danger">{tErr(state.error)}</InlineAlert>
-        ) : null}
+        {state.error ? <InlineAlert tone="danger">{tErr(state.error)}</InlineAlert> : null}
         <Textarea
           id="emergency-reason"
           name="reason"
@@ -61,6 +56,6 @@ export function EmergencyAccessForm({ org }: { org: string }) {
           </Button>
         </div>
       </form>
-    </div>
+    </>
   );
 }

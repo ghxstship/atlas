@@ -25,14 +25,58 @@
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
+    "groups": {
+      "general": "General",
+      "go": "Go to",
+      "lists": "Lists",
+      "inbox": "Inbox"
+    },
     "command": "Open the command menu",
+    "search": "Search pages and settings",
+    "create": "Create something new",
     "help": "Open help for this page",
     "focus": "Turn focus mode on or off",
+    "aurora": "Ask Aurora",
     "close": "Close a menu, dialog or peek",
-    "move": "Move between rows",
+    "next": "Next row",
+    "previous": "Previous row",
     "open": "Open the focused record",
     "select": "Select the focused row",
-    "all": "All shortcuts"
+    "all": "All shortcuts",
+    "go": {
+      "home": "Go to Home",
+      "inbox": "Go to Inbox",
+      "myWork": "Go to My Work",
+      "projects": "Go to Projects",
+      "schedule": "Go to Schedule",
+      "work": "Go to Work",
+      "show": "Go to Show",
+      "advancing": "Go to Advancing",
+      "places": "Go to Places",
+      "logistics": "Go to Logistics",
+      "hospitality": "Go to Hospitality",
+      "assets": "Go to Assets",
+      "credentials": "Go to Credentials",
+      "safety": "Go to Safety",
+      "people": "Go to People",
+      "opportunities": "Go to Opportunities",
+      "crew": "Go to Crew",
+      "finance": "Go to Finance",
+      "procurement": "Go to Procurement",
+      "vendors": "Go to Vendors",
+      "knowledge": "Go to Knowledge",
+      "reports": "Go to Reports",
+      "canon": "Go to Canon",
+      "activity": "Go to Activity",
+      "settings": "Go to Settings"
+    },
+    "inbox": {
+      "approve": "Approve the focused item",
+      "reject": "Reject the focused item with a reason",
+      "done": "Mark the focused item done",
+      "snooze": "Snooze the focused item until tomorrow"
+    },
+    "customize": "Change shortcuts"
   },
   "whatsNew": {
     "title": "What's new",
@@ -186,6 +230,13 @@
     "screenshotHelp": "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
     "screenshotNeedsConsent": "Tick the diagnostics box above to attach a screenshot.",
     "screenshotTooBig": "That image is larger than 5 MB. Choose a smaller one."
+  },
+  "orgSupport": {
+    "title": "Your organization's support",
+    "email": "Email",
+    "hours": "Hours",
+    "link": "Guides",
+    "linkLabel": "Open your organization's guides"
   },
   "gateway": {
     "general": "Everywhere in Gateway",

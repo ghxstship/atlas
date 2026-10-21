@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Journey 58, the Continue on another device QR code in Atlas opens the same record in Compass
+# Journey 58, the Continue on another device QR code in Atlas opens the same record in Compass.
+# Named after its file: config.yaml orders flows by name.
+name: handoff-open-record
 ---
 # The Atlas half (apps/atlas/e2e/a45-handoff.spec.ts) decodes the QR code on the Inspection record NWS-14
 # as the Demo Field Lead and, with E2E_HANDOFF_OUT set, writes the link it carries. Pass that link as

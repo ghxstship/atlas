@@ -28,6 +28,8 @@ const base: SettingDefinition = {
   label: "settings.fields.legalName.label",
   help: null,
   pages: { org: "settings.general" },
+  deferred: false,
+  hidden: false,
 };
 
 describe("registry lookups", () => {
@@ -57,10 +59,11 @@ describe("registry lookups", () => {
     expect(settingErrorKey({ kind: "unexpected", message: "" })).toBe("unexpected");
   });
 
-  // A69-007 (migration 1299): settings nothing enforces keep their defaults, and the page says why.
-  it("explains a refused unenforced security setting in both locales", () => {
+  // A69-007 pinned these settings while nothing enforced them (1299); A77 enforces them (1330), so
+  // they save again and their help says what each one does, never that it is unavailable.
+  it("describes the enforced security settings in both locales", () => {
     expect(settingErrorKey({ kind: "refusal", rule: "setting_not_enforced", message: "" })).toBe(
-      "setting_not_enforced",
+      "unexpected",
     );
     for (const locale of ["en-US", "es-US"] as const) {
       const catalog = (
@@ -71,10 +74,29 @@ describe("registry lookups", () => {
           };
         }
       ).settings;
-      expect(catalog.errors["setting_not_enforced"]).toMatch(/\S/);
+      expect(catalog.errors["setting_not_enforced"]).toBeUndefined();
       for (const field of ["mfaPolicy", "sessionHours", "idleTimeout"] as const) {
-        expect(catalog.fields[field]?.help).toMatch(/XOS/);
+        expect(catalog.fields[field]?.help).toMatch(/\S/);
+        expect(catalog.fields[field]?.help).not.toMatch(/Not available yet|Aún no disponible/);
       }
+    }
+  });
+
+  // ADR 0038 (migration 1329): record keys are fixed, so numbering.record_key_format is on no page and its
+  // writes are refused with setting_fixed.
+  it("keeps the fixed record key format off every page and explains a refused write", () => {
+    expect(settingByKey("numbering.record_key_format")?.hidden).toBe(true);
+    expect(pageSettings("settings.numbering", "org").map((s) => s.key)).toEqual([
+      "numbering.document_number_padding",
+    ]);
+    expect(settingErrorKey({ kind: "refusal", rule: "setting_fixed", message: "" })).toBe(
+      "setting_fixed",
+    );
+    for (const locale of ["en-US", "es-US"] as const) {
+      const catalog = (
+        getMessages(locale) as unknown as { settings: { errors: Record<string, string> } }
+      ).settings;
+      expect(catalog.errors["setting_fixed"]).toMatch(/\S/);
     }
   });
 });

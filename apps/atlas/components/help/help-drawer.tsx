@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Drawer, InlineAlert, Input, Keys, Skeleton } from "@xos/ui";
+import { Button, Drawer, InlineAlert, Input, Skeleton } from "@xos/ui";
 import { useLocale, useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -19,19 +19,10 @@ import type { HelpPanelState } from "@/lib/help/actions";
 import { ArticleBody } from "./article";
 import { ContactForm } from "./contact-form";
 import { collectDiagnostics } from "./diagnostics";
+import { ShortcutSheet } from "./shortcut-sheet";
 import type { HelpView as View } from "./help-center";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
-
-const SHORTCUTS = [
-  { keys: "Mod+K", label: "command" },
-  { keys: "?", label: "help" },
-  { keys: "Mod+.", label: "focus" },
-  { keys: "Esc", label: "close" },
-  { keys: "J K", label: "move" },
-  { keys: "Enter", label: "open" },
-  { keys: "X", label: "select" },
-] as const;
 
 const tourCopyKey = (key: string) => `tours.${key.replaceAll(".", "_")}`;
 
@@ -236,19 +227,7 @@ export function HelpDrawer({
               <p className="m-0 text-text-secondary">{t("tours.none")}</p>
             ),
           )}
-          {section(
-            t("shortcuts.title"),
-            <dl className="m-0 flex flex-col gap-4">
-              {SHORTCUTS.map((s) => (
-                <div key={s.label} className="flex items-center justify-between gap-8">
-                  <dt>{t(`shortcuts.${s.label}`)}</dt>
-                  <dd className="m-0">
-                    <Keys keys={s.keys} />
-                  </dd>
-                </div>
-              ))}
-            </dl>,
-          )}
+          {section(t("shortcuts.title"), <ShortcutSheet org={org} />)}
           {section(
             t("whatsNew.title"),
             <ul className="m-0 flex list-none flex-col gap-8 p-0">
@@ -281,6 +260,44 @@ export function HelpDrawer({
               {t("docs.home")}
             </a>
           ) : null}
+          {state?.orgSupport
+            ? section(
+                t("orgSupport.title"),
+                <dl className="m-0 flex flex-col gap-4">
+                  {state.orgSupport.email ? (
+                    <div className="flex flex-col">
+                      <dt className="text-text-12 text-text-secondary">{t("orgSupport.email")}</dt>
+                      <dd className="m-0">
+                        <a className="text-accent-text" href={`mailto:${state.orgSupport.email}`}>
+                          {state.orgSupport.email}
+                        </a>
+                      </dd>
+                    </div>
+                  ) : null}
+                  {state.orgSupport.hours ? (
+                    <div className="flex flex-col">
+                      <dt className="text-text-12 text-text-secondary">{t("orgSupport.hours")}</dt>
+                      <dd className="m-0">{state.orgSupport.hours}</dd>
+                    </div>
+                  ) : null}
+                  {state.orgSupport.link ? (
+                    <div className="flex flex-col">
+                      <dt className="text-text-12 text-text-secondary">{t("orgSupport.link")}</dt>
+                      <dd className="m-0">
+                        <a
+                          className="text-accent-text"
+                          href={state.orgSupport.link}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                        >
+                          {t("orgSupport.linkLabel")}
+                        </a>
+                      </dd>
+                    </div>
+                  ) : null}
+                </dl>,
+              )
+            : null}
           <Button
             icon="LifeBuoy"
             onClick={() =>

@@ -1209,30 +1209,6 @@
     "NO_ANSWER": "Sin respuesta",
     "UNRATIFIED": "Sin ratificar"
   },
-  "secondFactor": {
-    "loading": "Comprobando tu segundo factor…",
-    "code": "Código de seis dígitos",
-    "codeHelp": "De tu aplicación de autenticación.",
-    "verify": "Verificar",
-    "verified": "Tu aplicación de autenticación está configurada. Ya puedes verificar con ella.",
-    "verifiedRetry": "Verificado. Intentando de nuevo…",
-    "authenticator": "Aplicación de autenticación",
-    "scan": "Escanea este código con una aplicación de autenticación (1Password, Google Authenticator, Authy) y escribe el código de seis dígitos que muestra.",
-    "qrAlt": "Código QR para tu aplicación de autenticación",
-    "secret": "¿No puedes escanearlo? Escribe esta clave:",
-    "stepUp": "Esto necesita un segundo factor. Escribe el código de tu aplicación de autenticación.",
-    "noneStepUp": "Esto necesita un segundo factor y aún no has configurado uno. Configura ahora una aplicación de autenticación; toma un minuto.",
-    "none": "Aún no tienes un segundo factor. Agrega una aplicación de autenticación para proteger tu cuenta y realizar acciones que lo requieren.",
-    "enrol": "Configurar una aplicación de autenticación",
-    "enrolAnother": "Agregar otra aplicación de autenticación",
-    "title": "Segundo factor",
-    "lead": "Verifica los inicios de sesión y las acciones sensibles con un código de una aplicación de autenticación.",
-    "errors": {
-      "code": "Ese código no coincide. Escribe el código actual de seis dígitos de la aplicación.",
-      "expired": "Ese código venció. Escribe el código nuevo de la aplicación.",
-      "unexpected": "No se pudo comprobar el segundo factor. Inténtalo de nuevo."
-    }
-  },
   "commandMenu": {
     "groups": {
       "actions": "Acciones",
@@ -1248,5 +1224,42 @@
       "openApprovals": "Abrir aprobaciones",
       "openInbox": "Abrir Bandeja"
     }
+  },
+  "create": {
+    "button": "Crear",
+    "title": "Crear",
+    "prompt": "¿Qué quieres crear?",
+    "here": "En esta página",
+    "more": "Todo lo demás",
+    "kinds": {
+      "project": "Proyecto",
+      "record": "Registro",
+      "workOrder": "Orden de trabajo",
+      "punchList": "Lista de pendientes",
+      "milestone": "Hito",
+      "runOfShow": "Guion del show",
+      "advancePacket": "Paquete de avance",
+      "venue": "Recinto",
+      "shipment": "Envío",
+      "fulfillment": "Servicio de hospitalidad",
+      "inspection": "Inspección",
+      "incident": "Incidente",
+      "requisition": "Requisición",
+      "posting": "Publicación de oportunidad",
+      "shift": "Turno",
+      "timeEntry": "Registro de tiempo",
+      "budget": "Presupuesto",
+      "expense": "Gasto",
+      "changeOrder": "Orden de cambio",
+      "invoice": "Factura",
+      "rfq": "Solicitud de cotización",
+      "purchaseOrder": "Orden de compra",
+      "vendor": "Proveedor",
+      "sop": "Procedimiento operativo estándar",
+      "document": "Documento"
+    }
+  },
+  "keys": {
+    "goHint": "Ir a: presiona una de estas teclas después de {key}, o Esc para cancelar."
   }
 }

@@ -3,6 +3,7 @@
 import { searchOrg } from "@xos/data/search";
 import { getNode, isNodeVisible } from "@xos/ia";
 import { getOrgContext } from "@/lib/shell/context";
+import { CREATE_KINDS } from "@/lib/shell/create-menu";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 
@@ -58,19 +59,18 @@ const RECORD_KINDS = [
   "Training",
 ] as const;
 
-/** The common actions: a verb, the sitemap node that must be visible, and where it leads. */
+/**
+ * The common actions: a verb, the sitemap node that must be visible, and where it leads. The create
+ * actions are the Create menu's kinds (lib/shell/create-menu.ts), so they need the same capability and
+ * open the same `?create=1` flow; the others open a page, and the menu shows that page's navigation
+ * shortcut from the person's keys (packages/schemas/shortcuts.yaml).
+ */
 const ACTIONS = [
-  {
-    key: "newProject",
-    node: "projects.all",
-    path: "projects/all?create=1",
-    icon: "FolderPlus",
-    capability: "projects.project.create",
-  },
-  { key: "newRecord", node: "work.all-records", path: "work/all-records?create=1", icon: "Plus" },
+  { key: "newProject", create: "project", path: "projects/all?create=1", icon: "FolderPlus" },
+  { key: "newRecord", create: "record", path: "work/all-records?create=1", icon: "Plus" },
   {
     key: "reportIncident",
-    node: "safety.incidents",
+    create: "incident",
     path: "safety/incidents?create=1",
     icon: "TriangleAlert",
   },
@@ -83,6 +83,14 @@ const ACTIONS = [
   { key: "openApprovals", node: "approvals", path: "approvals", icon: "Stamp" },
   { key: "openInbox", node: "inbox", path: "inbox", icon: "Inbox" },
 ] as const;
+
+/** The sitemap node an action needs to be visible, and the capability it needs, if any. */
+function gate(action: (typeof ACTIONS)[number]): { node: string; capability?: string } {
+  if ("node" in action) return { node: action.node };
+  const kind = CREATE_KINDS.find((k) => k.id === action.create);
+  if (!kind) throw new Error(`Unknown create kind ${action.create}`);
+  return { node: kind.node, capability: kind.capability };
+}
 
 function matches(text: string, query: string): boolean {
   if (query === "") return true;
@@ -106,9 +114,10 @@ export async function searchCommandMenu(input: {
   const org = ctx.org.slug;
   const visible = (node: string) => isNodeVisible(sitemap, node, ctx.nav);
 
-  const actions: CommandResultItem[] = ACTIONS.filter(
-    (a) => visible(a.node) && (!("capability" in a) || ctx.capabilities.has(a.capability)),
-  )
+  const actions: CommandResultItem[] = ACTIONS.filter((a) => {
+    const { node, capability } = gate(a);
+    return visible(node) && (capability === undefined || ctx.capabilities.has(capability));
+  })
     .map((a) => ({
       label: t(`shell.commandMenu.actions.${a.key}`),
       icon: a.icon,
