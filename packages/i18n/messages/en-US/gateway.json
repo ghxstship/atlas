@@ -1362,8 +1362,6 @@
       "proposeNote": "To represent an artist, ask the artist to share their Gateway profile with your agency; you then propose the representation and they accept it in Gateway."
     },
     "notes": {
-      "calendarFeeds": "Add every shift, set time and deadline to your calendar from Upcoming.",
-      "toUpcoming": "Open Upcoming",
       "connectedApps": "No apps are connected to your account. Organizations connect their own tools in Atlas.",
       "toOrganizations": "See your accounts",
       "notifications": "Organizations reach you by email and push for offers, documents to sign, payments and messages. Quiet hours and language follow your preferences.",
@@ -1406,6 +1404,38 @@
       "confirmTitle": "Delete your account now?",
       "confirmBody": "This cannot be undone. Your sign-in, name and profile are erased at once, and every organization you work with is told.",
       "cancel": "Keep my account"
+    },
+    "calendarFeeds": {
+      "title": "Calendar feeds",
+      "description": "Subscribe from Google Calendar, Apple Calendar or Outlook to see your published shifts and the meetings, milestones and deadlines shared with you, across every organization you work with. Calendars refresh it about once an hour.",
+      "secret": "Anyone with a feed's link can read it, so keep the link private. If it gets out, get a new link or revoke the feed.",
+      "none": "You have no calendar feeds yet.",
+      "listLabel": "Your calendar feeds",
+      "feedName": "My work",
+      "hint": "Link ending in {hint}",
+      "created": "Added {date}",
+      "lastFetched": "Last fetched {date}",
+      "neverFetched": "No calendar has fetched it yet",
+      "rotated": "New link issued {date}",
+      "add": "Add a feed",
+      "rotate": "Get a new link",
+      "rotateLabel": "Get a new link for the feed ending in {hint}",
+      "rotateConfirm": "The current link stops working at once. Calendars subscribed to it stop updating until you subscribe again with the new link.",
+      "revoke": "Revoke",
+      "revokeLabel": "Revoke the feed ending in {hint}",
+      "revokeConfirm": "The link stops working at once and cannot be turned back on.",
+      "linkTitle": "Your feed link",
+      "linkHelp": "Copy the link now. It is shown only once; after you leave this page you can only get a new one.",
+      "linkLabel": "Subscription link",
+      "copy": "Copy link",
+      "copied": "Link copied.",
+      "openInCalendar": "Open in my calendar app",
+      "subscribe": "Subscribe in a calendar app",
+      "errors": {
+        "calendar_feed_limit": "You have 20 feeds. Revoke one before you add another.",
+        "denied": "That feed is not available to you.",
+        "unexpected": "Something went wrong. Try again."
+      }
     }
   },
   "shell": {

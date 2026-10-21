@@ -1,3 +1,4 @@
+import { requireSecondFactor } from "@xos/data/auth-assurance";
 import { buildOrgExport, canExportOrg, recordOrgExport } from "@xos/data/lifecycle";
 import { getOrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
@@ -6,9 +7,13 @@ import { orgToday } from "@/lib/shell/time-zone";
  * The full org export (A36, Section 14.7 and 14.8): one ZIP archive with JSON and CSV of every tenant
  * table, the org's stored files and manifest.json, built with the Owner's own row level security and
  * logged in app.org_exports. Anyone else gets 404 (ADR 0003).
+ *
+ * It carries the Restricted data the Owner can read, so it needs step-up like every Restricted export (Section 9,
+ * Section 8.6, A77): a session that passed a second factor (aal2). Without it the request returns to Danger zone,
+ * whose download link asks for the second factor first.
  */
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: RouteContext<"/[org]/export">,
 ): Promise<Response> {
   const { org } = await params;
@@ -16,6 +21,11 @@ export async function GET(
   if (!ctx) return new Response(null, { status: 404 });
   const allowed = await canExportOrg(ctx.viewer.db, ctx.org.id);
   if (!allowed.ok || !allowed.data) return new Response(null, { status: 404 });
+  // A Restricted export: the one step-up check, an aal2 session (migration 1333, recency not asked).
+  const stepUp = await requireSecondFactor(ctx.viewer.db, { recent: false });
+  if (!stepUp.ok) {
+    return Response.redirect(new URL(`/${ctx.org.slug}/settings/danger-zone`, request.url), 303);
+  }
   const built = await buildOrgExport(ctx.viewer.db, { id: ctx.org.id, slug: ctx.org.slug });
   if (!built.ok) {
     console.error("org export failed", built.error);

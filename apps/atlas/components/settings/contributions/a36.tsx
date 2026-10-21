@@ -5,6 +5,7 @@ import { getPartnerOf, listSupportSessions } from "@xos/data/partner";
 import type { Route } from "next";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { StepUpDownloadLink } from "@/components/auth/security/step-up-download";
 import { InlineAlert } from "@/components/ui";
 import {
   AddFieldForm,
@@ -250,13 +251,12 @@ async function DangerZonePanel({ ctx }: SettingsPanelProps) {
           </InlineAlert>
           {owner ? (
             <>
-              <a
+              <StepUpDownloadLink
                 href={`/${ctx.org.slug}/export`}
-                download
                 className="inline-flex h-control-md w-fit items-center rounded-control border border-border-control px-12 text-text-13 font-medium hover:bg-bg-hover"
               >
                 {t("lifecycle.export.download")}
-              </a>
+              </StepUpDownloadLink>
               <p className="m-0 text-text-12 text-text-secondary">{t("lifecycle.export.help")}</p>
               {daysUntil(cancellation.data.readOnlyUntil) > 0 ? (
                 <ReactivateOrganizationForm org={ctx.org.slug} />
@@ -269,13 +269,12 @@ async function DangerZonePanel({ ctx }: SettingsPanelProps) {
       ) : owner ? (
         <div className="flex flex-col gap-12">
           <p className="m-0 text-text-13">{t("lifecycle.cancel.explain")}</p>
-          <a
+          <StepUpDownloadLink
             href={`/${ctx.org.slug}/export`}
-            download
             className="inline-flex h-control-md w-fit items-center rounded-control border border-border-control px-12 text-text-13 font-medium hover:bg-bg-hover"
           >
             {t("lifecycle.export.download")}
-          </a>
+          </StepUpDownloadLink>
           <CancelOrganizationForm org={ctx.org.slug} name={ctx.org.name} />
         </div>
       ) : (

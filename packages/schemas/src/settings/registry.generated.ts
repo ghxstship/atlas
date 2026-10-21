@@ -253,7 +253,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
-    deferred: true,
+    deferred: false,
     hidden: false,
   },
   {
@@ -274,7 +274,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
-    deferred: true,
+    deferred: false,
     hidden: false,
   },
   {
@@ -295,7 +295,7 @@ export const SETTINGS: readonly SettingDefinition[] = [
     pages: {
       org: "settings.security",
     },
-    deferred: true,
+    deferred: false,
     hidden: false,
   },
   {
