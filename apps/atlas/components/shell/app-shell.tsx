@@ -5,7 +5,7 @@ import { platformOf, SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
-import { selectableLocales } from "@/i18n/negotiate";
+import { lockedLocale, selectableLocales } from "@/i18n/negotiate";
 import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { createItems } from "@/lib/shell/create-menu";
@@ -101,6 +101,11 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
   });
   // The person's display preferences in this org and workspace (Section 4.5.6, A65-001).
   const settings = await getShellSettings(ctx.viewer.db, ctx.org.id, workspaces.active?.id ?? null);
+  // An org that locks its language (locale.language) leaves no language to choose.
+  const locales =
+    lockedLocale(settings.language) === null
+      ? selectableLocales(process.env.NODE_ENV === "production")
+      : [];
   return (
     <ShellFrame
       org={{ name: ctx.org.name, slug: ctx.org.slug }}
@@ -113,7 +118,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       favorites={favorites}
       workspaces={workspaces.all.map((w) => ({ slug: w.slug, name: w.name }))}
       workspace={workspaces.active?.slug ?? null}
-      locales={selectableLocales(process.env.NODE_ENV === "production")}
+      locales={locales}
       locale={locale}
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       email={ctx.viewer.email}

@@ -7,6 +7,7 @@ import {
   devicePreference,
   engagementsToRate,
   feedSwitchDefaults,
+  languageOf,
   legalEntityDefaults,
   orgSupportOf,
   ratingPromptsOn,
@@ -31,6 +32,24 @@ function resolved(values: Record<string, unknown>): Map<string, ResolvedSetting>
 }
 
 const lookup = (values: Record<string, unknown>) => (key: string) => values[key];
+
+describe("language (locale.language)", () => {
+  it("hands locale negotiation the resolved value, where it came from and the org's lock", () => {
+    const locked = new Map<string, ResolvedSetting>([
+      [
+        "locale.language",
+        { key: "locale.language", value: "es-US", source: "Organization", locked: true },
+      ],
+    ]);
+    expect(languageOf(locked)).toEqual({ value: "es-US", source: "Organization", locked: true });
+    expect(shellSettingsOf(locked).language).toEqual({
+      value: "es-US",
+      source: "Organization",
+      locked: true,
+    });
+    expect(languageOf(resolved({}))).toBeNull();
+  });
+});
 
 describe("workspace filter", () => {
   const workspaces = [

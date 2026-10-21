@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getMessages } from "@xos/i18n";
 import {
   localeDirection,
+  lockedLocale,
   negotiateLocale,
   parseAcceptLanguage,
   selectableLocales,
@@ -24,6 +25,53 @@ describe("locale negotiation", () => {
     expect(negotiateLocale({ acceptLanguage: "es", production: true })).toBe("es-US");
     expect(negotiateLocale({ cookie: "fr-FR", acceptLanguage: "ja", production: true })).toBe(
       "en-US",
+    );
+  });
+
+  it("applies locale.language as resolved in the org, and the org's lock first (A65-001)", () => {
+    const org = (value: string, locked = false) => ({ value, source: "Organization", locked });
+    // A locked org language wins over the device's choice and the browser.
+    expect(
+      negotiateLocale({
+        cookie: "en-US",
+        acceptLanguage: "en",
+        production: true,
+        setting: org("es-US", true),
+      }),
+    ).toBe("es-US");
+    expect(lockedLocale(org("es-US", true))).toBe("es-US");
+    expect(lockedLocale(org("es-US"))).toBeNull();
+    expect(lockedLocale(org("fr-FR", true))).toBeNull();
+    // Unlocked, the device's choice still wins.
+    expect(
+      negotiateLocale({
+        cookie: "en-US",
+        acceptLanguage: "en",
+        production: true,
+        setting: org("es-US"),
+      }),
+    ).toBe("en-US");
+    // With no choice on this device, the org's value, or the person's own from another device, beats the browser.
+    expect(negotiateLocale({ acceptLanguage: "en", production: true, setting: org("es-US") })).toBe(
+      "es-US",
+    );
+    expect(
+      negotiateLocale({
+        acceptLanguage: "en",
+        production: true,
+        setting: { value: "es-US", source: "Personal", locked: false },
+      }),
+    ).toBe("es-US");
+    // The platform default is nobody's choice, so the browser decides; an unknown value is ignored.
+    expect(
+      negotiateLocale({
+        acceptLanguage: "es",
+        production: true,
+        setting: { value: "en-US", source: "Default", locked: false },
+      }),
+    ).toBe("es-US");
+    expect(negotiateLocale({ acceptLanguage: "es", production: true, setting: org("fr-FR") })).toBe(
+      "es-US",
     );
   });
 

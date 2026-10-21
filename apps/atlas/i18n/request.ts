@@ -9,6 +9,8 @@ import {
 import { cookies, headers } from "next/headers";
 import { getRequestConfig } from "next-intl/server";
 import { cache } from "react";
+import { orgLanguage } from "@/lib/shell/org-language";
+import { ROUTE_ORG_HEADER } from "@/lib/shell/route-org";
 import { LOCALE_COOKIE, formattingLocale, negotiateLocale, type AtlasLocale } from "./negotiate";
 import { precompileMessages } from "./precompile";
 import { pseudoCatalog } from "./pseudo";
@@ -78,14 +80,18 @@ export function uiMessages(locale: AtlasLocale): Record<string, string> | undefi
 
 /**
  * The locale negotiated for this request (i18n/negotiate.ts), pseudo-locales included. It picks the messages, the
- * document language and direction, and the language picker's value. Read once per request.
+ * document language and direction, and the language picker's value. Inside an org (the route's org, which the
+ * proxy names in ROUTE_ORG_HEADER) the viewer's resolved locale.language takes part, with the org's lock.
+ * Read once per request.
  */
 export const negotiatedLocale = cache(async (): Promise<AtlasLocale> => {
   const [cookieStore, headerStore] = await Promise.all([cookies(), headers()]);
+  const org = headerStore.get(ROUTE_ORG_HEADER);
   return negotiateLocale({
     cookie: cookieStore.get(LOCALE_COOKIE)?.value,
     acceptLanguage: headerStore.get("accept-language"),
     production: process.env.NODE_ENV === "production",
+    setting: org ? await orgLanguage(org) : null,
   });
 });
 

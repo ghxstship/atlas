@@ -13,6 +13,7 @@ import {
 } from "@/lib/security/headers";
 import { decideRoute } from "@/lib/shell/guard";
 import { LAST_ORG_COOKIE } from "@/lib/shell/last-org";
+import { ROUTE_ORG_HEADER } from "@/lib/shell/route-org";
 import { applyViewAs } from "@/lib/access/view-as";
 import { resolveMembership } from "@/lib/shell/membership";
 import { createProxySupabase } from "@/lib/supabase/proxy";
@@ -60,11 +61,15 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     supabaseOrigin: new URL(config.SUPABASE_URL).origin,
     secureSite,
   });
+  // The org the route names, for the server code that renders before the page has its params.
+  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   /** Request headers for the app, rebuilt after any cookie refresh so they carry the new cookies. */
   const forwardedHeaders = () => {
     const headers = new Headers(request.headers);
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", csp);
+    if (slug) headers.set(ROUTE_ORG_HEADER, slug);
+    else headers.delete(ROUTE_ORG_HEADER);
     return headers;
   };
   const secure = <T extends NextResponse>(response: T): T => {
@@ -134,7 +139,6 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   }
   const result = response();
   // Remember the org this device opened last, so the entry route returns to it.
-  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   if (slug && user && request.cookies.get(LAST_ORG_COOKIE)?.value !== slug) {
     result.cookies.set(LAST_ORG_COOKIE, slug, {
       path: "/",

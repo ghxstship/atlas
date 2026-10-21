@@ -6,6 +6,7 @@ import {
   type DisplayPreferences,
 } from "@xos/ui/preferences";
 import { cache } from "react";
+import type { LanguageSetting } from "@/i18n/negotiate";
 
 /**
  * The registered settings the Atlas shell applies on every page (Section 4.5.6, A65-001), resolved once per
@@ -130,6 +131,14 @@ export interface ShellSettings {
   readonly encoded: string;
   readonly startPage: StartPage;
   readonly support: OrgSupport | null;
+  /** locale.language as resolved here, which locale negotiation applies (i18n/negotiate.ts). */
+  readonly language: LanguageSetting | null;
+}
+
+/** locale.language as resolved for the viewer in the org: the value, where it came from and the org's lock. */
+export function languageOf(settings: ReadonlyMap<string, ResolvedSetting>): LanguageSetting | null {
+  const setting = settings.get("locale.language");
+  return setting ? { value: setting.value, source: setting.source, locked: setting.locked } : null;
 }
 
 export function shellSettingsOf(settings: ReadonlyMap<string, ResolvedSetting>): ShellSettings {
@@ -139,6 +148,7 @@ export function shellSettingsOf(settings: ReadonlyMap<string, ResolvedSetting>):
     encoded: encodePreferences(preferences),
     startPage: startPageOf(settings),
     support: orgSupportOf(settings),
+    language: languageOf(settings),
   };
 }
 

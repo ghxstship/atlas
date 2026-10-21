@@ -481,6 +481,10 @@ settings:
     help: settings.fields.language.help
     pages: { org: settings.localization, personal: me.preferences }
     enforced_by:
+      - consumer: apps/atlas/i18n/negotiate.ts#negotiateLocale
+        test: apps/atlas/test/i18n.test.ts
+      - consumer: apps/atlas/i18n/request.ts#negotiatedLocale
+        test: apps/atlas/test/org-locale.test.ts
       - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
         test: apps/atlas/test/org-settings.test.ts
   - key: locale.time_zone
