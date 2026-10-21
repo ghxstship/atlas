@@ -6,7 +6,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(20);
+select plan(24);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -164,6 +164,30 @@ select is((select count(*)::integer from app.claim_sms_summaries() s where s.rec
 select is((pg_temp.sms((select id from n where key = 'shift_window'))).message_status::text, 'Queued', 'and is queued on its own');
 select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50) c where c.recipient_person_id = pg_temp.id('frank')), 1,
   'the sender claims it at once, inside quiet hours');
+
+-- 5. The language and zone a recipient is reached in ----------------------------------------------------------------------
+create function pg_temp.profile(p_person text) returns text
+language sql as $$
+  select concat_ws('|', r.full_name, r.language, r.time_zone) from app.notification_recipient_profile(pg_temp.id(p_person), pg_temp.id('org_a')) r
+$$;
+select pg_temp.as_user('erin');
+select app.set_personal_setting('locale.language', null, 'es-US');
+select app.set_personal_setting('locale.time_zone', null, 'Asia/Tokyo');
+select pg_temp.as_platform();
+select is(pg_temp.profile('erin'), 'Erin Castillo|es-US|Asia/Tokyo', 'a recipient is reached in their own language and zone');
+select pg_temp.as_user('erin');
+select app.clear_personal_setting('locale.language');
+select app.clear_personal_setting('locale.time_zone');
+select pg_temp.as_platform();
+select is(pg_temp.profile('erin'), 'Erin Castillo|en-US|America/New_York',
+  'cleared settings no longer apply: the default language, and the org''s project zone, never UTC');
+select pg_temp.as_user('erin');
+select app.set_personal_setting('locale.language', null, 'es-US');
+select app.set_personal_setting('locale.language', pg_temp.id('org_a'), 'en-US');
+select pg_temp.as_platform();
+select is(pg_temp.profile('erin'), 'Erin Castillo|en-US|America/New_York', 'a language kept for this org wins over the one for every org');
+select ok(not has_function_privilege('authenticated', 'app.notification_recipient_profile(uuid, uuid)', 'execute'),
+  'only the senders read a recipient''s profile');
 
 select * from finish();
 rollback;

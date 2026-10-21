@@ -81,7 +81,7 @@ export function pushStore(db: PlatformDb): PushStore {
         devices: devices(row["push_devices"]),
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     deepLink: (claim) => compassLink(db, claim),
     async recordTickets(deliveryId, tickets) {
       await db.rpc("record_push_tickets", { p_delivery_id: deliveryId, p_tickets: tickets });
@@ -134,7 +134,7 @@ export function smsStore(db: PlatformDb, options: SmsStoreOptions): SmsStore & S
         messageArgs: (row["message_args"] as Row | null) ?? {},
       }));
     },
-    recipient: (personId) => recipientProfile(db, personId),
+    recipient: (personId, orgId) => recipientProfile(db, personId, orgId),
     async orgName(orgId) {
       return text(await org(orgId), "name");
     },

@@ -403,6 +403,13 @@ describe("stores", () => {
         ],
         reply_address_local_part: () => "r-abc",
         record_notification_delivery: () => null,
+        notification_recipient_profile: (args) => [
+          {
+            full_name: args["p_person_id"] === "p1" ? "Dave Lindqvist" : null,
+            language: "en-US",
+            time_zone: args["p_org_id"] === "org-1" ? "America/New_York" : null,
+          },
+        ],
       },
       {
         organizations: { slug: "northwind-live", name: "Northwind Live" },
@@ -422,10 +429,10 @@ describe("stores", () => {
     expect(sender.from).toBe("Northwind Live <notifications@mail.xos.test>");
     expect(sender.preferencesUrl).toBe("https://atlas.xos.test/northwind-live/me/notifications");
     expect(sender.unsubscribeUrl).toBe("https://fn.xos.test/u?o=org-1&p=p1");
-    await expect(store.recipient("p1")).resolves.toEqual({
+    await expect(store.recipient("p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
       locale: "en-US",
-      timeZone: "UTC",
+      timeZone: "America/New_York",
     });
     if (claimed === undefined) throw new Error("claim expected");
     await expect(store.linkFor(claimed)).resolves.toBe(

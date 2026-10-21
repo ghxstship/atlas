@@ -960,23 +960,45 @@ describe("chat message translation (Section 4.9)", () => {
 // Stores --------------------------------------------------------------------------------------------------------
 
 describe("stores over the 1361 and 1363 RPCs", () => {
-  it("reads the recipient's own language and time zone", async () => {
-    const { db } = fakeDb(
-      {},
+  it("reads the recipient's language and zone in the org through the 1393 RPC, never a cleared setting row", async () => {
+    const { db, calls } = fakeDb(
+      {
+        // The database resolves live values only: a value for this org over one for every org.
+        notification_recipient_profile: (args) =>
+          args["p_person_id"] === "p1"
+            ? [{ full_name: "Dave Lindqvist", language: "en-US", time_zone: "America/Chicago" }]
+            : [{ full_name: null, language: null, time_zone: null }],
+      },
       {
         people: [{ id: "p1", full_name: "Dave Lindqvist" }],
+        // A cleared (soft-deleted) Spanish setting: reading the table directly would still pick it up.
         personal_setting_values: [
-          { person_id: "p1", setting_key: "locale.language", value_text: "es-US" },
-          { person_id: "p1", setting_key: "locale.time_zone", value_text: "America/Chicago" },
+          {
+            person_id: "p1",
+            setting_key: "locale.language",
+            value_text: "es-US",
+            deleted_at: "2026-10-20T00:00:00Z",
+          },
+          {
+            person_id: "p1",
+            setting_key: "locale.time_zone",
+            value_text: "Asia/Tokyo",
+            deleted_at: "2026-10-20T00:00:00Z",
+          },
         ],
       },
     );
-    await expect(recipientProfile(db, "p1")).resolves.toEqual({
+    await expect(recipientProfile(db, "p1", "org-1")).resolves.toEqual({
       name: "Dave Lindqvist",
-      locale: "es-US",
+      locale: "en-US",
       timeZone: "America/Chicago",
     });
-    await expect(recipientProfile(db, "p9")).resolves.toEqual({
+    expect(calls[0]).toEqual({
+      fn: "notification_recipient_profile",
+      args: { p_person_id: "p1", p_org_id: "org-1" },
+    });
+    // An org with no zone and no project at all is the only case left for UTC.
+    await expect(recipientProfile(db, "p9", "org-1")).resolves.toEqual({
       name: "",
       locale: "en-US",
       timeZone: "UTC",
@@ -1007,6 +1029,9 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         record_notification_delivery: () => null,
         claim_push_receipts: () => [{ ticket_id: "t-1" }],
         record_push_receipts: () => 2,
+        notification_recipient_profile: () => [
+          { full_name: "Dave Lindqvist", language: "en-US", time_zone: "America/New_York" },
+        ],
       },
       {
         records: [{ id: "r1", project_id: "prj-1", record_number: 42 }],
@@ -1024,13 +1049,14 @@ describe("stores over the 1361 and 1363 RPCs", () => {
     await store.record("d1", "Sent", "t-1", null);
     await expect(store.claimReceipts(1000)).resolves.toEqual(["t-1"]);
     await expect(store.recordReceipts([])).resolves.toBe(2);
-    await expect(store.recipient("p1")).resolves.toMatchObject({ locale: "en-US" });
+    await expect(store.recipient("p1", "org-1")).resolves.toMatchObject({ locale: "en-US" });
     expect(calls.map((c) => c.fn)).toEqual([
       "claim_notification_deliveries",
       "record_push_tickets",
       "record_notification_delivery",
       "claim_push_receipts",
       "record_push_receipts",
+      "notification_recipient_profile",
     ]);
   });
 
@@ -1069,6 +1095,9 @@ describe("stores over the 1361 and 1363 RPCs", () => {
         record_notification_delivery: () => null,
         record_sms_keyword: () => 2,
         record_sms_status: () => true,
+        notification_recipient_profile: () => [
+          { full_name: "Dave Lindqvist", language: "es-US", time_zone: "America/Chicago" },
+        ],
       },
       { organizations: [{ id: "org-1", slug: "northwind-live", name: "Northwind Live" }] },
     );
@@ -1080,7 +1109,9 @@ describe("stores over the 1361 and 1363 RPCs", () => {
       "https://atlas.xos.test/northwind-live/inbox",
     );
     await store.record("s1", "Bounced", null, "21610");
-    await expect(store.recipient("p1")).resolves.toMatchObject({ timeZone: "UTC" });
+    await expect(store.recipient("p1", "org-1")).resolves.toMatchObject({
+      timeZone: "America/Chicago",
+    });
     const inboundStore = smsInboundStore(db);
     await expect(inboundStore.recordKeyword("+15555550100", "Opt Out", "STOP")).resolves.toBe(2);
     await expect(inboundStore.recordStatus("SM-1", "delivered", null)).resolves.toBe(true);

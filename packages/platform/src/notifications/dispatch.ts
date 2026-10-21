@@ -38,7 +38,7 @@ export interface NotificationStore {
   claimEmail(limit: number): Promise<readonly ClaimedEmail[]>;
   /** Sender identity of an org: name, postal address, From address, preference and unsubscribe links. */
   senderFor(orgId: string, recipientPersonId: string): Promise<Sender & { readonly from: string }>;
-  recipient(personId: string): Promise<Recipient>;
+  recipient(personId: string, orgId: string): Promise<Recipient>;
   /** Link that opens the notification's subject in the app. */
   linkFor(claim: ClaimedEmail): Promise<string>;
   /** Signed reply address for reply by email, or null when the email takes no replies. */
@@ -122,7 +122,7 @@ export async function dispatchEmail(
   let failed = 0;
   for (const claim of claims) {
     try {
-      const recipient = await store.recipient(claim.recipientPersonId);
+      const recipient = await store.recipient(claim.recipientPersonId, claim.orgId);
       const locale: Locale = isLocale(recipient.locale) ? recipient.locale : "en-US";
       const sender = await store.senderFor(claim.orgId, claim.recipientPersonId);
       const { code, props } = await propsFor(claim, store);
