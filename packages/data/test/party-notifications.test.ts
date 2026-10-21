@@ -51,6 +51,10 @@ describe("party notifications", () => {
       data: [
         { category: "finance", channel: "Email", enabled: true },
         { category: "finance", channel: "Push", enabled: false },
+        { category: "opportunities", channel: "Email", enabled: true },
+        { category: "opportunities", channel: "Push", enabled: true },
+        { category: "expiry_reminders", channel: "Email", enabled: true },
+        { category: "expiry_reminders", channel: "Push", enabled: true },
       ],
     });
   });

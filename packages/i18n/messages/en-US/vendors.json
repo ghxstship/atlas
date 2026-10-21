@@ -288,5 +288,31 @@
     "requiredNameHelp": "The party vendors must name, for example the venue owner.",
     "project": "Project",
     "everyProject": "Every project"
+  },
+  "diversity": {
+    "title": "Supplier diversity",
+    "lead": "Certifications vendors and freelancers shared with your organization for its supplier diversity program. Each was shared by separate consent and can be revoked; every view is logged.",
+    "off": "Your organization runs no supplier diversity program, so nobody can share diversity certifications with it.",
+    "turnOn": "Turn it on in Settings",
+    "empty": "Nobody has shared a supplier diversity certification yet.",
+    "what": "supplier diversity certifications",
+    "owner": "Shared by",
+    "kind": "Certification",
+    "certifyingBody": "Certified by",
+    "number": "Certificate number",
+    "expires": "Expires",
+    "masked": "Masked: needs government identifier access",
+    "none": "None",
+    "kinds": {
+      "minorityOwned": "Minority-owned business",
+      "womenOwned": "Women-owned business",
+      "veteranOwned": "Veteran-owned business",
+      "serviceDisabledVeteranOwned": "Service-disabled veteran-owned business",
+      "disabilityOwned": "Disability-owned business",
+      "lgbtqOwned": "LGBTQ+-owned business",
+      "smallDisadvantagedBusiness": "Small disadvantaged business",
+      "hubzone": "HUBZone business",
+      "other": "Other certification"
+    }
   }
 }

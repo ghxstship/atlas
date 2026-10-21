@@ -767,6 +767,12 @@ export async function removeSavedSearch(db: XosClient, id: string): Promise<Resu
   return error ? fail(toDataError(error)) : ok(null);
 }
 
+/** Restores a saved search removed by mistake (Undo for removeSavedSearch). */
+export async function restoreSavedSearch(db: XosClient, id: string): Promise<Result<null>> {
+  const { error } = await db.from("saved_searches").update({ deleted_at: null }).eq("id", id);
+  return error ? fail(toDataError(error)) : ok(null);
+}
+
 // Ranked search, places, passing and alerts (A89, migrations 1460 to 1462) --------------------------
 
 /** A place to search near: a label and a WGS 84 point, with the radius in kilometers. */

@@ -34,18 +34,12 @@ const SHAREABLE_SECTIONS = [
 ] as const;
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
-/** Saves the current Explore filters as a search with alerts (Section 4.4.3, Discovery). */
-export function SaveSearchForm({
-  defaultName,
-  roleType,
-  startsAfter,
-  endsBefore,
-}: {
-  defaultName: string;
-  roleType: string;
-  startsAfter: string;
-  endsBefore: string;
-}) {
+/**
+ * Saves the current Explore filters as a search with alerts (Section 4.4.3, Discovery). It sends
+ * Explore's query string, which the action parses with the page's own rules, so every filter the
+ * person sees is saved.
+ */
+export function SaveSearchForm({ defaultName, search }: { defaultName: string; search: string }) {
   const t = useTranslations("gateway.explore.saveSearch") as unknown as Translate;
   const [state, action, pending] = useActionState<SimpleState, FormData>(saveSearchAction, {});
   if (state.done) {
@@ -66,9 +60,7 @@ export function SaveSearchForm({
       aria-label={t("title")}
     >
       <OutcomeAlert outcome={state.outcome} />
-      <input type="hidden" name="roleType" value={roleType} />
-      <input type="hidden" name="startsAfter" value={startsAfter} />
-      <input type="hidden" name="endsBefore" value={endsBefore} />
+      <input type="hidden" name="search" value={search} />
       <Input
         id="save-search-name"
         name="name"

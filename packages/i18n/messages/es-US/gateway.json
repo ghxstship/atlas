@@ -26,7 +26,9 @@
       "account_role_band": "Solo un propietario de la cuenta puede dar o quitar el rol de propietario.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
       "slug_reserved": "Esa dirección web está reservada. Elige otra.",
-      "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta."
+      "cross_org_reference": "Ese documento pertenece a otra organización. Vuelve a subirlo para esta.",
+      "supplier_diversity_no_program": "Esa organización no tiene un programa de diversidad de proveedores, así que no recibe certificaciones de diversidad.",
+      "time_zone_unknown": "No se reconoce esa zona horaria. Elija una de la lista, por ejemplo America/New_York."
     }
   },
   "common": {
@@ -768,11 +770,22 @@
       "approved": "Aprobado",
       "returned": "Devuelto",
       "canceled": "Cancelado"
+    },
+    "supplierDiversityKind": {
+      "minorityOwned": "Empresa de propiedad de minorías",
+      "womenOwned": "Empresa de propiedad de mujeres",
+      "veteranOwned": "Empresa de propiedad de veteranos",
+      "serviceDisabledVeteranOwned": "Empresa de propiedad de veteranos con discapacidad por servicio",
+      "disabilityOwned": "Empresa de propiedad de personas con discapacidad",
+      "lgbtqOwned": "Empresa de propiedad LGBTQ+",
+      "smallDisadvantagedBusiness": "Pequeña empresa en desventaja",
+      "hubzone": "Empresa HUBZone",
+      "other": "Otra certificación"
     }
   },
   "explore": {
     "title": "Explorar",
-    "lead": "Oportunidades abiertas para ti, con la fecha límite más cercana primero. El pago siempre se muestra antes de postular.",
+    "lead": "Oportunidades abiertas para usted, la más adecuada primero. El pago siempre se muestra antes de postularse.",
     "searchLabel": "Buscar oportunidades",
     "searchHint": "Busca roles, habilidades u organizaciones",
     "search": "Buscar",
@@ -814,7 +827,7 @@
     },
     "alerts": {
       "title": "Alertas",
-      "lead": "Búsquedas guardadas. Cada una envía un correo y una notificación cuando una nueva oportunidad coincide.",
+      "lead": "Nuevas oportunidades que coincidieron con sus búsquedas guardadas y, después, las búsquedas. Cada coincidencia envía un correo y una notificación push, según lo que configuró en Ajustes, Notificaciones.",
       "empty": "Aún no tienes búsquedas guardadas. Busca en Explorar y guarda la búsqueda para recibir alertas.",
       "emptyAction": "Buscar oportunidades",
       "on": "Alertas activas",
@@ -823,7 +836,12 @@
       "turnOn": "Activar",
       "remove": "Quitar",
       "run": "Buscar",
-      "any": "Cualquier tipo de rol"
+      "any": "Cualquier tipo de rol",
+      "matches": "Coincidencias recientes",
+      "noMatches": "Aún no hay coincidencias. Cuando una organización publique una oportunidad que coincida con una búsqueda guardada, aparecerá aquí.",
+      "matchedBy": "Coincidió con {name} el {date}",
+      "searches": "Búsquedas guardadas",
+      "within": "A menos de {km} km de {place}"
     },
     "detail": {
       "pay": "Pago",
@@ -924,12 +942,37 @@
     },
     "ranking": {
       "title": "Cómo funciona el orden",
-      "lead": "Explorar ordena las oportunidades solo por dos factores públicos. Ninguna organización puede pagar por posición.",
+      "lead": "Explorar muestra solo las oportunidades que las organizaciones hicieron visibles para usted, en uno de dos órdenes que usted elige. Ninguna organización puede pagar por su posición.",
       "factor1": "La fecha límite de postulación: la más cercana va primero para que no te pierdas ninguna.",
       "factor2": "La fecha de inicio: con fechas límite iguales, va primero el trabajo que empieza antes.",
       "visibility": "Ves una oportunidad solo cuando la organización la hizo visible para ti: por invitación, mediante sus grupos de talento o proveedores, para quienes ya trabajaron con ella, o para todo el mercado.",
       "filters": "Tus filtros acotan la lista; nunca la reordenan.",
-      "back": "Volver a Explorar"
+      "back": "Volver a Explorar",
+      "recommendedTitle": "Más adecuada",
+      "recommendedLead": "Cada oportunidad recibe una puntuación sobre 100 a partir de su propio perfil. Nada que pague una organización cuenta.",
+      "factors": {
+        "skills": {
+          "title": "Habilidades, hasta {points} puntos.",
+          "body": "Todos los puntos cuando la categoría de la oportunidad es una de las habilidades de su perfil, 25 cuando está en la misma disciplina y 10 cuando está en el mismo departamento."
+        },
+        "certifications": {
+          "title": "Certificaciones, hasta {points} puntos.",
+          "body": "La proporción de certificaciones requeridas que usted tiene, en un registro vigente de una organización o en su perfil con el mismo nombre. Una oportunidad que no requiere ninguna no tiene nada pendiente. La organización igual verifica las certificaciones durante la incorporación."
+        },
+        "location": {
+          "title": "Ubicación, hasta {points} puntos.",
+          "body": "Si busca cerca de un lugar: todos los puntos a menos de 50 km y 10 a menos de 150 km. Si no: todos los puntos cuando el recinto está en la ciudad de su perfil y 5 cuando está en su país."
+        },
+        "availability": {
+          "title": "Disponibilidad, hasta {points} puntos.",
+          "body": "Todos los puntos cuando ninguno de sus días no disponibles coincide con las fechas del trabajo, la mitad cuando la oportunidad aún no tiene fechas."
+        }
+      },
+      "ties": "Con la misma puntuación, primero va la fecha límite más próxima y luego el inicio más temprano.",
+      "soonestTitle": "Fecha límite más próxima",
+      "neverTitle": "Lo que nunca cuenta",
+      "never": "Pagos, planes, anuncios o cualquier otra cosa que pague una organización. Sus características protegidas. Quién descartó o guardó una oportunidad.",
+      "passed": "Las oportunidades que descarta salen de sus resultados hasta que deshaga el descarte. Las organizaciones nunca ven quién descartó."
     },
     "organizations": {
       "tab": "Organizaciones",
@@ -940,6 +983,45 @@
       "emptyAction": "Volver a oportunidades",
       "listLabel": "Organizaciones",
       "open": "{n, plural, =0 {Sin oportunidades abiertas} one {# oportunidad abierta} other {# oportunidades abiertas}}"
+    },
+    "sortLabel": "Orden",
+    "sort": {
+      "recommended": "Más adecuada",
+      "soonest": "Fecha límite más próxima"
+    },
+    "discipline": "Disciplina",
+    "disciplineAny": "Cualquier disciplina",
+    "category": "Categoría",
+    "categoryAny": "Cualquier categoría de la disciplina",
+    "certification": "Certificación requerida",
+    "certificationHelp": "Muestra las oportunidades que la requieren, por ejemplo ETCP Rigger.",
+    "near": "Cerca de",
+    "nearAny": "Cualquier lugar",
+    "nearHelp": "Lugares con oportunidades abiertas para usted. Se omiten los recintos sin ubicación.",
+    "radius": "Dentro de",
+    "radiusOption": "{km} km",
+    "showPassed": "Mostrar las oportunidades que descartó",
+    "distance": "A {km} km",
+    "why": {
+      "label": "Por qué coincide",
+      "skills": "Coincide con sus habilidades",
+      "discipline": "Cercana a sus habilidades",
+      "certifications": "Cumple las certificaciones",
+      "near": "Cerca de usted",
+      "available": "Encaja con su disponibilidad"
+    },
+    "swipe": {
+      "actions": "Acciones para {title}",
+      "save": "Guardar",
+      "saved": "Guardada. Encuéntrela en Guardadas.",
+      "unsave": "Quitar",
+      "unsaved": "Se quitó de Guardadas.",
+      "pass": "Descartar",
+      "passed": "Descartó {title}.",
+      "restored": "De nuevo en sus resultados.",
+      "removed": "Se quitó {title}.",
+      "undo": "Deshacer",
+      "failed": "No se completó. Vuelva a cargar la página e inténtelo de nuevo."
     }
   },
   "home": {
@@ -1092,6 +1174,18 @@
         "bio": "Siguiente: escribe una biografía breve",
         "languages": "Siguiente: agrega los idiomas que hablas",
         "links": "Siguiente: agrega un enlace a tu trabajo"
+      },
+      "missingTitle": "{n, plural, one {Falta una cosa} other {Faltan # cosas}}",
+      "missing": {
+        "headline": "Agregue un titular",
+        "skills": "Agregue sus habilidades",
+        "city": "Agregue su ciudad",
+        "certifications": "Agregue una certificación",
+        "rate": "Fije su tarifa",
+        "availability": "Marque su disponibilidad",
+        "bio": "Escriba una biografía breve",
+        "languages": "Agregue los idiomas que habla",
+        "links": "Agregue un enlace a su trabajo"
       }
     },
     "certifications": {
@@ -1436,6 +1530,23 @@
         "denied": "Ese calendario no está disponible para usted.",
         "unexpected": "Algo salió mal. Inténtelo de nuevo."
       }
+    },
+    "quietHours": {
+      "title": "Horas de silencio",
+      "help": "Las notificaciones push de organizaciones de las que usted no es miembro esperan a que terminen sus horas de silencio. Las alertas de seguridad y los cambios en un turno que empieza en menos de 12 horas le llegan igual. El correo nunca se retiene.",
+      "start": "Inicio",
+      "end": "Fin",
+      "zone": "Zona horaria",
+      "save": "Guardar horas de silencio",
+      "saved": "Guardado. Las notificaciones push esperan durante estas horas.",
+      "errors": {
+        "zone": "Elija su zona horaria, por ejemplo America/New_York.",
+        "pair": "Indique un inicio y un fin, o deje ambos en blanco para desactivar las horas de silencio.",
+        "time": "Escriba el inicio y el fin como horas, por ejemplo 22:00.",
+        "same": "Elija una hora de fin distinta de la de inicio.",
+        "denied": "No se pudieron guardar las horas de silencio de su cuenta. Inicie sesión de nuevo e inténtelo otra vez.",
+        "unexpected": "Algo salió mal al guardar sus horas de silencio. Inténtelo de nuevo en un momento."
+      }
     }
   },
   "shell": {
@@ -1644,5 +1755,39 @@
   "legal": {
     "inReview": "La versión {version} está en revisión y aún no está vigente. El texto publicado aparecerá aquí cuando entre en vigor.",
     "back": "Ir a Gateway"
+  },
+  "diversity": {
+    "title": "Diversidad de proveedores",
+    "lead": "Opcional y autodeclarada. Cada certificación se comparte solo con una organización que usted elija y que tenga un programa de diversidad de proveedores, con un consentimiento aparte que puede revocar aquí en cualquier momento.",
+    "empty": "Aún no tiene certificaciones de diversidad de proveedores.",
+    "noPrograms": "Ninguna de las organizaciones con las que trabaja o a las que se postuló tiene todavía un programa de diversidad de proveedores.",
+    "numberLast4": "Número terminado en {last4}",
+    "remove": "Quitar",
+    "sharedWith": "Compartida con",
+    "sharedOn": "Compartida el {date}",
+    "notShared": "No se ha compartido con ninguna organización.",
+    "revoke": "Revocar",
+    "shareLabel": "Compartir esta certificación",
+    "shareWith": "Compartir con",
+    "share": "Compartir",
+    "shared": "Compartida.",
+    "consent": "Usted consiente que esta organización lea esta certificación para su programa de diversidad de proveedores. Puede revocarlo en cualquier momento.",
+    "add": "Agregar certificación",
+    "added": "Agregada.",
+    "kind": "Certificación",
+    "certifyingBody": "Certificada por",
+    "certifyingBodyHelp": "Por ejemplo, un programa DBE estatal o la SBA. Escriba Autodeclarada si nadie la certificó.",
+    "number": "Número de certificado",
+    "numberHelp": "Opcional. Se guarda como dato restringido: aquí solo se muestran sus últimos cuatro caracteres.",
+    "issuedOn": "Emitida",
+    "expiresOn": "Vence",
+    "errors": {
+      "kind": "Elija el tipo de certificación.",
+      "certifyingBody": "Indique quién la certificó, o Autodeclarada.",
+      "certificateNumber": "El número de certificado debe tener menos de 100 caracteres.",
+      "issuedOn": "Escriba la fecha de emisión como una fecha.",
+      "expiresOn": "Elija una fecha de vencimiento igual o posterior a la de emisión.",
+      "orgId": "Elija la organización con la que compartirá."
+    }
   }
 }

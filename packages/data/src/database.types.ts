@@ -57026,7 +57026,7 @@ export type Database = {
       };
       set_my_passport_number: { Args: { p_passport_number: string }; Returns: undefined };
       set_my_quiet_hours: {
-        Args: { p_quiet_hours_end: string; p_quiet_hours_start: string; p_time_zone: string };
+        Args: { p_quiet_hours_end?: string; p_quiet_hours_start?: string; p_time_zone: string };
         Returns: undefined;
       };
       set_org_legal_entity_tax_identifier: {

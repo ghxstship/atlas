@@ -51,10 +51,33 @@ function done(step: StrengthStep, p: StrengthInput): boolean {
   }
 }
 
-export function profileStrength(p: StrengthInput): { percent: number; next: StrengthStep | null } {
+/**
+ * Where each step is fixed (A65-031: the meter shows what is missing and links to it): the field or
+ * section on Settings, Profile, or the availability calendar on the profile page.
+ */
+export const STRENGTH_LINKS: Readonly<Record<StrengthStep, string>> = {
+  headline: "/settings/profile#profile-headline",
+  skills: "/settings/profile#skills",
+  city: "/settings/profile#profile-city",
+  certifications: "/settings/profile#certifications",
+  rate: "/settings/profile#profile-rate",
+  availability: "/profile#availability",
+  bio: "/settings/profile#about",
+  languages: "/settings/profile#languages",
+  links: "/settings/profile#links",
+};
+
+export function profileStrength(p: StrengthInput): {
+  percent: number;
+  next: StrengthStep | null;
+  /** Every step still missing, in the order that helps an application most. */
+  missing: StrengthStep[];
+} {
   const complete = STRENGTH_STEPS.filter((s) => done(s, p));
+  const missing = STRENGTH_STEPS.filter((s) => !done(s, p));
   return {
     percent: Math.round((complete.length / STRENGTH_STEPS.length) * 100),
-    next: STRENGTH_STEPS.find((s) => !done(s, p)) ?? null,
+    next: missing[0] ?? null,
+    missing,
   };
 }

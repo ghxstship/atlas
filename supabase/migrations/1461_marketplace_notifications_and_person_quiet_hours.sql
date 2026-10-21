@@ -131,7 +131,7 @@ $$;
 comment on function private.person_quiet_until(uuid, timestamptz) is 'When a person''s own quiet hours end, if p_at falls inside them in their chosen time zone; NULL otherwise or when they set none. Handles quiet hours that span midnight (A89, the person-level twin of private.local_quiet_until).';
 revoke all on function private.person_quiet_until(uuid, timestamptz) from public, anon, authenticated;
 
-create or replace function app.set_my_quiet_hours(p_time_zone text, p_quiet_hours_start time, p_quiet_hours_end time)
+create or replace function app.set_my_quiet_hours(p_time_zone text, p_quiet_hours_start time default null, p_quiet_hours_end time default null)
 returns void
 language plpgsql
 volatile

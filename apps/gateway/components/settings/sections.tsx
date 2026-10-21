@@ -19,7 +19,7 @@ import {
   PROFILE_SECTIONS,
 } from "@xos/data/profiles";
 import { listMyPersonCalendarFeeds } from "@xos/data/calendar-feeds";
-import { listMyNotificationPreferences } from "@xos/data/party-notifications";
+import { getMyQuietHours, listMyNotificationPreferences } from "@xos/data/party-notifications";
 import { resolveSettings } from "@xos/data/settings";
 import { getNode } from "@xos/ia";
 import type { Route } from "next";
@@ -46,7 +46,7 @@ import {
   saveProfileAction,
 } from "@/lib/actions/profile";
 import { formatDate, formatMoney, minorDigits } from "@/lib/format";
-import { personToday } from "@/lib/time-zone";
+import { getChosenTimeZone, personToday } from "@/lib/time-zone";
 import { choiceLabelKey, formText, NO_ORG, personalSettings } from "@/lib/settings";
 import type { GatewayContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -54,6 +54,7 @@ import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translat
 import { AddPersonFeedForm, PersonFeedActions } from "./calendar-feeds-forms";
 import { DeleteAccountSection } from "./delete-account";
 import { NotificationPreferences } from "./notification-preferences";
+import { QuietHoursForm } from "./quiet-hours-form";
 import { PersonalSetting } from "./personal-setting";
 import { SecurityPanels } from "./security-panels";
 import {
@@ -205,7 +206,7 @@ async function ProfileSection(props: SectionProps) {
         ]}
         hidden={{ rateCurrency: currency, rateUnit: p.rateUnit ?? "Day", bio: p.bio ?? "" }}
       />
-      <Section title={t("gateway.settings.profile.about")}>
+      <Section id="about" title={t("gateway.settings.profile.about")}>
         <SimpleForm
           id="profile-bio"
           action={saveProfileAction}
@@ -235,7 +236,7 @@ async function ProfileSection(props: SectionProps) {
           }}
         />
       </Section>
-      <Section title={t("gateway.settings.profile.skills")}>
+      <Section id="skills" title={t("gateway.settings.profile.skills")}>
         {skills.ok && skills.data.length > 0 ? (
           <RowList
             label={t("gateway.settings.profile.skills")}
@@ -277,7 +278,7 @@ async function ProfileSection(props: SectionProps) {
           ]}
         />
       </Section>
-      <Section title={t("gateway.settings.profile.certifications")}>
+      <Section id="certifications" title={t("gateway.settings.profile.certifications")}>
         {certs.ok && certs.data.length > 0 ? (
           <RowList
             label={t("gateway.settings.profile.certifications")}
@@ -323,7 +324,7 @@ async function ProfileSection(props: SectionProps) {
           ]}
         />
       </Section>
-      <Section title={t("gateway.settings.profile.languages")}>
+      <Section id="languages" title={t("gateway.settings.profile.languages")}>
         {languages.ok && languages.data.length > 0 ? (
           <RowList
             label={t("gateway.settings.profile.languages")}
@@ -369,7 +370,7 @@ async function ProfileSection(props: SectionProps) {
           ]}
         />
       </Section>
-      <Section title={t("gateway.settings.profile.links")}>
+      <Section id="links" title={t("gateway.settings.profile.links")}>
         {links.ok && links.data.length > 0 ? (
           <RowList
             label={t("gateway.settings.profile.links")}
@@ -742,11 +743,27 @@ async function CalendarFeedsSection(props: SectionProps) {
  * Email and Push per category.
  */
 async function NotificationsSection(props: SectionProps) {
-  const prefs = await listMyNotificationPreferences(props.ctx.db);
+  const [prefs, quiet, zone] = await Promise.all([
+    listMyNotificationPreferences(props.ctx.db),
+    getMyQuietHours(props.ctx.db),
+    getChosenTimeZone(props.ctx),
+  ]);
   return (
     <>
       <Header t={props.t} node={props.node} />
       {prefs.ok ? <NotificationPreferences rows={prefs.data} /> : <RegionError />}
+      {/* A person's own quiet hours (A89, migration 1461): pushes from orgs they are not a member of wait. */}
+      <Section id="quiet-hours" title={props.t("gateway.settings.quietHours.title")}>
+        {quiet.ok ? (
+          <QuietHoursForm
+            timeZone={quiet.data?.timeZone ?? zone ?? ""}
+            start={quiet.data?.start ?? ""}
+            end={quiet.data?.end ?? ""}
+          />
+        ) : (
+          <RegionError />
+        )}
+      </Section>
     </>
   );
 }

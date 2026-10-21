@@ -31,6 +31,8 @@ export const KNOWN_REFUSALS = [
   "slug_taken",
   "slug_reserved",
   "cross_org_reference",
+  "supplier_diversity_no_program",
+  "time_zone_unknown",
 ] as const;
 
 export function outcomeFor(error: DataError): string {

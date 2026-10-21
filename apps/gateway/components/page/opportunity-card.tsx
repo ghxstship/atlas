@@ -1,6 +1,7 @@
 import type { Opportunity } from "@xos/data/gateway";
 import type { Route } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { BrandMark, Icon, Tag } from "@/components/ui";
 import { formatDate, formatDateRange, formatPayRange } from "@/lib/format";
 import { enumLabelKey, type Translate } from "@/lib/shell/translate";
@@ -14,10 +15,13 @@ export function OpportunityLinkCard({
   opportunity: o,
   locale,
   t,
+  extra,
 }: {
   opportunity: Opportunity;
   locale: string;
   t: Translate;
+  /** Lines under the tags, such as why the listing is recommended and how far away it is. */
+  extra?: ReactNode;
 }) {
   const pay = o.rateOnRequest
     ? t("gateway.common.rateOnRequest")
@@ -60,6 +64,7 @@ export function OpportunityLinkCard({
           </span>
         ) : null}
       </div>
+      {extra}
     </article>
   );
 }
