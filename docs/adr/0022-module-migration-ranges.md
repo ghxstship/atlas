@@ -92,3 +92,9 @@ A62 takes 1260 to 1264, A63 1265 to 1269, A64 1270 to 1274, A61 1275 to 1279, A6
 ## Amendment (2026-10-20): A74 to A82 and a second orchestrator block
 
 A76 (settings enforcement) takes 1320 to 1329, A77 (authentication and step-up) 1330 to 1339, A78 (work details) 1340 to 1349, A79 (org lifecycle) 1350 to 1359, A80 (push, SMS and notification registry) 1360 to 1369, A81 (navigation and keyboard) 1370 to 1379 and A82 (compliance flows) 1380 to 1389. A74 and A75 have no range. The orchestrator's first block (1190 to 1199) sorts before migrations it now builds on, so it takes a second block, 1390 to 1399.
+
+## Amendment (2026-10-21): A83 to A99
+
+A83 (integration runtime, import and warehouse delivery) takes 1400 to 1409, A84 (calendar feeds and the project inbox) 1410 to 1419, A85 (Edge Function bundles and kiosk re-keying) 1420 to 1429, A86 (settings surfaces) 1430 to 1439, A87 (global search) 1440 to 1449, A88 (collaboration and power editing) 1450 to 1459, A89 (marketplace alerts and Gateway gaps) 1460 to 1469, A90 (operator console) 1470 to 1479, A91 (automation engine) 1480 to 1489, A92 (Compass NFC, receipts and external screens) 1490 to 1499, A93 (Compass orgs, brand, widgets and passes) 1500 to 1509, A94 (supply chain and platform operations) 1510 to 1519, A95 (AI entry points) 1520 to 1529, A96 (sandbox, feedback, analytics and installable apps) 1530 to 1539, A97 (locales, canon translations and rates) 1540 to 1549, A98 (sustainability measurements) 1550 to 1559 and A99 (authentication follow-ups) 1560 to 1569.
+
+Within the orchestrator's second block, 1390 adds the project time zone to engagements, 1391 restores the feed post defaults that 1365 dropped, and 1392 to 1399 hold the fixes from the batch-c integration audit: 1392 to 1394 for notifications, 1395 to 1397 for settings and approvals, and 1398 and 1399 for calendars.
