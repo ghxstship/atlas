@@ -590,7 +590,7 @@ describe("operator console: banners, roster and ledger", () => {
       "rpc:console_end_banner": [ok("b1")],
     });
     const banners = await listBanners(db);
-    expect(banners.ok && banners.data[0]?.live).toBe(true);
+    expect(banners.ok && banners.data[0]?.state).toBe("Live");
     expect(
       await saveBanner(db, {
         kind: "Notice",

@@ -900,15 +900,25 @@ export interface ConsoleBanner {
   readonly dismissible: boolean;
   readonly endedAt: string | null;
   readonly live: boolean;
+  /** Live now, scheduled for later, or ended (early or at its end). */
+  readonly state: "Live" | "Scheduled" | "Ended";
   readonly createdByName: string | null;
   readonly createdAt: string;
 }
 
-export async function listBanners(db: XosClient): Promise<Result<ConsoleBanner[]>> {
+export async function listBanners(
+  db: XosClient,
+  now: Date = new Date(),
+): Promise<Result<ConsoleBanner[]>> {
   return rpc(db, "console_banners", {}, (data) =>
     arr(data).map((d) => {
       const r = obj(d);
+      const endsAt = strOrNull(r["ends_at"]);
+      const ended =
+        strOrNull(r["ended_at"]) !== null ||
+        (endsAt !== null && Date.parse(endsAt) <= now.getTime());
       return {
+        state: bool(r["live"]) ? "Live" : ended ? "Ended" : "Scheduled",
         id: str(r["id"]),
         kind: str(r["banner_kind"]) as ConsoleBanner["kind"],
         severity: str(r["severity"]) as ConsoleBanner["severity"],

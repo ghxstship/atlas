@@ -1,0 +1,80 @@
+# Operator console information architecture (A90, RRR-135; Section 4.10, Section 6). Single source for the top
+# bar, routes, breadcrumbs and route guards (Section 3.15), validated by packages/ia like the Atlas, Gateway and
+# Compass sitemaps. Order is render order.
+#
+# Visibility keys are the operator roles of migration 1470. The database checks every console action again
+# (private.require_platform_operator), so a hidden node is a convenience, never the guard. Every route needs a
+# signed-in operator with a second factor; the sign-in and second factor pages live outside the sitemap
+# (ia/routes.config.ts).
+schemaVersion: 1
+shell: console
+home: tenants
+params:
+  orgId: { type: uuid }
+  sessionId: { type: uuid }
+  opportunityId: { type: uuid }
+audience:
+  dimension: operator-role
+  roles: [administrator, support, trust-and-safety]
+chrome:
+  topBar: [tenants, flags, support, moderation, banners, team, activity]
+nodes:
+  - id: console
+    kind: group
+    label: nav.console.group
+    placement: top-bar
+    visibility: { administrator: full, support: full, trust-and-safety: full }
+    children:
+      - id: tenants
+        kind: page
+        label: nav.console.tenants
+        route: /tenants
+        list: { views: [table], default: table }
+        children:
+          - id: tenants.detail
+            kind: record
+            label: nav.console.tenant
+            route: /tenants/{orgId}
+      - id: flags
+        kind: page
+        label: nav.console.flags
+        route: /flags
+        list: { views: [table], default: table }
+      - id: support
+        kind: page
+        label: nav.console.support
+        route: /support
+        visibility: { administrator: full, support: full, trust-and-safety: hidden }
+        list: { views: [list], default: list }
+        children:
+          - id: support.session
+            kind: record
+            label: nav.console.supportSession
+            route: /support/{sessionId}
+      - id: moderation
+        kind: page
+        label: nav.console.moderation
+        route: /moderation
+        visibility: { administrator: full, support: hidden, trust-and-safety: full }
+        list: { views: [table], default: table }
+        children:
+          - id: moderation.listing
+            kind: record
+            label: nav.console.listing
+            route: /moderation/{opportunityId}
+      - id: banners
+        kind: page
+        label: nav.console.banners
+        route: /banners
+        list: { views: [list], default: list }
+      - id: team
+        kind: page
+        label: nav.console.team
+        route: /team
+        visibility: { administrator: full, support: hidden, trust-and-safety: hidden }
+        list: { views: [table], default: table }
+      - id: activity
+        kind: page
+        label: nav.console.activity
+        route: /activity
+        list: { views: [table], default: table }
