@@ -18,7 +18,8 @@ import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCopy } from "@/components/work/action-ui";
-import { formatWhen, slipAmount, stateToken, withQuery } from "@/components/work/format";
+import { formatScheduleTime, slipAmount, stateToken, withQuery } from "@/components/work/format";
+import { useScheduleView } from "@/components/work/use-schedule-view";
 import { CollectionViews } from "@/components/views/collection-views";
 
 /**
@@ -151,6 +152,7 @@ export function BaselinePeek({
   const t = useCopy("schedule");
   const w = useCopy("work");
   const locale = useLocale();
+  const view = useScheduleView();
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -192,10 +194,14 @@ export function BaselinePeek({
             key: v.record.key,
             title: v.record.title,
             state: { state: stateToken(v.record.state), label: w(`states.${v.record.state}`) },
-            planned: formatWhen(v.plannedEnd, locale, tz) ?? t("baselines.noDate"),
+            planned: formatScheduleTime(v.plannedEnd, locale, tz, view) ?? t("baselines.noDate"),
             current:
-              formatWhen(v.record.endsAt ?? v.record.dueAt ?? v.record.startsAt, locale, tz) ??
-              t("baselines.noDate"),
+              formatScheduleTime(
+                v.record.endsAt ?? v.record.dueAt ?? v.record.startsAt,
+                locale,
+                tz,
+                view,
+              ) ?? t("baselines.noDate"),
             slip: slip(v.endSlipMs),
           };
         })}

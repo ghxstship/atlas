@@ -1,6 +1,7 @@
-import { todayIn, zoneOrUtc } from "@xos/data/calendar";
+import { isTimeZone, todayIn, zoneOrUtc } from "@xos/data/calendar";
 import { resolveSettings } from "@xos/data/settings";
 import { cache } from "react";
+import { scheduleViewFrom, type ScheduleView } from "./format";
 import { NO_ORG } from "./settings";
 import type { GatewayContext } from "./shell/context";
 
@@ -13,9 +14,12 @@ import type { GatewayContext } from "./shell/context";
  *   roster) use the person's own `locale.time_zone` setting, UTC until they set one.
  */
 
+/** The person's own settings, resolved once per request. */
+const personalSettings = cache((ctx: GatewayContext) => resolveSettings(ctx.db, { orgId: NO_ORG }));
+
 /** The person's own time zone: their personal locale.time_zone setting, UTC when unset or unknown. */
 export const getPersonTimeZone = cache(async (ctx: GatewayContext): Promise<string> => {
-  const settings = await resolveSettings(ctx.db, { orgId: NO_ORG });
+  const settings = await personalSettings(ctx);
   if (!settings.ok) return "UTC";
   const value = settings.data.get("locale.time_zone")?.value;
   return zoneOrUtc(typeof value === "string" ? value : null);
@@ -25,3 +29,13 @@ export const getPersonTimeZone = cache(async (ctx: GatewayContext): Promise<stri
 export async function personToday(ctx: GatewayContext): Promise<string> {
   return todayIn(await getPersonTimeZone(ctx));
 }
+
+/**
+ * How the person reads schedule times (Section 15): the event's zone unless they chose their own
+ * (me.time_zone_display), which is their locale.time_zone when they set a known one.
+ */
+export const getScheduleView = cache(async (ctx: GatewayContext): Promise<ScheduleView> => {
+  const settings = await personalSettings(ctx);
+  if (!settings.ok) return { display: "event", viewerZone: null };
+  return scheduleViewFrom((key) => settings.data.get(key)?.value, isTimeZone);
+});

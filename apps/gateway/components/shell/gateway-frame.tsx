@@ -76,6 +76,8 @@ export interface GatewayFrameProps {
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
   readonly storedPreferences: string;
+  /** The person's own time zone, for schedule times shown in "my time zone" (me.time_zone_display). */
+  readonly viewerTimeZone?: string | null;
   /** The docs site origin (DOCS_SITE_URL), on the platform brand only; null hides its links. */
   readonly docsUrl: string | null;
   readonly children: ReactNode;
@@ -252,7 +254,10 @@ export function GatewayFrame(props: GatewayFrameProps) {
         }
       >
         <div id="content" className="flex flex-col gap-16 min-w-0">
-          <PreferencesProvider preferences={displayPreferences}>
+          <PreferencesProvider
+            preferences={displayPreferences}
+            timeZone={props.viewerTimeZone ?? null}
+          >
             {props.children}
           </PreferencesProvider>
         </div>

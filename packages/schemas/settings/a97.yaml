@@ -16,3 +16,9 @@ settings:
     enforced_by:
       - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
         test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/atlas/components/work/format.ts#formatScheduleTime
+        test: apps/atlas/test/schedule-zone.test.ts
+      - consumer: apps/gateway/lib/format.ts#scheduleViewFrom
+        test: apps/gateway/test/schedule-zone.test.ts
+      - consumer: apps/compass/src/domain/settings.ts#scheduleZone
+        test: apps/compass/test/settings.test.ts

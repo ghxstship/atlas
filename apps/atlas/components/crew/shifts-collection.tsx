@@ -45,6 +45,8 @@ import {
   weekStartOf,
 } from "@/lib/crew/time";
 import { getShellSettings } from "@/lib/shell/org-settings";
+import { scheduleViewOf } from "@/components/work/format";
+import { displayTimeZone } from "@xos/ui/preferences";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { claimingRule, listShiftClaims } from "@xos/data/crew";
 import { resolveSettings } from "@xos/data/settings";
@@ -85,7 +87,11 @@ export async function ShiftsCollection(props: {
   // start on the person's or org's first day (payroll.week_start).
   const zone = projectFilter?.timeZone ?? (await getOrgTimeZone(crew.ctx));
   const today = todayIn(zone);
-  const { preferences } = await getShellSettings(db, crew.orgId, null);
+  const { preferences, viewerTimeZone } = await getShellSettings(db, crew.orgId, null);
+  // Shift times show in the event's zone or the viewer's own (me.time_zone_display), labeled with the zone.
+  const zoneView = scheduleViewOf(preferences, viewerTimeZone);
+  const shown = (s: Shift) =>
+    displayTimeZone(s.timeZone, zoneView.display, zoneView.viewerZone) ?? s.timeZone;
   const week = weekStartOf(
     isIsoDate(search["week"]) ? search["week"] : today,
     preferences.weekStart,
@@ -126,7 +132,7 @@ export async function ShiftsCollection(props: {
   const when = (s: Shift) =>
     t("crew.common.range", {
       start: format.dateTime(new Date(s.startsAt), {
-        timeZone: s.timeZone,
+        timeZone: shown(s),
         weekday: "short",
         month: "short",
         day: "numeric",
@@ -134,9 +140,10 @@ export async function ShiftsCollection(props: {
         minute: "2-digit",
       }),
       end: format.dateTime(new Date(s.endsAt), {
-        timeZone: s.timeZone,
+        timeZone: shown(s),
         hour: "numeric",
         minute: "2-digit",
+        timeZoneName: "short",
       }),
     });
 
@@ -370,14 +377,18 @@ export async function ShiftsCollection(props: {
                 {entries.data.map((e) => (
                   <li key={e.id}>
                     {format.dateTime(new Date(e.clockIn), {
-                      timeZone: s.timeZone,
-                      timeStyle: "short",
+                      timeZone: shown(s),
+                      hour: "numeric",
+                      minute: "2-digit",
+                      timeZoneName: "short",
                     })}
                     {" · "}
                     {e.clockOut
                       ? format.dateTime(new Date(e.clockOut), {
-                          timeZone: s.timeZone,
-                          timeStyle: "short",
+                          timeZone: shown(s),
+                          hour: "numeric",
+                          minute: "2-digit",
+                          timeZoneName: "short",
                         })
                       : t("crew.time.clockedIn")}
                   </li>
@@ -635,8 +646,8 @@ export async function ShiftsCollection(props: {
         today={today}
         events={shifts.map((s) => ({
           id: s.id,
-          date: dayIn(s.startsAt, s.timeZone),
-          label: `${format.dateTime(new Date(s.startsAt), { timeZone: s.timeZone, timeStyle: "short" })} ${personName(s)}`,
+          date: dayIn(s.startsAt, shown(s)),
+          label: `${format.dateTime(new Date(s.startsAt), { timeZone: shown(s), hour: "numeric", minute: "2-digit", timeZoneName: "short" })} ${personName(s)}`,
           state: stateIcon("shift", s.state),
         }))}
       />

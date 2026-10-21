@@ -67,6 +67,8 @@ export interface ShellFrameProps {
   readonly preferences: string;
   /** The preferences cookie this page was rendered with. */
   readonly storedPreferences: string;
+  /** The viewer's own time zone, for schedule times shown in "my time zone" (me.time_zone_display). */
+  readonly viewerTimeZone?: string | null;
   /** The person's keyboard shortcuts: the registry with their own bindings (lib/shell/shell-keys.ts). */
   readonly keys: ShellKeys;
   /** What the person may create, for the Create menu (lib/shell/create-menu.ts). */
@@ -418,7 +420,10 @@ export function ShellFrame(props: ShellFrameProps) {
             tabIndex={-1}
             className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
           >
-            <PreferencesProvider preferences={displayPreferences}>
+            <PreferencesProvider
+              preferences={displayPreferences}
+              timeZone={props.viewerTimeZone ?? null}
+            >
               {props.children}
             </PreferencesProvider>
           </div>

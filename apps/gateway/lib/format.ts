@@ -3,6 +3,7 @@
  * null is unpriced and is never formatted as zero, so these helpers take null and say so. Dates
  * stored as ISO dates are formatted in UTC so a calendar date never shifts a day across zones.
  */
+import { displayTimeZone, formatZonedDateTime, type TimeZoneDisplay } from "@xos/ui/preferences";
 
 /** The number of minor units in one major unit of a currency (100 for USD, 1 for JPY). */
 export function minorDigits(currency: string): number {
@@ -88,6 +89,44 @@ export function formatDateTime(locale: string, iso: string, timeZone?: string | 
     minute: "2-digit",
     ...(timeZone ? { timeZone, timeZoneName: "short" } : {}),
   }).format(new Date(iso));
+}
+
+/** How the person reads schedule times: their me.time_zone_display choice and their own zone. */
+export interface ScheduleView {
+  readonly display: TimeZoneDisplay;
+  readonly viewerZone: string | null;
+}
+
+export const EVENT_ZONE_VIEW: ScheduleView = { display: "event", viewerZone: null };
+
+/** The person's schedule view from their own resolved settings (me.time_zone_display, locale.time_zone). */
+export function scheduleViewFrom(
+  value: (key: string) => unknown,
+  isZone: (zone: string) => boolean,
+): ScheduleView {
+  const display = value("me.time_zone_display") === "viewer" ? "viewer" : "event";
+  const zone = value("locale.time_zone");
+  return { display, viewerZone: typeof zone === "string" && isZone(zone) ? zone : null };
+}
+
+/**
+ * A schedule time (Section 15): in the event's zone by default (the shift's, record's or engagement's project
+ * zone), or the person's own when they chose "my time zone" (me.time_zone_display), always labeled with the
+ * zone abbreviation.
+ */
+export function formatScheduleTime(
+  locale: string,
+  iso: string,
+  eventZone: string | null | undefined,
+  view: ScheduleView,
+  parts: "dateTime" | "time" = "dateTime",
+): string {
+  return formatZonedDateTime(
+    locale,
+    iso,
+    displayTimeZone(eventZone, view.display, view.viewerZone) ?? "UTC",
+    parts,
+  );
 }
 
 /** Time until a moment, as Intl relative time: "in 3 days", "in 5 hours", "in 12 minutes". */

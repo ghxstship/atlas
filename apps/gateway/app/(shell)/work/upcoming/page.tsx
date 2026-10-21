@@ -13,9 +13,9 @@ import { PageTitle, pickView, RegionError, ViewSwitcher } from "@/components/pag
 import { CalendarDownload } from "@/components/page/up-next-actions";
 import { DestinationTabs } from "@/components/page/work-tabs";
 import { Calendar, EmptyStateLink, Icon } from "@/components/ui";
-import { formatDate, formatDateTime } from "@/lib/format";
+import { formatDate, formatScheduleTime } from "@/lib/format";
 import { requireNode, sitemap } from "@/lib/shell/sitemap";
-import { personToday } from "@/lib/time-zone";
+import { getScheduleView, personToday } from "@/lib/time-zone";
 import { enumLabelKey, getTranslate, type Translate } from "@/lib/shell/translate";
 import { byDay, mergeUpcoming, type UpcomingItem } from "@/lib/upcoming";
 
@@ -75,7 +75,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
   const failed = !shifts.ok || !records.ok || !docks.ok || !lodging.ok || !applications.ok;
   const now = new Date();
   // Upcoming spans engagements across orgs, so its calendar opens on the person's own today.
-  const today = await personToday(ctx);
+  const [today, schedule] = await Promise.all([personToday(ctx), getScheduleView(ctx)]);
   const items = mergeUpcoming({
     now,
     engagements: current,
@@ -188,7 +188,7 @@ export default async function UpcomingPage({ searchParams }: PageProps<"/work/up
                         <span className="text-text-13 text-text-secondary">
                           {[
                             item.at.length > 10
-                              ? formatDateTime(locale, item.at, item.timeZone)
+                              ? formatScheduleTime(locale, item.at, item.timeZone, schedule)
                               : t(`gateway.work.upcoming.kinds.${item.kind}`),
                             item.orgName,
                             item.projectName,

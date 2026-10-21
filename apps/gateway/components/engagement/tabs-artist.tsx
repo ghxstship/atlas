@@ -7,7 +7,13 @@ import {
 import { RegionError, Section } from "@/components/page/page";
 import { Tag } from "@/components/ui";
 import { hasArea, tabHref } from "@/lib/engagement";
-import { formatDate, formatDateRange, formatDateTime, formatMoney } from "@/lib/format";
+import {
+  formatDate,
+  formatDateRange,
+  formatDateTime,
+  formatMoney,
+  formatScheduleTime,
+} from "@/lib/format";
 import { personToday } from "@/lib/time-zone";
 import { listEngagedGuests, type GuestEntryState } from "@/lib/party";
 import { enumLabelKey } from "@/lib/shell/translate";
@@ -95,7 +101,17 @@ export async function SetTimesTab({ view, t, locale, engagementKey }: TabProps) 
           items={cues.data.map((c) => ({
             id: c.id ?? "",
             title: c.label ?? "",
-            meta: [c.planned_at ? formatDateTime(locale, c.planned_at) : null, c.duration],
+            meta: [
+              c.planned_at
+                ? formatScheduleTime(
+                    locale,
+                    c.planned_at,
+                    view.engagement.projectTimeZone,
+                    view.scheduleView,
+                  )
+                : null,
+              c.duration,
+            ],
             ...(c.called_at
               ? {
                   tag: {
