@@ -43,6 +43,8 @@ export async function expectAccessibleInBothThemes(page: Page) {
   await expectAccessible(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
+  // Leave the page hydrated: callers act next, and a click before hydration is lost (A71, A77).
+  await settle(page);
 }
 
 /** Opens a collection page and checks its heading. */
