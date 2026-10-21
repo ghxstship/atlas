@@ -21,6 +21,8 @@ export const BRAND_THEMES: readonly BrandTheme[] = ["dark", "light", "sunlight"]
 
 export interface OrgBrand {
   readonly orgId: string;
+  /** The org's slug, which an Enterprise branded build names (app.config.ts extra.tenant.orgSlug). */
+  readonly orgSlug?: string;
   readonly name: string;
   readonly accentHex: string | null;
   readonly logoLightPath: string | null;
@@ -152,8 +154,10 @@ export function brandFromRow(row: Readonly<Record<string, unknown>>): OrgBrand |
     return typeof value === "string" && value.length > 0 ? value : null;
   };
   const accent = text("accent_hex");
+  const slug = text("org_slug");
   return {
     orgId,
+    ...(slug ? { orgSlug: slug } : {}),
     name,
     accentHex: accent && HEX_COLOR.test(accent) ? accent.toUpperCase() : null,
     logoLightPath: text("logo_light_path"),
@@ -171,6 +175,61 @@ export function logoUrl(supabaseUrl: string, path: string | null): string | null
 export function logoFor(brand: OrgBrand | null | undefined, dark: boolean): string | null {
   if (!brand) return null;
   return (dark ? brand.logoDarkPath : null) ?? brand.logoLightPath ?? brand.logoDarkPath;
+}
+
+/** An Enterprise branded build's own brand (app.config.ts extra.tenant), worn before sign-in. */
+export interface BuildTenant {
+  readonly slug: string;
+  readonly orgSlug: string;
+  readonly name: string;
+  readonly accent: string;
+}
+
+/** The build's tenant from the app config's extra, or null for the platform build. */
+export function buildTenantOf(extra: unknown): BuildTenant | null {
+  const tenant = (extra as { tenant?: Record<string, unknown> } | null | undefined)?.tenant;
+  if (!tenant) return null;
+  const { slug, orgSlug, name, accent } = tenant;
+  return typeof slug === "string" &&
+    typeof orgSlug === "string" &&
+    typeof name === "string" &&
+    typeof accent === "string" &&
+    HEX_COLOR.test(accent)
+    ? { slug, orgSlug, name, accent: accent.toUpperCase() }
+    : null;
+}
+
+/**
+ * The brand to wear: the active org's; before sign-in (or for an org without a brand row) a branded build's
+ * own; otherwise none, which is the platform brand.
+ */
+export function activeBrand(
+  orgBrand: OrgBrand | null | undefined,
+  tenant: BuildTenant | null,
+): OrgBrand | null {
+  if (orgBrand) return orgBrand;
+  if (!tenant) return null;
+  return {
+    orgId: "",
+    orgSlug: tenant.orgSlug,
+    name: tenant.name,
+    accentHex: tenant.accent,
+    logoLightPath: null,
+    logoDarkPath: null,
+  };
+}
+
+/** The org a branded build opens on: the person's org whose slug the build names, if they have it. */
+export function tenantOrgId(
+  brands: ReadonlyMap<string, OrgBrand>,
+  tenant: BuildTenant | null,
+  orgIds: readonly string[],
+): string | null {
+  if (!tenant) return null;
+  const match = [...brands.values()].find(
+    (b) => b.orgSlug === tenant.orgSlug && orgIds.includes(b.orgId),
+  );
+  return match?.orgId ?? null;
 }
 
 /** The color of an org's brand chip in a theme: its accent when it passes there, else none (neutral). */

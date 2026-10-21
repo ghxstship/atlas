@@ -3,7 +3,7 @@ import { hapticsOn, themeOptionsOf } from "../src/domain/settings";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useMemo, useState, type ReactElement } from "react";
-import { brandColors } from "../src/domain/brand";
+import { activeBrand, brandColors } from "../src/domain/brand";
 import { useTranslation } from "react-i18next";
 import { useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -28,6 +28,9 @@ import {
 import { NativeHeaderContext } from "../src/ui/layout";
 
 initI18n();
+
+/** A brand with only an accent: what the theme needs from it (brandColors reads the accent alone). */
+const EMPTY_BRAND = { orgId: "", name: "", logoLightPath: null, logoDarkPath: null } as const;
 
 /** Actionable push notifications (journey 57) for the signed-in person; renders nothing. */
 function NotificationActions(): null {
@@ -161,10 +164,15 @@ function Gatekeeper(): ReactElement {
 
 function Themed(): ReactElement {
   const scheme = useColorScheme();
-  const { settings, orgSettings, resolved, brands } = useCompass();
-  // The active org's brand, in the themes where it passes the contrast pairs (Section 12 Mobile).
-  const brand = resolved?.orgId ? brands.get(resolved.orgId) : undefined;
-  const colors = useMemo(() => brandColors(brand), [brand]);
+  const { settings, orgSettings, resolved, brands, buildTenant } = useCompass();
+  // The active org's brand (a branded build's own before sign-in), in the themes where it passes the
+  // contrast pairs (Section 12 Mobile).
+  const brand = activeBrand(resolved?.orgId ? brands.get(resolved.orgId) : null, buildTenant);
+  const accent = brand?.accentHex ?? null;
+  const colors = useMemo(
+    () => brandColors(accent ? { ...EMPTY_BRAND, accentHex: accent } : null),
+    [accent],
+  );
   // me.text_size, me.high_contrast, me.reduced_motion and me.haptics (Section 4.5.6 Accessibility).
   return (
     <ThemeProvider

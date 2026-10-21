@@ -3,7 +3,10 @@
  * while a value that needs an Apple, Google or Expo account is still an owner value (an `OWNER_` token) in
  * eas.json or store/store.config.json. It reads only files in the repository; it never signs in anywhere.
  *
- *   node --experimental-strip-types scripts/store-preflight.ts ios|android|metadata
+ *   node --experimental-strip-types scripts/store-preflight.ts ios|android|metadata [profile]
+ *
+ * profile is the submit profile, production by default, or a tenant's `tenant-<slug>` for an Enterprise
+ * branded build (scripts/tenant-profile.ts), checked against its own listing and icon.
  *
  * ios       the TestFlight submission (eas.json submit.production.ios)
  * android   the Play internal track submission (eas.json submit.production.android)
@@ -82,29 +85,36 @@ export function ownerValues(value: unknown, path = ""): string[] {
   return [];
 }
 
-/** What blocks the store command for a target; empty when it may run. */
-export function preflightProblems(target: Target, input: PreflightInput): string[] {
+/**
+ * What blocks the store command for a target; empty when it may run. `profile` is the submit profile:
+ * production, or a tenant's `tenant-<slug>` (scripts/tenant-profile.ts), whose icon and listing are its own.
+ */
+export function preflightProblems(
+  target: Target,
+  input: PreflightInput,
+  profile = "production",
+): string[] {
   const problems: string[] = [];
   if (target === "ios" || target === "android") problems.push(...iconProblems(input.icon));
   if (target === "ios") {
-    const ios = at(input.easJson, "submit", "production", "ios");
-    problems.push(...ownerValues(ios, "eas.json submit.production.ios"));
+    const ios = at(input.easJson, "submit", profile, "ios");
+    problems.push(...ownerValues(ios, `eas.json submit.${profile}.ios`));
     const ascAppId = at(ios, "ascAppId");
     if (typeof ascAppId !== "string" || !ASC_APP_ID.test(ascAppId)) {
       problems.push(
-        "eas.json submit.production.ios.ascAppId must be the numeric Apple ID of the App Store Connect app",
+        `eas.json submit.${profile}.ios.ascAppId must be the numeric Apple ID of the App Store Connect app`,
       );
     }
     const teamId = at(ios, "appleTeamId");
     if (teamId !== undefined && (typeof teamId !== "string" || !APPLE_TEAM_ID.test(teamId))) {
       problems.push(
-        "eas.json submit.production.ios.appleTeamId must be the 10-character Apple team id, or be removed",
+        `eas.json submit.${profile}.ios.appleTeamId must be the 10-character Apple team id, or be removed`,
       );
     }
   }
   if (target === "android") {
-    const android = at(input.easJson, "submit", "production", "android");
-    problems.push(...ownerValues(android, "eas.json submit.production.android"));
+    const android = at(input.easJson, "submit", profile, "android");
+    problems.push(...ownerValues(android, `eas.json submit.${profile}.android`));
     const keyPath = at(android, "serviceAccountKeyPath");
     // Without a path, EAS uses the Google service account key uploaded with `eas credentials`.
     if (typeof keyPath === "string" && !OWNER_VALUE.test(keyPath) && !input.fileExists(keyPath)) {
@@ -141,13 +151,23 @@ function main(argv: readonly string[]): number {
   }
   const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
   const read = (file: string) => JSON.parse(readFileSync(resolve(root, file), "utf8")) as unknown;
-  const problems = preflightProblems(target, {
-    easJson: read("eas.json"),
-    storeConfig: read("store/store.config.json"),
-    appVersion: String(at(read("app.json"), "expo", "version")),
-    fileExists: (path) => existsSync(isAbsolute(path) ? path : resolve(root, path)),
-    icon: existsSync(resolve(root, ICON_PATH)) ? readFileSync(resolve(root, ICON_PATH)) : null,
-  });
+  // A tenant's branded build (`tenant-<slug>`) has its own listing and icon (scripts/tenant-profile.ts).
+  const profile = argv[3] ?? "production";
+  const tenant = /^tenant-([a-z0-9-]+)$/.exec(profile)?.[1];
+  const easJson = read("eas.json");
+  const metadata = at(easJson, "submit", profile, "ios", "metadataPath");
+  const iconPath = tenant ? `tenants/${tenant}/icon.png` : ICON_PATH;
+  const problems = preflightProblems(
+    target,
+    {
+      easJson,
+      storeConfig: read(typeof metadata === "string" ? metadata : "store/store.config.json"),
+      appVersion: String(at(read("app.json"), "expo", "version")),
+      fileExists: (path) => existsSync(isAbsolute(path) ? path : resolve(root, path)),
+      icon: existsSync(resolve(root, iconPath)) ? readFileSync(resolve(root, iconPath)) : null,
+    },
+    profile,
+  );
   if (problems.length === 0) {
     console.log(`Compass ${target} preflight passed.`);
     return 0;

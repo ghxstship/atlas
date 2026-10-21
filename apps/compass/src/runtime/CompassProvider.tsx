@@ -14,6 +14,7 @@ import {
   type SyncStatus,
 } from "@xos/sync";
 import type { ThemePreference } from "@xos/ui-native/theme";
+import Constants from "expo-constants";
 import * as SecureStore from "expo-secure-store";
 import {
   createContext,
@@ -37,7 +38,13 @@ import {
   type ResolvedIdentity,
 } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
-import { brandFromRow, type OrgBrand } from "../domain/brand";
+import {
+  brandFromRow,
+  buildTenantOf,
+  tenantOrgId,
+  type BuildTenant,
+  type OrgBrand,
+} from "../domain/brand";
 import { inOrg, personTimeZone } from "../domain/orgs";
 import {
   COMPASS_SETTING_KEYS,
@@ -110,6 +117,8 @@ export interface CompassContextValue {
   readonly brands: ReadonlyMap<string, OrgBrand>;
   /** The person's own time zone, the calendar of items with no project (A71). */
   readonly personZone: string;
+  /** An Enterprise branded build's own tenant (app.config.ts extra.tenant); null for the platform build. */
+  readonly buildTenant: BuildTenant | null;
   readonly projectId: string | null;
   readonly setProjectId: (id: string) => void;
   readonly store: LocalStore | null;
@@ -194,6 +203,7 @@ function brandMap(rows: readonly Row[]): ReadonlyMap<string, OrgBrand> {
     rows.flatMap((row) => {
       const brand = brandFromRow({
         org_id: row["orgId"],
+        org_slug: row["orgSlug"],
         name: row["name"],
         accent_hex: row["accentHex"],
         logo_light_path: row["logoLightPath"],
@@ -236,6 +246,9 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const orgRef = useRef<string | null>(null);
   const storeRef = useRef<LocalStore | null>(null);
   const orgProjectsRef = useRef<Record<string, string>>({});
+  /** Whether the person chose an org on this device; a branded build opens on its own org until they do. */
+  const chosenOrgRef = useRef(false);
+  const buildTenant = useMemo(() => buildTenantOf(Constants.expoConfig?.extra), []);
 
   // The active org's view of the person; every screen reads this one org.
   const resolved = useMemo(
@@ -255,6 +268,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       if (id) setProjectIdState(id);
     });
     void SecureStore.getItemAsync(ORG_KEY).then((id) => {
+      chosenOrgRef.current = id !== null;
       if (id) setActiveOrgId((current) => current ?? id);
     });
     void SecureStore.getItemAsync(ORG_PROJECTS_KEY).then((raw) => {
@@ -292,6 +306,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       const context = contexts?.find((c) => c.orgId === orgId);
       if (!context) return;
       setActiveOrgId(orgId);
+      chosenOrgRef.current = true;
       void SecureStore.setItemAsync(ORG_KEY, orgId);
       // Back to the project last used in that org, else its first.
       const remembered = orgProjectsRef.current[orgId];
@@ -445,6 +460,16 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     if (!store) return;
     void store.list(BRANDS_TABLE).then((rows) => setBrands(brandMap(rows)));
   }, [store]);
+  // An Enterprise branded build opens on its own org until the person picks another (Section 12 Mobile).
+  useEffect(() => {
+    if (chosenOrgRef.current || !contexts) return;
+    const orgId = tenantOrgId(
+      brands,
+      buildTenant,
+      contexts.map((c) => c.orgId),
+    );
+    if (orgId && orgId !== activeOrgId) setActiveOrgId(orgId);
+  }, [brands, buildTenant, contexts, activeOrgId]);
   useEffect(() => {
     if (phase.kind !== "ready" || !network.isConnected || !store) return;
     let live = true;
@@ -535,6 +560,7 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     setOrgId,
     brands,
     personZone,
+    buildTenant,
     projectId,
     setProjectId,
     store,

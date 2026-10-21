@@ -5,9 +5,12 @@
 import { themes } from "@xos/ui-native/theme";
 import { describe, expect, it } from "vitest";
 import {
+  activeBrand,
   brandColors,
   brandFromRow,
+  buildTenantOf,
   chipColor,
+  tenantOrgId,
   contrastFailures,
   logoFor,
   logoUrl,
@@ -73,6 +76,46 @@ describe("brand colors", () => {
     expect(chipColor(undefined, "dark")).toBeNull();
     // The fallback really is the platform's accent token.
     expect(themes.dark.color.accentDefault).toMatch(/^#[0-9a-f]{6}$/i);
+  });
+});
+
+describe("an Enterprise branded build's own brand", () => {
+  const tenant = buildTenantOf({
+    tenant: { slug: "acme", orgSlug: "acme-live", name: "Acme Crew", accent: "#b45309" },
+  });
+
+  it("reads the build's tenant from the app config and ignores a platform build", () => {
+    expect(tenant).toEqual({
+      slug: "acme",
+      orgSlug: "acme-live",
+      name: "Acme Crew",
+      accent: "#B45309",
+    });
+    expect(buildTenantOf({})).toBeNull();
+    expect(buildTenantOf(undefined)).toBeNull();
+    expect(
+      buildTenantOf({ tenant: { slug: "acme", orgSlug: "a", name: "A", accent: "red" } }),
+    ).toBeNull();
+  });
+
+  it("wears the build's accent before sign-in and the org's brand after", () => {
+    expect(activeBrand(null, tenant)?.accentHex).toBe("#B45309");
+    expect(activeBrand(null, null)).toBeNull();
+    const org = brand("#2563EB");
+    expect(activeBrand(org, tenant)).toBe(org);
+  });
+
+  it("opens on the org the build names, when the person works for it", () => {
+    const brands = new Map([
+      [ORG, brand("#2563EB", { orgSlug: "acme-live" })],
+      ["other", brand(null, { orgId: "other", orgSlug: "other-org" })],
+    ]);
+    expect(tenantOrgId(brands, tenant, [ORG, "other"])).toBe(ORG);
+    expect(tenantOrgId(brands, tenant, ["other"])).toBeNull();
+    expect(tenantOrgId(brands, null, [ORG])).toBeNull();
+    expect(brandFromRow({ org_id: ORG, org_slug: "acme-live", name: "Acme" })?.orgSlug).toBe(
+      "acme-live",
+    );
   });
 });
 
