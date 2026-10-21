@@ -148,6 +148,8 @@ if TYPE_CHECKING:
         AuroraExtractRequest,
         AuroraFilterRequest,
         AuroraMapColumnsRequest,
+        AuroraPreview,
+        AuroraPreviewRequest,
         AuroraResult,
         AuroraStatus,
         AuroraSummarizeRequest,
@@ -31688,6 +31690,22 @@ class AuroraResource(Resource):
         Requires the capability ``home.dashboard.read``.
         """
         return self._client.request(OPERATIONS["aurora.bindCode"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def preview(
+        self,
+        body: AuroraPreviewRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[AuroraPreview]:
+        """Preview what a request would send
+
+        Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /aurora/preview`` (operation ``aurora.preview``).
+        Requires the capability ``home.dashboard.read``.
+        """
+        return self._client.request(OPERATIONS["aurora.preview"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class AiSuggestionsResource(Resource):

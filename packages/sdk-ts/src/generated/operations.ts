@@ -1334,6 +1334,7 @@ export type OperationId =
   | "aurora.summarize"
   | "aurora.mapColumns"
   | "aurora.bindCode"
+  | "aurora.preview"
   | "aiSuggestions.list"
   | "aiSuggestions.get"
   | "aiSuggestions.confirm"
@@ -32097,6 +32098,29 @@ export const OPERATIONS: Readonly<Record<OperationId, OperationSpec>> = {
     capability: "home.dashboard.read",
     scopes: ["home"],
   },
+  "aurora.preview": {
+    id: "aurora.preview",
+    resource: "aurora",
+    verb: "preview",
+    method: "POST",
+    path: "/aurora/preview",
+    pathParams: [],
+    queryParams: [],
+    requiredQueryParams: [],
+    paged: false,
+    fields: false,
+    idempotent: true,
+    ifMatch: false,
+    body: "AuroraPreviewRequest",
+    bodyRequired: true,
+    successStatus: 200,
+    response: "AuroraPreview",
+    item: null,
+    tag: "Settings",
+    summary: "Preview what a request would send",
+    capability: "home.dashboard.read",
+    scopes: ["home"],
+  },
   "aiSuggestions.list": {
     id: "aiSuggestions.list",
     resource: "aiSuggestions",
@@ -40186,6 +40210,7 @@ export const RESOURCES: readonly ResourceInfo[] = [
       "aurora.summarize",
       "aurora.mapColumns",
       "aurora.bindCode",
+      "aurora.preview",
     ],
   },
   {

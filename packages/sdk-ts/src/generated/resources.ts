@@ -116,6 +116,8 @@ import type {
   AuroraExtractRequest,
   AuroraFilterRequest,
   AuroraMapColumnsRequest,
+  AuroraPreview,
+  AuroraPreviewRequest,
   AuroraResult,
   AuroraStatus,
   AuroraSummarizeRequest,
@@ -33887,6 +33889,21 @@ export class AuroraResource extends $Resource {
     options?: $MutationOptions,
   ): Promise<$ApiResponse<AuroraResult>> {
     return this.client.request<AuroraResult>($OPERATIONS["aurora.bindCode"], { body }, options);
+  }
+
+  /**
+   * Preview what a request would send
+   *
+   * Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /aurora/preview` (operation `aurora.preview`).
+   * Requires the capability `home.dashboard.read`.
+   */
+  preview(
+    body: AuroraPreviewRequest,
+    options?: $MutationOptions,
+  ): Promise<$ApiResponse<AuroraPreview>> {
+    return this.client.request<AuroraPreview>($OPERATIONS["aurora.preview"], { body }, options);
   }
 }
 

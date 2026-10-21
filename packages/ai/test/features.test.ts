@@ -536,6 +536,31 @@ describe("drafting", () => {
     expect(log.proposed).toHaveLength(0);
   });
 
+  it("sends the org's vocabulary with its casing rules only when it has one", async () => {
+    const model = new ScriptedModel([
+      toolCall("draft", { title: "Dock Procedure", body: "Use the Dock.", gaps: [] }),
+      toolCall("draft", { title: "Dock Procedure", body: "Use the Dock.", gaps: [] }),
+    ]);
+    const { store } = memoryStore();
+    const base = {
+      kind: "sop" as const,
+      instructions: "Write the dock SOP.",
+      context: [],
+      verbiage: [],
+      neverSend,
+      subject: null,
+    };
+    await draft(context(model, store), {
+      ...base,
+      vocabulary: [{ term: "Dock", casingRule: "Title Case", definition: "The loading area." }],
+    });
+    await draft(context(model, store), base);
+    expect(JSON.stringify(model.requests[0]?.messages)).toContain('source=\\"vocabulary\\"');
+    expect(model.requests[0]?.system).toContain("write it exactly as the rule says");
+    expect(JSON.stringify(model.requests[1]?.messages)).not.toContain("vocabulary");
+    expect(model.requests[1]?.system).not.toContain("casing rules");
+  });
+
   it("finds library terms on word boundaries only", () => {
     expect(
       findVerbiageMisses("The stagehand arrived", [{ term: "stage", preferred: "Deck" }]),

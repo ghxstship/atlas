@@ -22,12 +22,14 @@ import {
   extractDocument,
   loadModelConfig,
   NeverSendList,
+  scrubRecord,
   summarize,
   suggestCatalogBinding,
   suggestColumnMappings,
   type AuroraContext,
   type FilterCollection,
   type CatalogField,
+  type VocabularyTerm,
 } from "@xos/ai";
 import {
   createAuroraStore,
@@ -37,6 +39,8 @@ import {
   saveAiSettings,
   transitionAiSuggestion,
 } from "@xos/data/ai";
+import { todayIn } from "@xos/data/calendar";
+import { readOrgTimeZone } from "@xos/data/settings";
 import { z } from "zod";
 import type { ResourceSpec } from "../../catalog/types.ts";
 import { ApiProblem, fromDatabaseError, isDatabaseError, refused } from "../../problem.ts";
@@ -54,8 +58,13 @@ export interface AuroraDeps {
   /** The model client for one request. */
   readonly model: () => ModelClient | Promise<ModelClient>;
   readonly config: () => ModelConfig;
-  /** Today's date for relative dates, ISO 8601. */
-  readonly today: () => string;
+  /**
+   * Today on the org's calendar, ISO 8601, for relative dates ("overdue", "this month"). Never the
+   * UTC date, which is a day ahead every evening in the Americas (A71, A95).
+   */
+  readonly today: (context: RequestContext) => string | Promise<string>;
+  /** The org's time zone, named in the plain-language prompt beside today's date. */
+  readonly timeZone: (context: RequestContext) => string | Promise<string>;
   /** The API Aurora reads through; defaults to this API's handlers, in process. */
   readonly readApi?: (context: RequestContext) => PublicApi;
   /** Every resource of the contract; defaults to the resolved catalog. */
@@ -74,10 +83,22 @@ async function anthropicClient(): Promise<ModelClient> {
   return new AnthropicModelClient();
 }
 
+/** The org's time zone, read once per request (locale.time_zone, UTC when unset). */
+const zones = new WeakMap<RequestContext, Promise<string>>();
+function orgZone(context: RequestContext): Promise<string> {
+  let zone = zones.get(context);
+  if (zone === undefined) {
+    zone = readOrgTimeZone(context.db, requireOrg(context).id);
+    zones.set(context, zone);
+  }
+  return zone;
+}
+
 const DEFAULT_DEPS: AuroraDeps = {
   model: anthropicClient,
   config: () => loadModelConfig(),
-  today: () => new Date().toISOString().slice(0, 10),
+  today: async (context) => todayIn(await orgZone(context)),
+  timeZone: orgZone,
 };
 
 async function resolvedCatalog(): Promise<readonly ResourceSpec[]> {
@@ -122,14 +143,24 @@ function statusOf(error: unknown): number {
   return 500;
 }
 
-/** This API's list and get handlers, called in process as the caller. */
+/**
+ * This API's list and get handlers, called in process as the caller. `/<collection>/<id>/<segment>`
+ * reaches the resource's GET item query of that segment, such as a project's gate readiness.
+ */
 export function inProcessApi(context: RequestContext, specs: readonly ResourceSpec[]): PublicApi {
   return {
     async get(path, query) {
-      const [, collection, id] = path.split("/");
+      const [, collection, id, segment] = path.split("/");
       const spec = specs.find((s) => s.path === `/${collection ?? ""}`);
       if (!spec) return { status: 404, body: {} };
-      const operationId = `${spec.op}.${id ? "get" : "list"}`;
+      const itemQuery =
+        id && segment
+          ? spec.actions.find(
+              (a) => a.scope === "item" && a.method === "get" && a.segment === segment,
+            )
+          : undefined;
+      if (segment && !itemQuery) return { status: 404, body: {} };
+      const operationId = `${spec.op}.${itemQuery ? itemQuery.verb : id ? "get" : "list"}`;
       const { MODULE_HANDLERS } = await import("../index.generated.ts");
       const handler = MODULE_HANDLERS.map((m) => m.handlers[operationId]).find(
         (h): h is ErasedHandler => h !== undefined,
@@ -250,6 +281,117 @@ async function readItems(
   return out;
 }
 
+type SummaryKind = "record_activity" | "project_week" | "gate_readiness";
+
+/**
+ * What a summary reads: the named items, and for a project's gate readiness the criteria of its next
+ * gate with whether evidence satisfies each (projects.gateReadiness), cited by the project's id.
+ */
+async function summaryItems(
+  api: PublicApi,
+  specs: readonly ResourceSpec[],
+  body: {
+    kind?: SummaryKind | undefined;
+    subject_collection?: string | undefined;
+    subject_id?: string | undefined;
+    items: readonly { collection: string; id: string }[];
+  },
+): Promise<{ id: string; table: string; data: Row }[]> {
+  const items = await readItems(api, specs, body.items);
+  if (body.kind === "gate_readiness" && body.subject_collection === "projects" && body.subject_id) {
+    const readiness = await api.get(`/projects/${body.subject_id}/gate-readiness`, {});
+    const rows = (readiness.body as { data?: unknown } | null)?.data;
+    if (readiness.status === 200 && Array.isArray(rows)) {
+      items.push({
+        id: body.subject_id,
+        table: "app.gate_criteria_status",
+        data: { gate_readiness: rows as unknown[] },
+      });
+    }
+  }
+  return items;
+}
+
+/** The org's verbiage library, read as the caller (knowledge.verbiage.read); none when unreadable. */
+async function readVocabulary(api: PublicApi): Promise<VocabularyTerm[]> {
+  const response = await api.get("/verbiage-terms", { limit: "100" });
+  const rows = (response.body as { data?: unknown } | null)?.data;
+  if (response.status !== 200 || !Array.isArray(rows)) return [];
+  return (rows as Row[]).flatMap((r) =>
+    typeof r["term"] === "string"
+      ? [
+          {
+            term: r["term"],
+            casingRule: typeof r["casing_rule"] === "string" ? r["casing_rule"] : "",
+            definition: typeof r["definition"] === "string" ? r["definition"] : "",
+          },
+        ]
+      : [],
+  );
+}
+
+/** Each named record as the model would see it: the fields sent, the fields withheld, the values. */
+export function previewRecords(
+  named: readonly { collection: string; id: string }[],
+  read: readonly { id: string; table: string; data: Row }[],
+  specs: readonly ResourceSpec[],
+  neverSend: NeverSendList,
+) {
+  const byId = new Map(read.map((r) => [r.id, r]));
+  const preview = (
+    collection: string,
+    record: { id: string; table: string; data: Row } | undefined,
+  ) => {
+    const scrubbed = record ? scrubRecord(record.table, record.data, neverSend) : null;
+    if (!record || scrubbed === null) {
+      return {
+        collection,
+        id: record?.id ?? "",
+        sent: false,
+        fields: [],
+        withheld: [],
+        data: null,
+      };
+    }
+    const fields = Object.keys(scrubbed);
+    const withheld = Object.keys(record.data).filter((k) => k !== "is_masked" && !(k in scrubbed));
+    return { collection, id: record.id, sent: true, fields, withheld, data: scrubbed };
+  };
+  const out = named.map((item) => ({
+    ...preview(item.collection, byId.get(item.id)),
+    id: item.id,
+  }));
+  // The gate readiness a gate summary adds is cited by the project's id but is its own record.
+  for (const extra of read.filter((r) => r.table === "app.gate_criteria_status")) {
+    const spec = specs.find((s) => s.def.table === "app.projects");
+    out.push({ ...preview(spec ? spec.path.slice(1) : "projects", extra), id: extra.id });
+  }
+  return out;
+}
+
+/** A page's own filters for `aurora.filter`, less any that names a Restricted column of the table. */
+export function pageFilterFields(
+  fields: readonly {
+    name: string;
+    type: "string" | "number" | "date" | "boolean" | "enum";
+    values?: string[] | undefined;
+    description?: string | undefined;
+    ops?: CatalogField["ops"] | undefined;
+  }[],
+  table: string,
+  neverSend: NeverSendList,
+): CatalogField[] {
+  return fields
+    .filter((f) => !neverSend.excludesColumn(table, f.name))
+    .map((f) => ({
+      name: f.name,
+      type: f.type,
+      ...(f.values ? { values: f.values } : {}),
+      ...(f.description ? { description: f.description } : {}),
+      ...(f.ops ? { ops: f.ops } : {}),
+    }));
+}
+
 const suggestions = tableResource("aiSuggestions", {
   derived: ["proposed_fields"],
   toContract: async (row, context) => {
@@ -297,20 +439,27 @@ export function auroraHandlers(
   const deps: AuroraDeps = { ...DEFAULT_DEPS, ...overrides };
   const catalogOf = deps.catalog ?? resolvedCatalog;
 
-  const setup = async (context: RequestContext) => {
-    const org = requireOrg(context);
+  /** What reading for Aurora needs, without a model: a preview calls none. */
+  const readSetup = async (context: RequestContext) => {
+    requireOrg(context);
     requirePerson(context);
     const neverSend = new NeverSendList(unwrap(await listAiNeverSend(context.db)));
     const specs = await catalogOf();
     const api = deps.readApi ? deps.readApi(context) : inProcessApi(context, specs);
+    return { neverSend, specs, api };
+  };
+
+  const setup = async (context: RequestContext) => {
+    const org = requireOrg(context);
+    const read = await readSetup(context);
     const ctx: AuroraContext = {
       orgId: org.id,
       client: await deps.model(),
       store: createAuroraStore(context.db),
       config: deps.config(),
-      today: deps.today(),
+      today: await deps.today(context),
     };
-    return { ctx, neverSend, specs, api };
+    return { ctx, ...read };
   };
 
   const handlers: Record<string, ErasedHandler> = {
@@ -372,19 +521,32 @@ export function auroraHandlers(
     },
 
     "aurora.filter": async (request, context) => {
-      const body = request.body as { sentence: string; collections: string[]; time_zone: string };
+      const body = request.body as {
+        sentence: string;
+        collections: string[];
+        time_zone: string;
+        fields?: Parameters<typeof pageFilterFields>[0];
+      };
       const { ctx, neverSend, specs } = await setup(context);
+      const page = body.fields;
+      // A page's own filters stand in for the first collection's API fields (A95).
       const catalog: FilterCollection[] = readableCollections(specs, neverSend)
-        .filter((c) => body.collections.includes(c.path))
+        .filter((c) => (page ? c.path === body.collections[0] : body.collections.includes(c.path)))
         .map((c) => {
           const spec = specs.find((s) => s.path === `/${c.path}`) as ResourceSpec;
           return {
             collection: c.path,
-            fields: filterFields(spec).filter((f) => !neverSend.excludesColumn(c.table, f.name)),
+            fields: page
+              ? pageFilterFields(page, c.table, neverSend)
+              : filterFields(spec).filter((f) => !neverSend.excludesColumn(c.table, f.name)),
           };
         });
       return toResponse(
-        await buildFilter(ctx, { sentence: body.sentence, catalog, timeZone: body.time_zone }),
+        await buildFilter(ctx, {
+          sentence: body.sentence,
+          catalog,
+          timeZone: await deps.timeZone(context),
+        }),
       );
     },
 
@@ -419,29 +581,53 @@ export function auroraHandlers(
         verbiage?: { term: string; preferred: string }[];
       };
       const { ctx, neverSend, specs, api } = await setup(context);
-      const records = await readItems(api, specs, body.context ?? []);
+      const [records, vocabulary] = await Promise.all([
+        readItems(api, specs, body.context ?? []),
+        readVocabulary(api),
+      ]);
       return toResponse(
         await draft(ctx, {
           kind: body.kind,
           instructions: body.instructions,
           context: records,
           verbiage: body.verbiage ?? [],
+          vocabulary,
           neverSend,
           subject: null,
         }),
       );
     },
 
+    "aurora.preview": async (request, context) => {
+      const body = request.body as {
+        feature: "drafting" | "summaries";
+        kind?: SummaryKind;
+        subject_collection?: string;
+        subject_id?: string;
+        items: { collection: string; id: string }[];
+      };
+      const { neverSend, specs, api } = await readSetup(context);
+      const drafting = body.feature === "drafting";
+      const [read, vocabulary] = await Promise.all([
+        drafting ? readItems(api, specs, body.items) : summaryItems(api, specs, body),
+        drafting ? readVocabulary(api) : Promise.resolve([]),
+      ]);
+      return ok({
+        records: previewRecords(body.items, read, specs, neverSend),
+        vocabulary_terms: vocabulary.length,
+      });
+    },
+
     "aurora.summarize": async (request, context) => {
       const body = request.body as {
-        kind: "record_activity" | "project_week" | "gate_readiness";
+        kind: SummaryKind;
         subject_collection: string;
         subject_id: string;
         items: { collection: string; id: string }[];
       };
       const { ctx, neverSend, specs, api } = await setup(context);
       const subjectSpec = specs.find((s) => s.path === `/${body.subject_collection}`);
-      const items = await readItems(api, specs, body.items);
+      const items = await summaryItems(api, specs, body);
       return toResponse(
         await summarize(ctx, {
           kind: body.kind,

@@ -881,11 +881,38 @@ export interface Components {
     content_base64: string;
     file_name: string;
   };
-  AuroraFilterRequest: { sentence: string; collections: Array<string>; time_zone: string };
+  AuroraFilterRequest: {
+    sentence: string;
+    collections: Array<string>;
+    time_zone: string;
+    fields?: Array<{
+      name: string;
+      type: "string" | "number" | "date" | "boolean" | "enum";
+      values?: Array<string>;
+      description?: string;
+      ops?: Array<"eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains">;
+    }>;
+  };
   AuroraMapColumnsRequest: {
     collection: string;
     columns: Array<{ header: string; samples: Array<string> }>;
     fields: Array<{ name: string; description: string }>;
+  };
+  AuroraPreview: { records: Array<Components["AuroraPreviewRecord"]>; vocabulary_terms: number };
+  AuroraPreviewRecord: {
+    collection: string;
+    id: string;
+    sent: boolean;
+    fields: Array<string>;
+    withheld: Array<string>;
+    data: Record<string, unknown> | null;
+  };
+  AuroraPreviewRequest: {
+    feature: "drafting" | "summaries";
+    kind?: "record_activity" | "project_week" | "gate_readiness";
+    subject_collection?: string;
+    subject_id?: string;
+    items: Array<{ collection: string; id: string }>;
   };
   AuroraProposal: { suggestion_id: string; operation_id: string; summary: string };
   AuroraResult: {
@@ -22957,6 +22984,15 @@ export interface Operations {
     body: Components["AuroraBindCodeRequest"];
     responses: { 200: Components["AuroraResult"] };
   };
+  "aurora.preview": {
+    module: "Settings";
+    method: "post";
+    path: "/aurora/preview";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["AuroraPreviewRequest"];
+    responses: { 200: Components["AuroraPreview"] };
+  };
   "aiSuggestions.list": {
     module: "Settings";
     method: "get";
@@ -26486,6 +26522,7 @@ export interface ModuleOperations {
     | "aurora.summarize"
     | "aurora.mapColumns"
     | "aurora.bindCode"
+    | "aurora.preview"
     | "aiSuggestions.list"
     | "aiSuggestions.get"
     | "aiSuggestions.confirm"

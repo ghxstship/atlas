@@ -36307,10 +36307,39 @@ export interface AuroraFilterRequest {
    */
   readonly collections: ReadonlyArray<string>;
   /**
-   * IANA time zone the local time was entered in.
+   * Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.
    * Pattern: `^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$`.
    */
   readonly time_zone: string;
+  /**
+   * A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.
+   */
+  readonly fields?: ReadonlyArray<{
+    /**
+     * Filter name as the page's query string writes it.
+     * Pattern: `^[a-z][a-z0-9_.]*$`. Length: 0 to 64.
+     */
+    readonly name: string;
+    /**
+     * Value type.
+     */
+    readonly type: "string" | "number" | "date" | "boolean" | "enum";
+    /**
+     * The values an enum filter takes.
+     */
+    readonly values?: ReadonlyArray<string>;
+    /**
+     * What the filter means, in a sentence.
+     * Length: 1 to 300.
+     */
+    readonly description?: string;
+    /**
+     * The only operators the filter takes.
+     */
+    readonly ops?: ReadonlyArray<
+      "eq" | "ne" | "lt" | "lte" | "gt" | "gte" | "in" | "is_null" | "contains"
+    >;
+  }>;
 }
 
 /**
@@ -36480,6 +36509,89 @@ export interface AuroraBindCodeRequest {
      * Length: 0 to 20.
      */
     readonly urid: string;
+  }>;
+}
+
+/**
+ * What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered.
+ */
+export interface AuroraPreview {
+  /**
+   * Each record the request names, in order, with the gate readiness a gate summary adds.
+   */
+  readonly records: ReadonlyArray<AuroraPreviewRecord>;
+  /**
+   * Verbiage library terms a draft follows.
+   * Range: 0 to unbounded.
+   */
+  readonly vocabulary_terms: number;
+}
+
+/**
+ * One record as a model would see it.
+ */
+export interface AuroraPreviewRecord {
+  /**
+   * Collection of the record.
+   */
+  readonly collection: string;
+  /**
+   * Identifier of the record.
+   * Format: `uuid`.
+   */
+  readonly id: string;
+  /**
+   * False when the record cannot be read or its whole table is never sent to a model.
+   */
+  readonly sent: boolean;
+  /**
+   * Fields that would be sent.
+   */
+  readonly fields: ReadonlyArray<string>;
+  /**
+   * Fields left out: Restricted columns and masked values.
+   */
+  readonly withheld: ReadonlyArray<string>;
+  /**
+   * The values that would be sent; null when nothing of the record is sent.
+   */
+  readonly data: { readonly [key: string]: unknown } | null;
+}
+
+/**
+ * A drafting or summary request to preview before it is sent.
+ */
+export interface AuroraPreviewRequest {
+  /**
+   * The feature whose request is previewed.
+   */
+  readonly feature: "drafting" | "summaries";
+  /**
+   * For summaries, what is summarized.
+   */
+  readonly kind?: "record_activity" | "project_week" | "gate_readiness";
+  /**
+   * For summaries, the collection summarized.
+   * Pattern: `^[a-z][a-z0-9-]*$`.
+   */
+  readonly subject_collection?: string;
+  /**
+   * Identifier of the record or project summarized.
+   * Format: `uuid`.
+   */
+  readonly subject_id?: string;
+  /**
+   * The records the request names: a draft's context or a summary's items, read with the caller's permissions.
+   */
+  readonly items: ReadonlyArray<{
+    /**
+     * Pattern: `^[a-z][a-z0-9-]*$`.
+     */
+    readonly collection: string;
+    /**
+     * Format: `uuid`.
+     */
+    readonly id: string;
   }>;
 }
 

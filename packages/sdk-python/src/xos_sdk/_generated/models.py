@@ -1228,6 +1228,9 @@ __all__ = [
     "AuroraSummarizeRequest",
     "AuroraMapColumnsRequest",
     "AuroraBindCodeRequest",
+    "AuroraPreview",
+    "AuroraPreviewRecord",
+    "AuroraPreviewRequest",
     "AiSuggestionPage",
     "AiSuggestion",
     "AiSuggestionState",
@@ -19999,15 +20002,20 @@ class AuroraAskRequest(_AuroraAskRequestRequired, total=False):
     history: List[Dict[str, Any]]
 
 
-class AuroraFilterRequest(TypedDict):
-    """A sentence to turn into a saved view."""
-
+class _AuroraFilterRequestRequired(TypedDict):
     #: The sentence to turn into a filter.
     sentence: str
     #: Collections the filter may target.
     collections: List[str]
-    #: IANA time zone the local time was entered in.
+    #: Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.
     time_zone: str
+
+
+class AuroraFilterRequest(_AuroraFilterRequestRequired, total=False):
+    """A sentence to turn into a saved view."""
+
+    #: A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.
+    fields: List[Dict[str, Any]]
 
 
 class _AuroraExtractRequestRequired(TypedDict):
@@ -20077,6 +20085,50 @@ class AuroraBindCodeRequest(TypedDict):
     description: Optional[str]
     #: Catalog elements found for the code.
     candidates: List[Dict[str, Any]]
+
+
+class AuroraPreview(TypedDict):
+    """What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."""
+
+    #: Each record the request names, in order, with the gate readiness a gate summary adds.
+    records: List[AuroraPreviewRecord]
+    #: Verbiage library terms a draft follows.
+    vocabulary_terms: int
+
+
+class AuroraPreviewRecord(TypedDict):
+    """One record as a model would see it."""
+
+    #: Collection of the record.
+    collection: str
+    #: Identifier of the record.
+    id: str
+    #: False when the record cannot be read or its whole table is never sent to a model.
+    sent: bool
+    #: Fields that would be sent.
+    fields: List[str]
+    #: Fields left out: Restricted columns and masked values.
+    withheld: List[str]
+    #: The values that would be sent; null when nothing of the record is sent.
+    data: Optional[Dict[str, Any]]
+
+
+class _AuroraPreviewRequestRequired(TypedDict):
+    #: The feature whose request is previewed.
+    feature: Literal["drafting", "summaries"]
+    #: The records the request names: a draft's context or a summary's items, read with the caller's permissions.
+    items: List[Dict[str, Any]]
+
+
+class AuroraPreviewRequest(_AuroraPreviewRequestRequired, total=False):
+    """A drafting or summary request to preview before it is sent."""
+
+    #: For summaries, what is summarized.
+    kind: Literal["record_activity", "project_week", "gate_readiness"]
+    #: For summaries, the collection summarized.
+    subject_collection: str
+    #: Identifier of the record or project summarized.
+    subject_id: str
 
 
 class AiSuggestionPage(TypedDict):
