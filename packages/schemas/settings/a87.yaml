@@ -1,0 +1,21 @@
+# Settings registry: A87 (global search, RRR-132, finding A65-005). Section 4.5.6.
+# Field reference: see a30.yaml.
+#
+# Semantic search sends the text of the org's published documents, SOPs and handbook articles, and the words
+# people search with, to an embedding provider (a subprocessor the owner chooses, legal/OWNER_INPUTS.md). It is
+# off twice over: no provider runs unless XOS_SEARCH_EMBEDDINGS names one, and an org takes part only when an
+# Admin turns this on.
+contributor: a87
+settings:
+  # AI features ---------------------------------------------------------------------------------------------
+  - key: search.semantic_enabled
+    type: boolean
+    default: false
+    scopes: [organization]
+    capability: org.ai.write
+    label: settings.fields.semanticSearch.label
+    help: settings.fields.semanticSearch.help
+    pages: { org: settings.ai-features }
+    enforced_by:
+      - consumer: supabase/migrations/1440_global_search.sql#app.search_embedding_backlog
+        test: supabase/tests/1440_global_search.test.sql

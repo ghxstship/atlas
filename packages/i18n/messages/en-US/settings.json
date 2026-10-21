@@ -269,6 +269,10 @@
     "messageTranslation": {
       "label": "Translate chat messages",
       "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
+    },
+    "semanticSearch": {
+      "label": "Semantic search",
+      "help": "Search also finds documents, SOPs and handbook articles by meaning, not only by their words. Their text and the words people search with are sent to the embedding provider, a subprocessor. Off by default."
     }
   },
   "choices": {

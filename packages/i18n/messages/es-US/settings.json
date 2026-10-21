@@ -269,6 +269,10 @@
     "messageTranslation": {
       "label": "Traducir mensajes del chat",
       "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
+    },
+    "semanticSearch": {
+      "label": "Búsqueda semántica",
+      "help": "La búsqueda también encuentra documentos, SOP y artículos del manual por su significado, no solo por sus palabras. Su texto y las palabras que se buscan se envían al proveedor de embeddings, un subencargado. Desactivada de forma predeterminada."
     }
   },
   "choices": {
