@@ -70,6 +70,8 @@ settings:
     enforced_by:
       - consumer: apps/atlas/lib/shell/org-settings.ts#startPageOf
         test: apps/atlas/test/org-settings.test.ts
+      - consumer: apps/atlas/app/page.tsx#EntryPage
+        test: apps/atlas/test/entry-start-page.test.ts
 
   # Legal entities and fiscal ---------------------------------------------------------------------
   - key: org.fiscal_year_start_month

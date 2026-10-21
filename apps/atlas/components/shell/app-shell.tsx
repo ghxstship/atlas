@@ -1,4 +1,3 @@
-import { listWorkspaces } from "@xos/data";
 import { listFavorites } from "@xos/data/settings";
 import { listShortcutBindings, listSidebarLayout } from "@xos/data/shell-preferences";
 import { flattenRoutes, getNode, isNodeVisible } from "@xos/ia";
@@ -7,13 +6,13 @@ import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import { selectableLocales } from "@/i18n/negotiate";
+import { getOrgWorkspaces } from "@/lib/shell/active-workspace";
 import { getMyOrganizations, type OrgContext } from "@/lib/shell/context";
 import { createItems } from "@/lib/shell/create-menu";
 import { buildShellNav, NAV_ICONS, type NavLinkModel } from "@/lib/shell/nav-model";
 import { buildShellKeys, goHints } from "@/lib/shell/shell-keys";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
-import { WORKSPACE_COOKIE } from "@/lib/shell/workspace";
 import { getShellSettings } from "@/lib/shell/org-settings";
 import { PREFERENCES_COOKIE } from "@xos/ui/preferences";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
@@ -43,7 +42,7 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
     await Promise.all([
       getTranslate(),
       getMyOrganizations(),
-      listWorkspaces(ctx.viewer.db, ctx.org.id),
+      getOrgWorkspaces(ctx.viewer.db, ctx.org.id),
       negotiatedLocale(),
       cookies(),
       person ? listFavorites(ctx.viewer.db, { orgId: ctx.org.id, personId: person.id }) : null,
@@ -51,9 +50,6 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       person ? listSidebarLayout(ctx.viewer.db, ctx.org.id) : null,
       headers(),
     ]);
-  if (!workspaces.ok) {
-    throw new Error(`Cannot list workspaces: ${JSON.stringify(workspaces.error)}`);
-  }
   if (pinned && !pinned.ok) {
     throw new Error(`Cannot list favorites: ${JSON.stringify(pinned.error)}`);
   }
@@ -103,14 +99,8 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       },
     ];
   });
-  const chosen = cookieStore.get(WORKSPACE_COOKIE)?.value ?? null;
-  const workspace = workspaces.data.some((w) => w.slug === chosen) ? chosen : null;
   // The person's display preferences in this org and workspace (Section 4.5.6, A65-001).
-  const settings = await getShellSettings(
-    ctx.viewer.db,
-    ctx.org.id,
-    workspaces.data.find((w) => w.slug === workspace)?.id ?? null,
-  );
+  const settings = await getShellSettings(ctx.viewer.db, ctx.org.id, workspaces.active?.id ?? null);
   return (
     <ShellFrame
       org={{ name: ctx.org.name, slug: ctx.org.slug }}
@@ -121,8 +111,8 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       })}
       nav={nav}
       favorites={favorites}
-      workspaces={workspaces.data.map((w) => ({ slug: w.slug, name: w.name }))}
-      workspace={workspace}
+      workspaces={workspaces.all.map((w) => ({ slug: w.slug, name: w.name }))}
+      workspace={workspaces.active?.slug ?? null}
       locales={selectableLocales(process.env.NODE_ENV === "production")}
       locale={locale}
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
