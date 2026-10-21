@@ -226,12 +226,10 @@ const EarnedMediaItem = editDefinition(
         fields.int("Audience the outlet reports for the piece; null when unreported.", 120000),
       ),
       tone: orNull(
-        z
-          .enum(["Positive", "Neutral", "Negative"])
-          .meta({
-            description: "Sentiment of the coverage; null until rated.",
-            example: "Positive",
-          }),
+        z.enum(["Positive", "Neutral", "Negative"]).meta({
+          description: "Sentiment of the coverage; null until rated.",
+          example: "Positive",
+        }),
       ),
       source: SOURCE,
       source_reference: sourceReference,
