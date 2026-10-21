@@ -23,7 +23,8 @@ begin
     return;
   end if;
 
-  -- Settings: the time zone is locked at org level (journey 63); Miami rounds punches to 15 minutes.
+  -- Settings: the time zone is locked at org level (journey 63); kiosks are on for the org (the Compass kiosk
+  -- journey); Miami rounds punches to 15 minutes and asks kiosks for a photo on every punch.
   insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_text, locked)
   select v_org, s.key, 'Organization', v_org, s.value, s.locked
   from (values
@@ -41,8 +42,13 @@ begin
     and not exists (select 1 from app.setting_values v where v.setting_key = 'time.rounding_minutes'
       and v.scope_kind = 'Workspace' and v.scope_id = v_workspace and v.deleted_at is null);
   insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_boolean)
-  select v_org, 'time.photo_on_punch', 'Organization', v_org, true
-  where not exists (select 1 from app.setting_values v where v.org_id = v_org and v.setting_key = 'time.photo_on_punch'
+  select v_org, 'time.photo_on_punch', 'Workspace', v_workspace, true
+  where exists (select 1 from app.workspaces w where w.id = v_workspace)
+    and not exists (select 1 from app.setting_values v where v.setting_key = 'time.photo_on_punch'
+      and v.scope_kind = 'Workspace' and v.scope_id = v_workspace and v.deleted_at is null);
+  insert into app.setting_values (org_id, setting_key, scope_kind, scope_id, value_boolean)
+  select v_org, 'time.kiosk_enabled', 'Organization', v_org, true
+  where not exists (select 1 from app.setting_values v where v.org_id = v_org and v.setting_key = 'time.kiosk_enabled'
     and v.scope_kind = 'Organization' and v.deleted_at is null);
   insert into app.personal_setting_values (person_id, org_id, setting_key, value_text)
   select v_producer, v_org, 'me.persona', 'producer'

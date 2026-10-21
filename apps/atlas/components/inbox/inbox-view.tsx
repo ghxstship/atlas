@@ -4,6 +4,7 @@ import { chordOf } from "@xos/schemas/shortcuts/keys";
 import { Button, Dialog, Kbd, Textarea } from "@xos/ui";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
 import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
 import { useShellKeys } from "@/components/shell/shell-keys-context";
@@ -94,8 +95,9 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
     if (event.target instanceof HTMLButtonElement && (event.key === "Enter" || event.key === " "))
       return;
     const chord = chordOf(event, keys.platform);
-    if (chord === null || (!keys.singleKeys && !MODIFIER.test(chord) && !chord.startsWith("Arrow")))
-      return;
+    // Single keys follow me.shortcuts_enabled (singleKeyShortcutsEnabled); the arrow keys always move.
+    const single = !MODIFIER.test(chord ?? "") && !(chord ?? "").startsWith("Arrow");
+    if (chord === null || (single && !singleKeyShortcutsEnabled())) return;
     const row = items[current];
     const action = ACTIONS.find(([id]) => keys.scoped[id] === chord)?.[0];
     if (chord === "ArrowDown" || chord === keys.scoped["list.next"]) {

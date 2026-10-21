@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(27);
+select plan(28);
 
 create function pg_temp.role_of(p_person text, p_code text) returns uuid language sql stable as $$
   select mr.id from app.membership_roles mr join app.memberships m on m.id = mr.membership_id join app.roles r on r.id = mr.role_id
@@ -81,6 +81,14 @@ select is(private.sweep_access_reviews(), 0, 'the sweep leaves a campaign inside
 select private.begin_trusted_operation('access_review_close');
 update app.access_review_campaigns set opened_at = now() - interval '15 days' where id = pg_temp.id('camp2');
 select private.end_trusted_operation('access_review_close');
+-- A longer org grace period (access_reviews.grace_days) keeps the 15-day-old campaign alone until it is cleared.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'access_reviews.grace_days', 'Organization', pg_temp.id('org_a'), p_value_integer => 30);
+select pg_temp.as_platform();
+select is(private.sweep_access_reviews(), 0, 'access_reviews.grace_days of 30 keeps a 15-day-old campaign inside its grace period');
+select pg_temp.as_user('alice');
+select app.clear_setting(pg_temp.id('org_a'), 'access_reviews.grace_days', 'Organization', pg_temp.id('org_a'));
+select pg_temp.as_platform();
 select ok(private.sweep_access_reviews() > 0, 'after 14 days the sweep removes unreviewed roles');
 select isnt((select deleted_at from app.membership_roles where id = pg_temp.role_of('frank', 'field')), null, 'an unreviewed Field role is gone');
 select is((select deleted_at from app.membership_roles where id = pg_temp.role_of('dave', 'member')), null, 'a confirmed role stays');

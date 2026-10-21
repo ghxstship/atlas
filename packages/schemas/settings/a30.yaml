@@ -24,6 +24,13 @@
 #   input:      how a text setting is edited: text (default), multiline, email, url, time_zone, currency, date, workspace
 #   label, help: message catalog keys (help optional)
 #   pages:      settings page per scope group: org (organization, workspace, team, project) and personal
+#   enforced_by: where the setting takes effect (ADR 0032, A65-001): a list of
+#               { consumer: <repo path>[#symbol], test: <test path> }. The consumer must name the setting key and the
+#               test must change the setting and observe the behavior. The settings test fails when a setting
+#               has no consumer, so no setting ships stored, audited and inert.
+#   deferred:   instead of enforced_by, { reason, decision } for a setting deliberately not applied yet, naming the
+#               owner decision or work package it waits on. Settings pages say it is saved but not in effect.
+#   hidden:     true for a deferred setting no settings screen offers (pages: {}); the database refuses its writes.
 contributor: a30
 settings:
   # General -------------------------------------------------------------------------------------
@@ -35,6 +42,9 @@ settings:
     label: settings.fields.legalName.label
     help: settings.fields.legalName.help
     pages: { org: settings.general }
+    enforced_by:
+      - consumer: packages/data/src/documents/generate.ts#orgLegalName
+        test: packages/data/test/documents/sources.test.ts
   - key: org.default_workspace
     type: text
     input: workspace
@@ -44,6 +54,9 @@ settings:
     label: settings.fields.defaultWorkspace.label
     help: settings.fields.defaultWorkspace.help
     pages: { org: settings.general }
+    enforced_by:
+      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#private.join_default_workspace
+        test: supabase/tests/1326_numbering_and_general_settings.test.sql
   - key: shell.start_page
     type: choice
     choices: [home, my-work, inbox, projects]
@@ -54,6 +67,9 @@ settings:
     label: settings.fields.startPage.label
     help: settings.fields.startPage.help
     pages: { org: settings.general, personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#startPageOf
+        test: apps/atlas/test/org-settings.test.ts
 
   # Legal entities and fiscal ---------------------------------------------------------------------
   - key: org.fiscal_year_start_month
@@ -66,6 +82,9 @@ settings:
     label: settings.fields.fiscalYearStart.label
     help: settings.fields.fiscalYearStart.help
     pages: { org: settings.legal-entities-and-fiscal }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#legalEntityDefaults
+        test: apps/atlas/test/org-settings.test.ts
   - key: org.base_currency
     type: text
     input: currency
@@ -76,6 +95,11 @@ settings:
     label: settings.fields.baseCurrency.label
     help: settings.fields.baseCurrency.help
     pages: { org: settings.legal-entities-and-fiscal }
+    enforced_by:
+      - consumer: supabase/migrations/0950_project_currency_org_default.sql#private.org_base_currency
+        test: supabase/tests/0401_project_currency_description.test.sql
+      - consumer: apps/atlas/lib/shell/org-settings.ts#legalEntityDefaults
+        test: apps/atlas/test/org-settings.test.ts
   - key: org.invoice_number_prefix
     type: text
     max_length: 12
@@ -85,6 +109,9 @@ settings:
     label: settings.fields.invoicePrefix.label
     help: settings.fields.invoicePrefix.help
     pages: { org: settings.legal-entities-and-fiscal }
+    enforced_by:
+      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#private.number_receivable_invoice
+        test: supabase/tests/1326_numbering_and_general_settings.test.sql
 
   # Security ------------------------------------------------------------------------------------------
   - key: security.mfa_policy
@@ -96,6 +123,9 @@ settings:
     label: settings.fields.mfaPolicy.label
     help: settings.fields.mfaPolicy.help
     pages: { org: settings.security }
+    deferred:
+      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
+      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
   - key: security.session_hours
     type: integer
     min: 1
@@ -106,6 +136,9 @@ settings:
     label: settings.fields.sessionHours.label
     help: settings.fields.sessionHours.help
     pages: { org: settings.security }
+    deferred:
+      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
+      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
   - key: security.idle_timeout_minutes
     type: integer
     min: 5
@@ -116,6 +149,9 @@ settings:
     label: settings.fields.idleTimeout.label
     help: settings.fields.idleTimeout.help
     pages: { org: settings.security }
+    deferred:
+      reason: "Pinned to its default by migration 1299 (A69-007) until MFA exists; A77 enforces it at sign-in, in session refresh and in step-up checks. Replace this with enforced_by when A77's work lands."
+      decision: "A69-007 and RRR-122 (A77, auth and step-up)"
   - key: security.ip_allowlist
     type: boolean
     default: false
@@ -124,6 +160,9 @@ settings:
     label: settings.fields.ipAllowlist.label
     help: settings.fields.ipAllowlist.help
     pages: { org: settings.security }
+    enforced_by:
+      - consumer: supabase/migrations/1201_org_ip_allowlist.sql
+        test: supabase/tests/1201_org_ip_allowlist.test.sql
   - key: security.auto_join_enabled
     type: boolean
     default: false
@@ -132,6 +171,9 @@ settings:
     label: settings.fields.autoJoin.label
     help: settings.fields.autoJoin.help
     pages: { org: settings.security }
+    enforced_by:
+      - consumer: supabase/migrations/0861_joins_offboarding.sql#app.join_by_verified_domain
+        test: supabase/tests/0861_joins_offboarding.test.sql
 
   # Access reviews ---------------------------------------------------------------------------------------
   - key: access_reviews.remove_unreviewed
@@ -142,6 +184,9 @@ settings:
     label: settings.fields.removeUnreviewed.label
     help: settings.fields.removeUnreviewed.help
     pages: { org: settings.access-reviews }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#reviewRemovesUnreviewed
+        test: apps/atlas/test/org-settings.test.ts
   - key: access_reviews.grace_days
     type: integer
     min: 1
@@ -152,6 +197,9 @@ settings:
     label: settings.fields.reviewGraceDays.label
     help: settings.fields.reviewGraceDays.help
     pages: { org: settings.access-reviews }
+    enforced_by:
+      - consumer: supabase/migrations/1202_access_reviews.sql#private.sweep_access_reviews
+        test: supabase/tests/1202_access_reviews.test.sql
 
   # Views and numbering -------------------------------------------------------------------------------------
   - key: shell.density
@@ -163,6 +211,11 @@ settings:
     label: settings.fields.density.label
     help: settings.fields.density.help
     pages: { org: settings.views-and-defaults, personal: me.preferences }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: packages/ui/src/DataTable/DataTable.tsx#DataTable
+        test: packages/ui/test/preferences.test.tsx
   - key: numbering.record_key_format
     type: text
     max_length: 40
@@ -171,7 +224,12 @@ settings:
     capability: org.numbering.write
     label: settings.fields.recordKeyFormat.label
     help: settings.fields.recordKeyFormat.help
-    pages: { org: settings.numbering }
+    # Off every settings screen for launch, and migration 1329 refuses its writes (ADR 0038).
+    pages: {}
+    hidden: true
+    deferred:
+      reason: "Record keys are fixed: URLs, QR codes, offline Compass data and API v1 depend on them; a future change applies only to new records, with old keys resolving permanently and never reused."
+      decision: "Owner decision of 2026-10-20: record keys stay fixed for launch (ADR 0038)"
   - key: numbering.document_number_padding
     type: integer
     min: 1
@@ -182,6 +240,9 @@ settings:
     label: settings.fields.numberPadding.label
     help: settings.fields.numberPadding.help
     pages: { org: settings.numbering }
+    enforced_by:
+      - consumer: supabase/migrations/1326_numbering_and_general_settings.sql#private.document_number
+        test: supabase/tests/1326_numbering_and_general_settings.test.sql
 
   # Time and attendance -----------------------------------------------------------------------------------------
   - key: time.rounding_minutes
@@ -194,6 +255,9 @@ settings:
     label: settings.fields.rounding.label
     help: settings.fields.rounding.help
     pages: { org: settings.time-and-attendance }
+    enforced_by:
+      - consumer: supabase/migrations/1321_time_attendance_settings.sql#app.record_punch
+        test: supabase/tests/1321_time_attendance_settings.test.sql
   - key: time.photo_on_punch
     type: boolean
     default: false
@@ -203,6 +267,11 @@ settings:
     label: settings.fields.photoOnPunch.label
     help: settings.fields.photoOnPunch.help
     pages: { org: settings.time-and-attendance }
+    enforced_by:
+      - consumer: supabase/migrations/1321_time_attendance_settings.sql#app.record_punch
+        test: supabase/tests/1321_time_attendance_settings.test.sql
+      - consumer: apps/compass/src/domain/settings.ts#kioskRules
+        test: apps/compass/test/settings.test.ts
   - key: time.geofence_required
     type: boolean
     default: true
@@ -212,6 +281,11 @@ settings:
     label: settings.fields.geofenceRequired.label
     help: settings.fields.geofenceRequired.help
     pages: { org: settings.time-and-attendance }
+    enforced_by:
+      - consumer: supabase/migrations/1321_time_attendance_settings.sql#private.project_clock_in_geofence
+        test: supabase/tests/1321_time_attendance_settings.test.sql
+      - consumer: apps/compass/src/domain/settings.ts#requiresGeofence
+        test: apps/compass/test/settings.test.ts
   - key: time.kiosk_enabled
     type: boolean
     default: false
@@ -220,6 +294,11 @@ settings:
     label: settings.fields.kioskEnabled.label
     help: settings.fields.kioskEnabled.help
     pages: { org: settings.time-and-attendance }
+    enforced_by:
+      - consumer: supabase/migrations/1321_time_attendance_settings.sql#app.kiosk_punch
+        test: supabase/tests/1321_time_attendance_settings.test.sql
+      - consumer: apps/compass/src/domain/settings.ts#kioskRules
+        test: apps/compass/test/settings.test.ts
 
   # Scheduling --------------------------------------------------------------------------------------------------
   - key: scheduling.open_shift_claiming
@@ -232,6 +311,11 @@ settings:
     label: settings.fields.openShiftClaiming.label
     help: settings.fields.openShiftClaiming.help
     pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/1322_scheduling_settings.sql#app.claim_open_shift
+        test: supabase/tests/1322_scheduling_settings.test.sql
+      - consumer: apps/compass/src/domain/settings.ts#claimRuleOf
+        test: apps/compass/test/settings.test.ts
   - key: scheduling.allow_swaps
     type: boolean
     default: true
@@ -240,6 +324,9 @@ settings:
     label: settings.fields.allowSwaps.label
     help: settings.fields.allowSwaps.help
     pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/1322_scheduling_settings.sql#private.guard_shift_swap
+        test: supabase/tests/1322_scheduling_settings.test.sql
   - key: scheduling.swap_requires_approval
     type: boolean
     default: true
@@ -249,6 +336,9 @@ settings:
     label: settings.fields.swapApproval.label
     help: settings.fields.swapApproval.help
     pages: { org: settings.scheduling }
+    enforced_by:
+      - consumer: supabase/migrations/1322_scheduling_settings.sql#app.accept_shift_swap
+        test: supabase/tests/1322_scheduling_settings.test.sql
 
   # Payroll and time off ---------------------------------------------------------------------------------------
   - key: payroll.pay_period
@@ -260,6 +350,9 @@ settings:
     label: settings.fields.payPeriod.label
     help: settings.fields.payPeriod.help
     pages: { org: settings.payroll-and-time-off }
+    enforced_by:
+      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+        test: supabase/tests/1323_payroll_settings.test.sql
   - key: payroll.week_start
     type: choice
     choices: [sunday, monday]
@@ -270,6 +363,11 @@ settings:
     label: settings.fields.weekStart.label
     help: settings.fields.weekStart.help
     pages: { org: settings.payroll-and-time-off, personal: me.preferences }
+    enforced_by:
+      - consumer: supabase/migrations/1323_payroll_settings.sql#app.next_pay_period_dates
+        test: supabase/tests/1323_payroll_settings.test.sql
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
 
   # Gateway and marketplace -------------------------------------------------------------------------------------
   - key: gateway.marketplace_visibility
@@ -281,6 +379,11 @@ settings:
     label: settings.fields.marketplaceVisibility.label
     help: settings.fields.marketplaceVisibility.help
     pages: { org: settings.gateway-and-marketplace }
+    enforced_by:
+      - consumer: supabase/migrations/1327_marketplace_visibility.sql#private.marketplace_visibility_cap
+        test: supabase/tests/1327_marketplace_visibility.test.sql
+      - consumer: apps/atlas/lib/shell/org-settings.ts#allowedVisibilities
+        test: apps/atlas/test/org-settings.test.ts
   - key: gateway.ratings_enabled
     type: boolean
     default: true
@@ -289,6 +392,13 @@ settings:
     label: settings.fields.ratingsEnabled.label
     help: settings.fields.ratingsEnabled.help
     pages: { org: settings.gateway-and-marketplace }
+    # Prompts only (ADR 0038): whether the org's members are prompted to rate the people it engages. Ratings are
+    # always on; turning prompts off never hides or removes a rating (FTC 16 CFR Part 465). The key keeps its name.
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#ratingPromptsOn
+        test: apps/atlas/test/org-settings.test.ts
+      - consumer: apps/atlas/lib/shell/org-settings.ts#ratingPromptsOn
+        test: supabase/tests/1329_rating_prompts_and_fixed_record_keys.test.sql
 
   # Communication ---------------------------------------------------------------------------------------------------
   - key: communication.message_retention_days
@@ -301,6 +411,9 @@ settings:
     label: settings.fields.messageRetention.label
     help: settings.fields.messageRetention.help
     pages: { org: settings.communication }
+    enforced_by:
+      - consumer: supabase/migrations/1324_communication_settings.sql#private.purge_chat_messages_past_retention
+        test: supabase/tests/1324_communication_settings.test.sql
   - key: communication.auto_translate
     type: boolean
     default: false
@@ -309,6 +422,9 @@ settings:
     label: settings.fields.autoTranslate.label
     help: settings.fields.autoTranslate.help
     pages: { org: settings.communication, personal: me.preferences }
+    deferred:
+      reason: "Waits on wiring to the ADR 0037 / A80 translation seam: Google Cloud Translation is chosen and A80's message translation provider (migration 1363, communication.message_translation) is built, but nothing connects this switch to it yet."
+      decision: "Wiring to the ADR 0037 / A80 translation seam (migration 1363); no owner decision pending"
 
   # Help and support ------------------------------------------------------------------------------------------------
   - key: help.support_email
@@ -320,6 +436,9 @@ settings:
     label: settings.fields.supportEmail.label
     help: settings.fields.supportEmail.help
     pages: { org: settings.help-and-support }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#orgSupportOf
+        test: apps/atlas/test/org-settings.test.ts
   - key: help.support_hours
     type: text
     max_length: 200
@@ -328,6 +447,9 @@ settings:
     label: settings.fields.supportHours.label
     help: settings.fields.supportHours.help
     pages: { org: settings.help-and-support }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#orgSupportOf
+        test: apps/atlas/test/org-settings.test.ts
   - key: help.custom_link
     type: text
     input: url
@@ -337,6 +459,9 @@ settings:
     label: settings.fields.helpLink.label
     help: settings.fields.helpLink.help
     pages: { org: settings.help-and-support }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#orgSupportOf
+        test: apps/atlas/test/org-settings.test.ts
 
   # Localization ------------------------------------------------------------------------------------------------------
   - key: locale.language
@@ -349,6 +474,9 @@ settings:
     label: settings.fields.language.label
     help: settings.fields.language.help
     pages: { org: settings.localization, personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
+        test: apps/atlas/test/org-settings.test.ts
   - key: locale.time_zone
     type: text
     input: time_zone
@@ -360,6 +488,9 @@ settings:
     label: settings.fields.timeZone.label
     help: settings.fields.timeZone.help
     pages: { org: settings.localization, personal: me.preferences }
+    enforced_by:
+      - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
+        test: supabase/tests/1325_out_of_office.test.sql
   - key: locale.date_format
     type: choice
     choices: [locale, iso]
@@ -369,6 +500,9 @@ settings:
     label: settings.fields.dateFormat.label
     help: settings.fields.dateFormat.help
     pages: { org: settings.localization, personal: me.preferences }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
   - key: locale.units
     type: choice
     choices: [imperial, metric]
@@ -378,6 +512,11 @@ settings:
     label: settings.fields.units.label
     help: settings.fields.units.help
     pages: { org: settings.localization, personal: me.preferences }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/compass/src/domain/settings.ts#formatDistance
+        test: apps/compass/test/settings.test.ts
 
   # Personal: preferences ---------------------------------------------------------------------------------------------
   - key: me.theme
@@ -388,6 +527,9 @@ settings:
     capability: me.preferences.write
     label: settings.fields.theme.label
     pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
+        test: apps/atlas/test/org-settings.test.ts
   - key: me.persona
     type: choice
     choices:
@@ -406,6 +548,9 @@ settings:
     label: settings.fields.persona.label
     help: settings.fields.persona.help
     pages: { personal: me.preferences }
+    enforced_by:
+      - consumer: packages/data/src/settings.ts#getPersona
+        test: packages/data/test/settings.test.ts
 
   # Personal: accessibility ---------------------------------------------------------------------------------------------
   - key: me.text_size
@@ -416,6 +561,11 @@ settings:
     capability: me.preferences.write
     label: settings.fields.textSize.label
     pages: { personal: me.accessibility }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/compass/src/domain/settings.ts#themeOptionsOf
+        test: apps/compass/test/settings.test.ts
   - key: me.high_contrast
     type: boolean
     default: false
@@ -424,6 +574,11 @@ settings:
     label: settings.fields.highContrast.label
     help: settings.fields.highContrast.help
     pages: { personal: me.accessibility }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/compass/src/domain/settings.ts#themeOptionsOf
+        test: apps/compass/test/settings.test.ts
   - key: me.reduced_motion
     type: choice
     choices: [system, reduce, full]
@@ -433,6 +588,11 @@ settings:
     label: settings.fields.reducedMotion.label
     help: settings.fields.reducedMotion.help
     pages: { personal: me.accessibility }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      - consumer: apps/compass/src/domain/settings.ts#themeOptionsOf
+        test: apps/compass/test/settings.test.ts
   - key: me.haptics
     type: boolean
     default: true
@@ -441,6 +601,9 @@ settings:
     label: settings.fields.haptics.label
     help: settings.fields.haptics.help
     pages: { personal: me.accessibility }
+    enforced_by:
+      - consumer: apps/compass/src/domain/settings.ts#hapticsOn
+        test: apps/compass/test/settings.test.ts
   - key: me.sounds
     type: boolean
     default: true
@@ -448,6 +611,9 @@ settings:
     capability: me.preferences.write
     label: settings.fields.sounds.label
     pages: { personal: me.accessibility }
+    enforced_by:
+      - consumer: apps/compass/src/domain/settings.ts#soundsOn
+        test: apps/compass/test/settings.test.ts
   - key: me.captions
     type: boolean
     default: false
@@ -456,6 +622,9 @@ settings:
     label: settings.fields.captions.label
     help: settings.fields.captions.help
     pages: { personal: me.accessibility }
+    deferred:
+      reason: "Waits on wiring to the ADR 0037 / A80 translation seam. Nothing in the product plays captioned media yet: voice notes have no transcripts and there is no video."
+      decision: "Wiring to the ADR 0037 / A80 translation seam (migration 1363); no owner decision pending"
 
   # Personal: out of office ----------------------------------------------------------------------------------------------
   - key: me.out_of_office.enabled
@@ -466,6 +635,9 @@ settings:
     label: settings.fields.oooEnabled.label
     help: settings.fields.oooEnabled.help
     pages: { personal: me.out-of-office }
+    enforced_by:
+      - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
+        test: supabase/tests/1325_out_of_office.test.sql
   - key: me.out_of_office.starts_on
     type: text
     input: date
@@ -474,6 +646,9 @@ settings:
     capability: me.out_of_office.write
     label: settings.fields.oooStarts.label
     pages: { personal: me.out-of-office }
+    enforced_by:
+      - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
+        test: supabase/tests/1325_out_of_office.test.sql
   - key: me.out_of_office.ends_on
     type: text
     input: date
@@ -482,6 +657,9 @@ settings:
     capability: me.out_of_office.write
     label: settings.fields.oooEnds.label
     pages: { personal: me.out-of-office }
+    enforced_by:
+      - consumer: supabase/migrations/1325_out_of_office.sql#private.person_away
+        test: supabase/tests/1325_out_of_office.test.sql
   - key: me.out_of_office.auto_reply
     type: text
     input: multiline
@@ -491,6 +669,9 @@ settings:
     label: settings.fields.oooReply.label
     help: settings.fields.oooReply.help
     pages: { personal: me.out-of-office }
+    enforced_by:
+      - consumer: supabase/migrations/1325_out_of_office.sql#app.send_chat_message
+        test: supabase/tests/1325_out_of_office.test.sql
 
   # Personal: keyboard shortcuts -------------------------------------------------------------------------------------------
   - key: me.shortcuts_enabled
@@ -501,3 +682,9 @@ settings:
     label: settings.fields.shortcutsEnabled.label
     help: settings.fields.shortcutsEnabled.help
     pages: { personal: me.keyboard-shortcuts }
+    enforced_by:
+      - consumer: packages/ui/src/lib/preferences.ts#preferencesFromSettings
+        test: packages/ui/test/preferences.test.tsx
+      # The Atlas shell's registry key handler: C, ?, / and G then a letter (A81, shortcuts.yaml).
+      - consumer: apps/atlas/components/shell/key-dispatch.ts#installShellKeys
+        test: apps/atlas/test/shortcuts.test.ts

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  getShortcutsEnabled,
   listShortcutBindings,
   listSidebarLayout,
   resetShortcutBindings,
@@ -97,25 +96,5 @@ describe("sidebar layout", () => {
     expect((await saveSidebarLayout(db, "o1", [])).ok).toBe(false);
     expect(await resetSidebarLayout(db, "o1")).toEqual({ ok: true, data: 2 });
     expect((await resetSidebarLayout(db, "o1")).ok).toBe(false);
-  });
-});
-
-describe("single-key shortcuts setting", () => {
-  it("prefers the org's value, then every org's, then on", async () => {
-    const { db } = fakeClient({
-      "from:personal_setting_values": [
-        okResponse([
-          { org_id: null, value_boolean: true },
-          { org_id: "o1", value_boolean: false },
-        ]),
-        okResponse([{ org_id: null, value_boolean: false }]),
-        okResponse([]),
-        down(),
-      ],
-    });
-    expect(await getShortcutsEnabled(db, "o1")).toEqual({ ok: true, data: false });
-    expect(await getShortcutsEnabled(db, "o1")).toEqual({ ok: true, data: false });
-    expect(await getShortcutsEnabled(db, "o1")).toEqual({ ok: true, data: true });
-    expect((await getShortcutsEnabled(db, "o1")).ok).toBe(false);
   });
 });

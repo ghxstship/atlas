@@ -2,10 +2,11 @@ import type { Database, XosClient } from "./client.ts";
 import { fail, ok, toDataError, type Result } from "./result.ts";
 
 /**
- * A person's own shell preferences (A81, RRR-126): rebound keyboard shortcuts (migration 1370, Section 11.7),
- * their sidebar layout in an org (migration 1371, Section 4.5.2) and whether single-key shortcuts are on
- * (setting me.shortcuts_enabled). Row level security keeps each person to their own rows; the shortcut
- * registry (@xos/schemas/shortcuts) decides which keys a shortcut may take before a binding is saved.
+ * A person's own shell preferences (A81, RRR-126): rebound keyboard shortcuts (migration 1370, Section 11.7)
+ * and their sidebar layout in an org (migration 1371, Section 4.5.2). Row level security keeps each person to
+ * their own rows; the shortcut registry (@xos/schemas/shortcuts) decides which keys a shortcut may take before
+ * a binding is saved. Whether single-key shortcuts are on (me.shortcuts_enabled) reaches the shells through
+ * the display preferences (@xos/ui/preferences).
  */
 
 export type ShortcutShellLabel = Database["app"]["Enums"]["shortcut_shell"];
@@ -95,20 +96,4 @@ export async function saveSidebarLayout(
 export async function resetSidebarLayout(db: XosClient, orgId: string): Promise<Result<number>> {
   const { data, error } = await db.rpc("reset_sidebar_layout", { p_org_id: orgId });
   return error ? fail(toDataError(error)) : ok(data);
-}
-
-/**
- * Whether single-key shortcuts (J, K, ?, C, G then a letter) are on for the person in an org: the
- * setting me.shortcuts_enabled kept for that org, else the one kept for every org, else on.
- */
-export async function getShortcutsEnabled(db: XosClient, orgId: string): Promise<Result<boolean>> {
-  const { data, error } = await db
-    .from("personal_setting_values")
-    .select("org_id, value_boolean")
-    .eq("setting_key", "me.shortcuts_enabled")
-    .or(`org_id.is.null,org_id.eq.${orgId}`)
-    .is("deleted_at", null);
-  if (error) return fail(toDataError(error));
-  const forOrg = data.find((row) => row.org_id === orgId);
-  return ok((forOrg ?? data[0])?.value_boolean ?? true);
 }

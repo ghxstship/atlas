@@ -131,7 +131,17 @@
     "agreement_transition_not_allowed": "Un acuerdo no puede hacer ese cambio desde su estado actual.",
     "agreement_token_validity": "Un enlace de firma es válido de 1 a 90 días.",
     "credential_self_issue": "Nadie registra su propio certificado. Pida a otro verificador que lo registre.",
-    "certification_holder_immutable": "Un registro de certificado conserva su titular, verificador y código. Quítelo y regístrelo de nuevo."
+    "certification_holder_immutable": "Un registro de certificado conserva su titular, verificador y código. Quítelo y regístrelo de nuevo.",
+    "swap_not_allowed": "Este proyecto no permite cambios de turno. Pide a tu supervisor que cubra el turno.",
+    "swap_needs_approval": "Un supervisor aprueba los cambios en este proyecto. Espera su decisión.",
+    "shift_claim_waiting": "Ya reclamaste este turno. Un supervisor decide.",
+    "shift_claim_decided": "Este reclamo ya se decidió o se retiró. Vuelve a cargar para ver su estado.",
+    "shift_claim_reason": "Indica por qué rechazas el reclamo.",
+    "shift_claim_not_most_senior": "Con la regla de antigüedad, el turno es para quien tenga más antigüedad. Usa Dar al de mayor antigüedad.",
+    "shift_claim_none": "Nadie espera este turno.",
+    "sod_shift_claim_self": "No puedes aprobar tu propio reclamo. Otro supervisor lo decide.",
+    "punch_location_required": "Este proyecto necesita tu ubicación para fichar. Ficha en el lugar desde Compass con la ubicación activada.",
+    "punch_outside_geofence": "Estás fuera de la geocerca del proyecto. Ficha en el lugar."
   },
   "states": {
     "shift": {
@@ -366,7 +376,10 @@
     "empty": "No hay solicitudes de intercambio. El equipo pide entregar un turno desde el propio turno.",
     "emptyFiltered": "No hay intercambios en este estado. Quite el filtro para ver todas las solicitudes.",
     "viewShifts": "Ver turnos",
-    "caption": "Intercambios de turno"
+    "caption": "Intercambios de turno",
+    "accept": "Aceptar cambio",
+    "acceptTitle": "¿Tomar este turno?",
+    "acceptReason": "Puedo cubrir este turno."
   },
   "entries": {
     "title": "{name} · {day}",
@@ -549,5 +562,24 @@
     "errorTitle": "Esta página no se cargó",
     "errorBody": "No se pudo leer la lista en este momento. Sus datos están seguros; inténtelo de nuevo y, si sigue fallando, comparta la referencia con soporte.",
     "retry": "Intentar de nuevo"
+  },
+  "claims": {
+    "title": "Reclamos en espera",
+    "waiting": "Tu reclamo espera la decisión de un supervisor.",
+    "withdraw": "Retirar reclamo",
+    "withdrawTitle": "¿Retirar tu reclamo de este turno?",
+    "award": "Dar al de mayor antigüedad",
+    "awardTitle": "¿Dar este turno a quien tenga más antigüedad?",
+    "awardReason": "Asignado por antigüedad.",
+    "approve": "Aprobar",
+    "approveTitle": "¿Dar este turno a {name}?",
+    "approveReason": "Reclamo aprobado.",
+    "reject": "Rechazar",
+    "rejectTitle": "¿Rechazar el reclamo de {name}?",
+    "ruleHelp": {
+      "approval": "Un supervisor aprueba cada reclamo en este proyecto.",
+      "seniority": "Los reclamos esperan y el turno es para quien tenga más antigüedad.",
+      "first-come": "El turno es para la primera persona que lo reclama."
+    }
   }
 }

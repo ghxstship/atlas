@@ -17,8 +17,6 @@ import {
  */
 export interface ShellKeys {
   readonly platform: Platform;
-  /** me.shortcuts_enabled: whether single-key shortcuts (no Mod, Ctrl or Alt) answer. */
-  readonly singleKeys: boolean;
   /** Keys of the shortcuts the shell's key handler answers anywhere, by registry id. */
   readonly global: Readonly<Record<string, string>>;
   /** Keys of shortcuts that answer in one region of a page (Inbox items), by registry id. */
@@ -47,7 +45,6 @@ export function buildShellKeys(
   registry: ShortcutRegistry,
   input: {
     readonly platform: Platform;
-    readonly singleKeys: boolean;
     readonly custom: CustomBindings;
     readonly goTargets: ReadonlyMap<string, Omit<GoTarget, "node">>;
   },
@@ -82,7 +79,7 @@ export function buildShellKeys(
       if (shortcut.fields) fields.push(shortcut.id);
     }
   }
-  return { platform, singleKeys: input.singleKeys, global, scoped, fields, go, display };
+  return { platform, global, scoped, fields, go, display };
 }
 
 /** Command menu hints: each navigation shortcut's keys by the sitemap node it opens. */

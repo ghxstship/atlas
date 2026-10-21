@@ -5,7 +5,6 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
 
 const NONE: ShellKeys = {
   platform: "other",
-  singleKeys: true,
   global: {},
   scoped: {},
   fields: [],

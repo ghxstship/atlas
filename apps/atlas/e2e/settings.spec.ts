@@ -111,3 +111,36 @@ test("settings pages render axe clean and the org lock holds", async ({ page }) 
   await page.goto(`/${slug}/home`);
   await expect(page.locator(`a[href="/${slug}/site-ops"]`).first()).toBeAttached();
 });
+
+// ADR 0038: record keys are fixed and on no settings screen; gateway.ratings_enabled only prompts members to
+// rate, so turning it off removes the prompt and nothing else.
+test("record keys stay fixed and rating prompts never hide ratings", async ({ page }) => {
+  const id = uniqueId();
+  const slug = `ratings-${id}`;
+  await signUp(page, { name: "Riley Ratings", email: testEmail("ratings", id) });
+  await createOrganization(page, { name: `Ratings ${id}`, slug });
+
+  await page.goto(`/${slug}/settings/numbering`);
+  await expect(page.getByLabel("Number padding")).toBeVisible();
+  await expect(page.getByLabel("Record key format")).toHaveCount(0);
+  await expect(page.getByText(/record keys like NWS-42 are fixed/)).toBeVisible();
+
+  await page.goto(`/${slug}/opportunities/ratings`);
+  await expect(page.getByText("Waiting for your rating")).toBeVisible();
+
+  await page.goto(`/${slug}/settings/gateway-and-marketplace`);
+  const form = page.getByRole("form", { name: "Settings on this page" });
+  const prompts = form.getByLabel("Prompt members to rate parties");
+  await expect(prompts).toBeChecked();
+  await expect(form.getByText(/turning prompts off never hides or removes a rating/)).toBeVisible();
+  await prompts.uncheck();
+  await form.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(form.getByRole("button", { name: "Save", exact: true })).toHaveCount(0);
+  await expect(prompts).not.toBeChecked();
+  await expectAccessible(page);
+
+  // The prompt goes; the ratings page and every rating on it stay.
+  await page.goto(`/${slug}/opportunities/ratings`);
+  await expect(page.getByRole("heading", { level: 1, name: "Ratings" })).toBeVisible();
+  await expect(page.getByText("Waiting for your rating")).toHaveCount(0);
+});

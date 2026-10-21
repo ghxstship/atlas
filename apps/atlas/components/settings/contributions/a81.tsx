@@ -1,8 +1,4 @@
-import {
-  getShortcutsEnabled,
-  listShortcutBindings,
-  listSidebarLayout,
-} from "@xos/data/shell-preferences";
+import { listShortcutBindings, listSidebarLayout } from "@xos/data/shell-preferences";
 import { isNodeVisible } from "@xos/ia";
 import { platformOf, SHORTCUT_REGISTRY, validBindings } from "@xos/schemas/shortcuts";
 import { headers } from "next/headers";
@@ -10,6 +6,7 @@ import { ShortcutRebinder } from "@/components/settings/shortcut-rebinder";
 import { SidebarEditor } from "@/components/settings/sidebar-editor";
 import { InlineAlert } from "@/components/ui";
 import { buildShellNav, orderByLayout } from "@/lib/shell/nav-model";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import type { SettingsContribution, SettingsPanelProps } from "./types";
@@ -21,13 +18,14 @@ import type { SettingsContribution, SettingsPanelProps } from "./types";
  */
 
 async function ShortcutsPanel({ ctx }: SettingsPanelProps) {
-  const [t, stored, singleKeys, headerStore] = await Promise.all([
+  const [t, stored, settings, headerStore] = await Promise.all([
     getTranslate(),
     listShortcutBindings(ctx.viewer.db, "Atlas"),
-    getShortcutsEnabled(ctx.viewer.db, ctx.org.id),
+    // me.shortcuts_enabled as the shell applies it (display preferences, A76).
+    getShellSettings(ctx.viewer.db, ctx.org.id, null),
     headers(),
   ]);
-  if (!stored.ok || !singleKeys.ok) {
+  if (!stored.ok) {
     return <InlineAlert tone="danger">{t("settings.loadFailed")}</InlineAlert>;
   }
   const custom = validBindings(SHORTCUT_REGISTRY, "atlas", stored.data);
@@ -44,7 +42,7 @@ async function ShortcutsPanel({ ctx }: SettingsPanelProps) {
       })}
       custom={custom}
       rows={rows}
-      singleKeys={singleKeys.data}
+      singleKeys={settings.preferences.shortcuts}
     />
   );
 }

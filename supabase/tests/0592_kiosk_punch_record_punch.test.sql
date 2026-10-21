@@ -18,6 +18,8 @@ create temporary table kiosk_key as select * from app.register_kiosk_device(pg_t
 grant select on kiosk_key to public;
 select app.set_kiosk_pin(pg_temp.id('frank@org_a'), '4821');
 select app.set_kiosk_pin(pg_temp.id('dave@org_a'), '1357');
+-- Kiosks are off until the org turns them on (time.kiosk_enabled, 1321); this suite runs with them on.
+select app.set_setting(pg_temp.id('org_a'), 'time.kiosk_enabled', 'Organization', pg_temp.id('org_a'), p_value_boolean => true);
 select pg_temp.as_platform();
 
 select ok(not has_function_privilege('authenticated', 'app.kiosk_punch(text, uuid, text, uuid, app.punch_kind, timestamptz, bigint, text, uuid)', 'execute')

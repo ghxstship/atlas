@@ -17,6 +17,8 @@ import { setPlaceArchivedAction } from "@/app/[org]/places/actions";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getTranslate, type Translate } from "@/lib/shell/translate";
+import { getShellSettings } from "@/lib/shell/org-settings";
+import { convertArea } from "@xos/ui/preferences";
 import { heldCapabilities } from "../kit/access";
 import { ActionButton } from "../kit/buttons";
 import { PeekTable, PeekTree, QueryDrawer } from "../kit/client";
@@ -58,6 +60,9 @@ export async function SpacesPage({
 }) {
   const ctx = await requireNode(NODE, params);
   const db = ctx.viewer.db;
+  // Floor areas show in the person's units (locale.units); they are stored in square feet.
+  const units = (await getShellSettings(db, ctx.org.id, null)).preferences.units;
+  const metric = units === "metric";
   const archiveParam = param(search, "archive");
   const archive: ArchiveFilter =
     archiveParam === "archived" || archiveParam === "all" ? archiveParam : "live";
@@ -129,6 +134,7 @@ export async function SpacesPage({
     venueName,
     spaceName,
     categoryName,
+    units,
   };
 
   if (peek && param(search, "full") === "1") {
@@ -260,7 +266,11 @@ export async function SpacesPage({
           { key: "within", label: t("places.spaces.fields.space") },
           { key: "urid", label: t("places.spaces.fields.urid"), type: "code" },
           { key: "capacity", label: t("places.spaces.fields.capacity"), type: "number" },
-          { key: "area", label: t("places.spaces.fields.area"), type: "number" },
+          {
+            key: "area",
+            label: metric ? t("places.spaces.fields.areaMetric") : t("places.spaces.fields.area"),
+            type: "number",
+          },
         ]}
         rows={[
           ...shownSpaces.map((s) => ({
@@ -272,7 +282,7 @@ export async function SpacesPage({
             within: null,
             urid: s.urid,
             capacity: s.capacity,
-            area: s.areaSqFt,
+            area: s.areaSqFt === null ? null : convertArea(s.areaSqFt, units).value,
           })),
           ...shownZones.map((z) => ({
             id: `zone-${z.id}`,
@@ -450,6 +460,8 @@ interface Detail {
   venueName: ReadonlyMap<string, string>;
   spaceName: ReadonlyMap<string, string>;
   categoryName: ReadonlyMap<string, string>;
+  /** The person's units (locale.units); areas are stored in square feet. */
+  units: "imperial" | "metric";
 }
 
 function Properties({
@@ -460,8 +472,10 @@ function Properties({
   categoryName,
   canWrite,
   org,
+  units,
 }: Detail & { selected: Selected }) {
   const unknown = t("places.spaces.notMeasured");
+  const metric = units === "metric";
   const items =
     selected.kind === "space"
       ? [
@@ -476,8 +490,11 @@ function Properties({
               : t("places.kit.notRecorded"),
           },
           {
-            label: t("places.spaces.fields.area"),
-            value: selected.row.areaSqFt === null ? unknown : String(selected.row.areaSqFt),
+            label: metric ? t("places.spaces.fields.areaMetric") : t("places.spaces.fields.area"),
+            value:
+              selected.row.areaSqFt === null
+                ? unknown
+                : String(convertArea(selected.row.areaSqFt, units).value),
           },
           {
             label: t("places.spaces.fields.capacity"),

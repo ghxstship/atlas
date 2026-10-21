@@ -239,6 +239,8 @@ export function SettingsForm(props: SettingsFormProps) {
         ) : null}
         <p className="m-0 text-text-12 text-text-secondary">
           {cleared ? t(inherits ? "inheritPending" : "resetPending") : f.sourceText}
+          {/* A setting deferred by a recorded decision is kept but not applied yet (A65-001). */}
+          {f.def.deferred ? ` ${t("notInEffect")}` : null}
         </p>
         {lockable ? (
           <>

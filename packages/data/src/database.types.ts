@@ -9779,6 +9779,7 @@ export type Database = {
       chat_messages: {
         Row: {
           author_membership_id: string;
+          auto_reply: boolean;
           body: string | null;
           conversation_id: string;
           created_at: string;
@@ -9795,6 +9796,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           author_membership_id: string;
+          auto_reply?: boolean;
           body?: string | null;
           conversation_id: string;
           created_at?: string;
@@ -9810,6 +9812,7 @@ export type Database = {
         };
         Update: {
           author_membership_id?: string;
+          auto_reply?: boolean;
           body?: string | null;
           conversation_id?: string;
           created_at?: string;
@@ -40315,6 +40318,129 @@ export type Database = {
           },
         ];
       };
+      shift_claims: {
+        Row: {
+          claim_state: Database["app"]["Enums"]["shift_claim_state"];
+          created_at: string;
+          created_by: string | null;
+          decided_at: string | null;
+          decided_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          reason: string | null;
+          shift_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          claim_state?: Database["app"]["Enums"]["shift_claim_state"];
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id: string;
+          org_id: string;
+          project_id: string;
+          reason?: string | null;
+          shift_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          claim_state?: Database["app"]["Enums"]["shift_claim_state"];
+          created_at?: string;
+          created_by?: string | null;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          membership_id?: string;
+          org_id?: string;
+          project_id?: string;
+          reason?: string | null;
+          shift_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shift_claims_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_decided_by_fkey";
+            columns: ["decided_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "shift_claims_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_shift_id_fkey";
+            columns: ["shift_id"];
+            isOneToOne: false;
+            referencedRelation: "shifts";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shift_claims_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shift_state_transitions: {
         Row: {
           created_at: string;
@@ -53237,6 +53363,7 @@ export type Database = {
         Returns: string;
       };
       accept_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
+      accept_shift_swap: { Args: { p_reason?: string; p_shift_swap_id: string }; Returns: string };
       accommodation_block_display_key: {
         Args: {
           p_row: Omit<
@@ -53475,6 +53602,7 @@ export type Database = {
           org_slug: string;
         }[];
       };
+      award_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       award_work_order: {
         Args: { p_bid_id: string; p_reason: string; p_work_order_id: string };
         Returns: string;
@@ -53903,6 +54031,7 @@ export type Database = {
           invite_token: string;
         }[];
       };
+      create_next_pay_period: { Args: { p_org_id: string }; Returns: string };
       create_occupancy_counter: {
         Args: {
           p_metric_item?: string;
@@ -54029,6 +54158,10 @@ export type Database = {
           p_valid_to?: string;
         };
         Returns: undefined;
+      };
+      decide_shift_claim: {
+        Args: { p_approved: boolean; p_reason?: string; p_shift_claim_id: string };
+        Returns: string;
       };
       decide_shift_swap: {
         Args: {
@@ -54515,6 +54648,13 @@ export type Database = {
           allowed: boolean;
           covered: boolean;
           enforced: boolean;
+        }[];
+      };
+      next_pay_period_dates: {
+        Args: { p_org_id: string; p_today?: string };
+        Returns: {
+          ends_on: string;
+          starts_on: string;
         }[];
       };
       object_scan_status: {
@@ -56077,6 +56217,7 @@ export type Database = {
       vote_in_poll: { Args: { p_option_ids: string[]; p_poll_id: string }; Returns: number };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
+      withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       work_order_display_key: {
         Args: {
           p_work_order: Omit<
@@ -56480,6 +56621,7 @@ export type Database = {
       settlement_line_kind:
         "Guarantee" | "Bonus" | "Split" | "Expense" | "Deduction" | "Withholding";
       settlement_state: "Proposed" | "Submitted" | "Accepted" | "Disputed" | "Paid" | "Canceled";
+      shift_claim_state: "Requested" | "Approved" | "Rejected" | "Withdrawn" | "Superseded";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
       shortcut_shell: "Atlas" | "Gateway";
@@ -62911,6 +63053,7 @@ export const Constants = {
       setting_value_type: ["Text", "Boolean", "Integer", "Choice"],
       settlement_line_kind: ["Guarantee", "Bonus", "Split", "Expense", "Deduction", "Withholding"],
       settlement_state: ["Proposed", "Submitted", "Accepted", "Disputed", "Paid", "Canceled"],
+      shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
       shortcut_shell: ["Atlas", "Gateway"],

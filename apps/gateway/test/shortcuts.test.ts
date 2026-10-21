@@ -4,11 +4,11 @@ import { describe, expect, it } from "vitest";
 
 /**
  * Gateway's shortcuts come from the registry (packages/schemas/shortcuts.yaml): the help panel's sheet
- * reads it. Gateway answers the defaults without a key handler of its own (the frame listens for `?`,
- * the design system's CommandMenu for Mod+K), so a change to these defaults must change those too.
+ * reads it. Gateway's frame answers the defaults itself (`?` for help, Mod+K for the command menu), so a
+ * change to these defaults must change the frame too.
  */
 describe("Gateway shortcuts", () => {
-  it("are the keys the frame and the command menu answer", () => {
+  it("are the keys the frame answers", () => {
     const defaults = Object.fromEntries(
       SHORTCUT_REGISTRY.shells.gateway.shortcuts.map((s) => [s.id, s.keys]),
     );
@@ -18,6 +18,6 @@ describe("Gateway shortcuts", () => {
       "utf8",
     );
     expect(frame).toContain('event.key === "?"');
-    expect(frame).toContain("<CommandMenu");
+    expect(frame).toContain('event.key.toLowerCase() === "k"');
   });
 });

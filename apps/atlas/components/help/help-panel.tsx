@@ -1,32 +1,31 @@
 "use client";
 
-import { Button, Drawer, InlineAlert, Input, Skeleton } from "@xos/ui";
-import { useLocale, useTranslations } from "next-intl";
-import { usePathname, useSearchParams } from "next/navigation";
+import { Button } from "@xos/ui";
+import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { HELP_CONTENT } from "@/help/content.generated";
-import {
-  articlesForNode,
-  coversNode,
-  forNode,
-  HELP_LOCALES,
-  searchArticles,
-  type ArticleSummary,
-  type HelpBodies,
-  type HelpLocale,
-  type Tip,
-  type Tour,
-} from "@/help/model";
+import { HELP_GUIDES } from "@/help/guides.generated";
+import { forNode, type Tip, type Tour } from "@/help/model";
 import { dismissTipAction, recordTourAction, type HelpPanelState } from "@/lib/help/actions";
-import { ArticleBody } from "./article";
-import { ContactForm } from "./contact-form";
-import { collectDiagnostics } from "./diagnostics";
-import { ShortcutSheet } from "./shortcut-sheet";
+import { onDemand, useOnDemand } from "@/components/shell/on-demand";
 import type { HelpView as View } from "./help-center";
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
 
 const tourCopyKey = (key: string) => `tours.${key.replaceAll(".", "_")}`;
+
+/**
+ * The drawer with the articles, search, shortcuts, What's New and Contact Support loads the first
+ * time Help opens. A page that only offers a tour or a tip loads this module alone, which is the
+ * cards and the tour steps (gate 10: the drawer, its Radix dialog and the article index were about
+ * 28 KB on a first visit to a page with a tour).
+ */
+const drawer = onDemand(() => import("./help-drawer"));
+
+/** Fetches the drawer early, when a pointer or focus reaches the Help button (help-center.tsx). */
+export function preloadDrawer(): void {
+  void drawer.load().catch(() => undefined);
+}
 
 export interface HelpPanelProps {
   readonly org: string;
@@ -42,12 +41,11 @@ export interface HelpPanelProps {
 }
 
 /**
- * The help panel and its floating cards (Section 11.16), loaded the first time Help opens or the
- * page has a tour or tip to offer (A24-009): the articles mapped to this page, search across every
- * article, the shortcut sheet, What's New, guided tours and Contact Support. On a page with a tour
- * the person has never been offered, the tour is offered once; otherwise a contextual tip for a
- * complex feature appears once until dismissed. Tours never start on their own and can be replayed
- * from Help.
+ * The help panel's floating cards and its drawer (Section 11.16), loaded the first time Help opens or
+ * the page has a tour or tip to offer (A24-009). On a page with a tour the person has never been
+ * offered, the tour is offered once; otherwise a contextual tip for a complex feature appears once
+ * until dismissed. Tours never start on their own and can be replayed from Help. The drawer
+ * (help-drawer.tsx) loads only when Help opens.
  */
 export function HelpPanel({
   org,
@@ -60,40 +58,14 @@ export function HelpPanel({
   setView,
 }: HelpPanelProps) {
   const t = useTranslations("help") as unknown as Translate;
-  const locale = useLocale();
-  const pathname = usePathname();
   const search = useSearchParams();
-  const lang: HelpLocale = (HELP_LOCALES as readonly string[]).includes(locale)
-    ? (locale as HelpLocale)
-    : "en-US";
-  const articles = HELP_CONTENT.articles[lang];
-  const [query, setQuery] = useState("");
   const [running, setRunning] = useState<{ tour: Tour; step: number } | null>(null);
   const [closedOffers, setClosedOffers] = useState<readonly string[]>([]);
   const [hiddenTips, setHiddenTips] = useState<readonly string[]>([]);
-  const [bodies, setBodies] = useState<HelpBodies | null>(null);
-  const [bodiesFailed, setBodiesFailed] = useState(false);
-
-  // Article bodies load when the panel first opens, not with the page (A24-009).
-  useEffect(() => {
-    if (!open || bodies) return;
-    let live = true;
-    import("@/help/bodies.generated").then(
-      (m) => {
-        if (live) setBodies(m.HELP_BODIES);
-      },
-      (error: unknown) => {
-        console.error(error);
-        if (live) setBodiesFailed(true);
-      },
-    );
-    return () => {
-      live = false;
-    };
-  }, [open, bodies]);
+  const loadedDrawer = useOnDemand(drawer, open);
 
   const seenTours = useMemo(() => new Set(state?.tours.map((x) => x.tourKey)), [state]);
-  const pageTours = useMemo(() => forNode(HELP_CONTENT.tours, nodeId), [nodeId]);
+  const pageTours = useMemo(() => forNode(HELP_GUIDES.tours, nodeId), [nodeId]);
 
   // Offer each page's tour the person has never been offered. The offer stays until they start or
   // decline it; recording it as Offered keeps it from returning on a later visit.
@@ -111,7 +83,7 @@ export function HelpPanel({
   const tip: Tip | null = useMemo(() => {
     if (!state || offered || running || open) return null;
     return (
-      forNode(HELP_CONTENT.tips, nodeId).find(
+      forNode(HELP_GUIDES.tips, nodeId).find(
         (x) => !state.dismissedTips.includes(x.key) && !hiddenTips.includes(x.key),
       ) ?? null
     );
@@ -150,184 +122,23 @@ export function HelpPanel({
     setOpen(true);
   };
 
-  const pageArticles = articlesForNode(articles, nodeId);
-  const specific = pageArticles.filter(
-    (a) => nodeId !== null && a.nodes.some((p) => p !== "*" && coversNode(p, nodeId)),
-  );
-  const results = searchArticles(articles, query, (a) => bodies?.[lang][a.slug]);
-  const article = view.kind === "article" ? articles.find((a) => a.slug === view.slug) : undefined;
-
-  const articleList = (list: readonly ArticleSummary[]) => (
-    <ul className="m-0 flex list-none flex-col gap-8 p-0">
-      {list.map((a) => (
-        <li key={a.slug}>
-          <button
-            type="button"
-            onClick={() => setView({ kind: "article", slug: a.slug })}
-            className="flex w-full cursor-pointer flex-col items-start gap-2 rounded-control border-0 bg-transparent p-4 text-start hover:bg-bg-hover"
-          >
-            <span className="font-medium text-accent-text">{a.title}</span>
-            <span className="text-text-12 text-text-secondary">{a.summary}</span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-
-  const section = (title: string, children: React.ReactNode) => (
-    <section aria-label={title} className="flex flex-col gap-8">
-      <h3 className="m-0 text-text-12 font-medium text-text-secondary">{title}</h3>
-      {children}
-    </section>
-  );
-
   return (
     <>
-      <Drawer title={t("title")} open={open} onOpenChange={setOpen}>
-        {view.kind === "article" ? (
-          <article className="flex flex-col gap-12">
-            <Button variant="ghost" icon="ArrowLeft" onClick={() => setView({ kind: "home" })}>
-              {t("back")}
-            </Button>
-            {article ? (
-              <>
-                <h3 className="m-0 text-heading-20 font-semibold">{article.title}</h3>
-                <p className="m-0 text-text-secondary">{article.summary}</p>
-                {bodies ? (
-                  <ArticleBody blocks={bodies[lang][article.slug] ?? []} onArticle={openArticle} />
-                ) : bodiesFailed ? (
-                  <InlineAlert tone="danger">{t("bodyFailed")}</InlineAlert>
-                ) : (
-                  <Skeleton />
-                )}
-                {state?.docsUrl ? (
-                  <a
-                    className="self-start text-text-12 font-medium text-accent-text underline"
-                    href={`${state.docsUrl}/${lang}/help/${article.slug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {t("docs.article")}
-                  </a>
-                ) : null}
-              </>
-            ) : (
-              <p className="m-0">{t("noArticles")}</p>
-            )}
-          </article>
-        ) : view.kind === "contact" ? (
-          <ContactForm
-            org={org}
-            canContactPlatform={state?.canContactPlatform ?? false}
-            platformChannel={state?.platformChannel ?? null}
-            diagnostics={view.diagnostics}
-            onCancel={() => setView({ kind: "home" })}
-          />
-        ) : (
-          <>
-            <Input
-              type="search"
-              label={t("search")}
-              placeholder={t("searchHint")}
-              value={query}
-              width="100%"
-              onChange={(e) => setQuery(e.target.value)}
-            />
-            {query.trim() !== "" ? (
-              section(
-                t("searchResults", { query: query.trim() }),
-                results.length > 0 ? (
-                  articleList(results)
-                ) : (
-                  <p className="m-0 text-text-secondary">
-                    {t("searchEmpty", { query: query.trim() })}
-                  </p>
-                ),
-              )
-            ) : (
-              <>
-                {section(
-                  t("forThisPage"),
-                  specific.length > 0 ? (
-                    articleList(specific)
-                  ) : (
-                    <p className="m-0 text-text-secondary">{t("noArticles")}</p>
-                  ),
-                )}
-                {section(
-                  t("general"),
-                  articleList(pageArticles.filter((a) => !specific.includes(a))),
-                )}
-              </>
-            )}
-            {loadFailed ? (
-              <p role="alert" className="m-0 text-text-12 text-danger-text">
-                {t("loadFailed")}
-              </p>
-            ) : null}
-            {section(
-              t("tours.title"),
-              pageTours.length > 0 ? (
-                <div className="flex flex-wrap gap-8">
-                  {pageTours.map((tour) => (
-                    <Button key={tour.key} icon="Play" onClick={() => startTour(tour)}>
-                      {t(seenTours.has(tour.key) ? "tours.replay" : "tours.start", {
-                        title: t(`${tourCopyKey(tour.key)}.title`),
-                      })}
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <p className="m-0 text-text-secondary">{t("tours.none")}</p>
-              ),
-            )}
-            {section(t("shortcuts.title"), <ShortcutSheet org={org} />)}
-            {section(
-              t("whatsNew.title"),
-              <ul className="m-0 flex list-none flex-col gap-8 p-0">
-                {HELP_CONTENT.whatsNew.map((entry) => (
-                  <li key={entry.key} className="flex flex-col gap-2">
-                    <span className="font-medium">{t(`whatsNew.${entry.key}.title`)}</span>
-                    <span className="text-text-12 text-text-secondary">
-                      {t(`whatsNew.${entry.key}.body`)}
-                    </span>
-                    {entry.article ? (
-                      <button
-                        type="button"
-                        onClick={() => setView({ kind: "article", slug: entry.article as string })}
-                        className="cursor-pointer self-start border-0 bg-transparent p-0 text-text-12 font-medium text-accent-text underline"
-                      >
-                        {t("tips.learnMore")}
-                      </button>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>,
-            )}
-            {state?.docsUrl ? (
-              <a
-                className="self-start text-accent-text underline"
-                href={`${state.docsUrl}/${lang}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {t("docs.home")}
-              </a>
-            ) : null}
-            <Button
-              icon="LifeBuoy"
-              onClick={() =>
-                setView({
-                  kind: "contact",
-                  diagnostics: collectDiagnostics(pathname, navigator.userAgent),
-                })
-              }
-            >
-              {t("contact.open")}
-            </Button>
-          </>
-        )}
-      </Drawer>
+      {loadedDrawer ? (
+        <loadedDrawer.HelpDrawer
+          org={org}
+          state={state}
+          loadFailed={loadFailed}
+          nodeId={nodeId}
+          open={open}
+          setOpen={setOpen}
+          view={view}
+          setView={setView}
+          pageTours={pageTours}
+          seenTours={seenTours}
+          startTour={startTour}
+        />
+      ) : null}
       {offered && !covered ? (
         <Card
           label={t("tours.label")}

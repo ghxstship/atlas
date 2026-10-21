@@ -2860,7 +2860,7 @@ var compass_default$1 = {
     endBreak: "End Break",
     blocked: "Clock In",
     inside: "You're at {name}",
-    outside: "You're {distance} m from {name}",
+    outside: "You're {distance} from {name}",
     outsideFar: "You're away from the venue",
     locating: "Finding your location",
     locationCoarse: "Your location is not precise enough yet. Step outside or wait a moment.",
@@ -2921,6 +2921,8 @@ var compass_default$1 = {
       "You already hold a shift that overlaps this one ({time}). Swap or drop that shift first.",
     claimQueued:
       "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first.",
+    claimSent:
+      "Claim sent. A supervisor decides who gets the shift under this project's claiming rule.",
   },
   scan: {
     title: "Scan",
@@ -3095,12 +3097,19 @@ var compass_default$1 = {
       deviceRevoked:
         "This kiosk was turned off in Atlas. Ask your supervisor to register it again.",
       requestInvalid: "That punch could not be read. Start again.",
+      kioskDisabled: "Kiosks are off for this organization. Ask an admin to turn them on in Atlas.",
+      photoRequired:
+        "This project asks for a photo at every kiosk punch. Start again and take the photo.",
     },
     exit: "Exit Kiosk",
     digit: "Digit {digit}",
     backspace: "Delete digit",
     pinProgressOne: "{count} digit entered",
     pinProgressOther: "{count} digits entered",
+    off: "Kiosks are off for this organization. An admin turns them on in Atlas, Settings, Time and Attendance.",
+    photoFor: "Photo for {name}",
+    photoHelp:
+      "This project asks for a photo at every kiosk clock-in and clock-out. Look at the camera and take the photo.",
   },
   inbox: {
     title: "Inbox",
@@ -3811,6 +3820,20 @@ var crew_default$1 = {
       "Nobody records their own certificate. Ask another verifier to record it.",
     certification_holder_immutable:
       "A certificate record keeps its holder, verifier and code. Remove it and record it again.",
+    swap_not_allowed:
+      "This project does not allow shift swaps. Ask your supervisor to cover the shift.",
+    swap_needs_approval: "A supervisor approves swaps on this project. Wait for their decision.",
+    shift_claim_waiting: "You already claimed this shift. A supervisor decides.",
+    shift_claim_decided:
+      "This claim was already decided or withdrawn. Reload to see where it stands.",
+    shift_claim_reason: "Say why the claim is rejected.",
+    shift_claim_not_most_senior:
+      "Under the seniority rule the shift goes to the most senior claimant. Use Give to the most senior.",
+    shift_claim_none: "Nobody is waiting on this shift.",
+    sod_shift_claim_self: "You cannot approve your own claim. Another supervisor decides it.",
+    punch_location_required:
+      "This project needs your location to clock in. Clock in on site from Compass with location on.",
+    punch_outside_geofence: "You are outside the project's geofence. Clock in on site.",
   },
   states: {
     shift: {
@@ -4055,6 +4078,9 @@ var crew_default$1 = {
     emptyFiltered: "No swaps in this state. Clear the filter to see every request.",
     viewShifts: "View shifts",
     caption: "Shift swaps",
+    accept: "Accept swap",
+    acceptTitle: "Take this shift?",
+    acceptReason: "I can work this shift.",
   },
   entries: {
     title: "{name} · {day}",
@@ -4251,6 +4277,25 @@ var crew_default$1 = {
     errorBody:
       "The list could not be read just now. Your data is safe; try again, and if it keeps failing, share the reference with support.",
     retry: "Try again",
+  },
+  claims: {
+    title: "Waiting claims",
+    waiting: "Your claim is waiting for a supervisor to decide.",
+    withdraw: "Withdraw claim",
+    withdrawTitle: "Withdraw your claim on this shift?",
+    award: "Give to the most senior",
+    awardTitle: "Give this shift to the most senior claimant?",
+    awardReason: "Awarded by seniority.",
+    approve: "Approve",
+    approveTitle: "Give this shift to {name}?",
+    approveReason: "Claim approved.",
+    reject: "Reject",
+    rejectTitle: "Reject the claim from {name}?",
+    ruleHelp: {
+      approval: "A supervisor approves each claim on this project.",
+      seniority: "Claims wait, and the shift goes to the most senior claimant.",
+      "first-come": "The first person to claim the shift gets it.",
+    },
   },
 };
 var docs_default$1 = {
@@ -7264,6 +7309,13 @@ var help_default$1 = {
       "A PNG, JPEG or WebP image up to 5 MB. Only you and the platform support team can open it.",
     screenshotNeedsConsent: "Tick the diagnostics box above to attach a screenshot.",
     screenshotTooBig: "That image is larger than 5 MB. Choose a smaller one.",
+  },
+  orgSupport: {
+    title: "Your organization's support",
+    email: "Email",
+    hours: "Hours",
+    link: "Guides",
+    linkLabel: "Open your organization's guides",
   },
   gateway: {
     general: "Everywhere in Gateway",
@@ -10332,6 +10384,7 @@ var places_default$1 = {
       space: "Within space",
       spaceHelp: "Optional. The space this zone sits in.",
       noSpace: "Not within a space",
+      areaMetric: "Floor area (m²)",
     },
   },
   documents: {
@@ -12687,6 +12740,7 @@ var settings_default$1 = {
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
     setting_not_enforced:
       "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
+    setting_fixed: "This setting is fixed and cannot be changed.",
   },
   fields: {
     legalName: {
@@ -12695,7 +12749,7 @@ var settings_default$1 = {
     },
     defaultWorkspace: {
       label: "Default workspace",
-      help: "New members start in this workspace.",
+      help: "New members join this workspace.",
     },
     startPage: {
       label: "Start page",
@@ -12711,7 +12765,7 @@ var settings_default$1 = {
     },
     invoicePrefix: {
       label: "Invoice number prefix",
-      help: "Up to 12 characters placed before each invoice number, for example INV-.",
+      help: "Up to 12 characters placed before each new invoice number, for example INV-.",
     },
     mfaPolicy: {
       label: "Multi-factor authentication",
@@ -12751,7 +12805,7 @@ var settings_default$1 = {
     },
     numberPadding: {
       label: "Number padding",
-      help: "Digits in each document number, from 1 to 10. Four gives 0042.",
+      help: "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed.",
     },
     rounding: {
       label: "Punch rounding",
@@ -12759,11 +12813,11 @@ var settings_default$1 = {
     },
     photoOnPunch: {
       label: "Photo on punch",
-      help: "Ask for a photo at every clock-in and clock-out.",
+      help: "Ask kiosks for a photo at every clock-in and clock-out.",
     },
     geofenceRequired: {
       label: "Require the geofence",
-      help: "Refuse clock-ins outside the project's geofence.",
+      help: "Refuse phone and web clock-ins outside the project's geofence. Kiosks are exempt.",
     },
     kioskEnabled: {
       label: "Kiosk clock-in",
@@ -12771,7 +12825,7 @@ var settings_default$1 = {
     },
     openShiftClaiming: {
       label: "Open shift claiming",
-      help: "How crew claim open shifts.",
+      help: "How crew claim open shifts: the first to claim gets it, a supervisor approves, or the most senior claimant gets it.",
     },
     allowSwaps: {
       label: "Allow shift swaps",
@@ -12779,11 +12833,11 @@ var settings_default$1 = {
     },
     swapApproval: {
       label: "Swaps need approval",
-      help: "A supervisor approves each swap before it takes effect.",
+      help: "A supervisor approves each swap before it takes effect. When off, the person offered the shift accepts it.",
     },
     payPeriod: {
       label: "Pay period",
-      help: "How often payroll runs.",
+      help: "How often payroll runs. New pay periods follow it.",
     },
     weekStart: {
       label: "Week starts on",
@@ -12791,15 +12845,15 @@ var settings_default$1 = {
     },
     marketplaceVisibility: {
       label: "Marketplace visibility",
-      help: "Who can find the organization in the Gateway marketplace.",
+      help: "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees.",
     },
     ratingsEnabled: {
-      label: "Ratings",
-      help: "Ask both sides to rate each other when an engagement completes.",
+      label: "Prompt members to rate parties",
+      help: "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score.",
     },
     messageRetention: {
       label: "Message retention in days",
-      help: "Keep messages this many days, from 30 to 3,650.",
+      help: "Delete messages older than this many days, from 30 to 3,650. A legal hold keeps them.",
     },
     autoTranslate: {
       label: "Translate messages",
@@ -12807,15 +12861,15 @@ var settings_default$1 = {
     },
     supportEmail: {
       label: "Internal support email",
-      help: "Where members send questions about how your organization works.",
+      help: "Where members send questions about how your organization works. Shown in the help panel.",
     },
     supportHours: {
       label: "Support hours",
-      help: "For example Monday to Friday, 9 AM to 6 PM Eastern.",
+      help: "Shown in the help panel, for example Monday to Friday, 9 AM to 6 PM Eastern.",
     },
     helpLink: {
       label: "Custom help link",
-      help: "A page with your own guides, shown in the help menu.",
+      help: "A page with your own guides, shown in the help panel.",
     },
     language: {
       label: "Language",
@@ -13416,6 +13470,7 @@ var settings_default$1 = {
       },
     },
   },
+  notInEffect: "Saved, but not in effect yet.",
 };
 var shell_default$1 = {
   atlas: {
@@ -19517,7 +19572,7 @@ var compass_default = {
     endBreak: "Terminar descanso",
     blocked: "Marcar entrada",
     inside: "Estás en {name}",
-    outside: "Estás a {distance} m de {name}",
+    outside: "Estás a {distance} de {name}",
     outsideFar: "Estás lejos del lugar",
     locating: "Buscando tu ubicación",
     locationCoarse: "Tu ubicación aún no es precisa. Sal al exterior o espera un momento.",
@@ -19579,6 +19634,8 @@ var compass_default = {
       "Ya tienes un turno que se superpone con este ({time}). Cambia o deja ese turno primero.",
     claimQueued:
       "Turno reclamado. Será tuyo cuando se suba; la regla de la organización decide si alguien llegó antes.",
+    claimSent:
+      "Reclamo enviado. Un supervisor decide quién recibe el turno según la regla de reclamo del proyecto.",
   },
   scan: {
     title: "Escanear",
@@ -19756,12 +19813,20 @@ var compass_default = {
       deviceRevoked:
         "Este quiosco se desactivó en Atlas. Pide a tu supervisor que lo registre de nuevo.",
       requestInvalid: "No se pudo leer esa marcación. Empieza de nuevo.",
+      kioskDisabled:
+        "Los quioscos están desactivados en esta organización. Pide a un administrador que los active en Atlas.",
+      photoRequired:
+        "Este proyecto pide una foto en cada fichaje en el quiosco. Empieza de nuevo y toma la foto.",
     },
     exit: "Salir del quiosco",
     digit: "Dígito {digit}",
     backspace: "Borrar dígito",
     pinProgressOne: "{count} dígito ingresado",
     pinProgressOther: "{count} dígitos ingresados",
+    off: "Los quioscos están desactivados en esta organización. Un administrador los activa en Atlas, Configuración, Horario y asistencia.",
+    photoFor: "Foto de {name}",
+    photoHelp:
+      "Este proyecto pide una foto en cada entrada y salida en el quiosco. Mira la cámara y toma la foto.",
   },
   inbox: {
     title: "Bandeja",
@@ -20503,6 +20568,20 @@ var crew_default = {
       "Nadie registra su propio certificado. Pida a otro verificador que lo registre.",
     certification_holder_immutable:
       "Un registro de certificado conserva su titular, verificador y código. Quítelo y regístrelo de nuevo.",
+    swap_not_allowed:
+      "Este proyecto no permite cambios de turno. Pide a tu supervisor que cubra el turno.",
+    swap_needs_approval: "Un supervisor aprueba los cambios en este proyecto. Espera su decisión.",
+    shift_claim_waiting: "Ya reclamaste este turno. Un supervisor decide.",
+    shift_claim_decided:
+      "Este reclamo ya se decidió o se retiró. Vuelve a cargar para ver su estado.",
+    shift_claim_reason: "Indica por qué rechazas el reclamo.",
+    shift_claim_not_most_senior:
+      "Con la regla de antigüedad, el turno es para quien tenga más antigüedad. Usa Dar al de mayor antigüedad.",
+    shift_claim_none: "Nadie espera este turno.",
+    sod_shift_claim_self: "No puedes aprobar tu propio reclamo. Otro supervisor lo decide.",
+    punch_location_required:
+      "Este proyecto necesita tu ubicación para fichar. Ficha en el lugar desde Compass con la ubicación activada.",
+    punch_outside_geofence: "Estás fuera de la geocerca del proyecto. Ficha en el lugar.",
   },
   states: {
     shift: {
@@ -20752,6 +20831,9 @@ var crew_default = {
       "No hay intercambios en este estado. Quite el filtro para ver todas las solicitudes.",
     viewShifts: "Ver turnos",
     caption: "Intercambios de turno",
+    accept: "Aceptar cambio",
+    acceptTitle: "¿Tomar este turno?",
+    acceptReason: "Puedo cubrir este turno.",
   },
   entries: {
     title: "{name} · {day}",
@@ -20953,6 +21035,25 @@ var crew_default = {
     errorBody:
       "No se pudo leer la lista en este momento. Sus datos están seguros; inténtelo de nuevo y, si sigue fallando, comparta la referencia con soporte.",
     retry: "Intentar de nuevo",
+  },
+  claims: {
+    title: "Reclamos en espera",
+    waiting: "Tu reclamo espera la decisión de un supervisor.",
+    withdraw: "Retirar reclamo",
+    withdrawTitle: "¿Retirar tu reclamo de este turno?",
+    award: "Dar al de mayor antigüedad",
+    awardTitle: "¿Dar este turno a quien tenga más antigüedad?",
+    awardReason: "Asignado por antigüedad.",
+    approve: "Aprobar",
+    approveTitle: "¿Dar este turno a {name}?",
+    approveReason: "Reclamo aprobado.",
+    reject: "Rechazar",
+    rejectTitle: "¿Rechazar el reclamo de {name}?",
+    ruleHelp: {
+      approval: "Un supervisor aprueba cada reclamo en este proyecto.",
+      seniority: "Los reclamos esperan y el turno es para quien tenga más antigüedad.",
+      "first-come": "El turno es para la primera persona que lo reclama.",
+    },
   },
 };
 var docs_default = {
@@ -23889,6 +23990,13 @@ var help_default = {
     screenshotNeedsConsent:
       "Marque la casilla de diagnóstico de arriba para adjuntar una captura de pantalla.",
     screenshotTooBig: "Esa imagen supera los 5 MB. Elija una más pequeña.",
+  },
+  orgSupport: {
+    title: "Soporte de tu organización",
+    email: "Correo",
+    hours: "Horario",
+    link: "Guías",
+    linkLabel: "Abrir las guías de tu organización",
   },
   gateway: {
     general: "En todo Gateway",
@@ -27036,6 +27144,7 @@ var places_default = {
       space: "Dentro del espacio",
       spaceHelp: "Opcional. El espacio donde está esta zona.",
       noSpace: "Fuera de un espacio",
+      areaMetric: "Superficie (m²)",
     },
   },
   documents: {
@@ -29475,6 +29584,7 @@ var settings_default = {
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
     setting_not_enforced:
       "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
+    setting_fixed: "Esta configuración es fija y no se puede cambiar.",
   },
   fields: {
     legalName: {
@@ -29483,7 +29593,7 @@ var settings_default = {
     },
     defaultWorkspace: {
       label: "Espacio de trabajo predeterminado",
-      help: "Los miembros nuevos empiezan en este espacio de trabajo.",
+      help: "Los miembros nuevos se unen a este espacio de trabajo.",
     },
     startPage: {
       label: "Página de inicio",
@@ -29499,7 +29609,7 @@ var settings_default = {
     },
     invoicePrefix: {
       label: "Prefijo del número de factura",
-      help: "Hasta 12 caracteres antes de cada número de factura, por ejemplo INV-.",
+      help: "Hasta 12 caracteres antes de cada número de factura nuevo, por ejemplo INV-.",
     },
     mfaPolicy: {
       label: "Autenticación multifactor",
@@ -29539,7 +29649,7 @@ var settings_default = {
     },
     numberPadding: {
       label: "Relleno de números",
-      help: "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042.",
+      help: "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042. El prefijo de factura y este relleno son los números que puedes personalizar; las claves de registro como NWS-42 son fijas.",
     },
     rounding: {
       label: "Redondeo de fichajes",
@@ -29547,11 +29657,11 @@ var settings_default = {
     },
     photoOnPunch: {
       label: "Foto al fichar",
-      help: "Pedir una foto en cada entrada y salida.",
+      help: "Pedir una foto en cada entrada y salida en los quioscos.",
     },
     geofenceRequired: {
       label: "Exigir la geocerca",
-      help: "Rechazar entradas fuera de la geocerca del proyecto.",
+      help: "Rechazar entradas desde el teléfono o la web fuera de la geocerca del proyecto. Los quioscos están exentos.",
     },
     kioskEnabled: {
       label: "Fichaje en quiosco",
@@ -29559,7 +29669,7 @@ var settings_default = {
     },
     openShiftClaiming: {
       label: "Reclamo de turnos abiertos",
-      help: "Cómo reclama el equipo los turnos abiertos.",
+      help: "Cómo reclama el equipo los turnos abiertos: para quien reclama primero, con aprobación de un supervisor o para quien tenga más antigüedad.",
     },
     allowSwaps: {
       label: "Permitir cambios de turno",
@@ -29567,11 +29677,11 @@ var settings_default = {
     },
     swapApproval: {
       label: "Los cambios necesitan aprobación",
-      help: "Un supervisor aprueba cada cambio antes de que se aplique.",
+      help: "Un supervisor aprueba cada cambio antes de que se aplique. Si se desactiva, la persona a quien se ofrece el turno lo acepta.",
     },
     payPeriod: {
       label: "Período de pago",
-      help: "Con qué frecuencia se ejecuta la nómina.",
+      help: "Con qué frecuencia se ejecuta la nómina. Los períodos de pago nuevos la siguen.",
     },
     weekStart: {
       label: "La semana empieza el",
@@ -29579,15 +29689,15 @@ var settings_default = {
     },
     marketplaceVisibility: {
       label: "Visibilidad en el mercado",
-      help: "Quién puede encontrar la organización en el mercado de Gateway.",
+      help: "Quién puede encontrar tus oportunidades en el mercado de Gateway: todos, quienes trabajaron contigo o solo grupos e invitados.",
     },
     ratingsEnabled: {
-      label: "Calificaciones",
-      help: "Pedir a ambas partes que se califiquen al completar una contratación.",
+      label: "Pedir a los miembros que valoren a las partes",
+      help: "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y quienes ven el mercado ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales), sea cual sea la puntuación.",
     },
     messageRetention: {
       label: "Retención de mensajes en días",
-      help: "Conservar los mensajes estos días, de 30 a 3.650.",
+      help: "Borrar los mensajes con más de estos días, de 30 a 3.650. Una retención legal los conserva.",
     },
     autoTranslate: {
       label: "Traducir mensajes",
@@ -29595,15 +29705,15 @@ var settings_default = {
     },
     supportEmail: {
       label: "Correo de soporte interno",
-      help: "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización.",
+      help: "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización. Aparece en el panel de ayuda.",
     },
     supportHours: {
       label: "Horario de soporte",
-      help: "Por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este.",
+      help: "Aparece en el panel de ayuda, por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este.",
     },
     helpLink: {
       label: "Enlace de ayuda propio",
-      help: "Una página con tus guías, que aparece en el menú de ayuda.",
+      help: "Una página con tus guías, que aparece en el panel de ayuda.",
     },
     language: {
       label: "Idioma",
@@ -30215,6 +30325,7 @@ var settings_default = {
       },
     },
   },
+  notInEffect: "Se guarda, pero todavía no se aplica.",
 };
 var shell_default = {
   atlas: {

@@ -1,10 +1,6 @@
 import { listWorkspaces } from "@xos/data";
 import { listFavorites } from "@xos/data/settings";
-import {
-  getShortcutsEnabled,
-  listShortcutBindings,
-  listSidebarLayout,
-} from "@xos/data/shell-preferences";
+import { listShortcutBindings, listSidebarLayout } from "@xos/data/shell-preferences";
 import { flattenRoutes, getNode, isNodeVisible } from "@xos/ia";
 import { platformOf, SHORTCUT_REGISTRY } from "@xos/schemas/shortcuts";
 import type { ReactNode } from "react";
@@ -18,6 +14,8 @@ import { buildShellKeys, goHints } from "@/lib/shell/shell-keys";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
 import { getTranslate } from "@/lib/shell/translate";
 import { WORKSPACE_COOKIE } from "@/lib/shell/workspace";
+import { getShellSettings } from "@/lib/shell/org-settings";
+import { PREFERENCES_COOKIE } from "@xos/ui/preferences";
 import { THEME_COOKIE, themeFromCookie } from "@/lib/theme";
 import { ReporterUser } from "./reporter-user";
 import { ShellFrame } from "./shell-frame";
@@ -41,29 +39,18 @@ function orDefault<T>(
  */
 export async function AppShell({ ctx, children }: { ctx: OrgContext; children: ReactNode }) {
   const person = ctx.viewer.person;
-  const [
-    t,
-    orgs,
-    workspaces,
-    locale,
-    cookieStore,
-    pinned,
-    bindings,
-    singleKeys,
-    layout,
-    headerStore,
-  ] = await Promise.all([
-    getTranslate(),
-    getMyOrganizations(),
-    listWorkspaces(ctx.viewer.db, ctx.org.id),
-    negotiatedLocale(),
-    cookies(),
-    person ? listFavorites(ctx.viewer.db, { orgId: ctx.org.id, personId: person.id }) : null,
-    person ? listShortcutBindings(ctx.viewer.db, "Atlas") : null,
-    getShortcutsEnabled(ctx.viewer.db, ctx.org.id),
-    person ? listSidebarLayout(ctx.viewer.db, ctx.org.id) : null,
-    headers(),
-  ]);
+  const [t, orgs, workspaces, locale, cookieStore, pinned, bindings, layout, headerStore] =
+    await Promise.all([
+      getTranslate(),
+      getMyOrganizations(),
+      listWorkspaces(ctx.viewer.db, ctx.org.id),
+      negotiatedLocale(),
+      cookies(),
+      person ? listFavorites(ctx.viewer.db, { orgId: ctx.org.id, personId: person.id }) : null,
+      person ? listShortcutBindings(ctx.viewer.db, "Atlas") : null,
+      person ? listSidebarLayout(ctx.viewer.db, ctx.org.id) : null,
+      headers(),
+    ]);
   if (!workspaces.ok) {
     throw new Error(`Cannot list workspaces: ${JSON.stringify(workspaces.error)}`);
   }
@@ -89,7 +76,6 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       platform: headerStore.get("sec-ch-ua-platform") ?? undefined,
       userAgent: headerStore.get("user-agent") ?? undefined,
     }),
-    singleKeys: orDefault(singleKeys, true, "me.shortcuts_enabled"),
     custom: orDefault(bindings, {}, "shortcut bindings"),
     goTargets,
   });
@@ -119,6 +105,12 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
   });
   const chosen = cookieStore.get(WORKSPACE_COOKIE)?.value ?? null;
   const workspace = workspaces.data.some((w) => w.slug === chosen) ? chosen : null;
+  // The person's display preferences in this org and workspace (Section 4.5.6, A65-001).
+  const settings = await getShellSettings(
+    ctx.viewer.db,
+    ctx.org.id,
+    workspaces.data.find((w) => w.slug === workspace)?.id ?? null,
+  );
   return (
     <ShellFrame
       org={{ name: ctx.org.name, slug: ctx.org.slug }}
@@ -136,6 +128,8 @@ export async function AppShell({ ctx, children }: { ctx: OrgContext; children: R
       theme={themeFromCookie(cookieStore.get(THEME_COOKIE)?.value)}
       email={ctx.viewer.email}
       canManageAi={ctx.capabilities.has("org.ai.write")}
+      preferences={settings.encoded}
+      storedPreferences={cookieStore.get(PREFERENCES_COOKIE)?.value ?? ""}
       keys={keys}
       create={createItems(sitemap, { nav: ctx.nav, capabilities: ctx.capabilities, params, t })}
     >

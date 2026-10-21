@@ -63,8 +63,8 @@ describe("shortcut registry against Atlas (Section 3.15)", () => {
 
 describe("shell keys for one person", () => {
   const targets = goTargets("owner");
-  const build = (custom = {}, platform: "mac" | "other" = "other", singleKeys = true) =>
-    buildShellKeys(SHORTCUT_REGISTRY, { platform, singleKeys, custom, goTargets: targets });
+  const build = (custom = {}, platform: "mac" | "other" = "other") =>
+    buildShellKeys(SHORTCUT_REGISTRY, { platform, custom, goTargets: targets });
 
   it("answers the registry defaults, with G then a letter for the sections the person may open", () => {
     const keys = build();
@@ -113,7 +113,6 @@ describe("shell keys for one person", () => {
   it("leaves out sections the role cannot see or the org turned off", () => {
     const viewer = buildShellKeys(SHORTCUT_REGISTRY, {
       platform: "other",
-      singleKeys: true,
       custom: {},
       goTargets: goTargets("viewer", ["logistics"]),
     });
@@ -321,7 +320,6 @@ describe("shell key handler (Section 11.2)", () => {
   const keys = (overrides: Partial<ShellKeys> = {}) => ({
     ...buildShellKeys(SHORTCUT_REGISTRY, {
       platform: "other",
-      singleKeys: true,
       custom: {},
       goTargets: goTargets("owner"),
     }),
@@ -366,17 +364,20 @@ describe("shell key handler (Section 11.2)", () => {
     expect(calls).toEqual(["command:command-menu"]);
   });
 
-  it("keeps single keys out of dialogs and off when the person turned them off", () => {
+  it("keeps single keys out of dialogs and off while me.shortcuts_enabled is off", () => {
     start(keys());
     press("c", { target: new FakeElement("BUTTON", true) });
     press("k", { ctrlKey: true, target: new FakeElement("BUTTON", true) });
     expect(calls).toEqual(["command:command-menu"]);
     stop();
-    start(keys({ singleKeys: false }));
+    // The shell applies me.shortcuts_enabled = false as data-shortcuts="off" on the document root.
+    Object.assign(globalThis, { document: { documentElement: { dataset: { shortcuts: "off" } } } });
+    start(keys());
     press("c");
     press("g");
     press(".", { ctrlKey: true });
     expect(calls).toEqual(["command:focus-mode"]);
+    Object.assign(globalThis, { document: undefined });
   });
 
   it("leaves keys a component handled, repeats and keys outside the grammar alone", () => {
@@ -403,7 +404,6 @@ describe("shell key handler (Section 11.2)", () => {
     start(
       buildShellKeys(SHORTCUT_REGISTRY, {
         platform: "mac",
-        singleKeys: true,
         custom: { "create-menu": "Shift+N", "go.home": "G Q" },
         goTargets: goTargets("owner"),
       }),

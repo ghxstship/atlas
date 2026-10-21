@@ -1,4 +1,5 @@
 import { chordOf } from "@xos/schemas/shortcuts/keys";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import type { ShellKeys } from "@/lib/shell/shell-keys";
 
 /**
@@ -9,7 +10,8 @@ import type { ShellKeys } from "@/lib/shell/shell-keys";
  *
  * - Keys never fire while the person types in a field, except shortcuts the registry marks `fields`
  *   (modifier chords such as Mod+K).
- * - Single keys (no Mod, Ctrl or Alt) obey me.shortcuts_enabled and stay quiet inside dialogs and
+ * - Single keys (no Mod, Ctrl or Alt) obey me.shortcuts_enabled, read as the shell applies it to the
+ *   document (singleKeyShortcutsEnabled, @xos/ui/preferences), and stay quiet inside dialogs and
  *   menus, so they never act behind an open panel or clash with a screen reader's dialog keys.
  * - G, then a letter, goes to a section: the first key shows the hint, the next key either goes or
  *   cancels, Esc cancels, and the hint closes after four seconds.
@@ -116,7 +118,7 @@ export function installShellKeys(state: { readonly current: KeyState | null }): 
       return;
     }
     if (single) {
-      if (!keys.singleKeys) return;
+      if (!singleKeyShortcutsEnabled()) return;
       if (event.target instanceof Element && event.target.closest(OVERLAY)) return;
     }
     if (prefixes.has(chord)) {

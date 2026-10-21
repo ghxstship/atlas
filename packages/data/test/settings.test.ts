@@ -414,9 +414,9 @@ describe("modules and favorites", () => {
   });
 });
 
-describe("persona", () => {
+describe("persona (me.persona)", () => {
   it("prefers the value kept for the org", async () => {
-    const { db } = fakeClient({
+    const { db, calls } = fakeClient({
       "from:personal_setting_values": [
         okResponse([
           { org_id: null, value_text: "producer" },
@@ -428,6 +428,7 @@ describe("persona", () => {
       ],
     });
     expect(await getPersona(db, "o1")).toEqual({ ok: true, data: "finance-lead" });
+    expect(calls[0]?.steps).toContainEqual(["eq", ["setting_key", "me.persona"]]);
     expect(await getPersona(db, "o1")).toEqual({ ok: true, data: "producer" });
     expect(await getPersona(db, "o1")).toEqual({ ok: true, data: null });
     expect((await getPersona(db, "o1")).ok).toBe(false);

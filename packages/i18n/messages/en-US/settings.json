@@ -71,7 +71,8 @@
     "ip_allowlist_self_lockout": "Your current address is outside every listed network. Add it first, or you would lose access.",
     "ip_allowlist_empty": "Add at least one network before turning the allow-list on.",
     "plan_feature_ip_allowlist": "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone."
+    "setting_not_enforced": "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
+    "setting_fixed": "This setting is fixed and cannot be changed."
   },
   "fields": {
     "legalName": {
@@ -80,7 +81,7 @@
     },
     "defaultWorkspace": {
       "label": "Default workspace",
-      "help": "New members start in this workspace."
+      "help": "New members join this workspace."
     },
     "startPage": {
       "label": "Start page",
@@ -96,7 +97,7 @@
     },
     "invoicePrefix": {
       "label": "Invoice number prefix",
-      "help": "Up to 12 characters placed before each invoice number, for example INV-."
+      "help": "Up to 12 characters placed before each new invoice number, for example INV-."
     },
     "mfaPolicy": {
       "label": "Multi-factor authentication",
@@ -136,7 +137,7 @@
     },
     "numberPadding": {
       "label": "Number padding",
-      "help": "Digits in each document number, from 1 to 10. Four gives 0042."
+      "help": "Digits in each document number, from 1 to 10. Four gives 0042. The invoice prefix and this padding are the numbers you can customize; record keys like NWS-42 are fixed."
     },
     "rounding": {
       "label": "Punch rounding",
@@ -144,11 +145,11 @@
     },
     "photoOnPunch": {
       "label": "Photo on punch",
-      "help": "Ask for a photo at every clock-in and clock-out."
+      "help": "Ask kiosks for a photo at every clock-in and clock-out."
     },
     "geofenceRequired": {
       "label": "Require the geofence",
-      "help": "Refuse clock-ins outside the project's geofence."
+      "help": "Refuse phone and web clock-ins outside the project's geofence. Kiosks are exempt."
     },
     "kioskEnabled": {
       "label": "Kiosk clock-in",
@@ -156,7 +157,7 @@
     },
     "openShiftClaiming": {
       "label": "Open shift claiming",
-      "help": "How crew claim open shifts."
+      "help": "How crew claim open shifts: the first to claim gets it, a supervisor approves, or the most senior claimant gets it."
     },
     "allowSwaps": {
       "label": "Allow shift swaps",
@@ -164,11 +165,11 @@
     },
     "swapApproval": {
       "label": "Swaps need approval",
-      "help": "A supervisor approves each swap before it takes effect."
+      "help": "A supervisor approves each swap before it takes effect. When off, the person offered the shift accepts it."
     },
     "payPeriod": {
       "label": "Pay period",
-      "help": "How often payroll runs."
+      "help": "How often payroll runs. New pay periods follow it."
     },
     "weekStart": {
       "label": "Week starts on",
@@ -176,15 +177,15 @@
     },
     "marketplaceVisibility": {
       "label": "Marketplace visibility",
-      "help": "Who can find the organization in the Gateway marketplace."
+      "help": "Who can find your opportunities in the Gateway marketplace: everyone, people who worked with you, or only pools and invitees."
     },
     "ratingsEnabled": {
-      "label": "Ratings",
-      "help": "Ask both sides to rate each other when an engagement completes."
+      "label": "Prompt members to rate parties",
+      "help": "Members see completed engagements waiting for their rating, and Rate the party as the next step. Ratings are always on: turning prompts off never hides or removes a rating, and rated parties and marketplace viewers see the same ratings either way. Moderation follows policy only (abuse, personal data), whatever the score."
     },
     "messageRetention": {
       "label": "Message retention in days",
-      "help": "Keep messages this many days, from 30 to 3,650."
+      "help": "Delete messages older than this many days, from 30 to 3,650. A legal hold keeps them."
     },
     "autoTranslate": {
       "label": "Translate messages",
@@ -192,15 +193,15 @@
     },
     "supportEmail": {
       "label": "Internal support email",
-      "help": "Where members send questions about how your organization works."
+      "help": "Where members send questions about how your organization works. Shown in the help panel."
     },
     "supportHours": {
       "label": "Support hours",
-      "help": "For example Monday to Friday, 9 AM to 6 PM Eastern."
+      "help": "Shown in the help panel, for example Monday to Friday, 9 AM to 6 PM Eastern."
     },
     "helpLink": {
       "label": "Custom help link",
-      "help": "A page with your own guides, shown in the help menu."
+      "help": "A page with your own guides, shown in the help panel."
     },
     "language": {
       "label": "Language",
@@ -778,5 +779,6 @@
         "help": "Announcements, surveys and recognition."
       }
     }
-  }
+  },
+  "notInEffect": "Saved, but not in effect yet."
 }

@@ -1,16 +1,47 @@
 /** Locale-aware formatting through Intl. Nothing here stores a display format; values are formatted at render. */
 
+/*
+ * Intl formatters are reused per locale and options. Building one loads locale data and costs far
+ * more than formatting with it: a table built a currency formatter per Money cell, and the first
+ * formatters of a page were a large part of its hydration time on a slow CPU (gate 10, Total
+ * Blocking Time).
+ */
+const numberFormats = new Map<string, Intl.NumberFormat>();
+const dateTimeFormats = new Map<string, Intl.DateTimeFormat>();
+const listFormats = new Map<string, Intl.ListFormat>();
+
+function cached<T>(cache: Map<string, T>, key: string, make: () => T): T {
+  let formatter = cache.get(key);
+  if (formatter === undefined) {
+    formatter = make();
+    cache.set(key, formatter);
+  }
+  return formatter;
+}
+
+function numberFormat(locale: string, options: Intl.NumberFormatOptions = {}): Intl.NumberFormat {
+  return cached(numberFormats, `${locale}|${JSON.stringify(options)}`, () => {
+    return new Intl.NumberFormat(locale, options);
+  });
+}
+
+function dateTimeFormat(locale: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+  return cached(dateTimeFormats, `${locale}|${JSON.stringify(options)}`, () => {
+    return new Intl.DateTimeFormat(locale, options);
+  });
+}
+
 export function formatNumber(locale: string, value: number): string {
-  return new Intl.NumberFormat(locale).format(value);
+  return numberFormat(locale).format(value);
 }
 
 export function formatCurrency(locale: string, value: number, currency = "USD"): string {
-  return new Intl.NumberFormat(locale, { style: "currency", currency }).format(value);
+  return numberFormat(locale, { style: "currency", currency }).format(value);
 }
 
 /** Compact axis ticks (`notation: compact`), as the data visualization rules require. */
 export function formatCompact(locale: string, value: number, currency?: string): string {
-  return new Intl.NumberFormat(
+  return numberFormat(
     locale,
     currency === undefined
       ? { notation: "compact", maximumFractionDigits: 1 }
@@ -19,7 +50,7 @@ export function formatCompact(locale: string, value: number, currency?: string):
 }
 
 export function formatList(locale: string, items: string[]): string {
-  return new Intl.ListFormat(locale).format(items);
+  return cached(listFormats, locale, () => new Intl.ListFormat(locale)).format(items);
 }
 
 interface WeekInfoLocale {
@@ -27,8 +58,12 @@ interface WeekInfoLocale {
   weekInfo?: { firstDay: number };
 }
 
-/** First day of the week for a locale, 0 for Sunday through 6 for Saturday. */
-export function weekStart(locale: string): number {
+/**
+ * First day of the week, 0 for Sunday through 6 for Saturday: the person's choice when given
+ * (payroll.week_start), otherwise the locale's.
+ */
+export function weekStart(locale: string, override: number | null = null): number {
+  if (override !== null) return override;
   try {
     const intlLocale = new Intl.Locale(locale) as Intl.Locale & WeekInfoLocale;
     const info = intlLocale.getWeekInfo ? intlLocale.getWeekInfo() : intlLocale.weekInfo;
@@ -55,39 +90,46 @@ export function toIso(y: number, m: number, d: number): string {
 }
 
 export function monthTitle(locale: string, y: number, m: number): string {
-  return new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(
-    new Date(y, m, 1),
-  );
+  return dateTimeFormat(locale, { month: "long", year: "numeric" }).format(new Date(y, m, 1));
 }
 
-/** Short weekday names starting from the locale's first day of the week. */
-export function weekdayNames(locale: string): string[] {
-  const formatter = new Intl.DateTimeFormat(locale, { weekday: "short" });
-  const start = weekStart(locale);
+/** Short weekday names starting from the first day of the week. */
+export function weekdayNames(locale: string, override: number | null = null): string[] {
+  const formatter = dateTimeFormat(locale, { weekday: "short" });
+  const start = weekStart(locale, override);
   // 2026-02-01 is a Sunday.
   return Array.from({ length: 7 }, (_, i) =>
     formatter.format(new Date(2026, 1, 1 + ((start + i) % 7))),
   );
 }
 
-export function formatDate(locale: string, iso: string): string {
+/** A calendar date for display: by the locale, or year-month-day everywhere (locale.date_format iso). */
+export function formatDate(
+  locale: string,
+  iso: string,
+  dateFormat: "locale" | "iso" = "locale",
+): string {
   const { y, m, d } = parseIso(iso);
-  return new Intl.DateTimeFormat(locale, {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(y, m, d));
+  if (dateFormat === "iso") return toIso(y, m, d);
+  return dateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric" }).format(
+    new Date(y, m, d),
+  );
 }
 
 export function formatTimeOfDay(locale: string, hours: number, minutes: number): string {
-  return new Intl.DateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(
+  return dateTimeFormat(locale, { hour: "numeric", minute: "2-digit" }).format(
     new Date(2026, 0, 1, hours, minutes),
   );
 }
 
 /** Month cells for a calendar grid: leading and trailing nulls pad whole weeks. */
-export function monthCells(locale: string, y: number, m: number): (number | null)[][] {
-  const first = (new Date(y, m, 1).getDay() - weekStart(locale) + 7) % 7;
+export function monthCells(
+  locale: string,
+  y: number,
+  m: number,
+  override: number | null = null,
+): (number | null)[][] {
+  const first = (new Date(y, m, 1).getDay() - weekStart(locale, override) + 7) % 7;
   const days = new Date(y, m + 1, 0).getDate();
   const cells: (number | null)[] = Array.from({ length: first }, () => null);
   for (let d = 1; d <= days; d++) cells.push(d);

@@ -71,7 +71,8 @@
     "ip_allowlist_self_lockout": "Su dirección actual está fuera de todas las redes de la lista. Agréguela primero o perderá el acceso.",
     "ip_allowlist_empty": "Agregue al menos una red antes de activar la lista de IP permitidas.",
     "plan_feature_ip_allowlist": "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    "setting_not_enforced": "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie."
+    "setting_not_enforced": "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
+    "setting_fixed": "Esta configuración es fija y no se puede cambiar."
   },
   "fields": {
     "legalName": {
@@ -80,7 +81,7 @@
     },
     "defaultWorkspace": {
       "label": "Espacio de trabajo predeterminado",
-      "help": "Los miembros nuevos empiezan en este espacio de trabajo."
+      "help": "Los miembros nuevos se unen a este espacio de trabajo."
     },
     "startPage": {
       "label": "Página de inicio",
@@ -96,7 +97,7 @@
     },
     "invoicePrefix": {
       "label": "Prefijo del número de factura",
-      "help": "Hasta 12 caracteres antes de cada número de factura, por ejemplo INV-."
+      "help": "Hasta 12 caracteres antes de cada número de factura nuevo, por ejemplo INV-."
     },
     "mfaPolicy": {
       "label": "Autenticación multifactor",
@@ -136,7 +137,7 @@
     },
     "numberPadding": {
       "label": "Relleno de números",
-      "help": "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042."
+      "help": "Dígitos de cada número de documento, de 1 a 10. Cuatro da 0042. El prefijo de factura y este relleno son los números que puedes personalizar; las claves de registro como NWS-42 son fijas."
     },
     "rounding": {
       "label": "Redondeo de fichajes",
@@ -144,11 +145,11 @@
     },
     "photoOnPunch": {
       "label": "Foto al fichar",
-      "help": "Pedir una foto en cada entrada y salida."
+      "help": "Pedir una foto en cada entrada y salida en los quioscos."
     },
     "geofenceRequired": {
       "label": "Exigir la geocerca",
-      "help": "Rechazar entradas fuera de la geocerca del proyecto."
+      "help": "Rechazar entradas desde el teléfono o la web fuera de la geocerca del proyecto. Los quioscos están exentos."
     },
     "kioskEnabled": {
       "label": "Fichaje en quiosco",
@@ -156,7 +157,7 @@
     },
     "openShiftClaiming": {
       "label": "Reclamo de turnos abiertos",
-      "help": "Cómo reclama el equipo los turnos abiertos."
+      "help": "Cómo reclama el equipo los turnos abiertos: para quien reclama primero, con aprobación de un supervisor o para quien tenga más antigüedad."
     },
     "allowSwaps": {
       "label": "Permitir cambios de turno",
@@ -164,11 +165,11 @@
     },
     "swapApproval": {
       "label": "Los cambios necesitan aprobación",
-      "help": "Un supervisor aprueba cada cambio antes de que se aplique."
+      "help": "Un supervisor aprueba cada cambio antes de que se aplique. Si se desactiva, la persona a quien se ofrece el turno lo acepta."
     },
     "payPeriod": {
       "label": "Período de pago",
-      "help": "Con qué frecuencia se ejecuta la nómina."
+      "help": "Con qué frecuencia se ejecuta la nómina. Los períodos de pago nuevos la siguen."
     },
     "weekStart": {
       "label": "La semana empieza el",
@@ -176,15 +177,15 @@
     },
     "marketplaceVisibility": {
       "label": "Visibilidad en el mercado",
-      "help": "Quién puede encontrar la organización en el mercado de Gateway."
+      "help": "Quién puede encontrar tus oportunidades en el mercado de Gateway: todos, quienes trabajaron contigo o solo grupos e invitados."
     },
     "ratingsEnabled": {
-      "label": "Calificaciones",
-      "help": "Pedir a ambas partes que se califiquen al completar una contratación."
+      "label": "Pedir a los miembros que valoren a las partes",
+      "help": "Los miembros ven las contrataciones completadas pendientes de su valoración y Valorar a la parte como siguiente paso. Las valoraciones siempre están activas: desactivar los avisos nunca oculta ni elimina una valoración, y las partes valoradas y quienes ven el mercado ven las mismas valoraciones. La moderación solo sigue la política (abuso, datos personales), sea cual sea la puntuación."
     },
     "messageRetention": {
       "label": "Retención de mensajes en días",
-      "help": "Conservar los mensajes estos días, de 30 a 3.650."
+      "help": "Borrar los mensajes con más de estos días, de 30 a 3.650. Una retención legal los conserva."
     },
     "autoTranslate": {
       "label": "Traducir mensajes",
@@ -192,15 +193,15 @@
     },
     "supportEmail": {
       "label": "Correo de soporte interno",
-      "help": "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización."
+      "help": "Adónde envían los miembros sus preguntas sobre cómo trabaja tu organización. Aparece en el panel de ayuda."
     },
     "supportHours": {
       "label": "Horario de soporte",
-      "help": "Por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este."
+      "help": "Aparece en el panel de ayuda, por ejemplo, de lunes a viernes, de 9 a 18 h, hora del Este."
     },
     "helpLink": {
       "label": "Enlace de ayuda propio",
-      "help": "Una página con tus guías, que aparece en el menú de ayuda."
+      "help": "Una página con tus guías, que aparece en el panel de ayuda."
     },
     "language": {
       "label": "Idioma",
@@ -778,5 +779,6 @@
         "help": "Anuncios, encuestas y reconocimientos."
       }
     }
-  }
+  },
+  "notInEffect": "Se guarda, pero todavía no se aplica."
 }

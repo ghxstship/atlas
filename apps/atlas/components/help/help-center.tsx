@@ -90,7 +90,11 @@ export function HelpCenter({ org, shortcut }: { org: string; shortcut?: string |
   }, [nodeId, search, state]);
 
   const loaded = useOnDemand(panel, open || offers);
-  const preload = () => void panel.load().catch(() => undefined);
+  const preload = () =>
+    void panel.load().then(
+      (m) => m.preloadDrawer(),
+      () => undefined,
+    );
 
   return (
     <>
