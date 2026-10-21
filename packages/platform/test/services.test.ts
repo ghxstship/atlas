@@ -595,7 +595,7 @@ describe("stores", () => {
   });
 
   describe("restDb", () => {
-    const serviceKey = ["service", "role", "placeholder"].join("-");
+    const serviceKey = ["service", "role", "fake"].join("-");
 
     function fakeRest(answer: (url: string, init: RequestInit) => Response) {
       const calls: { url: string; init: RequestInit }[] = [];

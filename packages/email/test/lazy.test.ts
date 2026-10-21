@@ -29,7 +29,7 @@ describe("loading on demand (A85, Edge Function cold starts)", () => {
   });
 
   it("builds the Resend client on the first send only, once, with the key", async () => {
-    const key = ["re", "lazy", "placeholder"].join("_");
+    const key = ["re", "lazy", "fake"].join("_");
     const client = lazyResendClient(key);
     expect(resend.keys).toEqual([]);
     const payload = { from: "XOS <n@xos.test>", to: ["a@xos.test"], subject: "S", text: "T" };
