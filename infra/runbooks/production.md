@@ -28,6 +28,7 @@ Owner decision 5 (ADR 0033, amended 2026-10-20): `ghxstship.tech`, one subdomain
 | `gateway.ghxstship.tech` | Gateway on the platform brand               | `gateway`      | Serving, with a certificate. `gateway-umber-omega.vercel.app` is a platform host too |
 | `api.ghxstship.tech`     | The public API, served by Atlas at `/v1`    | `atlas`        | The orchestrator attaches it                                                         |
 | `docs.ghxstship.tech`    | The docs site                               | `docs`         | The orchestrator creates the project                                                 |
+| `console.ghxstship.tech` | The operator console (ADR 0046)             | `console`      | Owner steps: create the project, attach the domain (below)                           |
 | `mail.ghxstship.tech`    | The sending domain for email through Resend | None           | DNS records to add                                                                   |
 
 Each org's custom Gateway domain is added to the `gateway` project when the org verifies it in Atlas.
@@ -76,6 +77,29 @@ caller, the same on both hosts. The API sends no CORS headers on either host.
 - Nothing assumes localhost. `allowedDevOrigins` applies to `next dev` only.
 - Once it serves, set `DOCS_SITE_URL=https://docs.ghxstship.tech` in `atlas` and `gateway` (Production) and
   `EXPO_PUBLIC_DOCS_URL` in EAS, then redeploy. Until then the apps show no docs links.
+
+### console.ghxstship.tech (project `console`, ADR 0046)
+
+The operator console for the platform team. Owner steps, in order:
+
+| Setting                                                    | Value                                                                                                                                                                      |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Team and name                                              | `ghxstship`, `console`                                                                                                                                                     |
+| Git repository and production branch                       | `ghxstship/atlas`, `main`                                                                                                                                                  |
+| Framework preset                                           | Next.js                                                                                                                                                                    |
+| Root Directory                                             | `apps/console`                                                                                                                                                             |
+| Include files outside the Root Directory in the Build Step | On (the default)                                                                                                                                                           |
+| Install Command                                            | `pnpm install --frozen-lockfile`                                                                                                                                           |
+| Build Command                                              | `pnpm turbo run build --filter=@xos/console`                                                                                                                               |
+| Environment variables (Production)                         | `SUPABASE_URL`, `SUPABASE_ANON_KEY` (the publishable key), `CONSOLE_SITE_URL=https://console.ghxstship.tech`, `CONSOLE_PASSWORD_SIGN_IN=false`. Never the service role key |
+| Domains                                                    | `console.ghxstship.tech` on Production; its CNAME at the DNS host as Vercel shows it                                                                                       |
+
+- Supabase Auth: add `https://console.ghxstship.tech/auth/callback**` to the redirect allow-list (ADR 0036).
+- Name the first Administrator once in the Supabase SQL editor, after the person has signed up for an XOS account:
+  `select private.grant_platform_operator('<platform email>', 'Administrator', '<reason>');`. Administrators add
+  the rest of the platform team in the console, under Platform Team.
+- Verify: `https://console.ghxstship.tech/tenants` sends a signed-out visitor to sign in; an Atlas account that is not
+  on the platform team is signed out with "This console is for the XOS platform team".
 
 ### Email from mail.ghxstship.tech (Resend, decision 6)
 

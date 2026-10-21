@@ -76,6 +76,29 @@ export function parseBanners(data: unknown): SystemBanner[] {
     .filter((b): b is SystemBanner => b !== null);
 }
 
+/**
+ * Parses banners a shell's own route answered (the SystemBanner shape, as JSON), dropping anything malformed. The
+ * browser never trusts the route blindly: links must still be https and a Critical banner still stays.
+ */
+export function parseBannerJson(data: unknown): SystemBanner[] {
+  if (!Array.isArray(data)) return [];
+  return parseBanners(
+    data
+      .filter((b): b is Record<string, unknown> => typeof b === "object" && b !== null)
+      .map((b) => ({
+        id: b["id"],
+        banner_kind: b["kind"],
+        severity: b["severity"],
+        message: b["message"],
+        message_es: b["messageEs"],
+        link_url: b["linkUrl"],
+        starts_at: b["startsAt"],
+        ends_at: b["endsAt"],
+        dismissible: b["dismissible"],
+      })),
+  );
+}
+
 /** The live banners of one shell, at most three, most severe first. */
 export async function listActiveSystemBanners(
   db: BannerClient,

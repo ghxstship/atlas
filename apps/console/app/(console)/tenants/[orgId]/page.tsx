@@ -432,7 +432,7 @@ export default async function TenantPage({ params }: PageProps<"/tenants/[orgId]
               cells: [
                 instant(a.actedAt),
                 a.operatorName ?? t("common.unknownPerson"),
-                label("actionNames", a.action),
+                label("actionNames", a.action.replace(/\./g, "_")),
                 a.reason ?? "",
               ],
             }))}

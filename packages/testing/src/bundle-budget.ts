@@ -92,17 +92,33 @@ export function routeBundle(nextDir: string, path: string): RouteBundle {
   return { path, route, files: sorted, gzipBytes: total };
 }
 
-/** The Lighthouse key pages of every app. */
-export function keyPages(): Record<LighthouseApp, readonly string[]> {
+/** An app whose key pages carry the route JavaScript budget. */
+export type BudgetApp = LighthouseApp | "console";
+
+/**
+ * Key pages of the operator console (A90). Internal and signed in with a second factor, so Lighthouse does not
+ * visit it; its builds still carry the same route JavaScript budget.
+ */
+export const CONSOLE_KEY_PAGES: readonly string[] = [
+  "/auth/sign-in",
+  "/tenants",
+  "/tenants/00000000-0000-0000-0000-000000000000",
+  "/moderation/00000000-0000-0000-0000-000000000000",
+  "/banners",
+];
+
+/** The Lighthouse key pages of every app, and the console's. */
+export function keyPages(): Record<BudgetApp, readonly string[]> {
   return {
     atlas: lighthouseTargets.atlas.paths,
     gateway: lighthouseTargets.gateway.paths,
     docs: lighthouseTargets.docs.paths,
+    console: CONSOLE_KEY_PAGES,
   };
 }
 
 export interface BudgetRow extends RouteBundle {
-  readonly app: LighthouseApp;
+  readonly app: BudgetApp;
   readonly budgetBytes: number;
   readonly pass: boolean;
 }
@@ -115,13 +131,13 @@ export interface BudgetRow extends RouteBundle {
 export function checkRouteBudgets(
   repoRoot: string,
   ceilings: Readonly<Record<string, number>> = {},
-  pages: Readonly<Record<LighthouseApp, readonly string[]>> = keyPages(),
+  pages: Readonly<Partial<Record<BudgetApp, readonly string[]>>> = keyPages(),
 ): BudgetRow[] {
   const rows: BudgetRow[] = [];
-  for (const app of Object.keys(pages) as LighthouseApp[]) {
+  for (const app of Object.keys(pages) as BudgetApp[]) {
     const nextDir = join(repoRoot, "apps", app, ".next");
     if (!existsSync(join(nextDir, "build-manifest.json"))) continue;
-    for (const path of pages[app]) {
+    for (const path of pages[app] ?? []) {
       const bundle = routeBundle(nextDir, path);
       const budgetBytes = Math.max(
         webBudgets.routeJavaScriptGzipBytes,

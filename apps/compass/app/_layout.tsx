@@ -12,6 +12,7 @@ import { HelpScreenTracker } from "../src/runtime/help";
 import { initI18n } from "../src/runtime/i18n";
 import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { useActionableNotifications } from "../src/runtime/notifications";
+import { SystemBanners } from "../src/runtime/systemBanners";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
 import { SecondFactor, SecondFactorRequired } from "../src/screens/SecondFactor";
@@ -127,6 +128,7 @@ function Gatekeeper(): ReactElement {
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <NotificationActions />
       <HelpScreenTracker />
+      <SystemBanners client={client} />
       <BiometricLock enabled={settings.biometric}>
         <NativeHeaderContext.Provider value={true}>
           <Stack

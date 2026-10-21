@@ -1208,5 +1208,8 @@
   },
   "keys": {
     "goHint": "Go to: press one of these keys after {key}, or Esc to cancel."
+  },
+  "systemBanner": {
+    "details": "Details"
   }
 }

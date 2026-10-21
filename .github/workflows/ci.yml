@@ -90,7 +90,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs
+      - run: pnpm turbo run build --filter=@xos/atlas --filter=@xos/gateway --filter=@xos/docs --filter=@xos/console
       # Fails when a key page passes 200 KB gzip, or the ceiling recorded for it in
       # packages/testing/bundle-ceilings.json (pages still over budget, ADR 0027).
       - run: pnpm --filter @xos/testing budget:js -- --chunks

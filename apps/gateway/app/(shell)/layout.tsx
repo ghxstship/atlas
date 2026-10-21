@@ -4,6 +4,7 @@ import { negotiatedLocale } from "@/i18n/request";
 import type { ReactNode } from "react";
 import { GatewayFrame } from "@/components/shell/gateway-frame";
 import { ReporterUser } from "@/components/shell/reporter-user";
+import { SystemBanners } from "@/components/shell/system-banners";
 import { selectableLocales } from "@/i18n/negotiate";
 import { docsSiteUrl, env } from "@/lib/env";
 import { buildNav } from "@/lib/shell/nav-model";
@@ -22,7 +23,8 @@ import {
 /**
  * Every signed-in Gateway page renders inside the Gateway shell. The navigation comes from the
  * sitemap for the person's standing; the brand is the org's on its custom domain, else the
- * platform's (Section 4.4.7). Only the platform brand links to the docs site's help center.
+ * platform's (Section 4.4.7). Only the platform brand links to the docs site's help center. The platform's system
+ * banners (A90) load after the page, on every brand.
  */
 export default async function ShellLayout({ children }: { children: ReactNode }) {
   const path = (await headers()).get("x-gateway-path") ?? "/home";
@@ -75,6 +77,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       docsUrl={ctx.brand.kind === "org" ? null : docsSiteUrl(env())}
     >
       <ReporterUser personId={ctx.personId} />
+      <SystemBanners linkLabel={t("shell.systemBanner.details")} />
       {children}
     </GatewayFrame>
   );

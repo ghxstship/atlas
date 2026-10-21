@@ -22,6 +22,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA for an external party (ADR 0031).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
+  "/api/system-banners": "Route handler: the live platform system banners, cached a minute (A90).",
   "/ical/{feedFile}":
     "Route handler: a calendar subscription feed, <token>.ics only (Section 4.5.8, Section 4.6.5, ADR 0040).",
   "/.well-known/apple-app-site-association":

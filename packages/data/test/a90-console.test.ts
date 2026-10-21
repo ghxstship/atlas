@@ -44,6 +44,7 @@ import {
   bannerTone,
   createBannerCache,
   listActiveSystemBanners,
+  parseBannerJson,
   parseBanners,
   parseDismissed,
   visibleBanners,
@@ -840,6 +841,18 @@ describe("system banners", () => {
       },
     ]);
     expect(parseBanners(null)).toEqual([]);
+    const round = parseBanners([
+      {
+        id: "b9",
+        banner_kind: "Notice",
+        severity: "Info",
+        message: "Hi.",
+        starts_at: "s",
+        dismissible: true,
+      },
+    ]);
+    expect(parseBannerJson(JSON.parse(JSON.stringify(round)))).toEqual(round);
+    expect(parseBannerJson({})).toEqual([]);
   });
 
   it("reads the live banners of a shell through api_public", async () => {

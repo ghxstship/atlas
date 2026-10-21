@@ -50,6 +50,7 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",
+  "/api/system-banners": "Route handler: the live platform system banners, cached a minute (A90).",
   "/.well-known/apple-app-site-association":
     "Route handler: universal links to Compass for Continue on another device (ADR 0030).",
   "/.well-known/assetlinks.json":

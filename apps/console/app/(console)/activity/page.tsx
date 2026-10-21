@@ -38,7 +38,7 @@ export default async function ActivityPage() {
             cells: [
               instant(a.actedAt),
               a.operatorName ?? t("common.unknownPerson"),
-              label("actionNames", a.action),
+              label("actionNames", a.action.replace(/\./g, "_")),
               a.targetOrgId && a.targetOrgName ? (
                 <NextLink
                   key="org"
