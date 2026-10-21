@@ -3,7 +3,8 @@ import { isPseudoLocale, type PseudoLocale } from "./pseudo";
 
 /**
  * Locale negotiation for Gateway. URLs carry no locale (Section 4.5.8 routes), so
- * the locale comes from, in order: the person's choice in the `xos-locale` cookie, then the
+ * the locale comes from, in order: the person's choice on this device in the `xos-locale` cookie,
+ * their own locale.language saved on any device or shell (Section 4.5.6, A65-001), then the
  * browser's Accept-Language list, then en-US. Pseudo-locales are accepted from the cookie only, and
  * only outside production, so they never reach a customer.
  */
@@ -39,16 +40,26 @@ function matchRange(range: string): Locale | undefined {
   return locales.find((l) => l.toLowerCase().split("-")[0] === language);
 }
 
+/** The locale this device chose in the cookie, or null when it chose none Gateway can use. */
+export function cookieLocale(
+  cookie: string | undefined,
+  production: boolean,
+): GatewayLocale | null {
+  if (!cookie) return null;
+  if (isLocale(cookie)) return cookie;
+  return !production && isPseudoLocale(cookie) ? cookie : null;
+}
+
 export function negotiateLocale(input: {
   readonly cookie?: string | undefined;
   readonly acceptLanguage?: string | null | undefined;
   readonly production: boolean;
+  /** The person's own locale.language from their personal settings, when they saved one. */
+  readonly own?: string | null | undefined;
 }): GatewayLocale {
-  const chosen = input.cookie;
-  if (chosen) {
-    if (isLocale(chosen)) return chosen;
-    if (!input.production && isPseudoLocale(chosen)) return chosen;
-  }
+  const chosen = cookieLocale(input.cookie, input.production);
+  if (chosen) return chosen;
+  if (input.own && isLocale(input.own)) return input.own;
   for (const range of parseAcceptLanguage(input.acceptLanguage)) {
     const match = matchRange(range);
     if (match) return match;

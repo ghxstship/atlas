@@ -485,6 +485,8 @@ settings:
         test: apps/atlas/test/i18n.test.ts
       - consumer: apps/atlas/i18n/request.ts#negotiatedLocale
         test: apps/atlas/test/org-locale.test.ts
+      - consumer: apps/gateway/i18n/request.ts#negotiatedLocale
+        test: apps/gateway/test/personal-language.test.ts
       - consumer: apps/atlas/lib/shell/org-settings.ts#devicePreference
         test: apps/atlas/test/org-settings.test.ts
   - key: locale.time_zone

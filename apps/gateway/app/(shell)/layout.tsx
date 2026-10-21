@@ -11,8 +11,7 @@ import { requireContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { enumLabelKey, getTranslate } from "@/lib/shell/translate";
 import { THEME_COOKIE, preferenceFromCookie } from "@/lib/theme";
-import { NO_ORG } from "@/lib/settings";
-import { resolveSettings } from "@xos/data/settings";
+import { getPersonalSettings } from "@/lib/shell/personal-settings";
 import {
   PREFERENCES_COOKIE,
   encodePreferences,
@@ -33,7 +32,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
     cookies(),
     listMyEngagements(ctx.db),
     // The person's own settings apply in Gateway too (Section 4.5.6 personal settings, A65-001).
-    resolveSettings(ctx.db, { orgId: NO_ORG }),
+    getPersonalSettings(ctx.db),
   ]);
   const preferences = encodePreferences(
     preferencesFromSettings((key) => (settings.ok ? settings.data.get(key)?.value : undefined)),
