@@ -37,6 +37,9 @@ create index expense_receipts_ai_suggestion_id_idx on app.expense_receipts (ai_s
 
 call private.install_domain_table('app.expense_receipts', 'app.expenses', 'expense_id',
   array['app.ai_suggestions', 'ai_suggestion_id']);
+-- As app.expenses (0990): an audit trail, and the default retention every soft-deletable table carries (0930).
+call private.install_audit_trail('app.expense_receipts');
+call private.install_default_retention('app.expense_receipts');
 call private.describe('app.expense_receipts', 'The receipt photo of an expense, filed from Compass with the expense (Section 4.3 item 11). Written only by app.submit_expense_receipt; readable by whoever can read the expense.', array[
   'expense_id', 'The expense the receipt belongs to.',
   'media_uri', 'Object name of the photo in the field-media bucket: <org_id>/expense-receipts/<project_id>/<file name>, the project of the expense''s budget line.',
