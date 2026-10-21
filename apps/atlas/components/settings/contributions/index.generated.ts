@@ -14,6 +14,7 @@ import { contributions as from_a77 } from "./a77";
 import { contributions as from_a78 } from "./a78";
 import { contributions as from_a80 } from "./a80";
 import { contributions as from_a81 } from "./a81";
+import { contributions as from_a83 } from "./a83";
 import { contributions as from_a84 } from "./a84";
 
 export const CONTRIBUTIONS: readonly SettingsContribution[] = [
@@ -30,5 +31,6 @@ export const CONTRIBUTIONS: readonly SettingsContribution[] = [
   ...from_a78,
   ...from_a80,
   ...from_a81,
+  ...from_a83,
   ...from_a84,
 ];
