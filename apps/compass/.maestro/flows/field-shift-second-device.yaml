@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Journey 10, accept today's shift, clock in, a second device is refused, clock out
+# Journey 10, accept today's shift, clock in, a second device is refused, clock out.
+# Named after its file: config.yaml orders flows by name.
+name: field-shift-second-device
 ---
 # The Demo Field Tech (seed 1090) has a shift today published to them and no worked time after the reset
 # day, so a clock-in overlaps nothing (SIM-001). The simulator stands inside Pier Site, the geofence of

@@ -41,9 +41,15 @@ export function Screen({
   children,
   testID,
   scrollRef,
+  keyboardShouldPersistTaps,
 }: ScreenProps & {
   /** Compass only: the scroll view, so a screen can bring a section into view. */
   readonly scrollRef?: RefObject<ScrollView | null>;
+  /**
+   * "handled" on a form whose button is pressed straight after typing (Delete Account's hold): by default
+   * the first touch while the keyboard is up only closes it (A68, A66).
+   */
+  readonly keyboardShouldPersistTaps?: "handled";
 }): ReactElement {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
@@ -79,6 +85,7 @@ export function Screen({
         <ScrollView
           ref={scrollRef}
           contentInsetAdjustmentBehavior={nativeHeader ? "automatic" : "never"}
+          {...(keyboardShouldPersistTaps ? { keyboardShouldPersistTaps } : {})}
           contentContainerStyle={{ paddingBottom: theme.space["32"] }}
           refreshControl={
             onRefresh ? (

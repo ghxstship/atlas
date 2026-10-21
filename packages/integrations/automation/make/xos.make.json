@@ -1,0 +1,300 @@
+{
+  "name": "xos",
+  "label": "XOS",
+  "description": "XOS production management on the public API v1 and its webhooks: watch events, add comments, report incidents, create venues, update and find records and projects.",
+  "language": "en",
+  "base": {
+    "baseUrl": "{{connection.baseUrl}}",
+    "headers": {
+      "Authorization": "Bearer {{connection.apiKey}}",
+      "Accept": "application/json"
+    },
+    "response": {
+      "error": {
+        "message": "[{{statusCode}}] {{ifempty(body.detail, body.title)}}"
+      }
+    },
+    "log": {
+      "sanitize": ["request.headers.authorization"]
+    }
+  },
+  "connections": [
+    {
+      "name": "xos-api-key",
+      "label": "XOS API Key",
+      "type": "basic",
+      "parameters": [
+        {
+          "name": "apiKey",
+          "type": "password",
+          "label": "API Key",
+          "help": "An org API key from Atlas: Settings, API keys and service accounts. It starts with xos_live_.",
+          "required": true
+        },
+        {
+          "name": "baseUrl",
+          "type": "url",
+          "label": "API Address",
+          "help": "Leave as is for GHXSTSHIP hosted XOS. A self-hosted deployment uses https://<its host>/api/v1.",
+          "default": "https://api.ghxstship.tech/v1",
+          "required": true
+        }
+      ],
+      "communication": {
+        "url": "{{parameters.baseUrl}}/me",
+        "method": "GET",
+        "headers": {
+          "Authorization": "Bearer {{parameters.apiKey}}",
+          "Accept": "application/json"
+        },
+        "response": {
+          "metadata": {
+            "type": "text",
+            "value": "{{body.active_organization_id}}"
+          }
+        },
+        "log": {
+          "sanitize": ["request.headers.authorization"]
+        }
+      }
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "xos-event",
+      "label": "XOS Event",
+      "type": "dedicated",
+      "connection": "xos-api-key",
+      "parameters": [
+        {
+          "name": "event",
+          "type": "select",
+          "label": "Event",
+          "required": true,
+          "options": [
+            { "label": "New Record", "value": "record.created" },
+            { "label": "Record State Changed", "value": "record.state_changed" },
+            { "label": "New Project", "value": "project.created" },
+            { "label": "Invoice Issued", "value": "invoice.issued" },
+            { "label": "Purchase Order Approved", "value": "po.approved" },
+            { "label": "Incident Reported", "value": "incident.reported" },
+            { "label": "Timesheet Approved", "value": "timesheet.approved" },
+            { "label": "Warehouse Delivery Finished", "value": "warehouse_delivery.finished" }
+          ]
+        }
+      ],
+      "attach": {
+        "url": "/webhook-endpoints",
+        "method": "POST",
+        "headers": { "Idempotency-Key": "{{uuid}}" },
+        "body": {
+          "url": "{{webhook.url}}",
+          "events": ["{{parameters.event}}"],
+          "description": "Make scenario"
+        },
+        "response": {
+          "data": {
+            "externalHookId": "{{body.webhook_endpoint_id}}",
+            "signingSecret": "{{body.signing_secret}}"
+          }
+        }
+      },
+      "detach": {
+        "url": "/webhook-endpoints/{{webhook.externalHookId}}",
+        "method": "DELETE"
+      }
+    }
+  ],
+  "modules": [
+    {
+      "name": "watchEvents",
+      "type": "instant_trigger",
+      "label": "Watch Events",
+      "description": "Triggers when XOS sends the chosen webhook event.",
+      "webhook": "xos-event",
+      "communication": { "output": "{{body}}" },
+      "interface": [
+        { "name": "id", "type": "text", "label": "Event ID" },
+        { "name": "type", "type": "text", "label": "Event" },
+        { "name": "occurred_at", "type": "date", "label": "Occurred At" },
+        { "name": "project_id", "type": "text", "label": "Project ID" },
+        {
+          "name": "subject",
+          "type": "collection",
+          "label": "Subject",
+          "spec": [
+            { "name": "table", "type": "text", "label": "Table" },
+            { "name": "id", "type": "text", "label": "ID" }
+          ]
+        },
+        { "name": "data", "type": "any", "label": "Data" }
+      ]
+    },
+    {
+      "name": "createComment",
+      "type": "action",
+      "label": "Add a Comment",
+      "description": "Adds a comment to a comment thread.",
+      "connection": "xos-api-key",
+      "communication": {
+        "url": "/comments",
+        "method": "POST",
+        "headers": { "Idempotency-Key": "{{uuid}}" },
+        "body": {
+          "comment_thread_id": "{{parameters.comment_thread_id}}",
+          "body": "{{parameters.body}}",
+          "source": "API"
+        },
+        "response": { "output": "{{body}}" }
+      },
+      "mappableParameters": [
+        {
+          "name": "comment_thread_id",
+          "type": "text",
+          "label": "Comment Thread ID",
+          "required": true
+        },
+        { "name": "body", "type": "text", "label": "Comment", "multiline": true, "required": true }
+      ]
+    },
+    {
+      "name": "createIncident",
+      "type": "action",
+      "label": "Report an Incident",
+      "description": "Reports an incident on a project.",
+      "connection": "xos-api-key",
+      "communication": {
+        "url": "/incidents",
+        "method": "POST",
+        "headers": { "Idempotency-Key": "{{uuid}}" },
+        "body": {
+          "project_id": "{{parameters.project_id}}",
+          "title": "{{parameters.title}}",
+          "occurred_at": "{{formatDate(parameters.occurred_at; 'YYYY-MM-DDTHH:mm:ssZ')}}",
+          "severity_enum_id": "{{parameters.severity_enum_id}}"
+        },
+        "response": { "output": "{{body}}" }
+      },
+      "mappableParameters": [
+        { "name": "project_id", "type": "text", "label": "Project ID", "required": true },
+        { "name": "title", "type": "text", "label": "Title", "required": true },
+        { "name": "occurred_at", "type": "date", "label": "Occurred At", "required": true },
+        {
+          "name": "severity_enum_id",
+          "type": "text",
+          "label": "Severity",
+          "help": "A row of the Incident Severity enumeration, for example ENM-097.",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "createVenue",
+      "type": "action",
+      "label": "Create a Venue",
+      "description": "Creates a venue.",
+      "connection": "xos-api-key",
+      "communication": {
+        "url": "/venues",
+        "method": "POST",
+        "headers": { "Idempotency-Key": "{{uuid}}" },
+        "body": {
+          "name": "{{parameters.name}}",
+          "street_address": "{{ifempty(parameters.street_address; null)}}",
+          "locality": "{{ifempty(parameters.locality; null)}}",
+          "postal_code": "{{ifempty(parameters.postal_code; null)}}",
+          "jurisdiction_id": "{{parameters.jurisdiction_id}}",
+          "time_zone": "{{parameters.time_zone}}"
+        },
+        "response": { "output": "{{body}}" }
+      },
+      "mappableParameters": [
+        { "name": "name", "type": "text", "label": "Name", "required": true },
+        { "name": "street_address", "type": "text", "label": "Street Address" },
+        { "name": "locality", "type": "text", "label": "City" },
+        { "name": "postal_code", "type": "text", "label": "Postal Code" },
+        { "name": "jurisdiction_id", "type": "text", "label": "Jurisdiction", "required": true },
+        { "name": "time_zone", "type": "text", "label": "Time Zone", "required": true }
+      ]
+    },
+    {
+      "name": "updateRecord",
+      "type": "action",
+      "label": "Update a Record",
+      "description": "Changes a record's title, description or due date. Reads the record first for its version (If-Match).",
+      "connection": "xos-api-key",
+      "communication": [
+        {
+          "url": "/records/{{parameters.id}}",
+          "method": "GET",
+          "response": { "temp": { "etag": "{{headers.etag}}" } }
+        },
+        {
+          "url": "/records/{{parameters.id}}",
+          "method": "PATCH",
+          "headers": { "If-Match": "{{temp.etag}}" },
+          "body": {
+            "title": "{{ifempty(parameters.title; omit)}}",
+            "description": "{{ifempty(parameters.description; omit)}}",
+            "due_at": "{{ifempty(parameters.due_at; omit)}}"
+          },
+          "response": { "output": "{{body}}" }
+        }
+      ],
+      "mappableParameters": [
+        { "name": "id", "type": "text", "label": "Record ID", "required": true },
+        { "name": "title", "type": "text", "label": "Title" },
+        { "name": "description", "type": "text", "label": "Description", "multiline": true },
+        { "name": "due_at", "type": "date", "label": "Due At" }
+      ]
+    },
+    {
+      "name": "searchRecords",
+      "type": "search",
+      "label": "Search Records",
+      "description": "Finds records by key.",
+      "connection": "xos-api-key",
+      "communication": {
+        "url": "/records",
+        "method": "GET",
+        "qs": {
+          "filter[record_key][eq]": "{{parameters.record_key}}",
+          "limit": "{{parameters.limit}}"
+        },
+        "response": {
+          "iterate": "{{body.data}}",
+          "output": "{{item}}",
+          "limit": "{{parameters.limit}}"
+        }
+      },
+      "mappableParameters": [
+        { "name": "record_key", "type": "text", "label": "Record Key", "required": true },
+        { "name": "limit", "type": "uinteger", "label": "Limit", "default": 10, "required": true }
+      ]
+    },
+    {
+      "name": "searchProjects",
+      "type": "search",
+      "label": "Search Projects",
+      "description": "Finds projects by key.",
+      "connection": "xos-api-key",
+      "communication": {
+        "url": "/projects",
+        "method": "GET",
+        "qs": {
+          "filter[project_key][eq]": "{{parameters.project_key}}",
+          "limit": "{{parameters.limit}}"
+        },
+        "response": {
+          "iterate": "{{body.data}}",
+          "output": "{{item}}",
+          "limit": "{{parameters.limit}}"
+        }
+      },
+      "mappableParameters": [
+        { "name": "project_key", "type": "text", "label": "Project Key", "required": true },
+        { "name": "limit", "type": "uinteger", "label": "Limit", "default": 10, "required": true }
+      ]
+    }
+  ]
+}

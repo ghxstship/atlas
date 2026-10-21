@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: SIM-006, a Field member's asset scan resolves the gear in their custody
+# SIM-006, a Field member's asset scan resolves the gear in their custody.
+# Named after its file: config.yaml orders flows by name.
+name: field-asset-scan
 ---
 # AUD-0042 (GTIN 09501101530003, seed 0217) is in the Demo Field Lead's custody, so the Field Lead reads the
 # unit (migration 1111) and the scan resolves instead of reading "Unknown code". Runs before

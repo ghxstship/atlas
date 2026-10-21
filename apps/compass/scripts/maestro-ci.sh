@@ -3,9 +3,14 @@
 # build, with the variables apps/compass/scripts/maestro-ci-env.sh printed (SUPABASE_URL,
 # SUPABASE_ANON_KEY, KIOSK_DEVICE_KEY, KIOSK_PIN_1 to KIOSK_PIN_4) already in the environment.
 #
-#   apps/compass/scripts/maestro-ci.sh                              Android: every flow
-#   apps/compass/scripts/maestro-ci.sh --exclude-tags airplane-mode iOS: Maestro sets airplane mode
-#                                                                   only on Android
+#   apps/compass/scripts/maestro-ci.sh                              Android, or iOS with the network
+#                                                                   helper running: every flow
+#   apps/compass/scripts/maestro-ci.sh --exclude-tags airplane-mode iOS without the helper: Maestro
+#                                                                   sets airplane mode only on Android
+#
+# On iOS the airplane-mode flows go offline by cutting the server: start
+# apps/compass/scripts/maestro-network.ts serve first (SUPABASE_URL and SUPABASE_PROJECT_ID set), as the
+# nightly job and apps/compass/scripts/maestro-ios.sh do.
 #
 # Extra arguments go to `maestro test`. The JUnit report and each flow's screenshots and logs land in
 # MAESTRO_OUTPUT (default node_modules/.cache/maestro) for the job's artifact. One script line, so the

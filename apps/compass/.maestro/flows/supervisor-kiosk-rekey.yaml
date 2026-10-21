@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: A retired kiosk says it is no longer registered, and a supervisor forgets it and sets it up again
+# A retired kiosk says it is no longer registered, and a supervisor forgets it and sets it up again.
+# Named after its file: config.yaml orders flows by name.
+name: supervisor-kiosk-rekey
 ---
 # Runs after supervisor-kiosk, which leaves this device running as a kiosk whose key just clocked the Demo Field
 # Tech in. The Admin retires that kiosk in Atlas (scripts/kiosk-rekey.js), so the next punch is refused as

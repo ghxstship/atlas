@@ -27,6 +27,12 @@ const graph = (fn: string) => {
 };
 
 /**
+ * Functions that load nothing but the shared core (_vendor/core.js through _shared) and so have no entry
+ * of their own. Every other function directory must have packages/platform/edge/entries/<fn>.ts.
+ */
+const CORE_ONLY: readonly string[] = ["api-token", "email-unsubscribe"];
+
+/**
  * The npm packages each function loads when it boots, and the ones it loads only when a request needs
  * them (A85, RRR-130). Stripe only where billing happens; Resend and React Email only where email is
  * sent, and lazily there. kiosk-punch and the other small functions load no package at all.
@@ -34,13 +40,17 @@ const graph = (fn: string) => {
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
+  "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
+  "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
+  "integration-worker": { boot: ["@supabase/supabase-js"], lazy: [] },
   "kiosk-punch": { boot: [], lazy: [] },
   "notification-dispatch": {
     boot: ["intl-messageformat", "zod"],
     lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
   },
   "report-run": { boot: ["@supabase/supabase-js", "zod"], lazy: ["exceljs", "pdfkit", "resend"] },
+  scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
   "stripe-webhook": { boot: ["stripe"], lazy: [] },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -49,16 +59,20 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
 
 /**
  * Most vendored code (KB) each function may parse at boot. These are about 25 percent above the
- * build of 2026-10-20; before A85 every function parsed 1,640 KB. Raise one only after measuring
- * that function's cold start (infra/runbooks/production.md, Edge Functions).
+ * builds of 2026-10-20 and 2026-10-21; before A85 every function parsed 1,640 KB or more. Raise one
+ * only after measuring that function's cold start (infra/runbooks/production.md, Edge Functions).
  */
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
   "email-unsubscribe": 64,
+  "import-run": 120,
   "inbound-email": 64,
+  "integration-inbound": 130,
+  "integration-worker": 290,
   "kiosk-punch": 64,
   "notification-dispatch": 160,
   "report-run": 128,
+  scim: 92,
   "sms-webhook": 128,
   "stripe-webhook": 84,
   "upload-scan": 100,
@@ -70,9 +84,18 @@ describe("Edge Function bundles", () => {
     expect(differences(await renderEdgeFiles(), committedEdgeFiles())).toEqual([]);
   }, 120_000);
 
-  it("have one entry per function that uses platform code, plus the shared core", () => {
+  it("give every function its own entry, plus the shared core", () => {
     for (const entry of EDGE_ENTRIES) {
       if (entry !== "core") expect(functions, entry).toContain(entry);
+    }
+    for (const fn of functions) {
+      // A new function needs packages/platform/edge/entries/<fn>.ts, or, when it uses nothing but the
+      // shared core, a place in CORE_ONLY (infra/runbooks/production.md, Edge Functions).
+      expect(
+        EDGE_ENTRIES.includes(fn) || CORE_ONLY.includes(fn),
+        `${fn} has no entry in packages/platform/edge/entries`,
+      ).toBe(true);
+      if (CORE_ONLY.includes(fn)) expect(EDGE_ENTRIES, fn).not.toContain(fn);
     }
     for (const fn of functions) {
       const vendored = [...graph(fn).boot, ...graph(fn).lazy].filter((file) =>
@@ -107,7 +130,7 @@ describe("Edge Function bundles", () => {
     for (const [path, text] of committedEdgeFiles()) {
       expect(text, path).not.toContain("i18n/src/catalogs.generated");
       for (const match of text.matchAll(/i18n\/messages\/[^/]+\/([A-Za-z]+)\.json/g)) {
-        expect(["email", "reporting", "workflow"], path).toContain(match[1]);
+        expect(["email", "integrations", "reporting", "workflow"], path).toContain(match[1]);
       }
     }
   });

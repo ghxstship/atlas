@@ -150,6 +150,14 @@ var VALUE_PATTERNS = [
     replace: "[token]",
   },
   {
+    pattern: /(\/ical\/)[^/?#\s"'<>]+/gi,
+    replace: (_m, prefix) => `${prefix}[token]`,
+  },
+  {
+    pattern: /\br-[0-9a-f]{32}-[0-9a-f]{32}-[0-9a-f]{32}\b/gi,
+    replace: "[token]",
+  },
+  {
     pattern: /\b(?:sk|rk|pk|whsec)_(?:live|test)_[A-Za-z0-9]+/g,
     replace: "[api-key]",
   },

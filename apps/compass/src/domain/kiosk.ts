@@ -234,3 +234,26 @@ export async function forgetKiosk(deps: ForgetKioskDeps): Promise<ForgetKioskOut
   await deps.clearKey();
   return "forgotten";
 }
+
+/** How many times the kiosk sends a punch before it keeps it in the queue instead. */
+export const KIOSK_SEND_ATTEMPTS = 3;
+
+/**
+ * Sends a kiosk punch, sending it again when the server could not answer (a 5xx: an Edge Function worker
+ * that hit its CPU limit while starting answers 546, a cold one 503 or 504). The punch id makes a repeat a
+ * duplicate, never a second punch, so the PIN verdict comes back while the worker still stands at the
+ * kiosk instead of a "saved, checked later" that was never about being offline (A66). A network error and
+ * any other status are returned at once: the caller queues on the first and shows the second.
+ */
+export async function sendKioskPunch<R extends { readonly status: number }>(
+  send: () => Promise<R>,
+  attempts: number = KIOSK_SEND_ATTEMPTS,
+  pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+): Promise<R> {
+  let response = await send();
+  for (let attempt = 1; attempt < attempts && response.status >= 500; attempt += 1) {
+    await pause(500 * attempt);
+    response = await send();
+  }
+  return response;
+}

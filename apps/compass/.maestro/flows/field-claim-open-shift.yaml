@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Journey 66, claim an open shift under the org's claiming rule
+# Journey 66, claim an open shift under the org's claiming rule.
+# Named after its file: config.yaml orders flows by name.
+name: field-claim-open-shift
 ---
 # Seed 0113 publishes an open rigging shift on March 14, 2027. The demo org keeps the default claiming rule,
 # approval (scheduling.open_shift_claiming, migration 1322): the Demo Field Tech's claim uploads as a waiting

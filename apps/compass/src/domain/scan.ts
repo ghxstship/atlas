@@ -595,3 +595,13 @@ export function custodyAllowed(
       me.engagementIds.includes(currentCustodian.engagementId))
   );
 }
+
+/**
+ * The headline of a gate scan: the verdict, then what names it (the badge holder, or why it was denied)
+ * after a middle dot. A badge with no holder name reads as the verdict alone, never "Access granted ·"
+ * with nothing after the dot (A68, A66).
+ */
+export function gateScanTitle(verdict: string, detail: string | null | undefined): string {
+  const named = detail?.trim();
+  return named ? `${verdict} · ${named}` : verdict;
+}
