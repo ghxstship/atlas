@@ -39,6 +39,10 @@ export function buildCsp({ nonce, development, supabaseOrigin, secureSite }: Csp
     "img-src": ["'self'", "blob:", "data:"],
     "font-src": ["'self'", "data:"],
     "connect-src": ["'self'", ...(development ? ["ws:", "wss:"] : [])],
+    // The service worker and the web manifest (A96): stated outright, since 'strict-dynamic' makes the browser
+    // ignore 'self' in script-src, which worker-src would otherwise fall back to.
+    "worker-src": ["'self'"],
+    "manifest-src": ["'self'"],
     "object-src": ["'none'"],
     "base-uri": ["'self'"],
     "form-action": ["'self'", supabaseOrigin, ...OAUTH_AUTHORIZE_ORIGINS],

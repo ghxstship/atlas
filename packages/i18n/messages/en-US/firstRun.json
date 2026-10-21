@@ -1,0 +1,73 @@
+{
+  "feedback": {
+    "context": "Sent with your message: the page {route}, {app} {version}, language {locale} and window size {viewport}.",
+    "failedUpload": "The screenshot did not upload. Remove it or choose another file, then send again.",
+    "limit": "You have sent 10 messages in the last hour. Try again later.",
+    "open": "Send Feedback",
+    "removeScreenshot": "Remove Screenshot",
+    "screenshot": "Screenshot (optional)",
+    "screenshotHint": "PNG, JPEG or WebP up to 5 MB. Only the file you choose is sent.",
+    "thanks": "Thanks. The platform team will read this. Your reference is {number}.",
+    "unknownVersion": "version not known"
+  },
+  "offline": {
+    "body": "This page is not saved on this device yet. Pages you opened recently still open without a connection.",
+    "home": "Go Home",
+    "retry": "Try Again",
+    "title": "You're Offline"
+  },
+  "push": {
+    "blocked": "This browser blocks notifications from {app}. Allow them in the browser's site settings, then turn them on again.",
+    "body": "Get notifications in this browser, even when {app} is closed. Your choices above and your quiet hours still apply.",
+    "failed": "That did not work. Try again.",
+    "off": "Off in this browser.",
+    "on": "On in this browser.",
+    "title": "Browser Notifications",
+    "turnOff": "Turn Off",
+    "turnOn": "Turn On",
+    "unavailable": "Browser notifications are not set up yet.",
+    "unsupported": "This browser cannot show notifications from {app}."
+  },
+  "sandbox": {
+    "banner": "This is your sandbox. Only you can see it, and nothing in it is billed, emailed or texted. It ends {when}.",
+    "ends": "Your sandbox ends {when}.",
+    "failed": "Your sandbox did not open. Try again.",
+    "intro": "Explore a private copy of the Northwind Live demo. Only you can see it, nothing in it is billed, emailed or texted, and it ends after 14 days.",
+    "open": "Open Your Sandbox",
+    "opening": "Opening your sandbox",
+    "removing": "Your last sandbox is still being removed. Try again in an hour.",
+    "title": "Practice Sandbox",
+    "try": "Try a Sandbox"
+  },
+  "triage": {
+    "description": "Feedback people sent from Atlas and Gateway, newest first. A screenshot opens once its upload scan finds it clean.",
+    "empty": "No feedback is in this state.",
+    "failed": "That did not save. Try again.",
+    "filter": "Show",
+    "filters": {
+      "All": "All",
+      "Closed": "Closed",
+      "New": "New",
+      "Planned": "Planned",
+      "Read": "Read"
+    },
+    "from": "From {name}",
+    "fromUnknown": "From someone whose name is not set",
+    "note": "Note",
+    "openScreenshot": "Open Screenshot",
+    "page": "Page {route}",
+    "save": "Save",
+    "saved": "Saved.",
+    "screenshotBlocked": "The screenshot failed its scan and stays closed.",
+    "screenshotScanning": "The screenshot is still being scanned.",
+    "sent": "Sent {when} from {app}",
+    "state": "State",
+    "states": {
+      "Closed": "Closed",
+      "New": "New",
+      "Planned": "Planned",
+      "Read": "Read"
+    },
+    "title": "Product Feedback"
+  }
+}

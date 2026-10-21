@@ -2,6 +2,7 @@ import { getCurrentPerson } from "@xos/data";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
 import { tokenAal, type OrgAuthDecision } from "@xos/data/auth-assurance";
 import { findRoute, getNode } from "@xos/ia";
+import { OFFLINE_KEY_HEADER, offlineKey } from "@xos/ui/pwa/offline-key";
 import { NextResponse, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import {
@@ -211,6 +212,8 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     // because response.cookies rewrites every Set-Cookie header from its own list when it sets one.
     result.headers.append("set-cookie", lastSeenSetCookie(now, secureSite));
   }
+  // The service worker keeps a page for offline reading only under the person it was served to (A96).
+  if (user) result.headers.set(OFFLINE_KEY_HEADER, await offlineKey(user.id));
   return secure(result);
 }
 
