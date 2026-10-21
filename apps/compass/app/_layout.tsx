@@ -14,6 +14,7 @@ import { useUpdateGate } from "../src/runtime/minimumVersion";
 import { useActionableNotifications } from "../src/runtime/notifications";
 import { BiometricLock } from "../src/screens/BiometricLock";
 import { DeleteAccount } from "../src/screens/DeleteAccount";
+import { SecondFactor, SecondFactorRequired } from "../src/screens/SecondFactor";
 import { SignIn } from "../src/screens/SignIn";
 import {
   Button,
@@ -83,6 +84,8 @@ function Gatekeeper(): ReactElement {
     );
   }
   if (phase.kind === "signed-out") return <SignIn />;
+  if (phase.kind === "second-factor") return <SecondFactor factors={phase.factors} />;
+  if (phase.kind === "factor-required") return <SecondFactorRequired />;
   if (phase.kind === "identity-failed") {
     // A sign-in with no membership or engagement can still sign out or delete itself (SIM-004).
     if (deleting) return <DeleteAccount />;

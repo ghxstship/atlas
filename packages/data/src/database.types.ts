@@ -7136,589 +7136,6 @@ export type Database = {
           },
         ];
       };
-      automation_actions: {
-        Row: {
-          action_type: Database["app"]["Enums"]["automation_action_type"];
-          assignee_person_id: string | null;
-          automation_id: string;
-          body_template: string | null;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          due_in_days: number | null;
-          id: string;
-          org_id: string;
-          phase_code: string | null;
-          position: number;
-          project_id: string | null;
-          recipient_person_id: string | null;
-          title_template: string | null;
-          to_state: string | null;
-          updated_at: string;
-          updated_by: string | null;
-          webhook_endpoint_id: string | null;
-          xyz: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          action_type: Database["app"]["Enums"]["automation_action_type"];
-          assignee_person_id?: string | null;
-          automation_id: string;
-          body_template?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          due_in_days?: number | null;
-          id?: string;
-          org_id: string;
-          phase_code?: string | null;
-          position: number;
-          project_id?: string | null;
-          recipient_person_id?: string | null;
-          title_template?: string | null;
-          to_state?: string | null;
-          updated_at?: string;
-          updated_by?: string | null;
-          webhook_endpoint_id?: string | null;
-          xyz?: string | null;
-        };
-        Update: {
-          action_type?: Database["app"]["Enums"]["automation_action_type"];
-          assignee_person_id?: string | null;
-          automation_id?: string;
-          body_template?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          due_in_days?: number | null;
-          id?: string;
-          org_id?: string;
-          phase_code?: string | null;
-          position?: number;
-          project_id?: string | null;
-          recipient_person_id?: string | null;
-          title_template?: string | null;
-          to_state?: string | null;
-          updated_at?: string;
-          updated_by?: string | null;
-          webhook_endpoint_id?: string | null;
-          xyz?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "automation_actions_assignee_person_id_fkey";
-            columns: ["assignee_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_automation_id_fkey";
-            columns: ["automation_id"];
-            isOneToOne: false;
-            referencedRelation: "automations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "gate_criteria_status";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "automation_actions_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "project_authority";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "automation_actions_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "project_billing";
-            referencedColumns: ["project_id"];
-          },
-          {
-            foreignKeyName: "automation_actions_project_id_fkey";
-            columns: ["project_id"];
-            isOneToOne: false;
-            referencedRelation: "projects";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_recipient_person_id_fkey";
-            columns: ["recipient_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_to_state_fkey";
-            columns: ["to_state"];
-            isOneToOne: false;
-            referencedRelation: "record_state_display";
-            referencedColumns: ["record_state"];
-          },
-          {
-            foreignKeyName: "automation_actions_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_actions_webhook_endpoint_id_fkey";
-            columns: ["webhook_endpoint_id"];
-            isOneToOne: false;
-            referencedRelation: "webhook_endpoints";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      automation_conditions: {
-        Row: {
-          automation_id: string;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          field: string | null;
-          group_match: Database["app"]["Enums"]["automation_match"] | null;
-          id: string;
-          operator: Database["app"]["Enums"]["filter_operator"] | null;
-          org_id: string;
-          parent_condition_id: string | null;
-          position: number;
-          updated_at: string;
-          updated_by: string | null;
-          value_text: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          automation_id: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          field?: string | null;
-          group_match?: Database["app"]["Enums"]["automation_match"] | null;
-          id?: string;
-          operator?: Database["app"]["Enums"]["filter_operator"] | null;
-          org_id: string;
-          parent_condition_id?: string | null;
-          position: number;
-          updated_at?: string;
-          updated_by?: string | null;
-          value_text?: string | null;
-        };
-        Update: {
-          automation_id?: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          field?: string | null;
-          group_match?: Database["app"]["Enums"]["automation_match"] | null;
-          id?: string;
-          operator?: Database["app"]["Enums"]["filter_operator"] | null;
-          org_id?: string;
-          parent_condition_id?: string | null;
-          position?: number;
-          updated_at?: string;
-          updated_by?: string | null;
-          value_text?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "automation_conditions_automation_id_fkey";
-            columns: ["automation_id"];
-            isOneToOne: false;
-            referencedRelation: "automations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_conditions_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_conditions_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_conditions_parent_condition_id_fkey";
-            columns: ["parent_condition_id"];
-            isOneToOne: false;
-            referencedRelation: "automation_conditions";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_conditions_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      automation_run_steps: {
-        Row: {
-          action_type: Database["app"]["Enums"]["automation_action_type"];
-          automation_action_id: string | null;
-          automation_run_id: string;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          duration_ms: number;
-          error_code: string | null;
-          error_message: string | null;
-          finished_at: string;
-          http_status: number | null;
-          id: string;
-          operation_id: string | null;
-          org_id: string;
-          position: number;
-          request_body: Json | null;
-          response_body: Json | null;
-          started_at: string;
-          step_status: Database["app"]["Enums"]["automation_step_status"];
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          action_type: Database["app"]["Enums"]["automation_action_type"];
-          automation_action_id?: string | null;
-          automation_run_id: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          duration_ms: number;
-          error_code?: string | null;
-          error_message?: string | null;
-          finished_at: string;
-          http_status?: number | null;
-          id?: string;
-          operation_id?: string | null;
-          org_id: string;
-          position: number;
-          request_body?: Json | null;
-          response_body?: Json | null;
-          started_at: string;
-          step_status: Database["app"]["Enums"]["automation_step_status"];
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          action_type?: Database["app"]["Enums"]["automation_action_type"];
-          automation_action_id?: string | null;
-          automation_run_id?: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          duration_ms?: number;
-          error_code?: string | null;
-          error_message?: string | null;
-          finished_at?: string;
-          http_status?: number | null;
-          id?: string;
-          operation_id?: string | null;
-          org_id?: string;
-          position?: number;
-          request_body?: Json | null;
-          response_body?: Json | null;
-          started_at?: string;
-          step_status?: Database["app"]["Enums"]["automation_step_status"];
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "automation_run_steps_automation_action_id_fkey";
-            columns: ["automation_action_id"];
-            isOneToOne: false;
-            referencedRelation: "automation_actions";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_run_steps_automation_run_id_fkey";
-            columns: ["automation_run_id"];
-            isOneToOne: false;
-            referencedRelation: "automation_runs";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_run_steps_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_run_steps_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_run_steps_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      automation_runs: {
-        Row: {
-          attempts: number;
-          automation_id: string;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          depth: number;
-          domain_event_id: string;
-          duration_ms: number | null;
-          error_code: string | null;
-          error_message: string | null;
-          event_payload: NonNullable<Json>;
-          finished_at: string | null;
-          id: string;
-          job_id: string | null;
-          org_id: string;
-          owner_person_id: string | null;
-          parent_run_id: string | null;
-          run_status: Database["app"]["Enums"]["automation_run_status"];
-          started_at: string | null;
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          attempts?: number;
-          automation_id: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          depth?: number;
-          domain_event_id: string;
-          duration_ms?: number | null;
-          error_code?: string | null;
-          error_message?: string | null;
-          event_payload: NonNullable<Json>;
-          finished_at?: string | null;
-          id?: string;
-          job_id?: string | null;
-          org_id: string;
-          owner_person_id?: string | null;
-          parent_run_id?: string | null;
-          run_status?: Database["app"]["Enums"]["automation_run_status"];
-          started_at?: string | null;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          attempts?: number;
-          automation_id?: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          depth?: number;
-          domain_event_id?: string;
-          duration_ms?: number | null;
-          error_code?: string | null;
-          error_message?: string | null;
-          event_payload?: NonNullable<Json>;
-          finished_at?: string | null;
-          id?: string;
-          job_id?: string | null;
-          org_id?: string;
-          owner_person_id?: string | null;
-          parent_run_id?: string | null;
-          run_status?: Database["app"]["Enums"]["automation_run_status"];
-          started_at?: string | null;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "automation_runs_automation_id_fkey";
-            columns: ["automation_id"];
-            isOneToOne: false;
-            referencedRelation: "automations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_domain_event_id_fkey";
-            columns: ["domain_event_id"];
-            isOneToOne: false;
-            referencedRelation: "domain_events";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_domain_event_id_fkey";
-            columns: ["domain_event_id"];
-            isOneToOne: false;
-            referencedRelation: "integration_route_events";
-            referencedColumns: ["domain_event_id"];
-          },
-          {
-            foreignKeyName: "automation_runs_job_id_fkey";
-            columns: ["job_id"];
-            isOneToOne: false;
-            referencedRelation: "job_queue";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_owner_person_id_fkey";
-            columns: ["owner_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_parent_run_id_fkey";
-            columns: ["parent_run_id"];
-            isOneToOne: false;
-            referencedRelation: "automation_runs";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automation_runs_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      automations: {
-        Row: {
-          condition_match: Database["app"]["Enums"]["automation_match"];
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          description: string | null;
-          enabled: boolean;
-          failure_notified_at: string | null;
-          id: string;
-          name: string;
-          org_id: string;
-          owner_person_id: string;
-          pause_reason: string | null;
-          paused_at: string | null;
-          trigger_event_type: string;
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          condition_match?: Database["app"]["Enums"]["automation_match"];
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          description?: string | null;
-          enabled?: boolean;
-          failure_notified_at?: string | null;
-          id?: string;
-          name: string;
-          org_id: string;
-          owner_person_id: string;
-          pause_reason?: string | null;
-          paused_at?: string | null;
-          trigger_event_type: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          condition_match?: Database["app"]["Enums"]["automation_match"];
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          description?: string | null;
-          enabled?: boolean;
-          failure_notified_at?: string | null;
-          id?: string;
-          name?: string;
-          org_id?: string;
-          owner_person_id?: string;
-          pause_reason?: string | null;
-          paused_at?: string | null;
-          trigger_event_type?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "automations_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automations_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automations_owner_person_id_fkey";
-            columns: ["owner_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "automations_trigger_event_type_fkey";
-            columns: ["trigger_event_type"];
-            isOneToOne: false;
-            referencedRelation: "domain_event_catalog";
-            referencedColumns: ["code"];
-          },
-          {
-            foreignKeyName: "automations_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       availability_blocks: {
         Row: {
           availability_calendar_id: string;
@@ -8913,6 +8330,7 @@ export type Database = {
           org_id: string;
           project_id: string | null;
           revoked_at: string | null;
+          rotated_at: string | null;
           token_hash: string;
           token_hint: string;
           updated_at: string;
@@ -8929,6 +8347,7 @@ export type Database = {
           org_id: string;
           project_id?: string | null;
           revoked_at?: string | null;
+          rotated_at?: string | null;
           token_hash: string;
           token_hint: string;
           updated_at?: string;
@@ -8944,6 +8363,7 @@ export type Database = {
           org_id?: string;
           project_id?: string | null;
           revoked_at?: string | null;
+          rotated_at?: string | null;
           token_hash?: string;
           token_hint?: string;
           updated_at?: string;
@@ -19060,6 +18480,7 @@ export type Database = {
           org_id: string;
           sheet_name: string;
           suggested_field_name: string | null;
+          suggestion_source: Database["app"]["Enums"]["import_suggestion_source"] | null;
           updated_at: string;
           updated_by: string | null;
         };
@@ -19076,6 +18497,7 @@ export type Database = {
           org_id: string;
           sheet_name: string;
           suggested_field_name?: string | null;
+          suggestion_source?: Database["app"]["Enums"]["import_suggestion_source"] | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -19091,6 +18513,7 @@ export type Database = {
           org_id?: string;
           sheet_name?: string;
           suggested_field_name?: string | null;
+          suggestion_source?: Database["app"]["Enums"]["import_suggestion_source"] | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -19125,18 +18548,119 @@ export type Database = {
           },
         ];
       };
+      import_job_sheets: {
+        Row: {
+          column_count: number;
+          created_at: string;
+          created_by: string | null;
+          data_row_count: number;
+          deleted_at: string | null;
+          first_data_row: number | null;
+          header_row: number | null;
+          id: string;
+          import_job_id: string;
+          last_row: number | null;
+          org_id: string;
+          proposed_from_playbook: boolean;
+          proposed_target_code: string | null;
+          sheet_index: number;
+          sheet_name: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          column_count?: number;
+          created_at?: string;
+          created_by?: string | null;
+          data_row_count?: number;
+          deleted_at?: string | null;
+          first_data_row?: number | null;
+          header_row?: number | null;
+          id?: string;
+          import_job_id: string;
+          last_row?: number | null;
+          org_id: string;
+          proposed_from_playbook?: boolean;
+          proposed_target_code?: string | null;
+          sheet_index: number;
+          sheet_name: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          column_count?: number;
+          created_at?: string;
+          created_by?: string | null;
+          data_row_count?: number;
+          deleted_at?: string | null;
+          first_data_row?: number | null;
+          header_row?: number | null;
+          id?: string;
+          import_job_id?: string;
+          last_row?: number | null;
+          org_id?: string;
+          proposed_from_playbook?: boolean;
+          proposed_target_code?: string | null;
+          sheet_index?: number;
+          sheet_name?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "import_job_sheets_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_job_sheets_import_job_id_fkey";
+            columns: ["import_job_id"];
+            isOneToOne: false;
+            referencedRelation: "import_jobs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_job_sheets_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_job_sheets_proposed_target_code_fkey";
+            columns: ["proposed_target_code"];
+            isOneToOne: false;
+            referencedRelation: "import_targets";
+            referencedColumns: ["code"];
+          },
+          {
+            foreignKeyName: "import_job_sheets_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       import_jobs: {
         Row: {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          failure_code: string | null;
           id: string;
+          import_job_sheet_id: string | null;
           import_mapping_profile_id: string | null;
           import_status: Database["app"]["Enums"]["import_status"];
           mapping_confirmed_at: string | null;
           org_id: string;
           original_filename: string;
+          sheet_name: string | null;
           source: Database["app"]["Enums"]["import_source"];
+          source_url: string | null;
           storage_object_path: string;
           target_code: string;
           updated_at: string;
@@ -19147,13 +18671,17 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          failure_code?: string | null;
           id?: string;
+          import_job_sheet_id?: string | null;
           import_mapping_profile_id?: string | null;
           import_status?: Database["app"]["Enums"]["import_status"];
           mapping_confirmed_at?: string | null;
           org_id: string;
           original_filename: string;
+          sheet_name?: string | null;
           source: Database["app"]["Enums"]["import_source"];
+          source_url?: string | null;
           storage_object_path: string;
           target_code: string;
           updated_at?: string;
@@ -19163,13 +18691,17 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          failure_code?: string | null;
           id?: string;
+          import_job_sheet_id?: string | null;
           import_mapping_profile_id?: string | null;
           import_status?: Database["app"]["Enums"]["import_status"];
           mapping_confirmed_at?: string | null;
           org_id?: string;
           original_filename?: string;
+          sheet_name?: string | null;
           source?: Database["app"]["Enums"]["import_source"];
+          source_url?: string | null;
           storage_object_path?: string;
           target_code?: string;
           updated_at?: string;
@@ -19181,6 +18713,13 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "import_jobs_import_job_sheet_id_fkey";
+            columns: ["import_job_sheet_id"];
+            isOneToOne: false;
+            referencedRelation: "import_job_sheets";
             referencedColumns: ["id"];
           },
           {
@@ -19688,8 +19227,14 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          discard_reason: string | null;
+          discarded_at: string | null;
+          discarded_by: string | null;
           dkim_verified: boolean;
+          filed_at: string | null;
+          filed_by: string | null;
           filed_document_id: string | null;
+          filed_record_id: string | null;
           from_address: string;
           id: string;
           inbound_address_id: string | null;
@@ -19714,8 +19259,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          discard_reason?: string | null;
+          discarded_at?: string | null;
+          discarded_by?: string | null;
           dkim_verified: boolean;
+          filed_at?: string | null;
+          filed_by?: string | null;
           filed_document_id?: string | null;
+          filed_record_id?: string | null;
           from_address: string;
           id?: string;
           inbound_address_id?: string | null;
@@ -19739,8 +19290,14 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          discard_reason?: string | null;
+          discarded_at?: string | null;
+          discarded_by?: string | null;
           dkim_verified?: boolean;
+          filed_at?: string | null;
+          filed_by?: string | null;
           filed_document_id?: string | null;
+          filed_record_id?: string | null;
           from_address?: string;
           id?: string;
           inbound_address_id?: string | null;
@@ -19768,10 +19325,38 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "inbound_messages_discarded_by_fkey";
+            columns: ["discarded_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_by_fkey";
+            columns: ["filed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "inbound_messages_filed_document_id_fkey";
             columns: ["filed_document_id"];
             isOneToOne: false;
             referencedRelation: "documents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
+            referencedRelation: "offboarding_open_records";
+            referencedColumns: ["record_id"];
+          },
+          {
+            foreignKeyName: "inbound_messages_filed_record_id_fkey";
+            columns: ["filed_record_id"];
+            isOneToOne: false;
+            referencedRelation: "records";
             referencedColumns: ["id"];
           },
           {
@@ -21584,6 +21169,135 @@ export type Database = {
           },
           {
             foreignKeyName: "integration_file_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      integration_inbound_events: {
+        Row: {
+          attempt: number;
+          created_at: string;
+          created_by: string | null;
+          dead_lettered_at: string | null;
+          deleted_at: string | null;
+          error_code: string | null;
+          error_message: string | null;
+          id: string;
+          idempotency_key: string;
+          inbound_kind: Database["app"]["Enums"]["integration_inbound_kind"];
+          inbound_state: Database["app"]["Enums"]["integration_inbound_state"];
+          integration_connection_id: string;
+          max_attempts: number;
+          next_attempt_at: string | null;
+          org_id: string;
+          outcome: string | null;
+          payload: NonNullable<Json>;
+          processed_at: string | null;
+          provider_code: string;
+          received_at: string;
+          started_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempt?: number;
+          created_at?: string;
+          created_by?: string | null;
+          dead_lettered_at?: string | null;
+          deleted_at?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          id?: string;
+          idempotency_key: string;
+          inbound_kind: Database["app"]["Enums"]["integration_inbound_kind"];
+          inbound_state?: Database["app"]["Enums"]["integration_inbound_state"];
+          integration_connection_id: string;
+          max_attempts?: number;
+          next_attempt_at?: string | null;
+          org_id: string;
+          outcome?: string | null;
+          payload: NonNullable<Json>;
+          processed_at?: string | null;
+          provider_code: string;
+          received_at?: string;
+          started_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          attempt?: number;
+          created_at?: string;
+          created_by?: string | null;
+          dead_lettered_at?: string | null;
+          deleted_at?: string | null;
+          error_code?: string | null;
+          error_message?: string | null;
+          id?: string;
+          idempotency_key?: string;
+          inbound_kind?: Database["app"]["Enums"]["integration_inbound_kind"];
+          inbound_state?: Database["app"]["Enums"]["integration_inbound_state"];
+          integration_connection_id?: string;
+          max_attempts?: number;
+          next_attempt_at?: string | null;
+          org_id?: string;
+          outcome?: string | null;
+          payload?: NonNullable<Json>;
+          processed_at?: string | null;
+          provider_code?: string;
+          received_at?: string;
+          started_at?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "integration_inbound_events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_inbound_events_integration_connection_id_fkey";
+            columns: ["integration_connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_connections";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_inbound_events_integration_connection_id_fkey";
+            columns: ["integration_connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_ledger_queue";
+            referencedColumns: ["integration_connection_id"];
+          },
+          {
+            foreignKeyName: "integration_inbound_events_integration_connection_id_fkey";
+            columns: ["integration_connection_id"];
+            isOneToOne: false;
+            referencedRelation: "integration_payment_queue";
+            referencedColumns: ["integration_connection_id"];
+          },
+          {
+            foreignKeyName: "integration_inbound_events_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integration_inbound_events_provider_code_fkey";
+            columns: ["provider_code"];
+            isOneToOne: false;
+            referencedRelation: "integration_providers";
+            referencedColumns: ["provider_code"];
+          },
+          {
+            foreignKeyName: "integration_inbound_events_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -29280,6 +28994,74 @@ export type Database = {
           },
           {
             foreignKeyName: "permit_requirements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      person_calendar_feeds: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          last_accessed_at: string | null;
+          person_id: string;
+          revoked_at: string | null;
+          rotated_at: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          person_id: string;
+          revoked_at?: string | null;
+          rotated_at?: string | null;
+          token_hash: string;
+          token_hint: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          last_accessed_at?: string | null;
+          person_id?: string;
+          revoked_at?: string | null;
+          rotated_at?: string | null;
+          token_hash?: string;
+          token_hint?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "person_calendar_feeds_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_calendar_feeds_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "person_calendar_feeds_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -41797,6 +41579,68 @@ export type Database = {
           },
         ];
       };
+      shortcut_bindings: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          keys: string | null;
+          person_id: string;
+          shell: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          keys?: string | null;
+          person_id: string;
+          shell: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          keys?: string | null;
+          person_id?: string;
+          shell?: Database["app"]["Enums"]["shortcut_shell"];
+          shortcut_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shortcut_bindings_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shortcut_bindings_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shortcut_bindings_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shortlists: {
         Row: {
           application_id: string;
@@ -41883,6 +41727,78 @@ export type Database = {
           },
           {
             foreignKeyName: "shortlists_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      sidebar_item_preferences: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          hidden: boolean;
+          id: string;
+          node_id: string;
+          org_id: string;
+          person_id: string;
+          sort_order: number;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hidden?: boolean;
+          id?: string;
+          node_id: string;
+          org_id: string;
+          person_id: string;
+          sort_order: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          hidden?: boolean;
+          id?: string;
+          node_id?: string;
+          org_id?: string;
+          person_id?: string;
+          sort_order?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sidebar_item_preferences_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sidebar_item_preferences_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -48768,6 +48684,312 @@ export type Database = {
           },
         ];
       };
+      warehouse_deliveries: {
+        Row: {
+          attempt: number;
+          bytes_delivered: number;
+          columns_withheld: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          delivery_state: Database["app"]["Enums"]["warehouse_delivery_state"];
+          error_code: string | null;
+          error_message: string | null;
+          file_format: Database["app"]["Enums"]["warehouse_file_format"];
+          finished_at: string | null;
+          id: string;
+          include_confidential: boolean;
+          max_attempts: number;
+          next_attempt_at: string | null;
+          object_prefix: string | null;
+          org_id: string;
+          requested_manually: boolean;
+          rows_delivered: number;
+          schema_version: string | null;
+          snapshot_at: string | null;
+          started_at: string | null;
+          tables_delivered: number;
+          updated_at: string;
+          updated_by: string | null;
+          warehouse_destination_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempt?: number;
+          bytes_delivered?: number;
+          columns_withheld?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_state?: Database["app"]["Enums"]["warehouse_delivery_state"];
+          error_code?: string | null;
+          error_message?: string | null;
+          file_format: Database["app"]["Enums"]["warehouse_file_format"];
+          finished_at?: string | null;
+          id?: string;
+          include_confidential: boolean;
+          max_attempts?: number;
+          next_attempt_at?: string | null;
+          object_prefix?: string | null;
+          org_id: string;
+          requested_manually?: boolean;
+          rows_delivered?: number;
+          schema_version?: string | null;
+          snapshot_at?: string | null;
+          started_at?: string | null;
+          tables_delivered?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          warehouse_destination_id: string;
+        };
+        Update: {
+          attempt?: number;
+          bytes_delivered?: number;
+          columns_withheld?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          delivery_state?: Database["app"]["Enums"]["warehouse_delivery_state"];
+          error_code?: string | null;
+          error_message?: string | null;
+          file_format?: Database["app"]["Enums"]["warehouse_file_format"];
+          finished_at?: string | null;
+          id?: string;
+          include_confidential?: boolean;
+          max_attempts?: number;
+          next_attempt_at?: string | null;
+          object_prefix?: string | null;
+          org_id?: string;
+          requested_manually?: boolean;
+          rows_delivered?: number;
+          schema_version?: string | null;
+          snapshot_at?: string | null;
+          started_at?: string | null;
+          tables_delivered?: number;
+          updated_at?: string;
+          updated_by?: string | null;
+          warehouse_destination_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_deliveries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_deliveries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_deliveries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_deliveries_warehouse_destination_id_fkey";
+            columns: ["warehouse_destination_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouse_destinations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      warehouse_delivery_files: {
+        Row: {
+          byte_count: number;
+          columns_delivered: number;
+          columns_withheld: number;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          object_key: string;
+          org_id: string;
+          row_count: number;
+          sha256: string;
+          table_key: string;
+          updated_at: string;
+          updated_by: string | null;
+          warehouse_delivery_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          byte_count: number;
+          columns_delivered: number;
+          columns_withheld: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          object_key: string;
+          org_id: string;
+          row_count: number;
+          sha256: string;
+          table_key: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          warehouse_delivery_id: string;
+        };
+        Update: {
+          byte_count?: number;
+          columns_delivered?: number;
+          columns_withheld?: number;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          object_key?: string;
+          org_id?: string;
+          row_count?: number;
+          sha256?: string;
+          table_key?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          warehouse_delivery_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_delivery_files_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_delivery_files_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_delivery_files_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_delivery_files_warehouse_delivery_id_fkey";
+            columns: ["warehouse_delivery_id"];
+            isOneToOne: false;
+            referencedRelation: "warehouse_deliveries";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      warehouse_destinations: {
+        Row: {
+          bucket_name: string;
+          created_at: string;
+          created_by: string | null;
+          credential_stored_at: string | null;
+          deleted_at: string | null;
+          delivery_hour: number;
+          destination_state: Database["app"]["Enums"]["warehouse_destination_state"];
+          display_name: string;
+          endpoint_url: string | null;
+          file_format: Database["app"]["Enums"]["warehouse_file_format"];
+          id: string;
+          include_confidential: boolean;
+          last_delivered_at: string | null;
+          last_error_code: string | null;
+          last_error_message: string | null;
+          next_delivery_at: string | null;
+          org_id: string;
+          path_prefix: string;
+          provider: Database["app"]["Enums"]["warehouse_provider"];
+          region: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          bucket_name: string;
+          created_at?: string;
+          created_by?: string | null;
+          credential_stored_at?: string | null;
+          deleted_at?: string | null;
+          delivery_hour?: number;
+          destination_state?: Database["app"]["Enums"]["warehouse_destination_state"];
+          display_name: string;
+          endpoint_url?: string | null;
+          file_format?: Database["app"]["Enums"]["warehouse_file_format"];
+          id?: string;
+          include_confidential?: boolean;
+          last_delivered_at?: string | null;
+          last_error_code?: string | null;
+          last_error_message?: string | null;
+          next_delivery_at?: string | null;
+          org_id: string;
+          path_prefix?: string;
+          provider: Database["app"]["Enums"]["warehouse_provider"];
+          region?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          bucket_name?: string;
+          created_at?: string;
+          created_by?: string | null;
+          credential_stored_at?: string | null;
+          deleted_at?: string | null;
+          delivery_hour?: number;
+          destination_state?: Database["app"]["Enums"]["warehouse_destination_state"];
+          display_name?: string;
+          endpoint_url?: string | null;
+          file_format?: Database["app"]["Enums"]["warehouse_file_format"];
+          id?: string;
+          include_confidential?: boolean;
+          last_delivered_at?: string | null;
+          last_error_code?: string | null;
+          last_error_message?: string | null;
+          next_delivery_at?: string | null;
+          org_id?: string;
+          path_prefix?: string;
+          provider?: Database["app"]["Enums"]["warehouse_provider"];
+          region?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "warehouse_destinations_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_destinations_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "warehouse_destinations_provider_fkey";
+            columns: ["provider"];
+            isOneToOne: false;
+            referencedRelation: "warehouse_providers";
+            referencedColumns: ["provider"];
+          },
+          {
+            foreignKeyName: "warehouse_destinations_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       weather_alert_roles: {
         Row: {
           alert_level: Database["app"]["Enums"]["weather_alert_level"];
@@ -53874,6 +54096,25 @@ export type Database = {
           },
         ];
       };
+      warehouse_providers: {
+        Row: {
+          available: boolean | null;
+          provider: Database["app"]["Enums"]["warehouse_provider"] | null;
+          sort_order: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          available?: boolean | null;
+          provider?: Database["app"]["Enums"]["warehouse_provider"] | null;
+          sort_order?: number | null;
+        };
+        Update: {
+          available?: boolean | null;
+          provider?: Database["app"]["Enums"]["warehouse_provider"] | null;
+          sort_order?: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       abandon_idempotent_request: { Args: { p_key: string; p_org_id: string }; Returns: undefined };
@@ -54133,7 +54374,6 @@ export type Database = {
           org_slug: string;
         }[];
       };
-      automation_definition: { Args: { p_automation_id: string }; Returns: Json };
       award_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
       award_work_order: {
         Args: { p_bid_id: string; p_reason: string; p_work_order_id: string };
@@ -54154,7 +54394,6 @@ export type Database = {
           object_name: string;
         }[];
       };
-      begin_automation_run: { Args: { p_job_id?: string; p_run_id: string }; Returns: Json };
       begin_file_import: {
         Args: { p_link_id: string };
         Returns: {
@@ -54258,6 +54497,40 @@ export type Database = {
           object_scan_id: string;
           size_bytes: number;
         }[];
+      };
+      claim_integration_inbound_event: {
+        Args: { p_event_id: string };
+        Returns: {
+          attempt: number;
+          created_at: string;
+          created_by: string | null;
+          dead_lettered_at: string | null;
+          deleted_at: string | null;
+          error_code: string | null;
+          error_message: string | null;
+          id: string;
+          idempotency_key: string;
+          inbound_kind: Database["app"]["Enums"]["integration_inbound_kind"];
+          inbound_state: Database["app"]["Enums"]["integration_inbound_state"];
+          integration_connection_id: string;
+          max_attempts: number;
+          next_attempt_at: string | null;
+          org_id: string;
+          outcome: string | null;
+          payload: NonNullable<Json>;
+          processed_at: string | null;
+          provider_code: string;
+          received_at: string;
+          started_at: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "integration_inbound_events";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       claim_integration_sync: {
         Args: { p_job_id?: string; p_run_id: string };
@@ -54391,6 +54664,25 @@ export type Database = {
           claimed_documents: number;
         }[];
       };
+      claim_warehouse_delivery: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          attempt: number;
+          bucket_name: string;
+          delivery_id: string;
+          destination_id: string;
+          endpoint_url: string;
+          file_format: Database["app"]["Enums"]["warehouse_file_format"];
+          include_confidential: boolean;
+          org_id: string;
+          path_prefix: string;
+          provider: Database["app"]["Enums"]["warehouse_provider"];
+          region: string;
+          snapshot_at: string;
+          snapshot_date: string;
+          time_zone: string;
+        }[];
+      };
       claim_webhook_deliveries: {
         Args: { p_limit?: number };
         Returns: {
@@ -54434,6 +54726,10 @@ export type Database = {
         Args: { p_key: string; p_org_id: string; p_response_body: Json; p_response_status: number };
         Returns: undefined;
       };
+      complete_integration_inbound_event: {
+        Args: { p_event_id: string; p_outcome: string };
+        Returns: undefined;
+      };
       complete_integration_sync: {
         Args: {
           p_cursor_after?: string;
@@ -54448,6 +54744,10 @@ export type Database = {
       complete_offboarding: { Args: { p_offboarding_id: string }; Returns: undefined };
       complete_training: { Args: { p_answers?: Json; p_course_id: string }; Returns: string };
       complete_training_lesson: { Args: { p_lesson_id: string }; Returns: string };
+      complete_warehouse_delivery: {
+        Args: { p_delivery_id: string; p_object_prefix: string; p_schema_version: string };
+        Returns: undefined;
+      };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
@@ -54588,6 +54888,13 @@ export type Database = {
         Returns: string;
       };
       create_organization: { Args: { p_name: string; p_slug: string }; Returns: string };
+      create_person_calendar_feed: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
       create_project: {
         Args: {
           p_currency_code?: string;
@@ -54741,9 +55048,13 @@ export type Database = {
         Returns: string;
       };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
-      delete_automation: { Args: { p_automation_id: string }; Returns: undefined };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
+      disable_project_inbox: { Args: { p_project_id: string }; Returns: undefined };
+      discard_inbound_message: {
+        Args: { p_inbound_message_id: string; p_reason?: string };
+        Returns: undefined;
+      };
       dispatch_responder: {
         Args: { p_id?: string; p_incident_id: string; p_membership_id: string };
         Returns: string;
@@ -54865,6 +55176,15 @@ export type Database = {
           verified_domain: string;
         }[];
       };
+      fail_integration_inbound_event: {
+        Args: {
+          p_error_code: string;
+          p_error_message: string;
+          p_event_id: string;
+          p_retryable: boolean;
+        };
+        Returns: Database["app"]["Enums"]["integration_inbound_state"];
+      };
       fail_integration_sync: {
         Args: {
           p_connection_error?: boolean;
@@ -54875,6 +55195,15 @@ export type Database = {
         };
         Returns: Database["app"]["Enums"]["integration_sync_run_state"];
       };
+      fail_warehouse_delivery: {
+        Args: {
+          p_delivery_id: string;
+          p_error_code: string;
+          p_error_message: string;
+          p_retryable: boolean;
+        };
+        Returns: Database["app"]["Enums"]["warehouse_delivery_state"];
+      };
       feed_acknowledgment_status: {
         Args: { p_post_id: string };
         Returns: {
@@ -54884,19 +55213,17 @@ export type Database = {
           person_id: string;
         }[];
       };
+      file_inbound_message: {
+        Args: { p_inbound_message_id: string; p_record_id?: string; p_title?: string };
+        Returns: string;
+      };
       find_chat_connection: {
         Args: { p_external_account_id: string; p_provider_code: string };
         Returns: string;
       };
-      finish_automation_run: {
-        Args: {
-          p_error_code?: string;
-          p_error_message?: string;
-          p_job_id: string;
-          p_outcome: string;
-          p_run_id: string;
-        };
-        Returns: Database["app"]["Enums"]["automation_run_status"];
+      find_integration_connection: {
+        Args: { p_external_account_id: string; p_provider_code: string };
+        Returns: string;
       };
       finish_file_import: {
         Args: { p_checksum_sha256: string; p_imported_version: string; p_link_id: string };
@@ -54980,6 +55307,10 @@ export type Database = {
         }[];
       };
       hide_feed_post: { Args: { p_post_id: string; p_reason: string }; Returns: string };
+      import_detected_sheet: {
+        Args: { p_sheet_id: string; p_target_code: string };
+        Returns: string;
+      };
       import_dry_run: {
         Args: { p_import_job_id: string };
         Returns: {
@@ -54989,6 +55320,13 @@ export type Database = {
           refusals: number;
           skipped: number;
           updates: number;
+        }[];
+      };
+      integration_inbound_secrets_stored: {
+        Args: { p_org_id: string };
+        Returns: {
+          integration_connection_id: string;
+          stored_at: string;
         }[];
       };
       invite_member: {
@@ -55020,6 +55358,14 @@ export type Database = {
       issue_scim_token: { Args: { p_identity_provider_id: string }; Returns: string };
       issue_training_certification: { Args: { p_completion_id: string }; Returns: string };
       join_by_sso: { Args: { p_org_id: string }; Returns: string };
+      join_by_sso_session: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          joined: boolean;
+          org_id: string;
+          slug: string;
+        }[];
+      };
       join_by_verified_domain: { Args: { p_org_id: string }; Returns: string };
       kiosk_punch: {
         Args: {
@@ -55104,6 +55450,13 @@ export type Database = {
           submitted_at: string;
         }[];
       };
+      my_auth_factor_labels: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          factor_id: string;
+          label: string;
+        }[];
+      };
       my_blocks: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -55155,12 +55508,33 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_org_auth_status: {
+        Args: { p_org_id: string };
+        Returns: {
+          idle_timeout_minutes: number;
+          mfa_required: boolean;
+          mfa_verified: boolean;
+          session_expired: boolean;
+          session_expires_at: string;
+          session_hours: number;
+          signed_in_at: string;
+        }[];
+      };
       my_project_role_capabilities: {
         Args: Record<PropertyKey, never>;
         Returns: {
           capability_code: string;
           project_id: string;
           project_role: Database["app"]["Enums"]["project_role"];
+        }[];
+      };
+      my_second_factor_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          recent: boolean;
+          recent_until: string;
+          second_factor_at: string;
+          session_aal: string;
         }[];
       };
       my_sms_status: {
@@ -55403,17 +55777,16 @@ export type Database = {
         Args: { p_course_id: string; p_reason?: string };
         Returns: string;
       };
-      queue_automation_webhook: {
-        Args: { p_run_id: string; p_webhook_endpoint_id: string };
-        Returns: string;
-      };
       queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
+      queue_due_warehouse_deliveries: { Args: Record<PropertyKey, never>; Returns: number };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
         Returns: boolean;
       };
       reactivate_organization: { Args: { p_org_id: string }; Returns: string };
       read_integration_credential: { Args: { p_connection_id: string }; Returns: string };
+      read_integration_inbound_secret: { Args: { p_connection_id: string }; Returns: string };
+      read_warehouse_credential: { Args: { p_destination_id: string }; Returns: string };
       reassign_offboarding_records: {
         Args: { p_offboarding_id: string; p_to_person_id: string };
         Returns: number;
@@ -55460,24 +55833,6 @@ export type Database = {
         Returns: Database["app"]["Enums"]["scan_status"];
       };
       record_attendance: { Args: { p_rows: Json; p_run_id: string }; Returns: number };
-      record_automation_step: {
-        Args: {
-          p_action_id: string;
-          p_action_type: Database["app"]["Enums"]["automation_action_type"];
-          p_duration_ms: number;
-          p_error_code: string;
-          p_error_message: string;
-          p_http_status: number;
-          p_operation_id: string;
-          p_position: number;
-          p_request_body: Json;
-          p_response_body: Json;
-          p_run_id: string;
-          p_started_at: string;
-          p_step_status: Database["app"]["Enums"]["automation_step_status"];
-        };
-        Returns: string;
-      };
       record_chat_message_translation: {
         Args: {
           p_body: string;
@@ -55543,6 +55898,18 @@ export type Database = {
           p_result_enum_id: string;
         };
         Returns: string;
+      };
+      record_integration_inbound_event: {
+        Args: {
+          p_connection_id: string;
+          p_idempotency_key: string;
+          p_kind: Database["app"]["Enums"]["integration_inbound_kind"];
+          p_payload: Json;
+        };
+        Returns: {
+          duplicate: boolean;
+          event_id: string;
+        }[];
       };
       record_integration_sync_error: {
         Args: {
@@ -55773,6 +56140,19 @@ export type Database = {
         Args: { p_restored: number; p_subject_id: string; p_subject_table: string };
         Returns: undefined;
       };
+      record_warehouse_delivery_file: {
+        Args: {
+          p_byte_count: number;
+          p_columns_delivered: number;
+          p_columns_withheld: number;
+          p_delivery_id: string;
+          p_object_key: string;
+          p_row_count: number;
+          p_sha256: string;
+          p_table_key: string;
+        };
+        Returns: string;
+      };
       record_weather_reading: {
         Args: {
           p_hazard: Database["app"]["Enums"]["weather_hazard"];
@@ -55817,6 +56197,7 @@ export type Database = {
       };
       release_vehicle: { Args: { p_gate_queue_id: string }; Returns: string };
       remove_account_role: { Args: { p_account_membership_role_id: string }; Returns: undefined };
+      replace_project_inbox: { Args: { p_project_id: string }; Returns: string };
       replay_webhook_delivery: { Args: { p_delivery_id: string }; Returns: string };
       reply_address_local_part: {
         Args: { p_person_id: string; p_subject_id: string };
@@ -55900,6 +56281,12 @@ export type Database = {
       };
       request_import_commit: { Args: { p_import_job_id: string }; Returns: string };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
+      request_warehouse_delivery: { Args: { p_destination_id: string }; Returns: string };
+      reset_shortcut_bindings: {
+        Args: { p_shell: Database["app"]["Enums"]["shortcut_shell"]; p_shortcut_id?: string };
+        Returns: number;
+      };
+      reset_sidebar_layout: { Args: { p_org_id: string }; Returns: number };
       resolve_asset_code: {
         Args: { p_code: string; p_org_id: string };
         Returns: {
@@ -55976,7 +56363,10 @@ export type Database = {
       retire_form_template: { Args: { p_reason: string; p_template_id: string }; Returns: string };
       retire_service_account: { Args: { p_service_account_id: string }; Returns: undefined };
       retire_training_course: { Args: { p_course_id: string; p_reason: string }; Returns: string };
-      retry_automation_run: { Args: { p_run_id: string }; Returns: string };
+      retry_integration_inbound_event: {
+        Args: { p_event_id: string; p_reason: string };
+        Returns: undefined;
+      };
       retry_integration_sync: { Args: { p_reason: string; p_run_id: string }; Returns: string };
       reveal_my_passport_number: { Args: Record<PropertyKey, never>; Returns: string };
       reveal_shared_passport_number: {
@@ -56013,6 +56403,20 @@ export type Database = {
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
+      rotate_calendar_feed: {
+        Args: { p_calendar_feed_id: string };
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
+      rotate_person_calendar_feed: {
+        Args: { p_calendar_feed_id: string };
+        Returns: {
+          calendar_feed_id: string;
+          feed_token: string;
+        }[];
+      };
       rsvp_to_event: {
         Args: { p_event_id: string; p_response: Database["app"]["Enums"]["rsvp_response"] };
         Returns: string;
@@ -56028,21 +56432,6 @@ export type Database = {
         Args: { p_partner_org_id: string; p_period_start: string };
         Returns: string;
       };
-      sample_automation_event: { Args: { p_event_type: string; p_org_id: string }; Returns: Json };
-      save_automation: {
-        Args: {
-          p_actions: Json;
-          p_automation_id: string;
-          p_conditions: Json;
-          p_description: string;
-          p_enabled: boolean;
-          p_expected_updated_at?: string;
-          p_name: string;
-          p_org_id: string;
-          p_trigger_event_type: string;
-        };
-        Returns: string;
-      };
       save_geofence: {
         Args: {
           p_boundary_geojson: Json;
@@ -56053,6 +56442,7 @@ export type Database = {
         };
         Returns: string;
       };
+      save_sidebar_layout: { Args: { p_items: Json; p_org_id: string }; Returns: number };
       scim_provider_for_token: { Args: { p_token: string }; Returns: string };
       scim_provision: {
         Args: {
@@ -56065,6 +56455,7 @@ export type Database = {
         };
         Returns: string;
       };
+      scim_user_for_email: { Args: { p_email: string }; Returns: string };
       seat_usage: {
         Args: { p_org_id: string };
         Returns: {
@@ -56083,10 +56474,6 @@ export type Database = {
           access_code: string;
           signing_token: string;
         }[];
-      };
-      send_automation_notice: {
-        Args: { p_body?: string; p_recipient_person_id: string; p_run_id: string; p_title: string };
-        Returns: string;
       };
       send_chat_message: {
         Args: {
@@ -56111,10 +56498,7 @@ export type Database = {
         Returns: string;
       };
       set_active_org: { Args: { p_org_id: string }; Returns: undefined };
-      set_automation_enabled: {
-        Args: { p_automation_id: string; p_enabled: boolean };
-        Returns: undefined;
-      };
+      set_auth_factor_label: { Args: { p_factor_id: string; p_label: string }; Returns: undefined };
       set_deliverable_fee: {
         Args: { p_deliverable_id: string; p_fee_minor?: number };
         Returns: string;
@@ -56169,6 +56553,14 @@ export type Database = {
           p_value_boolean?: boolean;
           p_value_integer?: number;
           p_value_text?: string;
+        };
+        Returns: string;
+      };
+      set_shortcut_binding: {
+        Args: {
+          p_keys: string;
+          p_shell: Database["app"]["Enums"]["shortcut_shell"];
+          p_shortcut_id: string;
         };
         Returns: string;
       };
@@ -56336,6 +56728,14 @@ export type Database = {
         };
         Returns: undefined;
       };
+      store_integration_inbound_secret: {
+        Args: { p_connection_id: string; p_secret: string };
+        Returns: undefined;
+      };
+      store_warehouse_credential: {
+        Args: { p_destination_id: string; p_secret: string };
+        Returns: undefined;
+      };
       submit_deliverable: {
         Args: { p_deliverable_id: string; p_document_id: string; p_message: string };
         Returns: string;
@@ -56413,7 +56813,6 @@ export type Database = {
           reset_seconds: number;
         }[];
       };
-      test_automation: { Args: { p_automation_id: string; p_event: Json }; Returns: Json };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };
         Returns: string;
@@ -56814,6 +57213,35 @@ export type Database = {
         }[];
       };
       vote_in_poll: { Args: { p_option_ids: string[]; p_poll_id: string }; Returns: number };
+      warehouse_delivery_columns: {
+        Args: { p_delivery_id: string };
+        Returns: {
+          classification: Database["app"]["Enums"]["data_classification"];
+          column_name: string;
+          data_type: string;
+          delivered: boolean;
+          ordinal: number;
+          table_key: string;
+          withheld_reason: string;
+        }[];
+      };
+      warehouse_published_schema: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          classification: Database["app"]["Enums"]["data_classification"];
+          column_name: string;
+          data_type: string;
+          delivered_by_default: boolean;
+          delivered_with_confidential: boolean;
+          description: string;
+          ordinal: number;
+          table_key: string;
+        }[];
+      };
+      warehouse_table_rows: {
+        Args: { p_after: string; p_delivery_id: string; p_limit: number; p_table_key: string };
+        Returns: Json[];
+      };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
@@ -56895,11 +57323,6 @@ export type Database = {
         | "Lost"
         | "Retired";
       audience_kind: "Organization" | "Project" | "Team" | "Department" | "Role" | "Group";
-      automation_action_type:
-        "create_task" | "update_status" | "assign" | "add_comment" | "notify" | "call_webhook";
-      automation_match: "all" | "any";
-      automation_run_status: "Queued" | "Running" | "Retrying" | "Succeeded" | "Failed" | "Skipped";
-      automation_step_status: "Succeeded" | "Failed" | "Skipped";
       availability_kind: "Available" | "Unavailable" | "Tentative";
       availability_visibility: "Private" | "Shared on Application" | "Public";
       background_check_result: "Pending" | "Clear" | "Consider" | "Suspended" | "Canceled";
@@ -57026,6 +57449,7 @@ export type Database = {
         | "Undone"
         | "Failed"
         | "Canceled";
+      import_suggestion_source: "Profile" | "Playbook" | "Header";
       import_write_action: "Created" | "Updated" | "Merged";
       inbound_purpose: "Project Inbox" | "Reply";
       inbound_status: "Received" | "Verified" | "Filed" | "Rejected";
@@ -57053,6 +57477,9 @@ export type Database = {
         | "Counterparty"
         | "Membership"
         | "Earning Code";
+      integration_inbound_kind: "Link Unfurl" | "Change Notice";
+      integration_inbound_state:
+        "Received" | "Processing" | "Processed" | "Retrying" | "Dead Letter";
       integration_sync_direction: "Inbound" | "Outbound" | "Two Way";
       integration_sync_run_state:
         "Queued" | "Running" | "Succeeded" | "Retrying" | "Failed" | "Canceled";
@@ -57228,6 +57655,7 @@ export type Database = {
       shift_claim_state: "Requested" | "Approved" | "Rejected" | "Withdrawn" | "Superseded";
       shift_state: "Draft" | "Published" | "Accepted" | "Canceled";
       shipment_direction: "Inbound" | "Outbound";
+      shortcut_shell: "Atlas" | "Gateway";
       sms_consent_action: "Opt In" | "Opt Out" | "Help";
       sort_direction: "Ascending" | "Descending";
       spend_document_type:
@@ -57294,6 +57722,10 @@ export type Database = {
         | "Chart"
         | "Feed"
         | "Inbox";
+      warehouse_delivery_state: "Queued" | "Running" | "Delivered" | "Retrying" | "Failed";
+      warehouse_destination_state: "Active" | "Paused";
+      warehouse_file_format: "Parquet" | "CSV";
+      warehouse_provider: "S3" | "Google Cloud Storage" | "Azure Blob" | "BigQuery" | "Snowflake";
       weather_alert_level: "Monitor" | "Restrict" | "Evacuate";
       weather_hazard: "Wind" | "Lightning" | "Heat";
       work_detail_category:
@@ -63282,17 +63714,6 @@ export const Constants = {
         "Retired",
       ],
       audience_kind: ["Organization", "Project", "Team", "Department", "Role", "Group"],
-      automation_action_type: [
-        "create_task",
-        "update_status",
-        "assign",
-        "add_comment",
-        "notify",
-        "call_webhook",
-      ],
-      automation_match: ["all", "any"],
-      automation_run_status: ["Queued", "Running", "Retrying", "Succeeded", "Failed", "Skipped"],
-      automation_step_status: ["Succeeded", "Failed", "Skipped"],
       availability_kind: ["Available", "Unavailable", "Tentative"],
       availability_visibility: ["Private", "Shared on Application", "Public"],
       background_check_result: ["Pending", "Clear", "Consider", "Suspended", "Canceled"],
@@ -63434,6 +63855,7 @@ export const Constants = {
         "Failed",
         "Canceled",
       ],
+      import_suggestion_source: ["Profile", "Playbook", "Header"],
       import_write_action: ["Created", "Updated", "Merged"],
       inbound_purpose: ["Project Inbox", "Reply"],
       inbound_status: ["Received", "Verified", "Filed", "Rejected"],
@@ -63463,6 +63885,8 @@ export const Constants = {
         "Membership",
         "Earning Code",
       ],
+      integration_inbound_kind: ["Link Unfurl", "Change Notice"],
+      integration_inbound_state: ["Received", "Processing", "Processed", "Retrying", "Dead Letter"],
       integration_sync_direction: ["Inbound", "Outbound", "Two Way"],
       integration_sync_run_state: [
         "Queued",
@@ -63670,6 +64094,7 @@ export const Constants = {
       shift_claim_state: ["Requested", "Approved", "Rejected", "Withdrawn", "Superseded"],
       shift_state: ["Draft", "Published", "Accepted", "Canceled"],
       shipment_direction: ["Inbound", "Outbound"],
+      shortcut_shell: ["Atlas", "Gateway"],
       sms_consent_action: ["Opt In", "Opt Out", "Help"],
       sort_direction: ["Ascending", "Descending"],
       spend_document_type: [
@@ -63744,6 +64169,10 @@ export const Constants = {
         "Feed",
         "Inbox",
       ],
+      warehouse_delivery_state: ["Queued", "Running", "Delivered", "Retrying", "Failed"],
+      warehouse_destination_state: ["Active", "Paused"],
+      warehouse_file_format: ["Parquet", "CSV"],
+      warehouse_provider: ["S3", "Google Cloud Storage", "Azure Blob", "BigQuery", "Snowflake"],
       weather_alert_level: ["Monitor", "Restrict", "Evacuate"],
       weather_hazard: ["Wind", "Lightning", "Heat"],
       work_detail_category: [

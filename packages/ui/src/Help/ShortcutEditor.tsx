@@ -7,7 +7,10 @@ import { Keys } from "../Kbd/Kbd.tsx";
 import { ScrollRegion } from "../Layout/Layout.tsx";
 import { type ShortcutEditorProps } from "./Help.types.ts";
 
-/** Every action's shortcut with conflicts named in place; Change records new keys, Reset restores a custom one. */
+/**
+ * Every action's shortcut with conflicts named in place; Change records new keys, Reset restores a
+ * custom one. An action without keys reads Not set.
+ */
 export function ShortcutEditor({
   label,
   rows,
@@ -41,7 +44,11 @@ export function ShortcutEditor({
               <td className={td}>{r.action}</td>
               <td className={td}>
                 <span className="inline-flex flex-wrap items-center gap-8">
-                  <Keys keys={r.keys} />
+                  {r.keys.trim() === "" ? (
+                    <span className="text-text-secondary">{t("shortcutEditor.none")}</span>
+                  ) : (
+                    <Keys keys={r.keys} />
+                  )}
                   {r.conflict ? (
                     <span className="inline-flex items-center gap-4 text-text-12 text-danger-text">
                       <Icon name="alert" size={12} />

@@ -123,6 +123,9 @@ select pg_temp.as_user('xavier');
 select is((select count(*)::integer from app.saved_views), 0, 'no cross-tenant view reads');
 
 -- Feature flags -------------------------------------------------------------------------------------------------------
+-- 1402 (A83) turned imports.ai_mapping on by default; the suite sets its default off to exercise an off flag.
+select pg_temp.as_platform();
+update private.feature_flags set default_enabled = false where flag_key = 'imports.ai_mapping';
 select pg_temp.as_user('alice');
 select is((select enabled from app.org_feature_flags(pg_temp.id('org_a')) where flag_key = 'webhooks.delivery'), true,
   'a plan-gated flag is on for a plan that includes the feature');

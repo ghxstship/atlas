@@ -11,6 +11,7 @@ const DESCRIPTIONS: Readonly<Record<string, string>> = {
   "settings.teams": "settings.descriptions.teams",
   "settings.workspaces": "settings.descriptions.workspaces",
   "settings.access-reviews": "settings.descriptions.accessReviews",
+  "me.calendar-feeds": "settings.descriptions.calendarFeeds",
 };
 
 /** A settings section's title from the sitemap and its one-sentence description from the catalog. */
