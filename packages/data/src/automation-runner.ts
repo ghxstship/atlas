@@ -224,15 +224,24 @@ export interface ApiAnswer {
 
 /** A failed step and what can fix it. */
 export class StepFailure extends Error {
+  readonly kind: Exclude<FinishOutcome, "succeeded">;
+  readonly code: string;
+  readonly httpStatus: number | null;
+  readonly response: unknown;
+
   constructor(
-    readonly kind: Exclude<FinishOutcome, "succeeded">,
-    readonly code: string,
+    kind: Exclude<FinishOutcome, "succeeded">,
+    code: string,
     message: string,
-    readonly httpStatus: number | null = null,
-    readonly response: unknown = null,
+    httpStatus: number | null = null,
+    response: unknown = null,
   ) {
     super(message);
     this.name = "StepFailure";
+    this.kind = kind;
+    this.code = code;
+    this.httpStatus = httpStatus;
+    this.response = response;
   }
 }
 
@@ -321,7 +330,7 @@ function apiCaller(fetcher: FetchLike, baseUrl: string, token: () => Promise<str
         method,
         headers,
         ...(options.body === undefined ? {} : { body: JSON.stringify(options.body) }),
-        signal: AbortSignal.timeout(20_000),
+        signal: AbortSignal.timeout(30_000),
       });
     } catch (error) {
       throw new StepFailure(

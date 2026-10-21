@@ -50676,11 +50676,11 @@ var StepFailure = class extends Error {
   response;
   constructor(kind, code, message, httpStatus = null, response = null) {
     super(message);
+    this.name = "StepFailure";
     this.kind = kind;
     this.code = code;
     this.httpStatus = httpStatus;
     this.response = response;
-    this.name = "StepFailure";
   }
 };
 var RETRYABLE = /* @__PURE__ */ new Set([408, 409, 425, 429]);
@@ -50748,7 +50748,7 @@ function apiCaller(fetcher, baseUrl, token) {
         method,
         headers,
         ...(options.body === void 0 ? {} : { body: JSON.stringify(options.body) }),
-        signal: AbortSignal.timeout(2e4),
+        signal: AbortSignal.timeout(3e4),
       });
     } catch (error) {
       throw new StepFailure(
