@@ -19,10 +19,7 @@
       "delta": -3,
       "flag": true,
       "code": "10",
-      "tags": [
-        "Vendor",
-        "Crew"
-      ],
+      "tags": ["Vendor", "Crew"],
       "nested": {
         "x": {
           "y": "deep"
