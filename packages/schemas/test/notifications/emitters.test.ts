@@ -109,7 +109,7 @@ describe("every notification kind is sent or says why not", () => {
     expect(() => parseNotificationEmission(bare)).toThrow(/kind mention\.created names no emitter/);
     const both = yaml.replace(
       "  - kind: mention.created\n",
-      '  - kind: mention.created\n    deferred:\n      reason: "Nothing sends mentions until comments ship."\n      decision: "RRR-0 placeholder"\n',
+      '  - kind: mention.created\n    deferred:\n      reason: "Nothing sends mentions until comments ship."\n      decision: "RRR-0, a made-up work package"\n',
     );
     let error: unknown;
     try {

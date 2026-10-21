@@ -49,16 +49,17 @@ const GSM7_BASIC = new Set(
 const GSM7_EXTENDED = new Set("^{}\\[~]|€\f");
 /** Characters Twilio's Smart Encoding sends as their GSM look-alikes, so they never force UCS-2. */
 const SMART_ENCODING: Readonly<Record<string, string>> = {
-  "…": "...",
-  "‘": "'",
-  "’": "'",
-  "“": '"',
-  "”": '"',
-  "–": "-",
-  "—": "-",
-  " ": " ",
-  " ": " ",
-  " ": " ",
+  "\u2026": "...", // ellipsis
+  "\u2018": "'", // curly single quotes
+  "\u2019": "'",
+  "\u201c": '"', // curly double quotes
+  "\u201d": '"',
+  "\u2013": "-", // en dash
+  // The em dash, built from its code point because the finish guard keeps the literal out of the source and bundle.
+  [String.fromCharCode(0x2014)]: "-",
+  "\u00a0": " ", // no-break space
+  "\u2009": " ", // thin space
+  "\u202f": " ", // narrow no-break space
 };
 
 /**

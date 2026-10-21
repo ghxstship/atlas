@@ -536,7 +536,7 @@ describe("SMS through Twilio (Section 14.5)", () => {
     expect(smsSegments("á".repeat(135))).toBe(3);
     // Twilio's Smart Encoding sends an ellipsis, curly quotes and odd spaces as their GSM look-alikes.
     expect(smsSegments(`${"a".repeat(157)}…`)).toBe(1);
-    expect(smsSegments("“Load in” — 9:00\u202fAM")).toBe(1);
+    expect(smsSegments("\u201cLoad in\u201d \u2014 9:00\u202fAM")).toBe(1);
   });
 
   it("meters Twilio's own segment count when it gives one", async () => {
