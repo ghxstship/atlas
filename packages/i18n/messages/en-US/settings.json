@@ -132,7 +132,7 @@
     },
     "recordKeyFormat": {
       "label": "Record key format",
-      "help": "Use {PROJECT} and {SEQ}, for example {PROJECT}-{SEQ}."
+      "help": "Use '{PROJECT}' and '{SEQ}', for example '{PROJECT}'-'{SEQ}'."
     },
     "numberPadding": {
       "label": "Number padding",
@@ -455,6 +455,9 @@
     "teams": "Teams group members who share work. Each team lists its members.",
     "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
     "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    "partner": "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
+    "usage": "What the organization uses against its plan: seats, field members, projects and engagements.",
+    "templates": "Templates the organization reuses for projects, documents and packets.",
     "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app."
   },
   "accessControls": {

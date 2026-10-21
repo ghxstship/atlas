@@ -76,3 +76,24 @@ export function matches(q: string | undefined, ...values: (string | null | undef
   const needle = q.trim().toLocaleLowerCase();
   return values.some((v) => v?.toLocaleLowerCase().includes(needle));
 }
+
+const ROW_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+interface KeyedRow {
+  readonly key: string;
+  readonly peek?: string;
+  readonly recordKey?: string;
+  readonly title: string;
+}
+
+/** The key column: the row's human key, else its peek value unless that is a row id (A59-009). */
+export function displayKey(row: KeyedRow): string {
+  if (row.recordKey !== undefined) return row.recordKey;
+  const fallback = row.peek ?? row.key;
+  return ROW_ID.test(fallback) ? "" : fallback;
+}
+
+/** The title with its human key in front, for views without a key column (board, gallery, calendar). */
+export function keyedTitle(row: KeyedRow): string {
+  return row.recordKey ? `${row.recordKey} · ${row.title}` : row.title;
+}

@@ -6,7 +6,9 @@ import type { NotificationKindRegistry } from "./model.ts";
  * has shipped, move it to the next number in the range of the agent changing it, delete the old seed's
  * drift test (the new seed's test replaces it) and keep the old seed as history. Each seed is a complete
  * idempotent upsert, so the latest one decides the rows. 1360 was the first; 1368 adds the quiet-hours
- * bypass list (ADR 0033 decision 35); 1469 adds the marketplace match and the expiry reminders (A89).
+ * bypass list (ADR 0033 decision 35); 1369 adds A79's org lifecycle kinds (A79's range, 1350 to 1359, runs
+ * before 1367, which creates the bypass table this seed fills); 1469 adds A89's marketplace match and expiry
+ * reminders.
  */
 export const NOTIFICATION_KIND_SEED_MIGRATION =
   "supabase/migrations/1469_notification_kind_seed.sql";

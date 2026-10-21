@@ -40,7 +40,8 @@ export default async function DamagePage({
   const rows: CollectionRow[] = visible.map((d) => ({
     key: d.id,
     peek: d.id,
-    title: `${d.assetTag} · ${d.description}`,
+    recordKey: d.assetTag,
+    title: d.description,
     meta: [when(d.reportedAt), d.projectKey].filter(Boolean).join(" · "),
     ...(d.unitState
       ? {
