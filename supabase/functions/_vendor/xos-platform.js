@@ -22,8 +22,63 @@ import {
   render,
 } from "@react-email/components";
 import { Fragment, jsx, jsxs } from "react/jsx-runtime";
+import { Buffer as Buffer$1 } from "node:buffer";
 import "@supabase/supabase-js";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+//#region \0rolldown/runtime.js
+var __create = Object.create;
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getProtoOf = Object.getPrototypeOf;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esmMin = (fn, res, err) => () => {
+  if (err) throw err[0];
+  try {
+    return (fn && (res = fn((fn = 0))), res);
+  } catch (e) {
+    throw ((err = [e]), e);
+  }
+};
+var __commonJSMin = (cb, mod) => () => (
+  mod || (cb((mod = { exports: {} }).exports, mod), (cb = null)),
+  mod.exports
+);
+var __exportAll = (all, no_symbols) => {
+  let target = {};
+  for (var name in all)
+    __defProp(target, name, {
+      get: all[name],
+      enumerable: true,
+    });
+  if (!no_symbols) __defProp(target, Symbol.toStringTag, { value: "Module" });
+  return target;
+};
+var __copyProps = (to, from, except, desc) => {
+  if ((from && typeof from === "object") || typeof from === "function")
+    for (var keys = __getOwnPropNames(from), i = 0, n = keys.length, key; i < n; i++) {
+      key = keys[i];
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, {
+          get: ((k) => from[k]).bind(null, key),
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable,
+        });
+    }
+  return to;
+};
+var __toESM = (mod, isNodeMode, target) => (
+  (target = mod != null ? __create(__getProtoOf(mod)) : {}),
+  __copyProps(
+    isNodeMode || !mod || !mod.__esModule || !__hasOwnProp.call(mod, "default")
+      ? __defProp(target, "default", {
+          value: mod,
+          enumerable: true,
+        })
+      : target,
+    mod,
+  )
+);
+//#endregion
 //#region ../schemas/plans.yaml?raw
 var plans_default =
   "# XOS plans, limits, features and price books (Section 16, Section 3.15, ADR 0008).\n#\n# This file is the single source of every plan. The generator in src/plans emits the plan\n# current plan seed migration (see PLAN_SEED_MIGRATION in src/plans/sql.ts) from it; the pricing\n# page, Stripe products and private.org_plan_limits read the same data.\n#\n# Rules the validator enforces:\n#   - limits and features list exactly the values of the Postgres enums\n#     app.plan_limit_code and app.plan_feature_code, in enum order.\n#   - plans are listed from the free plan upward; that order is the sort order.\n#   - every plan states every limit. A null limit means unlimited.\n#   - a plan lists only the features it adds; it includes every feature of the plan it extends,\n#     so features only accumulate upward, and no plan allows less of a limit than the plan below.\n#   - every plan prices every currency. A null amount is unpriced (Section 3.7), never zero;\n#     only a free plan carries a price of 0.\n#   - every paid plan names its Stripe product and its monthly and annual price by lookup key;\n#     the free plan has none. Lookup keys, not ids, so test and live mode share this file.\n#     A price lookup key is the Stripe price's lookup_key; a product key is the product's\n#     metadata.lookup_key, because Stripe products have no native lookup key.\n#\n#   - a plan with a quote is sold by contract only (Enterprise): its list prices are null, it has no\n#     Stripe prices and no extra seats, and quote.from_monthly_minor is a display price only.\n#   - annual prices are annual_multiplier times monthly, for plans, extra seats and nothing else.\n#   - a plan with a seat limit above the free plan sells extra seats (extra_seat), priced per seat in\n#     every currency with its own Stripe price lookup keys on the shared extra-seat product.\n#   - an add-on is a one-time purchase that raises one limit for the calendar month it is bought in,\n#     on the plans it lists, which must have a finite limit for it.\n#   - every Stripe lookup key, coupon id and promotion code is unique.\n#\n# Pricing v4 (owner, 2026-10-19; ADR 0035): seat-based plans with a seat allowance, extra seats per\n# month, unlimited projects and field crew on paid plans, local-currency price books, Aurora request\n# packs, a founding-customer coupon and a 30 percent partner wholesale discount. Stripe lookup keys\n# are the v4 catalogue that `pnpm --filter @xos/platform stripe:setup` creates in test mode. The v3\n# catalogue (atlvs_*) stays in Stripe as history. Per-project pricing stays dropped (ADR 0018).\n#\n# Packaging (ADR 0020): every plan includes Atlas and Compass, and Gateway for the parties an org\n# engages. Access is Atlas Lite (1 seat, 1 project). Tiers differ by Gateway reach (public\n# marketplace and white label from Pro), by the monthly Aurora AI allowance, and by Legend, which\n# Enterprise receives as early access. Workers and other external users are free on every plan.\n\nversion: 1\n\nlimits:\n  - seats\n  - active_projects\n  - field_members\n  - active_external_engagements_per_month\n  - aurora_requests_per_month\n\nfeatures:\n  - approvals\n  - advancing\n  - procurement\n  - upl_export\n  - white_label\n  - custom_domain\n  - automations\n  - api_keys\n  - webhooks\n  - public_marketplace_listings\n  - custom_roles\n  - ip_allowlist\n  - audit_export\n  - payroll_export\n  - priority_support\n  - saml_sso\n  - scim\n  - eu_data_residency\n  - branded_compass_build\n  - sla_credits\n  - support_session_controls\n  - aurora_ai\n  - legend_early_access\n\ncurrencies: [USD, EUR, GBP, CAD, AUD]\n\n# Annual billing gives two months free.\nannual_multiplier: 10\n\n# The Stripe product every extra-seat price belongs to.\nextra_seat_product_lookup_key: xos_extra_seat_v4\n\n# Partner wholesale (Section 4.6.1): client orgs billed to a partner cost the partner list price less\n# this discount. It is the default of app.partner_agreements.wholesale_discount_bps.\npartner_wholesale_discount_bps: 3000\n\nplans:\n  - code: access\n    free: true\n    limits:\n      seats: 1\n      active_projects: 1\n      field_members: 10\n      active_external_engagements_per_month: 25\n      aurora_requests_per_month: 0\n    features: []\n    prices:\n      USD: { monthly_minor: 0, annual_minor: 0 }\n      EUR: { monthly_minor: 0, annual_minor: 0 }\n      GBP: { monthly_minor: 0, annual_minor: 0 }\n      CAD: { monthly_minor: 0, annual_minor: 0 }\n      AUD: { monthly_minor: 0, annual_minor: 0 }\n\n  - code: core\n    extends: access\n    limits:\n      seats: 5\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 250\n      aurora_requests_per_month: 500\n    features: [approvals, advancing, procurement, upl_export, aurora_ai]\n    prices:\n      USD: { monthly_minor: 14900, annual_minor: 149000 }\n      EUR: { monthly_minor: 13900, annual_minor: 139000 }\n      GBP: { monthly_minor: 11900, annual_minor: 119000 }\n      CAD: { monthly_minor: 19900, annual_minor: 199000 }\n      AUD: { monthly_minor: 22900, annual_minor: 229000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1900, annual_minor: 19000 }\n        EUR: { monthly_minor: 1800, annual_minor: 18000 }\n        GBP: { monthly_minor: 1500, annual_minor: 15000 }\n        CAD: { monthly_minor: 2600, annual_minor: 26000 }\n        AUD: { monthly_minor: 2900, annual_minor: 29000 }\n      stripe:\n        monthly: xos_seat_core_monthly_v4\n        annual: xos_seat_core_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_core_v4\n      prices:\n        monthly: xos_plan_core_monthly_v4\n        annual: xos_plan_core_annual_v4\n\n  - code: pro\n    extends: core\n    limits:\n      seats: 15\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: 2500\n      aurora_requests_per_month: 2000\n    features:\n      [white_label, custom_domain, automations, api_keys, webhooks, public_marketplace_listings]\n    prices:\n      USD: { monthly_minor: 39900, annual_minor: 399000 }\n      EUR: { monthly_minor: 36900, annual_minor: 369000 }\n      GBP: { monthly_minor: 31900, annual_minor: 319000 }\n      CAD: { monthly_minor: 54900, annual_minor: 549000 }\n      AUD: { monthly_minor: 60900, annual_minor: 609000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1900, annual_minor: 19000 }\n        EUR: { monthly_minor: 1800, annual_minor: 18000 }\n        GBP: { monthly_minor: 1500, annual_minor: 15000 }\n        CAD: { monthly_minor: 2600, annual_minor: 26000 }\n        AUD: { monthly_minor: 2900, annual_minor: 29000 }\n      stripe:\n        monthly: xos_seat_pro_monthly_v4\n        annual: xos_seat_pro_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_pro_v4\n      prices:\n        monthly: xos_plan_pro_monthly_v4\n        annual: xos_plan_pro_annual_v4\n\n  - code: team\n    extends: pro\n    limits:\n      seats: 40\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: 10000\n    features: [custom_roles, ip_allowlist, audit_export, payroll_export, priority_support]\n    prices:\n      USD: { monthly_minor: 89900, annual_minor: 899000 }\n      EUR: { monthly_minor: 82900, annual_minor: 829000 }\n      GBP: { monthly_minor: 71900, annual_minor: 719000 }\n      CAD: { monthly_minor: 122900, annual_minor: 1229000 }\n      AUD: { monthly_minor: 136900, annual_minor: 1369000 }\n    extra_seat:\n      prices:\n        USD: { monthly_minor: 1500, annual_minor: 15000 }\n        EUR: { monthly_minor: 1400, annual_minor: 14000 }\n        GBP: { monthly_minor: 1200, annual_minor: 12000 }\n        CAD: { monthly_minor: 2100, annual_minor: 21000 }\n        AUD: { monthly_minor: 2300, annual_minor: 23000 }\n      stripe:\n        monthly: xos_seat_team_monthly_v4\n        annual: xos_seat_team_annual_v4\n    stripe:\n      product_lookup_key: xos_plan_team_v4\n      prices:\n        monthly: xos_plan_team_monthly_v4\n        annual: xos_plan_team_annual_v4\n\n  - code: enterprise\n    extends: team\n    limits:\n      seats: null\n      active_projects: null\n      field_members: null\n      active_external_engagements_per_month: null\n      aurora_requests_per_month: null\n    features:\n      [\n        saml_sso,\n        scim,\n        eu_data_residency,\n        branded_compass_build,\n        sla_credits,\n        support_session_controls,\n        legend_early_access,\n      ]\n    prices:\n      USD: { monthly_minor: null, annual_minor: null }\n      EUR: { monthly_minor: null, annual_minor: null }\n      GBP: { monthly_minor: null, annual_minor: null }\n      CAD: { monthly_minor: null, annual_minor: null }\n      AUD: { monthly_minor: null, annual_minor: null }\n    quote:\n      contract: annual\n      from_monthly_minor: { USD: 250000, EUR: null, GBP: null, CAD: null, AUD: null }\n\naddons:\n  - code: aurora_requests_1000\n    adds: { limit: aurora_requests_per_month, amount: 1000 }\n    plans: [core, pro, team]\n    prices: { USD: 4900, EUR: 4500, GBP: 3900, CAD: 6700, AUD: 7500 }\n    stripe:\n      product_lookup_key: xos_addon_aurora_requests_1000_v4\n      price: xos_addon_aurora_requests_1000_once_v4\n\noffers:\n  - code: founding_customer\n    percent_off: 30\n    duration_months: 12\n    max_redemptions: 50\n    plans: [core, pro, team]\n    stripe:\n      coupon_id: xos_founding_customer_v4\n      promotion_code: FOUNDING30\n";
@@ -549,6 +604,15 @@ async function resolvePriceId(stripe, lookupKey) {
   if (price === void 0) throw new PriceNotFoundError(lookupKey);
   return price.id;
 }
+/** Stripe needs a Checkout trial to end at least 48 hours ahead; a shorter remainder is not carried over. */
+var MIN_STRIPE_TRIAL_MS = 1728e5;
+/** The Stripe trial_end (Unix seconds) for the rest of an XOS trial, or undefined when none is left to carry. */
+function stripeTrialEnd(trialEnd, now = /* @__PURE__ */ new Date()) {
+  if (trialEnd === void 0) return void 0;
+  const end = Date.parse(trialEnd);
+  if (Number.isNaN(end) || end - now.getTime() < 1728e5) return void 0;
+  return Math.floor(end / 1e3);
+}
 function customerFields(request) {
   if (request.customerId !== void 0) return { customer: request.customerId };
   if (request.customerEmail !== void 0) return { customer_email: request.customerEmail };
@@ -572,6 +636,7 @@ async function createCheckoutSession(stripe, registry, request) {
       quantity: 1,
     },
   ];
+  const trialEnd = stripeTrialEnd(request.trialEnd, request.now);
   if (extraSeats > 0) {
     const seatPrice = await resolvePriceId(
       stripe,
@@ -587,7 +652,10 @@ async function createCheckoutSession(stripe, registry, request) {
     line_items: lineItems,
     client_reference_id: request.orgId,
     metadata: { org_id: request.orgId },
-    subscription_data: { metadata: { org_id: request.orgId } },
+    subscription_data: {
+      metadata: { org_id: request.orgId },
+      ...(trialEnd === void 0 ? {} : { trial_end: trialEnd }),
+    },
     allow_promotion_codes: true,
     automatic_tax: { enabled: true },
     tax_id_collection: { enabled: true },
@@ -4713,6 +4781,7 @@ var documents_default$1 = {
     "incident-report": "Incident report",
     "final-cost-report": "Final cost report",
     "agreement-certificate": "Signature certificate",
+    "deletion-certificate": "Deletion certificate",
   },
   facts: {
     recordKey: "Record key",
@@ -4950,6 +5019,36 @@ var documents_default$1 = {
       Canceled: "Canceled",
     },
   },
+  deletionCertificate: {
+    title: "Deletion certificate: {org}",
+    issuer: "XOS",
+    key: "Certificate",
+    qrAlt: "QR code that opens your deletion certificates in Atlas, certificate {key}",
+    statement:
+      "This certifies that every record and stored file of {org} was deleted from XOS on {date}.",
+    organization: "Organization",
+    orgName: "Name",
+    orgSlug: "Web address",
+    orgId: "Organization id",
+    issuedTo: "Issued to",
+    formerOwner: "The former Owner",
+    timeline: "Timeline",
+    canceled: "Canceled",
+    requestedDeletion: "Deletion requested",
+    due: "Due for deletion",
+    deleted: "Deleted",
+    whatWasDeleted: "What was deleted",
+    what: "What",
+    count: "Count",
+    rows: "Records",
+    tables: "Kinds of record",
+    files: "Stored files",
+    nothing: "Nothing was stored.",
+    backupsTitle: "Backups",
+    backups:
+      "Encrypted backups made before the deletion age out on their own schedule. They are kept only for disaster recovery and are not used to restore a deleted organization.",
+    keep: "Keep this certificate for your records. Its id is {id}.",
+  },
 };
 var email_default$1 = {
   common: {
@@ -5059,6 +5158,14 @@ var email_default$1 = {
         subject: "Your organization is read-only",
         body: "Your payment is overdue, so your organization is read-only until the payment method is updated. No data has been deleted.",
       },
+      trial_ending: {
+        subject: "Your Pro trial ends {days, plural, one {tomorrow} other {in # days}}",
+        body: "Add a card in Billing and plan to keep Pro. Your card is charged only when the trial ends. Without one, the organization moves to the Access plan: Pro features such as white label and custom domains stop, and no data is deleted.",
+      },
+      trial_ended: {
+        subject: "Your Pro trial has ended",
+        body: "Your organization is now on the Access plan. No data was deleted. Add a card in Billing and plan whenever you want Pro back.",
+      },
     },
     message: {
       received: {
@@ -5120,6 +5227,42 @@ var email_default$1 = {
         body: "{actorName} took emergency full access to {orgName} for one hour. Reason: {reason}",
       },
     },
+    organization: {
+      deletion_requested: {
+        subject: "Your organization will be deleted",
+        body: "An Owner asked to delete the organization. It is read-only now and is deleted after {recover_until, date, long}. Until then, any Owner can recover it in Settings, Danger zone.",
+      },
+      deletion_recovered: {
+        subject: "Your organization was recovered",
+        body: "An Owner recovered the organization, so it will not be deleted. It can be used again.",
+      },
+      ownership_offered: {
+        subject: "{actorName} offered you ownership of the organization",
+        body: "Open the organization in Atlas to accept or decline before {expires_at, date, long}. Accepting asks for your second factor.",
+      },
+      ownership_accepted: {
+        subject: "Ownership of the organization was accepted",
+        body: "{actorName} accepted your offer and is now the Owner.",
+      },
+      ownership_declined: {
+        subject: "Your ownership offer was declined",
+        body: "{actorName} declined to become the Owner. You are still the Owner.",
+      },
+      white_label_reverting: {
+        subject: "White label ends on {until, date, long}",
+        body: "The plan no longer includes white label. Your brand without the XOS name and your custom domains stay until {until, date, long}, the end of the period you paid for. Then the default branding returns.",
+      },
+      white_label_reverted: {
+        subject: "White label has ended",
+        body: "The plan no longer includes white label, so the default branding is back and custom domains no longer show your brand. Move to Pro or above to bring it back.",
+      },
+    },
+    partner: {
+      client_left: {
+        subject: "{org} left your partner account",
+        body: "{org} is now a direct customer. Your support sessions and standing grants for it have ended, and it no longer appears on your wholesale statements.",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -5166,6 +5309,10 @@ var email_default$1 = {
       "You will get XOS notifications by text again. Message frequency varies. Message and data rates may apply. Reply HELP for help, STOP to opt out.",
     summary:
       "{orgName}: {count, plural, one {# update} other {# updates}} came in during your quiet hours. Most important: {body} {url} Reply STOP to opt out.",
+  },
+  deletionCertificate: {
+    subject: "Deletion certificate for {org}",
+    body: "The data of {org} was deleted from XOS on {date}, as the organization's lifecycle set out.\n\nYour deletion certificate is attached. Its id is {id}. You can also download it from Atlas while you have an account.\n\nEncrypted backups made before the deletion age out on their own schedule.",
   },
 };
 var finance_default$1 = {
@@ -9920,6 +10067,193 @@ var opportunities_default$1 = {
     },
   },
 };
+var orgLifecycle_default$1 = {
+  refusedTitle: "Not done",
+  refusals: {
+    step_up_required: "Confirm it is you with your second factor, then try again.",
+    step_up_session_only: "Do this in Atlas while signed in, not with an API key.",
+    org_name_mismatch: "Type the organization's name exactly as shown to confirm.",
+    org_deletion_pending: "This organization is already waiting to be deleted.",
+    org_deletion_reason: "Say why the organization is deleted, in up to 1,000 characters.",
+    org_delete_has_clients:
+      "A partner with client organizations cannot be deleted. Move each client to direct billing first.",
+    org_deletion_legal_hold:
+      "This organization is under a legal hold and cannot be deleted until the hold is released.",
+    org_deletion_not_pending: "This organization is not waiting to be deleted.",
+    org_deletion_window: "The 7 days to recover the organization have passed.",
+    ownership_transfer_outcome: "Choose whether you become an Admin or leave the organization.",
+    ownership_transfer_self: "Offer the organization to another member.",
+    ownership_transfer_not_member: "Ownership goes only to an active member of the organization.",
+    ownership_transfer_already_owner: "That member is already an Owner.",
+    ownership_transfer_open:
+      "An ownership offer is already open. Withdraw it before making another.",
+    ownership_transfer_closed: "This offer was already answered or withdrawn.",
+    ownership_transfer_expired: "This offer has lapsed. Ask the Owner for a new one.",
+    ownership_transfer_stale: "The member who made this offer is no longer the Owner.",
+    standing_grant_scope:
+      "Choose one read-only area. Partner staff never change anything through a grant.",
+    standing_grant_expiry: "A standing grant ends within a year.",
+    standing_grant_reference: "Name the clause of the partner agreement, in up to 300 characters.",
+    standing_grant_no_partner:
+      "Only a client organization records a standing grant for its partner.",
+    standing_grant_ended: "This standing grant has already ended.",
+    leave_partner_no_partner: "This organization is already a direct customer.",
+    org_read_only: "This organization is read-only, so this cannot change now.",
+    domain_not_provisioned: "Verified domains are checked by their TXT record.",
+    seat_limit_reached:
+      "All seats are in use. Buy extra seats in Billing and plan, or upgrade the plan.",
+    seat_limit_upgrade: "All seats are in use. Upgrade the plan to add seats.",
+    other: "The organization's rules refused this change.",
+  },
+  errors: {
+    input: "Check the highlighted fields and try again.",
+    notFound: "That was not found, or you no longer have access to it.",
+    conflict: "Someone changed this at the same time. Refresh the page and try again.",
+    invalid: "One of the values is not accepted.",
+    unexpected: "Something went wrong. Try again in a moment.",
+  },
+  banners: {
+    trial:
+      "{days, plural, =0 {Your Pro trial ends today.} one {# day left in your Pro trial.} other {# days left in your Pro trial.}} Add a card to keep Pro. Otherwise {org} moves to the Access plan on {date}, and no data is deleted.",
+    trialAction: "Add a card",
+    deletion:
+      "This organization will be deleted after {date}. It is read-only until then. An Owner can recover it in Settings, Danger zone.",
+    deletionAction: "Recover the organization",
+    pastDue:
+      "A payment failed {days, plural, =0 {today} one {# day ago} other {# days ago}}. Update the payment method by {date} to keep full access.",
+    readOnly:
+      "This organization is read-only because a payment is overdue. Update the payment method to restore full access. No data has been deleted.",
+    billingAction: "Update the payment method",
+    askOwner: "Ask an Owner to update the payment method.",
+    whiteLabel:
+      "White label stays until {date}, the end of the period you paid for. Then the default branding returns.",
+    whiteLabelAction: "Compare plans",
+    ownership:
+      "{name} offered you ownership of {org}, until {date}. Accepting asks for your second factor.",
+    ownershipAccept: "Accept ownership",
+    ownershipDecline: "Decline",
+    ownershipDeclined: "You declined the offer.",
+  },
+  deletion: {
+    title: "Delete the organization",
+    description:
+      "Deleting is separate from canceling. The organization becomes read-only at once and its data is deleted after 7 days, with no 30-day export window. Any Owner can recover it during those 7 days. You confirm with your second factor.",
+    ownerOnly: "Only the Owner deletes the organization.",
+    confirm: "Type {name} to confirm deletion",
+    reason: "Why are you deleting it?",
+    reasonHelp: "Kept with the deletion record.",
+    submit: "Delete the organization",
+    pending: "Waiting to be deleted",
+    pendingBody:
+      "The organization is read-only. Its data is deleted after {date}, and the Owner receives a deletion certificate.",
+    recover: "Recover the organization",
+    recovered: "The organization was recovered.",
+  },
+  transfer: {
+    title: "Transfer ownership",
+    description:
+      "Offer the organization to another member. They accept with their second factor within 7 days, and you stay the Owner until then. You confirm the offer with your second factor.",
+    ownerOnly: "Only the Owner transfers ownership.",
+    member: "New Owner",
+    noMembers:
+      "Invite the person first. Ownership goes only to an active member who is not an Owner yet.",
+    outcome: "After the transfer",
+    outcomeAdmin: "I become an Admin",
+    outcomeLeave: "I leave the organization",
+    submit: "Offer ownership",
+    offered: "Ownership offered. They have 7 days to accept.",
+    open: "Offered to {name} until {date}. You stay the Owner until they accept.",
+    cancel: "Withdraw the offer",
+  },
+  partner: {
+    leaveTitle: "Leave {partner}",
+    leaveDescription:
+      "{org} becomes a direct customer. Its data, members and brand stay as they are. The support sessions and standing grants of {partner} end, and billing moves to {org}: the {plan} plan continues for 14 days and stays once you add a card.",
+    leaveConfirm: "Type {name} to confirm",
+    leaveSubmit: "Leave {partner}",
+    ownerOnly: "Only the Owner moves the organization off its partner.",
+    grantsTitle: "Standing partner grants",
+    grantsDescription:
+      "Access your agreement with {partner} provides: one read-only area each, ending within a year. Partner staff never change anything through a grant, and every grant is in the audit log.",
+    grantsNone: "No standing grants.",
+    grantScope: "Area",
+    grantUntil: "Ends on",
+    grantReference: "Agreement clause",
+    grantReferenceHelp: "For example: Partner agreement, clause 7.2.",
+    grantSubmit: "Record the grant",
+    granted: "Standing grant recorded.",
+    grantList: "Standing grants",
+    grantRow: "{scope} until {date}. {reference}",
+    grantEnded: "Ended",
+    grantEnd: "End now",
+    yourPartner: "your partner",
+    scopes: {
+      org_settings_read: "Organization settings",
+      org_members_read: "Members",
+      org_usage_read: "Plan usage",
+      projects_project_read: "Projects",
+      work_record_read: "Records and tasks",
+      schedule_timeline_read: "Schedule",
+      finance_budget_read: "Budgets",
+      reports_report_read: "Reports",
+    },
+  },
+  domains: {
+    title: "Domain setup",
+    description:
+      "Custom Atlas and Gateway domains go live through Vercel, which checks your DNS and issues the TLS certificate. Sending domains are verified by Resend with SPF and DKIM; publish the DMARC record as well.",
+    none: "Add a custom domain above to set it up here.",
+    status: {
+      "Not Started": "Waiting to start",
+      Requested: "Requested",
+      "Pending DNS": "Waiting for DNS",
+      Active: "Live",
+      Failed: "Not set up",
+      Released: "Removed",
+    },
+    tls: "TLS certificate ready",
+    tlsPending: "TLS certificate not issued yet",
+    records: "DNS records to publish for {host}",
+    type: "Type",
+    name: "Name",
+    value: "Value",
+    purpose: "For",
+    purposes: {
+      routing: "Routing",
+      verification: "Verification",
+      spf: "SPF",
+      dkim: "DKIM",
+      dmarc: "DMARC",
+      receiving: "Bounces",
+    },
+    check: "Check again",
+    checked: "Check requested. It can take a few minutes.",
+    error: "Last try: {reason}",
+  },
+  certificates: {
+    title: "Deletion certificates",
+    description:
+      "Certificates for organizations you owned whose data was deleted. Each one was also emailed to you.",
+    row: "{org}: deleted on {date}, {rows} records and {files} stored files",
+    download: "Download the certificate for {org}",
+    preparing: "{org}: deleted on {date}. The certificate is being prepared.",
+  },
+  billing: {
+    trialTitle: "Pro trial",
+    trialBody:
+      "{org} is on a 14-day Pro trial until {date}, with no card. Add a card to stay on Pro. Otherwise it moves to the Access plan, and no data is deleted.",
+    pastDueTitle: "Payment overdue",
+    pastDueBody:
+      "A payment failed on {since}. Update the payment method by {date} to keep full access.",
+    readOnlyTitle: "Read-only for non-payment",
+    readOnlyBody:
+      "A payment failed on {since}, and the organization became read-only on {date}. Update the payment method to restore full access. No data has been deleted.",
+    updatePayment: "Update the payment method",
+    notConnected:
+      "Online payment is not connected yet. Contact support to add a card or update the payment method.",
+  },
+  home: { trial: "{org} is on a Pro trial until {date}." },
+};
 var payouts_default$1 = {
   invoice: {
     detail: "{count, plural, one {Show # line} other {Show # lines}}",
@@ -10928,7 +11262,7 @@ var platform_default$1 = {
     org_reactivation_window:
       "An organization can be reactivated during the 30 days after it was canceled.",
     org_read_only:
-      "This organization is canceled and read-only. The Owner can reactivate it in Settings, Danger zone.",
+      "This organization is read-only right now. The banner at the top of the page says why and what lifts it.",
     inbox_action_unknown: "An Inbox item is approved, rejected or marked Done.",
     inbox_action_not_offered: "Only an approval request is approved or rejected from the Inbox.",
     inbox_snooze_window: "Snooze an item for up to 30 days.",
@@ -11439,6 +11773,8 @@ var platform_default$1 = {
       billing: {
         payment_failed: "Payment failed",
         read_only: "Organization is read-only",
+        trial_ending: "Trial ending soon",
+        trial_ended: "Trial ended",
       },
       comment: { created: "New comment" },
       event: { invited: "Event invitation" },
@@ -11455,6 +11791,16 @@ var platform_default$1 = {
       mention: { created: "You were mentioned" },
       message: { received: "New message" },
       occupancy: { threshold: "Occupancy threshold reached" },
+      organization: {
+        deletion_requested: "Organization deletion requested",
+        deletion_recovered: "Organization recovered",
+        ownership_offered: "Ownership offered",
+        ownership_accepted: "Ownership accepted",
+        ownership_declined: "Ownership declined",
+        white_label_reverting: "White label ending",
+        white_label_reverted: "White label ended",
+      },
+      partner: { client_left: "Client organization left" },
       recognition: { received: "Recognition received" },
       report: { delivered: "Report delivered" },
       shift: {
@@ -22202,6 +22548,7 @@ var documents_default = {
     "incident-report": "Informe de incidente",
     "final-cost-report": "Informe de costo final",
     "agreement-certificate": "Certificado de firma",
+    "deletion-certificate": "Certificado de eliminación",
   },
   facts: {
     recordKey: "Clave del registro",
@@ -22440,6 +22787,36 @@ var documents_default = {
       Canceled: "Cancelado",
     },
   },
+  deletionCertificate: {
+    title: "Certificado de eliminación: {org}",
+    issuer: "XOS",
+    key: "Certificado",
+    qrAlt: "Código QR que abre sus certificados de eliminación en Atlas, certificado {key}",
+    statement:
+      "Este certificado confirma que todos los registros y archivos almacenados de {org} se eliminaron de XOS el {date}.",
+    organization: "Organización",
+    orgName: "Nombre",
+    orgSlug: "Dirección web",
+    orgId: "Id de la organización",
+    issuedTo: "Emitido a",
+    formerOwner: "El antiguo Propietario",
+    timeline: "Cronología",
+    canceled: "Cancelada",
+    requestedDeletion: "Eliminación solicitada",
+    due: "Fecha prevista de eliminación",
+    deleted: "Eliminada",
+    whatWasDeleted: "Qué se eliminó",
+    what: "Qué",
+    count: "Cantidad",
+    rows: "Registros",
+    tables: "Tipos de registro",
+    files: "Archivos almacenados",
+    nothing: "No había nada almacenado.",
+    backupsTitle: "Copias de seguridad",
+    backups:
+      "Las copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario. Solo se conservan para recuperación ante desastres y no se usan para restaurar una organización eliminada.",
+    keep: "Conserve este certificado en sus archivos. Su id es {id}.",
+  },
 };
 var email_default = {
   common: {
@@ -22549,6 +22926,14 @@ var email_default = {
         subject: "Tu organización está en modo de solo lectura",
         body: "Tu pago está vencido, así que tu organización queda en modo de solo lectura hasta que actualices el método de pago. No se eliminó ningún dato.",
       },
+      trial_ending: {
+        subject: "Su prueba de Pro termina {days, plural, one {mañana} other {en # días}}",
+        body: "Agregue una tarjeta en Facturación y plan para conservar Pro. La tarjeta se cobra solo cuando termina la prueba. Sin ella, la organización pasa al plan Access: dejan de funcionar las funciones de Pro, como la marca blanca y los dominios propios, y no se elimina ningún dato.",
+      },
+      trial_ended: {
+        subject: "Su prueba de Pro terminó",
+        body: "Su organización ahora está en el plan Access. No se eliminó ningún dato. Agregue una tarjeta en Facturación y plan cuando quiera volver a Pro.",
+      },
     },
     message: {
       received: {
@@ -22610,6 +22995,42 @@ var email_default = {
         body: "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}",
       },
     },
+    organization: {
+      deletion_requested: {
+        subject: "Su organización se eliminará",
+        body: "Un Propietario pidió eliminar la organización. Ahora es de solo lectura y se elimina después del {recover_until, date, long}. Hasta entonces, cualquier Propietario puede recuperarla en Configuración, Zona de peligro.",
+      },
+      deletion_recovered: {
+        subject: "Su organización se recuperó",
+        body: "Un Propietario recuperó la organización, así que no se eliminará. Se puede volver a usar.",
+      },
+      ownership_offered: {
+        subject: "{actorName} le ofreció la propiedad de la organización",
+        body: "Abra la organización en Atlas para aceptar o rechazar antes del {expires_at, date, long}. Para aceptar se le pedirá su segundo factor.",
+      },
+      ownership_accepted: {
+        subject: "Se aceptó la propiedad de la organización",
+        body: "{actorName} aceptó su oferta y ahora es el Propietario.",
+      },
+      ownership_declined: {
+        subject: "Se rechazó su oferta de propiedad",
+        body: "{actorName} no aceptó ser el Propietario. Usted sigue siendo el Propietario.",
+      },
+      white_label_reverting: {
+        subject: "La marca blanca termina el {until, date, long}",
+        body: "El plan ya no incluye marca blanca. Su marca sin el nombre XOS y sus dominios propios se mantienen hasta el {until, date, long}, el fin del período que pagó. Después vuelve la marca predeterminada.",
+      },
+      white_label_reverted: {
+        subject: "La marca blanca terminó",
+        body: "El plan ya no incluye marca blanca, así que volvió la marca predeterminada y los dominios propios ya no muestran su marca. Pase a Pro o superior para recuperarla.",
+      },
+    },
+    partner: {
+      client_left: {
+        subject: "{org} dejó su cuenta de socio",
+        body: "{org} ahora es un cliente directo. Sus sesiones de soporte y permisos permanentes para esa organización terminaron, y ya no aparece en sus estados mayoristas.",
+      },
+    },
   },
   notification: { heading: "{subject}" },
   digest: {
@@ -22656,6 +23077,10 @@ var email_default = {
       "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar.",
     summary:
       "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Lo más importante: {body} {url} Responde STOP para cancelar.",
+  },
+  deletionCertificate: {
+    subject: "Certificado de eliminación de {org}",
+    body: "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario.",
   },
 };
 var finance_default = {
@@ -27381,6 +27806,196 @@ var opportunities_default = {
     },
   },
 };
+var orgLifecycle_default = {
+  refusedTitle: "No se hizo",
+  refusals: {
+    step_up_required: "Confirme que es usted con su segundo factor y vuelva a intentarlo.",
+    step_up_session_only: "Haga esto en Atlas con la sesión iniciada, no con una clave de API.",
+    org_name_mismatch:
+      "Escriba el nombre de la organización exactamente como se muestra para confirmar.",
+    org_deletion_pending: "Esta organización ya está a la espera de eliminarse.",
+    org_deletion_reason: "Indique por qué se elimina la organización, en hasta 1000 caracteres.",
+    org_delete_has_clients:
+      "Un socio con organizaciones cliente no se puede eliminar. Primero pase cada cliente a facturación directa.",
+    org_deletion_legal_hold:
+      "Esta organización tiene una retención legal y no se puede eliminar hasta que se levante.",
+    org_deletion_not_pending: "Esta organización no está a la espera de eliminarse.",
+    org_deletion_window: "Ya pasaron los 7 días para recuperar la organización.",
+    ownership_transfer_outcome: "Elija si pasa a ser Administrador o deja la organización.",
+    ownership_transfer_self: "Ofrezca la organización a otro miembro.",
+    ownership_transfer_not_member:
+      "La propiedad solo se transfiere a un miembro activo de la organización.",
+    ownership_transfer_already_owner: "Ese miembro ya es Propietario.",
+    ownership_transfer_open:
+      "Ya hay una oferta de propiedad abierta. Retírela antes de hacer otra.",
+    ownership_transfer_closed: "Esta oferta ya se respondió o se retiró.",
+    ownership_transfer_expired: "Esta oferta venció. Pida al Propietario una nueva.",
+    ownership_transfer_stale: "El miembro que hizo esta oferta ya no es el Propietario.",
+    standing_grant_scope:
+      "Elija un área de solo lectura. El personal del socio nunca cambia nada con un permiso.",
+    standing_grant_expiry: "Un permiso permanente termina en menos de un año.",
+    standing_grant_reference:
+      "Indique la cláusula del acuerdo con el socio, en hasta 300 caracteres.",
+    standing_grant_no_partner:
+      "Solo una organización cliente registra un permiso permanente para su socio.",
+    standing_grant_ended: "Este permiso permanente ya terminó.",
+    leave_partner_no_partner: "Esta organización ya es un cliente directo.",
+    org_read_only: "Esta organización está en solo lectura, así que esto no puede cambiar ahora.",
+    domain_not_provisioned: "Los dominios verificados se comprueban con su registro TXT.",
+    seat_limit_reached:
+      "Todos los puestos están en uso. Compre puestos adicionales en Facturación y plan o mejore el plan.",
+    seat_limit_upgrade: "Todos los puestos están en uso. Mejore el plan para agregar puestos.",
+    other: "Las reglas de la organización rechazaron este cambio.",
+  },
+  errors: {
+    input: "Revise los campos marcados y vuelva a intentarlo.",
+    notFound: "No se encontró, o ya no tiene acceso.",
+    conflict: "Alguien cambió esto al mismo tiempo. Actualice la página y vuelva a intentarlo.",
+    invalid: "Uno de los valores no se acepta.",
+    unexpected: "Algo salió mal. Vuelva a intentarlo en un momento.",
+  },
+  banners: {
+    trial:
+      "{days, plural, =0 {Su prueba de Pro termina hoy.} one {Queda # día de su prueba de Pro.} other {Quedan # días de su prueba de Pro.}} Agregue una tarjeta para conservar Pro. Si no, {org} pasa al plan Access el {date} y no se elimina ningún dato.",
+    trialAction: "Agregar una tarjeta",
+    deletion:
+      "Esta organización se eliminará después del {date}. Está en solo lectura hasta entonces. Un Propietario puede recuperarla en Configuración, Zona de peligro.",
+    deletionAction: "Recuperar la organización",
+    pastDue:
+      "Un pago falló {days, plural, =0 {hoy} one {hace # día} other {hace # días}}. Actualice el método de pago antes del {date} para conservar el acceso completo.",
+    readOnly:
+      "Esta organización está en solo lectura porque hay un pago vencido. Actualice el método de pago para recuperar el acceso completo. No se eliminó ningún dato.",
+    billingAction: "Actualizar el método de pago",
+    askOwner: "Pida a un Propietario que actualice el método de pago.",
+    whiteLabel:
+      "La marca blanca se mantiene hasta el {date}, el fin del período que pagó. Después vuelve la marca predeterminada.",
+    whiteLabelAction: "Comparar planes",
+    ownership:
+      "{name} le ofreció la propiedad de {org} hasta el {date}. Para aceptar se le pedirá su segundo factor.",
+    ownershipAccept: "Aceptar la propiedad",
+    ownershipDecline: "Rechazar",
+    ownershipDeclined: "Rechazó la oferta.",
+  },
+  deletion: {
+    title: "Eliminar la organización",
+    description:
+      "Eliminar es distinto de cancelar. La organización pasa a solo lectura de inmediato y sus datos se eliminan después de 7 días, sin el período de 30 días para exportar. Cualquier Propietario puede recuperarla durante esos 7 días. Usted confirma con su segundo factor.",
+    ownerOnly: "Solo el Propietario elimina la organización.",
+    confirm: "Escriba {name} para confirmar la eliminación",
+    reason: "¿Por qué la elimina?",
+    reasonHelp: "Se guarda con el registro de eliminación.",
+    submit: "Eliminar la organización",
+    pending: "A la espera de eliminarse",
+    pendingBody:
+      "La organización está en solo lectura. Sus datos se eliminan después del {date} y el Propietario recibe un certificado de eliminación.",
+    recover: "Recuperar la organización",
+    recovered: "La organización se recuperó.",
+  },
+  transfer: {
+    title: "Transferir la propiedad",
+    description:
+      "Ofrezca la organización a otro miembro. Esa persona acepta con su segundo factor en un plazo de 7 días, y usted sigue siendo el Propietario hasta entonces. Usted confirma la oferta con su segundo factor.",
+    ownerOnly: "Solo el Propietario transfiere la propiedad.",
+    member: "Nuevo Propietario",
+    noMembers:
+      "Invite primero a la persona. La propiedad solo se transfiere a un miembro activo que aún no sea Propietario.",
+    outcome: "Después de la transferencia",
+    outcomeAdmin: "Paso a ser Administrador",
+    outcomeLeave: "Dejo la organización",
+    submit: "Ofrecer la propiedad",
+    offered: "Propiedad ofrecida. Tiene 7 días para aceptar.",
+    open: "Ofrecida a {name} hasta el {date}. Usted sigue siendo el Propietario hasta que acepte.",
+    cancel: "Retirar la oferta",
+  },
+  partner: {
+    leaveTitle: "Dejar a {partner}",
+    leaveDescription:
+      "{org} pasa a ser un cliente directo. Sus datos, miembros y marca se mantienen como están. Terminan las sesiones de soporte y los permisos permanentes de {partner}, y la facturación pasa a {org}: el plan {plan} continúa durante 14 días y se conserva cuando agregue una tarjeta.",
+    leaveConfirm: "Escriba {name} para confirmar",
+    leaveSubmit: "Dejar a {partner}",
+    ownerOnly: "Solo el Propietario saca la organización de su socio.",
+    grantsTitle: "Permisos permanentes del socio",
+    grantsDescription:
+      "Acceso que prevé su acuerdo con {partner}: un área de solo lectura por permiso, que termina en menos de un año. El personal del socio nunca cambia nada con un permiso, y cada permiso queda en el registro de auditoría.",
+    grantsNone: "No hay permisos permanentes.",
+    grantScope: "Área",
+    grantUntil: "Termina el",
+    grantReference: "Cláusula del acuerdo",
+    grantReferenceHelp: "Por ejemplo: Acuerdo de socio, cláusula 7.2.",
+    grantSubmit: "Registrar el permiso",
+    granted: "Permiso permanente registrado.",
+    grantList: "Permisos permanentes",
+    grantRow: "{scope} hasta el {date}. {reference}",
+    grantEnded: "Terminado",
+    grantEnd: "Terminar ahora",
+    yourPartner: "su socio",
+    scopes: {
+      org_settings_read: "Configuración de la organización",
+      org_members_read: "Miembros",
+      org_usage_read: "Uso del plan",
+      projects_project_read: "Proyectos",
+      work_record_read: "Registros y tareas",
+      schedule_timeline_read: "Cronograma",
+      finance_budget_read: "Presupuestos",
+      reports_report_read: "Informes",
+    },
+  },
+  domains: {
+    title: "Configuración de dominios",
+    description:
+      "Los dominios propios de Atlas y Gateway se activan a través de Vercel, que comprueba su DNS y emite el certificado TLS. Resend verifica los dominios de envío con SPF y DKIM; publique también el registro DMARC.",
+    none: "Agregue arriba un dominio propio para configurarlo aquí.",
+    status: {
+      "Not Started": "A la espera de empezar",
+      Requested: "Solicitado",
+      "Pending DNS": "A la espera del DNS",
+      Active: "Activo",
+      Failed: "Sin configurar",
+      Released: "Eliminado",
+    },
+    tls: "Certificado TLS listo",
+    tlsPending: "Certificado TLS aún no emitido",
+    records: "Registros DNS que debe publicar para {host}",
+    type: "Tipo",
+    name: "Nombre",
+    value: "Valor",
+    purpose: "Para",
+    purposes: {
+      routing: "Enrutamiento",
+      verification: "Verificación",
+      spf: "SPF",
+      dkim: "DKIM",
+      dmarc: "DMARC",
+      receiving: "Rebotes",
+    },
+    check: "Comprobar de nuevo",
+    checked: "Comprobación solicitada. Puede tardar unos minutos.",
+    error: "Último intento: {reason}",
+  },
+  certificates: {
+    title: "Certificados de eliminación",
+    description:
+      "Certificados de organizaciones que usted tenía y cuyos datos se eliminaron. Cada uno también se le envió por correo electrónico.",
+    row: "{org}: eliminada el {date}, {rows} registros y {files} archivos almacenados",
+    download: "Descargar el certificado de {org}",
+    preparing: "{org}: eliminada el {date}. El certificado se está preparando.",
+  },
+  billing: {
+    trialTitle: "Prueba de Pro",
+    trialBody:
+      "{org} está en una prueba de Pro de 14 días hasta el {date}, sin tarjeta. Agregue una tarjeta para seguir en Pro. Si no, pasa al plan Access y no se elimina ningún dato.",
+    pastDueTitle: "Pago vencido",
+    pastDueBody:
+      "Un pago falló el {since}. Actualice el método de pago antes del {date} para conservar el acceso completo.",
+    readOnlyTitle: "Solo lectura por falta de pago",
+    readOnlyBody:
+      "Un pago falló el {since} y la organización pasó a solo lectura el {date}. Actualice el método de pago para recuperar el acceso completo. No se eliminó ningún dato.",
+    updatePayment: "Actualizar el método de pago",
+    notConnected:
+      "El pago en línea aún no está conectado. Contacte a soporte para agregar una tarjeta o actualizar el método de pago.",
+  },
+  home: { trial: "{org} está en una prueba de Pro hasta el {date}." },
+};
 var payouts_default = {
   invoice: {
     detail: "{count, plural, one {Mostrar # línea} other {Mostrar # líneas}}",
@@ -28431,7 +29046,7 @@ var platform_default = {
     org_reactivation_window:
       "Una organización se puede reactivar durante los 30 días posteriores a su cancelación.",
     org_read_only:
-      "Esta organización está cancelada y en solo lectura. El Propietario puede reactivarla en Configuración, Zona de peligro.",
+      "Esta organización está en solo lectura en este momento. El aviso en la parte superior de la página explica por qué y qué lo levanta.",
     inbox_action_unknown: "Un elemento de la Bandeja se aprueba, se rechaza o se marca como Listo.",
     inbox_action_not_offered:
       "Solo una solicitud de aprobación se aprueba o se rechaza desde la Bandeja.",
@@ -28957,6 +29572,8 @@ var platform_default = {
       billing: {
         payment_failed: "Pago fallido",
         read_only: "La organización está en modo de solo lectura",
+        trial_ending: "La prueba termina pronto",
+        trial_ended: "La prueba terminó",
       },
       comment: { created: "Nuevo comentario" },
       event: { invited: "Invitación a un evento" },
@@ -28973,6 +29590,16 @@ var platform_default = {
       mention: { created: "Te mencionaron" },
       message: { received: "Nuevo mensaje" },
       occupancy: { threshold: "Se alcanzó el umbral de ocupación" },
+      organization: {
+        deletion_requested: "Eliminación de la organización solicitada",
+        deletion_recovered: "Organización recuperada",
+        ownership_offered: "Propiedad ofrecida",
+        ownership_accepted: "Propiedad aceptada",
+        ownership_declined: "Propiedad rechazada",
+        white_label_reverting: "La marca blanca termina pronto",
+        white_label_reverted: "La marca blanca terminó",
+      },
+      partner: { client_left: "Una organización cliente se fue" },
       recognition: { received: "Reconocimiento recibido" },
       report: { delivered: "Informe entregado" },
       shift: {
@@ -36352,6 +36979,7 @@ var enUS = {
   myWork: myWork_default$1,
   nav: nav_default$1,
   opportunities: opportunities_default$1,
+  orgLifecycle: orgLifecycle_default$1,
   payouts: payouts_default$1,
   peek: peek_default$1,
   people: people_default$1,
@@ -36408,6 +37036,7 @@ var esUS = {
   myWork: myWork_default,
   nav: nav_default,
   opportunities: opportunities_default,
+  orgLifecycle: orgLifecycle_default,
   payouts: payouts_default,
   peek: peek_default,
   people: people_default,
@@ -36463,7 +37092,7 @@ function getMessages(locale) {
 }
 //#endregion
 //#region ../email/src/messages.ts
-function lookup$1(tree, path) {
+function lookup$2(tree, path) {
   let node = tree;
   for (const segment of path) {
     if (typeof node !== "object") return void 0;
@@ -36482,7 +37111,7 @@ function emailCatalog(locale) {
  * the recipient's time zone. A missing key or argument throws: an email never ships a raw key.
  */
 function formatMessage(locale, key, args = {}, timeZone = "UTC") {
-  const message = lookup$1(emailCatalog(locale), key.split("."));
+  const message = lookup$2(emailCatalog(locale), key.split("."));
   if (message === void 0) throw new Error(`Missing email message ${key} in ${locale}`);
   const result = new IntlMessageFormat(message, locale, void 0, {
     formatters: {
@@ -37223,7 +37852,7 @@ function layout(name) {
   return named(layoutTokens, name, "layout");
 }
 /** A type style such as text-14, as inline style properties. */
-function text$8(name) {
+function text$9(name) {
   const style = typeStyles.find((s) => s.name === name);
   if (style === void 0) throw new Error(`Unknown type style ${name}`);
   return {
@@ -37252,12 +37881,12 @@ var styles = {
     padding: space("space-32"),
   },
   heading: {
-    ...text$8("heading-20"),
+    ...text$9("heading-20"),
     color: color("text-primary"),
     margin: `0 0 ${space("space-16")}`,
   },
   button: {
-    ...text$8("label-13"),
+    ...text$9("label-13"),
     backgroundColor: color("accent-default"),
     borderRadius: radius("radius-control"),
     color: color("accent-text-on"),
@@ -37269,7 +37898,7 @@ var styles = {
     margin: `${space("space-24")} 0`,
   },
   footer: {
-    ...text$8("text-12"),
+    ...text$9("text-12"),
     color: color("text-secondary"),
     margin: `0 0 ${space("space-8")}`,
   },
@@ -37279,7 +37908,7 @@ var styles = {
 function Paragraph({ children }) {
   return /* @__PURE__ */ jsx(Text, {
     style: {
-      ...text$8("text-14"),
+      ...text$9("text-14"),
       color: color("text-primary"),
       margin: `0 0 ${space("space-16")}`,
     },
@@ -37445,7 +38074,7 @@ var templates = {
                     {
                       children: /* @__PURE__ */ jsx(Text, {
                         style: {
-                          ...text$8("text-14"),
+                          ...text$9("text-14"),
                           color: color("text-primary"),
                           margin: `0 0 ${space("space-8")}`,
                         },
@@ -38031,6 +38660,126 @@ var NOTIFICATION_KINDS = [
     },
   },
   {
+    kind: "billing.trial_ending",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.trial_ending.subject",
+      body: "kinds.billing.trial_ending.body",
+    },
+  },
+  {
+    kind: "billing.trial_ended",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.billing.trial_ended.subject",
+      body: "kinds.billing.trial_ended.body",
+    },
+  },
+  {
+    kind: "organization.deletion_requested",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.deletion_requested.subject",
+      body: "kinds.organization.deletion_requested.body",
+    },
+  },
+  {
+    kind: "organization.deletion_recovered",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.deletion_recovered.subject",
+      body: "kinds.organization.deletion_recovered.body",
+    },
+  },
+  {
+    kind: "organization.ownership_offered",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.ownership_offered.subject",
+      body: "kinds.organization.ownership_offered.body",
+    },
+  },
+  {
+    kind: "organization.ownership_accepted",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.ownership_accepted.subject",
+      body: "kinds.organization.ownership_accepted.body",
+    },
+  },
+  {
+    kind: "organization.ownership_declined",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.ownership_declined.subject",
+      body: "kinds.organization.ownership_declined.body",
+    },
+  },
+  {
+    kind: "organization.white_label_reverting",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.white_label_reverting.subject",
+      body: "kinds.organization.white_label_reverting.body",
+    },
+  },
+  {
+    kind: "organization.white_label_reverted",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.organization.white_label_reverted.subject",
+      body: "kinds.organization.white_label_reverted.body",
+    },
+  },
+  {
+    kind: "partner.client_left",
+    category: "account",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.partner.client_left.subject",
+      body: "kinds.partner.client_left.body",
+    },
+  },
+  {
     kind: "report.delivered",
     category: "reports",
     emailTemplate: "report_delivery",
@@ -38190,7 +38939,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1368_notification_kind_seed.sql"
+"supabase/migrations/1369_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -39322,7 +40071,7 @@ function supabaseDb(client) {
 function rows$3(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$7(row, key) {
+function text$8(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -39346,7 +40095,7 @@ function billingStore(db) {
           p_org_id: event.orgId,
         }),
       )[0];
-      const rowId = text$7(row, "stripe_event_row_id");
+      const rowId = text$8(row, "stripe_event_row_id");
       const stored = await db.selectOne("stripe_events", "processed_at", { id: rowId });
       return {
         rowId,
@@ -39402,11 +40151,11 @@ function webhookStore(db) {
   return {
     async claim(limit) {
       return rows$3(await db.rpc("claim_webhook_deliveries", { p_limit: limit })).map((row) => ({
-        deliveryId: text$7(row, "delivery_id"),
-        url: text$7(row, "url"),
-        eventType: text$7(row, "event_type"),
-        body: text$7(row, "body"),
-        signature: text$7(row, "signature"),
+        deliveryId: text$8(row, "delivery_id"),
+        url: text$8(row, "url"),
+        eventType: text$8(row, "event_type"),
+        body: text$8(row, "body"),
+        signature: text$8(row, "signature"),
       }));
     },
     async record(deliveryId, responseStatus, error) {
@@ -39449,7 +40198,7 @@ async function recipientProfile(db, personId) {
 /** NotificationStore over the 0520 RPCs and identity reads. */
 function notificationStore(db, options) {
   const orgSlug = async (orgId) =>
-    text$7((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
+    text$8((await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0, "slug");
   return {
     async claimEmail(limit) {
       return rows$3(
@@ -39458,12 +40207,12 @@ function notificationStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$7(row, "delivery_id"),
-        orgId: text$7(row, "org_id"),
-        recipientPersonId: text$7(row, "recipient_person_id"),
-        address: text$7(row, "address"),
-        kind: text$7(row, "kind"),
-        emailTemplateCode: text$7(row, "email_template_code"),
+        deliveryId: text$8(row, "delivery_id"),
+        orgId: text$8(row, "org_id"),
+        recipientPersonId: text$8(row, "recipient_person_id"),
+        address: text$8(row, "address"),
+        kind: text$8(row, "kind"),
+        emailTemplateCode: text$8(row, "email_template_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$2(row, "subject_table"),
         subjectId: optionalText$2(row, "subject_id"),
@@ -39471,8 +40220,8 @@ function notificationStore(db, options) {
     },
     async senderFor(orgId, personId) {
       const org = (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
-      const slug = text$7(org, "slug");
-      const name = text$7(org, "name");
+      const slug = text$8(org, "slug");
+      const name = text$8(org, "name");
       return {
         orgName: name,
         postalAddress: options.postalAddress,
@@ -39558,7 +40307,7 @@ async function kioskPunch(db, input) {
 function rows$2(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$6(row, key) {
+function text$7(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -39613,12 +40362,12 @@ function pushStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$6(row, "delivery_id"),
-        notificationId: text$6(row, "notification_id"),
-        orgId: text$6(row, "org_id"),
-        recipientPersonId: text$6(row, "recipient_person_id"),
-        kind: text$6(row, "kind"),
-        categoryCode: text$6(row, "category_code"),
+        deliveryId: text$7(row, "delivery_id"),
+        notificationId: text$7(row, "notification_id"),
+        orgId: text$7(row, "org_id"),
+        recipientPersonId: text$7(row, "recipient_person_id"),
+        kind: text$7(row, "kind"),
+        categoryCode: text$7(row, "category_code"),
         messageArgs: row["message_args"] ?? {},
         subjectTable: optionalText$1(row, "subject_table"),
         subjectId: optionalText$1(row, "subject_id"),
@@ -39643,7 +40392,7 @@ function pushStore(db) {
     },
     async claimReceipts(limit) {
       return rows$2(await db.rpc("claim_push_receipts", { p_limit: limit })).map((r) =>
-        text$6(r, "ticket_id"),
+        text$7(r, "ticket_id"),
       );
     },
     async recordReceipts(receipts) {
@@ -39661,7 +40410,7 @@ function smsStore(db, options) {
   const org = async (orgId) =>
     (await db.selectOne("organizations", "slug, name", { id: orgId })) ?? void 0;
   const inbox = async (orgId) =>
-    `${options.appUrl.replace(/\/$/, "")}/${text$6(await org(orgId), "slug")}/inbox`;
+    `${options.appUrl.replace(/\/$/, "")}/${text$7(await org(orgId), "slug")}/inbox`;
   return {
     async claimSms(limit) {
       return rows$2(
@@ -39670,17 +40419,17 @@ function smsStore(db, options) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        deliveryId: text$6(row, "delivery_id"),
-        orgId: text$6(row, "org_id"),
-        recipientPersonId: text$6(row, "recipient_person_id"),
-        address: text$6(row, "address"),
-        kind: text$6(row, "kind"),
+        deliveryId: text$7(row, "delivery_id"),
+        orgId: text$7(row, "org_id"),
+        recipientPersonId: text$7(row, "recipient_person_id"),
+        address: text$7(row, "address"),
+        kind: text$7(row, "kind"),
         messageArgs: row["message_args"] ?? {},
       }));
     },
     recipient: (personId) => recipientProfile(db, personId),
     async orgName(orgId) {
-      return text$6(await org(orgId), "name");
+      return text$7(await org(orgId), "name");
     },
     linkFor: (claim) => inbox(claim.orgId),
     inboxLink: inbox,
@@ -39697,12 +40446,12 @@ function smsStore(db, options) {
         const ids = row["delivery_ids"];
         const count = row["held_count"];
         return {
-          orgId: text$6(row, "org_id"),
-          recipientPersonId: text$6(row, "recipient_person_id"),
-          address: text$6(row, "address"),
+          orgId: text$7(row, "org_id"),
+          recipientPersonId: text$7(row, "recipient_person_id"),
+          address: text$7(row, "address"),
           deliveryIds: Array.isArray(ids) ? ids.filter((i) => typeof i === "string") : [],
           heldCount: typeof count === "number" ? count : 0,
-          kind: text$6(row, "kind"),
+          kind: text$7(row, "kind"),
           messageArgs: row["message_args"] ?? {},
         };
       });
@@ -39748,7 +40497,7 @@ function translationStore(db) {
       });
       if (row === null || optionalText$1(row, "deleted_at") !== null) return null;
       return {
-        orgId: text$6(row, "org_id"),
+        orgId: text$7(row, "org_id"),
         body: optionalText$1(row, "body"),
         language: optionalText$1(row, "language"),
       };
@@ -40273,7 +41022,7 @@ var StorageUnavailableError = class extends Error {
     this.name = "StorageUnavailableError";
   }
 };
-async function sha256Hex$1(bytes) {
+async function sha256Hex$2(bytes) {
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -40291,7 +41040,7 @@ async function judge(options, file) {
   if (
     file.checksum !== void 0 &&
     file.checksum !== null &&
-    (await sha256Hex$1(bytes)) !== file.checksum
+    (await sha256Hex$2(bytes)) !== file.checksum
   )
     return {
       result: "refused",
@@ -40511,7 +41260,7 @@ async function runUploadScans(options) {
 function rows$1(data) {
   return Array.isArray(data) ? data : [];
 }
-function text$5(row, key) {
+function text$6(row, key) {
   const value = row?.[key];
   if (typeof value !== "string")
     throw new PlatformDbError(key, "expected text in the database response");
@@ -40521,7 +41270,7 @@ function optionalText(row, key) {
   const value = row?.[key];
   return typeof value === "string" ? value : null;
 }
-function count(row, key) {
+function count$1(row, key) {
   const value = row[key];
   return typeof value === "number" ? value : Number(value ?? 0);
 }
@@ -40536,9 +41285,9 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        jobId: text$5(row, "id"),
-        attachmentVersionId: text$5(row, "subject_id"),
-        attempts: count(row, "attempts"),
+        jobId: text$6(row, "id"),
+        attachmentVersionId: text$6(row, "subject_id"),
+        attempts: count$1(row, "attempts"),
       }));
     },
     async attachmentVersion(attachmentVersionId) {
@@ -40549,11 +41298,11 @@ function scanStore(db) {
       );
       if (row === null) return null;
       return {
-        objectName: text$5(row, "object_name"),
-        filename: text$5(row, "filename"),
-        contentType: text$5(row, "content_type"),
+        objectName: text$6(row, "object_name"),
+        filename: text$6(row, "filename"),
+        contentType: text$6(row, "content_type"),
         checksumSha256: optionalText(row, "checksum_sha256"),
-        scanStatus: text$5(row, "scan_status"),
+        scanStatus: text$6(row, "scan_status"),
       };
     },
     async recordAttachmentScan(attachmentVersionId, clean, detail) {
@@ -40581,11 +41330,11 @@ function scanStore(db) {
           p_limit: limit,
         }),
       ).map((row) => ({
-        objectScanId: text$5(row, "object_scan_id"),
-        bucketId: text$5(row, "bucket_id"),
-        objectName: text$5(row, "object_name"),
+        objectScanId: text$6(row, "object_scan_id"),
+        bucketId: text$6(row, "bucket_id"),
+        objectName: text$6(row, "object_name"),
         contentType: optionalText(row, "content_type"),
-        attempts: count(row, "attempts"),
+        attempts: count$1(row, "attempts"),
       }));
     },
     async recordObjectScan(objectScanId, clean, detail) {
@@ -41271,7 +42020,7 @@ var unconfiguredJwtSigner = {
 function idPart(value) {
   return value.replace(/[^A-Za-z0-9._-]/g, "_");
 }
-function text$4(language, value) {
+function text$5(language, value) {
   return {
     defaultValue: {
       language,
@@ -41309,9 +42058,9 @@ function genericObject(pass, config, labels, language) {
       id: `${config.issuerId}.${idPart(`${pass.kind}-${pass.serial}`)}`,
       classId,
       state: pass.voided ? "INACTIVE" : "ACTIVE",
-      cardTitle: text$4(language, pass.orgName),
-      header: text$4(language, pass.kind === "credential" ? pass.holderName : pass.title),
-      subheader: text$4(language, pass.kind === "credential" ? pass.title : pass.holderName),
+      cardTitle: text$5(language, pass.orgName),
+      header: text$5(language, pass.kind === "credential" ? pass.holderName : pass.title),
+      subheader: text$5(language, pass.kind === "credential" ? pass.title : pass.holderName),
       hexBackgroundColor: passBackground(pass.accentHex),
       ...(pass.barcode
         ? {
@@ -43347,7 +44096,7 @@ async function runReportJobs(options) {
   }
   return results;
 }
-function text$3(row, key) {
+function text$4(row, key) {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
@@ -43370,8 +44119,8 @@ function supabaseReportRunStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text$3(r, "id"),
-        runId: text$3(r, "subject_id"),
+        jobId: text$4(r, "id"),
+        runId: text$4(r, "subject_id"),
       }));
     },
     async run(runId) {
@@ -43385,11 +44134,11 @@ function supabaseReportRunStore(client) {
       if (!data) return null;
       const row = data;
       return {
-        orgId: text$3(row, "org_id"),
-        reportDefinitionId: text$3(row, "report_definition_id"),
-        membershipId: text$3(row, "run_for_membership_id"),
-        exportFormat: text$3(row, "export_format"),
-        runStatus: text$3(row, "run_status"),
+        orgId: text$4(row, "org_id"),
+        reportDefinitionId: text$4(row, "report_definition_id"),
+        membershipId: text$4(row, "run_for_membership_id"),
+        exportFormat: text$4(row, "export_format"),
+        runStatus: text$4(row, "run_status"),
       };
     },
     async definition(id, membershipId) {
@@ -43479,7 +44228,7 @@ var CONTENT_TYPES = {
   XLSX: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
   PDF: "application/pdf",
 };
-var escapeHtml$1 = (s) =>
+var escapeHtml$2 = (s) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 /** The attachment's file name: the report name in safe characters, then the format's extension. */
 function attachmentName(report, format) {
@@ -43525,7 +44274,7 @@ async function runReportDeliveries(options) {
         toName: d.recipientName,
         subject: copy.subject(words),
         text: body,
-        html: `<p>${escapeHtml$1(body)}</p>`,
+        html: `<p>${escapeHtml$2(body)}</p>`,
         attachment: {
           filename: attachmentName(d.reportName, d.exportFormat),
           contentType: CONTENT_TYPES[d.exportFormat],
@@ -43670,13 +44419,13 @@ function resendMailer(client, from, allowed) {
     },
   };
 }
-var text$2 = (row, key) => {
+var text$3 = (row, key) => {
   const value = row[key];
   if (typeof value !== "string")
     throw new Error(`Expected text in ${key} of the database response.`);
   return value;
 };
-var textOrNull = (row, key) => {
+var textOrNull$1 = (row, key) => {
   const value = row[key];
   return typeof value === "string" ? value : null;
 };
@@ -43704,25 +44453,25 @@ function supabaseReportDeliveryStore(client) {
           p_limit: limit,
         })) ?? []
       ).map((r) => ({
-        jobId: text$2(r, "id"),
-        deliveryId: text$2(r, "subject_id"),
+        jobId: text$3(r, "id"),
+        deliveryId: text$3(r, "subject_id"),
       }));
     },
     async delivery(id) {
       const r = (await call("report_delivery", { p_delivery_id: id }))?.[0];
       if (!r) return null;
       return {
-        deliveryId: text$2(r, "delivery_id"),
-        orgName: text$2(r, "org_name"),
-        reportName: text$2(r, "report_name"),
-        exportFormat: text$2(r, "export_format"),
-        storagePath: textOrNull(r, "storage_object_path"),
+        deliveryId: text$3(r, "delivery_id"),
+        orgName: text$3(r, "org_name"),
+        reportName: text$3(r, "report_name"),
+        exportFormat: text$3(r, "export_format"),
+        storagePath: textOrNull$1(r, "storage_object_path"),
         rowCount: numberOrNull(r, "row_count"),
         unpricedCount: numberOrNull(r, "unpriced_count"),
-        recipientEmail: textOrNull(r, "recipient_email"),
-        recipientName: textOrNull(r, "recipient_name"),
-        status: text$2(r, "delivery_status"),
-        scheduledFor: text$2(r, "scheduled_for"),
+        recipientEmail: textOrNull$1(r, "recipient_email"),
+        recipientName: textOrNull$1(r, "recipient_name"),
+        status: text$3(r, "delivery_status"),
+        scheduledFor: text$3(r, "scheduled_for"),
       };
     },
     async finish(id, outcome) {
@@ -43770,7 +44519,7 @@ function supabaseResultFiles(client) {
  * aggregates exactly as the preview does; this file re-exports them and adds the file headers and
  * the scheduled email copy from @xos/i18n.
  */
-function lookup(tree, path) {
+function lookup$1(tree, path) {
   let node = tree;
   for (const part of path) {
     if (typeof node !== "object" || node === null) return null;
@@ -43779,7 +44528,7 @@ function lookup(tree, path) {
   return typeof node === "string" ? node : null;
 }
 /** Fills the `{name}` slots of a catalog template with their values. */
-function fill(template, values) {
+function fill$1(template, values) {
   return template.replace(/\{(\w+)\}/g, (all, name) =>
     values[name] === void 0 ? all : String(values[name]),
   );
@@ -43789,14 +44538,14 @@ function reportRunLabels(locale) {
   const known = isLocale(locale) ? locale : defaultLocale;
   const messages = getMessages(known);
   const field = (source, key) =>
-    lookup(messages, ["workflow", "builder", "fields", source, key]) ?? key;
-  const file = (key) => lookup(messages, ["reporting", "file", key]) ?? key;
+    lookup$1(messages, ["workflow", "builder", "fields", source, key]) ?? key;
+  const file = (key) => lookup$1(messages, ["reporting", "file", key]) ?? key;
   return {
     field,
     unpriced: file("unpriced"),
     truncated: file("truncated"),
     subtitle: ({ rows, unpriced, at }) =>
-      fill(file("subtitle"), {
+      fill$1(file("subtitle"), {
         rows,
         unpriced,
         date: new Intl.DateTimeFormat(known, {
@@ -43805,8 +44554,9 @@ function reportRunLabels(locale) {
         }).format(at),
       }),
     column(source, key, aggregate) {
-      const template = lookup(messages, ["workflow", "builder", "columnAggregate"]);
-      const name = lookup(messages, ["workflow", "builder", "aggregates", aggregate]) ?? aggregate;
+      const template = lookup$1(messages, ["workflow", "builder", "columnAggregate"]);
+      const name =
+        lookup$1(messages, ["workflow", "builder", "aggregates", aggregate]) ?? aggregate;
       return template === null
         ? `${name} ${field(source, key)}`
         : template.replace("{aggregate}", name).replace("{field}", field(source, key));
@@ -43816,10 +44566,3092 @@ function reportRunLabels(locale) {
 /** The scheduled report email in a locale (en-US when unknown). */
 function reportDeliveryCopy(locale) {
   const messages = getMessages(isLocale(locale) ? locale : defaultLocale);
-  const email = (key) => lookup(messages, ["reporting", "email", key]) ?? key;
+  const email = (key) => lookup$1(messages, ["reporting", "email", key]) ?? key;
+  return {
+    subject: (values) => fill$1(email("subject"), values),
+    body: (values) => fill$1(email("body"), values),
+  };
+}
+//#endregion
+//#region ../data/src/documents/format.ts
+/**
+ * A translator over one catalog namespace. Document copy uses only `{name}` arguments, so a plain
+ * substitution formats it the same way in a route, a test and the veraPDF check. A missing key
+ * returns the key itself, which the catalog tests catch.
+ */
+function documentTranslator(messages) {
+  return (key, values) => {
+    let node = messages;
+    for (const part of key.split("."))
+      node = typeof node === "object" && node !== null ? node[part] : void 0;
+    if (typeof node !== "string") return key;
+    return node.replace(/\{(\w+)\}/g, (match, name) =>
+      values && name in values ? String(values[name]) : match,
+    );
+  };
+}
+/** Minor-unit digits of a currency (2 for USD, 0 for JPY). */
+function currencyDigits(currency) {
+  try {
+    return (
+      new Intl.NumberFormat("en", {
+        style: "currency",
+        currency,
+      }).resolvedOptions().maximumFractionDigits ?? 2
+    );
+  } catch {
+    return 2;
+  }
+}
+function formatter(locale, timeZone, t) {
+  const zone = (() => {
+    try {
+      new Intl.DateTimeFormat(locale, { timeZone });
+      return timeZone;
+    } catch {
+      return "UTC";
+    }
+  })();
+  const none = t("common.none");
+  return {
+    locale,
+    timeZone: zone,
+    money(minor, currency) {
+      if (minor === null) return t("common.unpriced");
+      const code = currency.trim() || "USD";
+      const digits = currencyDigits(code);
+      try {
+        return new Intl.NumberFormat(locale, {
+          style: "currency",
+          currency: code,
+          currencyDisplay: "code",
+        }).format(minor / 10 ** digits);
+      } catch {
+        return `${(minor / 10 ** digits).toFixed(digits)} ${code}`;
+      }
+    },
+    number(value) {
+      return new Intl.NumberFormat(locale, { maximumFractionDigits: 3 }).format(value);
+    },
+    day(day) {
+      if (!day) return none;
+      const at = Date.parse(`${day.slice(0, 10)}T12:00:00Z`);
+      if (Number.isNaN(at)) return day;
+      return new Intl.DateTimeFormat(locale, {
+        dateStyle: "long",
+        timeZone: "UTC",
+      }).format(at);
+    },
+    dateTime(iso) {
+      if (!iso) return none;
+      const at = Date.parse(iso);
+      if (Number.isNaN(at)) return iso;
+      return new Intl.DateTimeFormat(locale, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: zone,
+        timeZoneName: "short",
+      }).format(at);
+    },
+    time(iso) {
+      if (!iso) return none;
+      const at = Date.parse(iso);
+      if (Number.isNaN(at)) return iso;
+      return new Intl.DateTimeFormat(locale, {
+        timeStyle: "short",
+        timeZone: zone,
+      }).format(at);
+    },
+    duration(seconds) {
+      if (seconds === null) return none;
+      const s = Math.max(0, Math.round(seconds));
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const r = String(s % 60).padStart(2, "0");
+      return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${r}` : `${m}:${r}`;
+    },
+  };
+}
+//#endregion
+//#region ../data/src/documents/qr.ts
+var import_qrcode = /* @__PURE__ */ __toESM(
+  /* @__PURE__ */ __commonJSMin((exports, module) => {
+    var qrcode = (function () {
+      /**
+       * qrcode
+       * @param typeNumber 1 to 40
+       * @param errorCorrectionLevel 'L','M','Q','H'
+       */
+      var qrcode = function (typeNumber, errorCorrectionLevel) {
+        var PAD0 = 236;
+        var PAD1 = 17;
+        var _typeNumber = typeNumber;
+        var _errorCorrectionLevel = QRErrorCorrectionLevel[errorCorrectionLevel];
+        var _modules = null;
+        var _moduleCount = 0;
+        var _dataCache = null;
+        var _dataList = [];
+        var _this = {};
+        var makeImpl = function (test, maskPattern) {
+          _moduleCount = _typeNumber * 4 + 17;
+          _modules = (function (moduleCount) {
+            var modules = new Array(moduleCount);
+            for (var row = 0; row < moduleCount; row += 1) {
+              modules[row] = new Array(moduleCount);
+              for (var col = 0; col < moduleCount; col += 1) modules[row][col] = null;
+            }
+            return modules;
+          })(_moduleCount);
+          setupPositionProbePattern(0, 0);
+          setupPositionProbePattern(_moduleCount - 7, 0);
+          setupPositionProbePattern(0, _moduleCount - 7);
+          setupPositionAdjustPattern();
+          setupTimingPattern();
+          setupTypeInfo(test, maskPattern);
+          if (_typeNumber >= 7) setupTypeNumber(test);
+          if (_dataCache == null)
+            _dataCache = createData(_typeNumber, _errorCorrectionLevel, _dataList);
+          mapData(_dataCache, maskPattern);
+        };
+        var setupPositionProbePattern = function (row, col) {
+          for (var r = -1; r <= 7; r += 1) {
+            if (row + r <= -1 || _moduleCount <= row + r) continue;
+            for (var c = -1; c <= 7; c += 1) {
+              if (col + c <= -1 || _moduleCount <= col + c) continue;
+              if (
+                (0 <= r && r <= 6 && (c == 0 || c == 6)) ||
+                (0 <= c && c <= 6 && (r == 0 || r == 6)) ||
+                (2 <= r && r <= 4 && 2 <= c && c <= 4)
+              )
+                _modules[row + r][col + c] = true;
+              else _modules[row + r][col + c] = false;
+            }
+          }
+        };
+        var getBestMaskPattern = function () {
+          var minLostPoint = 0;
+          var pattern = 0;
+          for (var i = 0; i < 8; i += 1) {
+            makeImpl(true, i);
+            var lostPoint = QRUtil.getLostPoint(_this);
+            if (i == 0 || minLostPoint > lostPoint) {
+              minLostPoint = lostPoint;
+              pattern = i;
+            }
+          }
+          return pattern;
+        };
+        var setupTimingPattern = function () {
+          for (var r = 8; r < _moduleCount - 8; r += 1) {
+            if (_modules[r][6] != null) continue;
+            _modules[r][6] = r % 2 == 0;
+          }
+          for (var c = 8; c < _moduleCount - 8; c += 1) {
+            if (_modules[6][c] != null) continue;
+            _modules[6][c] = c % 2 == 0;
+          }
+        };
+        var setupPositionAdjustPattern = function () {
+          var pos = QRUtil.getPatternPosition(_typeNumber);
+          for (var i = 0; i < pos.length; i += 1)
+            for (var j = 0; j < pos.length; j += 1) {
+              var row = pos[i];
+              var col = pos[j];
+              if (_modules[row][col] != null) continue;
+              for (var r = -2; r <= 2; r += 1)
+                for (var c = -2; c <= 2; c += 1)
+                  if (r == -2 || r == 2 || c == -2 || c == 2 || (r == 0 && c == 0))
+                    _modules[row + r][col + c] = true;
+                  else _modules[row + r][col + c] = false;
+            }
+        };
+        var setupTypeNumber = function (test) {
+          var bits = QRUtil.getBCHTypeNumber(_typeNumber);
+          for (var i = 0; i < 18; i += 1) {
+            var mod = !test && ((bits >> i) & 1) == 1;
+            _modules[Math.floor(i / 3)][(i % 3) + _moduleCount - 8 - 3] = mod;
+          }
+          for (var i = 0; i < 18; i += 1) {
+            var mod = !test && ((bits >> i) & 1) == 1;
+            _modules[(i % 3) + _moduleCount - 8 - 3][Math.floor(i / 3)] = mod;
+          }
+        };
+        var setupTypeInfo = function (test, maskPattern) {
+          var data = (_errorCorrectionLevel << 3) | maskPattern;
+          var bits = QRUtil.getBCHTypeInfo(data);
+          for (var i = 0; i < 15; i += 1) {
+            var mod = !test && ((bits >> i) & 1) == 1;
+            if (i < 6) _modules[i][8] = mod;
+            else if (i < 8) _modules[i + 1][8] = mod;
+            else _modules[_moduleCount - 15 + i][8] = mod;
+          }
+          for (var i = 0; i < 15; i += 1) {
+            var mod = !test && ((bits >> i) & 1) == 1;
+            if (i < 8) _modules[8][_moduleCount - i - 1] = mod;
+            else if (i < 9) _modules[8][15 - i - 1 + 1] = mod;
+            else _modules[8][15 - i - 1] = mod;
+          }
+          _modules[_moduleCount - 8][8] = !test;
+        };
+        var mapData = function (data, maskPattern) {
+          var inc = -1;
+          var row = _moduleCount - 1;
+          var bitIndex = 7;
+          var byteIndex = 0;
+          var maskFunc = QRUtil.getMaskFunction(maskPattern);
+          for (var col = _moduleCount - 1; col > 0; col -= 2) {
+            if (col == 6) col -= 1;
+            while (true) {
+              for (var c = 0; c < 2; c += 1)
+                if (_modules[row][col - c] == null) {
+                  var dark = false;
+                  if (byteIndex < data.length) dark = ((data[byteIndex] >>> bitIndex) & 1) == 1;
+                  if (maskFunc(row, col - c)) dark = !dark;
+                  _modules[row][col - c] = dark;
+                  bitIndex -= 1;
+                  if (bitIndex == -1) {
+                    byteIndex += 1;
+                    bitIndex = 7;
+                  }
+                }
+              row += inc;
+              if (row < 0 || _moduleCount <= row) {
+                row -= inc;
+                inc = -inc;
+                break;
+              }
+            }
+          }
+        };
+        var createBytes = function (buffer, rsBlocks) {
+          var offset = 0;
+          var maxDcCount = 0;
+          var maxEcCount = 0;
+          var dcdata = new Array(rsBlocks.length);
+          var ecdata = new Array(rsBlocks.length);
+          for (var r = 0; r < rsBlocks.length; r += 1) {
+            var dcCount = rsBlocks[r].dataCount;
+            var ecCount = rsBlocks[r].totalCount - dcCount;
+            maxDcCount = Math.max(maxDcCount, dcCount);
+            maxEcCount = Math.max(maxEcCount, ecCount);
+            dcdata[r] = new Array(dcCount);
+            for (var i = 0; i < dcdata[r].length; i += 1)
+              dcdata[r][i] = 255 & buffer.getBuffer()[i + offset];
+            offset += dcCount;
+            var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+            var modPoly = qrPolynomial(dcdata[r], rsPoly.getLength() - 1).mod(rsPoly);
+            ecdata[r] = new Array(rsPoly.getLength() - 1);
+            for (var i = 0; i < ecdata[r].length; i += 1) {
+              var modIndex = i + modPoly.getLength() - ecdata[r].length;
+              ecdata[r][i] = modIndex >= 0 ? modPoly.getAt(modIndex) : 0;
+            }
+          }
+          var totalCodeCount = 0;
+          for (var i = 0; i < rsBlocks.length; i += 1) totalCodeCount += rsBlocks[i].totalCount;
+          var data = new Array(totalCodeCount);
+          var index = 0;
+          for (var i = 0; i < maxDcCount; i += 1)
+            for (var r = 0; r < rsBlocks.length; r += 1)
+              if (i < dcdata[r].length) {
+                data[index] = dcdata[r][i];
+                index += 1;
+              }
+          for (var i = 0; i < maxEcCount; i += 1)
+            for (var r = 0; r < rsBlocks.length; r += 1)
+              if (i < ecdata[r].length) {
+                data[index] = ecdata[r][i];
+                index += 1;
+              }
+          return data;
+        };
+        var createData = function (typeNumber, errorCorrectionLevel, dataList) {
+          var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectionLevel);
+          var buffer = qrBitBuffer();
+          for (var i = 0; i < dataList.length; i += 1) {
+            var data = dataList[i];
+            buffer.put(data.getMode(), 4);
+            buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber));
+            data.write(buffer);
+          }
+          var totalDataCount = 0;
+          for (var i = 0; i < rsBlocks.length; i += 1) totalDataCount += rsBlocks[i].dataCount;
+          if (buffer.getLengthInBits() > totalDataCount * 8)
+            throw (
+              "code length overflow. (" + buffer.getLengthInBits() + ">" + totalDataCount * 8 + ")"
+            );
+          if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) buffer.put(0, 4);
+          while (buffer.getLengthInBits() % 8 != 0) buffer.putBit(false);
+          while (true) {
+            if (buffer.getLengthInBits() >= totalDataCount * 8) break;
+            buffer.put(PAD0, 8);
+            if (buffer.getLengthInBits() >= totalDataCount * 8) break;
+            buffer.put(PAD1, 8);
+          }
+          return createBytes(buffer, rsBlocks);
+        };
+        _this.addData = function (data, mode) {
+          mode = mode || "Byte";
+          var newData = null;
+          switch (mode) {
+            case "Numeric":
+              newData = qrNumber(data);
+              break;
+            case "Alphanumeric":
+              newData = qrAlphaNum(data);
+              break;
+            case "Byte":
+              newData = qr8BitByte(data);
+              break;
+            case "Kanji":
+              newData = qrKanji(data);
+              break;
+            default:
+              throw "mode:" + mode;
+          }
+          _dataList.push(newData);
+          _dataCache = null;
+        };
+        _this.isDark = function (row, col) {
+          if (row < 0 || _moduleCount <= row || col < 0 || _moduleCount <= col)
+            throw row + "," + col;
+          return _modules[row][col];
+        };
+        _this.getModuleCount = function () {
+          return _moduleCount;
+        };
+        _this.make = function () {
+          if (_typeNumber < 1) {
+            var typeNumber = 1;
+            for (; typeNumber < 40; typeNumber++) {
+              var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, _errorCorrectionLevel);
+              var buffer = qrBitBuffer();
+              for (var i = 0; i < _dataList.length; i++) {
+                var data = _dataList[i];
+                buffer.put(data.getMode(), 4);
+                buffer.put(data.getLength(), QRUtil.getLengthInBits(data.getMode(), typeNumber));
+                data.write(buffer);
+              }
+              var totalDataCount = 0;
+              for (var i = 0; i < rsBlocks.length; i++) totalDataCount += rsBlocks[i].dataCount;
+              if (buffer.getLengthInBits() <= totalDataCount * 8) break;
+            }
+            _typeNumber = typeNumber;
+          }
+          makeImpl(false, getBestMaskPattern());
+        };
+        _this.createTableTag = function (cellSize, margin) {
+          cellSize = cellSize || 2;
+          margin = typeof margin == "undefined" ? cellSize * 4 : margin;
+          var qrHtml = "";
+          qrHtml += '<table style="';
+          qrHtml += " border-width: 0px; border-style: none;";
+          qrHtml += " border-collapse: collapse;";
+          qrHtml += " padding: 0px; margin: " + margin + "px;";
+          qrHtml += '">';
+          qrHtml += "<tbody>";
+          for (var r = 0; r < _this.getModuleCount(); r += 1) {
+            qrHtml += "<tr>";
+            for (var c = 0; c < _this.getModuleCount(); c += 1) {
+              qrHtml += '<td style="';
+              qrHtml += " border-width: 0px; border-style: none;";
+              qrHtml += " border-collapse: collapse;";
+              qrHtml += " padding: 0px; margin: 0px;";
+              qrHtml += " width: " + cellSize + "px;";
+              qrHtml += " height: " + cellSize + "px;";
+              qrHtml += " background-color: ";
+              qrHtml += _this.isDark(r, c) ? "#000000" : "#ffffff";
+              qrHtml += ";";
+              qrHtml += '"/>';
+            }
+            qrHtml += "</tr>";
+          }
+          qrHtml += "</tbody>";
+          qrHtml += "</table>";
+          return qrHtml;
+        };
+        _this.createSvgTag = function (cellSize, margin, alt, title) {
+          var opts = {};
+          if (typeof arguments[0] == "object") {
+            opts = arguments[0];
+            cellSize = opts.cellSize;
+            margin = opts.margin;
+            alt = opts.alt;
+            title = opts.title;
+          }
+          cellSize = cellSize || 2;
+          margin = typeof margin == "undefined" ? cellSize * 4 : margin;
+          alt = typeof alt === "string" ? { text: alt } : alt || {};
+          alt.text = alt.text || null;
+          alt.id = alt.text ? alt.id || "qrcode-description" : null;
+          title = typeof title === "string" ? { text: title } : title || {};
+          title.text = title.text || null;
+          title.id = title.text ? title.id || "qrcode-title" : null;
+          var size = _this.getModuleCount() * cellSize + margin * 2;
+          var c,
+            mc,
+            r,
+            mr,
+            qrSvg = "",
+            rect =
+              "l" + cellSize + ",0 0," + cellSize + " -" + cellSize + ",0 0,-" + cellSize + "z ";
+          qrSvg += '<svg version="1.1" xmlns="http://www.w3.org/2000/svg"';
+          qrSvg += !opts.scalable ? ' width="' + size + 'px" height="' + size + 'px"' : "";
+          qrSvg += ' viewBox="0 0 ' + size + " " + size + '" ';
+          qrSvg += ' preserveAspectRatio="xMinYMin meet"';
+          qrSvg +=
+            title.text || alt.text
+              ? ' role="img" aria-labelledby="' +
+                escapeXml([title.id, alt.id].join(" ").trim()) +
+                '"'
+              : "";
+          qrSvg += ">";
+          qrSvg += title.text
+            ? '<title id="' + escapeXml(title.id) + '">' + escapeXml(title.text) + "</title>"
+            : "";
+          qrSvg += alt.text
+            ? '<description id="' +
+              escapeXml(alt.id) +
+              '">' +
+              escapeXml(alt.text) +
+              "</description>"
+            : "";
+          qrSvg += '<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>';
+          qrSvg += '<path d="';
+          for (r = 0; r < _this.getModuleCount(); r += 1) {
+            mr = r * cellSize + margin;
+            for (c = 0; c < _this.getModuleCount(); c += 1)
+              if (_this.isDark(r, c)) {
+                mc = c * cellSize + margin;
+                qrSvg += "M" + mc + "," + mr + rect;
+              }
+          }
+          qrSvg += '" stroke="transparent" fill="black"/>';
+          qrSvg += "</svg>";
+          return qrSvg;
+        };
+        _this.createDataURL = function (cellSize, margin) {
+          cellSize = cellSize || 2;
+          margin = typeof margin == "undefined" ? cellSize * 4 : margin;
+          var size = _this.getModuleCount() * cellSize + margin * 2;
+          var min = margin;
+          var max = size - margin;
+          return createDataURL(size, size, function (x, y) {
+            if (min <= x && x < max && min <= y && y < max) {
+              var c = Math.floor((x - min) / cellSize);
+              var r = Math.floor((y - min) / cellSize);
+              return _this.isDark(r, c) ? 0 : 1;
+            } else return 1;
+          });
+        };
+        _this.createImgTag = function (cellSize, margin, alt) {
+          cellSize = cellSize || 2;
+          margin = typeof margin == "undefined" ? cellSize * 4 : margin;
+          var size = _this.getModuleCount() * cellSize + margin * 2;
+          var img = "";
+          img += "<img";
+          img += ' src="';
+          img += _this.createDataURL(cellSize, margin);
+          img += '"';
+          img += ' width="';
+          img += size;
+          img += '"';
+          img += ' height="';
+          img += size;
+          img += '"';
+          if (alt) {
+            img += ' alt="';
+            img += escapeXml(alt);
+            img += '"';
+          }
+          img += "/>";
+          return img;
+        };
+        var escapeXml = function (s) {
+          var escaped = "";
+          for (var i = 0; i < s.length; i += 1) {
+            var c = s.charAt(i);
+            switch (c) {
+              case "<":
+                escaped += "&lt;";
+                break;
+              case ">":
+                escaped += "&gt;";
+                break;
+              case "&":
+                escaped += "&amp;";
+                break;
+              case '"':
+                escaped += "&quot;";
+                break;
+              default:
+                escaped += c;
+            }
+          }
+          return escaped;
+        };
+        var _createHalfASCII = function (margin) {
+          var cellSize = 1;
+          margin = typeof margin == "undefined" ? cellSize * 2 : margin;
+          var size = _this.getModuleCount() * cellSize + margin * 2;
+          var min = margin;
+          var max = size - margin;
+          var y, x, r1, r2, p;
+          var blocks = {
+            "██": "█",
+            "█ ": "▀",
+            " █": "▄",
+            "  ": " ",
+          };
+          var blocksLastLineNoMargin = {
+            "██": "▀",
+            "█ ": "▀",
+            " █": " ",
+            "  ": " ",
+          };
+          var ascii = "";
+          for (y = 0; y < size; y += 2) {
+            r1 = Math.floor((y - min) / cellSize);
+            r2 = Math.floor((y + 1 - min) / cellSize);
+            for (x = 0; x < size; x += 1) {
+              p = "█";
+              if (
+                min <= x &&
+                x < max &&
+                min <= y &&
+                y < max &&
+                _this.isDark(r1, Math.floor((x - min) / cellSize))
+              )
+                p = " ";
+              if (
+                min <= x &&
+                x < max &&
+                min <= y + 1 &&
+                y + 1 < max &&
+                _this.isDark(r2, Math.floor((x - min) / cellSize))
+              )
+                p += " ";
+              else p += "█";
+              ascii += margin < 1 && y + 1 >= max ? blocksLastLineNoMargin[p] : blocks[p];
+            }
+            ascii += "\n";
+          }
+          if (size % 2 && margin > 0)
+            return ascii.substring(0, ascii.length - size - 1) + Array(size + 1).join("▀");
+          return ascii.substring(0, ascii.length - 1);
+        };
+        _this.createASCII = function (cellSize, margin) {
+          cellSize = cellSize || 1;
+          if (cellSize < 2) return _createHalfASCII(margin);
+          cellSize -= 1;
+          margin = typeof margin == "undefined" ? cellSize * 2 : margin;
+          var size = _this.getModuleCount() * cellSize + margin * 2;
+          var min = margin;
+          var max = size - margin;
+          var y, x, r, p;
+          var white = Array(cellSize + 1).join("██");
+          var black = Array(cellSize + 1).join("  ");
+          var ascii = "";
+          var line = "";
+          for (y = 0; y < size; y += 1) {
+            r = Math.floor((y - min) / cellSize);
+            line = "";
+            for (x = 0; x < size; x += 1) {
+              p = 1;
+              if (
+                min <= x &&
+                x < max &&
+                min <= y &&
+                y < max &&
+                _this.isDark(r, Math.floor((x - min) / cellSize))
+              )
+                p = 0;
+              line += p ? white : black;
+            }
+            for (r = 0; r < cellSize; r += 1) ascii += line + "\n";
+          }
+          return ascii.substring(0, ascii.length - 1);
+        };
+        _this.renderTo2dContext = function (context, cellSize) {
+          cellSize = cellSize || 2;
+          var length = _this.getModuleCount();
+          for (var row = 0; row < length; row++)
+            for (var col = 0; col < length; col++) {
+              context.fillStyle = _this.isDark(row, col) ? "black" : "white";
+              context.fillRect(row * cellSize, col * cellSize, cellSize, cellSize);
+            }
+        };
+        return _this;
+      };
+      qrcode.stringToBytesFuncs = {
+        default: function (s) {
+          var bytes = [];
+          for (var i = 0; i < s.length; i += 1) {
+            var c = s.charCodeAt(i);
+            bytes.push(c & 255);
+          }
+          return bytes;
+        },
+      };
+      qrcode.stringToBytes = qrcode.stringToBytesFuncs["default"];
+      /**
+       * @param unicodeData base64 string of byte array.
+       * [16bit Unicode],[16bit Bytes], ...
+       * @param numChars
+       */
+      qrcode.createStringToBytes = function (unicodeData, numChars) {
+        var unicodeMap = (function () {
+          var bin = base64DecodeInputStream(unicodeData);
+          var read = function () {
+            var b = bin.read();
+            if (b == -1) throw "eof";
+            return b;
+          };
+          var count = 0;
+          var unicodeMap = {};
+          while (true) {
+            var b0 = bin.read();
+            if (b0 == -1) break;
+            var b1 = read();
+            var b2 = read();
+            var b3 = read();
+            var k = String.fromCharCode((b0 << 8) | b1);
+            unicodeMap[k] = (b2 << 8) | b3;
+            count += 1;
+          }
+          if (count != numChars) throw count + " != " + numChars;
+          return unicodeMap;
+        })();
+        var unknownChar = "?".charCodeAt(0);
+        return function (s) {
+          var bytes = [];
+          for (var i = 0; i < s.length; i += 1) {
+            var c = s.charCodeAt(i);
+            if (c < 128) bytes.push(c);
+            else {
+              var b = unicodeMap[s.charAt(i)];
+              if (typeof b == "number") {
+                if ((b & 255) == b) bytes.push(b);
+                else {
+                  bytes.push(b >>> 8);
+                  bytes.push(b & 255);
+                }
+              } else bytes.push(unknownChar);
+            }
+          }
+          return bytes;
+        };
+      };
+      var QRMode = {
+        MODE_NUMBER: 1,
+        MODE_ALPHA_NUM: 2,
+        MODE_8BIT_BYTE: 4,
+        MODE_KANJI: 8,
+      };
+      var QRErrorCorrectionLevel = {
+        L: 1,
+        M: 0,
+        Q: 3,
+        H: 2,
+      };
+      var QRMaskPattern = {
+        PATTERN000: 0,
+        PATTERN001: 1,
+        PATTERN010: 2,
+        PATTERN011: 3,
+        PATTERN100: 4,
+        PATTERN101: 5,
+        PATTERN110: 6,
+        PATTERN111: 7,
+      };
+      var QRUtil = (function () {
+        var PATTERN_POSITION_TABLE = [
+          [],
+          [6, 18],
+          [6, 22],
+          [6, 26],
+          [6, 30],
+          [6, 34],
+          [6, 22, 38],
+          [6, 24, 42],
+          [6, 26, 46],
+          [6, 28, 50],
+          [6, 30, 54],
+          [6, 32, 58],
+          [6, 34, 62],
+          [6, 26, 46, 66],
+          [6, 26, 48, 70],
+          [6, 26, 50, 74],
+          [6, 30, 54, 78],
+          [6, 30, 56, 82],
+          [6, 30, 58, 86],
+          [6, 34, 62, 90],
+          [6, 28, 50, 72, 94],
+          [6, 26, 50, 74, 98],
+          [6, 30, 54, 78, 102],
+          [6, 28, 54, 80, 106],
+          [6, 32, 58, 84, 110],
+          [6, 30, 58, 86, 114],
+          [6, 34, 62, 90, 118],
+          [6, 26, 50, 74, 98, 122],
+          [6, 30, 54, 78, 102, 126],
+          [6, 26, 52, 78, 104, 130],
+          [6, 30, 56, 82, 108, 134],
+          [6, 34, 60, 86, 112, 138],
+          [6, 30, 58, 86, 114, 142],
+          [6, 34, 62, 90, 118, 146],
+          [6, 30, 54, 78, 102, 126, 150],
+          [6, 24, 50, 76, 102, 128, 154],
+          [6, 28, 54, 80, 106, 132, 158],
+          [6, 32, 58, 84, 110, 136, 162],
+          [6, 26, 54, 82, 110, 138, 166],
+          [6, 30, 58, 86, 114, 142, 170],
+        ];
+        var G15 = 1335;
+        var G18 = 7973;
+        var G15_MASK = 21522;
+        var _this = {};
+        var getBCHDigit = function (data) {
+          var digit = 0;
+          while (data != 0) {
+            digit += 1;
+            data >>>= 1;
+          }
+          return digit;
+        };
+        _this.getBCHTypeInfo = function (data) {
+          var d = data << 10;
+          while (getBCHDigit(d) - getBCHDigit(G15) >= 0)
+            d ^= G15 << (getBCHDigit(d) - getBCHDigit(G15));
+          return ((data << 10) | d) ^ G15_MASK;
+        };
+        _this.getBCHTypeNumber = function (data) {
+          var d = data << 12;
+          while (getBCHDigit(d) - getBCHDigit(G18) >= 0)
+            d ^= G18 << (getBCHDigit(d) - getBCHDigit(G18));
+          return (data << 12) | d;
+        };
+        _this.getPatternPosition = function (typeNumber) {
+          return PATTERN_POSITION_TABLE[typeNumber - 1];
+        };
+        _this.getMaskFunction = function (maskPattern) {
+          switch (maskPattern) {
+            case QRMaskPattern.PATTERN000:
+              return function (i, j) {
+                return (i + j) % 2 == 0;
+              };
+            case QRMaskPattern.PATTERN001:
+              return function (i, j) {
+                return i % 2 == 0;
+              };
+            case QRMaskPattern.PATTERN010:
+              return function (i, j) {
+                return j % 3 == 0;
+              };
+            case QRMaskPattern.PATTERN011:
+              return function (i, j) {
+                return (i + j) % 3 == 0;
+              };
+            case QRMaskPattern.PATTERN100:
+              return function (i, j) {
+                return (Math.floor(i / 2) + Math.floor(j / 3)) % 2 == 0;
+              };
+            case QRMaskPattern.PATTERN101:
+              return function (i, j) {
+                return ((i * j) % 2) + ((i * j) % 3) == 0;
+              };
+            case QRMaskPattern.PATTERN110:
+              return function (i, j) {
+                return (((i * j) % 2) + ((i * j) % 3)) % 2 == 0;
+              };
+            case QRMaskPattern.PATTERN111:
+              return function (i, j) {
+                return (((i * j) % 3) + ((i + j) % 2)) % 2 == 0;
+              };
+            default:
+              throw "bad maskPattern:" + maskPattern;
+          }
+        };
+        _this.getErrorCorrectPolynomial = function (errorCorrectLength) {
+          var a = qrPolynomial([1], 0);
+          for (var i = 0; i < errorCorrectLength; i += 1)
+            a = a.multiply(qrPolynomial([1, QRMath.gexp(i)], 0));
+          return a;
+        };
+        _this.getLengthInBits = function (mode, type) {
+          if (1 <= type && type < 10)
+            switch (mode) {
+              case QRMode.MODE_NUMBER:
+                return 10;
+              case QRMode.MODE_ALPHA_NUM:
+                return 9;
+              case QRMode.MODE_8BIT_BYTE:
+                return 8;
+              case QRMode.MODE_KANJI:
+                return 8;
+              default:
+                throw "mode:" + mode;
+            }
+          else if (type < 27)
+            switch (mode) {
+              case QRMode.MODE_NUMBER:
+                return 12;
+              case QRMode.MODE_ALPHA_NUM:
+                return 11;
+              case QRMode.MODE_8BIT_BYTE:
+                return 16;
+              case QRMode.MODE_KANJI:
+                return 10;
+              default:
+                throw "mode:" + mode;
+            }
+          else if (type < 41)
+            switch (mode) {
+              case QRMode.MODE_NUMBER:
+                return 14;
+              case QRMode.MODE_ALPHA_NUM:
+                return 13;
+              case QRMode.MODE_8BIT_BYTE:
+                return 16;
+              case QRMode.MODE_KANJI:
+                return 12;
+              default:
+                throw "mode:" + mode;
+            }
+          else throw "type:" + type;
+        };
+        _this.getLostPoint = function (qrcode) {
+          var moduleCount = qrcode.getModuleCount();
+          var lostPoint = 0;
+          for (var row = 0; row < moduleCount; row += 1)
+            for (var col = 0; col < moduleCount; col += 1) {
+              var sameCount = 0;
+              var dark = qrcode.isDark(row, col);
+              for (var r = -1; r <= 1; r += 1) {
+                if (row + r < 0 || moduleCount <= row + r) continue;
+                for (var c = -1; c <= 1; c += 1) {
+                  if (col + c < 0 || moduleCount <= col + c) continue;
+                  if (r == 0 && c == 0) continue;
+                  if (dark == qrcode.isDark(row + r, col + c)) sameCount += 1;
+                }
+              }
+              if (sameCount > 5) lostPoint += 3 + sameCount - 5;
+            }
+          for (var row = 0; row < moduleCount - 1; row += 1)
+            for (var col = 0; col < moduleCount - 1; col += 1) {
+              var count = 0;
+              if (qrcode.isDark(row, col)) count += 1;
+              if (qrcode.isDark(row + 1, col)) count += 1;
+              if (qrcode.isDark(row, col + 1)) count += 1;
+              if (qrcode.isDark(row + 1, col + 1)) count += 1;
+              if (count == 0 || count == 4) lostPoint += 3;
+            }
+          for (var row = 0; row < moduleCount; row += 1)
+            for (var col = 0; col < moduleCount - 6; col += 1)
+              if (
+                qrcode.isDark(row, col) &&
+                !qrcode.isDark(row, col + 1) &&
+                qrcode.isDark(row, col + 2) &&
+                qrcode.isDark(row, col + 3) &&
+                qrcode.isDark(row, col + 4) &&
+                !qrcode.isDark(row, col + 5) &&
+                qrcode.isDark(row, col + 6)
+              )
+                lostPoint += 40;
+          for (var col = 0; col < moduleCount; col += 1)
+            for (var row = 0; row < moduleCount - 6; row += 1)
+              if (
+                qrcode.isDark(row, col) &&
+                !qrcode.isDark(row + 1, col) &&
+                qrcode.isDark(row + 2, col) &&
+                qrcode.isDark(row + 3, col) &&
+                qrcode.isDark(row + 4, col) &&
+                !qrcode.isDark(row + 5, col) &&
+                qrcode.isDark(row + 6, col)
+              )
+                lostPoint += 40;
+          var darkCount = 0;
+          for (var col = 0; col < moduleCount; col += 1)
+            for (var row = 0; row < moduleCount; row += 1)
+              if (qrcode.isDark(row, col)) darkCount += 1;
+          var ratio = Math.abs((100 * darkCount) / moduleCount / moduleCount - 50) / 5;
+          lostPoint += ratio * 10;
+          return lostPoint;
+        };
+        return _this;
+      })();
+      var QRMath = (function () {
+        var EXP_TABLE = new Array(256);
+        var LOG_TABLE = new Array(256);
+        for (var i = 0; i < 8; i += 1) EXP_TABLE[i] = 1 << i;
+        for (var i = 8; i < 256; i += 1)
+          EXP_TABLE[i] = EXP_TABLE[i - 4] ^ EXP_TABLE[i - 5] ^ EXP_TABLE[i - 6] ^ EXP_TABLE[i - 8];
+        for (var i = 0; i < 255; i += 1) LOG_TABLE[EXP_TABLE[i]] = i;
+        var _this = {};
+        _this.glog = function (n) {
+          if (n < 1) throw "glog(" + n + ")";
+          return LOG_TABLE[n];
+        };
+        _this.gexp = function (n) {
+          while (n < 0) n += 255;
+          while (n >= 256) n -= 255;
+          return EXP_TABLE[n];
+        };
+        return _this;
+      })();
+      function qrPolynomial(num, shift) {
+        if (typeof num.length == "undefined") throw num.length + "/" + shift;
+        var _num = (function () {
+          var offset = 0;
+          while (offset < num.length && num[offset] == 0) offset += 1;
+          var _num = new Array(num.length - offset + shift);
+          for (var i = 0; i < num.length - offset; i += 1) _num[i] = num[i + offset];
+          return _num;
+        })();
+        var _this = {};
+        _this.getAt = function (index) {
+          return _num[index];
+        };
+        _this.getLength = function () {
+          return _num.length;
+        };
+        _this.multiply = function (e) {
+          var num = new Array(_this.getLength() + e.getLength() - 1);
+          for (var i = 0; i < _this.getLength(); i += 1)
+            for (var j = 0; j < e.getLength(); j += 1)
+              num[i + j] ^= QRMath.gexp(QRMath.glog(_this.getAt(i)) + QRMath.glog(e.getAt(j)));
+          return qrPolynomial(num, 0);
+        };
+        _this.mod = function (e) {
+          if (_this.getLength() - e.getLength() < 0) return _this;
+          var ratio = QRMath.glog(_this.getAt(0)) - QRMath.glog(e.getAt(0));
+          var num = new Array(_this.getLength());
+          for (var i = 0; i < _this.getLength(); i += 1) num[i] = _this.getAt(i);
+          for (var i = 0; i < e.getLength(); i += 1)
+            num[i] ^= QRMath.gexp(QRMath.glog(e.getAt(i)) + ratio);
+          return qrPolynomial(num, 0).mod(e);
+        };
+        return _this;
+      }
+      var QRRSBlock = (function () {
+        var RS_BLOCK_TABLE = [
+          [1, 26, 19],
+          [1, 26, 16],
+          [1, 26, 13],
+          [1, 26, 9],
+          [1, 44, 34],
+          [1, 44, 28],
+          [1, 44, 22],
+          [1, 44, 16],
+          [1, 70, 55],
+          [1, 70, 44],
+          [2, 35, 17],
+          [2, 35, 13],
+          [1, 100, 80],
+          [2, 50, 32],
+          [2, 50, 24],
+          [4, 25, 9],
+          [1, 134, 108],
+          [2, 67, 43],
+          [2, 33, 15, 2, 34, 16],
+          [2, 33, 11, 2, 34, 12],
+          [2, 86, 68],
+          [4, 43, 27],
+          [4, 43, 19],
+          [4, 43, 15],
+          [2, 98, 78],
+          [4, 49, 31],
+          [2, 32, 14, 4, 33, 15],
+          [4, 39, 13, 1, 40, 14],
+          [2, 121, 97],
+          [2, 60, 38, 2, 61, 39],
+          [4, 40, 18, 2, 41, 19],
+          [4, 40, 14, 2, 41, 15],
+          [2, 146, 116],
+          [3, 58, 36, 2, 59, 37],
+          [4, 36, 16, 4, 37, 17],
+          [4, 36, 12, 4, 37, 13],
+          [2, 86, 68, 2, 87, 69],
+          [4, 69, 43, 1, 70, 44],
+          [6, 43, 19, 2, 44, 20],
+          [6, 43, 15, 2, 44, 16],
+          [4, 101, 81],
+          [1, 80, 50, 4, 81, 51],
+          [4, 50, 22, 4, 51, 23],
+          [3, 36, 12, 8, 37, 13],
+          [2, 116, 92, 2, 117, 93],
+          [6, 58, 36, 2, 59, 37],
+          [4, 46, 20, 6, 47, 21],
+          [7, 42, 14, 4, 43, 15],
+          [4, 133, 107],
+          [8, 59, 37, 1, 60, 38],
+          [8, 44, 20, 4, 45, 21],
+          [12, 33, 11, 4, 34, 12],
+          [3, 145, 115, 1, 146, 116],
+          [4, 64, 40, 5, 65, 41],
+          [11, 36, 16, 5, 37, 17],
+          [11, 36, 12, 5, 37, 13],
+          [5, 109, 87, 1, 110, 88],
+          [5, 65, 41, 5, 66, 42],
+          [5, 54, 24, 7, 55, 25],
+          [11, 36, 12, 7, 37, 13],
+          [5, 122, 98, 1, 123, 99],
+          [7, 73, 45, 3, 74, 46],
+          [15, 43, 19, 2, 44, 20],
+          [3, 45, 15, 13, 46, 16],
+          [1, 135, 107, 5, 136, 108],
+          [10, 74, 46, 1, 75, 47],
+          [1, 50, 22, 15, 51, 23],
+          [2, 42, 14, 17, 43, 15],
+          [5, 150, 120, 1, 151, 121],
+          [9, 69, 43, 4, 70, 44],
+          [17, 50, 22, 1, 51, 23],
+          [2, 42, 14, 19, 43, 15],
+          [3, 141, 113, 4, 142, 114],
+          [3, 70, 44, 11, 71, 45],
+          [17, 47, 21, 4, 48, 22],
+          [9, 39, 13, 16, 40, 14],
+          [3, 135, 107, 5, 136, 108],
+          [3, 67, 41, 13, 68, 42],
+          [15, 54, 24, 5, 55, 25],
+          [15, 43, 15, 10, 44, 16],
+          [4, 144, 116, 4, 145, 117],
+          [17, 68, 42],
+          [17, 50, 22, 6, 51, 23],
+          [19, 46, 16, 6, 47, 17],
+          [2, 139, 111, 7, 140, 112],
+          [17, 74, 46],
+          [7, 54, 24, 16, 55, 25],
+          [34, 37, 13],
+          [4, 151, 121, 5, 152, 122],
+          [4, 75, 47, 14, 76, 48],
+          [11, 54, 24, 14, 55, 25],
+          [16, 45, 15, 14, 46, 16],
+          [6, 147, 117, 4, 148, 118],
+          [6, 73, 45, 14, 74, 46],
+          [11, 54, 24, 16, 55, 25],
+          [30, 46, 16, 2, 47, 17],
+          [8, 132, 106, 4, 133, 107],
+          [8, 75, 47, 13, 76, 48],
+          [7, 54, 24, 22, 55, 25],
+          [22, 45, 15, 13, 46, 16],
+          [10, 142, 114, 2, 143, 115],
+          [19, 74, 46, 4, 75, 47],
+          [28, 50, 22, 6, 51, 23],
+          [33, 46, 16, 4, 47, 17],
+          [8, 152, 122, 4, 153, 123],
+          [22, 73, 45, 3, 74, 46],
+          [8, 53, 23, 26, 54, 24],
+          [12, 45, 15, 28, 46, 16],
+          [3, 147, 117, 10, 148, 118],
+          [3, 73, 45, 23, 74, 46],
+          [4, 54, 24, 31, 55, 25],
+          [11, 45, 15, 31, 46, 16],
+          [7, 146, 116, 7, 147, 117],
+          [21, 73, 45, 7, 74, 46],
+          [1, 53, 23, 37, 54, 24],
+          [19, 45, 15, 26, 46, 16],
+          [5, 145, 115, 10, 146, 116],
+          [19, 75, 47, 10, 76, 48],
+          [15, 54, 24, 25, 55, 25],
+          [23, 45, 15, 25, 46, 16],
+          [13, 145, 115, 3, 146, 116],
+          [2, 74, 46, 29, 75, 47],
+          [42, 54, 24, 1, 55, 25],
+          [23, 45, 15, 28, 46, 16],
+          [17, 145, 115],
+          [10, 74, 46, 23, 75, 47],
+          [10, 54, 24, 35, 55, 25],
+          [19, 45, 15, 35, 46, 16],
+          [17, 145, 115, 1, 146, 116],
+          [14, 74, 46, 21, 75, 47],
+          [29, 54, 24, 19, 55, 25],
+          [11, 45, 15, 46, 46, 16],
+          [13, 145, 115, 6, 146, 116],
+          [14, 74, 46, 23, 75, 47],
+          [44, 54, 24, 7, 55, 25],
+          [59, 46, 16, 1, 47, 17],
+          [12, 151, 121, 7, 152, 122],
+          [12, 75, 47, 26, 76, 48],
+          [39, 54, 24, 14, 55, 25],
+          [22, 45, 15, 41, 46, 16],
+          [6, 151, 121, 14, 152, 122],
+          [6, 75, 47, 34, 76, 48],
+          [46, 54, 24, 10, 55, 25],
+          [2, 45, 15, 64, 46, 16],
+          [17, 152, 122, 4, 153, 123],
+          [29, 74, 46, 14, 75, 47],
+          [49, 54, 24, 10, 55, 25],
+          [24, 45, 15, 46, 46, 16],
+          [4, 152, 122, 18, 153, 123],
+          [13, 74, 46, 32, 75, 47],
+          [48, 54, 24, 14, 55, 25],
+          [42, 45, 15, 32, 46, 16],
+          [20, 147, 117, 4, 148, 118],
+          [40, 75, 47, 7, 76, 48],
+          [43, 54, 24, 22, 55, 25],
+          [10, 45, 15, 67, 46, 16],
+          [19, 148, 118, 6, 149, 119],
+          [18, 75, 47, 31, 76, 48],
+          [34, 54, 24, 34, 55, 25],
+          [20, 45, 15, 61, 46, 16],
+        ];
+        var qrRSBlock = function (totalCount, dataCount) {
+          var _this = {};
+          _this.totalCount = totalCount;
+          _this.dataCount = dataCount;
+          return _this;
+        };
+        var _this = {};
+        var getRsBlockTable = function (typeNumber, errorCorrectionLevel) {
+          switch (errorCorrectionLevel) {
+            case QRErrorCorrectionLevel.L:
+              return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+            case QRErrorCorrectionLevel.M:
+              return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+            case QRErrorCorrectionLevel.Q:
+              return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+            case QRErrorCorrectionLevel.H:
+              return RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+            default:
+              return;
+          }
+        };
+        _this.getRSBlocks = function (typeNumber, errorCorrectionLevel) {
+          var rsBlock = getRsBlockTable(typeNumber, errorCorrectionLevel);
+          if (typeof rsBlock == "undefined")
+            throw (
+              "bad rs block @ typeNumber:" +
+              typeNumber +
+              "/errorCorrectionLevel:" +
+              errorCorrectionLevel
+            );
+          var length = rsBlock.length / 3;
+          var list = [];
+          for (var i = 0; i < length; i += 1) {
+            var count = rsBlock[i * 3 + 0];
+            var totalCount = rsBlock[i * 3 + 1];
+            var dataCount = rsBlock[i * 3 + 2];
+            for (var j = 0; j < count; j += 1) list.push(qrRSBlock(totalCount, dataCount));
+          }
+          return list;
+        };
+        return _this;
+      })();
+      var qrBitBuffer = function () {
+        var _buffer = [];
+        var _length = 0;
+        var _this = {};
+        _this.getBuffer = function () {
+          return _buffer;
+        };
+        _this.getAt = function (index) {
+          return ((_buffer[Math.floor(index / 8)] >>> (7 - (index % 8))) & 1) == 1;
+        };
+        _this.put = function (num, length) {
+          for (var i = 0; i < length; i += 1) _this.putBit(((num >>> (length - i - 1)) & 1) == 1);
+        };
+        _this.getLengthInBits = function () {
+          return _length;
+        };
+        _this.putBit = function (bit) {
+          var bufIndex = Math.floor(_length / 8);
+          if (_buffer.length <= bufIndex) _buffer.push(0);
+          if (bit) _buffer[bufIndex] |= 128 >>> (_length % 8);
+          _length += 1;
+        };
+        return _this;
+      };
+      var qrNumber = function (data) {
+        var _mode = QRMode.MODE_NUMBER;
+        var _data = data;
+        var _this = {};
+        _this.getMode = function () {
+          return _mode;
+        };
+        _this.getLength = function (buffer) {
+          return _data.length;
+        };
+        _this.write = function (buffer) {
+          var data = _data;
+          var i = 0;
+          while (i + 2 < data.length) {
+            buffer.put(strToNum(data.substring(i, i + 3)), 10);
+            i += 3;
+          }
+          if (i < data.length) {
+            if (data.length - i == 1) buffer.put(strToNum(data.substring(i, i + 1)), 4);
+            else if (data.length - i == 2) buffer.put(strToNum(data.substring(i, i + 2)), 7);
+          }
+        };
+        var strToNum = function (s) {
+          var num = 0;
+          for (var i = 0; i < s.length; i += 1) num = num * 10 + chatToNum(s.charAt(i));
+          return num;
+        };
+        var chatToNum = function (c) {
+          if ("0" <= c && c <= "9") return c.charCodeAt(0) - "0".charCodeAt(0);
+          throw "illegal char :" + c;
+        };
+        return _this;
+      };
+      var qrAlphaNum = function (data) {
+        var _mode = QRMode.MODE_ALPHA_NUM;
+        var _data = data;
+        var _this = {};
+        _this.getMode = function () {
+          return _mode;
+        };
+        _this.getLength = function (buffer) {
+          return _data.length;
+        };
+        _this.write = function (buffer) {
+          var s = _data;
+          var i = 0;
+          while (i + 1 < s.length) {
+            buffer.put(getCode(s.charAt(i)) * 45 + getCode(s.charAt(i + 1)), 11);
+            i += 2;
+          }
+          if (i < s.length) buffer.put(getCode(s.charAt(i)), 6);
+        };
+        var getCode = function (c) {
+          if ("0" <= c && c <= "9") return c.charCodeAt(0) - "0".charCodeAt(0);
+          else if ("A" <= c && c <= "Z") return c.charCodeAt(0) - "A".charCodeAt(0) + 10;
+          else
+            switch (c) {
+              case " ":
+                return 36;
+              case "$":
+                return 37;
+              case "%":
+                return 38;
+              case "*":
+                return 39;
+              case "+":
+                return 40;
+              case "-":
+                return 41;
+              case ".":
+                return 42;
+              case "/":
+                return 43;
+              case ":":
+                return 44;
+              default:
+                throw "illegal char :" + c;
+            }
+        };
+        return _this;
+      };
+      var qr8BitByte = function (data) {
+        var _mode = QRMode.MODE_8BIT_BYTE;
+        var _bytes = qrcode.stringToBytes(data);
+        var _this = {};
+        _this.getMode = function () {
+          return _mode;
+        };
+        _this.getLength = function (buffer) {
+          return _bytes.length;
+        };
+        _this.write = function (buffer) {
+          for (var i = 0; i < _bytes.length; i += 1) buffer.put(_bytes[i], 8);
+        };
+        return _this;
+      };
+      var qrKanji = function (data) {
+        var _mode = QRMode.MODE_KANJI;
+        var stringToBytes = qrcode.stringToBytesFuncs["SJIS"];
+        if (!stringToBytes) throw "sjis not supported.";
+        (function (c, code) {
+          var test = stringToBytes(c);
+          if (test.length != 2 || ((test[0] << 8) | test[1]) != code) throw "sjis not supported.";
+        })("友", 38726);
+        var _bytes = stringToBytes(data);
+        var _this = {};
+        _this.getMode = function () {
+          return _mode;
+        };
+        _this.getLength = function (buffer) {
+          return ~~(_bytes.length / 2);
+        };
+        _this.write = function (buffer) {
+          var data = _bytes;
+          var i = 0;
+          while (i + 1 < data.length) {
+            var c = ((255 & data[i]) << 8) | (255 & data[i + 1]);
+            if (33088 <= c && c <= 40956) c -= 33088;
+            else if (57408 <= c && c <= 60351) c -= 49472;
+            else throw "illegal char at " + (i + 1) + "/" + c;
+            c = ((c >>> 8) & 255) * 192 + (c & 255);
+            buffer.put(c, 13);
+            i += 2;
+          }
+          if (i < data.length) throw "illegal char at " + (i + 1);
+        };
+        return _this;
+      };
+      var byteArrayOutputStream = function () {
+        var _bytes = [];
+        var _this = {};
+        _this.writeByte = function (b) {
+          _bytes.push(b & 255);
+        };
+        _this.writeShort = function (i) {
+          _this.writeByte(i);
+          _this.writeByte(i >>> 8);
+        };
+        _this.writeBytes = function (b, off, len) {
+          off = off || 0;
+          len = len || b.length;
+          for (var i = 0; i < len; i += 1) _this.writeByte(b[i + off]);
+        };
+        _this.writeString = function (s) {
+          for (var i = 0; i < s.length; i += 1) _this.writeByte(s.charCodeAt(i));
+        };
+        _this.toByteArray = function () {
+          return _bytes;
+        };
+        _this.toString = function () {
+          var s = "";
+          s += "[";
+          for (var i = 0; i < _bytes.length; i += 1) {
+            if (i > 0) s += ",";
+            s += _bytes[i];
+          }
+          s += "]";
+          return s;
+        };
+        return _this;
+      };
+      var base64EncodeOutputStream = function () {
+        var _buffer = 0;
+        var _buflen = 0;
+        var _length = 0;
+        var _base64 = "";
+        var _this = {};
+        var writeEncoded = function (b) {
+          _base64 += String.fromCharCode(encode(b & 63));
+        };
+        var encode = function (n) {
+          if (n < 0) {
+          } else if (n < 26) return 65 + n;
+          else if (n < 52) return 97 + (n - 26);
+          else if (n < 62) return 48 + (n - 52);
+          else if (n == 62) return 43;
+          else if (n == 63) return 47;
+          throw "n:" + n;
+        };
+        _this.writeByte = function (n) {
+          _buffer = (_buffer << 8) | (n & 255);
+          _buflen += 8;
+          _length += 1;
+          while (_buflen >= 6) {
+            writeEncoded(_buffer >>> (_buflen - 6));
+            _buflen -= 6;
+          }
+        };
+        _this.flush = function () {
+          if (_buflen > 0) {
+            writeEncoded(_buffer << (6 - _buflen));
+            _buffer = 0;
+            _buflen = 0;
+          }
+          if (_length % 3 != 0) {
+            var padlen = 3 - (_length % 3);
+            for (var i = 0; i < padlen; i += 1) _base64 += "=";
+          }
+        };
+        _this.toString = function () {
+          return _base64;
+        };
+        return _this;
+      };
+      var base64DecodeInputStream = function (str) {
+        var _str = str;
+        var _pos = 0;
+        var _buffer = 0;
+        var _buflen = 0;
+        var _this = {};
+        _this.read = function () {
+          while (_buflen < 8) {
+            if (_pos >= _str.length) {
+              if (_buflen == 0) return -1;
+              throw "unexpected end of file./" + _buflen;
+            }
+            var c = _str.charAt(_pos);
+            _pos += 1;
+            if (c == "=") {
+              _buflen = 0;
+              return -1;
+            } else if (c.match(/^\s$/)) continue;
+            _buffer = (_buffer << 6) | decode(c.charCodeAt(0));
+            _buflen += 6;
+          }
+          var n = (_buffer >>> (_buflen - 8)) & 255;
+          _buflen -= 8;
+          return n;
+        };
+        var decode = function (c) {
+          if (65 <= c && c <= 90) return c - 65;
+          else if (97 <= c && c <= 122) return c - 97 + 26;
+          else if (48 <= c && c <= 57) return c - 48 + 52;
+          else if (c == 43) return 62;
+          else if (c == 47) return 63;
+          else throw "c:" + c;
+        };
+        return _this;
+      };
+      var gifImage = function (width, height) {
+        var _width = width;
+        var _height = height;
+        var _data = new Array(width * height);
+        var _this = {};
+        _this.setPixel = function (x, y, pixel) {
+          _data[y * _width + x] = pixel;
+        };
+        _this.write = function (out) {
+          out.writeString("GIF87a");
+          out.writeShort(_width);
+          out.writeShort(_height);
+          out.writeByte(128);
+          out.writeByte(0);
+          out.writeByte(0);
+          out.writeByte(0);
+          out.writeByte(0);
+          out.writeByte(0);
+          out.writeByte(255);
+          out.writeByte(255);
+          out.writeByte(255);
+          out.writeString(",");
+          out.writeShort(0);
+          out.writeShort(0);
+          out.writeShort(_width);
+          out.writeShort(_height);
+          out.writeByte(0);
+          var lzwMinCodeSize = 2;
+          var raster = getLZWRaster(lzwMinCodeSize);
+          out.writeByte(lzwMinCodeSize);
+          var offset = 0;
+          while (raster.length - offset > 255) {
+            out.writeByte(255);
+            out.writeBytes(raster, offset, 255);
+            offset += 255;
+          }
+          out.writeByte(raster.length - offset);
+          out.writeBytes(raster, offset, raster.length - offset);
+          out.writeByte(0);
+          out.writeString(";");
+        };
+        var bitOutputStream = function (out) {
+          var _out = out;
+          var _bitLength = 0;
+          var _bitBuffer = 0;
+          var _this = {};
+          _this.write = function (data, length) {
+            if (data >>> length != 0) throw "length over";
+            while (_bitLength + length >= 8) {
+              _out.writeByte(255 & ((data << _bitLength) | _bitBuffer));
+              length -= 8 - _bitLength;
+              data >>>= 8 - _bitLength;
+              _bitBuffer = 0;
+              _bitLength = 0;
+            }
+            _bitBuffer = (data << _bitLength) | _bitBuffer;
+            _bitLength = _bitLength + length;
+          };
+          _this.flush = function () {
+            if (_bitLength > 0) _out.writeByte(_bitBuffer);
+          };
+          return _this;
+        };
+        var getLZWRaster = function (lzwMinCodeSize) {
+          var clearCode = 1 << lzwMinCodeSize;
+          var endCode = (1 << lzwMinCodeSize) + 1;
+          var bitLength = lzwMinCodeSize + 1;
+          var table = lzwTable();
+          for (var i = 0; i < clearCode; i += 1) table.add(String.fromCharCode(i));
+          table.add(String.fromCharCode(clearCode));
+          table.add(String.fromCharCode(endCode));
+          var byteOut = byteArrayOutputStream();
+          var bitOut = bitOutputStream(byteOut);
+          bitOut.write(clearCode, bitLength);
+          var dataIndex = 0;
+          var s = String.fromCharCode(_data[dataIndex]);
+          dataIndex += 1;
+          while (dataIndex < _data.length) {
+            var c = String.fromCharCode(_data[dataIndex]);
+            dataIndex += 1;
+            if (table.contains(s + c)) s = s + c;
+            else {
+              bitOut.write(table.indexOf(s), bitLength);
+              if (table.size() < 4095) {
+                if (table.size() == 1 << bitLength) bitLength += 1;
+                table.add(s + c);
+              }
+              s = c;
+            }
+          }
+          bitOut.write(table.indexOf(s), bitLength);
+          bitOut.write(endCode, bitLength);
+          bitOut.flush();
+          return byteOut.toByteArray();
+        };
+        var lzwTable = function () {
+          var _map = {};
+          var _size = 0;
+          var _this = {};
+          _this.add = function (key) {
+            if (_this.contains(key)) throw "dup key:" + key;
+            _map[key] = _size;
+            _size += 1;
+          };
+          _this.size = function () {
+            return _size;
+          };
+          _this.indexOf = function (key) {
+            return _map[key];
+          };
+          _this.contains = function (key) {
+            return typeof _map[key] != "undefined";
+          };
+          return _this;
+        };
+        return _this;
+      };
+      var createDataURL = function (width, height, getPixel) {
+        var gif = gifImage(width, height);
+        for (var y = 0; y < height; y += 1)
+          for (var x = 0; x < width; x += 1) gif.setPixel(x, y, getPixel(x, y));
+        var b = byteArrayOutputStream();
+        gif.write(b);
+        var base64 = base64EncodeOutputStream();
+        var bytes = b.toByteArray();
+        for (var i = 0; i < bytes.length; i += 1) base64.writeByte(bytes[i]);
+        base64.flush();
+        return "data:image/gif;base64," + base64;
+      };
+      return qrcode;
+    })();
+    (function () {
+      qrcode.stringToBytesFuncs["UTF-8"] = function (s) {
+        function toUTF8Array(str) {
+          var utf8 = [];
+          for (var i = 0; i < str.length; i++) {
+            var charcode = str.charCodeAt(i);
+            if (charcode < 128) utf8.push(charcode);
+            else if (charcode < 2048) utf8.push(192 | (charcode >> 6), 128 | (charcode & 63));
+            else if (charcode < 55296 || charcode >= 57344)
+              utf8.push(
+                224 | (charcode >> 12),
+                128 | ((charcode >> 6) & 63),
+                128 | (charcode & 63),
+              );
+            else {
+              i++;
+              charcode = 65536 + (((charcode & 1023) << 10) | (str.charCodeAt(i) & 1023));
+              utf8.push(
+                240 | (charcode >> 18),
+                128 | ((charcode >> 12) & 63),
+                128 | ((charcode >> 6) & 63),
+                128 | (charcode & 63),
+              );
+            }
+          }
+          return utf8;
+        }
+        return toUTF8Array(s);
+      };
+    })();
+    (function (factory) {
+      if (typeof define === "function" && define.amd) define([], factory);
+      else if (typeof exports === "object") module.exports = factory();
+    })(function () {
+      return qrcode;
+    });
+  })(),
+  1,
+);
+/**
+ * The QR code of a record link as rows of dark modules (qrcode-generator 1.4.4, error correction M).
+ * The renderer draws it as vector squares inside a tagged Figure; the page around it is the quiet zone.
+ */
+function qrMatrix(text) {
+  const code = (0, import_qrcode.default)(0, "M");
+  code.addData(text);
+  code.make();
+  const modules = code;
+  const size = modules.getModuleCount();
+  return Array.from({ length: size }, (_, r) =>
+    Array.from({ length: size }, (_, c) => modules.isDark(r, c)),
+  );
+}
+//#endregion
+//#region ../data/src/documents/fonts.generated.ts
+var fonts_generated_exports = /* @__PURE__ */ __exportAll({
+  INTER_REGULAR_HEX: () => INTER_REGULAR_HEX,
+  INTER_SEMIBOLD_HEX: () => INTER_SEMIBOLD_HEX,
+});
+var INTER_REGULAR_HEX, INTER_SEMIBOLD_HEX;
+var init_fonts_generated = __esmMin(() => {
+  INTER_REGULAR_HEX =
+    "774f464600010000000077e8000f00000001097000010001000000000000000000000000000000000000000047444546000001580000008f000000d02932295547504f53000001e800001859000057c6c3a7ce704753554200001a440000118300002aea1417e2334f532f3200002bc800000057000000607343f2915354415400002c200000004d0000005e56a441f1636d617000002c70000001ea000002b6ace682d06761737000002e5c000000080000000800000010676c796600002e64000039dd0000622e7036f57b6865616400006844000000340000003632c85ab068686561000068780000002000000024168414f1686d7478000068980000030f0000080c8c2f03b56c6f636100006ba8000003cf00000408ed6e05e46d61787000006f780000001b00000020021e00f66e616d6500006f94000001280000025c34905e6a706f7374000070bc0000072a000010524b1230ca78da25c60106c2000085e1f7af0acc02205150472950675b41993ac13424c00cc0aa0190209da00c83283d7abccf2f1428d27f99bbefc7422b1dec51577bd3dd3ef4b61f7d0501816dd3b121a18de8d921233b6662a7ccec9c858d59da351b9b90d82d3b9b92da3d99cdc96d41614b2ab578f212d4d4ee86462da140d2c00f85ba949c3873a1a61182ea077c2323b70078da849503b41c5b1045eb6aa289f16ddbb66dc5b6576ce3ad896ddbb66ddbb6ed977feac49ebd6af7e9aa7b7b3c23464412cbefd254fcd7dffefcb7bc9bab7c89c2f262be12790ac98b8573942a2a0f8a17dc2e5e148783852f9f73efb59911ce0ae5295154dea79f2f92a3442179bc48a122857015c18a70dd1522dc21b4de1c13fa8f1f4ffc63e227237de55f49865529d04f8c32911af23afcb54425c8a372bfa492a87b588c0de18818b3272c833b46d261ed293a98d9668e996be69923bc472309b1ffe350434c8897a8491c8a87822177c8aa20a747297f869fc3b7e173f021783bbc0a9e0f4f9287433a64005284c4c1fb787fda1f05fbfd4ebf19b5962cf70bfd4e30db4ff5e351e8a346fac1a8bebebbef08fafad6bea9af0fd721d590ae83fd0abe942f8a94dfe74465f6ffa27e073ffaafc9a7fe7dff26ceae2314c7732aee5ff6cf82c7717cd0a7f1c97c426fdd7938994fe64ebac36e2f6abbdb0856eb11b51435dfcd7493dd58371c0c04bd5d57d0deb5748d49ccb507b55c95482a57ce957085415e97dd65747fbb5fddf7e44b9c69e763ccde45011e5f772fbad7b1ef69ec2c87e340f7a8bb1fee4d70ce1c751127f6ac3d8e3a6877a3b682f5915476a5ee242522a970bed8ce454db713ed6830dd0eb5fd6d4fdbd9b6b5cd513d41431b676bd8389fd956b2656c715bd0e6b659417afba7fdd97e6b3fb71fdab7edabf679fba47d1855c6a6136367b87962c2efee6531a669580a57a0e3e8a6ec57a0e3e8059181f00cfa40d8ac596d9be97adb9aae4017a7ebd079c2c3f04b91746a9f15fe3c1ca197a9b50f5b35a7af21c39addb73a85ad9ad3cfb01766cea27d932e41541df2a3f302d6c33a35fd9061ae2c46b7460766ce1396d147d4bcc72c9a5d35ac81758d9c4e1053339fc17a58a7c84798ad5aa7c88eebcba8f9acb3603dccc7d03a9202391376c1e8c3da87ad9a8fe7db703f9c077d989dceda71ddd081b10b66ffd570845ea68e583a9d9ad35a78cc301fc3a80479e8efe832744ccde9587460cdee886638a6e6f49cee82f3d065e8989ad39674637460e67ac830737d645873e0f55d0abd1a1ca3f3d065d49c7af63dfb9e9d36e8c09aed646498fd2a6a935aaf06e7a163741935d79f4686b93e91ae84636a4ecbd255752ffc1d5d868ea9392da476c9d181d9a9a90eafa2036317ccfe54cd708cce439751636a250daab1883495a1d24886cb02192c8b6495cc9535b25196c966398b7441e2e5b8b1c6ca49e34d9053266aa272c62433c9e5ac696c9ac879d3cab49678d31688696f3a187cae813303cc40ec190f22662248600e9a4326a14444e47dd49ba89751cfa21e473d28c624f1fceed0416df6d01dd5728a8e5cfb473127aefda7b8824ee0ac1295fdf6e06dd90df83b765b56dac5642e59791ba693896434197a95fef7a427aa33694b9a838677e12089bb4a0d50e926ca90e2b7a120c84db2de047f79c9cfe4dbdb825f65f2f6655e25dc4172df96e7c19397773c4cd29114b7909878404c3c387d134715dbd6ec373bcd66b3d64e14631b89e82fbc6d034f53db3ca2fd67b4efd2abed6bccdf327f4667559bf2cc2f707a283e9b7ea2d4ae9a88664ebf619e14ff1e7c869d2c74f178fd5effc89c89ce4337a35fa1abd0a3e8b16a7784f91cdd926e4af75007ae7129684fb7e1b4103d993ecd7ee0e34fcd4e55ba145d8f9e2a2256928b95a888a490949244d2ca9b9254de96bfe425f957eac94fd2481a4b75692acda5a6b492a15287dffaaefcd68fff9fd93a8090228c0238fe9fdd00a9951322101c511c810038906241d009a04ac11d00832016004301c701b4007610284e2b1c08ac7391e6d409ed01f69ffbecd85bcdd48c9abdfd2ddf9a6f677dbbefbd375ee8fa77a1eb3f84aeff12bafbeb49cf7248349d157f02115134a495f71d9dd0836dae8457443b7a1c3d899e1245bb938c161dda2bc72be7b900b42ebee01c5c5aebdce53a3728644c2947e4300b6bc229ee8535a5843d6a708bc6f886e63da002b7a9c19833e54e587bde9fdbbde370ee3af11e53eece5547e06772989a9cace000c09b6e4cc6e006808f8c677786bb5e9b12f89cc04d02d73d26609585f33658ab9e5d9f7d739eb1bd699c7bde2acabddbd313bbe09659698d877763988cf8cd2c8b1efcef3a73279c8f2915382630add2a9768d09ec17ff6ee38a392be4470f8c01cc8aff41be674660c25f994db2fa4f81facc688829cd2babc8010d72b04c5171cfa42c0ee1bc25e5d0a47e35fb6deeea53f5faa8cfc3f20cfef97cfbf9278e6980639692dd2a73549e73e3d3d134c9d7e2981b53830f5984351a513dfbbe678eaf58625e9b8ccaa77d531ae226553d2b9d25ae86bd7f9aed4d0bea9a3c2626e4701f7c5954f58e0a26e3552ab14fe011f896027e67ca1fe42e9777f3a2b94f833c6299fc62c21e8024c9a2280c9f3fabbaba30b66d2dc7b66dbb7b6cdb6c8c6ddbf64c686d5bc1b5c2bbb9376e68e3c57d4c7fe94015f5b525f9773e04c41421414a712a5251292a535979a84a55e5a50635948ffa34537edad055c5e94e7755a4273d55897ef457650632485519ca3055672499aac924a6ea45a633470d98cf52356305ebd4968de4aa0b3bd8a1deec629ffa7080031ac8210e69104739aac11ce7b8867096731aca052e6838d7b9ae11dce3be46f21e1f6a34dff283c62b502fdf931afac75265fd6b290f01810a1121a2524489aa0e69a4a93c31622a429cb88d2648a8264992aae27b08f5a9af8006341434a291a234a6b1a0094d14d094a6826634b3fe36b45141dad25625684f7be5a3231d2def4c67cbbbd04531fad14fb5e94f7f4518c84055621083044319aa28c3182618c948ab8f6294528c66b4128c61ac928c639cf58c67bcf56490a9389398a274a6325d69cc6086602633558c59cc328fd9ccb6fa1ce6587d3ef315b0808582452c5294c52c162c618902969a0426b1c2ea2b592558cd6a4559c31ac15ad62a601deb85396d32fbcd6c56942cb2548e6cb21523871c1520d714f3ba624953dca5b2ec66b7eab2873daac85ef6aa3afb4cb730fbd9afd21ce4a02ab871518e7044855dba16c738a6aa2e9ddfa5cbb874353ee213c1a77ca6c0523737aee2c615dd389f1b1777e3881bd770e3a26e5cd275abba6e5152a454dccfebb89fd7713fafe3ee8d4b076e8ceb06ae5bcc75cbd28e762ae0c605e94007ab9bb4d53bd14905dcbba07be7a12b5d15f72b23ee5746dccf80eaff3b03d2dd3e70f5c0d5f3ba7ad2d553ae9ed7d593ae9e70f598a94f5594e9661f75f5d2ae5ec6d54bbb7a1957c7bd0397c68d71ddc05d71d1fc2e1ab8680517cde3a2455c34bf8b465cb4bc8bd672d13417adeca225fc7aade996a55cb19a5faf255cb1902b9673c54a7ebd16e6433e14fcc00f42a89ea2920ae99b1772f44c3774c9ca13dae629cbeaebb444f3344e032ca142408474e224e8cf40fcbf221bd8c15ece73916bbe8e08e7c3efb82c714d5294bd61732e8777b8175ee17e7845b057e51458fb3b6b7f2738ac22c264da2b4a7af83da9f00f5a49bc292960607880b992e0b1a40893c2fb4cb69812de37c588643daf32d9628ac546894d16b93e6f20119784daf89e96e1107bd8c61a2659d989260d7fa1069588d73f55ff145612e8379dd3111da97faae12f2f6eb2da2e6dd132a132fa9a00df7b52b4a4355d18c8284663670ce318cf0ce6b1019325cb3473c835914bb6d55146852b181dce659c95e3c3b982bde1f70a381cfecdf1f06fabb5b43dda60230509c2e344c2caa459190bb348b7326e91b4485974092f33301cc1282bc7596cb4e56eb2c8b67aae953bc2e38a92082732d06254d8d4a66a2aac7559317d6d4b686953f509c55c1b5b6aed0d3682f5aef02d3d6b5b9ac5382bc787598a30d0b66c94c5b8f0bee2d65a61ad0e8cb19eb1dedb81acf03d726cedd76dcd31dbde9ff88f5b338070ec08e3f877a5b4bba794c5c1c6b2a551b414b041b56c006800aa5196b6ef60a18f053c851601a00f071a0ac85b0019c09e00ae1a4a38d6b94297701c3970f2bb24994dbeb7fb2679c9bc64d93fe199cc7c33ef9bf9cf9bf97fdfeee8f7d5c8726d64291cd5f87d385e173f8e4a7e9af4d71cf5d760200f26cfef8f2cc6234bf1a86ef2e0b789278c7c3856aa3f7ffbd99ff2d12c23e20379eff0c978263fad7ff28d54e56bd128c9143b920f67b23a8edd4a2e4644f6ae6f8cd4e6b7133afa8e4a4c5784e7c4191a9399e95557b7cf914a617742f513b84ec4c4d91a15bdc57775125ed976b94083984456c17ede53a79e058c4bb7c170e1fae7a68a4d924f516190d13e51bd94ac1f7b842204d430b24bac6cabfb0a210d3536ab7713a415efb4dacda96daf35ee725a39b12c28d3e705865e861eb8676b97e8a7d7e16cb6d3e5ffb9759a02f087140a7aeb2a77d43d7a6d880f7e956270c0a51c8890c8c17589e563227ba912639fc6bf8f45e4d82a36751a7260eb245caeccc61dcb81504abcd1f11a92195b7616c594a81349c9359b24cb678113ce3104229c92cce22d65ea74a86459224ac5950e35c739110542aab3daaf5c63e3071a5c50e30b1e4fc6111148598420a58999b95666f7ff361793d28754b3d52e0ce170e0da8709a8bb573101c1e29803264b5375f4a67c40339f224e9dc0b12bc7746d5f05474288f5fc50a199fd5e8498edc455152ffa3ef1e28dee56c745459c795964a484971e6db4e7ffce91d9f0fd3a23e0325b4dc328d627f6f9500e30f4b54f52de6e61966b73b72344b72dd2cd5e07eb712c6d8d66ae9369c7723eb5fa48c665c4f4dd9ca79d654dff4fa2f6ded7f60bd4a727bed0faebd1e64f280c72b3d10374e633482882a1422d8b9d840e8f9f539db6190e74f49cc8e68034f96ede7ed859c67f9a98f9f3dde8d0c4e20f1f1675d58d65e0a877ecdf8f6b0e72fabb8529260eced3694ddabc988d73cfae33d7d84b22f28f8d2755893857d6148848963040db2edf68dbcdf706e9b674d7f0c1f3cc6ca038d74c05f6b4aeadad3e8298b6f567ac5b118b103979f2e535eb3924728d1c93e756b46515c7f146187e513e68a67c9066466956dac24c7cf0884ab60fe867f8a0240a3c51ca42b04e2e1089c8f0928a57fec0d9cc373f8b465bdd4dcfa43c2b6989c5485d9fe3dbdcb1d256ba0f37a8cb1d03b3ddfc4bfebad93f46b60787922522bb92425ac9cadc9f368723d906f45e78e8cc10ac16bf1e48783ab5cc338c7b0dbab2247948a84b565feb44fc4b63f8bfecd398b4dfe7445602fe597f9efc1f26e2070f5db918607c9944e03742ceed977e6d7d75d8156ff8c7587c67882b2f75b8b2c53cde23b92f289e0b1b053dd90a88e4ee51128b8551b8bedc4364ab75c4db1f817ea23a1c880589ae4184b1b7b10d837071be2e8fe5dec0ea68034ee7fb33573a26c46b59024eef477c81eafa0a258fa470d0d8261b89a7370415474b240fdafee7030d9eddd137e51d85e60c1e661486d1f3c5ac6ddbed5263aeedee4feda9b6ddb16eec644ab6648e6d9b53acf73ee7c7b9dc87e3c14cbdfdc020c3f49987793268dee6c3b06ba60c9b2f3c6da1f072dd9fd696091fd7b39aafeb596daced13d3ed8098e17a569be97a569bed7a569beb7a56dda19ed556b89ed5d6b89ed536b99ed5b6da2bfbaa5bbe8bfd96280eb83ed50eba3e557775889378f054ef58bc19c7788c094cc28bc92c902f64b17c09cbe52b58a99555ac96af619d7c3d1be41bc54236b15bbe872378719463f2e3c28b139c929fe62ce339c77982b9c025fcb9cc55a6738d5bcce6367798c05dee13c4031e3185c7bcc7970f7cc2f8cc4f3cf82516f19bbff27f84608412c658c289600e9144cb63c41c6289972790c8349248c64821154fd2c8c0834cb2e4d9c2831cf2e4f914124891308a29c587322af0a352eca08a7a79034d04d04c3bb3e8a0931974d1a3995efa99ca80300685074362cb281b7791a535100550f855bb5605f9dddddd0d87090e6bc2dde76c80596f03dd01d35e44bf73dbe5c433ffa237a1022d518136a8407bf49f03facf268d6f830af43215e8c4a44d5a52266bb23acf9bbccee99aa9403daa5f4b0beaa3fab514a11ed5afa50bf5d185d6e9423b74a115bad02a5d68852eb44a175aa10badd28526cc1d734752e69eb9a7f307e681a4e842afd0855ea00b1d51065bea501f65b0a511f5d1881669447334a2791ad1228d688e46344d239aa40c8e50065b1ad1168d689b46b44523daa611f528832da5a88f32d8d28b7a94c1966ad4a30cb6b4a33eca604b41ea51065b3ad2321da98f8eb44f479aa023add19196cd7bf3490ad4a45ddad11945e894aed7d2f57a466dc850e6e4195fad2fcaa6385946c879848454885f16242029dd9fd6a18696184e8208096263456df4c52703194958853c920579acc3324e72479c5c3ce5640527599ca4711238e224ae4eb49795d7aaa5a05a3e8b916faac5a0258196285ae6d0b28a963c5a56d192971fea64559d6c891f2773eae49718844411b286108b90f34784cc23e43a42e611b28e90144292085947c8056c186c5cc546071b636c64b031c4c60415375031a48d1ed3465768a32bb4d1156cb823361c3622d870476c386c44b031c2c6256cf4b0d1c7460f1b7d6cf4b0d1c7469366ba42335da199ae60e3263632d82863c36123820d878d0836dad8a863a3818d3636ead8a862a3443f5da49f2e22c421648a901942a608991d11e2101241883b22c41d11e2101241883b10f2541c42ba088920e40a429a081920a48b90164232f4d6971172cdfc31ffc4d14c7b7a0ef92f8e721a2db270d0a41af94e5d7c67e1ece1d6f161796b7e7b69ede45efddbd44e21f700e4c8120670bc67a2b36ddbb66dfbf278de4db28871b68dc2b3cfb66ddbb6ad7dfffaea36e7bbfaea37ec5167ba3b98ce5ec3f6706c24e67f107f4bba19844786ddf93729336309d649e82f258eeb3bf57ff96f93ee7a178da7ad551a29d74adab6c4d2aa2597f62c25e5b4a64a2d65301be52ea472a8e1447135594d5125a41c95a2142da0542f51cb55352923b5541c5157b36816554fee8dfaf26a36d05c9a4b359457a711cf420f538d55736a119ed8475aa4437a644046644266644156644376e4404ee4423ee4470114441114454994421994453994470554442554461554453554470dd4441bb4457b7440478cc5388cc7eff8037fe22ffc8dff3013b3300773310f0bb1088bb1044bb10ccbb1022bb10aabb1066bb10eebb1077bb11f07701047f102ba72f259da856472b7196084096658900009910889910449910cc9a1abae7c6b6505f52bbf34d96087834f825188460c6261a0c653ea384e20c157af5b8f7f669b23fec5167fe31f96ff8bff989e8959982ddb293517f310a7147707e7cc562dd5dff80f33310b733017f3301f0b6094fdb29ff0b609bebaad81f308a7977ce8a5ac30aac15cfff0b85fd4483e7bcde4139cc693f0cb193ab81283bacdfbe03b71fd98b332778af7f5cf792a9d39eedf00298208b1a400cfac97437954446574401738e081177ef4c7000cc2100cc5611cc1518ea0718e8aa19361b866a15d3032d5cf522e1c052cb92c692c84f9b9f9aa793b4bbe12e695e6950c43e6346cf9d930dd376d249687632631261c3d25ac126d4c8de47f004b481432e59048674a21a17f18c68712b7c3f1f08370180e1b7ee6ffa2ba48e4d3b7eaab4d39b4a3d4be129672da5cf96c914afa28e6224caa3425dc2cef2e92528edb516f7455fda9317e26ea49bb5f5fcd221a4a5bdf482d259aaa354433b5516da2563a4a9bde529da505ef206d7777f582b0d1b3a3bab2d3bba3a67248cd16252d57b4d46f4ea9df5cd21eb9b5a1bc621e693b7cf2bf3c215e31377786075ef8e0c73b778cf4b398c3b9a762981a69901b799017b5501b755017f5501f0dd0108dd0184dd014cdd01c2dd012add01aedd095f26cc5374c7f8beff03d7ec08fe886eee8819ee885dee883084472bfdb60c77cf26c012e337d05577117f7701f0ff0108ff0184fa087cf207db8068aa4f4d96087035188460c62e124b50b6ebe4bf0c00b1ffc08208810fa5242fba13f92aa48ced6063b9c7cfa76c14d99f2c00b1ffc082088100cefbe2eeca32bdb5a71997557701577710ff7f1000ff1088ff1046cc5775d5644b20f1bec7033ef81173ef811401021e40be74b24676f831d0e8e1d8568c420166e72c4032f7cf023802042b8ccd1aee02aaee13a6ee0266ee12eeee13e1ee0211ee1319e507f8da3ee1e8f0998c8f1b22b9da1014698608605099010899018499014c9901ca511be2a72c6063bfab2bc1ffa4bafa569f4f4a16f11bad3ffa8077ac715d7fa2022aeb8940d6a5fa67b694ee9056465eedd3e41d48ed4d5f4d793be544ec51dc631acd0b4db6f5aa356a4a6871535404bd6cf67e902e8d282cd824e1bd292bd5d2035b53d5bf4a3f5dcce39d103eaddde6552833b39371f7d9686720c4b7c2ad656fe702d67ea608afb57e6e8d125eb7bd1220fe6fa37b18e25f4de5af1c131e668a4629b7e72bd093e4cfd518a4c926224a6719c8dd88493e4ce299cc6199cc5399cc7055cc4255c27ed3dc64ff10ccf394275b4e16811e49d4d8e66e548a354f24f1d8923cce108c5e3f7f4d9ad0dac89bfcecaca22eda2836b089266e8eb47da70ae7104c64a7fb52053ef2e317f947e0463d684f3d929f94cab2979cf71e40ce42e6138e77f9ba4115700000078da6c9605705cc716444fcf9b25bd95be22336acdcccc24cb8c21c37e6338d25ae51204149121cccc9f99999931cccccccce3c9f34255aa6beebddbbd9aee7d30250494b19edb3035b5ab8f627cddcec61c150c454b161d95711a1f7f4c121086004b8c38092c782591573c4f72f7ceba469a77efae6f20775c6e4f3d279db077e76e56d6edd95d474daea97e2ff31b5c6366a3ab4c06c4685f47f91af73500ca4952469a0a2aa9a23b3de94d5ffa33900c20ef6da26519cc1086338231a3be36ea92c10f0dbe6170ebe0ec6006fda4fa82eab6ea6dd5e3ab93d5e3073ee7d6bfdcfa865bfbdddae6d674b7d2d5e3073ce2d66f06fd64c075032e48af0cef087f155e93fac854e83ca5d9840091c450c714a555ae0a7d4e953a4255eaa6eeeaa17eeaaf6a65344003354883354cc3354443354223d553bdd45b7dd457a3345a633456e3345e13345193344553354dd3354333354bb33547933557f3341f43998c42508d56b87995d653a94dda444f6595a5974ed1a9f456bdf6d0574d3ac80097f67c26e8bffa1f9328cd6c14c82aa6b8124a2aa53285727faf7ae5b447355aaae55aa15a2d733eabb54eebb5466bb5495935a9592d3a4da7eb0c9da9569de55cdad4ae0e75aa4bfbb45f077450e77b57839476d929725fcb50edf3bbba1dfdce1b94d5e7b54ddb95fbcc9d1ed5637a5c4fe8493da5a7f58c9ed5737a5e2fe8450c095e7240355a89b4495b49aa5ef5a4d5a4b32877d9cea3a76ed343f4220e2c4dfc227143a22b7152626d626a221e7f2dfe40fc2ff16fc52f889f16df155f199f18af8a7d147b26764bec67b1f1b12afb917dc13e60ff657f66bf60cfb1cdf638bbdeceb6836d3278237828f85bf083e09aa02d3821581d4c346f99fbcc9fcc37cc052667369ad92663ac4bfc2ffd48d7a855db34550395e415eee34f7c834b0830a9ab5257217e81b157f809461210d8d6545baa0df105a7b8b948d9953a2e751ce220f21dcf8b46440e6357a656e75963a7b20db10937a5a617f1fda9452c44a9810536954c2511a391ef7856f4457447c9d7224e88973018050a41e5ea418a8044ec0f05d085ecdf20bf4f3cf6a5c3e03864bf51a4c562073f05cb91bda048b1b1ba43603cb27b8bf8207654ec287a22bb25cf0a698dcf31b3009fe3172539fa1e86cf715d710e77bf3d7c8eb6e21cf68943f0398e2bce61ff63ffe373ac2ec9b10e97c3fea0009fe3bee21cf6b2c3f0397e5392a3f953f81c5f28c9913d049fe360498e1a5be373e44a72ac2240542153486d886b953680b2da4e4239e508d5a683a475becea7871ed58bf42420d01b7ac36c4466747ece3bea1edd63a6235381f15341f99d7e67fa23bd815c8f788cbe662cd20304fa9a9f0bca057a0ee94fd154e01b751bd2b7906ecbb3d26f90ae20d03687df14f15f416ac5a8d64d05f622a413f03de240da484c1b239c51a2ccc46aa6c78e123e43a08cc3f212b60ca3324d2ee6780b69609e11ff403c81e109a5818018b745f8197255bce779cbaf3c6e42ae8ac73c1bf015877390abe23f9e335c42237255fcc2336217a20df1b5e8f355881c14e5d88fc81230dc612178ae01b11c4315630183f45fdd1a694721c78a4aaf58baf801f0231e62028fb8cc593e7068c110f72730fe044ef81338f42770da9fc03dfc09dc1343124327f0be43071faa079d5aa0255ca7a3753437eb0a5dc117f41bfd9e2fea25bdcc570948e8a402a2730e9f30aeb58ac0169fd7f3c4345d1e2c46cc8d58ab8c1cfc2f1a1e7181d24ad31b51e519212df3b516e7cc4b05943a73471e25cefc264289335ff32871e6328752e715be2ef7ce8d45c8216eca3b6fc9e328c4febcf3e20873117579e7b11ec311c7e49d7b3b542116e79d6b300418bd0a7ad3e1158391fbe438be402ba27bc9b9b214ffc4795eb415295bbdb23c528e2b52b678657ca4ac2c523613e059730562625e31aa578e00109331f4a77b91b654ab11296dd2666dd1d6e8bf88d3d58590eab1804822b591d45ca53986b5d4309b91fe594c13d7f318b5fbda1c31cf79e639cf08ab07f2d3fd7e0a7888bbf817557c872f710d17b19f3368e004b6f9fd6b99cf74c6335c86b7f404813a1c7c578bef2d6ef2dde105cfb747bdd9f716b547bd592f62d5e1bf114d79ae25cf45dff3fb7ace4f11e710710ecdc41849c6dffdb49ef1bff45e8c9af56c94e3d9c8ff3ebc3f09663291910ca63f3da9f457ea297f4deef6d7e8497f55eed29dd1ef7930cafd50de5124d5e4a63675e836ddae47f558e1ced0e6bbbff27a14a3acaf9b8abed11575abdbbc12072ceb994c860a02c03097a980806111b39e95113334627a538918ef59b78fb208a92d5233f4cd9f7392510ff0fa265f9b0a798e184eb2e2a68a4c45a6fc1fe50de50de11fe829c22f84578517845de169612e3c2edc12ae0f6bc3b9e1e470643830ec1e96857c42103c000162c40000ec5c9cda6fdbb66ddbb66ddbb66ddbb66ddbb676fd9d3ff15b7ec18ff91edfe42b7c9e4ff1513ec0bb791b6fe435bc9c17f15c9ec193791c8fe47f38db177b650fec9a9db143b6c3d6d9129b65136c98f5b14ed6c2ea59152b65052c9ba5b14416c3feb35f2ce8077da677f4929ed07dba4557e9029da6637490f6d076da446b69052da6793493a6d0781a45ff52956ff2461ec90d39274764976c9065324726c908e9275da49534906a52460a490e49274924964490df04f913bfe07b7c854ff101dec66b7811cfe0713c847b71076ec675b81297e07c9c855371028ec6ffb0f34ff48e9ed02dba40c7680f6da215348fa6d0281a40dda80d35a21a548e8a502eca40c9280e45a23f88f10bbec207780dcfe021dc81eb7009cec209380cfb60276c81f5b00a96c202980dd360228c81ffe12f18e0033c833b70094ec03ed802ab60014c833130087a403b6802b5a00214833c9009524122880591e02f7008e15378151e855be15238150e855d615358151685596152181506855ea15368f5434c594c494c51c076bd179313b06d6fc4a4c5a4c424c524c2c4c7c40160b10e4c0086421888d63fa58a71f87691b6e110ee4d20e49cb8af13ebca6db7be7aa5a070b0b130ad625138d8589876625138d85898b6635138d85898b6625138d8589836635138d85898f17c7fbdffbd3cd0b1912449100341399106bcfe62fcb4ed9573c138136aaaea54d4b363c78e1d3b766cd9b265cb962d7becb1c71e7becb161c3860d1b36ecefae9aaa3a15f567f77d535355a7a29e1d3b76ecd8b163cb962d5bb66cd9638f3df6d8638f0d1b366cd8b0617f9fd554d5a9a83fdbefb39aaa3a15f5ecd8b163c78e1d5bb66cd9b265cb1e7becb1c71e7b6cd8b061c3860dfbfbaca6aa4e45fdd9f3f9aba9aa5351cf8e1d3b76ecd8b165cb962d5bb6ecb1c71e7becb1c7860d1b366cd8b0bfcf6aaaead43feb737c8ecff1393ec7e7f81c9fe3737c8ecff1393ec7e7f81c9fe3737c8ecff93eaba9aa5379c5860d1b366cd8b0ef737c8ecff1393ec7e74ffea7a6aa4ee515fb3e7f3555752aaf9ef5f9aba9aa5379f5accf5f4d559dca2b366cd8b061c3e6599fbf9aeaab677dfeea7f9ecb01da76180aa267e6dbb66ddbb69df4dbb66ddbb66ddbb66ddb7aceca4db5a7ddb58f92b458850598863118841e688726a88bca2889fcc88ad44888e8082b7ef24ddec823b921e7e488ec3275de3c9926e36498f4936ed24e9a99dabb2aae0be199a1c675fb0765e8c695a18667a92d95a18267a92d156eb8f7802f695f72563bab9dd5ce2a6795b3ca5a73e7bba45db2d6649b9cd5ce2a6795b3ca5a73ad5dd2bee4ac76563bab9d55ce2a671594640a553354f9504543e50efe5f4f1e2a6ea8c8a1c83ffcc417bcc72b3cc503dcc6355cc4191cc721ecc50e6c46c5aa2ccd82ccceb44ccc980c8f00fcc00d5cc0091cc00e6c404ac9c47ffcc2577cc06b3cc343dcc1755cc2599cc061ecc34e6c418fd55996859993e99994b11991825ff88067b8834b38817dd862eea501e8810e688106a88df2929f7efcc6377cc41b3cc723dcc50d5cc6399cc411ecc72e6cc506acc9f22ccadcccc8e48ccbc824fee0135ee01eaee0140e601bd6601166609ca9e23ba01914aaa2340a23373223351223362223b4f8491fe98657a68abf2d442fc9cf41ecc1766cc2baaccc92cccfac4ccd848cceb0f0c337bcc123dcc0391cc12e6cc032ccc1248c403f74412b34404d944751e4464624475c4406e58f7c9217724faec8293924bb6493ac9245324b26c9281964b6fed26cfd9610bdf0cad430830d1b5a36b0f42cb5a50ae66d33bd97a1b654c17c6dfff00707f138c7360003200c04c5963602c6c8ac192729acefaebc68d1a046468ab60e2d1ad4c848d1d4a145831a1929ea3ab46850232345ae438b06353252a43ab468502323fd7ab37a22237d8d5a03902c4914ccace9996fdbb66ddbb66ddbb66ddbb6bd3cdbb6be8dbe8c89debe8ed9888b8a8daace9799ef55d58eaa3b386ac7f6cea89d336a1b1cb5657b67d42e38fad759673ec2ecd96b37467132e89ce864d7292674e503adead0d91fa78b930d0419ed66203968650514cf0203721df7032e0e40df0bc467456fe352a93279b8ef201e937a5a4f31337898bbedd14feec6f2e2a5f3f026230e2ec73426172b8d87d51601ac75da1fe2a4f2704ac2ef9cfc868991c2c3480e0bcdd5762b9eecbf71730f3e14b7db6c459378a21fc02025fa2a9648ab798017dcf768cd6124b3b1833cc4c33cc2a33cc6e33cc1933ccb73bcc0f33cc3533ced719d0c42734602ede03ac78f262f6a416cb9a7e713fec3273000922215af7327e772209bb32cb3322eeee10b84e124b66329a66228baa325eaa2220a82ae06c493a3d11fa05e3884fb4021088edc314b88a21a7be37ed0c5d095978300e866e93a142f0ee8610a09c1d55a79d9c262e3c703432884c6aa890f8654098f5da75d0da95424762dd93278edd7f30b644dd6828ddab8d1330be4188e13475ce74981bc48c6f5dcc08ddcc4cddcc2addcc6eddcc13ddccbfddcc7dddcc95d30b0e40bf9c69763423926767915440a2ee78afff15f6d10c01ebb41af63cadbc83ba1bc13cb3ba9eb843ab97342fd370c876a266542c571d6899f41c089c787416eb18cad3b232620a6ae00cb8da18c307f4c86405594f0bff0ffe6ffc6ff913fca3fd93fd0dfde9fda6f59f7ac6faccbc133d2ec56522be05bef9b6b3fadd0d13efb4c6a3e3237cd7973d4ec36034d7b7d2749c867fc851ff164f03b414b5667513cc20fb88eb3988c81d0493d9ec1300a4f611886382889c2317708701f8611780cc3485b69f8100fc57e00c370dcd53da67b521216fed6b515d4c6c79fe2fe26f40fb17e974e79f18ba23fcbdb9bf747e5fa418cef55c357e27d29af6fe5f58dcbeb73e19f892f041f6bfc919842f08190f79d6adf7146d121e71ea51a22a58a500d3795e5962a0993e68e6a8899f175b1af09bd2ac615b155012e297ad155d37921e75cc86921a7840474af2f2bd2232512e388ea39ac4af6cb759fea3928ee01e5242c1c75adc26e3176b9901dd26f0f39e32d72ddac3c9ba4d928f65ab9ac97669d9367b518848595ce4a2e75655a24ede29099e62ac76cb1e789374b3916a88219d2cc71edef3431a786f41a2ffd642927c977a2d813a41f27dfb14e85a33dffa323c51d2174b858c35c7987283a58de09d1131dd1120d5113955116c59ddd19a8ac03c4eda56a7a4ad143aedde4da55aefde163848df5b3fb481bed6bf7776dbc8ffa30f4561fa14a3bbbd6b2a3c61d5cff27ed84b475e6d5ca1935d7281106bbee62564579d7aa3553bd4de5504ff5d650a53555751de96babde26aa370c8dd587a391eabe8b86c1fa1ba88f407da86ed7ba56937b55b954916365d72ba1a2a2155cf32927a4ac0b292da49490b8a8685f17457ee44466ddf12cae6831cda4a8e65044fef9359342521554f602aa2de88abc8ae771ad6d2ea9734a110fb53d7b9b12d9e49b5599b24897518a0c724a275d5a65ca1c5cad4ceaf52a416ae75592d2d9a164aeec89e5952496592654d604e2c713d3a7ac966a0a48e557eef8ce7f4e091824d29395a99046cf4ee64349944179544275d4424bb4417b7442170cc2508cc2184cc1742cc4122cc72aacc136ecc41eecc5499cc1055cc60ddcc6db780f1fe2537c819ff02bfec23f78e2fa3c1e09cbe61fc37143041cb433daa332f2c20f2075b01196e26a1a19f818c64890777917e4433e146ae9739b386a371f4ed8cde2722e87810140c58fe20497bf01c53329900078da636061d5629cc0c0cac0c06acc72968181611684663acbd0c3341f4833b0323380289606068674202b8b010a82827d83190e3030fcfbcf7ee09f100303c75da6290c0c8cf341722c71ac97809402030f00cfd2102c0078da1dc7b10101401000b0dc3f680026501b808e51340000600a03d90da48b102a323a327ad276777c449feb74768a10f3d378154349494b5720c5400d5948df3d492fe4ff4620f800bbaf082800000078da758c03805b411445cf9d9fda763b496ddbb66ddbb66ddbb66ddb769bdab6edee3ef300067080d038e85b769969400eb2e007179098b47462019f9454c5cd06b3cb9c33171c392e278013dd1a1bc006b2a16d441bd57a6c2c9bdca6b339ec02b7c73dd43ddc13f2e3a74f9f00b024211d5358f48552ccacff41c1711cffbf28a16c781bf91b25994dfb1f45c03100f8d41ae0e3878ff73fde866ff5dc2b07afecbeb2eb4a2eb892e74ada2bb9aea4ba92e64a496f496f036f216fc1cbb5cd130464032a71938fa0499a02009af0bb06d0187c151d54165557313e68b332ab9a7228a7faa98deaa98ceaab841aaab15aaab55a299bf261084e48c2100e0fd189455c929382d4a42323d92841294a538e8a54a6214d68496b3a2b974a2bb7faaa8fb6d28dc10c6324a399c25466309be5ac6035ebd9c4760e7394639ce42c17b8c91d1ef298d7caa392caab8e3aa4ac7c142ace2795d2486dd3400d5173f5d600edd46075d0688dd1162e6b849a68b74669a85a68a3366893b2e307bff8c385837f82108af04420229148404212114f0fc9442e7293871c64573b725285aa54a33a6d78c7197ad39d1ef4a727fd18c070c6328ef18c613e0b58c85cdeb399ddec612f3bd9a1f6ecc2cb15ae7291a70ce509c539645055edd51eedd73e3dd10b55f9d2d7fe0ca3a2a54e000000010001ffff000f78daad7c074054c7f6f79db95b68221d41419715b0a2b22c8b0848ef1d04a58308286081a548b780a888486cd8358a24b14589be68a24693f71413f3a2464de27b49cc7bc6d497909858d8cb7766f6725909c92bdf3f71d99ddf9d7be6b43973e6ccdd650c502897c53e96fa322c338231652c1919e3cccc6094cc2c26846190cc54862c654ab94a29b354b0a63253a95ca940f02eb75428159672a533b96ae9485aa48ba5295c27187f8547d9c79a587c82d343be77ee7017efde45bebe172ff633c8f7227cf085563f73b181bbd8e0ebdb807c1b2e22dfb636eee2522e4befb3c78caf6fbd9f2f6a80ded00791bb9806e8d3e0fbd9be06df7dbebe59685c96ef67bed0f0cd827f0c8319378611c7896f3052c68c61144881e4ac8c45ac93b393b3442a91b26ed8ee1e1e7f658b66471b3e5764e7346ecae471136c178a6f3c7541fbb82c1c8c5ce2ab176cde9a5f1bc9dde8efd7d293966327a0cd3052f423b300a9057ca1805f63ded4c1d709f855347e58fc0aba362cfe131aad833f15700ddac430021e22e03dcc4783fdf506f979c22cd2e25c2ad18780f7a2eb4f828719f7113a83d45afd498b417f231973a23f99a5cc5478b1c8548edcf0bba21c8d1bdea3c9c177fa4a355f5ec29fa473ade21b5d9c451767d645b5e8c3daf47d09a3506a94db115a6ed920a416f075027e45a482d159a69b614457607473c68e7186f14d65ae565696161289d4d21e9377b9a3ccd55de9e6e4249729e1137c844fddd864d7b5f9814bfc82d7a7e7df3bc1ed4619c75e885c9fc56d47a1b12b23d76ce24e8a6f149e2aceaa0d373316cd3d50b6b47b61575376445de4bed9a551d94d44afdd5c2a19193832e1f5b4ed49308398aafe6fc505e2078c23e8cb613c56ba998d57b8da636bb90b2b7790004f66560a571fac5218b3ecc80bdc87afbc82265f5876755fa1c57993a8254d614d77ebeaef3686352d8932396f5eb8efaac5eb28f9dbef50f259fffad74aa3d4b1139ab92717ce734fd64c8c298b2ce96e0820637209744c0f86414a85ab3bc828578107ffd1e8580a3aa2ba92e3bde5aac99355f1d67b1bb6fe1b767263927352975472090bedc2c71c378c4dfb63e664a3c531a2a8b8b9f144635433d486665a1be251d483c086e248b0a1014414462603138acc2c2db08858ce4ce986c160b8919b86fef131521eeae42e7106487afa5fe5655f1ee5be14df38c99dfaf22beed5eeaef548f4da2984d6696d4328c24896bc6d1aa86d88b784c14886d453044fed665b34ae78b7663ebe43bcd2b68b33ea022ab437e5d75a3b3399cf917a18fc0a6a1e16ff89b9ab83970bf88f8c830e1e22e03dccd6415cefce008e31b36d381cfd4a712a2d914ac07bd1fa27c1c3f0f308a975c65d28e0d7982aa4e6b53313b4a3afab9d6eb6513313afd2d412cde02e4d0dc3fb7825f89bf31ff9b8bbca5d05738e5892b5fc0b77abab0b4db850fede81428bb7ad2317ae8e5975bbaefee3b57517dd1598abc35e7bb8ef2ccea2e46f883705af3c55145a123f790df7e4e279ee6973e1fc8cface175fe77ed832e04795542e39ef4766482de02102de83c60dc825f619b03a48062f39fced3ecf1a9f3fdfd72bbea1a9c1ab9fbae04e4d0aef3b3e549b4e5a6d6211d526a542ade8c45b71e700755402d4597807baa8e43c591a00e8efefef61189c46ef99a8bd873b8dd480bf0f7836b1248f3fe6ce51090c092d22198f5fed2f1bb018b6d1c1af3063289d1b8027eae03ff51751fc07c0dda50b05fc5abf31c539c027484304bca77f12a55f04e376e9d079c4e851bc834b459bc53704bc97194be7516effb7ecdf404453627f27252cee16c4e04ad0ac8504cbde797cbea5b4a4e5fcaf160f6fc7c6366fdcd82c9af0eceeed87bc2d9ce99dd4162c3889bb0a2910922329b188b595eb220ff4e6134d274efd9c63613e7298fbde6e8c6f9517fa5c53dd770abffb0567cdf0f670a63cbbf1b3f0eac06c202308782f7a5798fbe36164311d99ccfaf3f82498ea7617a546ae526a2a41c33c35729780f7a28a016a9226a0369dce1504be6f65edae82c08a64e0046e20949b4a2285200b82b960c825acac613d32ed46c668c90899a3a9582c129b3a3a8c408bd0c87388c56884f1a8a9138cb95387b863c64e5347198f4408612cbed197289baf9e69663ad2c4a32ccf813df2d4854d70295f19e0e438697268e3e2f17d47d90479e1aab0c953c68ef36bac9ed17714b8a6dc51693cf9197260401ac2b580f7e24303d28813401a3baa1b646505d2c0f2e1440c2a474e241702c80af8ff0c678c0a9c606529c2227cfebee61f8e11d361d2b32231701ae2a80e9b3865ba4bf46a17b61df88c9d559be49d10e697d132a1ef186fb104ea95de7cdce9476a015f27e057f08861f1ab284fb030702be0bdd804a4c074fe1f84a8349219ab1397f8c5c4995f4b06e2136b026bef9123b0d85d40935e7985bb7da1f14e7dfd9dc6a6bbf5f5778535f72cf7d277df722fbd7e620d929ebf88a46be8fa061169200e1da4b3db9f8f08a7905ac0170af83564487215c06f880f4a18660ccc2677c221a855ea4cd669c2e838d0b9ca5a0a7a26ec2204b096576b2b31e51d7a23b80a8c6f31344c5b99ef3e3109d847755b0c0dd25716b84f9c034268aee3323dfd222285af395a0722cd36b7d6acd7d72bb248974857a76cf68d7b850a962e9536a66c9d1d7b848a874ad8b5124900156e95f33fa8b0ab9d647d951271e0a0a4eb0489aea212a41e06bf826d86c57f420b75f01001ef41ce83b8dea0c69e307f1a16ef47263af81d01ef7b0edf2be0dcf0fd31461386a5f3eb00cea5124f12f05e3ce649f030723dc262b0ac885a1670deb29effb36dcdcd15ecff685f55cbd54bffb38dc5579013f73143e61088b51a2281198905b2813934982a21617d57b0d66f7337205d74795b943b903ef515de6dfbb8aaeae3b6bbe750ccdf3f473167f9744a3ca995d3bc7a8cd36c845168b43d465764cb819cdd04527599a92949d169b2de8db8639f17177f768cbb803ccadbfcfc3655703de21bf5b7b95fee3668fe892fc56d38b13e968fdcc7a84d12f975600b52d368a0a6d1c09c9930180dc691600089afb5dc59c22aac61f5d18d090a57951016501d848539818517ffbca2f2fd3fef0a9d3e7b203834c5873e1f1f5e694eea3faa440fde9b3d7fd57341c27640d68774c51b33282bb080e4489058a92bf2525b3b147d8feb3135a3a26ff4f76fa3a257fc95fbe5dd99c6069a5d380069cee36f82ea93e7ad0a1b58bd1e521d24f33ad82cac5e30b680f7a25769bc57f73f00fd3f605c896620bc2becb18267c399847d58bf14c0a7b5dc89e8466269019faded59b29fc29bf67fd7a47f592fa72379c1fe8cb8a6d8eeee2bcd0fdb5eb8bf4a7476c4e9c6ac4db1d98dee5bbc36ad9e53df6b5b70ae36b158e95f19139ae2091e737e73dd9b0505a7961557cc2e0e8ece548e9c68e291beb1a0eaed12e095f2446548e165e8a032a8b954c2ab80f7a23d54861c7ee727651873c832c9b29b23cae3a69e174feaea7a7a5b3c09eecd11f668e9fcbd07b4eb5dff43b12fdc6b493d832e73202255014d6144f8d909ee49dbf9cc135555c733ceb771cf46adfba183bdd3e75178382beb70217ba56f62c70f64a7412951ae33f9c8988ed4c3e057b06858fc2794a883970bf88fcc1e1d7ca1805f637ed1c14304bc07990de27a83fd9f302feae07704fcf1efe04f7f07ef639ee9e07b05fc193217d664d0a880f762e993e061e47d847e2059b350753186288320e3a0e913cd04f15ccdbd2b68d6e889b2499365136c91a247731f928b96c8fa824d5bf26b2259f55317e6b97a4ab1504fd1a95f505ca85f684794929833818e684e731c9a7d9a3fdf407224d47e500fb7e8d2b7e60e2606fafa0626e3cd7fbcfb2f0bb92934f44dc69b7df33657f0b77ec6c67a849191a1a55d3f30b9386c5bd4f41933a6476d0b63db696baa8bcb54da827ce8445ab15788afc7a2457db17c4543ebef4bb59e8313907a18fc0a7eaa83970bf88f68f380bc442e01efc51a2aef4cd08f17c83b965465d010198990bc94108966622bcef0de9de9deb666b006d9cc9efec91dce109b7ec23d9be469636a6e66623b6b0af7043fc377b8b783b35c1ca64c7670c90e465e9ae97d1caaf29937d5ce513e666aea6cae09f8a1e3523ecb784f4e172cee09fc9880fe4d9f37b929b1f93de4ecea6c616969e93c0d397da2b98773d8a5dcd8b8306757b709e151e8f3be36cd9e01bb7b52fd54f071e222520b7839c1f9715374f01001ef61ae537c289dabc846f01fe053c07bd1e527c1c3f47f848ee8d05928e0d79893545e584945ad20af0de85f8988a412b9444e36c488f81600b0acaec43ba62a6c6d3c66a6a7691e898c344ba72bedc6ccf4484dc3c64deca701813207167735f7cd0809717464112255094a97f251cfcbbf61206721e309782f5a47b3e294fe07ec67a222c6995ac68144771f0c3b15a5d24d1bdda5ce3e98ecde4939566e8c9d4914541ab3b07921711fdd5974342fb27e47746e9db75b41746c4988d9d1c9ed27923c363626bf6a649ed8e49bbb2ed4303c739eaddfb240af02dbd81d8bb32a831c0c46183b4c940467bbb94638cfcc2b9d3e3a76f72acdd8edce091e7ba36b03778eb0343164f59c237c3da32700ef94478915f0be929749c530c3e03f316b7470cce312f4e30714e55289a442ef5e34935a6e2895ab4cdbb0d41f21f9202ebe2950ef091aecbd4be8fd33a3d1e9fd48e87d0db6ca2c41253f81d6fd9828267950ef0ac5f35a1f989354ff963268d25548656d8ce50eda096a8c11bf0613c3a8646eb0403b8007a1bb8b8ee525b574c5ffacc81f348bdf76ff2963ac477beecd9d77a425a1ef8ec879f28e0501453196c76d6bfea4ae7acb6794a9997ca27a1dd2ef8d5993b0eacada90fd7889b5acb5a7dd59466dd710215b1894336036b972bcb76cb497dfac55b77746144527a53845cd9c3a6745587cd898b113e493668fc74613137d93e7814d7f09f54ece9b1f43f70b547aaac1167e753acb08b8c44ac0afe023f08e993dfd0f45753057ac18273e23915bca612556501d91fd9b84baa5db603e820f2d5a196c6e71acdbd83cb0a1b8e5c3e5951f1e5eb8212478c3a2fc9690d00da3c2d2c71e85cace47f6a9a12d90799ee4fa5af72fbb50a63eb7b8e0f59a9af385c0cd1e2e958c0adc6ce4fd652f993180670ce5c6f43fe2c6b8fb0fb8d1bc2a55ff3e3ba4aa56005a70019fa195635abba57e612d7561f97168ed169c83c50bb6ffb3a1e19fdbe3da2a92ac8f1ab986a4a996b60507b72df5c80873353a62955cd93eaa0d898e1c47e2b64931a5613326872aedcace2f5dfca6da5e153975464459c26432229741471c5237fea3b175ebc6e8176dddd8b222bdf48fb9097355d1b27106291bef339c15fac7bc598e14fbd2b23158896a85fa4c3b1f1b16c33ba678a86025415fb0cc81a5f85036d44a7eeb6f572ebfbdbeb821c8ccb8fb988559c88ad8bc96d09096fc451b82435a47b522d1c95711db129a6a8f9d9fba1c1d9b1eb6bff07c4dcdeb058bcfa9cb2e2c23dc80cf84529fd9c2fb4c26f519c24d306872f480f54ccc869bd448e6c44f5fac3ef04d7dcd17dbe71ddd90d87717a6e9ce3cffa268cb63b63567380fbc546a236fee69731a0756c4682e926ce66760f23c9881d3131b42f18148df39d9fc7ca3a3d378b84d1b0fb941d48aa07cdc7b93190ebf827287c57f62ba0771f14d817a4f09c36b0224167af7a2fc27c1c35079846275a83c12a85c4b223e6f01a6bc2d19c58c8206cde1e11490df7e584ba9e52c2d7127c775dfbb97da1ee79b68e16a3cd529215294b1a3cf8b7d7bc796ec95fe96fa3bc44673e28a8915b86051389d414aa04766ae8aee6c944a390da8833b1b8592e4f91276a887ccaf79ad52de3e2a64794ed35153f3a015454db76baaeeac2f5a116c6e7a7ce5df36f0eed21a12daca05cf2ef0ce1817ad6a58f7d9b8b901f53f1f3fdadf1292667fea5963db99245c947ebcaae2b5fce2d34b4b4fcc07f9296f542ffb79ade731cc004eb40b38d5ae9ae8650facf276d4bb1944838fbb8a326e090d37ca2e8aefee7609caa85ff64ae66b6bca621bc2c9011b44bc6b99d3fcd2cfb56a3cf19915edc14d7c9cb3a33e7b90b7d44262a9fee3640c69b980ffc8eda4990429f1574858c0bb2847bd98e708c58b3218565b3fddd32dca787600a89c000bfa53dfebe2a9ec6218c06f033e46fc48c0af713f53fc4742476225e057fb53094ee9f70bb804d606d2fb4f40c5534049853b9e52f907e0c6e29b02ded36f42a9c055d4aa43e5d1f704ade1525195209113958854b3c5d463ebc9555106bd2ae0c0cc032e032580c4460c63ae30b58202855c499c69f76b28bcbd78bc2c3a145410bf687b6ce7bc041885f62fa7a39cd4ea0df17aa371ca48ab37055fec06055aa1bf7fca4d41bf7ec9e597c3e6612ffa8e1ba759890d9770b9c015bd8fe679dd7c451a2135c18508447118250eb8e5eda3730e11df2d9c43906bf833f8e8c49ca1f7142257bc84d73947c7a0b830462d68a4928e0138d5083b3086245754c24ca2b2f0998b90c2e87aa7eea73dc79195e38cc6d0aa486f5b4b27e5b679d9fb32bb9b53228a6775d764fa95068b32def39932cb2bc23bd5638ab77fe2cb2b35c6f8bbe505b31787689c707f7a8977e53c8d2f704547a7b63dc7670f6b1946ab11c29580f7e296016e45634445c21cb21e6e0e1d45d3c26112bd9cd92d4c2251c6fb0b1543e610a545bdf9bc367acd650650cad179614e0f875f652e0c704a3812709889c2ea910b9cf2956b612d1b3ed7e0d7fe8e070d0d0f3a96b50707b72fa3cbadb0e243bde2f811aeaf6dbffacdc54b2e9469d756323e1d87ced5cbda75424f40896c3c7a2d8b64b009fd374515a2f58c1d585b35b4a209cce99634298f4215d31941272db7d684db125babe2c2e51626be84e9522bcb658b6aaccd7cb5bccbc5626e948141e851f44fa9348cc8216747859a98d5a7b4dacb565269428d4d1a5336c91c570dca9435c248f3b6be9ee7653c5322f124f2650c4a42f57e99d7fb5f98e170c82186c57f227611347253d0484f0dbfe2112b09bd7bd1b227c1c350798452e05da4d5a0c48ad7e0acff5987b42cfc3fe8f1032809ff6fba647769ebc12c914dba133c730ae3c5040bbe29ccfa61f72d74dbf21bb71d4c7d04072ecdf19e95b56cb814a8f440d9026fef9c525df7c6f5cfa54522ad403e05793ee14393a3509ffc02efd0e7dc1fa3817c6920c307a968ee686eaab0d449ede5da841f0d617fcf310b21b56fa1c93ef2d0c9f0b90c09734a27b9a7093f9e3c64c741c7a59ef23eef87fbb5b92ce0a103fc204882881aa9a6856c65283fa2d06e63c85f0b07335a8b639c854e36cb65e01848607572da537d9375b3596d84c41f8a16d327778816b47997a5d340e03e6634766fae85ca44cf777c6c3dac7647e6e463f41ad60b288bd404823cf47e2acf0dad3c3463a4eb07a14b71ddf5a3a8ff217b13e49cccefab54d46d402c9daab390f75940cd59fb2c0fb62d3da5b6786554636ed9fab884b3db37179dab28ddbfc0e645ebc2a2dcc6949c97b6b72ff9cba880d55913d39272833ca3cca78cdf569ef54242d0f298495e3969c13e11d613c66f2bcde9980bbc511e28cf1ff2367065188273a9843701ef454ae1dcb80a6ae593898e288b94297e0f4473022a82f6037ca2cc9b762f79a7a1ee2feafac24d278bde597de8907afd8e552b524317ce6c2e5ffa8228a1f6b5ecf4239535c71d8d8ddfd9517e76d1e17585cbda5f0e2bf3cfdfd8b8e8d9099219f7f7e2327101794603c166981eb0abac25c43f95244b865c02273df00e31555a398e09916f3ad0d5d50d69b1262322484fb4ddc0a0632d3eb1031970bf806c165c2aa105b27dc4dba3916680ef9131a44602fe23f73a32207ed1df2bb283ccc78ada89af8f53e9e8d68acc611bc83bbb9bcb62ebc35f3b363d22cb38fd8d0df8cf9a30582ed764e23dcf0e7c50ec4ad76c4289ae38f7b42b0ec30ca0e247020aab2983e8ece884511d604e0ea9c8c3e181e5406091d0c208e44f61d511911541ddd3bdecc6af0f9a6c3276da8cc294c2e913edc85cd4a414acf6f65955803bfbf6aa26eff49d303bd879a24c36d1c1537345e0807ac13d61851e0e87157d58fc27e6b48e2437799c66effc3a0ffa137af7a245a0efdf527984e21922b93b7922072437e66bd334b86a0bb59f7373def9de69b4a1a1a191ade3f7ef707344199a85f97993274d9a9c978fb73d3b40c6a3f7537d3ed0ead393a2c00550e551c24504f5e860e8120ca3390d1d4d7760393b582066510777f442f39871a34659598fb56bbab87acc58989ca3c6da355fe08e9eda6435c9c2c0d0c0c07292d5265106372ab72eaba438a37e117ac88dcaafcb5c5c9c51b7103d7c76003d8dda973879cae4c9730e447012c221e5847ac7575aff23ef026e25e05751d7b0f8151ca3c5b954229180f7e2782aa91fc3503f1eadad815b0fc8a78296dc79a0cc2ff5436bb9d61bebdd2798989998c855add7b975a8f983834a27139391c672f74eec83c77d94183616fe0b4bfc48735bf3eeb3f89031a3478f09897f06a3d351a814df6b7dfc06b5299704daa7639babacaddc61d4e74d4b637c8b8bb92a2574f4386a655bad957f789bb374c8ac8b991ecc15ee121b8f888c4d8713d68505799378a33f7d36af54650c23d331e8c83f6847fe8211502b1e253e1cc608b8f8a6d0bb2779b8de579903426fe05fc07b71ee93e061fa3f424a1dea8f04ead766112dd4310cfb1d68c19056c195b4fc6d29b3acc3a59afd6c88662f2e6b629d0c0f6fecfbc2f030a142fb53ea8f79dedd188a73a9848e80f7a219347306bf1095d073a451749726a6d1999e25cbcd85d3e4ae8b68f4be7ba5a5f7f671ffbc089ff33684866ec813dfe0de476597ca2b2eabb973ec53cd8f3eea83957e03b5253fc954c689cc2c04099a901ae8541088fb884932a72246550d5da0d9bff4a85c732baaffb679ebdf97575eab49ac4d1a6522f3f79ecf3d9976237969586d95a1d163ee42414ba8dffaa50bd707f9ae17afc999e9bb8a3b77b1bb9f695ed7bb6bcf8fcd9e7326a72dccceac5f9ce73bb3d63b5b5fbff2e90b399d7919a797179ec8cf3952c8b0706eea243a2639c24c6766d10c4d49d22c67053dee31a5cb2af13778440b0038d1a5b1537b964b0a795057e0cf7de5cea680d065d70acfa9c9aca0a7bc5133dc67c101af3a69416579e63272c69b1a3a7f163dde5d3ebfc9df23961c01a34a954b586c76c0f48f2fe94d722367beb666b0689bd2035f3727839ebf48a7b8c1b1afd7347d4e6ac29ff9ce9ca67709154bad65dad3e18fd06d3df371e458d8d6825800ec4a36af93482547a6e46b920382d0c224064980fdc1a224ab23c0d8e264284996261797ab5c43f9aaa48bcd183bdb690315498547b9fff4d0e0e0d0e92f8f50f1f5c850d588232f8b465af255c9915251dfdb22bd910355491351178a62dd4738cf2229a5a73383187be0335c7bca638e14e47f4b99d4527b1c0dceae74863fe85fc85f84026e70ad1c77814581dc1b6f72675130cbbd89186e23946cbcf0db1aab66497b337711f936b74b9af1d764ee2c06daa590794c2573c7d5dd99258fcb3b3d972449acad612c732b624b7076fa249e44be785e14abbf638b54547cbdb5e44c85e951f3c6c2cc1a4f2c455f700efad86d92a9199ee1e2f4526dd3e1bc6c347deb83557f5d9e7678d998c2baa89571df6ce5ee04a48e31d4779eea33adb1919cdcf57f2bfa04f85091b920233b12995448f9b529c978b0855ca5006753c11bf8d4786092d8087804d6442e819a73186383002e7a8485c7a52abf6539132322df5d7a8afb3a7a82c515e54a8ccf285fb098108dac4e2deb890b9bb2a0c4b7ea9287e508f6f2a6f14e8ef2173ca6ad6e72f074d81d1af6fa91a4bc17e48e4ee337e527bf72362a72ef046ff99a55d36732da27c044edc0e9b0fbe8a14f80e1a6ceaf6b6abf3e74e89b9aeaaf0f176f8f8ddd5e4cff5a74a3393ff5a2a4d3a7b9977b7bb997bb3b5b91e19be7d188d68ddccfe7dfe41eb512eb64c1801bb4cf1f2052b7444a47bce19c01b71d05d2c28b03f7e8dd7f41bf1d60c518e0692c8d803e588811f2c164522225417107fa57c2628ff0bad839b581a7ab6e3436be57e6d9be9a3b8b8fafc53629cdd541d125de41b589abaf2c59f246595cc7a516ee90d16118a116a4ae8011dc7efb34879094f2874e721fac1d52783e1e57b7df6f145f94cc593f27635362dc8e25cb97273786fb55c64536ce61cf88567fb46afdd5a2c692cc3521ab1f58e49e2c0fc957f99547c555071f9a5d1215bed85b951756763277e9e94575271c8c46e66ccda8bab8042c510952bf469fe91e499ecf40647b414e5154a028cb4adcf2654fcf6964c4d9a0693b457a7da2c3dc0768da61d6b88f3322ba6d00898248bd6a1889c0a19ccdc1e959ba5be185485cf5d71af19f24d1b511291b6213376504b54e39399735d1b429f45c5aa2f28e3684acf8cc22ff54897fc1acc4cd1959db93a73858e1fb87b928a719e16b4e176dfc6c05ef3d35a047074641c7a5ee33e4491885a0409d0daef6a41437a59fed488bd8d8535ffbe73ab3b3362dea9243738d262c5d17d570abbee6fef694b6c4b8d694c0b2b933e2db2c02f721b3ebefa019378b734f9665af6cd29cf29937adeed3b6f55fac399cb22d3d75cb5c657a85dfdc6de9fc932e8e5a4f53f04be815bc5523622f6b0ac5638d0ebffaf45386a5dc2fa77e368d994df9a76b954aa97d1f62f6a1bb73f3216dbc7cdb972b2257271437945f6f5c75bd62c5a2b8d5d1abbedc3abf2d26b13d2da33d31ba3d37a62a24b03a2ebe3a30a8c6a2f08de519fb8b46ea8d395b5e722a1f345d7e768cdec8a2fd19cbdf283ce4571693501f16569f1053e6872fcc2e898858ecedbd3822a264b6a0f5af04add3b58b5a5ba7660f119fce6128d8fbe0e7f84cad0765bf61dd525e72701e287b6d74c3edfaba2f3ad2feb43d2da2b5677160f95cd7848d69291b13e35a2c72bb2be6af6ee2babde7cda8ff74e3fa7fae6151d01eee87eb7fe6aedf2cc617dcd32bfc93b6a4cfdb9606ea07ce5a81b303ff7134d9def97555cd57870e7d5d5df51544939898edc5f42f4493a4dee7a2c90664f4e60564d4dacafd7ce14deee70dc4e33fa7bbcc1bda3c4946a3097946f973b4914694af50cc3ed14a12519e5edf47f2a13749de03bc4990484eda5b81d736da16db90f672b87e1ae849900491f6491223685bea4adadba0dd41fbebd991f669e8bf9c5ed74f24eded707d1bbd6e603fd8ff2b681bd2fe455c076a67feca485176ffbb4f3940dafa7f427b10821e853f30036dd124c609dab4e6dcff033b91e0cc09c0bf649c09027268af3ce0699e863b9cb534c915468fded3cf7d854f48a602ed4047427b29b465b41d6442b417cf5f9f0a0d0717aca46534087de4f93e7aec6ee9045b720b094d79e893d8644b894f146e499d387d62964c96056fa95b0aeb33ede323f4e1bf8878fbcc7aeeaba9999bf3ff51a19822392d99e25afe206f73a6cb365456cfdd9f991e68c6220b8ccd83323cb87fd497c3c094abebc0c56412f16031a68f819309e80c2c918ab39256cb2c203153584a24f0c9182f6dc8b08f8f94eaeb4b23e3ed331a0a37a74e9c31ad4c529d35317533f7d596f27a34c62323c81c6318cb2c307d26b2af2bdbe692b939ef41b9ab2bea4679e5ffc8df9c39b5bf1f39083a0af6e5758438da0e79046df81702d7d7531d6690ebd0969136e890b4e3b5d7b104d93103d7afd3b63db481bef63aa5cf5f471c69037d723d1a4f64efe1f7c16a73691595209bd97bac278f90fad705668a68892807ee2933253c9d87f662da2eff80b46fa1d1a234b614da15bddae71a7345cb4593a05df923695f463f42856637b4976bdbcc52a0670fed2abe0d55345108b4ab491bc60b82ebd9d0aea1ed6da84db4953582762d6923096ea1df0990a275cc66467bc7fba225623120658c29f322e11190c51429efff8022b7d079519ac80a908afe5e8a742329f0f91e2095fd3f52e432de2c2a627d01593e802073e0e52d40aa0610e61be0f66b40aa294246bf077d1e035203c836c2319e021c7701520bc82e40feccf48b168a6e820ceb596d85f65bb154fc1954686732e142dc07bfa30ff0ebe6185204b0526121d13e000b6fac74e0681ffa2348a569f56a20870e7ce176696c886facb9996f58caa1c54b0fcc55ccf32c42b38d0c9d8e064e168b3ff8283f387771b7222d22b82e7e5ebcbf8abb903dda776a669c47d234c514338be2d74b735abd3dbc4659456e9d377f7b52f2a67981ea9cc9b15ceda8d159959bcfab24124d4dd078677cc629b02c286c898fa39d2b6e0bb1f088760b49738973f7c8535991ac6e1f4492a3f4648be412ac82651d4030908b88f5aed1bb23e67ac4c478784447a34fd99ffa467016312a02a862c8bddc36745454cedf0b250edd7bdf1a71ca285f1543bb73dbc8bda21b94908707b937beff27f6558881321a57e8623a7c2a650cb35a972eaa57e606f9a7f82d0e9c551c2a392faeb854bef2c2a245d9be317281d5b70cd76e499e38a13a397881c78c8284ba13e90b4e962c3f32cb39ac609e21e72a88007ce47195ec3ba2429e0f624ac16cc092425825e9435de694034000c0dbb57c2c0998551c26a67cacb8087cf8456bf900d1f16ec3e6ad4993808fa03cc247edabe979af123e26842e9c6b88ae832a28c324be7d0c11663d441413d0a49b99994a21c164e93383e4087f1ca08e381eb5cc4bb924e978fd2a9cf9225a8022aa777347b8d7da1bb91fb80f4e7e842e91ac196898f234dccdc80a8a61bd37234baa346bde6285d7d2e8e31165fe8db5dc5767d00c64dcd08e2250e2ee6aee356ec7814f399f0f81c67da0b11468488106ac9172482defa3d6fb004b033b9e7cdf4178ad863efa7c1f25a959ca4cabef432feeab0e8959c7e337489f36e8f3fd7fbf6a7cff7fba6a504e3ffa2f578deaff9b5583645f5c99d457bc870963e6112d8cd72639e45b3324cda1ae053a91e8943ef86727ac0612f2f17207913605120d1c01b143cf2a2c3ee5babea9acfa0a45dfba8e5437165905ad55bb55a5ebebd9362d6b3c955a78ae226bc568833d01be61d1f6095dfdccd1235cef1b393997d098b3b11d9576935d361dda935da1f2aa488e57fbb82ee5caaabe41c9f73e44f1dfd5367ec1dddf5e78e754f1b8701fdfecd59f6f68ba551dec94a829f64ac9fdeb8b355f9d2d5e7885fbfcf49fb8cfdfc9b37734683177b2c161d1bbcb2bd7a8e66c484c3b309f44fd8f616d5b4fd7ba40baf66541db94b68368fb3eb497d276306d57435b9fb64368bb0ddadfd376a870fd23da0ea3edaafe39525f491d962288d0cc670c26356ed17710d34693dc52662e63e5e6b071a62f052b8397422aa72f0417f15f02b996806d017fb7f9bbd727369fc027a40edc1670cf5adbe46291da8b6b413bb90568e756b4783bfd04afed5cfb566e019e8116931d19ac134990774d64663e77126902cee6ac82a2a4ee79a4095922a4c31de3e1fb354591be0de5abc6dbbab8d84d6a296ff50c2caaa92e0ef1da58f5c2443b17171bf9daaa15fe31c5d595974b4b2f5756bc5356f68ec57407e5ca9a26d5ec12645012e2b5a966e394b1d3a68d9bf642cde6594125dc2f253ecab5358d1e0ed30fd4dfaa5f71abb6f6d60af84066874bff38dc2d19c5b0d0407284bbb9719de833c9a8277a92c7049270e3d08bd293c2530f2fee969efc65b17e3b899b17b98768215d37a4b4362837871e175f82ffd00b9a3992af35f3f0e1216388910261633ac66792c74ff4489480bcc61ebf4f47b09429597b4d097ebfb313ae3078a28819bc2262fa98c12b7a3a57f498c7fc15c42033b6816d27ab1172787e7dc6be73db9392dae7cedb9494b409990d7c9a0728cda7219bb2673dc1a7e6d25c8a810c83a1ed79036d3d6d3b85b461a497d806d144f0b954f0b96dc0d53e7627fa33d5075909d97dbbd6cd65776295e6ea30d7e65edf255cbb01d736d36b74f57d6875c94a7b0d46856bf821d9a9a31c5a97cd4189348f027aac3bc5b3289e85960ec1b3299ecde3955c076bccfc95e6fe779f72f44ae8538e5ed981f6301f0042aef4033f79ec19943bc86b9e5b4f0d7b068fd6fc137ac335d689d22fa0f40bd0254abf81eb409dfc7ee533a08f6856710c21b2e312ebaeddce64c183d708fa175e7037f495842344f6320c43762e389a522f14eda2d4292dd124acbd2e257fd9890467de43c7c422ec4cf18fb557442ccf4f0fddeb507ee89531da7bb0373ac64660da178703a7b960fbcb225f46cc308e081c14a147dc12b4e93a578ed6b5a1bbe82e37819b00fd62a1df716d3f15ed178bd671e5d7d1266e89d08d700bf444f3a09f135a46b95d86b6522962010fa27809c54b080e748f41969e21cad1aea5c892fc7f8c3da1f1c057b05e1dbaf73677cc883b7689f4fc0e7aeed6f6444849ff17edee8bc557341eec09acc78dbf84e28d50fcdbdc78323fef43b6bf882de5e727296bc0eb3edbdc57c936e3f73a3bb968983240f532ec029a415786203f29aa9a6abf9d8ee3b812d4fa12ace925b968f35ef40257bc972b22fe0abb846abc5b9897d57dc978f79123e40aec17ea44f6941242ce08819eac111219707bb83d6a9443ffa01c35b707e52c159ae5dc6e34bf9c7401b3028d5051b528846694a3b523201dffd1cd03c9c8e8a62a3a5aa58a8a52f1ef78d7cb2f6b8e44abdca3a2dc55d1f897280ff7e868778f28a291eb4c10f097cd18d26c5590546e4a34731dad7e09ade26a5fe26a4099ed5dc899fba88bfb1839694e7575113d75c2eee6106b444f9c689998afd12a1556740177a651dcba0b27ac090faf8a53fa3af9841cc4894de1913551eeb39d3c23113a53b335c027c4c52925b97a6b805fc034c7f84ce219c7600f94211663b22b62e84ee53b407653a49c47eec3ae6891c80a900a1eb9ccf483ddde01a412909d245a40ccaa667d0159cef7b981cc41e2b700a91a40986f40bf5f0352cd23d7997bd0e7312035249201d289a780a45d80d402b20b64ff0ccd128dc75f11df47d447d86acd023610cd4223f772f1008287a7b0e04ec42b64248e77f6a5d0581dcfbab0a5e217a90fd25f7f91b3f168ea5fd0d4573f1a718775c1659af5e80e37117a96e016b64dfbdd75642e7676745489211c3a5a8bc5524773f4fa08eee75064cb3d08454623da8c906128f700d986728f8c700bf27ea5aebdbde115e4cd5d7ea5a1bdbdee15ee3210a11aca13dd24141d7f4311071b706f45a364eee558e465b0c700cd8ae55e46c9d1dc25837ed4707dedf153cd7f45f5dccaf79b4f1d5ffb1eb7821131b92845f403ec584c691550a5cd6bddb45fefb0d03e0fcd2fe5b092abc843f6fcefa590e51ef10f80e3972b6fee4b4ddd77b372f9cd7d2929fb6e2eafba525171a56af9d58a8aab8f324a2b918943b46a8c8d4331f74a918dcac36a314a81de3fd09be8db868a2b3fc32de4cfb1d3a7f128c708cf59131d2d3e4023a765c98905bafabf927489bf022e15f4978386f9bea1c255d8dafc262dc5129133ad03ba606df1d51e6346fd4e45c1f152e313231b13432b43e15f62d9c813238a0e1754bca3465d7bb9af6f5554dc42567bf7222bf289fb7a6ff59d83696907ef54f3eff861e5dbea79dbb3c3b3422ac3422b423223b277cc2b7b5b5339e4364aea987023ff4ef68bec5951237dd2d3026462c92387b03ec11b0b531826307c48d89ba97ef16059f66e4df10174e8007b162de4b6e151dc72b446f3101570dbd1db89899c1789052b596f562efe3bad3e0ecd157efb70d5adf48eb4b48ef4b4eda9a9dbd31489aeae890ab739aeae7358ef948eb4f41da9a93bd2d33a52b6123851a14874832e3046005ec34e147fcdc81957610cba8da47580e7bf19c40faa84b3363a262a99b3362e7f4f62ecfc69739392f32df68f2bdd14a9ac2c0cecd4b75919165ea0324accb08b59948dd7cc2a89cfcc9baaaf6f38da4e14181934c539327d92cdec9214cdcd52d78426e59ce98b0ccd0c4506337d3cbd81a768dcccb6024fff99dcdfd7be919fff466dedb902f8ae6942a1d2ad2821be50a92cc4cdc59756acba5c547479d58acb451b6356c5c4ac8e857ff001c6988b1fa211526bbe2a005156376ae7ec8f81e8e9345ea9c40fd9517d0fd95af7f1727882dcc98dec5ff143fca9448f5818b249e19929e191d2febd1d12dbb2b8651bf7268584a48b6e7366eca8069ff0f67acd8fe8e7a8796903e77af6fc771fe13e616b05416b7e77e2de7b2525f7f6a2cbe2297d7d551fae69ba59fdd485a13bb51b223398db3e4c2c10d17d7a0a3e3aba606a3a1525253c3c4f75642db6c7dafa8ff6dddcca9dbfc949a2ed80152507e65bedb759b838bdc435d4817be09badf4c80b660302dfed7cf1e4e4ed0e6979598b5cc3e4c8d63f53312bdf9f9dee6d9f73cc786c4ad058afa9dcfd71893ef63ed3b91be1ebb327a516c6c5a8c2ddcc0f3ae5957b792f8b14896796c4b41e3ab06d62767e529832c2cdb2d339bfc473f6925089747cf45cd78c7511b8c5cc26de7f62b0b7cd41f331097e13427cc7102dcd6757a29f24c784f335a952857e3aaaf7c9fb92637db770c78aed35b4e6caae64ed247f62c6d0dc64a0806529e78d09ce4a4e63cb51e274dfb1194121f33acfb46d7bcdc23d2fbe03bdc6aeac46239c3c95f6eeb367bb97ac6d2c900544a6792d91ae07baf96c25eb0674696d403893101ef3a2c33c7f9ca67550d493b32f139fc08bc2a2e717a6454646e5260506cfc787516a4746f6a6d8bc84c292f417d94acf85c113143ed366f8547b4f9f3a53353578919777815f60aaa164444e545091378338c88b591b6d962b430a688b9897fa18f10dad3744f7ff8a2fb14ac814ac9fcf5f9d79e6e8146dde7ee0c56ddb5edcdf11191111092ffd9bd77a6edfb9da736b4ddb9ab5ed2f34376f243a8c803fa7d929cf69faf47efdb75e64a780a60f6ed9574bed01c3b6c188b6daef33ba0fd1b4444235bd08992867454c73f5ddb9b7b46aebb894e44528b80839cf9ce332cdcd7d4671edea74c7b8caac32833524af05192e00c5295482ff58c76863c2ea18f18bd2b8e99eb1a1518989aaa0993326cf15ed10c5af8c9c53ea15e6939470447f5af22c9b71335ddc82ea66bb4d513ac9bdd3dc7c17a882338c0d0cf2a3e7af060da6823c3d20353da154f127949672259c50b296a928f0cafcf93b58c3abb52bb08be64e536d6d1384ea03860cfdf6fc237c04ee7418ca37b0eb4ccf26a58ac1908556452d0f66778a8226cf8a4d0a30f11ad5ea89fecc9d1b2d350e7184c7d7a29a0c55195e0e9323bd7de688f13854b5e6cc8851c15551d1d5a103763e0f3ab2d73e3349a7b9ee5ac9c71f5dcb937a9515dae8b224d73765dbbcc8aa18c3bd23fd15115986f23cdf6075f0c196d973627d9dfc268ba5c9fa63e276afd8fa569a579e9fa36b6d8dd223b032a6fcd0aaa4d95e498eb39d3d7388b421c0463d48ab73fa5807494909f6e00ee39d864d2d9a2c86a57c9e013ec7029faaffe4f4517052735d875d99b63e6a42c814cf80d0dab8d8bad0408f49c19363d6a70646c47bcf8e0b0f760bf25779f805e8430c9a91e8a9af3f7281d7ec1c8f99393edeb923e111e64457fffc59b53e6e1e41411e6e3e68d12c57d799335d5d67513dfe027a9cc98c63a60e3d651c2c6ef13f71c002ac721f60a922aa2ada709fb19f9b6bd41403c7029fe0f2e098f529130b1704a46c4e9ae23f8115cf09f44d8836f05ae8efe4e6b13441e915b43c3a6155388b6ca377afde7e290d6d9e1c28576627fb7827117d2e671af03edc45f720f4370f1596c4f150d4ad5b0d376f36dc597ef7eef23bc4cb502cee40b7067631b843f309bab59a786e13731d6fc671cfef9b9ab0b1a6171ba31bf5f55c5f430319a9b1ff55749c3d41d738620b0529d3693da7d139684abb6fa49dcf8cf6b018f442f29573016bb84fcb025a0e17953f22f77ac1bd79da7bad4954852a2d359dd4cbcd7b74845ffb94c0095111314b5f5aeb5b86646bfccf5d995bf6a8929edcff82e632d78974d63a51e9dba9b3674f859701fd0b2f32461ef7398a673a857d7cc8a15a40dee16641861f8d77e34be24fb014ed00ffeb042402772238d10464278fccc79db88df6d9c523b970d7058aece69154e8d343efdac3236abc131fa1c85e1e21639da777ede39110b8ab9ef6d9afd3e70ced73404076c15d9f02f2228f2c679df03e7134200707c6627fc11da22a400ef14813ab863dd0af8074f248234e46c72549801ce6112f40f228d24510a255dc80e6b2738956cd87d12a6e10d40a5a45eb513c1babab5540a85649a497e4c19ae2acd521bc77e028bad7dfc5de6618be87c5b03df6b0e1b4472ef4004dc095dd428f1ff81edfc1bb9879d0ff85e491f86bba0b99c1cc6602f83c4e08040321809ff7e094ffee3aadcb1966ae0a085c9591b5c23f604566a48f577484df6c91050faef41b04fb46d2b5929d9db02e3e3a7e6d42c25a785b97b06a6140b4ffa245fed1010bfb64bf7b298f2cb1206797e807a49158916fa251b9b742fb1bdabe4adac8426cc9764ab0f04c739e18e387f4fa4fb47d5f2c6327881f41fb1a6ddf1207614e7c13da3db43d4974087b487641fb67dadec965a027cc7468ff025a44c2f8bc1dbbe0cb1c8090af65208117b8865885394a7eeb6a0b7f9141c248039183d3dc16df6c6d6590c093b57667489757ed533474bb2591e066c790d94a735b1b5cc7c6c43afb7b2a6d6c6cc5d56c82586623b371b54b29b795d93a4dce2861b4bf3880cafac3e8f3e40c7dde1624931c108fa2bf1d8490b5941e9dd02f87c1a2481fdba6cfee59b3491a356e51df54acf273948d934d4c9828c2cf3878938d33b374c94d77be895be0fa0dc552377b5ba958aadfa9af2796189b38262438ddd08ea37ff67f1a476afbf8c17f314eff530bb5d89ed103b786711050476c9a66316e57736e664bbf6b43ef4a703b69293b3925a3bd0338b367460cde21b5d6bdedbe54ef715c6abaf4e8e327c88ebff98bced4f44eee0bb81f31a0c1bbbc64ceb013233f1b01e2d11f2f1df855366767151245aa6f3aa7e74eb3301b377652c2a4679c08c3dbb8713247ff956e37d54428a7840447136389580fa402d96ceddd962a6ea8356aed28fa3ffc07a34873b5a3989bd3511e3f90dafe37a380f65ee6b5e78c80365221b3516af4ee776d664b3937356e97a8d1b54e744dad59cc68fb83ec44777c7f95b3f62651a81a8de933116d494f7db690fd91fb428ddb2425c8ae333db513d90dde0d320d73b734438dec1e3f911e4d4f7d1c27d5e3eec3c043ef667a788da87eeb51cf6904e9aaeb8f5d4d5cf5bcae34eae794f9b4e90ffc505795f0bfae9a7f331346b8ffdff2ad77f10ff9fed5f7ff9f6fccf408d632d7da0b49e974017b394aadc176d46a4f8f5003d179234ea2967b3c3a355db22f3d955890fba2849f40b45b6a6a7a7aaa9636e8e40f681b1c04dabfe60dd2d6db4569fffc616abafe833fa04df52dbe0f6b9b1da91622a9f3e06f23d29f7da41a269bce9e3f082c6c8656a96e2bfd41e5e3c8f4fd5664016f63c799594c235ad546928730d20d32923e56593ff79b8c16d4cac4a22af17dada215cbdcec6d8469c88f84d5bf89b316cfbe85b77132730b6a3f88e320533a44ed322c413798746d5bff2c6ddfe4dbc91005aba17d6ba00dd749fb43d2460cdc7f97f6bf3dd006db92f61d6d1bee7f99f6bf3bd086fea4fdd1401bfa93f6c75afac2fd9f0cb4c19ea47d4fdb16faff6da00dd749fbef4c3a83496d469c4fea2b34be91da9b62b8df1426a575bc8f9b76eedcb0bf2c8c5a3835deb503effacd0f0c73463b60d481df131dfc65d0eb9a2b0c16f202ba33d73d1990e97c66a7cf080e9e312328889bc47f105bd2b719b449df19c454892d5199841d9af7fdaa080f57b88587937b5c83825c495f21ffd08351e54a78d2c552ee8cac5ffde6956f4fb58ab13e32e41ee91f67b09077c0e9c5b0f5b5c1cdd88cd0ca9090cad0b08a90908a30655898d22d2c4c7428b02438785960e0b2e0e092c0ba7037c0dcdce829152420fb60fc11647cb27d02b503558914053787188eb058bfde2766bcfe68d10f6b2dcccb653323273148c8794c413ee1f74714fcaf8becd4feb8887de6e02f873c68d2fe9834861c6722e6a4f3e91e8866392ac89148a6731df224f199d6d6edc882fb96615864217ac276424f628fd1bf6f119263fdd62a0924eb7a32d432288912e7694b1efd3bda84bfdfd2462735b787a14d366fff39d790fdfd967234a483bfcf3573503c9175974ed63dc172fc1dfa44a3e8dba1f4897ed70c254f4ff4c4127602704d791e3ec344a0e7dfcd32b9bf11eb499e4f355118e51b3c5722c61ed2a7ff89e76a7d56fbd72d2c9478ae441c581214bc2c2060597010786e98d673c3400b6f00d7d1a00f6b46ce4cfb3dbecd7f4743bf2b8b64a8d67e2397c76f54c86b50f2e88f34680ef6fadd510335b77f33cebfc0a31053c77e825e928c660cc85c73d37e71c3d2b26e4abc47998b92fde475ff8d8d33a282b6a79e83be29d815598a1384a72a2ccf8913fa3e6565ccb0330f7c90f8c94df0bac199f7ff005e36e79e00000078da6360646060606170dabda15f209edfe62b03330703083c2a6b9f00a5e7fe12ff9b23b28ae32e90cbccc004120500617b0d0978da63606460603ff04f888141b4e497f8f70c91551c0ca8808919008bb3059d78daadd303b4e44a1405d053eabc6fdbb66d8c6ddbb69fc7b66ddbb66ddbb63d27eaee31b3d6aeaa8b3831ff8aa47a18606ae3c77b659d0c317f6294631d2283e63026bdf43e8ce73ee710197482b1477e6cbbba809672fd8417afa063748571496aaf9ba3a0c98b513e5d27c4fa3d2460ddc2db887c58118ff3badfe4b9c98e0daf33e87d540cfa1cf91da730ea8184bf8b1d373395f09ba334d7771281489f8e45f67b616509d17bd025a8058a06edf10cb83b79062fea7d5cfb26a28bebea50710cd1d4451cbb3a8cd6d0712f1e47bbb84eeff5c431de63d305d1c567f7ca6dee4c319644179f9e700b8b50344c86f0f8c69a759573e8fe8b2a852e9e18fd1b4a061de1b7da052fbaae2e0edd1f0df3e65b89c3cfbe402324be91ce8dff1cacdf5109c4facccbe8a7fba3a8fd0d3aefa930ded63b51da64e2b7f02422d57fc8abb7a3833e8e18f305aaeaa988d76710a9eb22bf3ec9996bf32d9ad0769a4c6da81a8da0b63486dad96bef9f6c16a6a47a1757a92ca57767f1be3bdf3a6fbe15a95d984a5368158da29961a6bae716817bebc31c5e0b6ce6137e7fa9d0cda65f417a2a2c0f6203e5a51d14a58aa1194559131079a79a790eef9b45a82a77e06bd95f04e4679866afd51034d3002248c70bdc18cb97d1cd51182bd404aa836e8edca82a8ed03c14560d785da9114fdd0207d89bda53dccda9175090d2f2dd16a4b4260586d061da413369459825d4e71e7bb6a93e809a8df45aa2bcf98c7d1951d04acbef6827df556fd450dd91406d426ad11a595514bf9f1528ad1b2152964101559fefb2398a88fa57caaa67915abe8114f238f34ff17adf430e790115d593cccf41126590da5eabd7508df58aea75d41107519bfe14eb104f851fc53102739122500229aca7791f1bb147b6463f6aa3278817556a14d68f63875a8155323f3e971fa123807ed48656d10e7194f7f62f60d3004445389bd5030b1e9f80052f557467ab87c0e313045eaa28e0afedfcd360dd9b03835c0fb2afd98e17753c46b967172f0288a4c2f43915a48eb44a0f132fea09c499f7d54b033bec1ece936807ef3156944076bbf71a34ca05950078da0cc10390d8400000c03373486ddb1dd4b66ddbb66ddbb66ddbb66ddb7dec0200da449f02168035600738022e803be005f80222a082d9617e581a8e8053e03994146544d55023d4130d4513d15cb4126d4507d15974133d451f31c14571455c1777c103f0183c0b2fc39bf03e7c0a5fc38ff03bfc8b10929c9420554803d29ef426c3c935f288bca34969469a9316a515e9483a952ea4ff9860b158329689e562c55825568fb562ddd820368e7de6a978195e83cfe1e7f82dfe4c6411794409514b3413a3c574b158ac17bbc5717159dc17afc57709a591f1656a594256910de40ab9451e9067e40d154325514554055547b5505dd4003546cd5047d405754767d2b974315d51d7d52d75573d408fd1d3835841b22053d032e81a6c0c5e993ca684196cc69b73e6a6796a3e9abf96d91836894d6f2bd905768ddd6eefda97f6ab8d70cac571295c1697db1577955d3dd7d6f57413dd1cb7c31d7117dc3df7ca7df3c017f4657d4ddfdf8ff2d3fc22bfce3ff26ffd8fb052582f6c15760b078663c399615453f000ed3a0c0000f4dbffa9da9a6c4d9aad6dd235edb76ddbb66ddbb66ddbb66ddbb679f8eefd16d7306e6edccab8a7420a411490505f682d7417360b3785a7c247d12f8644576c24b6137b89c3c489e25c71a57852bc223e902c29a394572a295595464893a5a3d205e98ef45cfa2c2792a364bf9c4ece2517933bcac7954cca30658bf2c357d637d837dd77c22ff933fadbf877f84fab4ceda2ae520fa9a7d44bea2df591fa4afda4fe0249411490810e5c9013140425c118701a5c06b7c163f01a7c06bf613218051588a0053d9815e6854561595815d6854d613bd81d0e8023e124381b2e816be136b81f1eff3f9023502dd025b023f0278883058295824d82cb83cfb4965a47ada736501ba94dd4666a8bb4db281b2a86aaa016a83b1a8226a27968373a8c4ea3cbe80e7a857ee09458c2183b383b2e80cbe15ab831ee8947e2a978115e8f77e033f8017e837fe831baa9e7d02be875f5fefa5afd8cfe9324255144218850929ee420054929529b34277dc8527236140a8d096d0e3d0da70f370cf70b2f08ef36321bc58c4ec666e390f1c2f86d9a66637380b9cdfc6ea5b56a59f3adcdd601eb8af589c6529366a2b969115a9656a3f5690bda91f6a283e9183a95cea3cbe906ba939ea777e93b968809ac33ebcd06b3d16c329bcd16b3d56c333bc82eb0bb76723b26de8276577b9cbdce7e1851226ea474a455e49813762a38fd9ccdce0be783f38327e6a9b9c00127dce619780e5e8097e015f8603efedfadfc34bfef46b9965bc8adee0e7537b90fbc182f8fd7c25be7ddf63ea64b944ef90b9d202f3d0078da636064606062666861e06128606007f11000c40700189c01170078da7490036e85411485bfdab6ffb0b6ada036e2d4cff6db44b184aea6ebe84a7a3299bacde8bb3a3373810a9ec92327bf0478c8e9b39c43698e633997ca9c5acb798cf06a399f565e2c1730c593e542f9d3962be55fc3704e0ee54c599ea1994ecbb314d368794539a5965745704488009704d924aed38f876b4699202c7bdfecf29888c3b138cb2de7dc8a5cb815d5d20813638e618d90f8962077a22071ab280f31ed43f24655b96962b7e2418eb89527a1cc4bd967c61bc363ea1d265433a231cabcb23cc4553165c604d35c2b72a5f1a9e7fcd0fb5a7fc431bb5af3ffdfffc3facc5b373fcb88eccf711833ba53a213796e713ef3c507da4378655d9bec5512a65f21f33f879e9fbdb3ff732bef8a21de960c8e1b7d906a205d0c6465c24dd70400e54d573778da6cc1038c180000c0c076b66ddbb66ddbb66ddbb66df36d1bb1b1ccb1a698bb230700fcb9c521fe23474e406a3183273c269668669ac39ce63237c7cc635e6a9b8f3acce23775cd4f3de2994d0c7116b0a0852c6c118b529f0616b3380d2d61491a916429924920d1d296b1ace5684c13cb5b81a656b412cdac6c159a33c7aa56b33a2d98cb538e934e0aa9d6b0a6b5ac6d1deb5acffa36b021cf6869235ad1dac636a18d4d6d465b9bd38e2c32c8649e2d6c692b5bdbc6b6b6b3bd1d686f473bd1c1ce76b1abdde868773af1858ff6b0a7bdec6d1f3adbd77ef4623e0b59647f1638c0812c6131d71ce4607a3b84eff461297fe8eb50fab192e52c6385c31cee0847d29f018e7234031de3580691cd5ac7b19a55ac71bc139ce824273398214e712a439de6746730cc99ce6238eb9ced1ce732824d6ce63a1b58cf46e739df052ee439235dc42846bbd8258c71a9cbd8cf5897bb82716c77a5abd8ca16b6b9da35ae65bceb5ccf0437b8d14d6e66a25b98c407bebad56d6e77873b99ec2e77f38dcfe4651767d8ed1e4a528ad294a12ce5284f052a52c9bdee73bf073ce8210f7bc4a31ef3b8273ce9294f7bc6b39ef3bc17bce8252f7bc5ab5ef3ba37bce92d6f7bc7bbdef3be0f7ce8231ffbc4a73ef3b92f7ce92b5ffbc6b7bef33df9c9c54d6a70838214a20bdd98c2346afac18f06186890c1869087404a30954f74a5182f78c95e430d33dc08def09602e4e615af8924c248a3284a711e52d968aa104e10c1dce70155a94e358af0839fbce324d38d31d638e34d30d124934de1163de84e615339c0410eb193cb5c31cd74f6b1c70c33cd22e01f41706d8040000001ecd2b117f3c178b8bb3b8f4ba2aea1a9a5ada3aba76f6068646c626a666e6169656d636b67efe0e8e4ece2aa7073cf25d71429a59272aa69a49956bae979787a79fbfc09820b0306610000606d98bbbbbbcbff17f10490842466311744244aca2aaa6aea1a9a5ada3aba7afa068646c626a666e6169656d621b5b1b5b37770747276717573f7f0f4f2f6f1f5f32fcaacae2d577120b8119c3df1377c309947a7cd39efbe61a319eb0c202f61d2d75fd42ab0f07daaeae0ee52b7c48cb9cae2432172b3ceb9b5dcee242e772b0b682bffce3657bbf850574cf92d17b83177f83dd94b17e82b5c87c01570a3ea7d853cdb02b6b60fdc19df563c4d98f9ad5e7e130251ceb180b6f183a6cef181388d6b1b3f5118cd43b87df367edf0b6bd026e106f11653c0b6843c506b81bff5ca67179d42478aef19b6eae8cdf35d3b7811be34f75cc3f7b5bf0800170add2831088e3ef5ca00fff06b833fe7e2ce26766fc4d4d877f279c15ace4a58a8721506dc36ec6f72fe52bf7572ed00786c67f9af808e2574ba063c6bafa5d6333fdae78c0adc9f465ae23e01ab8c57a906f2f81ad1d185c0d8bf7ee44045c4f808bc3213be164016ec212e87c9126a232524d5f97f315d6ed18b97e5b22b80353f4fa6e815f8dc547dbf78c4237d746a96fdf01a2421418351d8c1a5aebe6bc7aa39d0784ce600bfc6af8d2eed57851fb7ed1da8411708b5938c69bbe650f180023e35ddfb2f3c5ae2e84f9ce0ab1a81e0c913309d58bb406d5b160d2361f445d10f2678a97fc55c64bf6cc7249187f3c563221e75460701059163764786205178972a542264f1539c4a5cc9c942ce36d68728a0b96a7eca192796414a83cd937a3666d888c363493d613ab109cc36cc3d7e7a2e879a35586eb1ae5b524f2f4926ef546f0ddc1d74b1c1edf4e479acc0c0c01336565d9e0e8b16071c50a9addff759ccad829ad4be9c8784e649cd569c54fe99bac98f0679ed0c0645a9b328dcb0357cf45fe202e9b9abc7c9269d4096de768d7da53d5932c54ec42aa34acab4e021c33e88079dd89e9c6a6296a8b74b2e01894a7f820c9885ec2ca9285fb5b9a5face8ea72f4d71fcd7dd65fe1fc627f66ac708c8d106779129747f0ecccf7759a3295ffe5a9e0191b27a2dea78cf8e87c8187dd9427fa8847e7f90ebbe18ece739af6c63ad6663aeb0f747e31cd696f94065fe475561839c140beddb23e9503f97a2519d1fb253aa4079ee422a33449284d12a4493a940f1d8c3f234f3e76ca53cf9da87af094987314a4a312c35189d228886a2b96a6b662b2c7f854d0afe8fb41949477072442ca25817249493931524e8c944b02e544493951524e8c94138372a2a49ca8a65c9a9a72b2a19c38945355face36f67e481f64c9e81bed58ee90762a3d8344547b968a17138f41a26d59363002ae877151881729823cc157de4c1a3f88fc71252336dce18812491e5cfe5c5a5aea9452927daa6745aac35e54477882499ba739572639ebd35005c54b3eeba4a9b7007d64dcf645ea0921ee7827570ffa64dc5d0827e78da6beffa3888c59770e3d169071ad9f480fafc8f8e287661d98f816cb0a8101d006aea647219ee2bdd0576b53d672bb71efdabfdadd3558a487fbd6a9fef4c3dba5aa7b825495d286e09dd2c5a1928d358292457db8a3c045f60d397bbd48a6bd5ed3b1ad6049ff468d9466bf897f00c705049f0000";
+  INTER_SEMIBOLD_HEX =
+    "774f46460001000000007a1c000f0000000109dc00010001000000000000000000000000000000000000000047444546000001580000008f000000d02932295547504f53000001e800001968000057fc3e81bc634753554200001b500000118300002aea1417e2334f532f3200002cd40000005700000060740bf2ca5354415400002d2c000000490000005a57d23ff9636d617000002d78000001ea000002b6ace682d06761737000002f64000000080000000800000010676c796600002f6c00003b010000625407bbae2b6865616400006a70000000340000003632855aa56868656100006aa40000002000000024164113fc686d747800006ac4000003180000080cbf71e77a6c6f636100006ddc000003ca00000408f6a10f236d617870000071a80000001b00000020021e00f66e616d65000071c40000012a00000274378e6368706f7374000072f00000072b000010524b2330eb78da25c60106c2000085e1f7af0acc02205150472950675b41993ac13424c00cc0aa0190209da00c83283d7abccf2f1428d27f99bbefc7422b1dec51577bd3dd3ef4b61f7d0501816dd3b121a18de8d921233b6662a7ccec9c858d59da351b9b90d82d3b9b92da3d99cdc96d41614b2ab578f212d4d4ee86462da140d2c00f85ba949c3873a1a61182ea077c2323b70078da849503989c591045ebe99f6c6facb56ddb8a6ddbce6462dbecd8b66ddbb66d1b93bdefc69ef3d5e9db55efd5b85b948884249db413fb6f925499e4fb8255234bc9c745230b97948f4be58f2a232f8b157cdcbc29060f1abefd9c77efcd947056b2706419f991feb074fec892f266e992a54b628be084bb6f43c01b72db727b03fa6f7d1caa13ca16acc457151ba7e2a21f42a960a07c0c179398e24c577951e24b4cf3a1286d03dc55abdc5e785ef086ff3c6ab15aa296aa65ea0c3f979218b859c40d873f94982ae4babaf6ae956be241ae87f2d470955c3957021402795c3690c1a52249dc9fc8c4fdecbe759fbb0fdddbee5590d8c5752194f5d8687b1939ae3d6b8fdb83a8dd762b6abd5d895a6ce7dae960b19d6847dba1707fd213e93ed8ef6cdbd916488d6c1d54351b852a038ad9022497cd62d3e1d9fda4b0ffa27eb73f82aff1f8a97ddfbe695fb6096d6cf84d10c36a731d75d19c0647fd236a3f6aa7d96cd69ae56621980da69af160a4196cfa92ee6624e868da9866a681a965aa8048532ac8648a987c2607c98467e8c0694c3214f08fd8bc1cf5b7f9d57c0ffec6f62fcdc7f054f22e92cfaf9b174d7c13d30428d15751e7c1c9e0577d58efd5dbc9c6e0573c5fad97a2e6eb997a3298afc7eae17aa0eeadbbeaf6a881a0956ea2ebe926b69aaea12be972ba842ea4f3d8463a9bcea053e924fa4ffdb3fe567fae3fd46feb57f5db56ebc4a2f46eab44b91ae60751aaad5b0bd7a43bd26dd9af4977a4b707e3e1b5f459b70f5ee3ad795e77a25bd2b5e8fe7459f72afc5bf086b7cd03e70e0c9ccbedf5f67d388137a74990619f4d4e4c6174604e73f06e76e60ad800734354609871527d17f19ab72b86ce4f98c2febc9a850cf36e4d7a143a3073596c83034327802339adc04e2437c48c087bbbb5f45e6fee8c1518e604f44bf073118dbdf913288393304ec2dc3324888b5c909b0b600a630a6303ccafe71df7225c167d989dedbe63baa003e316ccfebfdcf30f3a3036c0380373da135f33ccaf645b44653a0bdd980e7b73ba1b1dd8679bc86738eccde951de3dc27c961bcef90e72633aeccde900ba2b3a30731819666e850cfbece6789b847e1b1ca62bd38dbd390da10fa30fb333121dd867f53232cccd6b90619e69cae9ab7eb37acddf450ed38dbd79fe1a32ccf331fd4938eccd69145d8bdf634d3f851bd3616f4e0bf06e3c7460769a7bbb1f7c07cee2cdfe216498770ffb9dc88dbd31d59210d54644dac958692de365858c9655b24996ca16d929eb64b75c45ba21d1725e69a5e5a2b2cac9251553c5942b2ab68a2357551bd556aeab4eaab344abae405477d54329350c1835428dc49de920503341843aa94ea9181288c88fa8af519fa2de47bd897ad9ff942cffcb68e3ad56d1f3e898de12dc7bef5117eebdfb981a263e5c4e62ca71238f435f057cc57b2c780d24dbc9e1c7b091ac264bc9fcbbcc7c26935163c9703210f47e0a5d49fbbbb4024d1ea21ea9f1182a8172a4c443f0959a6423191e035fc3c99fb7f999f00629f758bed57ccd276f935749e247884b4277b1daaae887b8ecd1c3d559755c1d54bbd55651baa8083cc75b9dd5dde1e5debaaccc847ff17dd3d95b2761cec69c9daeca5bed997f668ec93367a30bf9ec6dbab0ffbcb7cee22d6ba353a1139b9d483a2a3a1d3a0598695d96ee44ff4677a1b7d3bb6f46fbd734e623f4597a00dd931ee1edf87d998474881ec969217a0d7d8dfd18fc3a5f61a726dd906e431ffa9fd97a8075248ac200fc4f5fb4b66ddbb66d6fb856f482b56ddbb66ddbb66dc5fd373d696fdeecdec99b9bb7c5d776ec830e000f92c08384009222191220158a23114aa2050aa03526a001a6602a86613a666204e6603b464b1f582e7de0a0f48153d2072e481f782df5fed657c5780f0bf28669c9b5faa2004fa0129154aa320ae9e56321caea69f5b27ac3b2ce79dfc183a4884af93b65422406e04932d2b775f2e2491ba3000a438b9be188efa1f09b0c9722069e97e14538e04418603482865b602e1dcc54840b5c01031c8ab0e26a19b66535dbd2863c639b9fcbfa6afab22d3b046f42e101cef50d0331611176f6fee233d693b91e1c0ab5a56c3597ab20d80f825df941c6b57d63910921c70a008df299b5d59e7fe1244e94f1444e64425decb9c27fc6e600a3f9ce31c765cca180f7b1668bc66aeac1ffce33aef6c7f3005ce02f086e7753a92cc9e610dcaabf6e19bb8a990eaff30187cad41bed1da8657c07c1f188159f79df997701f3aec46f08121e40d03966e46e38033f234eb83b929e0a6f72ae9afea43f5f24e219ce35cf66deb6cddd35ce0f037c1f5b04791c5a5cc723aa5705017f2122b1b98bf72815730e8df93439570db5cf9c43618005100aa5110c06d1e769d8700122513608e6f03e86162706b35771007412e05f7de1c71db0cba432d85427876e2cf3546f5b9c0b854f018ed3653d1faba91708c80b57b84efd038247a0c14f6aea2b02523b57b3b1f888133e4510f13322c91f26ec0148d22408c3f0f7feddd3d3336bdbde33d6b66def786ddb1cac6ddba13d3370b67d81b38dba8c0c5d54645756d61f555dfdb423d5d147d6e4bff32122a118691453923ad45131ea514fc569400395a0318d559266b455293ad34795e8473fd56100035497a10c533d4630520d18c358356202796ac214a6eb7e66324fcd59c872b565151bd485cd14a937bbd8a541ece180067388431ac1118e6824c739ae519ce4a446739e0b1ac3252e691c37b9a9f1dce6214de055de50069ff0b9721469a09fa4b1feb1564fff5a2b4e44a4b2c488a92a71e2ba931452548b0409952749d266d3485313d249577d3f2134a399229ad342d092968ad38a5682d6b4b67a1bda08dad2d6ea9de9ac3274a18b2ad38d6e2a490f7ad86d2f7ad96d6f7a2bc15086ea0e86314c314630427519c948c118c628ce58c60a2630c1f2894c543132c8501a9964299d6cb2ad92438e5572c95392294c532ad399a91466314b309bd9aac81ce698c75ce65a3e8f79962f64a12216b158b084258ab394a582652cb3fa7293c0245659be9a3582b5ac559c75ac13ac67bdd537b05198d316b3dfca569bcd275f3529a040090a2954698a4cb1842b5631c53daac15ef6ea2ef6b14f75d8cf7e35e280e996e32007558dc31c566d37aec0318ea99c4b37e50427d4c0a54bb97475976ec89bbc2d7887771559ebebc6f5ddb88e1b9774e34a6e1c73e3c66e5cc18dabb86e03d7ad40318aa9923faf93febc4efaf33ae9deb874e4c6b86ee4ba155db7065de9aad26e5c86ee74b7dca42def494f9576ef32ee5d9c3ef451d25f19497f6524fd19d0e87fcf8054b78f5c3d72f512ae9eeeeac55cbd84aba7bb7a9aab274c7dba19cc34fbb8ab5773f5eaae5ecdd5abbb3aee1db9346e8ceb46ee8a8b9672d1c8456bbb6871172defa2a55c34e6a2b55cb4a98ba6b8683d17adecafd7266e59d5151bfaebb5b22b9675c59aae58d75fafe5788337049ff3b910ba5b714965f5f17d857a52b774c5fa53dae12ddff20d5aa605cad6706bd87a10239524690c6304febf229bd8c57e2e72991bbe478c8be13dae4adc08df2acefed09babe1596e87f33c14ce0bf6eb5e45367ecfc6ef098eaab430996e8a931abea158f8928ee13b5e086f2a624438c4fcf0bce0314931a684c7996a312d3c6e8a31c92a2f32d5629ac5e6f0075b2c8ac21f8a8824929250673f69758eb08f1dac638af53d69dde25b1a539764b333cdce603d91bed7051dd3b166675a7c7bff16cbf6689b560855d74744f8e92946073ad19b114c24037bc6904d0eb358c0264c967c0a4cb2c844aef098e24c0cabc808f3c9b63e27cc17ec0f9f29e268f88593e117cb3a8487d864336588c24962a11e29d627423ea9d6272dd22d8a59f40e571911c633d1fa6c8bcdb6ee168b02cb8bacdf154e2a4e5a98cc088b89a18d5dd546d8e8aa12fac856e860570d0e62becd2db7f1269bc1aaabfc9e9e27c376cdb63e27e42bc688f090551fb2ca434ada68958dba9369952caf76273fbc4aa1ed7ed3764e901abea69845075b79b0ad34dfaed8f4af3d2fc8b54a9eef7752906fe7c6f3145b711fd916f36d958dfe483ca4349556eceebf9bfec7bd39004b920461f83fdbb66d6302673b745cdbdee0ee84ceb66d4cafd5671b6bdbd6f96ebe55464547c5f46cf7f4bc79b1ef0bb47366bab2aab2fecc79553bbb3a8a6db5f911cf6b4be99846475ea4cb74a1a21c6cdbdd948cbe1528bb97c62bb98492f69424264a9c40132f7eb7352af732466206cf94d09842a757cd23f4edb320b1b23455e22abaa8243c1dd946e03766955bab13b0cc9e4b04f7f3340395868352459d77f811b7ff2c053e95c12b8ac000db4e33155b04c914157e77cf7b9fca8cf57b07f3f306dd829eaca019d7126a1b9e6691a714b692247ad23bfad9ace6141ad1d657bca36a379d9dca6d1ab7bdb92d596c56565a0c7e22cb584cc864c9d8d2e981bbb26afdf628db1a7ca15dacb5cd5aaceeb44ad5e3295515c657aadcd14815c3fdca421f49d299cacaa18cd29e12818eb2563bd4fae340ed24bbc7f9e22176b49ba4134db169c4fd3a4a87991f8c5212ae90245b736ecd44cb701cceb268be86c079fbd6712a021f483422af83653031c5bad45a81b3e9478166129712b87ccbfe74e75772a52c9177a3c623124710cac1d98a404f2e73772f8b55c09a703f9f722da7d08eb61279da6a7f89bb2442fe763e67632eefdaf83f824f092576e43239682207213d8bbffbe3b0b3d89646f15e4c5bda96cf3910fa7d9edfcb8ffa2cb3e71329e274a7a5370e1bbcccc8f5db8fbc6f95199e8eb60f395ef3afb8960deb26afca22ef78a50ce6c7ce6fd9c83e5a5d5aad8c3393b2674ab269fdcc95c11f32f8563130d16b85586bf1cffb10387f8fe4b725aed59e842c7657fcb75d6040696b311e3ed3b6be4531b29452c7fd3caaf478d6782d495cc8d712aff8de47c00089a7991fdfe779a5a4350743080864b092d1ebb7f3376cb363ab8d5b5425f84986b6f5aecc4fd01b33c3d7d6823633d29d8b685f32a7ddc6b63f7b6fbc0d9791e326a9f87b347b6ef1eaadbcc66dee7915bfdee8bcf01aa1dcbeefebb521c68777541de16777f89ecf4bfb0123b3f901239367ab19a8f21408ab9307e7178b670632c945ee3b49fcaa1dfd685edbd8e151927eb37cd265e4793f622d0279828dcf228c91459efc2f07ef3252224c93fb326be9dfc10cd707ff8bf1c4585bb4b568ddb396f21b3cc308a6d15be2a1e853bc2191e72f7fd6b06f77b2c434721247908f5af3748bfbbd9cfef6518b8ca933154769c651eee57706d04ae2fee818c44312797f24d2c1ee6c8101e424f62517b52607634bbc83831581e7231594b7fb392abe4c56bf589c4a2e53d54f5fab0a97da28ca08497ddc3d17ba3305199b5d29876e4c9c2b2d789f110b8d54cf10d6b6fe9237bde347085523e2952c49db782b194fc97288d5363e559be365b858ecca5ab43d4f4b1c115b217859f5fd818ff96d836526104a84c9bd934062477a46ada5f775f2fcc0fdc5f9da83fb0924ed4147a582aa54fdd1a8f2baa862a00c64d395ab0361d69e44db6c6b6efaf9d5b14c4ed90a23959d8c3996ecd592a6c95708b94cff2cd88f15763e0947a94152ddbe5017305a3581bcea9fc3636a6687f8f5bc0d155fade3e97afa06b6c765c5dffd390b53b4096d3556c7d0b37cbd2e57a9c1603adaef748efcf76301cb7c9dbf1c74dec4f30ba67e7059e50a25fbaaea707f2d7b234f6f582148bc964ab51ce1c50719e1e77455bab6cd3ea7ace1d81e40c60ca3300cdfcfa7d9b66da479cb98edacd969b6996bb695b6b8e59af7db36d26fbde7eb30f3c4eb780cc2a30168a2857a79f26952a888163353c2dc9f7c737f0accfd2934eda9c83cabda99675537537b1a606a4f03cdb36a9079560d31cfaa61e65935c23cab269a67d554f3ac9a6d9e5573755177b4c4c49c96997ad372f3a95a613e556b54e962031e67f0e846187fe68a9ef426a00f2311a31843c0582620263289de4c664aece4a6bb7d063311b35c8c62368b6355b69a8035ac45b1910b58cf46c426b6d0c35dd736bab09d9d7460177b18c05e0e3284431ca627473846678e7392be9ce21aedb8ce4dc42deee171dfc5681ef0088fc73c453ce339dd78c14b86f28a3774e3ad8ba1bce303ddf8c827faf3992f88af7cc3e73b3ff1f8c56f7cfeb8f0f8cb7f7c1248a213c92e440a6944a49349fb58752e209b02b717524c474aa86030955431906a6ae9481d0df4a38d6c7b40b2338802287cef1babfb0fe6d9b68d38a53859536cef23da46b880601771d70946d5dcc0573cf79b5b2adfddf251818ea9404b54a00d2ad01efde780feb349e3dba0023d4c053ad1b4a625a559cdba3baf7949fdef9a7be251fd1a5ad04daa5f4311ea51fd1abad04dbad03a5d68872eb442175aa50badd08556e9422b74a155bad0849ed6d392d2b37ad6dde7f5bca4e8428fd0851ea00b1d51061bead04dca604323ba49235aa411cdd188e669448b34a2391ad1348d6892323842196c68445b34a26d1ad1168d689b46d4a30c3694a29b94c1865ed4a30c3654a31e65b0a11ddda40c3614a41e65b0a1232dd3916ed291f6e9481374a4353ad2b2ded38752a026edd28ece2842a774bd86aed753674386e293ab4cad2fc886585942c87e84846453fc322f0149c992a4ddaaa1258693204282d85896aef46553063292b01c938b322f97dc5ac2496e9b93837b9c2ce3248b93344e02db9cc49d939be2935b4e4bc16979242a4f9d16454b022d51b4f8d0b282963c5a56d092775a9ebbff0b79257e9cf89c9337a20889226415210621fbb7099943c87184cc21640d2129842411b2869003d8506c1cc546071b636c64b031c4c60415275031a48d1ed3465768a32bb4d1156cd86d362c3622d8b0db6c586c44b031c2c6216cf4b0d1c7460f1b7d6cf4b0d1c7469366ba42335da199ae60e3243632d82863c36223820d8b8d0836dad8a863a3818d3636ead8a862a3443f5da49f2e22c422648a901942a608996d136211124188dd26c46e136211124188fd2fe48a588474111241c81184341132404817212d8464e8ad0f23e498bed30f6269a63dfda45fc4524ea345e6ff37a9bf0bb90720399a3000c3dfcc2c62dbb66ddbb6cdbd3dfb62dbb6798a6ddbb66d27f3bfd5f567e3a4be7a868d51772755d7abc95cf5d7c5352cbf8f4a3f867d8df1c8164d6d7f17c615e39871c015bb88889f62b14a3795f053cb4e4609c3a6b608cea9d03fa9b8a01fd297eab3f54e7a0b2d95e89240b56b51635b7435aac556e3595c292c6525be6a83a968772192468610b965824c943caa1de593a512290564ad6c9052aa8d941393a8a8d935bb5452df4665f536ab683e9a8f54556fa79a36581b2cd5a536bd087fb18f844884c44882a44886e44881944885d44883b448874cc88c2cc88a1cc889bcc88702288842288c22288a62288e12288952288d32288b066888c66882a61885d11883f95880855844ad8bb10ccbb102a108433856916635d6602dd6613d366023366133b6602bb6613b76e0288ee1044ee214cee12374f13623c407b144370f89010bacb0c18e28888a68888e18888958880d5d5a9aada415e85fcde9e2801b9ce6307187073ce105831e4fe4022e220af75d5116631996630542118670e85fff665b629256643196707c2996b1bd1c2bb052e5130943384c11be0e9168e4aa2b8bb10ccbb102a10843382210098b2a97725c79a3fc33afc175b8d2abe7d0555ac12203ccc932c4ec28c34c2f596e6e124d0b3637b0749a1bc9f5c49c204fcd09ecb562ef32693f98116a2f910491221821e6462d0b73130aa1308aa2389aa0059cf0833f02d1077dd11f033108677016e7781b1ad79894a5376fccd5b368d154cfd2db5ec81559ece9ec09ec84ed83ed9eed0047fe11b64db64d2c436c09c8f9c7b0beb0ee2236b8623931d2155d54b452d1c05a8d5f0b2c66cda3229b358d0a7e275085fe73585ea978e28a573f85d33863cc36ba192d5464d2f7e95bac69b473f4be2aec85b430f57f8b786a8e623ac22af969e136f5af8b98b4e346f41b2da50f3dc66ca2921af72bcb0aa2aa1aebabc93aa2a66c256ac92ed94daf748e31bdae5c63046fa2c6ee4ef2917030b3a3b4b831bba3ac3855cfe6ae462e0fd5bf79abfecd478d47beda20de989f1a3b02d4eff284f0c67cf932fce08f0004e2bb2f46cdb308e5dae3b18c8f04488f0cc88872288f0aa8884aa88c2aa88a6aa88e1aa8895aa88d3aa88b7aa88f4668690e975668cd761bb4453bb4470774442774461774453774470ff4e47b77c00d113cb348dc61fb2eeee1199ee3055ee2155ee30dde42775d4162570fd493d6e7801b9c7087073ce1056f52fbc0d7ac247ef047000211846084a097d95b7aa30f62526aa838e0066f739ef8c09756eb077f042010410846088cefdf0b65b4246f2bdce1dc5ddcc3333cc70bbcc42bbcc61bbc05b94c6f69859e94e1801b7cd9f7833f02108820042304995ccfa52757ef801b9cd4ed0e0f78c20bbe3c113ff8230081084230427087daeee21eeee3011ee2111ee3199ee3055ee2155ee30dded27f8da6ef1e83b118477da9456769c0022b6cb0230aa2221aa2230662221662233f5c77c59371c00dbd38de1b7dd4aca5c9ccf4616e113a99a275463733b7d61d3dccdcaa6dd0fbb2dd55f356b3805ab1f7fd9c208dbd3da2538a37a578ab2f6cb2b482a63df97f34aa476a6fd1e801ea723e82a391d0d508b6023a63485d4abb496a7a7b72f496a872806b620694d68d23ddd1034eaed79b6b0b30e751e664b17f4dc5d9e2bf9c3538328f23c3d59e4e3acef38ea2cb00ee7f37e738c2ecad8d3fd511aa918a3cbdd5fd46f929f5af2992a914c330997a7661372ef1742ee30aaee21aaee3066ee2166ee30169f922e41ddee303359446036aebc1b373a8da5a51d37089fdbb9aa821941a727f2de98fb90d75a63b785a62d79a90c6c93d049366d097d7da10ee712846a9f96ac16c7d7fc4f64bfaa1ac39e37acedeea39336aaa67afeae10ad457c232f43fa8577a9778da6c9605705cc716444fcf9b25bd95be22336acdcccc24cb8c21c37e6338d25ae51204149121cccc9f99999931cccccccce3c9f34255aa6beebddbbd9aee7d30250494b19edb3035b5ab8f627cddcec61c150c454b161d95711a1f7f4c121086004b8c38092c782591573c4f72f7ceba469a77efae6f20775c6e4f3d279db077e76e56d6edd95d474daea97e2ff31b5c6366a3ab4c06c4685f47f91af73500ca4952469a0a2aa9a23b3de94d5ffa33900c20ef6da26519cc1086338231a3be36ea92c10f0dbe6170ebe0ec6006fda4fa82eab6ea6dd5e3ab93d5e3073ee7d6bfdcfa865bfbdddae6d674b7d2d5e3073ce2d66f06fd64c075032e48af0cef087f155e93fac854e83ca5d9840091c450c714a555ae0a7d4e953a4255eaa6eeeaa17eeaaf6a65344003354883354cc3354443354223d553bdd45b7dd457a3345a633456e3345e13345193344553354dd3354333354bb33547933557f3341f43998c42508d56b87995d653a94dda444f6595a5974ed1a9f456bdf6d0574d3ac80097f67c26e8bffa1f9328cd6c14c82aa6b8124a2aa53285727faf7ae5b447355aaae55aa15a2d733eabb54eebb5466bb5495935a9592d3a4da7eb0c9da9569de55cdad4ae0e75aa4bfbb45f077450e77b57839476d929725fcb50edf3bbba1dfdce1b94d5e7b54ddb95fbcc9d1ed5637a5c4fe8493da5a7f58c9ed5737a5e2fe8450c095e7240355a89b4495b49aa5ef5a4d5a4b32877d9cea3a76ed343f4220e2c4dfc227143a22b7152626d626a221e7f2dfe40fc2ff16fc52f889f16df155f199f18af8a7d147b26764bec67b1f1b12afb917dc13e60ff657f66bf60cfb1cdf638bbdeceb6836d3278237828f85bf083e09aa02d3821581d4c346f99fbcc9fcc37cc052667369ad92663ac4bfc2ffd48d7a855db34550395e415eee34f7c834b0830a9ab5257217e81b157f809461210d8d6545baa0df105a7b8b948d9953a2e751ce220f21dcf8b46440e6357a656e75963a7b20db10937a5a617f1fda9452c44a9810536954c2511a391ef7856f4457447c9d7224e88973018050a41e5ea418a8044ec0f05d085ecdf20bf4f3cf6a5c3e03864bf51a4c562073f05cb91bda048b1b1ba43603cb27b8bf8207654ec287a22bb25cf0a698dcf31b3009fe3172539fa1e86cf715d710e77bf3d7c8eb6e21cf68943f0398e2bce61ff63ffe373ac2ec9b10e97c3fea0009fe3bee21cf6b2c3f0397e5392a3f953f81c5f28c9913d049fe360498e1a5be373e44a72ac2240542153486d886b953680b2da4e4239e508d5a683a475becea7871ed58bf42420d01b7ac36c4466747ece3bea1edd63a6235381f15341f99d7e67fa23bd815c8f788cbe662cd20304fa9a9f0bca057a0ee94fd154e01b751bd2b7906ecbb3d26f90ae20d03687df14f15f416ac5a8d64d05f622a413f03de240da484c1b239c51a2ccc46aa6c78e123e43a08cc3f212b60ca3324d2ee6780b69609e11ff403c81e109a5818018b745f8197255bce779cbaf3c6e42ae8ac73c1bf015877390abe23f9e335c42237255fcc2336217a20df1b5e8f355881c14e5d88fc81230dc612178ae01b11c4315630183f45fdd1a694721c78a4aaf58baf801f0231e62028fb8cc593e7068c110f72730fe044ef81338f42770da9fc03dfc09dc1343124327f0be43071faa079d5aa0255ca7a3753437eb0a5dc117f41bfd9e2fea25bdcc570948e8a402a2730e9f30aeb58ac0169fd7f3c4345d1e2c46cc8d58ab8c1cfc2f1a1e7181d24ad31b51e519212df3b516e7cc4b05943a73471e25cefc264289335ff32871e6328752e715be2ef7ce8d45c8216eca3b6fc9e328c4febcf3e20873117579e7b11ec311c7e49d7b3b542116e79d6b300418bd0a7ad3e1158391fbe438be402ba27bc9b9b214ffc4795eb415295bbdb23c528e2b52b678657ca4ac2c523613e059730562625e31aa578e00109331f4a77b91b654ab11296dd2666dd1d6e8bf88d3d58590eab1804822b591d45ca53986b5d4309b91fe594c13d7f318b5fbda1c31cf79e639cf08ab07f2d3fd7e0a7888bbf817557c872f710d17b19f3368e004b6f9fd6b99cf74c6335c86b7f404813a1c7c578bef2d6ef2dde105cfb747bdd9f716b547bd592f62d5e1bf114d79ae25cf45dff3fb7ace4f11e710710ecdc41849c6dffdb49ef1bff45e8c9af56c94e3d9c8ff3ebc3f09663291910ca63f3da9f457ea297f4deef6d7e8497f55eed29dd1ef7930cafd50de5124d5e4a63675e836ddae47f558e1ced0e6bbbff27a14a3acaf9b8abed11575abdbbc12072ceb994c860a02c03097a980806111b39e95113334627a538918ef59b78fb208a92d5233f4cd9f7392510ff0fa265f9b0a798e184eb2e2a68a4c45a6fc1fe50de50de11fe829c22f84578517845de169612e3c2edc12ae0f6bc3b9e1e470643830ec1e96857c42103c000162c40000ec5c9cda6fdbb66ddbb66ddbb66ddbb66ddbb676fd9d3ff15b7ec18ff91edfe42b7c9e4ff1513ec0bb791b6fe435bc9c17f15c9ec193791c8fe47f38db177b650fec9a9db143b6c3d6d9129b65136c98f5b14ed6c2ea59152b65052c9ba5b14416c3feb35f2ce8077da677f4929ed07dba4557e9029da6637490f6d076da446b69052da6793493a6d0781a45ff52956ff2461ec90d39274764976c9065324726c908e9275da49534906a52460a490e49274924964490df04f913bfe07b7c854ff101dec66b7811cfe0713c847b71076ec675b81297e07c9c855371028ec6ffb0f34ff48e9ed02dba40c7680f6da215348fa6d0281a40dda80d35a21a548e8a502eca40c9280e45a23f88f10bbec207780dcfe021dc81eb7009cec209380cfb60276c81f5b00a96c202980dd360228c81ffe12f18e0033c833b70094ec03ed802ab60014c833130087a403b6802b5a00214833c9009524122880591e02f7008e15378151e855be15238150e855d615358151685596152181506855ea15368f5434c594c494c51c076bd179313b06d6fc4a4c5a4c424c524c2c4c7c40160b10e4c0086421888d63fa58a71f87691b6e110ee4d20e49cb8af13ebca6db7be7aa5a070b0b130ad625138d8589876625138d85898b6635138d85898b6625138d8589836635138d85898f17c7fbdffbd3cd0b1912449100341399106bcfe62fcb4ed9573c138136aaaea54d4b363c78e1d3b766cd9b265cb962d7becb1c71e7becb161c3860d1b36ecefae9aaa3a15f567f77d535355a7a29e1d3b76ecd8b163cb962d5bb66cd9638f3df6d8638f0d1b366cd8b0617f9fd554d5a9a83fdbefb39aaa3a15f5ecd8b163c78e1d5bb66cd9b265cb1e7becb1c71e7b6cd8b061c3860dfbfbaca6aa4e45fdd9f3f9aba9aa5351cf8e1d3b76ecd8b165cb962d5bb6ecb1c71e7becb1c7860d1b366cd8b0bfcf6aaaead43feb737c8ecff1393ec7e7f81c9fe3737c8ecff1393ec7e7f81c9fe3737c8ecff93eaba9aa5379c5860d1b366cd8b0ef737c8ecff1393ec7e74ffea7a6aa4ee515fb3e7f3555752aaf9ef5f9aba9aa5379f5accf5f4d559dca2b366cd8b061c3e6599fbf9aeaab677dfeea7f9ecb01da76180aa267e6dbb66ddbb69df4dbb66ddbb66ddbb66ddb7aceca4db5a7ddb58f92b458850598863118841e688726a88bca2889fcc88ad44888e8082b7ef24ddec823b921e7e488ec3275de3c9926e36498f4936ed24e9a99dabb2aae0be199a1c675fb0765e8c695a18667a92d95a18267a92d156eb8f7802f695f72563bab9dd5ce2a6795b3ca5a73e7bba45db2d6649b9cd5ce2a6795b3ca5a73ad5dd2bee4ac76563bab9d55ce2a671594640a553354f9504543e50efe5f4f1e2a6ea8c8a1c83ffcc417bcc72b3cc503dcc6355cc4191cc721ecc50e6c46c5aa2ccd82ccceb44ccc980c8f00fcc00d5cc0091cc00e6c404ac9c47ffcc2577cc06b3cc343dcc1755cc2599cc061ecc34e6c418fd55996859993e99994b11991825ff88067b8834b38817dd862eea501e8810e688106a88df2929f7efcc6377cc41b3cc723dcc50d5cc6399cc411ecc72e6cc506acc9f22ccadcccc8e48ccbc824fee0135ee01eaee0140e601bd6601166609ca9e23ba01914aaa2340a23373223351223362223b4f8491fe98657a68abf2d442fc9cf41ecc1766cc2baaccc92cccfac4ccd848cceb0f0c337bcc123dcc0391cc12e6cc032ccc1248c403f74412b34404d944751e4464624475c4406e58f7c9217724faec8293924bb6493ac9245324b26c9281964b6fed26cfd9610bdf0cad430830d1b5a36b0f42cb5a50ae66d33bd97a1b654c17c6dfff00707f138c7360003200c04c5963602c6c8ac192729acefaebc68d1a046468ab60e2d1ad4c848d1d4a145831a1929ea3ab46850232345ae438b06353252a43ab468502323fd7ab37a22237d8d5a03902c4914ccace9996fdbb66ddbb66ddbb66ddbb6bd3cdbb6be8dbe8c89debe8ed9888b8a8daace9799ef55d58eaa3b386ac7f6cea89d336a1b1cb5657b67d42e38fad759673ec2ecd96b37467132e89ce864d7292674e503adead0d91fa78b930d0419ed66203968650514cf0203721df7032e0e40df0bc467456fe352a93279b8ef201e937a5a4f31337898bbedd14feec6f2e2a5f3f026230e2ec73426172b8d87d51601ac75da1fe2a4f2704ac2ef9cfc868991c2c3480e0bcdd5762b9eecbf71730f3e14b7db6c459378a21fc02025fa2a9648ab798017dcf768cd6124b3b1833cc4c33cc2a33cc6e33cc1933ccb73bcc0f33cc3533ced719d0c42734602ede03ac78f262f6a416cb9a7e713fec3273000922215af7327e772209bb32cb3322eeee10b84e124b66329a66228baa325eaa2220a82ae06c493a3d11fa05e3884fb4021088edc314b88a21a7be37ed0c5d095978300e866e93a142f0ee8610a09c1d55a79d9c262e3c703432884c6aa890f8654098f5da75d0da95424762dd93278edd7f30b644dd6828ddab8d1330be4188e13475ce74981bc48c6f5dcc08ddcc4cddcc2addcc6eddcc13ddccbfddcc7dddcc95d30b0e40bf9c69763423926767915440a2ee78afff15f6d10c01ebb41af63cadbc83ba1bc13cb3ba9eb843ab97342fd370c876a266542c571d6899f41c089c787416eb18cad3b232620a6ae00cb8da18c307f4c86405594f0bff0ffe6ffc6ff913fca3fd93fd0dfde9fda6f59f7ac6faccbc133d2ec56522be05bef9b6b3fadd0d13efb4c6a3e3237cd7973d4ec36034d7b7d2749c867fc851ff164f03b414b5667513cc20fb88eb3988c81d0493d9ec1300a4f611886382889c2317708701f8611780cc3485b69f8100fc57e00c370dcd53da67b521216fed6b515d4c6c79fe2fe26f40fb17e974e79f18ba23fcbdb9bf747e5fa418cef55c357e27d29af6fe5f58dcbeb73e19f892f041f6bfc919842f08190f79d6adf7146d121e71ea51a22a58a500d3795e5962a0993e68e6a8899f175b1af09bd2ac615b155012e297ad155d37921e75cc86921a7840474af2f2bd2232512e388ea39ac4af6cb759fea3928ee01e5242c1c75adc26e3176b9901dd26f0f39e32d72ddac3c9ba4d928f65ab9ac97669d9367b518848595ce4a2e75655a24ede29099e62ac76cb1e789374b3916a88219d2cc71edef3431a786f41a2ffd642927c977a2d813a41f27dfb14e85a33dffa323c51d2174b858c35c7987283a58de09d1131dd1120d5113955116c59ddd19a8ac03c4eda56a7a4ad143aedde4da55aefde163848df5b3fb481bed6bf7776dbc8ffa30f4561fa14a3bbbd6b2a3c61d5cff27ed84b475e6d5ca1935d7281106bbee62564579d7aa3553bd4de5504ff5d650a53555751de96babde26aa370c8dd587a391eabe8b86c1fa1ba88f407da86ed7ba56937b55b954916365d72ba1a2a2155cf32927a4ac0b292da49490b8a8685f17457ee44466ddf12cae6831cda4a8e65044fef9359342521554f602aa2de88abc8ae771ad6d2ea9734a110fb53d7b9b12d9e49b5599b24897518a0c724a275d5a65ca1c5cad4ceaf52a416ae75592d2d9a164aeec89e5952496592654d604e2c713d3a7ac966a0a48e557eef8ce7f4e091824d29395a99046cf4ee64349944179544275d4424bb4417b7442170cc2508cc2184cc1742cc4122cc72aacc136ecc41eecc5499cc1055cc60ddcc6db780f1fe2537c819ff02bfec23f78e2fa3c1e09cbe61fc37143041cb433daa332f2c20f2075b01196e26a1a19f818c64890777917e4433e146ae9739b386a371f4ed8cde2722e87810140c58fe20497bf01c53329900078da63606175628a6060656060356639cbc0c0300b42339d6558cb341f4833b0323380289606068674202b8b010a82827d83190e3030fcfbcf7ee09f100303c75da6290c0c8cf341722c71ac97809402030f00cde3102e0078da05c1b10101401000b0dc3f68006a13e8001d5b68350000607a89102a323a327ad2f972ffc584f77af38810dbc7f2103349494b5720c5540d2188415a204b52cc41f0079027075e00000078da758c03805b411445cf9d9fda763b496ddbb66ddbb66ddbb66ddb769bdab6edee3ef300067080d038e85b769969400eb2e007179098b47462019f9454c5cd06b3cb9c33171c392e278013dd1a1bc006b2a16d441bd57a6c2c9bdca6b339ec02b7c73dd43ddc13f2e3a74f9f00b024211d5358f48552ccacff41c1711cffbf28a16c781bf91b25994dfb1f45c03100f8d41ae0e3878ff73fde866ff5dc2b07afecbeb2eb4a2eb892e74ada2bb9aea4ba92e64a496f496f036f216fc1cbb5cd130464032a71938fa0499a02009af0bb06d0187c151d54165557313e68b332ab9a7228a7faa98deaa98ceaab841aaab15aaab55a299bf261084e48c2100e0fd189455c929382d4a42323d92841294a538e8a54a6214d68496b3a2b974a2bb7faaa8fb6d28dc10c6324a399c25466309be5ac6035ebd9c4760e7394639ce42c17b8c91d1ef298d7caa392caab8e3aa4ac7c142ace2795d2486dd3400d5173f5d600edd46075d0688dd1162e6b849a68b74669a85a68a3366893b2e307bff8c385837f82108af04420229148404212114f0fc9442e7293871c64573b725285aa54a33a6d78c7197ad39d1ef4a727fd18c070c6328ef18c613e0b58c85cdeb399ddec612f3bd9a1f6ecc2cb15ae7291a70ce509c539645055edd51eedd73e3dd10b55f9d2d7fe0ca3a2a54e000000010001ffff000f78daad7c075c14c7fbf7ceecde1d5de97684a377380ea4d7a383205d3a76011b204d44c4debbb1626f2926b1c41e6ba290a218134dfb45a389263151fc9b68e496f799b965390dc9af7c5e14ee9eefccce5367e6d967f68ed143b17c11fb4c16c6b08c2163cc9833d68c03e3c528994026866190b5b13532b756cafd94d6e60ad6d8da5826572a10bccacd154a85b95ce9405acded0845ba981b433bc1841601659fa953f0dbbc0e0afbe20bfeeccd9b282cececd92e06859d8537614075316767f167678585cd4261b3cea2b0152bf8b353f8229def9e3161618de1616816f4863e885cc5cc0a9b057dbfdb362b6c5b5858111a5a14f65d18106145f09f6130e3cd3092ed927646c698308c0259236bd69a450ef6f04f2a93ca64de5807a56133feab99eaf63a5c10eee03c446e3dd8c93654d2fea73b9aca2fc7b1676a5e2b6b6a2edf5079a6ab4b339e6c3eb687b11946861e3355a852c4eb45bc8db9ab85af16f12bc8b657fc32faba57fc091aaa853f1571355ac830229e29e2ada87f4f7f9db922fe9ca9d1e0bc8ad843c43bd0f5e771bdf07d8a3e42951afbc97683fdfa30a6d47ee6d6c6e22f8b8ce5c81b6fe6aea95578917a3a3ed719ca5becc04b46f0a725edb7f9d26ff951b75135bf1007e39fd5e6940b8c46a535d448cb4e409522be5ac42f73aec09d65d6310cf73370376506330ec0dfd8dadbc2c2dc4c2a95990fc1e4556e67ededabf4b1b7975b2be11dbc8577eb70c0f6cf274657c50d5f953fe5f6ebfcbbc8764d73446d1a7f1d19c64c09afabe11f4adac7be3539b729c5b80f97bd6d6ae5b189ff9a9613591a72cea728226b0ab1eb3a5e453883447d053bd53f8f631033aeeb17c93cc90f8c1dd8cbc6162b7d4c6c15de43b0a5b53b2bb7914acdcd2c2c14de21d8cfda88658d2ff21fbd7b0829cfd7ddd85b66c23f310c2d981e5977bab4ec744de4f4c2300364d467ccae5b664751e6a3c728eba86aeed9bac8b13176f53fef7ffda71abb987111a52797a5109e7c0ee5e9cf3048a9a0facae57e10c2ffc41e93e8f625c692e3d533bc9d9dbdb3fb6f99b5f1dfca539635962d2a993283cf9936d8463e688f4162ee3fc9e738541a8f52527253c166d436d48b261a2f62098d21f0a2a410bca8076b0a636d0d4ee44ccccd3067a7d0780cb4c1cb781d8cbf4521afbfce9fe63dbfdb7c6de2c48f37fc28697f977ff7c707fc3b877eacb8f7c681bbd3349e21a3011773c13353a86748ac9400177d1a27629cae632fab23f14275353e476272d2b77cd16d1885f6a6b25a6ae625731c55f6825f46537bc59f3047b5f0f922fe98d1d3c23345bc9579ab07d7b9d98d63cc1cec0d477f509c6a4bb412f10e34fe795c2ff23c45c55a7ceb45bc8da94395827552c03abadad659c79e50a7e232f51a6299f06fd56f304284af846873f8a708f7f5f3f5831947bcc8f6ff846f7deb10f2b9507f636fa931ff9b4968ced4a89ad36565671aa6ed7577c1fc3e9cbb93ffdeec04cafc19e2e8bdd8b947cb830aa2e4753f1dd8f7737d766ad2f8f643eff30fd60911b4926a25172208a14a11cf14f15614d2ad95a458f4b9f86f1dd2c747903eff549d206957bf86c7ffe94e224098d7e40a18c95eb0e70fd49e7424ea477bc18f0bba3920b27fb0f00a23a3edfc53b23348dabbbabade6318dc44af71d25cc3ef27d2769d007c0ef1a5803fe3dfa4f8ef642ca29d805fe9cae9f6190ed7c22f337d69ff5d80afd1c29f746550fc3ae06364f522ded6d59fe25d80fbcb3245bcb52b898e3f1af85ed61ae729d0049fcbabd06149bb887730523a9392bb7ee18c4067631a014ae266e27225e86fc661cf6ff81748bfaaa4b812e9f26ab3dfbec9c8aaaaadade206bdf8f19b47824f4ae9d5d4272c848aaf1fb246f05f463cc31918ba4f0847f351a2fa228ee62ff1416d92763e9a3f676a1a352f019d51d7771ec25bbee1c304af9452c97d84d978a97b56101e22de814e896b8002784b8478302791b04ad2fea24ff79c57d0d1fc043b1b758f46ae12f10e94d23d9a1464633ce96808e68085a5af1facae8804998f2f68a694ca60a54572e48e21a330b3845d09745c8506f6b1733041086163073b23d40fade67fc71c46fa06fddc9dfaf00fbfe71ff471f2b034d047986525ed9d5d2ef337c74ba51249dc9605ae2c82707de4b960738a839d8b4bdaa6d9ceeabef89173e3c67427c72143876f5decadee0b5253e9a83601c25cd9d1ad0d915ac43bf0866e6d240da0cd608d361616a00dec21f6e05620ed494604900591df1db343631dcccc582c95a03efc35dec335d96db03dc74a64206c9ba269b8b39b9373768b1f6b04a27e1fb328cb3f262ca864a3877a102378ad81c667b0263e910c558af86a11bf8cf85ef12b285af432482ce21de8296882e96af03eac507d182bad354ad8541c843da57bad62cd2ef2ad870e21df8b1790f2d021beed42edc989134fd6d69d2a2d3d25eebd47f9fd8f1ff1fb8ffc560b9bdbcfb5753f1fd8ff531dd185f2a2733c425817b6a34a11af17f136d497642c807f20795faa0f567666fc887460569903d9ac354282d1fd2c656068222b42806b04b5b49050c1a13b8256907a935452b86c7c80f3482afb26a914a8612e39a081fa27ec8e710151c1571f15813e4a7d03f5758c0acc72596e41c99ad011af53ad7239a0d686a6bc41754307d941180711ddaafa7f4e149d6e69de790fa160519fd5a23e57500aaaec05bf8c757ac59fa0242d3c53c45b91aa07d7992be2cf995dbde25dc84c0bbf29e29d2fe1e7459cefbd3fc628bad771fee8c67915892111ef405dcfe37ad1eb297a067ee5a85f0117fc1af8bf7bd6d454c1fe8fdeb55cdcd9fa3f7a58320f79f39f90b9034aed8155c084ac03d6dd73a7275d42e21eaf60877cca7f78f0200ab8cacdee4ea13a7dde9df74159d985b9478fa1e43b77d1f0f784948afbb9eadefebdf7aa184dbec75d051e068c8576ce2eb7363626191f4df8d6613748226b7f7983bff3624c5370f0ecb1cf25edb3feb56cf9b7b32013fc2c7ac6d6ba2832ffe858d41fe9c29ad18c2ae91ad048d70033c6e9d53500125f536b0729ab80c5faa5a540e1edf7f26a90139cf76917d35077ef5183e75065f7a25017ecfbf2baf07a550aff478b3796ecf08eabea591efa08ba4a64f4fe6840b7ae7dc98d25b24682ba4a6d7da71bf54191fc0dfe2bfea717636685843411b56bbee0efb6fbcba4ea77b05cfd0dcbf84f4a4e991ad4bd92caa8f65982f60bc49511b88a78077a8daef1855d0fb81b60156f621358d2ad87e06e111cc8520f7b960224b4b4ee318aa5e5109678076f7fb36b8514c964e98bd2b3e72746d6a6ee3f796dd9ef9b5b1ecd6779b5defadaf4daf0a4aaa0c5699b1be2e7755a967db23a79bcc2b7382c205169e6ea797eeb9c0fca279d9f51344191ed1f92e2d9c7d62c62cc8ae2e60f2783b4542aaac548418be5548b425e45a415f10eb4906a91063e7f4aefd91953250d4be3346e07afe49f728f6fdf7ed1877b4c6c9306573fa536c817ae5ea1d9e7ba7e9224c3d5e6342ee8f6a6495935098c94c31d47f9479018a4ad1f376e7d1ad25fcf3fb658f8a485fdb8332e7f555adaaa7cf6bd4e45cb9385c0838e45252f1456450f54d90b7e19fdd02bfe04b968e1f345fc31d3a885d78b781bf39b169e29e2ad48de83ebcc15f1e74cb3167e53c49ffd0dfee7dfe09d4c87167e41c45f205b31dec0a622de81be7d1ed78bbe4fd1e7246b16ab2e460c03f30059d0c489668158a57e88ec908e9d8b958dcd10275bc4205bf5ef9055fc59b9be6cd6ecd27595acf44f77e6a58a4ab9609b1fb42b1822de813ea37ef706e20fe0e948799ad2fc86e69ea62f13c89aedaefeb0e8223f09599d37931b4b2452a9b1bd792b1a78c5c2ce44229548fbda9a9d4343f972fe935b432c7475756466d6b740ce1f33cf140db5b61e5a742693ed4f292bf8a1d49feeac5fc57c6fa597fbdc86ce2b44072a13b5cf144dfce05454d90b7e99d5d5c2e78bf863b4a35b67a29b8877b00cd55909365a0a3a5b91dacc2b4a23a2a8a029a8aac496bc19521e710feaaf6f60a0df3fd8e31872e72d715ffe833b4e4a0bc33e468616beae3fe03ff14dfe517499b765bf7e16dee5d1a8afdab39347c9a1d94efd060db4741a19cabf4b34a39ca9a4554244978b9e6f0689fa82178c5f76bd31ce567f8986213d67ebbe7d8dfb0e754412e4abfe0e87b32b79e7f8681b2767794c0cfabc73b2fafd6eff37531b550b73ec535429e2f345fc31335e0bcf14f1566420e2dae35c4196621c81a422de812e3f8feba5ff53f4bed638f522dec67c4135ae6418ee1268dc1f7ca0444457a95c2a2737c788c41800b0bdd6e0a93e2116961e1e2525bc1197a8dee817366080c27bf468f4600f3b273e61e02016dfded7b92439d9ca8a4588dcadd071a91c8d82feaba81c95bc8af013f10e348766c589b0ca1a71658c03e3af59fd953e70ab128295dd5ba0cc2104933b795298951b619a282b8d58b88121fb003a3ff140494ced6b238aebfc5db3c2c20b838c1e5b2f7a7fcaf0edf3463cd7eb9fd5649e5a156e189c10d73fa040e9956199b46e52e18c787b1dfdbeb6f612bf2427c7303baf514d6176d96ba6a8cd377aa47a9d0b9b103247cfc4488fd5b10df7f10cb701d9a98c522b907db6a013e4c87fc1a5e8c98c1ed454441f5fa528af227a1254d0df89faedd531ae34be32b2e04d871e8e923b62efd6ca9ede7bc5deffc7dcd5924f26f66e0b631896a0d26760f1702699c9e9b1b942f1b2c5bbe724b5bdb935907437f2b334c2721bcd0435c2a6c27e4cf729536b80c9083229fa78f2c151694b0ee65fd776caa89dc3f474fb9a04ef2819776c596ae7536ea86d5346407e94c913cba62bb3a71d0b1b6c6932c8b972e1d38b091561a52352ab42ef62036c3ab83a23b376687fe2bba2b923ec8b7adc1610a66f68d2d7372062d18dd5230ac263e3adc33d0717ad4855850c1c6a35c8296028523bc6fb2424804f9134c83b362d35d297da052c40adb8449873ad0cd38d4bad44fc325e0aaf9859049505927d5a30f64286223797c3aeaca07622f76fd257efdff0cdc2598966c63ce2f4cde21b47cdbe5a5f73ad2d6b7a50e0f4eccce9c1c1d566e1798eef4095e7ba635ee41cbeebc4319e9fff79e1eef1e377e68fdc5e5ebe2b97c8b3885711be20cf7221669ac99c01bce01579409aff441e7dbef39f0452bf29abfc078918c4e44044a573659a3a322de4d2f8b094bd52c8b53462f1e49d8f9a9b1fedccdf3633c3e489be5350b2476e4d50504daee7f06067bd2726198ddb2d5722f68db790648567eeec110a9718ef81c5bb278cdb533cc827de4d913e27df9b70e40b28c757abc8ffc45cbb8a8cfe4f5345ee37a3a8e69fc549f10fd594900b680979ab7e60ec3f8bd7df4412418bc8c457d432347656096bc4281a3b39103b55a2af449bc1960769b7b0a4bdea2bfb39d76aeaafcd1add9860aa8fb8aebe66493307644c0f09aecec89e1e14546d361fe16327109a1399e788ddfe747fc7312ffcf3dc5de5e5db47e6ef1c3f7e772195875711be20cf5a2176d268ec1039c7823d0769cbd3cb1c47743293b98c6bf63f696e7ab86decf1e59a393b3bd33f3fcaf8b781b32ff0e3b0a1d47c70c51b3556fd2d97217cf04dc4ada693312f220e26a387d7c8f909f8ad109f98143af334dce9dab85eb336fec688a8958092aaf656a637fc32caec157fc26ceac1257744bc9559cd08b6203a8b78074a7a1ed7cb384f51b4d6f83251cab64212fb660cc372d27e4c3f20cce5d4790ae1d6c45246bd676e8e3fefe0d51f7f9cdf52a89ad85f69ec651d17ca157cd439895df551e994350916baad12fdd8882ce2073e9aaba6334909e39139ec47ef7a942422e4365a773d703009f9bf947d354acae67dd838e86b93d009a9b5ab2c4ce31b8a675dab9f71ad6914cc73a3ae05bfac2511333d33bb3a28b89a8f8eaa8a1f6e15e132b5e6ba6346406dc7d163fc9c887cc7e32f5ad65e28c4afa56e2c9dd89293df3276dcc60cd09fca46edb25db07b09c374e3923b22decab430c4328b1886cba331ce20ba10f9fa51d1cd49bd910a8c96c1cac3b844e52eac78b3907f51395655168297aba7c20a78a6c037b6e4d47cb53f6e99322ba8a27bddcba3b1bb4bf05701f157d72ec247365fc41ff3eb686e51057c7749fb03be8ffaabe377412ab48c2b60584d557511e2b882173b1818672fc3e0a9340af709e36c60087e01f00ca94cc4dbba7429fe0319496a25e257bae2084e38602f1197829d48ef3580ce115152ff56d1517e03dc497247c45bbb82094e2a04e898d6284f1f11b48a57a1bda24ef6a013b544d7731ab935a4952ba0ad22cea0aecff902aab301c3985a93a891cbe9a2b9104972dfaa53da2786830d8a6b3727de888b062ea4bf60b97735967bdaedcf465a09a19653086570624253b41a79f1c9e823fe32bfaf186e2caea00bfc20f53cf4af71fc022237bd96e67f8735b143abf6d4a7644c11ef401120b1e025ad930a0814e1a4828ec50e87367be63d7a4d291a8f4776db9df0a0b8c883da0c4e7d45bca3ebf76e1ed203dc14c699e8a310b21a31bdd18e534832c5778bfe4fc7c2d67b7e7c6d42e0504b07bf0d5963b615f09dd35242f2bcf88969fe85c3b882cf425c4383138327867a444466ef6f501be1d6f145be85a1ea08fc79c6389fb109ea346213ca9f7af8a490572c63843827728978079edb2d2f97cb9509f30924ee753efdcebac5c17c7aa390ef14e71357f0ed8440ede92478249746f519cd6a369911512b0125737c1cd31b7e8539d82d2b9149c4614e8afbc93c9055a86a8bfb5bef59889013ec227f77e5d60606d6e6e6560706568b99c00afec55b6ff0ea95d74bf68c1db7a7a464f7f8b17b4a087fca87ced90b9a9da3b3079589685b19c9704774b5738bb925502b7464bc5fad79fa6ad73c45196991d30141172a2a085a6369563eb1b29f690491b7c6cc64ea84ea8116e11ab107f2c57afa811bd1161d9de0a3d5819671867d1bf2e6da3834511d620d0c9bf216d83a378b9a94a4f2723d5daf4be8964ce6053ae5f5c86e4564172cfd3ad31b0e9944aff813665f0f2eb923e2adcc3671d703cf8878071af93cae97719ea23478e53456935a0956f3fd9fec46cac4ff9ded0e4075f8bfb71f6b450bc30c4bb4916d84f873650219951881e2fceef5ee85debc88c129c4664fc22346694dbc52113bbdb7c4a7617f6da2af4f5c8d26868f9210c6337a7221319c635d23c2dce25ecd88625c23c25de25e0a71f495902431ddf93de8447346536385b956622fd7a4fbe89599b5883716d3fab934d5479c5676cf174899e35a893d4df6f168edf41e2283f2a591f1a91079bb34392ce055ddf24081986628d4ce6286f2aa3c5c15dfa90f796b714f2adbb74bfd4c2b8be50b701a24ae5ab9ecf1ced1da59acb013b112ae9c3ec543eca0c9b6ccedbb97e84e8321eb8a2c7c4dfbc6ca632b606f3b593c81637f93e88494c7a827093b88846ad42eec1487e8dca8e655645c11efe87a4657de6c981bc6a0a98b705fe547c30614d3aa438bd99e1954a1356704d8abe98346d3279655854553e393dedfba795adbbcc6f7a65adc371d9d9b36393ee34ccbc6ba5b96f1cbc6b8a7a526f97b861a3bd96cae1fff5a7a6c53967b606a9cbf579889a3cdbae913b7132f5019a8cc37042fb8310cc17915914dc43b90bd787adc06d5731762232a22154a660e2f6206002a68ded07720bcf1bada5b2b17dd9e573d6ed59b5557171ddf38a161f1f4dab4a06cafeaf1639bb8c459c74af2de9e357dffd03e066d9b661e1bfd75657e71dde781c5fe236ba717bfb846f2e1aec7f82dc978c652930fd322809fa59444a892e4c6b059e1e5377d024d024d9c5c463a6d7fa3a585a4601fa9f707fbeb72570cf5b7adc1e51f213dfe77a29d19af22a38176b734da31b368ce779570910d16f1c7fc79a44722a3ab83cb834cc7827a4a532f17cbe57232bfb12ee49a88ab82bd311849fec06e09794625a7e7e10fd5c5b03356a6e0e52f76fcab34209670a7a3d1dde56bcdeec2f4a032116d9b02aad259f21d7096c3dcd4aed2530114e6c2f242ed00ef206962432684478c0b44ac8b9763f1f26827e301762ec52eae252e432cc8bc548fcd9ceaeb3725136fecbce2ee782dc63124d0d6592e771ee4aabedc2385159142d827de667ac36107ef157fc2bcd1834bee88782bb34bdcd9c19222de81c680e5ff3ace539445b37d0788b725a0bf9150b1a60bada674fb215f842c3eb21da0a7afa7df5fde86ccc05405ea6da5652ef053568a8b68fead1981daf5078d5d3329caabc8b8024ae450d1f876852e8b819ffd2bfc14daac5f2a1aa35afe103299d47f086c48165683a63e9b34d00ade9a0f1a3809447a977fde6c666f22851f533bb366ae808f2f6bca9d3036b769323acac79737e58d1f47dfbfd8812eabb6a60d849fb46d91fc309091ca42e3e48150c5bdcf30226e25e257d0fa5ef1cb78b806e755442711efc051dda7015c2ee83a505319b7ecd6d0cf1a28adc73fd1347e171a32cddbc1d0d0c0d04e311df5e3b7a20afeee2240a04c6ee7bd0887e0a1673252070e18303035e38cfa4bf5e5ef3252faf7ebd73f25e33b2201e54435f95513f1d7a96ff94c6e9986bfa99fa5852f707ed9c574e56f0cb60acc0b31eccb8f24deb6d4d1d5d31b687b1d99f2436dc6ae19e397cf4f6dd3e963181916c395a8b795953a3838389612e79be43446f405de940be5fd48c3fb274644ad0494c4732a23e2923b22deca2c637aeb7f85d920e02aa283887760a834f7d2ff290ad71a47264ad396432c5107f631044be8d3fab89216c6cdadcdeb70b8fa1a3b49fd25f6df833fd7bd75583d4cf7161985f6a7a33f13a4f76628ceabc83822de811c68debc1cfaefa4674dfde8bd9a65f7713354169078e0bc1c1976bcf16b7dfdaf6f74f04fe07d617d70703d3c46c87f8faa2fcf6cbc52c57fc07ecb7b058e9d571aaca936dde7c6491d187b92bf2148d5c4a441ab9e40c24842d23a3fe258bb57b76ef6cc21a5c7b479b37edab6e9c1acaab6e6f88a8c017d9d86070de7bf1972357792c7bae5961688e52f64d786fad7148eac090ca89134e678f836f1ef5d3cc23f5fbef0f1d6d77e5de8166d3f6a54bc6a55d3f810af759e23fbf49dfde7b1cc754523b78ecadd5094bf318fe46e855ddedc0de936c61372b7688691284906e6604d8f838ce9864ba24ea93007004e7fe9724acf7dc92430872a03151c50d61810ba215be0d1f3c7cfd29c08ab5cbd53e030b8bea8a2a671740d3d0f4e08488ba447c133272c51b8462646067985d4b8da06872705da7c725cc7d5979c0ff73796a213e6f470d8cf59f7f42999bb1f1c112b1df4f84263e17cd8cf43761cb5488d079293e481e6c6c81c354afb0c2087c8fd8c881fc0bbe9e05d6752ddb1560ae5ca6e6568cd1283dca08258af34d756c2bdbe10aa953585f5d343fd538482a583b189a9894377b132206cbaa76d10fcd81e3008100a95b1fe06af1f9018f713ca9546124eedc2498d7aca95fbd16cfcb1fe602f52c6f41cc2206608c8395653b9d1c5d6480111ae39b9b656927f0a8494c80019c2f2b2e701ff09c9b9f967fcfb289c7fbf93df07c59ba5b8426db7b36127ff11f28117fc158c390ac63c20f9917127330702d981254fd4dbbf943b492d2d818fa50571a435297a2948ad7614cac8e0f437afd191557fbbaafe5293e9d3be93f35227786219dac317eae008a59e2e666c863c59ffdaedac74c4bd7b7ced377585076bed8b4bc3a6255d7af75e5cc10009676513a05cb98ecce161507bfd1332233f2064d6605a4b6b99782ba049556cc10b723f05849a1fbc4044d98294c43b2024c8c64546f3086374269edfa56be0b1a73cbc346be8d8e4d6a927f8dba98e669ffacfc6f8a4ff5a73c7546475a2e24aea689b9cf2f0f23d1e86ba6cdb065b073b9b2df22155536d7cfadd88521d7d3d6dd416b9adbddd86d1e9af1f8b8dfe6290525e516965cb689e0de3be7be5d930dfbf7b360cef3cdcc52c58d875f8086216ccef628e14cf8f89995f5c323f267a81d91194d1d18132e11190031d1dfceb47be6b7cfcc69b1db36675bcf9c6e346b04901b0fb58f39402fd14844469873fe6ffd083fd2486145eb8bb7ff23f41bf99e0c52690c88aae7f21581440de93624a6564499c872571a314e1936312260775357dbf66ed9d9921db56f16abcf02c5227549687458ff50b9a9cb4b4bd62ca8586b4ad1f2ee19fe9ff0b389482ce6f03079fbf3ef521a6aac281947508d6b0149fa0c78bb73c59c221432eae2e31a53e26765ee19c39c9d323fc2744ab2a6331df85173f58b1f6ebda35b5e357242cfbc3acecfd86e0915ec3c644448d0ffcc4af243c140e034786359c2e9d7272eacc03030d8c0ad7e4375c9c029e2805bd1fd1a7befb90e73810945f68b1d7cf588ecc4b712d4a249ffb9018f069c8fc067bbfd3ea6bfe6764fe357e479d6b40626e0268456a67f6bd680521e5600a71cfd2fb18419189abeecde310c7464f890245e21a474435d97724b305ea46671de7f523c7bcd118bde09159f9d9fae07c655c537ac69c04859303cb7cc7577a85c6cd3d5cbae6de9cee087a0fac69c3282867bae0bcf2dc8c4234a3566546738e8a5b26b6ed2c4add7073dee25bf3faf27f9acf2c1ebf3241df76eaf2e1cdd7eae63dde317c665ccc8c94c0b149ceb133cde2f622f38fcf2297abe593ced4668eaffb7e6b789e57c357cb56dd9f772b694e6acaec44b794f101c9738633c27331719a8853081be9715ca71ecafeae9ec7ddd7fbee8717660c4be53f46e3cd8309ed3e958459aad4bcbee2fe57a784e92b345ebefdcfa5239666572c6bbabd62f9edd9cba7662d4d5bf6e7f6f419aad886949499b15133d3551343824aa3634a0383caccca4fd7e66f9dd84777c0f19a8ac3e3c71faea8393e40b7cfc4adf9b5a7cb3f0998a08a2d0f0b9d14ab1a1f88f70e1b151e5ee4eb5b141e3e6a18b5fbcf60f707a2dde9fe453dae55c787cd9d6ec4a48a1f825f1274ea925bf38c918e59c32888543ddba9cb52675faf5bd0b17de2951de08e2f6a83c625bac436a40e6f888fad379f74b62eb3b4ee6e4b589e77c3d74b56ff340fc7efe17ffef82cffd9b572fcbd7bcaf8c0a4d9c3939a8903484c94834dcf824dffb3dadcfa237fcc6cfcfdc8e13f6636fc71a4687678f8eca2a2e6f0f0e6bf2e29758fdf39f4b8befef1a1771ed7110f9f030faf169e67576ad614f250de39b4982e2bc811857cc9e9c1baf242e7cbeea7e336805c52c4f523f45490f308a52552a122cec1432b404b1f107a3eb46fa1b46c08a127037d86f6d791117a13f45f49db7563093d09dadfa7ed7a324dff9fa1ff03a0f5291dcf37a1b7e0ae46868abbf6bcd003a4aaeb377414b9438fd24f996e9a7366ec81a695e7ae4f7127c1990380c3a70c08c29cd4b4b0c784313f822b1c3463d2967bf49a8bfc037c42ea066347e993b1c7029d4769557f623d77a1dd0d081b77f2e003d99394643352d28379737ba9395d6da572730b054c0072e08e4f4cd83525c0c3b160e8d002478f8029bb26ccc8b2c9cf42f093956f9335837f20cfda5277b642e12aed90ba7a4f3b5fbb255bde8a4aa73d1e363ad9029921cbe431c37e9b56064ca9448f410217b2e2c16e4c279ea74269a3a4e2d8cb95de942ba4650a732911c6088fa5ec046613768228ee1592ea8280293bf90797cba6fd366c4cb2a539b2481e3decf1b489adf2ec2db5e7a7797ba34768ecb4b3755bb2e4c4128f44cb44bb745bc693d231cf097db12b06da1753cb159076a0f3080d9623b4bba61d4bd160a6bbfd31a58750fa91a69d8edfddee4968181f68148d117b17df045f6533c718862233d8bb6c9a80d4c335bb9981dc7cae19aea9a215e75d40cfa3f4f48f097d98f983ab63f7005d7d8fd02d4c36dcc546035d7397d0fbd137dc1c7c0ee85a4a6f66d2b8555c02d0759a76c68e9bc3d5025d4f68e0170cfcaa809e41c79b8d1ab8fdac33d00db45d8d9770ae34d6179569fa1fe5e64b0683c4555d9dcc46222120f32832bdeb638a1c46abb83a2e1c90eaae7bcc262a650748791b909aaebb14d98f6bb8396c2e20b5142192fe0a92de03a4aebb0f73969b233103a49e2284fb27c05d0ac80c18792591179b82bc670169803eeb0039c03ce49a611c295afcaba662fbb32458f23de3ca0c63e2c4951e7263fa58bf76762143002b156652cdb3b1f0c242864c0b2ed01d41ee4c8b59dd4973e4fa6fa6c74584a6e8e9052514bf3dbd727f9e777650113235d4b7bf1deaa5abfb157fb730a1a4f4cdfe31918113a3d3531c6cf9e79983fd6c52623ce31cbd5d65e6934e55e42d0ef0f337308cdb5a0015c8fc8d855135635da3f9f7fb0fca9fb6f46a8c814117531e36d4062f325196ccc857d899f4c70b02cd7dc21d03863b44b92b4a7c75c9babb07568f5fc0472ccd21586b96b501c5402fa2d6c72668a0695d4c5e5e0cfca22fd9679d3abc794e942a2747159543afe657a35fb8e9c2d550e6d0befa94e953d365c2c5fc6a7231b72f47a5cace56a972e0da94aedfd8df61e5b3a6ab099dc75a6994bc278d3282f9ac3d2e9ae3911b1699eb97ebaf2808e6bad8c6f6998baf4faf181394289f1e939f4f65fdd0b47975968373797240ba87ebc8a845c7f38b0fd735bc1e64175d946cca3b6aeb50c2d770badc64410eea4ce22521f356883b237dd0cb944a000800f80695c3377f984fbe284775a52847747e3e5e0f72643a821cfe19448e8527f24b0e513954c5c9a6e8263105310959d94ec08a72105694be60491f13133f851443fe60626229b7c727222a139fc495fa7b4d487bd2d88c0b77a3b128be76337f903fbc760eff94bf76ec063a0f6324c11811c218be26264a1f8c1d14162664139525658cf7f49f18ff24b13262ce4cfec129e489749bd6a24494bab9963fca6fd8759b0f6e6710dd0396c318325a33848452617e11b55dbdca3f9045b5fd39a28dc85a0e7dfc843e503d95c34e5a7ef52a6ae51fb449de6a7b768af459ca3f607dffebbd82f52d7b637a88a77389b57589b367c8f437ca66e5ca8b7311fce416cb7367fd377b0548c95a80040eda7bc53fec13e54d23e525b9b925f2914de507aa83bd3c6b240dc5c1d5077a76098b7fd82420bfe20b65eb25c761a5c8213adb6a9218f2cc3c496368208105a45a250e7a1ed15d0cf62177729c9438dd82eb3e01625f3dac18fa3dbfe5e9cc198f51c19d1b28e97ead7dcebaa9c1d3d3f47406acab5c70b2a4fc7c43f1a241fa67143e91095669fbf8fd6ff31dc70b0bcf208bf752d7d7db457aad3fba367bb2afffe4d4e44901de657c61c36f28ff5f5fa0bce7f366ffc05f7dabfa8b7dc536f1813185b36eaf5efe4d43b45791bac42732ebc8d2450fdf29197396ffe5e03bfcc35345036cfb1cb77419841b63168f9d50ef1bd7989ab52c9dacf12760df3a48f7b528baaf25011d416915a5c93eb99cd2d1942e07da8fd231945eda15c3fa523ab6bb9db5a0741ca5c77505cad64bd761198a6718c88b30f95480441f56b0812473b436b566e5a6707b4c7f15ac35fc2a6472fa8ba0111f0fe5df0f6d0dbd6ed3ee73cde62abc4311f0a7ddfabaa2dda63d94cf40110a281a34f18da8a91505b6d177f0dbc65f6ae51b71020a048eb3615798c53d641c5ff9fc515f58e91dfc48f9b1e7f8b12fec0796b25ecef0b0ba615242c89ce6f936fd3c3c063aae685e352c72d29f935481abe6adb51fe4e1d1cf7ac9bc39e149931aaacf4f9b76fed70b151517cc3cadbd9a17cc57044d437ad322fd572d58e532d8c36388dbda056b87854fe37f9f16e0bd68c13c1f6bcf43b51fcd98d95653d33673c647b56426d8740dc53f48fb312c10488ef00ffcd0bbe83b69bfe73ad267a4fd777e28ba2f7b97b6c36305e87e87ecdddf27e9ae22ebe327fc7d749cec1074b6c36437851e9ffc0c3f68933a49fa933a151f7c8587042910c694c777d267cf75c86a8011eb826f520ee6d64ad6455d826f7ef105b43018714c4f0bc774323d2d3a5a2d3accb3ee968bc8848d6257915d07d9bcbc13632e7b5566e6aaec9c9599992b9149f7bb1c4019125f9035b9b069104fd9346762f00c8ea1744e37ada3a14752fa22dacf46714e106fb9106feb81f72eb61aeb507b901d8fddf5d6d16c4072d5bb5f6db36677652383b7844668fd98ad469fd056bad3de1f88d040a11538412b5b02adf6a884565f4bd01a866671809fa27811c58bd061117f87e2c5142f46fb295ec337b1f398af6976ffd90b3ddad2f0428fb6cc46df408b4c6841cc14b605b5f4e83245f9673ddb8215ea8fa137b4b107e8f8e3e9f8e3b1be50256e42ff1246f9828e4272881f913b03ed12ed7d3a3a323f3f322a3fdf382f2a322f2f322a0fae86be3206fac2dd0ac3907b13bc948e5e2ae94f47a76371ce98b4531c3cd24970a60dfd289162078a7fad69616f0af274d2bb192a0f6db1d05c83e5e847b6046b46f10149f39915ac8c0b63240c6387903542e8577e325a89faf3d3d1a215e826bac93bf28ec45789cc0afcbba6a71fed99881641a7fe68253f59ec083c6044ee03e8678fa65279a7a2b3548f44c08f527c1ac5a7014ec6dd0f39f962ae59b37322528c35decfde51abf04974ff13f431cff39f19f19f75d1be37a1ef714d5f045d4977ee78a7153ea58e626fa3fbbc0231c8cd00b921cc2bc84cfd14f2fb35ec1e61a692e205fc7eca5eea0c642fe1cbdf7ecb7b7cf71d19f724e4fdfbb868e22f3b523d35d67c5e1d87f1f568ee1d348fafcb464b6fa0257ce50dbe82ceb66fb8167c4e9ca12d9d76f8dcddbbd0720cee10dee212e84808392004b6b2448833e0f7f2fb76a26cfa07e5ece0f7a1ec3442ee4039287b37bf078ddccdefe3f7921cfb22dc55b470b534871ca8e180ec7ba28895f6bc279cd1c388fcfc88f0fcfc70f21a9197874f7df9a57a02022c2f0f30d60215689a0b884dcec23dca0eb847d1a719aaa8abdc98d8e62c6aba8d66f1b36ef38dec1dbce63364c83ff98cff3f64a0de7feb16b1d416d4c05d629de91913ad0a0b155948aa844353b2315b6ee7862fcd89a94ff108b2f753a17636754976fccc042f7f7b650c46dbe61ecc0c887174c8c89a73303324c2c536258fde9f1ce5164b06436c56310cbdf3b909c8718a4c17904fe15e680d170e4835209b0039c9fc049ebb05480d20abc9fa04f7422d6c2e20b5429f63ccafe0937b80d409c845b8176a919801522f2067e15e6887440ac80c405602b2059b82a667016900641de8fe2572e012594c6600a251c296aa27b3d3c0cb92cf793b0021ce3dd8730cf121634dd674f872926bd7008f63ddd99592d76914220592b372360e79fd80bc6e5c31b8ccbae30675333acb8741cf9578097b56f34976642a73b0b3f3b36415ac9fa54402d54774d5f88f1ca4cbff91f387f1db7d9f65f3cf904ef6b3be780972d8b971ce9ccd3b91037f6be7e6397336eee46f69e2fa21d8eb1e19cdce54424693c0687664343b531cd687ff6c3c8ae58f4d44ce7daef5414e13f8e328661c7fa3cf4334e9ca919dbb8eb4a1727e75db915d3b8f5ce657331c538246720f253fc07843194f6698268ff5d17cc4c34cf32cb45666e6a779d29e6e4364d3471027e44906bcb7e67a4b6e6ecbf59adaebdb468edc76bdb6e65255d5a59a6af2f75ed6a83948cf6d84cfc07ef209fce1c2c19e5e038bd0c8dc6dd71f5ddf962bbcacadbaf8e86255d54572c9be2347703fc724ff00475bf34f515fd76c5b62ff7df069807d5035b26214f49b84bacfcfe4da1fcd146f66fe929a6229e7408b7dee5853641d82b1c1d4f72bc61e986270d9704a4cc8b8d0d0712131630d2f1b94ee1e5bf1fe54b4b985ffe9b3eaeacf90454b0bb220eff89f5aa65dde9091b1e1f234e115dfaf3c33357b5d51684a305c3f362425a4f0b5aca967d495af5c4687ba295e28bc329819c19ee0dea4cf769a814e2c4c5a05ec52f0c2c20486e90b6fca16542f5fb17245cd7c75f40e747a077b823818f7e357a029eafb28063c7c68cc183e89ac0435ac0deb2df98654185fc91a7a29d2a2cf8b5a0a0b5b8a8ab616146c2d724b70754d70a37f591ba08b495b31b41d778d77738f77738b77778b77051e8178311b2179c8c819ef1e1ec2278460e8973e1f243055c2891ae589c6652c185eb2396b78b1ebf0f8c45ce30f064eda38327c7669c447ba839b3c43f3154631a983e272d2f162ffa9230a2678e9e8180c1ac80d0b0d7496c78f5158454c1aaefeb87258d206b778b702ddbe7a9c9eaf42a10499a2618e6d0399fe33bd9f349f9b30e15cb3e66f6cbe877b416c74818747015e527ebe69f605f860f2eca60b650754d5f109d3a355d509f1d52ae09188ef237b99bb5007803556fb7e3df38351aee1e1aef08befb3fd3aefb3d3425d5c42435d5c4318c4a4e3fbf8b954877ad8582e3e37650eefa954a8ffa553bafd2bd2a72dbb84e242434770977839db6f7668c2ea39ea3fd08f31c96970213dc3f4133e0d09578a3758b068651dced8f15d45c5773bd003ae4bed547763febcebf5f0f9477abf769db383d3bf10260506d17e860adedab963ea3c3f612fd27a94cac252023ea4551fcd2b6b418a17f413c0004aa1030ea83d5466f6ad6961415a91b3ca81ef508d1b165c1a83d3d3be7aefdd0f6d6ff54fcd1c91e312eb8c0c55a37d434a553838de7ae229e9c0787f16f70ff0e81a18e387d941c16efcf5943563dd9273a223dc42dd8c1bad0aabc32226846076d8fcfcad47dfd8ec3a223d3ecc3dc2dd64e6d082a92191134225129b91e37cc76d48c3470dcdc27de4e1c3ccea8cccc3947651c3ccc939163b13db480fd38c82d849a6f4c3369febdebc2a3ddcd98ae7341e99416bacec4c36507a8619447394eeca95b95c702804ac0cced22a50a1abffa0f4d0b0e16d6737ee3e6b1a50513401b5b033d723cedadb6d80b79f8f67dd9285936c6252f28725c8f6c3b8256c259b05e3ba09d65608d616ced0843922ffeb7361e8e6e8fde3f0976864842a6364625151787a42486826fea868c7a8b19b32cb322a2a4ade642b43a7c5cbdd7c9c5d7c67fb3a3b7abad9c54f09092d574566ebca0c8a1263a740b4f15318865568f25d6ba4009a632e743292764d3cc474fd81efb261902b58be9cc93a08c2d169ba6efb5b07b76d7bebcded51f0a38a8ad2bdd9f6d1975fb5b5dddc326f56f38285b39be6121b92e3a4abac9fb6a5d1d533ba2776b37e9d57f086e507674203893bbc0b380ed07cb2d1f7154b4ba5d4d2f968b0d25be5e6117864f78c05dbac478f4d40e1cd68804f92b3a78fb7fbb4d9f3c7d865ce1a9daab7919c60810e9fc088aea0c13fd83804bf6c62b464c4926cf61c17e7e61315159199e91da17483c5ee089bbe30356b66e488c8fc914774bd0b22cc87f838bb052df17777f0b4b78e1ced1f5e1a1c956ba0a75f923c613e583015f4f91eb4a627927e4a441e84845d51092792ac792a8afaa5a4e4b054ff58e55aecaefe626365e54694c49fd1a7b59aaedf712b5c69f3aadce249a44cd1b36ca155697313d13136dcc92f2e31d83cc062a7023de00ff4931965fa244c0d4b59a2173436ccd6293a2030b18fae075ab6e9d200e7a89ae1a9b3e2bafddc0e361aa27976924e74edfd525883b43d4fa7357acd67fad8f0bccd05694da9baa70d821c63d2f4064d53a9ca43df5811901817601b68cb491275ad325b9a569e2f8e288f94dbcfaa0888889c9ed8b87bf5f08061c3e581b6beb4d61702622c60fdb4cf19abc01433703cff365eabf7da56f5388615e5b40239fdfe93734631484db5037649c1ea74d73857ffd8a439e969f392e2fd9ce3dc3356170446c5faf9c545057984067b790505eb868c8ff0cc08d0d5331a171c362a20707448c858233d9dc074af88f1218b82bc1421210acf6034d6dfcdcdcfcfcdcd9fdaf129c81701d9919bb6d7208c5f2a72096ba4375d23059966a635a5e89d360874f254d9e90eae8c544d0e4d5e9cef5d35312a6f43be63a02d661383fc1363f523a644c99d02262505a8a2aa13d3e7260d4edb3e77d5c562b4d73ed4c6273325c03f997e3eb81ebf898fd0bb10fa2d880a73127628babd7dddb56bf537967ffef9f21bd06f328ac77bd19deefb18bc577d19dd79ed35d06406731eefc5e35ebe739a815dd437b00bbab66e1dff78fd7a8670ea7a071d65dfa6bb1cf1848254eb347153e9a872db171a3d20d0735fc270b436ebc31391f3f9db55118bf64d994e3fe3e30dd7566aaeb5246b2a5466a96564de8a807eaab0fd6e518e4989c32b0ecc0fab4256f3234e7c985df57b2d5c37b7eb099acb74fce5ee5ae21b1fef0bbf86f14af24e194f5658fe13d4c81cecbe9f2f89fe623120b7792bc8f063f02a7c57f21596a18d0c833701321c6f42f02d22806c129014bc09efa27d360b481a5cf50945b608482af4f99e5eb55540caf14adc4a91168208bcdae955db042404ae5a40fb6cff4b9f1d22b202906f01d9292095ac057e539202c82e0199ccdec37bb99980ec1690196c3ede2bc180ece9be0a27a1a3d24440f60a8837209514d9471062555c8ae6b2a5c4aaa837abe252fa02bf0cb12b9a8a1ad9346dbb0272871f42acc830d25db0a73868ac08af1bb0e6fb3236b35d0c23f428e8b5c756b69ef648831ecf255f41cb16b1c7334d0fce025e25cce5ae7bb230c94f8c31ac065e4c281329e472e242d0bd0408f31ec2f2dfb5d32a1d3b76495cfcd2d1e316c7c42e1e1bad54c4aafc7cb9f8b14b63e3978c21e09231141ce6f7e21bba57b283a090969cb5323b7b655672d6aaac3d8581c901c525fec981859d72a07b6f5a4cb65872d7cb3dc49e522bf2f933aaf716a0ed287d85d0c84882d99b5253f1a9e6e1dc733694b63fa1f40989019b289501dd46e977240afc8be40ed0ad944ee1f6e349d2bd40ff1fa5aff105388271031aa6208344fe821ff7c3073ab887f4e319489405da10ab3045e35ad58b854606757312d78e5fd49724770e1e64902893a5e6fe906eaf9a658fde7249a578896b7cb0c262c810fc1a3b36db2d364031c06a30b7969d203118ec3058693fad79b0fd60378fca66227123af426f7595d0a7ca35df40d1daf5a97487248e194ceaaac85226d57ce701b0804d913eb74d9fd2b364e7ab23f1e9b577944ba24c4dfaf455947ab07b3a477a942a8cfbb09c67e928fbdb5ef8343ebde68e4fa54f1f4396d535fcc2508f65316b979e617f9bd170d23d2189fd0f39adb9ddc3497ae679c4ab9c4eadfe274e6d669592444647c309c1f8885dac0ec5e7d6f0a126160f7f42e794f81c3e0bd4177c987005c896c818f65c21b3d4beec9974e7b34523d26595cff3918e70f1b3f611e9ed3ca9702306ac7853b0a203dc91912f910005e9979a767f4f9b83831fe206aeb96d3faad48b6541b1328fce91ec1e8f3245df3e26a6aa25ca3b6bf1692f68cf48b7036d583dd04b97650dfb809e77d6a823053eba8fa80dff998f4cf1129fe711d2333d7c6eaff97b3eabd551940f58f08060410704a3233f64fcd35a74fee103134b3e642d3eab5c8bce7e81cead518709fd417f623fa1bf9f83e622aeff1a24ebace4f2d347bcd8ce2ee59fadc1ef2b57239df6f411ed48a7e76ad0aa97ab659e6b91cef37c5965fa88678ba43bf967c0f8d5abc1778fe06a7a5af26a5cbd6413a46db097026e9c7a14deb2e65c4fc071e77bac756e0ddea21eb5e69c96395f846845e3b9be7833debce69c188da231c138a3d5a3d79ced31744f9c9e152437f4fdff2bb98ece3f4afec7b3ff1f9263a655f498a9c6674846a70df8cc4e6609fea39e7b51094e12e60fb7847aef59fa8874a97bfa08e245fed96a6122515f8e18919e3e42333658e51fc6d6ab5a83749eb9f78c2d6b277175eea9d18874ddca7f181b2cce30d248c943327f4c11923988df9a483feeea4b6d4c6e405bff6185613df16975a4b03e19d169ac624f52b3b3ac17d8555883ee01a776c24917fb596a7d5b239cc8523f139ffa4923d591ea2818acc2a78f9130173996656d33d2ed6fe31de24a6866dad75851e6ce9eec54b997f5ac84b0a6834eaeb082efc152d4cee46b68dd1394be2ed04eb01aee07fab36e1ada097d83d08881eb6fd2fe9f77d3e05b427fa1a1e1fa03b4ffcd6e1afa13fa56370dfd09fda5307e12d07381feaa9b067f12fa6b0d2df6ffa69b8676427fcbe43398d46a249b68b5056c674dbf5ca0b76f1c268576dccaeb9c39d3cbf70ea32c7e3f5e7c0a2f7ee5eb87f9bc53c07103c370bef4c9543f56f3498456f57d068bf901bd43d7cedbacb5deb34901234604f88f18c19b06a4a606c0af04a7f80f4b4919e69fd2fd0afe6fe43ad15bd2fe7fc9002d42727242427372b8cef480a0b4b4c0c074e82066223a40c8954881cce50e68d803d4a71df5f96919f75c070de1efe8bcce60310781d38c5eeb6d3d376685f133e2e266c427d4c5c7d52728626214f0cbed5755c4c454a8347fe7c67a13dc3b1624180dc9c86590c09048e0e74b6fe86154a90c8dd995a0a36bb4614362aeadd160eee14223c3654e11a98e0c12f31f98a7a63ddf48a23017be70e49ae6fb466cca39ad2f13f9975b96e69b42180c594f7ffc8b6c34bd2fa2798f1f644d24f7699d7df7a4e4c3b7de5a86faf090aab1c888fb91bd093d896706febd6f48d6f557ffa89aee9ee47e4c1de63f7cb8bf7f4af72b9a440617c736fe776313f9fe3a363aa1fee0af6363e7b56bff0ba9211ffcebc8e127ee36fdbdd44c99a43feb2b1bae7dae65f737e3138ba21774fcd454de546044ec3b3d5513b4a9c22bf5ca09ee099b085253997bcf3911d8f96ff34efefcecbba7b82783edb592cfd9a884ca0df12bd5c193644fff93f84dae8f8eae4f4eae8b89a94b86ba918f8f4a25d58998a2524d8e8898ac524d89688a547847467a2b22c10a5b41eaf1b264905ace78fc9ddcecdf58e86f7561c150fe015a56fb8b5e9949bebe8989bebe49ddafa2058dffc982a6e0afbfe51aaabef42a1f3c04220a31cdec3df481d483d12333ce47f3d10d73f366af0c9f850edeecbd73d12b9b3d8687af2b394f4fbfbc51b1244b7ceaa2f8aa24abf32bd6aef799073148e2e43a445dcfccfb7f1c9103f400000078da636064606060617012e54cbc17cf6ff39581998301041e95b54f80d2737f5ef91b2db28ae33190cbccc0041205004cbc0d0d78da63606460603ff04f888141b4e4e7956fc522ab381850011333009d67066378daadd253b42c591045d1950795b76ddbb66da3d878b66ddbb66ddb6ddbb66d5bbbdccffc986347e44121d25f1a5ceb16827f81d33755c90145fe6a86677c4c8d8247d58b7b6d332cd5997fa851f0abfa1c730ef2ef0ab9437ec9f553e545f9577d55e9e6a670b39fc8f03cd7bd28ac5414d9631d8ea6c6d62a39901afe3886a7454e517daeeabc33a950702dc98c0f19be45fe3f8be3d6e61fe0ac8c65aa37e45c9ae6b991dcb829c29b8adc3ff42e9845a9827f72eedc387b207bfa805279ee137a6769befbd24c7a9b7dff9d210fca27b97ea87cab3a95dbd352fd2b69ae3fbdf3d27b6de96c4ab3f04c7ae7b98fd7e15d4a1591c8e5ba24c26f95c5df5fca9e44ef9c16ae1ab7e7f9a3196e5e64cfac7f9f2bfe3ef92297ebb29863f2222b38714dae1fa7672ce3980dea41eb3c7f0503dc7d944abf83993975e660bf1d557c7dcef5d750c356a6bcfb8bf67e1feaf81475f43d6af983a9e1c692f48750235dfb93a827f7cb70692429e9210d648cd44fd7e668ae976605eaeda13c24d5e5e45c7e97cb753ef727055767314da6ca529920b3646c2ea74967f97b13f7cdd67741f03751ca0c667a9a2b454c2a9bbfb8436e9287a49e9d423fa917fe438d0dad69cefbfb7fe86c4b38dcbccb2fa607cfa46bbb8a7e0e281117f2d09abd29cdd48c313ced4e919d99ea2c53edabb43427cb2e3474fbd1d0f4a3b54c0fa7335d993539fbcc26292737fa3d282737facacc92d7e459b9531e9295b9bc4fc66de29e37ecfd60dfe03a1767908f695f94ca618c997e071276362ded022eb09f7075b0921bed4452ee694ab9bed43023a863276996cba81c4cf9a7a13d816bcc3144cd2fc4ec5e24ed89c4ed6ed4b3fbe9f9235c9cce8cc3696af7a6813d82b6c1673495d3cdf67493cadbe28ec8cf4423d3898697932cd98ec7ccb3cc9271eee36067db9fa88b70871dc7227337313393e78159324e16c91d9a4907e340704090048070324f6c7f074fecd5349be1e480edef08d8ab6940be4e3fdf199ec867b853ce169c8d58f674c3180500811ed141a21293aaf2bc2c72ef063bbb8f45a9df55d7c11d688f72bcdc61aea54bf03583d0deff007d2feac078da0cc10300d8300000b0aec6aadbb66ddbb66ddbb66ddbb66ddbb66d26008016ff4f0073c00ab0051c0067c00df0047c007f0219a40f7207c58321c184e0148c0753c18ab02eec0207c03170065c0237c03df004bc021fc03708a1fca834aa8e3aa03e68049a8616a17568173a862ea17be815fa86314e888be3cab83e6e877be161f82a7e88df9244241dc9458a914a6404994216903f54d22834014d4373d022b402ad435bd02e74001d433fb044ac04abc266b0e3ec32bbcf53f16cbc10afca1bf2e17c329fcf57f3edfc303fcf6ff3e7fcb3088416d145625154541475c572b159ec17a7c575194526904565455957b6945de5403956ce9447e5457957a557b955315551d5552d5417d55f8d56d3c2e861e2307dd83aec1e6e09dfea82baac1ea9a7ea2bfabe7eadbf1b62bc896d929b4ca6a6596e369bfde6b9f96c031bdae836b14d6f73db62b692ad675bda1e76889d6397dba3f6a2bd6b5fdbef8e38efcabbdaaeb91be766baa56ea3dbeb3eba3f5ef85abe99efe4fbf9517e9a5fe4ff46681e617184f511de4434ff9a820768d7610000a0df76b1adc9daa4a9926e69bf6ddbb66ddbb66ddbb66ddbb6ad77f8ee1514c1129a099d847ec22ee1a1f056f829ea6254cc26b6137b89c3c449e23c7195b84dbc2e3e12df4959a4025219a986d4449a292d91ae4b8fa477d22f39892cca4876e5827259b9a63c44be1d2811981338164c196c109c1a5c19bc15b24345430343e7420f95bcca6865bf725db9af3c57de2bdf415c9014a40521a00306b28082a01ca806ea81f9e036780c5e83cfe0374c0853420986a1053d9815e6854561595815d6854d615bd815f685c3e07838032e84abe066b8071e85e7e0b598e1e2e166e121e1136a2ad5572ba88dd42eea56f5add65eebaef5d7866be3b5e9da7c6d85f610e542a5500dd406f54623d054b408ed47c7d179741d3d40efd05f9c0a2bd8c219705e5c0c57c10d704bdc1f8fc7b3f10abc15efc397f173fc598fab07744f2fa8d7d49be923f4edfa359290a4220182082519484e52889426554853d2910c236bc95523624c35f618efcc1c662b73b8b9ca3c6ae5b32a5a7dad7dd659ebb39dc44e6fb7b347db079d044ec069eaac74f63aa79c7bce1faa509fe6a14569395a9d36a02d6927da9b0ea163e9343a9faea01be92e7a98dea22fe84f968285593f368c8d63d3d83cb68cad63dbd83e7686dd662fdcb4ae126b5977903bdbddedbe8f9891dc915a919e916bd1ccd186d1f1d123d19f3c3e4fce050e38e12ecfc873f282bc24afc86bf2867c129ff7ff117e9b7ff0542f9b57cd6bedcdf48e795f7ce257f0fbf887fcf7e913a797d2b37f37b72dc3000078da636064606062666861e06128606007f11000c40700189c01170078da7d90435a86611885ef6c4c3267d9b66d4fabdf3657d0b045346e41ada6337832ae57f7c147a096678a2828ae001e0ba68d0b682f68352ea4b6a0dab888715e8c8b3f754a98e6c9b894761e8c6be59f8bc5050554b36d3c493dd3c6b334d3693c47398dc6abea571aaf89e09c0821ee08b3475267101f0ec698242a7d8276e4a0846e2ec4795c3a5d84c4eb44e43bb9c125e5c1abb696469404f38c6844c42ec2b8456192f604396ab818961bc7c31eca7089877edcfd1af924e4e80e7433c930a31a632ce0919b6488693494cce05072aff1b975ce05475a0bff3ee75cda434a7ca7fca3d9fda3b981be8a9c32fb6a75c6d1b398165dca71e9fc7c8753ed11fc520ed4668d944eaf3c7d9974eff7ff665fe655ef9e611c6a86e4aaad3321f26177a7ef1585f45939000078da6cc1438018060000c1ddbbd8b66ddbb66ddb361bdbb66ddb7663d68d6deb9d1902f8e9cb16d6f00b01818024a1116b59c3098ed1d800030d6250c61bcce0243504c968c267921b92149ca229c7396928431bc6b086333c294965042392da4846260d678dc2394e73c6a84633ba31484b3a631a8bf4c6360e198c6b3c32d2ccf82630219968ce3a267091f35c3091894d62529399dc14a63495a9594f66d39085aca6351dd94c6f06b29b911c5ce11297696126339bc5ac6633bb39cc692e729adb3ce432aff9cc6f01725b903c3c6497852c6c118b5a8cbc16b7044568496bda58925696b234ed68cb7ccb5896a296e309c568cf178a5b9e1274a6231de864052b5ac9ca94a49455ac4a69ab599d325ca5bb35e84a17ba59d35ad6b68e75294b39eb599ff236b0a18da860639b50911e36b599cda9441ffab2805ef4a4b72d6c692b5bb381cab6a10a556d6b3baad9de0e8ca0ba1ded440d06dad92ef4a71f03ec6a37bb53d31ef6a496bdec6d1ffb52db7ed461278fecef0007fa9b83a8eb6087f098070467305319e250221385a844233a3188492c6213c7610e7784231de568c738d6718e7782139de464a738d5694e7786339de56ce738d779ce77810b5de46297b8d4652e77852b5de56ad7b8d675ae77831bdde466b7b8d56d6e77072109c22212b190d084211f05a8470312bbd35dee768f7bdde77e82b18748d4e71ef989c0463631cc031ef49087d9ca36421194cd6ce108873de251c2139155c4f518f138c45ef6b18295c427210908c7539eb19d4934f4b8273ce9294f7bc6b39ef33c8b294441c27a81918c62348398c35c7ff722c319ea252f7b85dd5ef59ad7bde14d6f79db3bfee19ffee5dffee3bffee7ffdef59ef77de0431ff9d8273ef599cf7de14b5ff9da37bef51daf78cd1b423086c28ce51ad7b9c16deef8de0f7ef4939f09f41b41f0600021000000b0ee6ddb46dc7fa396a8eecab01208d1d0d4d2d6d1d5d33730343236313533b7b0b4b2b6b1b5b37770740a0a67175737770f4f2f6f1f5f3f7f91582295c9d56556d796ab3810dc08ce9ef81b3e98cca3d3e69c77dfb0d18c7506909730e9eb2f6a1558f83e55757077a95b626669aeb2f85088dcac736e2db73b89cbddca02dacabfb3cdd52e3ed415537ecb056ecc1d7e4ff6d205fa0ad7217005dca87a5f21cfb680aded0377c6b7154f13667eab97df844094732ca06dfca0a9737c204ee3dac64f0853f3106edffc593bbc6daf801bc45b4419cf02da50b101eec63f97695c1e35099e6bfca69b2be377cdf46de0c6f8531df3cfde163c60005cabf42004e2f83b17e8c3bf01ee8cbf1f8bf899197f53d3e1df0967052b79a9e2610854dbb09bf1fd4bf9cafd950bf481a1f19f263e82f8d512e898b1ae7ed7d84cbf2b1e706b327d99eb08b8066eb11ee4db4b606b070657c3e2bd3b1101d713e0e270c84e3859809bb0043a5fa489a88c54d3d7e57c85753b46aedf9608eec014bdbe5be05763f1d1f63da3d0cdb551eadb7780a81005464d07a386d6ba39afde68e701a133d802bf1abeb47b355ed4be5fb4366104dc62168ef1a66fd90306c0c878d7b7ec7cb1ab0b61beb3422caa0743e44c42f522ad41752c98b4cd07511784fc99e2257f95f1923db35c12c61f8f954cc83915181c4496c50d199e58c145a25ca990c953450e7129332725cb781b9a9ce282e5297ba8641e19052a4ff6cda8591b22a30dcda4f5c42a04e730dbf0f5b9287ade6895e1ba46792d893cbda45bbd117c77f0f51287c7b7d39126330343c04c595936387a2c585cb18266f77f1da732764aeb523a329e131967755af153fa262b26fc9927343099d6a64ce3f2c0d573913f88cba6262f9f641a7542db39dab5f654f5844515bb902a0debaa9300c70c3a605e7762bab1698ada229d2c3806e5293e4832a297b0b264e1fe96e6172bbaba1cfdf547739ff55738bfd89f192b1c6323c4599ec4e5113c3bf37d9da64ce57f792a78c6c689a8f729233e3a5fe06137e5893ee2d179bec36eb8a3f39ca6bdb18eb599cefa039d5f4c73da1ba5c117799d15464e30906fb7ac4fe540be5e4946f47e890ee98127b9c8284d124a930469920ee54307e3cfc8938f9df2e8b92b4a0f5e25e61c05e9a8c47054a2340aa2da8aa5a9ad98ec313e15f42bfa7e1025e5dd0189907249a05c52524e8c941323e592403951524e94941323e5c44839282927aa2997a6a69c6c28270ee55495beb38dbd1fd2075932fa463b963ba49d4acf2011d59ea5e2c5c46390685b960d8c80eb615c14e2458a204ff0953793c60f227f5cc9880d7738a2449207973f9796963aa594649fea5991eab017d5119e60d2e669ce9549cefa345441f192cf3a69ea2d401f19b77d917a42883bdec9d5833e197717c2c979d353afff282263d69d438f05645ceb27d2c32b32bef8a1590726bec5b2426000b481abe95188a7782ff4d5da94b5dc6edcbbf6af76770d16e9e1be75aa3ffdf076a9ea9e2055a5b42178a77471a864638da064511fee2870917d43ce5e2f9269afd7746c2b58d2bf5123a5d96fe21f00f53204d100";
+});
+//#endregion
+//#region ../data/src/documents/render.ts
+var MARGIN = 54;
+var GAP = 10;
+var BODY = 9.5;
+var SMALL = 8;
+var TEXT = "black";
+var MUTED = "dimgray";
+var RULE = "silver";
+var QR_SIZE = 72;
+var SIZES = {
+  letter: "LETTER",
+  a4: "A4",
+};
+var fontCache = null;
+async function fonts() {
+  if (!fontCache) {
+    const { INTER_REGULAR_HEX, INTER_SEMIBOLD_HEX } = await Promise.resolve().then(
+      () => (init_fonts_generated(), fonts_generated_exports),
+    );
+    fontCache = {
+      regular: Buffer.from(INTER_REGULAR_HEX, "hex"),
+      semibold: Buffer.from(INTER_SEMIBOLD_HEX, "hex"),
+    };
+  }
+  return fontCache;
+}
+/** Text escaped for an XML text node, for the XMP metadata packet. */
+function xmlText(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&apos;");
+}
+/** The PNG or JPEG signature, the only image formats pdfkit embeds. */
+function isEmbeddableImage(bytes) {
+  return (
+    [137, 80, 78, 71].every((b, i) => bytes[i] === b) ||
+    (bytes.length > 3 && [255, 216, 255].every((b, i) => bytes[i] === b))
+  );
+}
+/**
+ * Text the embedded font can draw. A character Inter's Latin subset lacks would draw the .notdef
+ * glyph, which PDF/UA forbids, so it falls back to its base letter (NFKD) or a question mark.
+ * Control characters other than line breaks are dropped.
+ */
+function printable(text, has) {
+  let out = "";
+  for (const ch of text.replace(/\r\n?/g, "\n")) {
+    const cp = ch.codePointAt(0) ?? 0;
+    if (ch === "\n") out += ch;
+    else if (ch === "	") out += " ";
+    else if (cp < 32 || (cp >= 127 && cp < 160)) continue;
+    else if (has(cp)) out += ch;
+    else {
+      const base = [...ch.normalize("NFKD")].filter((c) => has(c.codePointAt(0) ?? 0)).join("");
+      out += base.length > 0 ? base : "?";
+    }
+  }
+  return out;
+}
+async function renderDocumentPdf(model, options) {
+  const [{ default: PDFDocument }, font] = await Promise.all([import("pdfkit"), fonts()]);
+  return new Promise((resolve, reject) => {
+    const pdfOptions = {
+      size: SIZES[options.paper],
+      margins: {
+        top: MARGIN,
+        left: MARGIN,
+        right: MARGIN,
+        bottom: 82,
+      },
+      pdfVersion: "1.7",
+      subset: "PDF/UA",
+      tagged: true,
+      lang: model.lang,
+      displayTitle: true,
+      bufferPages: true,
+      font: font.regular,
+      info: {
+        Title: model.title,
+        Author: model.brand.legalEntity ?? model.brand.name,
+        Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+        Creator: "XOS",
+        Producer: "XOS",
+        CreationDate: new Date(model.facts.generatedAtIso),
+      },
+    };
+    const doc = new PDFDocument(pdfOptions);
+    const chunks = [];
+    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("error", reject);
+    doc.on("end", () => {
+      const out = new Uint8Array(chunks.reduce((n, c) => n + c.length, 0));
+      let offset = 0;
+      for (const c of chunks) {
+        out.set(c, offset);
+        offset += c.length;
+      }
+      resolve(out);
+    });
+    doc.subset = "1";
+    const addInfo = doc._addInfo.bind(doc);
+    doc._addInfo = () => {
+      const plain = { ...doc.info };
+      for (const key of ["Title", "Author", "Subject", "Creator", "Producer"])
+        if (typeof doc.info[key] === "string") doc.info[key] = xmlText(doc.info[key]);
+      try {
+        addInfo();
+      } finally {
+        doc.info = plain;
+      }
+    };
+    try {
+      doc.registerFont("regular", font.regular);
+      doc.registerFont("semibold", font.semibold);
+      new Renderer(doc, model).render();
+      doc.end();
+    } catch (error) {
+      reject(error instanceof Error ? error : new Error(String(error)));
+    }
+  });
+}
+var Renderer = class {
+  root;
+  glyphs = /* @__PURE__ */ new Map();
+  doc;
+  model;
+  constructor(doc, model) {
+    this.doc = doc;
+    this.model = model;
+    this.root = doc.struct("Document");
+    doc.addStructure(this.root);
+  }
+  get left() {
+    return this.doc.page.margins.left;
+  }
+  get width() {
+    return this.doc.page.width - this.doc.page.margins.left - this.doc.page.margins.right;
+  }
+  get bottom() {
+    return this.doc.page.height - this.doc.page.margins.bottom;
+  }
+  /** Text safe to draw with the embedded font. */
+  safe(text) {
+    const font = this.doc._font?.font;
+    return printable(text, (cp) => {
+      let known = this.glyphs.get(cp);
+      if (known === void 0) {
+        known = font ? Boolean(font.hasGlyphForCodePoint(cp)) : cp < 127;
+        this.glyphs.set(cp, known);
+      }
+      return known;
+    });
+  }
+  style(weight, size, color = TEXT) {
+    this.doc.font(weight).fontSize(size).fillColor(color);
+  }
+  ensure(height) {
+    if (this.doc.y + height > this.bottom) {
+      this.doc.addPage();
+      this.doc.x = this.left;
+      this.doc.y = this.doc.page.margins.top;
+    }
+  }
+  /** One tagged text element (P, H1, H2, Caption) added to a parent. */
+  text(parent, type, text, opts = {}) {
+    const value = this.safe(text) || " ";
+    const x = opts.x ?? this.left;
+    const width = opts.width ?? this.width;
+    const y = opts.y ?? this.doc.y;
+    parent.add(
+      this.doc.struct(type, () => {
+        this.doc.text(value, x, y, {
+          width,
+          align: opts.align ?? "left",
+        });
+      }),
+    );
+  }
+  artifact(draw, type = "Layout") {
+    this.doc.markContent("Artifact", { type });
+    draw();
+    this.doc.endMarkedContent();
+  }
+  render() {
+    this.header();
+    for (const block of this.model.blocks) this.block(block);
+    this.root.end();
+    this.footers();
+  }
+  header() {
+    const { doc, model } = this;
+    const top = doc.page.margins.top;
+    const factsWidth = 196;
+    const textWidth = this.width - QR_SIZE - factsWidth - 20;
+    let y = top;
+    const logo = model.brand.logo;
+    if (logo && isEmbeddableImage(logo.bytes)) {
+      const figure = doc.struct("Figure", { alt: this.safe(logo.alt) }, () => {
+        doc.image(Buffer.from(logo.bytes), this.left, y, { fit: [140, 36] });
+      });
+      this.root.add(figure);
+      y += 42;
+    } else {
+      this.style("semibold", 11);
+      this.text(this.root, "P", model.brand.name, {
+        y,
+        width: textWidth,
+      });
+      y = doc.y + 2;
+    }
+    if (model.brand.legalEntity && model.brand.legalEntity !== model.brand.name) {
+      this.style("regular", SMALL, MUTED);
+      this.text(this.root, "P", model.brand.legalEntity, {
+        y,
+        width: textWidth,
+      });
+      y = doc.y;
+    }
+    this.style("semibold", 18);
+    this.text(this.root, "H1", model.title, {
+      y: y + 6,
+      width: textWidth,
+    });
+    const titleBottom = doc.y;
+    const factsX = this.left + this.width - QR_SIZE - GAP - factsWidth;
+    const facts = model.facts;
+    const factsTable = doc.struct("Table");
+    this.root.add(factsTable);
+    let fy = top;
+    for (const [label, value] of [
+      [facts.labels.recordKey, facts.recordKey],
+      [facts.labels.version, String(facts.templateVersion)],
+      [facts.labels.generatedAt, facts.generatedAt],
+    ]) {
+      const row = doc.struct("TR");
+      factsTable.add(row);
+      this.style("regular", SMALL, MUTED);
+      const th = doc.struct("TH", { scope: "Row" });
+      row.add(th);
+      th.add(
+        doc.struct("Span", () => {
+          doc.text(this.safe(label), factsX, fy, { width: 80 });
+        }),
+      );
+      th.end();
+      const labelBottom = doc.y;
+      this.style("semibold", SMALL);
+      const td = doc.struct("TD");
+      row.add(td);
+      const valueText = this.safe(value);
+      td.add(
+        doc.struct("Span", () => {
+          doc.text(valueText, factsX + 84, fy, { width: 112 });
+        }),
+      );
+      td.end();
+      row.end();
+      fy = Math.max(fy + 12, doc.y + 2, labelBottom + 2);
+    }
+    factsTable.end();
+    this.style("regular", 6.5, MUTED);
+    this.text(this.root, "P", facts.recordUrl, {
+      x: factsX,
+      y: fy + 2,
+      width: factsWidth,
+    });
+    const factsBottom = doc.y;
+    const qrX = this.left + this.width - QR_SIZE;
+    const matrix = qrMatrix(facts.recordUrl);
+    const cell = QR_SIZE / matrix.length;
+    const qr = doc.struct("Figure", { alt: this.safe(facts.labels.qrAlt) }, () => {
+      doc.save();
+      matrix.forEach((row, r) =>
+        row.forEach((dark, c) => {
+          if (dark) doc.rect(qrX + c * cell, top + r * cell, cell, cell);
+        }),
+      );
+      doc.fillColor(TEXT).fill();
+      doc.restore();
+    });
+    this.root.add(qr);
+    const headerBottom = Math.max(titleBottom, factsBottom, top + QR_SIZE) + GAP;
+    const accent = /^#[0-9a-f]{6}$/i.test(model.brand.accentHex ?? "")
+      ? model.brand.accentHex
+      : TEXT;
+    this.artifact(() => {
+      doc
+        .moveTo(this.left, headerBottom)
+        .lineTo(this.left + this.width, headerBottom)
+        .lineWidth(1.5)
+        .strokeColor(accent)
+        .stroke();
+    });
+    doc.x = this.left;
+    doc.y = headerBottom + GAP * 1.5;
+  }
+  block(block) {
+    const { doc } = this;
+    switch (block.kind) {
+      case "heading":
+        this.style("semibold", 12);
+        this.ensure(doc.heightOfString(this.safe(block.text), { width: this.width }) + 24);
+        doc.y += 4;
+        this.text(this.root, "H2", block.text);
+        doc.y += 4;
+        return;
+      case "paragraph": {
+        const size = block.size === "large" ? 22 : BODY;
+        this.style(block.size === "large" ? "semibold" : "regular", size);
+        for (const part of block.text.split(/\n{2,}/)) {
+          const text = this.safe(part.trim());
+          if (!text) continue;
+          this.ensure(Math.min(doc.heightOfString(text, { width: this.width }), 60) + 4);
+          this.text(this.root, "P", text);
+          doc.y += size * 0.5;
+        }
+        return;
+      }
+      case "fields":
+        this.table(
+          block.caption,
+          [
+            {
+              label: "",
+              weight: 1,
+            },
+            {
+              label: "",
+              weight: 2,
+            },
+          ],
+          block.fields.map((f) => [f.label, f.value]),
+          [],
+          true,
+        );
+        return;
+      case "table":
+        if (block.rows.length === 0) {
+          this.style("semibold", 10);
+          this.ensure(40);
+          this.text(this.root, "P", block.caption);
+          this.style("regular", BODY, MUTED);
+          this.text(this.root, "P", block.empty);
+          doc.y += GAP;
+          return;
+        }
+        this.table(block.caption, block.columns, block.rows, block.footer ?? [], false);
+        return;
+    }
+  }
+  /**
+   * A table with a caption, a header row of TH cells scoped to their column (or, for fields, a TH
+   * per row scoped to the row), body rows and footer rows. A header row repeated on a new page is
+   * an artifact, so a screen reader reads the header once.
+   */
+  table(caption, columns, rows, footer, rowHeaders) {
+    const { doc } = this;
+    const total = columns.reduce((n, c) => n + (c.weight ?? 1), 0);
+    const widths = columns.map((c) => (this.width * (c.weight ?? 1)) / total);
+    const xs = widths.map((_, i) => this.left + widths.slice(0, i).reduce((a, b) => a + b, 0));
+    const pad = 3;
+    const table = doc.struct("Table");
+    this.root.add(table);
+    this.style("semibold", 10);
+    this.ensure(48);
+    this.text(table, "Caption", caption);
+    doc.y += 3;
+    const measure = (cells, bold) => {
+      this.style(bold ? "semibold" : "regular", BODY);
+      return (
+        Math.max(
+          ...cells.map((c, i) =>
+            doc.heightOfString(this.safe(c) || " ", { width: (widths[i] ?? 0) - 6 }),
+          ),
+          BODY,
+        ) + 6
+      );
+    };
+    const drawCells = (cells, y, bold) => {
+      cells.forEach((c, i) => {
+        this.style(bold(i) ? "semibold" : "regular", BODY, rowHeaders && i === 0 ? MUTED : TEXT);
+        doc.text(this.safe(c) || " ", (xs[i] ?? 0) + pad, y + pad, {
+          width: (widths[i] ?? 0) - 6,
+          align: columns[i]?.numeric ? "right" : "left",
+        });
+      });
+    };
+    const rule = (y, strong = false) =>
+      this.artifact(() => {
+        doc
+          .moveTo(this.left, y)
+          .lineTo(this.left + this.width, y)
+          .lineWidth(strong ? 0.9 : 0.4)
+          .strokeColor(strong ? MUTED : RULE)
+          .stroke();
+      });
+    const header = rowHeaders ? null : columns.map((c) => c.label);
+    const headerHeight = header ? measure(header, true) : 0;
+    const drawHeaderArtifact = () => {
+      if (!header) return;
+      const y = doc.y;
+      this.artifact(() => drawCells(header, y, () => true), "Pagination");
+      rule(y + headerHeight, true);
+      doc.y = y + headerHeight;
+    };
+    if (header) {
+      const y = doc.y;
+      const tr = doc.struct("TR");
+      table.add(tr);
+      header.forEach((label, i) => {
+        const th = doc.struct("TH", { scope: "Column" });
+        tr.add(th);
+        this.style("semibold", BODY);
+        th.add(
+          doc.struct("Span", () => {
+            doc.text(this.safe(label) || " ", (xs[i] ?? 0) + pad, y + pad, {
+              width: (widths[i] ?? 0) - 6,
+              align: columns[i]?.numeric ? "right" : "left",
+            });
+          }),
+        );
+        th.end();
+      });
+      tr.end();
+      rule(y + headerHeight, true);
+      doc.y = y + headerHeight;
+    }
+    const bodyRow = (cells, strong) => {
+      const height = measure(cells, strong);
+      if (doc.y + height > this.bottom) {
+        doc.addPage();
+        doc.x = this.left;
+        doc.y = doc.page.margins.top;
+        drawHeaderArtifact();
+      }
+      const y = doc.y;
+      const tr = doc.struct("TR");
+      table.add(tr);
+      cells.forEach((c, i) => {
+        const isHeader = rowHeaders && i === 0;
+        const cell = doc.struct(isHeader ? "TH" : "TD", isHeader ? { scope: "Row" } : {});
+        tr.add(cell);
+        this.style(strong || isHeader ? "semibold" : "regular", BODY, isHeader ? MUTED : TEXT);
+        cell.add(
+          doc.struct("Span", () => {
+            doc.text(this.safe(c) || " ", (xs[i] ?? 0) + pad, y + pad, {
+              width: (widths[i] ?? 0) - 6,
+              align: columns[i]?.numeric ? "right" : "left",
+            });
+          }),
+        );
+        cell.end();
+      });
+      tr.end();
+      rule(y + height, strong);
+      doc.y = y + height;
+    };
+    for (const r of rows) bodyRow(r, false);
+    for (const r of footer) bodyRow(r, true);
+    table.end();
+    doc.x = this.left;
+    doc.y += GAP * 1.5;
+  }
+  /** Page numbers and the record key on every page, as pagination artifacts. */
+  footers() {
+    const { doc, model } = this;
+    const range = doc.bufferedPageRange();
+    for (let i = range.start; i < range.start + range.count; i += 1) {
+      doc.switchToPage(i);
+      const y = doc.page.height - MARGIN - SMALL;
+      const bottomMargin = doc.page.margins.bottom;
+      doc.page.margins.bottom = 0;
+      this.artifact(() => {
+        this.style("regular", SMALL, MUTED);
+        doc.text(this.safe(model.facts.recordKey), this.left, y, {
+          width: this.width / 2,
+          lineBreak: false,
+        });
+        doc.text(
+          this.safe(model.facts.labels.page(i - range.start + 1, range.count)),
+          this.left + this.width / 2,
+          y,
+          {
+            width: this.width / 2,
+            align: "right",
+            lineBreak: false,
+          },
+        );
+      }, "Pagination");
+      doc.page.margins.bottom = bottomMargin;
+    }
+  }
+};
+//#endregion
+//#region ../data/src/documents/deletion-certificate.ts
+var DELETION_CERTIFICATE_VERSIONS = [
+  {
+    version: 1,
+    effectiveFrom: "2026-10-20T00:00:00Z",
+  },
+];
+/** The version a certificate issued at `issuedAt` renders with. */
+function deletionCertificateVersion(issuedAt) {
+  const at = Date.parse(issuedAt);
+  let version = DELETION_CERTIFICATE_VERSIONS[0].version;
+  for (const v of DELETION_CERTIFICATE_VERSIONS)
+    if (Date.parse(v.effectiveFrom) <= at) version = v.version;
+  return version;
+}
+/** The certificate key printed on every page: DEL- and the first 8 characters of the certificate id. */
+function certificateKey(id) {
+  return `DEL-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
+}
+function buildDeletionCertificateModel(data, options) {
+  const now = options.now ?? /* @__PURE__ */ new Date();
+  const t = documentTranslator(options.messages);
+  const f = formatter(options.locale, data.timeZone, t);
+  const key = certificateKey(data.id);
+  const c = (k, values) => t(`deletionCertificate.${k}`, values);
+  return {
+    kind: "deletion-certificate",
+    lang: options.locale,
+    title: c("title", { org: data.orgName }),
+    brand: {
+      name: c("issuer"),
+      legalEntity: null,
+      accentHex: null,
+      logo: null,
+    },
+    facts: {
+      recordKey: key,
+      templateVersion: deletionCertificateVersion(data.purgedAt),
+      generatedAt: f.dateTime(now.toISOString()),
+      generatedAtIso: now.toISOString(),
+      recordUrl: options.recordUrl,
+      labels: {
+        recordKey: c("key"),
+        version: t("facts.version"),
+        generatedAt: t("facts.generatedAt"),
+        qrAlt: c("qrAlt", { key }),
+        page: (page, total) =>
+          t("facts.page", {
+            page,
+            total,
+          }),
+      },
+    },
+    blocks: [
+      {
+        kind: "paragraph",
+        size: "large",
+        text: c("statement", {
+          org: data.orgName,
+          date: f.dateTime(data.purgedAt),
+        }),
+      },
+      {
+        kind: "fields",
+        caption: c("organization"),
+        fields: [
+          {
+            label: c("orgName"),
+            value: data.orgName,
+          },
+          {
+            label: c("orgSlug"),
+            value: data.orgSlug,
+          },
+          {
+            label: c("orgId"),
+            value: data.deletedOrgId,
+          },
+          {
+            label: c("issuedTo"),
+            value: data.ownerName ?? c("formerOwner"),
+          },
+        ],
+      },
+      {
+        kind: "fields",
+        caption: c("timeline"),
+        fields: [
+          {
+            label: c(data.basis === "deletion_request" ? "requestedDeletion" : "canceled"),
+            value: f.dateTime(data.requestedAt),
+          },
+          {
+            label: c("due"),
+            value: f.dateTime(data.dueAt),
+          },
+          {
+            label: c("deleted"),
+            value: f.dateTime(data.purgedAt),
+          },
+        ],
+      },
+      {
+        kind: "table",
+        caption: c("whatWasDeleted"),
+        columns: [
+          {
+            label: c("what"),
+            weight: 3,
+          },
+          {
+            label: c("count"),
+            numeric: true,
+          },
+        ],
+        rows: [
+          [c("rows"), f.number(data.rowsPurged)],
+          [c("tables"), f.number(data.tablesPurged)],
+          [c("files"), f.number(data.storageObjectsDeleted)],
+        ],
+        empty: c("nothing"),
+      },
+      {
+        kind: "heading",
+        text: c("backupsTitle"),
+      },
+      {
+        kind: "paragraph",
+        text: c("backups"),
+      },
+      {
+        kind: "paragraph",
+        text: c("keep", { id: data.id }),
+      },
+    ],
+  };
+}
+/** File name of a certificate PDF. */
+function deletionCertificateFileName(data, paper = "letter") {
+  return `deletion-certificate-${data.orgSlug.replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "") || "org"}-${certificateKey(data.id)}-${paper}.pdf`;
+}
+/** Renders the certificate to tagged PDF/UA-1. */
+async function renderDeletionCertificate(data, options) {
+  const model = buildDeletionCertificateModel(data, options);
+  const paper = options.paper ?? "letter";
+  return {
+    bytes: await renderDocumentPdf(model, { paper }),
+    fileName: deletionCertificateFileName(data, paper),
+  };
+}
+//#endregion
+//#region ../data/src/org-lifecycle.ts
+/** Private bucket of certificate PDFs; the former Owner reads their own (1351). */
+var DELETION_CERTIFICATES_BUCKET = "deletion-certificates";
+/** Groups objects by bucket into requests of at most `size` names. */
+function batchObjects(objects, size = 100) {
+  const byBucket = /* @__PURE__ */ new Map();
+  for (const o of objects) {
+    const group = byBucket.get(o.bucket) ?? [];
+    group.push(o);
+    byBucket.set(o.bucket, group);
+  }
+  const batches = [];
+  for (const bucket of [...byBucket.keys()].sort()) {
+    const group = byBucket.get(bucket) ?? [];
+    for (let i = 0; i < group.length; i += size) batches.push(group.slice(i, i + size));
+  }
+  return batches;
+}
+async function sha256Hex$1(bytes) {
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+function escapeHtml$1(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+/** Object name of a certificate PDF in the bucket. */
+function certificateObjectName(certificateId) {
+  return `${certificateId}.pdf`;
+}
+/** Deletes the org's storage objects through the Storage API until none are listed, or no progress is made. */
+async function clearStorage(store, storage, id) {
+  let deleted = 0;
+  for (let round = 0; round < 50; round += 1) {
+    const objects = await store.storageObjects(id);
+    if (objects.length === 0) break;
+    let removed = 0;
+    for (const batch of batchObjects(objects))
+      removed += await storage.remove(
+        batch[0]?.bucket ?? "",
+        batch.map((o) => o.name),
+      );
+    deleted += removed;
+    if (removed === 0) break;
+  }
+  return {
+    deleted,
+    clear: await store.recordStorageCleared(id, deleted),
+  };
+}
+/** One pass of the worker over the certificates with work. */
+async function runDeletionCertificates(options) {
+  const { store, storage } = options;
+  const results = [];
+  for (const cert of await store.claim(options.worker, options.limit ?? 5))
+    try {
+      if (!cert.purged) {
+        const { deleted, clear } = await clearStorage(store, storage, cert.id);
+        results.push({
+          id: cert.id,
+          outcome: clear ? "storage-cleared" : "storage-pending",
+          deleted,
+        });
+        continue;
+      }
+      let bytes = null;
+      let fileName = "";
+      const objectName = cert.documentObject ?? certificateObjectName(cert.id);
+      if (!cert.issuedAt) {
+        const rendered = await options.render(cert);
+        bytes = rendered.bytes;
+        fileName = rendered.fileName;
+        await storage.upload(DELETION_CERTIFICATES_BUCKET, objectName, bytes, "application/pdf");
+        await store.recordIssued(cert.id, objectName, await sha256Hex$1(bytes));
+      }
+      if (cert.deliveredAt) {
+        results.push({
+          id: cert.id,
+          outcome: "issued",
+        });
+        continue;
+      }
+      if (!cert.ownerEmail) {
+        await store.release(
+          cert.id,
+          "The former Owner has no email address; the certificate waits in Atlas.",
+        );
+        results.push({
+          id: cert.id,
+          outcome: "no-address",
+        });
+        continue;
+      }
+      if (!bytes) {
+        bytes = await storage.download(DELETION_CERTIFICATES_BUCKET, objectName);
+        fileName = deletionCertificateFileName(cert);
+      }
+      const copy = options.copy(cert.locale);
+      const values = {
+        org: cert.orgName,
+        date: copy.date(cert.purgedAt, cert.timeZone),
+        id: cert.id,
+      };
+      const text = copy.text(values);
+      const sent = await options.mailer.send({
+        to: cert.ownerEmail,
+        toName: cert.ownerName,
+        subject: copy.subject(values),
+        text,
+        html: text
+          .split(/\n{2,}/)
+          .map((p) => `<p>${escapeHtml$1(p)}</p>`)
+          .join(""),
+        attachment: {
+          filename: fileName,
+          contentType: "application/pdf",
+          content: bytes,
+        },
+      });
+      await store.recordDelivered(cert.id, sent.messageId);
+      results.push({
+        id: cert.id,
+        outcome: "delivered",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await store.release(cert.id, message);
+      results.push({
+        id: cert.id,
+        outcome: "failed",
+        error: message,
+      });
+    }
+  return results;
+}
+var text$2 = (r, k) => (typeof r[k] === "string" ? r[k] : "");
+var textOrNull = (r, k) => (typeof r[k] === "string" ? r[k] : null);
+var count = (r, k) => (typeof r[k] === "number" ? r[k] : Number(r[k] ?? 0));
+function toClaimedCertificate(r) {
+  return {
+    id: text$2(r, "id"),
+    deletedOrgId: text$2(r, "deleted_org_id"),
+    orgName: text$2(r, "org_name"),
+    orgSlug: text$2(r, "org_slug"),
+    basis: text$2(r, "basis") === "deletion_request" ? "deletion_request" : "cancellation",
+    requestedAt: text$2(r, "requested_at"),
+    dueAt: text$2(r, "due_at"),
+    purgedAt: text$2(r, "purged_at"),
+    tablesPurged: count(r, "tables_purged"),
+    rowsPurged: count(r, "rows_purged"),
+    storageObjectsDeleted: count(r, "storage_objects_deleted"),
+    ownerName: textOrNull(r, "owner_name"),
+    timeZone: text$2(r, "time_zone") || "UTC",
+    ownerEmail: textOrNull(r, "owner_email"),
+    locale: text$2(r, "locale") || "en-US",
+    storageClearedAt: textOrNull(r, "storage_cleared_at"),
+    issuedAt: textOrNull(r, "issued_at"),
+    documentObject: textOrNull(r, "document_object"),
+    deliveredAt: textOrNull(r, "delivered_at"),
+    purged: textOrNull(r, "purged_at") !== null,
+  };
+}
+/** PurgeStore over the service-role client: the 1351 worker RPCs. */
+function supabasePurgeStore(client) {
+  const app = client.schema("app");
+  const check = (error, what) => {
+    if (error) throw new Error(`${what}: ${error.message}`);
+  };
+  return {
+    async claim(worker, limit) {
+      const { data, error } = await app.rpc("claim_deletion_certificates", {
+        p_worker: worker,
+        p_limit: limit,
+      });
+      check(error, "claim_deletion_certificates");
+      return (data ?? []).map(toClaimedCertificate);
+    },
+    async storageObjects(certificateId) {
+      const { data, error } = await app.rpc("deletion_storage_objects", {
+        p_certificate_id: certificateId,
+      });
+      check(error, "deletion_storage_objects");
+      return (data ?? []).map((r) => ({
+        bucket: text$2(r, "bucket_id"),
+        name: text$2(r, "name"),
+      }));
+    },
+    async recordStorageCleared(certificateId, deleted) {
+      const { data, error } = await app.rpc("record_deletion_storage_cleared", {
+        p_certificate_id: certificateId,
+        p_deleted: deleted,
+      });
+      check(error, "record_deletion_storage_cleared");
+      return data === true;
+    },
+    async recordIssued(certificateId, objectName, sha256) {
+      const { error } = await app.rpc("record_deletion_certificate_issued", {
+        p_certificate_id: certificateId,
+        p_document_object: objectName,
+        p_document_sha256: sha256,
+      });
+      check(error, "record_deletion_certificate_issued");
+    },
+    async recordDelivered(certificateId, messageId) {
+      const { error } = await app.rpc("record_deletion_certificate_delivered", {
+        p_certificate_id: certificateId,
+        p_message_id: messageId,
+      });
+      check(error, "record_deletion_certificate_delivered");
+    },
+    async release(certificateId, message) {
+      const { error } = await app.rpc("release_deletion_certificate", {
+        p_certificate_id: certificateId,
+        p_error: message.slice(0, 2e3),
+      });
+      check(error, "release_deletion_certificate");
+    },
+  };
+}
+/** PurgeStorage over the service-role client's Storage API. */
+function supabasePurgeStorage(client) {
+  return {
+    async remove(bucket, names) {
+      const { data, error } = await client.storage.from(bucket).remove([...names]);
+      if (error)
+        throw new Error(
+          `Storage API refused deleting ${names.length} objects in ${bucket}: ${error.message}`,
+        );
+      return Array.isArray(data) ? data.length : 0;
+    },
+    async upload(bucket, name, bytes, contentType) {
+      const { error } = await client.storage.from(bucket).upload(name, bytes, {
+        contentType,
+        upsert: true,
+      });
+      if (error)
+        throw new Error(`Storage API refused storing ${name} in ${bucket}: ${error.message}`);
+    },
+    async download(bucket, name) {
+      const { data, error } = await client.storage.from(bucket).download(name);
+      if (error || !data) throw new Error(`Storage API could not read ${name} in ${bucket}.`);
+      return new Uint8Array(await data.arrayBuffer());
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/framework/errors.ts
+/**
+ * Every connector failure is an IntegrationError carrying a rule code (lowercase snake case, stored in
+ * `integration_sync_runs.error_code`) and how the runner treats it:
+ *   - retryable: the attempt may succeed later (rate limits, provider outages, timeouts)
+ *   - connectionError: the provider refused the credential, so the connection moves to Error and the
+ *     run fails for good until an admin reauthorizes
+ * Anything else fails the run without retry. No failure is swallowed (Section 19.7).
+ */
+var IntegrationError = class extends Error {
+  code;
+  retryable;
+  connectionError;
+  status;
+  constructor(code, message, options = {}) {
+    super(message);
+    this.name = "IntegrationError";
+    this.code = /^[a-z][a-z0-9_]*$/.test(code) ? code : "provider_error";
+    this.retryable = options.retryable ?? false;
+    this.connectionError = options.connectionError ?? false;
+    this.status = options.status ?? null;
+  }
+};
+/** Classifies a provider HTTP status into an IntegrationError, or null for success. */
+function errorForStatus(provider, status, detail) {
+  if (status >= 200 && status < 300) return null;
+  const message = `${provider} returned ${status}${detail ? `: ${detail.slice(0, 500)}` : ""}`;
+  if (status === 401 || status === 403)
+    return new IntegrationError("credential_refused", message, {
+      connectionError: true,
+      status,
+    });
+  if (status === 429)
+    return new IntegrationError("provider_rate_limited", message, {
+      retryable: true,
+      status,
+    });
+  if (status === 408 || status >= 500)
+    return new IntegrationError("provider_unavailable", message, {
+      retryable: true,
+      status,
+    });
+  if (status === 404) return new IntegrationError("provider_not_found", message, { status });
+  if (status === 409 || status === 412)
+    return new IntegrationError("provider_conflict", message, { status });
+  return new IntegrationError("provider_rejected", message, { status });
+}
+/** Wraps an unknown thrown value so the runner can always record a code and a message. */
+function asIntegrationError(error) {
+  if (error instanceof IntegrationError) return error;
+  if (error instanceof Error) {
+    const network = error.name === "AbortError" || error.name === "TypeError";
+    return new IntegrationError(
+      network ? "provider_unreachable" : "unexpected_error",
+      error.message,
+      { retryable: network },
+    );
+  }
+  return new IntegrationError("unexpected_error", String(error));
+}
+//#endregion
+//#region ../integrations/src/framework/http.ts
+/** Adapts fetch: no redirects followed, a timeout per request, header names lowercased. */
+function httpFromFetch(fetchImpl, timeoutMs = 2e4) {
+  return async (request) => {
+    const init = {
+      method: request.method,
+      redirect: "manual",
+      signal: AbortSignal.timeout(timeoutMs),
+    };
+    if (request.headers) init.headers = { ...request.headers };
+    if (request.body !== void 0) init.body = request.body;
+    const response = await fetchImpl(request.url, init);
+    const headers = {};
+    response.headers.forEach((value, key) => {
+      headers[key.toLowerCase()] = value;
+    });
+    if (request.responseType === "bytes" && response.status >= 200 && response.status < 300)
+      return {
+        status: response.status,
+        headers,
+        body: "",
+        bytes: new Uint8Array(await response.arrayBuffer()),
+      };
+    return {
+      status: response.status,
+      headers,
+      body: await response.text(),
+    };
+  };
+}
+/** Sends a JSON request and returns the parsed body, raising an IntegrationError for any failure. */
+async function callJson(http, provider, call) {
+  const headers = {
+    accept: "application/json",
+    ...call.headers,
+  };
+  if (call.token !== void 0) headers["authorization"] = `Bearer ${call.token}`;
+  const request = {
+    method: call.method,
+    url: call.url,
+    headers,
+  };
+  if (call.json !== void 0) {
+    headers["content-type"] = "application/json";
+    request.body = JSON.stringify(call.json);
+  }
+  const response = await http(request);
+  const failure = errorForStatus(provider, response.status, response.body);
+  if (failure) throw failure;
+  if (response.body.length === 0) return void 0;
+  try {
+    return JSON.parse(response.body);
+  } catch (error) {
+    throw new IntegrationError(
+      "provider_malformed_response",
+      `${provider} sent a body that is not JSON: ${String(error)}`,
+      { retryable: true },
+    );
+  }
+}
+/** Sends a non-JSON request (file uploads, downloads) and returns the raw response after the status check. */
+async function callRaw(http, provider, request) {
+  const response = await http(request);
+  const failure = errorForStatus(provider, response.status, response.body);
+  if (failure) throw failure;
+  return response;
+}
+var PROVIDER$1 = "Vercel Domains";
+function query(config) {
+  return config.teamId ? `?teamId=${encodeURIComponent(config.teamId)}` : "";
+}
+function best(list) {
+  return [...(list ?? [])].sort((a, b) => (a.rank ?? 99) - (b.rank ?? 99))[0];
+}
+/** The records the org publishes: routing (A or CNAME) and any verification TXT records Vercel asks for. */
+function vercelRecords(domain, config) {
+  const host = domain.name;
+  const apex = (domain.apexName ?? host) === host;
+  const records = [];
+  if (apex) {
+    const ips = best(config?.recommendedIPv4)?.value ?? ["76.76.21.21"];
+    for (const ip of ips)
+      records.push({
+        type: "A",
+        name: host,
+        value: ip,
+        purpose: "routing",
+      });
+  } else {
+    const cname =
+      best(config?.recommendedCNAME)?.value?.replace(/\.$/, "") ?? "cname.vercel-dns.com";
+    records.push({
+      type: "CNAME",
+      name: host,
+      value: cname,
+      purpose: "routing",
+    });
+  }
+  for (const v of domain.verification ?? [])
+    if (v.type && v.domain && v.value)
+      records.push({
+        type: v.type,
+        name: v.domain,
+        value: v.value,
+        purpose: "verification",
+      });
+  return records;
+}
+function vercelHosts(http, config) {
+  const base = (config.baseUrl ?? "https://api.vercel.com").replace(/\/+$/, "");
+  const project = encodeURIComponent(config.projectId);
+  const q = query(config);
+  const call = (method, path, json) =>
+    callJson(http, PROVIDER$1, {
+      method,
+      url: `${base}${path}${q}`,
+      token: config.token,
+      ...(json === void 0 ? {} : { json }),
+    });
+  async function state(domain) {
+    let dns = null;
+    try {
+      dns = await call("GET", `/v6/domains/${encodeURIComponent(domain.name)}/config`);
+    } catch (error) {
+      if (!(error instanceof IntegrationError) || error.code !== "provider_not_found") throw error;
+    }
+    const verified = domain.verified === true;
+    const routed = dns !== null && dns.misconfigured === false;
+    return {
+      ref: domain.name,
+      verified: verified && routed,
+      tlsReady: verified && routed,
+      records: vercelRecords(domain, dns),
+    };
+  }
+  return {
+    async add(hostname) {
+      let domain;
+      try {
+        domain = await call("POST", `/v10/projects/${project}/domains`, { name: hostname });
+      } catch (error) {
+        if (!(error instanceof IntegrationError) || error.code !== "provider_conflict") throw error;
+        domain = await call(
+          "GET",
+          `/v9/projects/${project}/domains/${encodeURIComponent(hostname)}`,
+        );
+      }
+      return state(domain);
+    },
+    async check(hostname) {
+      let domain = await call(
+        "GET",
+        `/v9/projects/${project}/domains/${encodeURIComponent(hostname)}`,
+      );
+      if (domain.verified !== true)
+        try {
+          domain = await call(
+            "POST",
+            `/v9/projects/${project}/domains/${encodeURIComponent(hostname)}/verify`,
+          );
+        } catch (error) {
+          if (!(error instanceof IntegrationError) || error.code !== "provider_rejected")
+            throw error;
+        }
+      return state(domain);
+    },
+    async remove(hostname) {
+      try {
+        await call("DELETE", `/v9/projects/${project}/domains/${encodeURIComponent(hostname)}`);
+      } catch (error) {
+        if (!(error instanceof IntegrationError) || error.code !== "provider_not_found")
+          throw error;
+      }
+    },
+  };
+}
+var PROVIDER = "Resend domains";
+/** Resend gives record names relative to the domain; the org's DNS needs them in full. */
+function fullName(name, domain) {
+  if (!name || name === "@") return domain;
+  return name.endsWith(domain) ? name : `${name}.${domain}`;
+}
+/** The DMARC record a new sending domain starts with: monitor only. */
+function dmarcRecord(domain) {
+  return {
+    type: "TXT",
+    name: `_dmarc.${domain}`,
+    value: "v=DMARC1; p=none;",
+    purpose: "dmarc",
+  };
+}
+function resendRecords(domain) {
+  return [
+    ...(domain.records ?? []).flatMap((r) => {
+      if (!r.type || !r.value) return [];
+      const purpose = (r.record ?? "").toLowerCase().includes("dkim")
+        ? "dkim"
+        : (r.record ?? "").toLowerCase().includes("receiving")
+          ? "receiving"
+          : "spf";
+      return [
+        {
+          type: r.type,
+          name: fullName(r.name ?? "", domain.name),
+          value: r.value,
+          purpose,
+          ...(typeof r.priority === "number" ? { priority: r.priority } : {}),
+        },
+      ];
+    }),
+    dmarcRecord(domain.name),
+  ];
+}
+function toState(domain) {
+  const verified = domain.status === "verified";
+  return {
+    ref: domain.id,
+    verified,
+    tlsReady: verified,
+    records: resendRecords(domain),
+  };
+}
+function resendSendingDomains(http, config) {
+  const base = (config.baseUrl ?? "https://api.resend.com").replace(/\/+$/, "");
+  const call = (method, path, json) =>
+    callJson(http, PROVIDER, {
+      method,
+      url: `${base}${path}`,
+      token: config.token,
+      ...(json === void 0 ? {} : { json }),
+    });
+  return {
+    async create(hostname) {
+      return toState(
+        await call("POST", "/domains", {
+          name: hostname,
+          ...(config.region ? { region: config.region } : {}),
+        }),
+      );
+    },
+    async check(ref) {
+      const id = encodeURIComponent(ref);
+      let domain = await call("GET", `/domains/${id}`);
+      if (domain.status !== "verified") {
+        await call("POST", `/domains/${id}/verify`);
+        domain = await call("GET", `/domains/${id}`);
+      }
+      return toState(domain);
+    },
+    async remove(ref) {
+      try {
+        await call("DELETE", `/domains/${encodeURIComponent(ref)}`);
+      } catch (error) {
+        if (!(error instanceof IntegrationError) || error.code !== "provider_not_found")
+          throw error;
+      }
+    },
+  };
+}
+//#endregion
+//#region ../integrations/src/domains/provisioning.ts
+/**
+ * The domain provisioning worker (A79, migration 1355; Section 12): claims domain.provision, domain.check and
+ * domain.release jobs from the 0510 queue, calls the provider of each domain's purpose and records the outcome
+ * through app.record_domain_provisioning, the only writer of the provisioning fields. A retryable provider
+ * failure (rate limit, outage) goes back to the queue with its backoff; any other failure is recorded on the
+ * domain as Failed with the provider's reason, and an Owner asks for another try from White label settings.
+ */
+var DOMAIN_JOB_KINDS = ["domain.provision", "domain.check", "domain.release"];
+/** Copy the worker records when a purpose has no provider yet; Atlas translates the state, not this text. */
+var NOT_CONFIGURED = {
+  Atlas: "Custom Atlas domains are not set up on this platform yet.",
+  Gateway: "Custom Gateway domains are not set up on this platform yet.",
+  "Email Sending": "Custom sending domains are not set up on this platform yet.",
+  "Verified Domain": "Verified domains are checked by their TXT record.",
+};
+function hostProvider(providers, purpose) {
+  if (purpose === "Atlas") return providers.atlas;
+  if (purpose === "Gateway") return providers.gateway;
+  return null;
+}
+async function provision(providers, domain, kind) {
+  if (domain.purpose === "Verified Domain") return null;
+  const sending = domain.purpose === "Email Sending" ? providers.sending : null;
+  const host = hostProvider(providers, domain.purpose);
+  if (kind === "domain.release") {
+    if (!domain.providerRef) return { status: "Released" };
+    if (sending) await sending.remove(domain.providerRef);
+    else if (host) await host.remove(domain.providerRef);
+    else
+      return {
+        status: "Failed",
+        error: NOT_CONFIGURED[domain.purpose],
+      };
+    return { status: "Released" };
+  }
+  if (domain.deleted) return null;
+  if (!sending && !host)
+    return {
+      status: "Failed",
+      error: NOT_CONFIGURED[domain.purpose],
+    };
+  let state;
+  if (kind === "domain.check" && domain.providerRef)
+    state = sending
+      ? await sending.check(domain.providerRef)
+      : await host.check(domain.providerRef);
+  else state = sending ? await sending.create(domain.hostname) : await host.add(domain.hostname);
+  return {
+    status: state.verified ? "Active" : "Pending DNS",
+    providerRef: state.ref,
+    records: state.records,
+    tlsReady: state.tlsReady,
+    verified: state.verified,
+  };
+}
+/** One pass of the worker over every domain job kind. */
+async function runDomainJobs(options) {
+  const { store, providers } = options;
+  const results = [];
+  for (const kind of DOMAIN_JOB_KINDS) {
+    const jobs = await store.claim(options.worker, kind, options.limit ?? 10);
+    if (jobs.length === 0) continue;
+    const domains = new Map(
+      (await store.domains(jobs.map((j) => j.subjectId))).map((d) => [d.id, d]),
+    );
+    for (const job of jobs) {
+      const domain = domains.get(job.subjectId);
+      if (!domain) {
+        await store.finish(job.id, true);
+        results.push({
+          jobId: job.id,
+          domainId: job.subjectId,
+          kind,
+          outcome: "skipped",
+        });
+        continue;
+      }
+      try {
+        const record = await provision(providers, domain, kind);
+        if (record) await store.record(domain.id, record);
+        await store.finish(job.id, true);
+        results.push({
+          jobId: job.id,
+          domainId: domain.id,
+          kind,
+          outcome: !record
+            ? "skipped"
+            : record.status === "Active"
+              ? "active"
+              : record.status === "Pending DNS"
+                ? "pending-dns"
+                : record.status === "Released"
+                  ? "released"
+                  : "failed",
+          ...(record?.error ? { error: record.error } : {}),
+        });
+      } catch (error) {
+        const failure = asIntegrationError(error);
+        if (failure.retryable) {
+          const status = await store.finish(job.id, false, failure.message);
+          if (status === "Failed")
+            await store.record(domain.id, {
+              status: "Failed",
+              error: failure.message,
+            });
+          results.push({
+            jobId: job.id,
+            domainId: domain.id,
+            kind,
+            outcome: status === "Failed" ? "failed" : "retrying",
+            error: failure.message,
+          });
+        } else {
+          await store.record(domain.id, {
+            status: "Failed",
+            error: failure.message,
+          });
+          await store.finish(job.id, true);
+          results.push({
+            jobId: job.id,
+            domainId: domain.id,
+            kind,
+            outcome: "failed",
+            error: failure.message,
+          });
+        }
+      }
+    }
+  }
+  return results;
+}
+function supabaseDomainJobStore(client) {
+  const call = async (fn, args) => {
+    const { data, error } = await client.rpc(fn, args);
+    if (error) throw new Error(`${fn}: ${error.message}`);
+    return data;
+  };
+  return {
+    async claim(worker, kind, limit) {
+      return (
+        (await call("claim_jobs", {
+          p_worker: worker,
+          p_job_kind: kind,
+          p_limit: limit,
+        })) ?? []
+      ).map((r) => ({
+        id: r.id,
+        subjectId: r.subject_id,
+        attempts: r.attempts,
+      }));
+    },
+    async finish(jobId, succeeded, error) {
+      return String(
+        await call("finish_job", {
+          p_job_id: jobId,
+          p_succeeded: succeeded,
+          p_error: error ?? null,
+        }),
+      );
+    },
+    async domains(ids) {
+      return ((await call("domains_to_provision", { p_org_domain_ids: ids })) ?? []).map((r) => ({
+        id: r.id,
+        hostname: r.hostname,
+        purpose: r.purpose,
+        providerRef: r.provider_ref,
+        deleted: r.deleted,
+      }));
+    },
+    async record(domainId, record) {
+      await call("record_domain_provisioning", {
+        p_org_domain_id: domainId,
+        p_status: record.status,
+        p_provider_ref: record.providerRef ?? null,
+        p_dns_records: record.records ?? null,
+        p_tls_ready: record.tlsReady ?? null,
+        p_verified: record.verified ?? null,
+        p_error: record.error ?? null,
+      });
+    },
+  };
+}
+//#endregion
+//#region edge/lifecycle.ts
+/**
+ * The org-lifecycle worker for the Edge bundle (A79, migrations 1351 and 1355): the day-90 deletion's storage
+ * clearing, certificate PDF and email (@xos/data org-purge.ts, the document pipeline of ADR 0031), and custom
+ * domain provisioning through Vercel and Resend (@xos/integrations domains). This file re-exports them and
+ * adds the certificate's catalog copy from @xos/i18n.
+ */
+var scope = globalThis;
+scope.Buffer ??= Buffer$1;
+function lookup(tree, path) {
+  let node = tree;
+  for (const part of path) {
+    if (typeof node !== "object" || node === null) return null;
+    node = node[part];
+  }
+  return typeof node === "string" ? node : null;
+}
+function fill(template, values) {
+  return template.replace(/\{(\w+)\}/g, (all, name) =>
+    values[name] === void 0 ? all : String(values[name]),
+  );
+}
+var known = (locale) => (isLocale(locale) ? locale : defaultLocale);
+/** The `documents` namespace in a locale (en-US when unknown), for the certificate PDF. */
+function documentMessages(locale) {
+  return getMessages(known(locale))["documents"];
+}
+/** The certificate email in a locale (en-US when unknown). */
+function deletionCertificateCopy(locale) {
+  const lang = known(locale);
+  const messages = getMessages(lang);
+  const email = (key) => lookup(messages, ["email", "deletionCertificate", key]) ?? key;
   return {
     subject: (values) => fill(email("subject"), values),
-    body: (values) => fill(email("body"), values),
+    text: (values) => fill(email("body"), values),
+    date: (iso, timeZone) => {
+      const zone = (() => {
+        try {
+          new Intl.DateTimeFormat(lang, { timeZone });
+          return timeZone;
+        } catch {
+          return "UTC";
+        }
+      })();
+      return new Intl.DateTimeFormat(lang, {
+        dateStyle: "long",
+        timeZone: zone,
+      }).format(new Date(iso));
+    },
   };
 }
 //#endregion
@@ -44715,135 +48547,6 @@ function connectorRegistry(connectors) {
     map.set(connector.provider, connector);
   }
   return map;
-}
-//#endregion
-//#region ../integrations/src/framework/errors.ts
-/**
- * Every connector failure is an IntegrationError carrying a rule code (lowercase snake case, stored in
- * `integration_sync_runs.error_code`) and how the runner treats it:
- *   - retryable: the attempt may succeed later (rate limits, provider outages, timeouts)
- *   - connectionError: the provider refused the credential, so the connection moves to Error and the
- *     run fails for good until an admin reauthorizes
- * Anything else fails the run without retry. No failure is swallowed (Section 19.7).
- */
-var IntegrationError = class extends Error {
-  code;
-  retryable;
-  connectionError;
-  status;
-  constructor(code, message, options = {}) {
-    super(message);
-    this.name = "IntegrationError";
-    this.code = /^[a-z][a-z0-9_]*$/.test(code) ? code : "provider_error";
-    this.retryable = options.retryable ?? false;
-    this.connectionError = options.connectionError ?? false;
-    this.status = options.status ?? null;
-  }
-};
-/** Classifies a provider HTTP status into an IntegrationError, or null for success. */
-function errorForStatus(provider, status, detail) {
-  if (status >= 200 && status < 300) return null;
-  const message = `${provider} returned ${status}${detail ? `: ${detail.slice(0, 500)}` : ""}`;
-  if (status === 401 || status === 403)
-    return new IntegrationError("credential_refused", message, {
-      connectionError: true,
-      status,
-    });
-  if (status === 429)
-    return new IntegrationError("provider_rate_limited", message, {
-      retryable: true,
-      status,
-    });
-  if (status === 408 || status >= 500)
-    return new IntegrationError("provider_unavailable", message, {
-      retryable: true,
-      status,
-    });
-  if (status === 404) return new IntegrationError("provider_not_found", message, { status });
-  if (status === 409 || status === 412)
-    return new IntegrationError("provider_conflict", message, { status });
-  return new IntegrationError("provider_rejected", message, { status });
-}
-/** Wraps an unknown thrown value so the runner can always record a code and a message. */
-function asIntegrationError(error) {
-  if (error instanceof IntegrationError) return error;
-  if (error instanceof Error) {
-    const network = error.name === "AbortError" || error.name === "TypeError";
-    return new IntegrationError(
-      network ? "provider_unreachable" : "unexpected_error",
-      error.message,
-      { retryable: network },
-    );
-  }
-  return new IntegrationError("unexpected_error", String(error));
-}
-//#endregion
-//#region ../integrations/src/framework/http.ts
-/** Adapts fetch: no redirects followed, a timeout per request, header names lowercased. */
-function httpFromFetch(fetchImpl, timeoutMs = 2e4) {
-  return async (request) => {
-    const init = {
-      method: request.method,
-      redirect: "manual",
-      signal: AbortSignal.timeout(timeoutMs),
-    };
-    if (request.headers) init.headers = { ...request.headers };
-    if (request.body !== void 0) init.body = request.body;
-    const response = await fetchImpl(request.url, init);
-    const headers = {};
-    response.headers.forEach((value, key) => {
-      headers[key.toLowerCase()] = value;
-    });
-    if (request.responseType === "bytes" && response.status >= 200 && response.status < 300)
-      return {
-        status: response.status,
-        headers,
-        body: "",
-        bytes: new Uint8Array(await response.arrayBuffer()),
-      };
-    return {
-      status: response.status,
-      headers,
-      body: await response.text(),
-    };
-  };
-}
-/** Sends a JSON request and returns the parsed body, raising an IntegrationError for any failure. */
-async function callJson(http, provider, call) {
-  const headers = {
-    accept: "application/json",
-    ...call.headers,
-  };
-  if (call.token !== void 0) headers["authorization"] = `Bearer ${call.token}`;
-  const request = {
-    method: call.method,
-    url: call.url,
-    headers,
-  };
-  if (call.json !== void 0) {
-    headers["content-type"] = "application/json";
-    request.body = JSON.stringify(call.json);
-  }
-  const response = await http(request);
-  const failure = errorForStatus(provider, response.status, response.body);
-  if (failure) throw failure;
-  if (response.body.length === 0) return void 0;
-  try {
-    return JSON.parse(response.body);
-  } catch (error) {
-    throw new IntegrationError(
-      "provider_malformed_response",
-      `${provider} sent a body that is not JSON: ${String(error)}`,
-      { retryable: true },
-    );
-  }
-}
-/** Sends a non-JSON request (file uploads, downloads) and returns the raw response after the status check. */
-async function callRaw(http, provider, request) {
-  const response = await http(request);
-  const failure = errorForStatus(provider, response.status, response.body);
-  if (failure) throw failure;
-  return response;
 }
 //#endregion
 //#region ../integrations/src/framework/support.ts
@@ -51192,6 +54895,7 @@ export {
   ATTACHMENT_SCAN_JOB,
   BillingNotConfiguredError,
   CLAMAV_DEFAULT_PORT,
+  DELETION_CERTIFICATES_BUCKET,
   EXPO_PUSH_RECEIPTS_URL,
   EXPO_PUSH_SEND_URL,
   EXPO_RECEIPT_BATCH,
@@ -51202,6 +54906,7 @@ export {
   MAX_ADDON_QUANTITY,
   MAX_EXTRA_SEATS,
   MAX_SCAN_ATTEMPTS,
+  MIN_STRIPE_TRIAL_MS,
   NotSelfServeError,
   PKPASS_TYPE,
   PUBLIC_UPLOAD_BUCKETS,
@@ -51244,11 +54949,13 @@ export {
   createSmsProvider,
   createStripeClient,
   createTransport,
+  deletionCertificateCopy,
   dispatchEmail,
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
   dispatchWebhooks,
+  documentMessages,
   edgeFunctionName,
   expoPushClient,
   extraSeatForLookupKey,
@@ -51301,11 +55008,15 @@ export {
   receiveInbound,
   recipientAllowed,
   recipientProfile,
+  renderDeletionCertificate,
   reportDeliveryCopy,
   reportRunLabels,
   requestIdFor,
   resendMailer,
+  resendSendingDomains,
   resolvePriceId,
+  runDeletionCertificates,
+  runDomainJobs,
   runImportJobs,
   runIntegrationRuntime,
   runReportDeliveries,
@@ -51328,11 +55039,15 @@ export {
   stagedUploadTarget,
   staticAccessToken,
   stripQuotedText,
+  stripeTrialEnd,
   supabaseAuthAdmin,
   supabaseCommunicationSource,
   supabaseDb,
+  supabaseDomainJobStore,
   supabaseImportStore,
   supabaseInboundStore,
+  supabasePurgeStorage,
+  supabasePurgeStore,
   supabaseReportDeliveryStore,
   supabaseReportRunStore,
   supabaseResultFiles,
@@ -51347,6 +55062,7 @@ export {
   twilioSmsProvider,
   unconfiguredJwtSigner,
   unconfiguredPassSigner,
+  vercelHosts,
   verifyTwilioSignature,
   verifyWebhook,
   walletLabels,

@@ -33,7 +33,6 @@ name: multi-org-today
     element: "Load-in at the pier from noon. Crew parking at Gate 3."
     direction: DOWN
     timeout: 20000
-- takeScreenshot: multi-org-today-combined
 - scrollUntilVisible:
     element:
       id: "org-switcher"
@@ -49,7 +48,6 @@ name: multi-org-today
     visible: "Harbor Stages Pier Week"
     timeout: 15000
 - assertVisible: "Organization: Harbor Stages. Change organization"
-- takeScreenshot: multi-org-today-harbor-brand
 # Schedule now reads the Harbor Stages shift only.
 - tapOn:
     id: "tab-schedule"
