@@ -139,6 +139,33 @@ export function replayOrgOf(resolved: ResolvedIdentity | null): string | null {
     : null;
 }
 
+/**
+ * True when an identity read failed because no server answered (offline, or the server is away), as
+ * opposed to the server refusing it. Compass then opens on the identity cached at the last sign-in.
+ */
+export function isServerUnreachable(message: string): boolean {
+  return /network request failed|fetch failed|could not connect|failed to fetch|timed out|offline|load failed/i.test(
+    message,
+  );
+}
+
+/** The org contexts cached on the device, or null when the row is missing or not one. */
+export function cachedContexts(row: unknown): OrgContext[] | null {
+  const contexts = (row as { contexts?: unknown } | null | undefined)?.contexts;
+  if (!Array.isArray(contexts) || contexts.length === 0) return null;
+  const valid = contexts.every((c: unknown) => {
+    const context = c as Partial<OrgContext> | null;
+    return (
+      typeof context?.orgId === "string" &&
+      (context.kind === "member" || context.kind === "engaged") &&
+      typeof context.identity?.personId === "string" &&
+      Array.isArray(context.projects) &&
+      Array.isArray(context.scope?.orgIds)
+    );
+  });
+  return valid ? (contexts as OrgContext[]) : null;
+}
+
 /** Which org a project belongs to, across every context. */
 export function projectOrgs(contexts: readonly OrgContext[]): ReadonlyMap<string, string> {
   return new Map(contexts.flatMap((c) => c.projects.map((p) => [p.id, c.orgId] as const)));

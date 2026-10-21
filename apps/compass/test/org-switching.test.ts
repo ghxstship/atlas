@@ -17,6 +17,8 @@ import { describe, expect, it } from "vitest";
 import { downloadAll } from "../src/data/downloader";
 import {
   activateOrg,
+  cachedContexts,
+  isServerUnreachable,
   projectOrgs,
   replayOrgOf,
   resolveIdentity,
@@ -152,6 +154,23 @@ describe("a person in several orgs", () => {
     expect(replayOrgOf(activateOrg(r.contexts, "org-e"))).toBeNull();
     expect(replayOrgOf(null)).toBeNull();
     expect(projectOrgs(r.contexts).get("p-e")).toBe("org-e");
+  });
+
+  it("opens offline on the contexts cached at the last sign-in, never on a refusal or a bad row", async () => {
+    const r = await riley();
+    expect(cachedContexts({ id: "user-riley", contexts: r.contexts })).toEqual(r.contexts);
+    expect(activateOrg(cachedContexts({ contexts: r.contexts }) ?? [], "org-s").orgId).toBe(
+      "org-s",
+    );
+    expect(cachedContexts(undefined)).toBeNull();
+    expect(cachedContexts({ contexts: [] })).toBeNull();
+    expect(cachedContexts({ contexts: [{ orgId: "org-n", kind: "boss" }] })).toBeNull();
+    expect(
+      isServerUnreachable("fetch failed: UnexpectedException: Could not connect to the server."),
+    ).toBe(true);
+    expect(isServerUnreachable("TypeError: Network request failed")).toBe(true);
+    expect(isServerUnreachable("JWT expired")).toBe(false);
+    expect(isServerUnreachable("No person is linked to this sign-in.")).toBe(false);
   });
 
   it("opens a member's own orgs when the engagement read fails, and refuses a sign-in with neither", async () => {

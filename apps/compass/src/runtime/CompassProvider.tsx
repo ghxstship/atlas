@@ -31,7 +31,9 @@ import { downloadAll, type DownloadReport } from "../data/downloader";
 import { secondFactorGate, type ChallengeFactor, type SecondFactorGate } from "./assurance";
 import {
   activateOrg,
+  cachedContexts,
   IdentityError,
+  isServerUnreachable,
   projectOrgs,
   replayOrgOf,
   resolveIdentity,
@@ -98,6 +100,8 @@ const ORG_KEY = "xos.compass.org";
 const ORG_PROJECTS_KEY = "xos.compass.org-projects";
 /** Brands of the person's orgs, kept on the device so the brand applies offline (device-local table). */
 export const BRANDS_TABLE = "_org_brands";
+/** The person's org contexts as last resolved, so Compass opens offline after a restart (device-local). */
+export const IDENTITY_TABLE = "_identity";
 
 export type Phase =
   | { readonly kind: "starting" }
@@ -247,6 +251,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [startupError, setStartupError] = useState<string | null>(null);
   const [startupAttempt, setStartupAttempt] = useState(0);
   const [storageNotice, setStorageNotice] = useState(false);
+  /** True while Compass runs on the identity cached at the last successful sign-in (no server). */
+  const [offlineIdentity, setOfflineIdentity] = useState(false);
   const orgRef = useRef<string | null>(null);
   const storeRef = useRef<LocalStore | null>(null);
   const orgProjectsRef = useRef<Record<string, string>>({});
@@ -429,10 +435,34 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     let live = true;
     /** True when the gate holds the device; the auth listener reopens it once the session changes. */
     const held = (gate: SecondFactorGate): boolean => (live ? holdFor(gate) : true);
+    let storedOrg: string | null = null;
+    /** Opens Compass on a resolved person: every org's scope on the device, the active org on screen. */
+    const open = async (next: ResolvedIdentity, narrow: boolean) => {
+      const scopes = next.contexts.map((c) => c.scope);
+      const sync = new SyncSession(store, scopes);
+      // A narrower scope than last time (an engagement completed, a membership in one org ended) purges
+      // the rows the device may no longer hold, org by org. Never from a cached identity.
+      if (narrow) {
+        await sync.narrow(scopes);
+        await pruneBrands(store, next.contexts);
+      }
+      if (!live) return;
+      setSyncSession(sync);
+      setContexts(next.contexts);
+      setActiveOrgId(next.orgId);
+      setProjectIdState((current) => {
+        if (current && next.projects.some((p) => p.id === current)) return current;
+        const remembered = next.orgId ? orgProjectsRef.current[next.orgId] : undefined;
+        return next.projects.some((p) => p.id === remembered)
+          ? (remembered ?? null)
+          : (next.projects[0]?.id ?? null);
+      });
+      setPhase({ kind: "ready" });
+    };
     void secondFactorGate(client, null)
       .then(async (gate) => {
         if (held(gate)) return null;
-        const storedOrg = await SecureStore.getItemAsync(ORG_KEY).catch(() => null);
+        storedOrg = await SecureStore.getItemAsync(ORG_KEY).catch(() => null);
         if (storedOrg) chosenOrgRef.current = true;
         return resolveIdentity(client, session.user.id, storedOrg);
       })
@@ -440,37 +470,40 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
         if (!live || next === null) return;
         const org = next.identity.membershipId ? next.orgId : null;
         if (held(await secondFactorGate(client, org))) return;
-        const scopes = next.contexts.map((c) => c.scope);
-        const sync = new SyncSession(store, scopes);
-        // A narrower scope than last time (an engagement completed, a membership in one org ended) purges
-        // the rows the device may no longer hold, org by org.
-        await sync.narrow(scopes);
-        await pruneBrands(store, next.contexts);
-        setSyncSession(sync);
-        setContexts(next.contexts);
-        setActiveOrgId(next.orgId);
-        setProjectIdState((current) => {
-          if (current && next.projects.some((p) => p.id === current)) return current;
-          const remembered = next.orgId ? orgProjectsRef.current[next.orgId] : undefined;
-          return next.projects.some((p) => p.id === remembered)
-            ? (remembered ?? null)
-            : (next.projects[0]?.id ?? null);
+        // Kept in the encrypted store, so Compass opens offline after a restart (wiped at sign-out).
+        await store.transaction((tx) => {
+          tx.put(IDENTITY_TABLE, { id: session.user.id, contexts: next.contexts });
         });
-        setPhase({ kind: "ready" });
+        setOfflineIdentity(false);
+        await open(next, true);
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (!live) return;
+        const message = error instanceof Error ? error.message : String(error);
+        // No server (offline, or the server is away): open on the identity resolved last time, and resolve
+        // again once the server answers. A refusal from the server still shows the error.
+        const cached = isServerUnreachable(message)
+          ? cachedContexts(await store.get(IDENTITY_TABLE, session.user.id))
+          : null;
+        if (live && cached) {
+          setOfflineIdentity(true);
+          await open(activateOrg(cached, storedOrg), false);
+          return;
+        }
         const step = error instanceof IdentityError ? error.step : "access";
-        setPhase({
-          kind: "identity-failed",
-          step,
-          message: error instanceof Error ? error.message : String(error),
-        });
+        setPhase({ kind: "identity-failed", step, message });
       });
     return () => {
       live = false;
     };
   }, [client, session, store, identityAttempt, holdFor]);
+
+  // Opened on a cached identity: resolve again every half minute until the server answers.
+  useEffect(() => {
+    if (!offlineIdentity || !network.isConnected) return undefined;
+    const timer = setTimeout(() => setIdentityAttempt((n) => n + 1), 30_000);
+    return () => clearTimeout(timer);
+  }, [offlineIdentity, network.isConnected, identityAttempt]);
 
   const refresh = useCallback(async () => {
     if (!syncSession) return null;
