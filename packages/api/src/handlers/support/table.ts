@@ -117,11 +117,12 @@ export function rpc(
   name: string,
   args: Row = {},
 ): PromiseLike<{ data: unknown; error: unknown }> {
-  const call = db.rpc.bind(db) as unknown as (
-    fn: string,
-    params: Row,
-  ) => PromiseLike<{ data: unknown; error: unknown }>;
-  return call(name, args);
+  // Cast the client before touching rpc: binding the generic rpc signature instantiates every function of the
+  // generated types, which is too deep for the compiler once the types grow.
+  const client = db as unknown as {
+    rpc(fn: string, params: Row): PromiseLike<{ data: unknown; error: unknown }>;
+  };
+  return client.rpc(name, args);
 }
 
 /** Awaits a query and throws its error, so the runtime maps it (README "Errors"). */
