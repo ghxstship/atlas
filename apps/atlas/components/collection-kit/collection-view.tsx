@@ -26,6 +26,8 @@ import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 import { CollectionViews } from "@/components/views/collection-views";
 import { useLiveRefresh } from "@/components/live/live-refresh";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -48,6 +50,7 @@ export function CollectionView({
   actions,
   filters,
   live,
+  bulk,
   children,
 }: {
   title: string;
@@ -71,6 +74,8 @@ export function CollectionView({
    * changes, so the list updates live (Section 11.7, ADR 0044).
    */
   live?: readonly LiveTopic[];
+  /** Bulk edit of the table view's selection (Section 11.7), for resources with a bulk RPC. */
+  bulk?: BulkConfig | null;
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
@@ -80,6 +85,8 @@ export function CollectionView({
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
   useLiveRefresh(live ?? null);
+  const bulkRows = useMemo(() => rows.map((r) => ({ id: r.id, label: r.key })), [rows]);
+  const { selection, bar } = useBulk(view === "table" ? bulk : null, bulkRows);
 
   const href = (changes: Record<string, string | null>): Route => {
     const next = new URLSearchParams(params.toString());
@@ -263,6 +270,7 @@ export function CollectionView({
         columns={columns.map((c) => ({ ...c }))}
         rows={tableRows}
         onRowActivate={(row) => open(String(row["id"]))}
+        {...(selection ? { selection } : {})}
       />
     );
   }
@@ -286,6 +294,7 @@ export function CollectionView({
       peek={children}
     >
       {body}
+      {bar}
     </TemplateCollection>
   );
 }

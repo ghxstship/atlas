@@ -108,6 +108,7 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
   const balance = (i: Invoice) => (i.totalMinor === null ? null : i.totalMinor - i.appliedMinor);
   const rows: Row[] = shown.map((i) => ({
     id: i.id,
+    label: keyOf(i),
     number: i.number ?? "",
     direction: t(`finance.invoices.directionShort.${i.direction}`),
     party: payee(i),
@@ -324,6 +325,25 @@ export async function InvoicesView({ page }: { page: FinancePage }) {
       canCreate={canWrite}
       count={shown.length}
       states={INVOICE_STATES.map((s) => ({ value: s, label: c.state("invoice", s) }))}
+      bulk={
+        canWrite || canApprove
+          ? {
+              org: ctx.org.slug,
+              resource: "invoices",
+              // Approve a queue in one go (Section 11.11): every rule of a single approval applies.
+              fields: [
+                {
+                  key: "invoice_state",
+                  label: t("finance.common.state"),
+                  reason: true,
+                  options: (["Approved", "Disputed", "Canceled"] as const)
+                    .filter((s) => (s === "Approved" ? canApprove : canWrite))
+                    .map((s) => ({ value: s, label: c.state("invoice", s) })),
+                },
+              ],
+            }
+          : null
+      }
       above={
         <>
           {/* Invoices update live as approvals and payments land (Section 11.7, ADR 0044). */}

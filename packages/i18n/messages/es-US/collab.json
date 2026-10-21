@@ -1,0 +1,26 @@
+{
+  "bulk": {
+    "change": "Cambiar {field}",
+    "title": "Cambiar {field} en {count, plural, one {# fila} other {# filas}}",
+    "value": "Nuevo valor de {field}",
+    "reason": "Motivo",
+    "reasonHelp": "Se guarda con cada cambio en su historial.",
+    "preview": "Vista previa",
+    "apply": "Aplicar a {count, plural, one {# fila} other {# filas}}",
+    "cancel": "Cancelar",
+    "changed": "{count, plural, one {Cambiará # fila.} other {Cambiarán # filas.}}",
+    "unchanged": "{count, plural, one {# fila ya tiene este valor.} other {# filas ya tienen este valor.}}",
+    "nothing": "Todas las filas seleccionadas ya tienen este valor.",
+    "refusedTitle": "{count, plural, one {# fila no puede cambiar} other {# filas no pueden cambiar}}",
+    "refusedBody": "No cambia nada hasta que todas las filas puedan cambiar. Quite estas filas de la selección o corrija lo que necesita cada una.",
+    "refusedRow": "{row}: {message}",
+    "someRow": "Una fila seleccionada",
+    "done": "{count, plural, one {Se cambió # fila.} other {Se cambiaron # filas.}}",
+    "undone": "Cambio deshecho.",
+    "undoRefused": "No se pudo deshacer cada fila, así que no se deshizo nada: {message}",
+    "failed": "No se pudo guardar el cambio. Inténtelo de nuevo.",
+    "notifications": "Avisos de la edición en lote",
+    "dismiss": "Descartar",
+    "none": "Ninguno"
+  }
+}

@@ -7,6 +7,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
+import type { BulkConfig } from "@/components/bulk/types";
 import { LiveRefresh } from "@/components/live/live-refresh";
 import { CreateRecordDialog } from "./create-record";
 import {
@@ -133,6 +134,40 @@ export async function RecordsPage({
   }
 
   const canCreate = caps.has("work.record.write");
+  // Bulk edit (Section 11.7): state, owner and phase across a selection. Blocked and Deferred need
+  // a blocker or a reason per record, so they stay single edits.
+  const bulk: BulkConfig | null = canCreate
+    ? {
+        org: ctx.org.slug,
+        resource: "records",
+        fields: [
+          {
+            key: "record_state",
+            label: t("work.columns.state"),
+            reason: true,
+            options: meta.states
+              .filter((s) => s.state !== "Blocked" && s.state !== "Deferred")
+              .map((s) => ({ value: s.state, label: t(`work.states.${s.state}`) })),
+          },
+          {
+            key: "owner_party_id",
+            label: t("work.columns.owner"),
+            options: [
+              { value: null, label: t("work.values.unassigned") },
+              ...meta.people.map((p) => ({ value: p.personId, label: p.name ?? p.personId })),
+            ],
+          },
+          {
+            key: "phase_code",
+            label: t("work.fields.phase"),
+            options: [
+              { value: null, label: t("work.values.notSet") },
+              ...meta.phases.map((p) => ({ value: p.value, label: p.label })),
+            ],
+          },
+        ],
+      }
+    : null;
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
 
@@ -172,6 +207,7 @@ export async function RecordsPage({
         timeZone={timeZone}
         timeline={timeline}
         canCreate={canCreate}
+        bulk={bulk}
         hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
         create={
           <CreateRecordDialog

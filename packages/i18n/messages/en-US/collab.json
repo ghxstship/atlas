@@ -1,0 +1,26 @@
+{
+  "bulk": {
+    "change": "Change {field}",
+    "title": "Change {field} on {count, plural, one {# row} other {# rows}}",
+    "value": "New {field}",
+    "reason": "Reason",
+    "reasonHelp": "Saved with each change in its history.",
+    "preview": "Preview",
+    "apply": "Apply to {count, plural, one {# row} other {# rows}}",
+    "cancel": "Cancel",
+    "changed": "{count, plural, one {# row will change.} other {# rows will change.}}",
+    "unchanged": "{count, plural, one {# row already has this value.} other {# rows already have this value.}}",
+    "nothing": "Every selected row already has this value.",
+    "refusedTitle": "{count, plural, one {# row can't change} other {# rows can't change}}",
+    "refusedBody": "Nothing changes until every row can. Clear these rows from the selection, or fix what each one needs.",
+    "refusedRow": "{row}: {message}",
+    "someRow": "A selected row",
+    "done": "{count, plural, one {Changed # row.} other {Changed # rows.}}",
+    "undone": "Change undone.",
+    "undoRefused": "Couldn't undo every row, so nothing was undone: {message}",
+    "failed": "The change couldn't be saved. Try again.",
+    "notifications": "Bulk edit notifications",
+    "dismiss": "Dismiss",
+    "none": "None"
+  }
+}

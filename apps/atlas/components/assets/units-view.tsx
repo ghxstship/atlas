@@ -111,6 +111,7 @@ export async function UnitsView({
   );
   const rows: CollectionRow[] = visible.map((u) => ({
     key: u.id,
+    id: u.id,
     peek: u.assetTag,
     title: `${u.assetTag} · ${u.className}`,
     meta: u.custody
@@ -159,6 +160,30 @@ export async function UnitsView({
           { key: "homeVenue", label: t("assets.fields.homeVenueId") },
         ]}
         {...(units.length > 0 ? { filterOptions: stateOptions(t) } : {})}
+        bulk={
+          can.write
+            ? {
+                org: ctx.org.slug,
+                resource: "asset_units",
+                fields: [
+                  {
+                    key: "asset_state",
+                    label: t("assets.fields.state"),
+                    reason: true,
+                    options: stateOptions(t),
+                  },
+                  {
+                    key: "home_venue_id",
+                    label: t("assets.fields.homeVenueId"),
+                    options: [
+                      { value: null, label: t("assets.common.notRecorded") },
+                      ...pickers.venues.map((v) => ({ value: v.value, label: v.label })),
+                    ],
+                  },
+                ],
+              }
+            : null
+        }
         {...(schedule ? { schedule } : {})}
         create={
           canCreate

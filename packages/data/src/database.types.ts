@@ -54420,6 +54420,22 @@ export type Database = {
         Returns: string;
       };
       block_profile: { Args: { p_handle: string; p_kind: string }; Returns: string };
+      bulk_update_asset_units: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_invoices: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_records: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
+      bulk_update_shifts: {
+        Args: { p_preview?: boolean; p_reason?: string; p_rows: Json };
+        Returns: Json;
+      };
       calculate_payroll_run: {
         Args: { p_payroll_run_id: string; p_reason?: string };
         Returns: number;

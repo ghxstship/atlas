@@ -21,12 +21,14 @@ import {
 import type { Route } from "next";
 import { useFormatter, useLocale } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ActionErrorAlert, useAction, useCopy } from "./action-ui";
 import { transitionRecordAction } from "./actions";
 import { formatWhen, stateToken, withQuery } from "./format";
 import { TransitionDialog } from "./record-panels";
 import { CollectionViews } from "@/components/views/collection-views";
+import type { BulkConfig } from "@/components/bulk/types";
+import { useBulk } from "@/components/bulk/use-bulk";
 
 export type RecordView = "list" | "table" | "board" | "calendar" | "timeline";
 
@@ -68,6 +70,7 @@ export function RecordCollection({
   peek,
   org,
   hideKindFilter = false,
+  bulk,
 }: {
   title: string;
   label: string;
@@ -92,6 +95,8 @@ export function RecordCollection({
   peek?: ReactNode;
   org: string;
   hideKindFilter?: boolean;
+  /** Bulk edit of the table view's selection, for people who may change records. */
+  bulk?: BulkConfig | null;
 }) {
   const t = useCopy("work");
   const format = useFormatter();
@@ -105,6 +110,8 @@ export function RecordCollection({
     null,
   );
 
+  const bulkRows = useMemo(() => records.map((r) => ({ id: r.id, label: r.key })), [records]);
+  const { selection, bar } = useBulk(view === "table" ? bulk : null, bulkRows);
   const go = (changes: Record<string, string | null>) =>
     router.replace(withQuery(pathname, params, changes) as Route, { scroll: false });
   const open = (key: string) =>
@@ -249,7 +256,7 @@ export function RecordCollection({
           { key: "project", label: t("columns.project") },
         ]}
         rows={records.map((r) => ({
-          id: r.key,
+          id: r.id,
           key: r.key,
           title: r.title,
           kind: r.subtype
@@ -261,6 +268,7 @@ export function RecordCollection({
           project: r.projectName,
         }))}
         onRowActivate={(row) => open(String(row["key"]))}
+        {...(selection ? { selection } : {})}
       />
     );
   } else if (view === "board") {
@@ -438,6 +446,7 @@ export function RecordCollection({
   return (
     <TemplateCollection header={header} filters={filterBar} peek={peek}>
       {body}
+      {bar}
     </TemplateCollection>
   );
 }
