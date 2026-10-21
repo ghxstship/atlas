@@ -26,6 +26,7 @@ executionOrder:
     - field-gate-scan
     - field-receive-batch
     - field-asset-scan
+    - field-nfc-scan
     - desk-asset-custody
     - field-run-of-show
     - handoff-open-record

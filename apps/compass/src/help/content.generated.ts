@@ -945,8 +945,15 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "A code Compass does not know goes to the desk to identify. You can also type a code or tap an NFC tag.",
+                v: "A code Compass does not know goes to the desk to identify. You can also type a code, or tap ",
               },
+              { t: "strong", v: "Read NFC tag" },
+              {
+                t: "text",
+                v: " and hold a badge, wristband or tag to the top of your phone. In Lookup, ",
+              },
+              { t: "strong", v: "Write to an NFC tag" },
+              { t: "text", v: " puts a found item's asset tag on a blank NFC sticker." },
             ],
           },
           { t: "h2", v: "Your badge" },
@@ -2634,7 +2641,17 @@ export const COMPASS_HELP: HelpContent = {
             c: [
               {
                 t: "text",
-                v: "Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código o tocar una etiqueta NFC.",
+                v: "Un código que Compass no conoce pasa al mostrador para identificarlo. También puedes escribir un código, o tocar ",
+              },
+              { t: "strong", v: "Leer etiqueta NFC" },
+              {
+                t: "text",
+                v: " y acercar una credencial, pulsera o etiqueta a la parte superior del teléfono. En Consulta, ",
+              },
+              { t: "strong", v: "Grabar en una etiqueta NFC" },
+              {
+                t: "text",
+                v: " pone la etiqueta del equipo encontrado en un adhesivo NFC en blanco.",
               },
             ],
           },

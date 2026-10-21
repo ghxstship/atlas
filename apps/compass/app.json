@@ -14,7 +14,7 @@
       "bundleIdentifier": "pro.ghxstship.compass",
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Compass uses the camera to scan badges, asset tags and barcodes, and to take incident and inspection photos.",
+        "NSCameraUsageDescription": "Compass uses the camera to scan badges, asset tags and barcodes, and to take incident, inspection and receipt photos.",
         "NSLocationWhenInUseUsageDescription": "Compass checks that you are at the venue when you clock in and pins incident reports to where they happened.",
         "NSFaceIDUsageDescription": "Compass uses Face ID to unlock your work data on this device.",
         "NSMicrophoneUsageDescription": "Compass records voice notes for incident reports when you hold the microphone button.",
@@ -144,7 +144,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Compass uses the camera to scan badges, asset tags and barcodes, and to take incident and inspection photos."
+          "cameraPermission": "Compass uses the camera to scan badges, asset tags and barcodes, and to take incident, inspection and receipt photos."
         }
       ],
       [
@@ -171,6 +171,21 @@
           "recordAudioAndroid": true,
           "enableBackgroundPlayback": false,
           "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": false,
+          "cameraPermission": "Compass uses the camera to scan badges, asset tags and barcodes, and to take incident, inspection and receipt photos.",
+          "microphonePermission": "Compass records voice notes for incident reports when you hold the microphone button."
+        }
+      ],
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "Compass reads NFC badges, wristbands and asset tags when you hold them to the top of the phone, and writes asset tags to blank NFC stickers.",
+          "includeNdefEntitlement": true
         }
       ],
       "@bacons/apple-targets",

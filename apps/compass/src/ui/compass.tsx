@@ -213,7 +213,13 @@ export function ScanSheet({
             <Text variant="heading20" {...tid(testID, "count")}>{`${count} ${countLabel}`}</Text>
           </View>
           {nfc ? (
-            <Button label={nfc.label} variant="secondary" icon="nfc" onPress={nfc.onPress} />
+            <Button
+              label={nfc.label}
+              variant="secondary"
+              icon="nfc"
+              onPress={nfc.onPress}
+              {...tid(testID, "nfc")}
+            />
           ) : null}
           <Button label={doneLabel} onPress={onDone} {...tid(testID, "done")} />
         </View>

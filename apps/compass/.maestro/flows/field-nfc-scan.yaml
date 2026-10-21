@@ -1,0 +1,80 @@
+appId: pro.ghxstship.compass
+# A92 (A65-011 part 1): NFC beside the camera. A simulator has no NFC radio, so this runs on a test build
+# made with EXPO_PUBLIC_XOS_FAKE_NFC=1 (refused in EAS builds): its on-screen test tag stands in for the
+# system NFC sheet and the tag held to the phone. Everything after the read is the production path.
+# Named after its file: config.yaml orders flows by name.
+name: field-nfc-scan
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: field@example.com
+- tapOn:
+    id: "tab-scan"
+# A wristband at the Main Gate carries its badge number as an NDEF text record. An unknown number is
+# refused, as the same number scanned from a QR code is.
+- tapOn:
+    id: "scan-mode-credential"
+- tapOn: "Main Gate"
+- tapOn:
+    id: "scan-sheet-nfc"
+- extendedWaitUntil:
+    visible:
+      id: "fake-nfc-content"
+    timeout: 15000
+- tapOn:
+    id: "fake-nfc-content"
+- inputText: "XOSCR1:CR-999999"
+- tapOn:
+    id: "fake-nfc-present"
+- extendedWaitUntil:
+    visible: ".*Access denied.*"
+    timeout: 15000
+- assertVisible: "CR-999999"
+# Lookup reads an asset tag from a tag (AUD-0042, in the Demo Field Lead's custody, seed 0217), then
+# writes it to a blank sticker, so the sticker scans as that unit from then on.
+- tapOn:
+    id: "scan-mode-lookup"
+- tapOn:
+    id: "scan-sheet-nfc"
+- extendedWaitUntil:
+    visible:
+      id: "fake-nfc-content"
+    timeout: 15000
+- tapOn:
+    id: "fake-nfc-content"
+- inputText: "AUD-0042"
+- tapOn:
+    id: "fake-nfc-present"
+- extendedWaitUntil:
+    visible: "AUD-0042 found"
+    timeout: 15000
+- tapOn:
+    id: "scan-nfc-write"
+- extendedWaitUntil:
+    visible:
+      id: "fake-nfc-writing"
+    timeout: 15000
+- assertVisible: "Compass writes AUD-0042 to the tag."
+- tapOn:
+    id: "fake-nfc-present"
+- extendedWaitUntil:
+    visible: "AUD-0042 written to the tag"
+    timeout: 15000
+# A chip with no code reads as its serial number. No unit carries it, so it goes to the desk to
+# identify, never mapped automatically (Section 13).
+- tapOn:
+    id: "scan-sheet-nfc"
+- extendedWaitUntil:
+    visible:
+      id: "fake-nfc-content"
+    timeout: 15000
+- tapOn:
+    id: "fake-nfc-content"
+- inputText: "serial:04A2249A3C5E80"
+- tapOn:
+    id: "fake-nfc-present"
+- extendedWaitUntil:
+    visible: "Unknown code sent to the desk to identify."
+    timeout: 15000
+- assertVisible: "04A2249A3C5E80"

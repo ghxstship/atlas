@@ -72,7 +72,7 @@ describe("Maestro flows", () => {
         (p) => id.startsWith(p) && (code.includes(p) || code.includes(`"${p.slice(0, -1)}"`)),
       );
       const suffixed =
-        /-(geofence|timer|count|done|last)$/.test(id) &&
+        /-(geofence|timer|count|done|last|nfc)$/.test(id) &&
         code.includes(`"${id.replace(/-[a-z]+$/, "")}"`);
       expect(literal || dynamic || suffixed, `${file}: ${id}`).toBe(true);
     }

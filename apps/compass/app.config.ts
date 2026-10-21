@@ -79,16 +79,28 @@ export function withUniversalLinks(config: ExpoConfig, hosts: readonly LinkHost[
 }
 
 /**
- * Refuses test-only switches in a build meant for people. EXPO_PUBLIC_XOS_FAKE_RECORDER (A66) swaps the
- * voice-note microphone for a silent fake in Maestro test builds (src/runtime/voiceRecorder.ts); EAS
- * builds are the ones that reach TestFlight, Play and the stores (ADR 0033), so none carries it, whatever
- * the profile. The release guard below (releaseConfigProblems) checks the server URLs of release profiles.
+ * Test-only switches for Maestro builds:
+ * - EXPO_PUBLIC_XOS_FAKE_RECORDER (A66) swaps the voice-note microphone for a silent fake
+ *   (src/runtime/voiceRecorder.ts).
+ * - EXPO_PUBLIC_XOS_FAKE_NFC (A92) swaps the NFC reader for an on-screen test tag
+ *   (src/runtime/nfc.ts), since a simulator has no NFC radio.
+ */
+export const TEST_ONLY_SWITCHES = [
+  "EXPO_PUBLIC_XOS_FAKE_RECORDER",
+  "EXPO_PUBLIC_XOS_FAKE_NFC",
+] as const;
+
+/**
+ * Refuses test-only switches in a build meant for people. EAS builds are the ones that reach
+ * TestFlight, Play and the stores (ADR 0033), so none carries one, whatever the profile. The release
+ * guard below (releaseConfigProblems) checks the server URLs of release profiles.
  */
 export function refuseTestOnlySwitches(env: Readonly<Record<string, string | undefined>>): void {
-  if (env["EXPO_PUBLIC_XOS_FAKE_RECORDER"] === "1" && env["EAS_BUILD"] === "true")
-    throw new Error(
-      "EXPO_PUBLIC_XOS_FAKE_RECORDER is for local and CI Maestro builds only; unset it for EAS builds.",
-    );
+  if (env["EAS_BUILD"] !== "true") return;
+  for (const name of TEST_ONLY_SWITCHES) {
+    if (env[name] === "1")
+      throw new Error(`${name} is for local and CI Maestro builds only; unset it for EAS builds.`);
+  }
 }
 
 /**

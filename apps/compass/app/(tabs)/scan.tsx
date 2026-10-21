@@ -31,8 +31,11 @@ import {
   type Symbology,
 } from "../../src/domain/scan";
 import { scanAnnouncement } from "../../src/domain/announce";
+import { codeFromTag, encodeTextMessage } from "../../src/domain/nfc";
 import { useCompass, useRows } from "../../src/runtime/CompassProvider";
+import { nfc } from "../../src/runtime/nfc";
 import { DenialNotice, formatDay, ProjectPicker, SyncBanner } from "../../src/screens/common";
+import { FakeNfcSheet, useNfcAvailability } from "../../src/screens/NfcControls";
 import { Scanner } from "../../src/screens/Scanner";
 import {
   announce,
@@ -227,6 +230,10 @@ function LiveScan({
   const [zoneId, setZoneId] = useState<string | null>(null);
   const batch = useRef(new ContinuousScan());
   const [count, setCount] = useState(0);
+  // NFC beside the camera (A92): a tag held to the phone is one more code. Lookup can also write a found
+  // unit's asset tag to a blank sticker, so the sticker scans as that unit from then on.
+  const nfcState = useNfcAvailability();
+  const [foundTag, setFoundTag] = useState<string | null>(null);
   const { rows: credentials } = useRows<CredentialRow & Row & { project_id?: string }>(
     "credentials",
     (c) => c.project_id === projectId,
@@ -315,11 +322,13 @@ function LiveScan({
     const found = resolveAsset(code, units, identifiers, custody);
     if (found.kind !== "unit") {
       haptic(false);
+      setFoundTag(null);
       intake(raw, sym);
       return;
     }
     if (grant.mode === "lookup") {
       haptic(true);
+      setFoundTag(found.unit.asset_tag);
       setLast({
         ok: true,
         title: t("compass.scan.assetFound", { tag: found.unit.asset_tag }),
@@ -368,6 +377,50 @@ function LiveScan({
       code: raw,
     });
   };
+  const readTag = async () => {
+    if (nfcState === "off") {
+      haptic(false);
+      setLast({ ok: false, title: t("compassNfc.off"), code: "" });
+      return;
+    }
+    try {
+      const tag = await nfc.read(t(`compassNfc.alert.${grant.mode}`));
+      if (!tag) return;
+      const found = codeFromTag(tag);
+      if (!found) {
+        haptic(false);
+        setLast({ ok: false, title: t("compassNfc.unreadable"), code: "" });
+        return;
+      }
+      onCode(found.code, "nfc");
+    } catch (error) {
+      haptic(false);
+      setLast({
+        ok: false,
+        title: t("compassNfc.failed"),
+        code: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+  const writeTag = async (tag: string) => {
+    try {
+      const written = await nfc.write(encodeTextMessage(tag), t("compassNfc.alert.write", { tag }));
+      if (!written) return;
+      haptic(true);
+      setLast({ ok: true, title: t("compassNfc.written", { tag }), code: tag });
+    } catch (error) {
+      haptic(false);
+      setLast({
+        ok: false,
+        title: t("compassNfc.writeFailed"),
+        code: error instanceof Error ? error.message : String(error),
+      });
+    }
+  };
+  const nfcButton =
+    nfcState === "ready" || nfcState === "off"
+      ? { label: t("compassNfc.read"), onPress: () => void readTag() }
+      : undefined;
   // Journey 53: a receiving batch is reviewed before it saves; each line can lose a miscounted unit.
   const [reviewing, setReviewing] = useState(false);
   const done = () => {
@@ -391,6 +444,18 @@ function LiveScan({
           covers what is typed: it hid the field below the sheet, and then (A66) below the access points
           once a project's grid named five of them. */}
       <ManualEntry onCode={onCode} theme={theme} />
+      {grant.mode === "lookup" && foundTag && nfcState === "ready" ? (
+        <View style={{ paddingHorizontal: theme.space["16"] }}>
+          <Button
+            testID="scan-nfc-write"
+            variant="secondary"
+            icon="nfc"
+            block
+            label={t("compassNfc.write", { tag: foundTag })}
+            onPress={() => void writeTag(foundTag)}
+          />
+        </View>
+      ) : null}
       {grant.mode === "credential" ? (
         <View style={{ padding: theme.space["16"], gap: theme.space["8"] }}>
           <Text variant="label13" tone="secondary">
@@ -416,9 +481,11 @@ function LiveScan({
           onDone={done}
           {...(last ? { last } : {})}
           camera={<Scanner onCode={onCode} />}
+          {...(nfcButton ? { nfc: nfcButton } : {})}
           {...(modes && onModeChange ? { modes, onModeChange } : {})}
         />
       </View>
+      <FakeNfcSheet />
       <Sheet
         open={reviewing}
         title={t("compass.scan.review.title", { count })}
