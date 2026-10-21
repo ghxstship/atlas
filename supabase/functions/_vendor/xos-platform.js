@@ -12861,8 +12861,6 @@ var settings_default$1 = {
     ip_allowlist_empty: "Add at least one network before turning the allow-list on.",
     plan_feature_ip_allowlist:
       "The IP allow-list is part of the Team and Enterprise plans. Compare plans in Billing and Plan.",
-    setting_not_enforced:
-      "XOS does not enforce this setting yet, so it keeps its default. Changing it would not protect anyone.",
     setting_fixed: "This setting is fixed and cannot be changed.",
   },
   fields: {
@@ -29749,8 +29747,6 @@ var settings_default = {
     ip_allowlist_empty: "Agregue al menos una red antes de activar la lista de IP permitidas.",
     plan_feature_ip_allowlist:
       "La lista de IP permitidas forma parte de los planes Team y Enterprise. Compare planes en Facturación y plan.",
-    setting_not_enforced:
-      "XOS aún no aplica esta configuración, así que conserva su valor predeterminado. Cambiarla no protegería a nadie.",
     setting_fixed: "Esta configuración es fija y no se puede cambiar.",
   },
   fields: {
