@@ -79,6 +79,9 @@ export async function renderBundle(): Promise<string> {
           external: (id) =>
             id.startsWith("node:") ||
             EDGE_EXTERNALS.some((name) => id === name || id.startsWith(`${name}/`)),
+          // One file: the Edge runtime loads only xos-platform.js, so lazy imports (the document renderer's
+          // embedded fonts) are inlined instead of split into chunks.
+          output: { codeSplitting: false },
         },
       },
     });

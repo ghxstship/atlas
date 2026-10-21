@@ -75,7 +75,7 @@
     "org_cancel_has_clients": "Un socio con organizaciones cliente no puede cancelar. Pase primero cada cliente a facturación directa.",
     "org_not_canceled": "Esta organización no está cancelada.",
     "org_reactivation_window": "Una organización se puede reactivar durante los 30 días posteriores a su cancelación.",
-    "org_read_only": "Esta organización está cancelada y en solo lectura. El Propietario puede reactivarla en Configuración, Zona de peligro.",
+    "org_read_only": "Esta organización está en solo lectura en este momento. El aviso en la parte superior de la página explica por qué y qué lo levanta.",
     "inbox_action_unknown": "Un elemento de la Bandeja se aprueba, se rechaza o se marca como Listo.",
     "inbox_action_not_offered": "Solo una solicitud de aprobación se aprueba o se rechaza desde la Bandeja.",
     "inbox_snooze_window": "Posponga un elemento hasta por 30 días.",
@@ -537,7 +537,6 @@
     "fyi": "Para su información",
     "aRecord": "un registro",
     "someone": "Alguien",
-    "generic": "Actualización",
     "otherKind": "Notificación",
     "kinds": {
       "access": {
@@ -560,7 +559,9 @@
       },
       "billing": {
         "payment_failed": "Pago fallido",
-        "read_only": "La organización está en modo de solo lectura"
+        "read_only": "La organización está en modo de solo lectura",
+        "trial_ending": "La prueba termina pronto",
+        "trial_ended": "La prueba terminó"
       },
       "comment": {
         "created": "Nuevo comentario"
@@ -594,6 +595,18 @@
       },
       "occupancy": {
         "threshold": "Se alcanzó el umbral de ocupación"
+      },
+      "organization": {
+        "deletion_requested": "Eliminación de la organización solicitada",
+        "deletion_recovered": "Organización recuperada",
+        "ownership_offered": "Propiedad ofrecida",
+        "ownership_accepted": "Propiedad aceptada",
+        "ownership_declined": "Propiedad rechazada",
+        "white_label_reverting": "La marca blanca termina pronto",
+        "white_label_reverted": "La marca blanca terminó"
+      },
+      "partner": {
+        "client_left": "Una organización cliente se fue"
       },
       "recognition": {
         "received": "Reconocimiento recibido"
@@ -639,8 +652,10 @@
       "approve": "aprobar",
       "reject": "rechazar",
       "done": "listo",
-      "snooze": "posponer hasta mañana"
-    }
+      "snooze": "posponer hasta mañana",
+      "open": "abrir"
+    },
+    "open": "Abrir"
   },
   "access": {
     "why": {

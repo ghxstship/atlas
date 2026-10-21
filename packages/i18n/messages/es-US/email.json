@@ -113,6 +113,14 @@
       "read_only": {
         "subject": "Tu organización está en modo de solo lectura",
         "body": "Tu pago está vencido, así que tu organización queda en modo de solo lectura hasta que actualices el método de pago. No se eliminó ningún dato."
+      },
+      "trial_ending": {
+        "subject": "Su prueba de Pro termina {days, plural, one {mañana} other {en # días}}",
+        "body": "Agregue una tarjeta en Facturación y plan para conservar Pro. La tarjeta se cobra solo cuando termina la prueba. Sin ella, la organización pasa al plan Access: dejan de funcionar las funciones de Pro, como la marca blanca y los dominios propios, y no se elimina ningún dato."
+      },
+      "trial_ended": {
+        "subject": "Su prueba de Pro terminó",
+        "body": "Su organización ahora está en el plan Access. No se eliminó ningún dato. Agregue una tarjeta en Facturación y plan cuando quiera volver a Pro."
       }
     },
     "message": {
@@ -174,6 +182,42 @@
         "subject": "Acceso de emergencia en {orgName}",
         "body": "{actorName} tomó acceso completo de emergencia a {orgName} durante una hora. Motivo: {reason}"
       }
+    },
+    "organization": {
+      "deletion_requested": {
+        "subject": "Su organización se eliminará",
+        "body": "Un Propietario pidió eliminar la organización. Ahora es de solo lectura y se elimina después del {recover_until, date, long}. Hasta entonces, cualquier Propietario puede recuperarla en Configuración, Zona de peligro."
+      },
+      "deletion_recovered": {
+        "subject": "Su organización se recuperó",
+        "body": "Un Propietario recuperó la organización, así que no se eliminará. Se puede volver a usar."
+      },
+      "ownership_offered": {
+        "subject": "{actorName} le ofreció la propiedad de la organización",
+        "body": "Abra la organización en Atlas para aceptar o rechazar antes del {expires_at, date, long}. Para aceptar se le pedirá su segundo factor."
+      },
+      "ownership_accepted": {
+        "subject": "Se aceptó la propiedad de la organización",
+        "body": "{actorName} aceptó su oferta y ahora es el Propietario."
+      },
+      "ownership_declined": {
+        "subject": "Se rechazó su oferta de propiedad",
+        "body": "{actorName} no aceptó ser el Propietario. Usted sigue siendo el Propietario."
+      },
+      "white_label_reverting": {
+        "subject": "La marca blanca termina el {until, date, long}",
+        "body": "El plan ya no incluye marca blanca. Su marca sin el nombre XOS y sus dominios propios se mantienen hasta el {until, date, long}, el fin del período que pagó. Después vuelve la marca predeterminada."
+      },
+      "white_label_reverted": {
+        "subject": "La marca blanca terminó",
+        "body": "El plan ya no incluye marca blanca, así que volvió la marca predeterminada y los dominios propios ya no muestran su marca. Pase a Pro o superior para recuperarla."
+      }
+    },
+    "partner": {
+      "client_left": {
+        "subject": "{org} dejó su cuenta de socio",
+        "body": "{org} ahora es un cliente directo. Sus sesiones de soporte y permisos permanentes para esa organización terminaron, y ya no aparece en sus estados mayoristas."
+      }
     }
   },
   "notification": {
@@ -220,5 +264,9 @@
     "stop": "Ya no recibirás mensajes de texto de las notificaciones de XOS. Responde START para volver a suscribirte.",
     "start": "Volverás a recibir las notificaciones de XOS por mensaje de texto. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Responde HELP para obtener ayuda o STOP para cancelar.",
     "summary": "{orgName}: {count, plural, one {# novedad llegó} other {# novedades llegaron}} durante tus horas de silencio. Lo más importante: {body} {url} Responde STOP para cancelar."
+  },
+  "deletionCertificate": {
+    "subject": "Certificado de eliminación de {org}",
+    "body": "Los datos de {org} se eliminaron de XOS el {date}, según el ciclo de vida de la organización.\n\nSe adjunta su certificado de eliminación. Su id es {id}. También puede descargarlo desde Atlas mientras tenga una cuenta.\n\nLas copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario."
   }
 }

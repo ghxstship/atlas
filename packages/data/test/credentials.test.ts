@@ -240,13 +240,29 @@ describe("issued credentials", () => {
 
   it("maps a row whose embedded rows are hidden", async () => {
     const bare = { ...credentialRow, holder: null, issuer: null, category: null };
-    const { db } = client({ "from:credentials": [okResponse([bare])] });
+    const { db } = client({
+      "from:credentials": [okResponse([bare])],
+      "rpc:person_names": [okResponse([])],
+    });
     const result = await listProjectCredentials(db, "o1", "j1");
     expect(result.ok && result.data[0]).toMatchObject({
       holderName: null,
       categoryCode: "",
       projectKey: "",
     });
+  });
+
+  it("names a holder the reader knows only through the org's network (A59-011)", async () => {
+    const bare = { ...credentialRow, holder: null };
+    const { db, calls } = client({
+      "from:credentials": [okResponse([bare])],
+      "rpc:person_names": [
+        okResponse([{ person_id: bare.holder_person_id, full_name: "Demo Crew Member" }]),
+      ],
+    });
+    const result = await listProjectCredentials(db, "o1", "j1");
+    expect(result.ok && result.data[0]?.holderName).toBe("Demo Crew Member");
+    expect(calls[1]?.steps).toContainEqual(["args", [{ p_person_ids: [bare.holder_person_id] }]]);
   });
 
   it("reads my credentials, one by id, and one by printed number", async () => {

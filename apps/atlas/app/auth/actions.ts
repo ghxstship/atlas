@@ -75,16 +75,46 @@ export async function signInWithPassword(_: FormState, form: FormData): Promise<
   redirect((holdsFactor ? secondFactorRedirect(next, "") : next) as Route);
 }
 
+/**
+ * Sign in with the one Email field (A59-025): its form has two submit buttons, "Email me a sign-in
+ * link" (method=link) and "Sign in with password" (method=password).
+ */
+export async function signInWithEmail(state: FormState, form: FormData): Promise<FormState> {
+  return form.get("method") === "password"
+    ? signInWithPassword(state, form)
+    : sendMagicLink(state, form);
+}
+
+/**
+ * Create an account with the one Email field (A59-025): "Email me a sign-up link" (method=link)
+ * or "Create account" with a password (method=password). Both keep the full name.
+ */
+export async function signUpWithEmail(state: FormState, form: FormData): Promise<FormState> {
+  if (form.get("method") === "password") return signUp(state, form);
+  const fullName = text(form, "fullName");
+  if (fullName === "" || fullName.length > 200) {
+    return {
+      fieldErrors: { fullName: "fullName" },
+      values: { fullName, email: text(form, "email") },
+    };
+  }
+  return sendMagicLink(state, form);
+}
+
 export async function sendMagicLink(_: FormState, form: FormData): Promise<FormState> {
-  const values = { email: text(form, "email") };
+  const fullName = text(form, "fullName");
+  const values = { email: text(form, "email"), ...(fullName ? { fullName } : {}) };
   const parsed = email.safeParse(values.email);
   if (!parsed.success) return { fieldErrors: { email: "email" }, values };
   const next = safeNext(form.get("next"));
+  const signingUp = form.get("intent") === "sign-up";
   const db = await createServerSupabase();
   const { error } = await db.auth.signInWithOtp({
     email: parsed.data,
     options: {
-      shouldCreateUser: form.get("intent") === "sign-up",
+      shouldCreateUser: signingUp,
+      // private.handle_new_auth_user (0206) copies full_name into app.people.
+      ...(signingUp && fullName ? { data: { full_name: fullName } } : {}),
       emailRedirectTo: siteUrl(env().ATLAS_SITE_URL, "/auth/callback", next),
     },
   });

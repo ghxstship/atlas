@@ -53,7 +53,7 @@ describe("notification kind registry (Section 3.15, A65-021)", () => {
       "safety",
       "account",
     ]);
-    expect(registry.kinds).toHaveLength(28);
+    expect(registry.kinds).toHaveLength(38);
     expect(notificationKind("approval.requested")).toMatchObject({
       category: "approvals",
       emailTemplate: "notification",

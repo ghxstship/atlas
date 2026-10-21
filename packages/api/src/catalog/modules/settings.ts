@@ -33,6 +33,7 @@ import {
   integrationCapabilities,
   integrationCorrections,
 } from "./parts/settings-integrations.ts";
+import { a79SettingsCorrections } from "./parts/a79.ts";
 
 const label = (values: readonly [string, ...string[]], description: string) =>
   z.enum(values).meta({ description, example: values[0] });
@@ -103,6 +104,7 @@ export const additions = defineAdditions("Settings", {
   capabilities: { ...auroraCapabilities, ...integrationCapabilities, ...a52SettingsCapabilities },
   corrections: [
     ...auroraCorrections,
+    ...a79SettingsCorrections,
     {
       id: "subscription-state-and-stripe-fields",
       since: "1.0.0-draft.2",

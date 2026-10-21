@@ -280,8 +280,8 @@ select lives_ok(
   'a subscription moves along an allowed transition');
 select is((select subscription_state from app.subscriptions where org_id = pg_temp.id('org_b')), 'past_due'::app.subscription_state,
   'the new state is stored');
-select is((select count(*)::integer from app.subscription_state_transitions where org_id = pg_temp.id('org_b')), 2,
-  'creation and the change are both in the ledger');
+select is((select count(*)::integer from app.subscription_state_transitions where org_id = pg_temp.id('org_b')), 3,
+  'the trial''s creation, its end and the change are all in the ledger');
 select throws_like(
   $$select private.transition_subscription((select id from app.subscriptions where org_id = pg_temp.id('org_b')),
     'active', 'past_due', 'Stale.')$$,
