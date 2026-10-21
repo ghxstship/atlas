@@ -13766,6 +13766,120 @@ export type Database = {
           },
         ];
       };
+      earned_media_items: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          medium: Database["app"]["Enums"]["coverage_medium"];
+          note: string | null;
+          org_id: string;
+          outlet: string;
+          project_id: string;
+          published_on: string;
+          reach: number | null;
+          source: Database["app"]["Enums"]["measurement_source"];
+          source_reference: string | null;
+          title: string;
+          tone: Database["app"]["Enums"]["coverage_tone"] | null;
+          updated_at: string;
+          updated_by: string | null;
+          url: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          medium: Database["app"]["Enums"]["coverage_medium"];
+          note?: string | null;
+          org_id: string;
+          outlet: string;
+          project_id: string;
+          published_on: string;
+          reach?: number | null;
+          source?: Database["app"]["Enums"]["measurement_source"];
+          source_reference?: string | null;
+          title: string;
+          tone?: Database["app"]["Enums"]["coverage_tone"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          url?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          medium?: Database["app"]["Enums"]["coverage_medium"];
+          note?: string | null;
+          org_id?: string;
+          outlet?: string;
+          project_id?: string;
+          published_on?: string;
+          reach?: number | null;
+          source?: Database["app"]["Enums"]["measurement_source"];
+          source_reference?: string | null;
+          title?: string;
+          tone?: Database["app"]["Enums"]["coverage_tone"] | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          url?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "earned_media_items_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "earned_media_items_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "earned_media_items_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "earned_media_items_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "earned_media_items_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "earned_media_items_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "earned_media_items_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       earning_codes: {
         Row: {
           code: string;
@@ -30864,6 +30978,232 @@ export type Database = {
           },
         ];
       };
+      project_measurement_corrections: {
+        Row: {
+          correction_kind: Database["app"]["Enums"]["measurement_correction_kind"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          measured_on: string;
+          org_id: string;
+          previous_measured_on: string;
+          previous_unit_code: string | null;
+          previous_value: number | null;
+          project_measurement_id: string;
+          reason: string | null;
+          unit_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          value: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          correction_kind: Database["app"]["Enums"]["measurement_correction_kind"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          measured_on: string;
+          org_id: string;
+          previous_measured_on: string;
+          previous_unit_code?: string | null;
+          previous_value?: number | null;
+          project_measurement_id: string;
+          reason?: string | null;
+          unit_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: number | null;
+        };
+        Update: {
+          correction_kind?: Database["app"]["Enums"]["measurement_correction_kind"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          measured_on?: string;
+          org_id?: string;
+          previous_measured_on?: string;
+          previous_unit_code?: string | null;
+          previous_value?: number | null;
+          project_measurement_id?: string;
+          reason?: string | null;
+          unit_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_measurement_corrections_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_measurement_corrections_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_measurement_corrections_previous_unit_code_fkey";
+            columns: ["previous_unit_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code"];
+          },
+          {
+            foreignKeyName: "project_measurement_corrections_project_measurement_id_fkey";
+            columns: ["project_measurement_id"];
+            isOneToOne: false;
+            referencedRelation: "project_measurements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_measurement_corrections_unit_code_fkey";
+            columns: ["unit_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code"];
+          },
+          {
+            foreignKeyName: "project_measurement_corrections_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_measurements: {
+        Row: {
+          correction_reason: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          measured_on: string;
+          metric_code: string;
+          note: string | null;
+          org_id: string;
+          project_id: string;
+          source: Database["app"]["Enums"]["measurement_source"];
+          source_reference: string | null;
+          source_uri: string | null;
+          unit_code: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          value: number | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          correction_reason?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          measured_on: string;
+          metric_code: string;
+          note?: string | null;
+          org_id: string;
+          project_id: string;
+          source?: Database["app"]["Enums"]["measurement_source"];
+          source_reference?: string | null;
+          source_uri?: string | null;
+          unit_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: number | null;
+        };
+        Update: {
+          correction_reason?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          measured_on?: string;
+          metric_code?: string;
+          note?: string | null;
+          org_id?: string;
+          project_id?: string;
+          source?: Database["app"]["Enums"]["measurement_source"];
+          source_reference?: string | null;
+          source_uri?: string | null;
+          unit_code?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          value?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_measurements_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_measurements_metric_code_fkey";
+            columns: ["metric_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_metrics";
+            referencedColumns: ["metric_code"];
+          },
+          {
+            foreignKeyName: "project_measurements_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_measurements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_measurements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_measurements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_measurements_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_measurements_unit_code_fkey";
+            columns: ["unit_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code"];
+          },
+          {
+            foreignKeyName: "project_measurements_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       project_member_roles: {
         Row: {
           created_at: string;
@@ -31026,6 +31366,119 @@ export type Database = {
           },
           {
             foreignKeyName: "project_members_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_objectives: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          direction: Database["app"]["Enums"]["objective_direction"];
+          id: string;
+          metric_code: string;
+          note: string | null;
+          org_id: string;
+          project_id: string;
+          target_value: number;
+          unit_code: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          direction: Database["app"]["Enums"]["objective_direction"];
+          id?: string;
+          metric_code: string;
+          note?: string | null;
+          org_id: string;
+          project_id: string;
+          target_value: number;
+          unit_code: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          direction?: Database["app"]["Enums"]["objective_direction"];
+          id?: string;
+          metric_code?: string;
+          note?: string | null;
+          org_id?: string;
+          project_id?: string;
+          target_value?: number;
+          unit_code?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "project_objectives_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_objectives_metric_code_fkey";
+            columns: ["metric_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_metrics";
+            referencedColumns: ["metric_code"];
+          },
+          {
+            foreignKeyName: "project_objectives_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_objectives_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_objectives_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_objectives_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "project_objectives_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "project_objectives_unit_code_fkey";
+            columns: ["unit_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code"];
+          },
+          {
+            foreignKeyName: "project_objectives_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -51614,6 +52067,63 @@ export type Database = {
         };
         Relationships: [];
       };
+      measurement_metric_tags: {
+        Row: {
+          metric_code: string | null;
+          tag: string | null;
+          tag_id: string | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      measurement_metrics: {
+        Row: {
+          aggregation: string | null;
+          base_unit_code: string | null;
+          canon_domain: string | null;
+          canon_item: string | null;
+          canon_qualifier: string | null;
+          canon_value_numeric: number | null;
+          canon_value_text: string | null;
+          dimension: string | null;
+          family: string | null;
+          is_derived: boolean | null;
+          lower_bound: number | null;
+          metric_code: string | null;
+          ordinal: number | null;
+          upper_bound: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [];
+      };
+      measurement_units: {
+        Row: {
+          dimension: string | null;
+          factor_to_base: number | null;
+          is_display: boolean | null;
+          ordinal: number | null;
+          unit_code: string | null;
+          unit_system: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          dimension?: string | null;
+          factor_to_base?: number | null;
+          is_display?: boolean | null;
+          ordinal?: number | null;
+          unit_code?: string | null;
+          unit_system?: string | null;
+        };
+        Update: {
+          dimension?: string | null;
+          factor_to_base?: number | null;
+          is_display?: boolean | null;
+          ordinal?: number | null;
+          unit_code?: string | null;
+          unit_system?: string | null;
+        };
+        Relationships: [];
+      };
       medical_encounters_masked: {
         Row: {
           disposition: string | null;
@@ -52361,6 +52871,37 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "venues";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      project_measurement_summary: {
+        Row: {
+          aggregation: string | null;
+          base_unit_code: string | null;
+          dimension: string | null;
+          direction: Database["app"]["Enums"]["objective_direction"] | null;
+          family: string | null;
+          last_measured_on: string | null;
+          measured_base: number | null;
+          measured_count: number | null;
+          metric_code: string | null;
+          objective_id: string | null;
+          org_id: string | null;
+          outcome: string | null;
+          project_id: string | null;
+          target_base: number | null;
+          target_unit_code: string | null;
+          target_value: number | null;
+          unmeasured_count: number | null;
+        };
+        ComputedFields: never;
+        Relationships: [
+          {
+            foreignKeyName: "project_objectives_unit_code_fkey";
+            columns: ["target_unit_code"];
+            isOneToOne: false;
+            referencedRelation: "measurement_units";
+            referencedColumns: ["unit_code"];
           },
         ];
       };
@@ -56274,6 +56815,8 @@ export type Database = {
       conversation_kind: "Direct" | "Group";
       correction_state: "Proposed" | "Approved" | "Rejected";
       cost_center_kind: "Standing" | "Overhead" | "Event";
+      coverage_medium: "Online" | "Print" | "Broadcast" | "Podcast" | "Social";
+      coverage_tone: "Positive" | "Neutral" | "Negative";
       cue_call_kind: "Audio" | "Lighting" | "Video" | "Special Effects" | "Stage";
       custom_data_type:
         | "Text"
@@ -56434,6 +56977,8 @@ export type Database = {
         "Bag" | "Clothing" | "Electronics" | "Jewelry" | "Keys" | "Documents" | "Wallet" | "Other";
       lost_item_state: "Logged" | "Claimed" | "Returned" | "Disposed";
       loyalty_program_kind: "Airline" | "Hotel" | "Car Rental" | "Rail";
+      measurement_correction_kind: "Corrected" | "Withdrawn" | "Restored";
+      measurement_source: "Manual" | "Import" | "Integration";
       merge_decision: "Pending" | "Merged" | "Kept Separate";
       message_status:
         | "Queued"
@@ -56457,6 +57002,7 @@ export type Database = {
         | "settings"
         | "personal";
       notification_channel: "In App" | "Email" | "SMS" | "Push";
+      objective_direction: "At Least" | "At Most";
       occupancy_load_basis: "Space Capacity" | "Occupant Load Factor" | "Permit";
       offer_side: "Organization" | "Party";
       offer_state: "Sent" | "Countered" | "Accepted" | "Declined" | "Withdrawn" | "Expired";
@@ -62656,6 +63202,8 @@ export const Constants = {
       conversation_kind: ["Direct", "Group"],
       correction_state: ["Proposed", "Approved", "Rejected"],
       cost_center_kind: ["Standing", "Overhead", "Event"],
+      coverage_medium: ["Online", "Print", "Broadcast", "Podcast", "Social"],
+      coverage_tone: ["Positive", "Neutral", "Negative"],
       cue_call_kind: ["Audio", "Lighting", "Video", "Special Effects", "Stage"],
       custom_data_type: [
         "Text",
@@ -62849,6 +63397,8 @@ export const Constants = {
       ],
       lost_item_state: ["Logged", "Claimed", "Returned", "Disposed"],
       loyalty_program_kind: ["Airline", "Hotel", "Car Rental", "Rail"],
+      measurement_correction_kind: ["Corrected", "Withdrawn", "Restored"],
+      measurement_source: ["Manual", "Import", "Integration"],
       merge_decision: ["Pending", "Merged", "Kept Separate"],
       message_status: [
         "Queued",
@@ -62874,6 +63424,7 @@ export const Constants = {
         "personal",
       ],
       notification_channel: ["In App", "Email", "SMS", "Push"],
+      objective_direction: ["At Least", "At Most"],
       occupancy_load_basis: ["Space Capacity", "Occupant Load Factor", "Permit"],
       offer_side: ["Organization", "Party"],
       offer_state: ["Sent", "Countered", "Accepted", "Declined", "Withdrawn", "Expired"],
