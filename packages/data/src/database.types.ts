@@ -47585,6 +47585,7 @@ export type Database = {
           org_id: string;
           postal_code: string | null;
           street_address: string | null;
+          subdivision_code: string | null;
           time_zone: string;
           updated_at: string;
           updated_by: string | null;
@@ -47604,6 +47605,7 @@ export type Database = {
           org_id: string;
           postal_code?: string | null;
           street_address?: string | null;
+          subdivision_code?: string | null;
           time_zone: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -47620,6 +47622,7 @@ export type Database = {
           org_id?: string;
           postal_code?: string | null;
           street_address?: string | null;
+          subdivision_code?: string | null;
           time_zone?: string;
           updated_at?: string;
           updated_by?: string | null;
