@@ -9,11 +9,11 @@ import {
   ErrorState,
   InlineAlert,
   Link,
-  RefusalNotice,
   Skeleton,
   Tag,
   Textarea,
 } from "@xos/ui";
+import { RefusalNotice } from "@/components/refusal-notice";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";

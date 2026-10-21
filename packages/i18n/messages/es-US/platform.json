@@ -537,7 +537,6 @@
     "fyi": "Para su información",
     "aRecord": "un registro",
     "someone": "Alguien",
-    "generic": "Actualización",
     "otherKind": "Notificación",
     "kinds": {
       "access": {
@@ -651,8 +650,10 @@
       "approve": "aprobar",
       "reject": "rechazar",
       "done": "listo",
-      "snooze": "posponer hasta mañana"
-    }
+      "snooze": "posponer hasta mañana",
+      "open": "abrir"
+    },
+    "open": "Abrir"
   },
   "access": {
     "why": {

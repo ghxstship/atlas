@@ -452,6 +452,27 @@ export async function revokeInvite(db: XosClient, inviteId: string): Promise<Res
   return data.length === 1 ? ok(null) : fail({ kind: "not-found" });
 }
 
+/**
+ * Whether a token is still an open invitation, an email invite or an invitation link (migration
+ * 1276, A59-024). Callable without a session, so the invitation page explains a dead link before
+ * sending anyone to Create account; it reveals nothing about the invitation itself.
+ */
+export async function inviteTokenOpen(db: XosClient, token: string): Promise<Result<boolean>> {
+  const publicDb = (
+    db as unknown as {
+      schema(name: "api_public"): {
+        rpc(
+          fn: "invite_token_open",
+          args: { p_token: string },
+        ): PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>;
+      };
+    }
+  ).schema("api_public");
+  const { data, error } = await publicDb.rpc("invite_token_open", { p_token: token });
+  if (error) return fail(toDataError(error));
+  return ok(data === true);
+}
+
 /** What an invite offers, shown only to the confirmed sign-in it was sent to (app.preview_invite). */
 export async function previewInvite(db: XosClient, token: string): Promise<Result<InvitePreview>> {
   const { data, error } = await db.rpc("preview_invite", { p_token: token });
@@ -574,4 +595,24 @@ export async function hasClientOrganizations(
     .is("deleted_at", null);
   if (error) return fail(toDataError(error));
   return ok((count ?? 0) > 0);
+}
+
+/**
+ * Whether an org is a partner agency (Section 4.6.1, A59-020): the platform recorded a partner
+ * agreement for it, or it already has client orgs. A new agency has an agreement before its first
+ * client org, which is the first thing the Partner console is for, so the agreement alone counts.
+ * Partner staff with org.partner.manage read the agreement (policy partner_agreements_read).
+ */
+export async function isPartnerOrganization(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<boolean>> {
+  const { count, error } = await db
+    .from("partner_agreements")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .is("deleted_at", null);
+  if (error) return fail(toDataError(error));
+  if ((count ?? 0) > 0) return ok(true);
+  return hasClientOrganizations(db, orgId);
 }

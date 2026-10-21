@@ -1,6 +1,7 @@
 "use client";
 
-import { InlineAlert, RefusalNotice } from "@xos/ui";
+import { InlineAlert } from "@xos/ui";
+import { RefusalNotice } from "@/components/refusal-notice";
 import { type ActionState } from "@/app/[org]/finance/actions";
 import { useFinanceT } from "./kit-use-finance-t";
 

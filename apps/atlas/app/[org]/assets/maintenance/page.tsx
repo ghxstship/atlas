@@ -57,7 +57,8 @@ export default async function MaintenancePage({
     return {
       key: m.id,
       peek: m.id,
-      title: `${m.assetTag} · ${m.description}`,
+      recordKey: m.assetTag,
+      title: m.description,
       meta: `${day(m.performedOn)} · ${cost(m.costMinor, m.currencyCode)}`,
       ...(state
         ? {
