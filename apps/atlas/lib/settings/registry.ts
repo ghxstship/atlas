@@ -48,6 +48,7 @@ export const KNOWN_SETTING_ERRORS = new Set([
   "ip_allowlist_empty",
   "plan_feature_ip_allowlist",
   "setting_not_enforced",
+  "setting_fixed",
 ]);
 
 /** The `settings.errors.*` key for a repository error. */

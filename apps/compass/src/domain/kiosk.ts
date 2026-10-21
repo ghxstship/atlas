@@ -33,7 +33,15 @@ export type KioskStep =
     }
   | { readonly kind: "refused"; readonly worker: RosterEntry; readonly reason: KioskRefusal };
 
-export type KioskRefusal = "pin-invalid" | "pin-locked" | "device-revoked" | "request-invalid";
+export type KioskRefusal =
+  | "pin-invalid"
+  | "pin-locked"
+  | "device-revoked"
+  | "request-invalid"
+  /** The org has not turned kiosks on (time.kiosk_enabled). */
+  | "kiosk-disabled"
+  /** The project asks for a photo on every kiosk punch (time.photo_on_punch) and none came. */
+  | "photo-required";
 
 export const PIN_MIN = 4;
 export const PIN_MAX = 8;
@@ -88,6 +96,8 @@ export function refusalFromServer(reason: string): KioskRefusal {
   if (reason === "kiosk_device_revoked" || reason === "kiosk_device_unknown")
     return "device-revoked";
   if (reason === "kiosk_request_invalid") return "request-invalid";
+  if (reason === "kiosk_disabled") return "kiosk-disabled";
+  if (reason === "punch_photo_required" || reason === "kiosk_photo_uri") return "photo-required";
   return "pin-invalid";
 }
 
@@ -123,6 +133,21 @@ export interface KioskPunchInput {
   readonly monotonicAt: number;
   readonly bootId: string;
   readonly photoUri: string | null;
+  /** The photo taken on this device, uploaded to field-media before the punch is sent. */
+  readonly photo?: { readonly path: string; readonly localUri: string } | null;
+}
+
+/**
+ * Where a kiosk punch photo is stored in the field-media bucket (migration 1328):
+ * <org_id>/kiosk-punches/<project_id>/<punch id>.jpg.
+ */
+export function kioskPhotoPath(orgId: string, projectId: string, punchId: string): string {
+  return `${orgId}/kiosk-punches/${projectId}/${punchId}.jpg`;
+}
+
+/** The URI a punch carries for a stored field-media photo. */
+export function storedPhotoUri(path: string): string {
+  return `storage://field-media/${path}`;
 }
 
 /**
@@ -152,8 +177,39 @@ export function buildKioskPunch(
       monotonic_at: input.monotonicAt,
       boot_id: input.bootId,
       ...(input.projectId ? { projectId: input.projectId } : {}),
-      ...(input.photoUri ? { photoUri: input.photoUri } : {}),
+      ...(input.photo
+        ? {
+            photoUri: storedPhotoUri(input.photo.path),
+            storage_path: input.photo.path,
+            local_uri: input.photo.localUri,
+          }
+        : input.photoUri
+          ? { photoUri: input.photoUri }
+          : {}),
     },
     policy: "append",
   };
+}
+
+/** How many times the kiosk sends a punch before it keeps it in the queue instead. */
+export const KIOSK_SEND_ATTEMPTS = 3;
+
+/**
+ * Sends a kiosk punch, sending it again when the server could not answer (a 5xx: an Edge Function worker
+ * that hit its CPU limit while starting answers 546, a cold one 503 or 504). The punch id makes a repeat a
+ * duplicate, never a second punch, so the PIN verdict comes back while the worker still stands at the
+ * kiosk instead of a "saved, checked later" that was never about being offline (A66). A network error and
+ * any other status are returned at once: the caller queues on the first and shows the second.
+ */
+export async function sendKioskPunch<R extends { readonly status: number }>(
+  send: () => Promise<R>,
+  attempts: number = KIOSK_SEND_ATTEMPTS,
+  pause: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+): Promise<R> {
+  let response = await send();
+  for (let attempt = 1; attempt < attempts && response.status >= 500; attempt += 1) {
+    await pause(500 * attempt);
+    response = await send();
+  }
+  return response;
 }

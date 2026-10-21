@@ -5,12 +5,19 @@ import {
   AppShell,
   Breadcrumbs,
   Button,
+  PreferencesProvider,
   Select,
   Sidebar,
   TabBar,
   type MenuItem,
   type NavItem,
 } from "@xos/ui";
+import {
+  applyDocumentAttributes,
+  decodePreferences,
+  preferencesCookie,
+  singleKeyShortcutsEnabled,
+} from "@xos/ui/preferences";
 import type { Route } from "next";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -52,6 +59,10 @@ export interface ShellFrameProps {
   readonly email: string | null;
   /** Whether the viewer can turn AI features on (org.ai.write), for the Aurora panel. */
   readonly canManageAi: boolean;
+  /** The person's display preferences resolved from their settings (encoded as the cookie keeps them). */
+  readonly preferences: string;
+  /** The preferences cookie this page was rendered with. */
+  readonly storedPreferences: string;
   readonly children: ReactNode;
 }
 
@@ -120,7 +131,13 @@ export function ShellFrame(props: ShellFrameProps) {
       } else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
         setCommandOpen((o) => !o);
-      } else if (event.key === "/" && !typing && !event.metaKey && !event.ctrlKey) {
+      } else if (
+        event.key === "/" &&
+        !typing &&
+        !event.metaKey &&
+        !event.ctrlKey &&
+        singleKeyShortcutsEnabled()
+      ) {
         event.preventDefault();
         setCommandOpen(true);
       }
@@ -133,6 +150,16 @@ export function ShellFrame(props: ShellFrameProps) {
       window.removeEventListener("keydown", onKey);
     };
   }, []);
+
+  // Settings changed here or in Gateway or Compass reach this device: apply them now and keep the cookie
+  // in step, so the next page renders with them (A65-001).
+  const { preferences, storedPreferences } = props;
+  const displayPreferences = useMemo(() => decodePreferences(preferences), [preferences]);
+  useEffect(() => {
+    if (preferences === storedPreferences) return;
+    applyDocumentAttributes(document.documentElement, displayPreferences);
+    document.cookie = preferencesCookie(preferences, window.location.protocol === "https:");
+  }, [preferences, storedPreferences, displayPreferences]);
 
   const workspaceName = props.workspaces.find((w) => w.slug === props.workspace)?.name;
   const crumbs = resolveBreadcrumbs(
@@ -338,7 +365,9 @@ export function ShellFrame(props: ShellFrameProps) {
           tabIndex={-1}
           className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
         >
-          {props.children}
+          <PreferencesProvider preferences={displayPreferences}>
+            {props.children}
+          </PreferencesProvider>
         </div>
       </AppShell>
       {command ? (

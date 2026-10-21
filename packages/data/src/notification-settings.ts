@@ -179,6 +179,20 @@ export async function saveOrgNotificationDefaults(
   return ok(null);
 }
 
+/**
+ * The time zone the member is reached in by the org (ADR 0033 decision 35): their notification settings
+ * zone, their own locale.time_zone, their engagement's project, the org's zone, never UTC by default.
+ * Null only for an org with no zone and no project.
+ */
+export async function getMyNotificationTimeZone(
+  db: XosClient,
+  orgId: string,
+): Promise<Result<string | null>> {
+  const { data, error } = await db.rpc("my_notification_time_zone", { p_org_id: orgId });
+  if (error) return fail(toDataError(error));
+  return ok(typeof data === "string" && data !== "" ? data : null);
+}
+
 export interface MySmsStatus {
   /** The verified sign-in phone in E.164, or null without one. */
   readonly phone: string | null;

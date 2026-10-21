@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "./engine-test";
+import { expect, settle, test, type Page } from "./engine-test";
 import { expectAccessible, uniqueId } from "./support";
 
 /**
@@ -53,6 +53,8 @@ async function expectAccessibleInBothThemes(page: Page) {
   await expectAccessible(page);
   await page.context().addCookies([{ name: "xos-theme", value: "dark", url: page.url() }]);
   await page.reload();
+  // Leave the page hydrated: callers act next, and a click before hydration is lost (A71, A77).
+  await settle(page);
 }
 
 test("venues: create with a location, see it on the map and in the table, edit and comment", async ({

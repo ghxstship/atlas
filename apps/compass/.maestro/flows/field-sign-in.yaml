@@ -1,5 +1,7 @@
 appId: pro.ghxstship.compass
-name: Field lead signs in and sees the five tabs
+# Field lead signs in and sees the five tabs.
+# Named after its file: config.yaml orders flows by name.
+name: field-sign-in
 ---
 - runFlow:
     file: ../subflows/sign-in.yaml

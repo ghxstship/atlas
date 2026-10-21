@@ -12,11 +12,14 @@ appId: pro.ghxstship.compass
           id: "tab-more"
       - waitForAnimationToEnd:
           timeout: 3000
+# Centered, so the row is clear of the tab bar. A short menu (crew, vendor) cannot scroll Settings to the
+# centre and already shows it whole, so a scroll that cannot centre it is not a failure.
 - scrollUntilVisible:
     element:
       id: "more-settings"
     direction: DOWN
     centerElement: true
+    optional: true
 - tapOn:
     id: "more-settings"
 - scrollUntilVisible:
@@ -25,10 +28,16 @@ appId: pro.ghxstship.compass
     direction: DOWN
 - tapOn:
     id: "settings-sign-out"
+# With changes still waiting, the first tap only warns and the button turns into the confirmation. Wait for
+# either outcome: checking for the sign-in screen at once races the sign-out in progress.
+- extendedWaitUntil:
+    visible:
+      id: "sign-in|settings-sign-out-queued"
+    timeout: 20000
 - runFlow:
     when:
-      notVisible:
-        id: "sign-in"
+      visible:
+        id: "settings-sign-out-queued"
     commands:
       - tapOn:
           id: "settings-sign-out"

@@ -47,7 +47,21 @@
     "emailInvalid": "Enter an email address such as name@example.com.",
     "network": "Compass cannot reach the server. Connect to a network, then sign in.",
     "identityTitle": "Your access did not load",
-    "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation."
+    "identity": "Compass could not read your {step}. Try again, or ask your organization to check your invitation.",
+    "identitySteps": {
+      "person": "profile",
+      "memberships": "memberships",
+      "roles": "roles",
+      "capabilities": "permissions",
+      "projects": "projects",
+      "engagements": "engagements",
+      "access": "access"
+    }
+  },
+  "startup": {
+    "title": "Compass could not start",
+    "sentence": "The offline storage on this device did not open. Try again. If it keeps happening, restart the phone.",
+    "storageReset": "Compass had to reset its offline storage on this device. Changes made offline that had not uploaded could not be recovered. Everything else downloads again."
   },
   "denial": {
     "roleTitle": "Not part of your role",
@@ -226,7 +240,7 @@
     "endBreak": "End Break",
     "blocked": "Clock In",
     "inside": "You're at {name}",
-    "outside": "You're {distance} m from {name}",
+    "outside": "You're {distance} from {name}",
     "outsideFar": "You're away from the venue",
     "locating": "Finding your location",
     "locationCoarse": "Your location is not precise enough yet. Step outside or wait a moment.",
@@ -278,7 +292,8 @@
     "timeRange": "{start} to {end}",
     "noPlace": "Venue to be confirmed",
     "claimOverlap": "You already hold a shift that overlaps this one ({time}). Swap or drop that shift first.",
-    "claimQueued": "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first."
+    "claimQueued": "Shift claimed. It is yours once it uploads; the org's claiming rule decides if someone got there first.",
+    "claimSent": "Claim sent. A supervisor decides who gets the shift under this project's claiming rule."
   },
   "scan": {
     "title": "Scan",
@@ -375,7 +390,8 @@
       "permissionDenied": "Compass cannot use the microphone. Allow it in Settings, then hold to record again.",
       "failed": "The voice note did not record: {reason}. Hold to try again.",
       "tooShort": "That was too short to keep. Hold a little longer to record a voice note.",
-      "micDidNotStart": "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again."
+      "micDidNotStart": "The microphone did not start, so nothing was recorded. Close any app using it, then hold to try again.",
+      "didNotSave": "The recording did not finish saving. Try again."
     }
   },
   "inspections": {
@@ -446,13 +462,18 @@
     "refused": {
       "pinLocked": "This PIN is locked after too many tries. Ask your supervisor to reset it.",
       "deviceRevoked": "This kiosk was turned off in Atlas. Ask your supervisor to register it again.",
-      "requestInvalid": "That punch could not be read. Start again."
+      "requestInvalid": "That punch could not be read. Start again.",
+      "kioskDisabled": "Kiosks are off for this organization. Ask an admin to turn them on in Atlas.",
+      "photoRequired": "This project asks for a photo at every kiosk punch. Start again and take the photo."
     },
     "exit": "Exit Kiosk",
     "digit": "Digit {digit}",
     "backspace": "Delete digit",
     "pinProgressOne": "{count} digit entered",
-    "pinProgressOther": "{count} digits entered"
+    "pinProgressOther": "{count} digits entered",
+    "off": "Kiosks are off for this organization. An admin turns them on in Atlas, Settings, Time and Attendance.",
+    "photoFor": "Photo for {name}",
+    "photoHelp": "This project asks for a photo at every kiosk clock-in and clock-out. Look at the camera and take the photo."
   },
   "inbox": {
     "title": "Inbox",

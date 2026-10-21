@@ -1,4 +1,5 @@
 import * as Linking from "expo-linking";
+import { hapticsOn, themeOptionsOf } from "../src/domain/settings";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useState, type ReactElement } from "react";
@@ -34,7 +35,8 @@ function NotificationActions(): null {
 }
 
 function Gatekeeper(): ReactElement {
-  const { phase, retryIdentity, settings, client, signOut } = useCompass();
+  const { phase, retryIdentity, settings, client, signOut, startupError, retryStartup } =
+    useCompass();
   const { t } = useTranslation();
   const [deleting, setDeleting] = useState(false);
   // The delete screen belongs to this failed sign-in only; the next sign-in starts from the error screen.
@@ -59,6 +61,20 @@ function Gatekeeper(): ReactElement {
       />
     );
   }
+  // The offline storage or the sync engine could not start: say so with a retry, never a blank screen.
+  if (startupError !== null) {
+    return (
+      <Screen testID="startup-failed">
+        <ErrorState
+          title={t("compass.startup.title")}
+          sentence={t("compass.startup.sentence")}
+          reference={startupError}
+          actionLabel={t("compass.common.retry")}
+          onRetry={retryStartup}
+        />
+      </Screen>
+    );
+  }
   if (phase.kind === "starting") {
     return (
       <Screen testID="starting">
@@ -74,7 +90,12 @@ function Gatekeeper(): ReactElement {
       <Screen testID="identity-failed">
         <ErrorState
           title={t("compass.signIn.identityTitle")}
-          sentence={t("compass.signIn.identity", { step: phase.step })}
+          sentence={t("compass.signIn.identity", {
+            // The step is named in the person's language, never as the code's word for it (A68: "tu person").
+            step: t(`compass.signIn.identitySteps.${phase.step}`, {
+              defaultValue: t("compass.signIn.identitySteps.access"),
+            }),
+          })}
           reference={phase.message}
           actionLabel={t("compass.common.retry")}
           onRetry={retryIdentity}
@@ -139,12 +160,14 @@ function Gatekeeper(): ReactElement {
 
 function Themed(): ReactElement {
   const scheme = useColorScheme();
-  const { settings } = useCompass();
+  const { settings, orgSettings } = useCompass();
+  // me.text_size, me.high_contrast, me.reduced_motion and me.haptics (Section 4.5.6 Accessibility).
   return (
     <ThemeProvider
       preference={settings.theme}
       systemColorScheme={scheme === "light" || scheme === "dark" ? scheme : null}
-      {...(settings.haptics ? { onHaptic: playHaptic } : {})}
+      options={themeOptionsOf(orgSettings)}
+      {...(hapticsOn(settings.haptics, orgSettings) ? { onHaptic: playHaptic } : {})}
     >
       <Gatekeeper />
     </ThemeProvider>

@@ -12,6 +12,7 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
+import { singleKeyShortcutsEnabled } from "@xos/ui/preferences";
 import { quickInboxAction, rejectInboxAction } from "@/app/[org]/inbox/actions";
 import { ActionForm, EmptyPanel, Feedback, usePlatformT } from "@/components/platform/kit";
 import { neighbourOf } from "@/lib/inbox/focus";
@@ -164,6 +165,8 @@ export function InboxView({ org, rows }: { org: string; rows: readonly InboxRow[
 
   const onKeyDown = (event: KeyboardEvent<HTMLUListElement>) => {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
+    // Letter shortcuts follow me.shortcuts_enabled; the arrow keys always move.
+    if (event.key.length === 1 && !singleKeyShortcutsEnabled()) return;
     const onControl =
       event.target instanceof HTMLButtonElement || event.target instanceof HTMLAnchorElement;
     if (onControl && (event.key === "Enter" || event.key === " ")) return;

@@ -33,3 +33,5 @@ Una oferta aceptada se convierte en un compromiso. La incorporación reúne docu
 ## Calificaciones
 
 Ambas partes se califican al cierre. Ninguna ve la calificación de la otra hasta que ambas califiquen o pasen 14 días.
+
+Las calificaciones siempre están activas. **Pedir a los miembros que valoren a las partes**, en Configuración, Gateway y mercado, solo decide si los miembros ven los compromisos pendientes de su valoración. Desactivarlo nunca oculta ni elimina una calificación, y aún puede calificar desde el compromiso. Las calificaciones solo se moderan por abuso o datos personales, nunca por su puntuación.

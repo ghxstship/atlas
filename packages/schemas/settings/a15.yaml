@@ -11,3 +11,6 @@ settings:
     label: finance.settings.selfBilling.label
     help: finance.settings.selfBilling.help
     pages: { org: settings.legal-entities-and-fiscal }
+    enforced_by:
+      - consumer: supabase/migrations/1122_self_billing_generation.sql#app.generate_self_billed_invoice
+        test: supabase/tests/1120_individual_payees.test.sql

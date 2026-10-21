@@ -1,11 +1,16 @@
 appId: pro.ghxstship.compass
-name: Clock in during airplane mode, then the queue drains on reconnect
-# CI runs this flow on Android only (apps/compass/scripts/maestro-ci.sh --exclude-tags airplane-mode).
+# Clock in during airplane mode, then the queue drains on reconnect.
+# Named after its file: config.yaml orders flows by name.
+name: field-clock-offline
+# Tagged for runs that can take the device or the server offline: airplane mode on Android, the network
+# helper on iOS (apps/compass/scripts/maestro-network.ts). A run without either excludes the tag.
 tags:
   - airplane-mode
 ---
-# Maestro toggles airplane mode on Android emulators; on iOS simulators run this flow on Android or
-# disconnect the host network by hand at the marked step.
+# Android: Maestro toggles airplane mode, so the device itself goes offline. iOS: Maestro cannot, and the
+# simulator shares the Mac's network, so the server goes away instead: the network helper
+# (scripts/maestro-network.ts serve, started by scripts/maestro-ios.sh) stops the local stack's API
+# gateway and starts it again. Either way the punch is kept on the device and uploads once on reconnect.
 - runFlow:
     file: ../subflows/sign-in.yaml
     env:
@@ -17,27 +22,65 @@ tags:
 - extendedWaitUntil:
     visible: "You're at Pier Site"
     timeout: 20000
-- setAirplaneMode: enabled
-- extendedWaitUntil:
-    visible:
-      id: "sync-offline"
-    timeout: 15000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+      - extendedWaitUntil:
+          visible:
+            id: "sync-offline"
+          timeout: 15000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
 - tapOn:
     id: "clock-button"
 - assertVisible:
     id: "clock-live"
-- assertVisible:
-    id: "clock-notice"
-# The offline banner shows the queued count beside its message; screen readers hear it as words.
-- assertVisible: ".*offline.*"
-- assertVisible: "1 change waiting to upload"
-- setAirplaneMode: disabled
+# Offline, the clock says the punch is kept and the banner shows the queued count beside its message;
+# screen readers hear it as words. With only the server gone (iOS) the device is still online, so the
+# queued banner alone tells the person, below.
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - assertVisible:
+          id: "clock-notice"
+      - assertVisible: ".*offline.*"
+# The punch waits on the device: offline on Android, failing against the absent server on iOS.
 - extendedWaitUntil:
-    notVisible:
-      id: "sync-offline"
-    timeout: 30000
+    visible: "1 change waiting to upload"
+    timeout: 15000
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+      - extendedWaitUntil:
+          notVisible:
+            id: "sync-offline"
+          timeout: 30000
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+# The retry backoff grows while the server is away, so the drain may wait for the next attempt.
 - extendedWaitUntil:
     notVisible:
       id: "sync-queued"
-    timeout: 30000
+    timeout: 90000
+- assertVisible:
+    id: "clock-live"
 - tapOn: "Clock Out"

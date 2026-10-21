@@ -86,6 +86,10 @@ select throws_ok($$insert into app.opportunities (project_id, role_type, title, 
   '23514', null, 'posted pay carries its currency');
 select throws_ok($$insert into app.opportunities (project_id, role_type, title, rate_type, pay_min_minor, pay_max_minor, currency_code) values ((select id from world where key = 'prj_a'), 'Crew', 'Upside Down', 'Day', 5, 2, 'USD')$$,
   '23514', null, 'the range is ordered');
+-- Northwind lists itself publicly (gateway.marketplace_visibility, 1327); the default reaches its network only.
+select pg_temp.as_user('alice');
+select app.set_setting(pg_temp.id('org_a'), 'gateway.marketplace_visibility', 'Organization', pg_temp.id('org_a'), p_value_text => 'public');
+select pg_temp.as_user('carol');
 select pg_temp.opp('opp_public', 'prj_a', 'Crew', 'Public', 'Day', 70000, 90000);
 select lives_ok($$select pg_temp.publish('opp_public')$$, 'Northwind on Team publishes to the public marketplace');
 select pg_temp.as_user('xavier');

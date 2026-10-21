@@ -6,6 +6,7 @@
 export * from "./crew/shared.ts";
 export * from "./crew/shifts.ts";
 export * from "./crew/swaps.ts";
+export * from "./crew/claims.ts";
 export * from "./crew/time.ts";
 export * from "./crew/rates.ts";
 export * from "./crew/payroll.ts";

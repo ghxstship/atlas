@@ -1,4 +1,6 @@
 import { listProjects } from "@xos/data/projects";
+import { resolveSettings } from "@xos/data/settings";
+import { allowedVisibilities } from "@/lib/shell/org-settings";
 import {
   getOpportunity,
   listOpportunities,
@@ -262,6 +264,12 @@ async function CreatePosting({ page }: { page: PageSetup }) {
   ]);
   const approved = must(requisitions, "requisitions").filter((r) => r.state === "Approved");
   const fromRequisition = approved.find((r) => r.id === param("requisition"));
+  // gateway.marketplace_visibility caps how widely a posting reaches (1327).
+  const marketplace = await resolveSettings(ctx.viewer.db, { orgId: ctx.org.id });
+  const visibilities = allowedVisibilities(
+    (key) => (marketplace.ok ? marketplace.data.get(key)?.value : undefined),
+    VISIBILITIES,
+  );
   const fields: FieldSpec[] = [
     {
       name: "projectId",
@@ -317,7 +325,7 @@ async function CreatePosting({ page }: { page: PageSetup }) {
       kind: "select",
       defaultValue: "Invited",
       help: t("postings.visibilityHelp"),
-      options: VISIBILITIES.map((v) => ({ value: v, label: t(`visibilities.${enumKey(v)}`) })),
+      options: visibilities.map((v) => ({ value: v, label: t(`visibilities.${enumKey(v)}`) })),
     },
     {
       name: "rateType",

@@ -29,14 +29,22 @@ import {
 import { downloadAll, type DownloadReport } from "../data/downloader";
 import { IdentityError, resolveIdentity, type ResolvedIdentity } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
+import {
+  COMPASS_SETTING_KEYS,
+  NO_VALUES,
+  valuesFromRows,
+  type ResolvedValues,
+} from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
 import { fieldMediaUploader } from "./media";
 import {
   createSupabase,
   deviceClock,
   deviceId,
+  dismissStorageNotice as forgetStorageNotice,
   openStore,
   readConfig,
+  storageNoticePending,
   watchNetwork,
   type CompassConfig,
 } from "./platform";
@@ -60,6 +68,10 @@ const DEFAULT_SETTINGS: CompassSettings = {
   biometric: false,
 };
 const SETTINGS_KEY = "xos.compass.settings";
+/** The last resolved settings Compass applies, kept so the rules hold offline. */
+const RESOLVED_KEY = "xos.compass.resolved";
+/** resolve_settings needs an org; the nil uuid returns only the person's own values and the defaults. */
+const NO_ORG = "00000000-0000-0000-0000-000000000000";
 const PROJECT_KEY = "xos.compass.project";
 
 export type Phase =
@@ -81,6 +93,11 @@ export interface CompassContextValue {
   readonly status: SyncStatus | null;
   readonly settings: CompassSettings;
   readonly updateSettings: (patch: Partial<CompassSettings>) => void;
+  /**
+   * The registered settings for the person in their org and current project (Section 4.5.6): their own
+   * accessibility settings and the org's clock, kiosk and claiming rules. Empty until the first download.
+   */
+  readonly orgSettings: ResolvedValues;
   /** Queues a write (optimistic locally) and drains when online. Returns the mutation id. */
   readonly enqueue: (input: MutationInput) => Promise<string>;
   readonly refresh: () => Promise<DownloadReport | null>;
@@ -88,6 +105,15 @@ export interface CompassContextValue {
   readonly lastRefresh: DownloadReport | null;
   readonly retryIdentity: () => void;
   readonly signOut: () => Promise<void>;
+  /**
+   * Why the local store or the sync engine could not start, or null. The root layout shows it with a
+   * retry instead of a blank screen (A66).
+   */
+  readonly startupError: string | null;
+  readonly retryStartup: () => void;
+  /** The offline storage was replaced and unsent offline work could not be recovered; say so once. */
+  readonly storageNotice: boolean;
+  readonly dismissStorageNotice: () => void;
 }
 
 const CompassContext = createContext<CompassContextValue | null>(null);
@@ -143,8 +169,12 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [network, setNetwork] = useState<NetworkState>(OFFLINE);
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [settings, setSettings] = useState<CompassSettings>(DEFAULT_SETTINGS);
+  const [resolvedSettings, setResolvedSettings] = useState<ResolvedValues>(NO_VALUES);
   const [lastRefresh, setLastRefresh] = useState<DownloadReport | null>(null);
   const [identityAttempt, setIdentityAttempt] = useState(0);
+  const [startupError, setStartupError] = useState<string | null>(null);
+  const [startupAttempt, setStartupAttempt] = useState(0);
+  const [storageNotice, setStorageNotice] = useState(false);
   const orgRef = useRef<string | null>(null);
   const storeRef = useRef<LocalStore | null>(null);
 
@@ -156,6 +186,10 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     });
     void SecureStore.getItemAsync(PROJECT_KEY).then((id) => {
       if (id) setProjectIdState(id);
+    });
+    void SecureStore.getItemAsync(RESOLVED_KEY).then((raw) => {
+      if (raw)
+        setResolvedSettings(new Map(Object.entries(JSON.parse(raw) as Record<string, unknown>)));
     });
   }, []);
 
@@ -172,13 +206,21 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     void SecureStore.setItemAsync(PROJECT_KEY, id);
   }, []);
 
-  // Local store and sync engine.
+  // Local store and sync engine. A store that will not open, even after recovery, shows as a startup
+  // error with a retry (startupError), never as a blank screen.
   useEffect(() => {
     let stopped = false;
+    setStartupError(null);
     void (async () => {
-      const opened = await openStore();
+      const { store: opened, recovery } = await openStore();
       const id = await deviceId();
       if (stopped) return;
+      if (recovery) {
+        console.warn(
+          `[compass] offline storage replaced: ${recovery.reason}; ${String(recovery.recovered)} unsent writes carried over${recovery.unreadable ? ", old file unreadable" : ""}`,
+        );
+      }
+      setStorageNotice(await storageNoticePending());
       const uploader = new SupabaseUploader({
         client,
         functionsUrl: config.supabaseUrl,
@@ -192,11 +234,19 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
       storeRef.current = opened;
       setStore(opened);
       setEngine(new SyncEngine({ store: opened, uploader }));
-    })();
+    })().catch((error: unknown) => {
+      if (!stopped) setStartupError(error instanceof Error ? error.message : String(error));
+    });
     return () => {
       stopped = true;
     };
-  }, [client, config]);
+  }, [client, config, startupAttempt]);
+
+  const retryStartup = useCallback(() => setStartupAttempt((n) => n + 1), []);
+  const dismissStorageNotice = useCallback(() => {
+    setStorageNotice(false);
+    void forgetStorageNotice();
+  }, []);
 
   useEffect(() => {
     if (!engine) return undefined;
@@ -283,6 +333,32 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     if (phase.kind === "ready" && network.isConnected) void refresh();
   }, [phase.kind, network.isConnected, refresh]);
 
+  // The person's settings and the org's rules for the current project, refreshed when online and kept for
+  // offline use (A65-001).
+  const orgId = resolved?.identity.membershipId ? resolved.orgId : null;
+  useEffect(() => {
+    if (phase.kind !== "ready" || !network.isConnected) return;
+    let live = true;
+    void client
+      .rpc("resolve_settings", {
+        p_org_id: orgId ?? NO_ORG,
+        ...(projectId && orgId ? { p_project_id: projectId } : {}),
+      })
+      .then(({ data, error }) => {
+        if (!live || error || !Array.isArray(data)) return;
+        const values = valuesFromRows(
+          (data as Parameters<typeof valuesFromRows>[0]).filter((r) =>
+            COMPASS_SETTING_KEYS.includes(r.setting_key),
+          ),
+        );
+        setResolvedSettings(values);
+        void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(values)));
+      });
+    return () => {
+      live = false;
+    };
+  }, [client, phase.kind, network.isConnected, orgId, projectId]);
+
   const enqueue = useCallback(
     async (input: MutationInput) => {
       if (!engine) throw new Error("the local store is still opening");
@@ -315,12 +391,17 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
     status,
     settings,
     updateSettings,
+    orgSettings: resolvedSettings,
     enqueue,
     refresh,
     refreshTables,
     lastRefresh,
     retryIdentity: () => setIdentityAttempt((n) => n + 1),
     signOut,
+    startupError,
+    retryStartup,
+    storageNotice,
+    dismissStorageNotice,
   };
   return <CompassContext.Provider value={value}>{children}</CompassContext.Provider>;
 }

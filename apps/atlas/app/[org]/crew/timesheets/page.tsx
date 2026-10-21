@@ -32,7 +32,8 @@ import {
   withParams,
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
-import { addDays, hoursFromMinutes, mondayOf } from "@/lib/crew/time";
+import { addDays, hoursFromMinutes, weekStartOf } from "@/lib/crew/time";
+import { getShellSettings } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
@@ -211,10 +212,14 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
 
   const canCreate = crew.can("crew.timesheet.submit");
   const members = canSubmitOthers ? await getMembers(crew.ctx) : [];
+  const { preferences } = await getShellSettings(crew.ctx.viewer.db, crew.orgId, null);
   const defaultProject = projectFilter ?? projects[0] ?? null;
-  // This week on the default project's calendar (A71): its days are what the timesheet bills, and in
-  // UTC Sunday evening in New York already opened next week's timesheet.
-  const week = mondayOf(todayIn(defaultProject?.timeZone ?? (await getOrgTimeZone(crew.ctx))));
+  // A new timesheet covers this week (payroll.week_start) on the default project's calendar (A71): its
+  // days are what the timesheet bills, and in UTC Sunday evening in New York already opened next week's.
+  const week = weekStartOf(
+    todayIn(defaultProject?.timeZone ?? (await getOrgTimeZone(crew.ctx))),
+    preferences.weekStart,
+  );
   const drawer =
     search["create"] === "1" && canCreate && defaultProject ? (
       <DrawerForm
