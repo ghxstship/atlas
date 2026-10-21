@@ -147,7 +147,14 @@ export async function EventsSection({
           { label: t("events.location"), value: selected.location ?? t("events.noLocation") },
           { label: t("feed.audienceLabel"), value: audienceLabel(t, selected.audience, pickers) },
           { label: t("events.organizer"), value: selected.organizerName ?? t("someone") },
-          { label: t("events.rsvps"), value: t("events.rsvpCounts", counts) },
+          {
+            label: t("events.rsvps"),
+            value: t("events.rsvpCounts", {
+              going: counts.Going,
+              maybe: counts.Maybe,
+              declined: counts.Declined,
+            }),
+          },
         ]}
         actions={
           selected.canceledAt ? null : (

@@ -1,39 +1,28 @@
-import { isActionableApproval, listInbox, type InboxItem } from "@xos/data/inbox";
+import { isActionableApproval, listInbox } from "@xos/data/inbox";
+import { personNames } from "@xos/data/person-names";
 import { getTranslations } from "next-intl/server";
 import { InboxView, type InboxRow } from "@/components/inbox/inbox-view";
 import { ErrorPanel } from "@/components/platform/kit";
 import { PageHeader, TemplateCollection } from "@/components/platform/client/page-header";
+import { describeInboxItem, type InboxCopy } from "@/lib/inbox/describe";
 import { requireNode } from "@/lib/shell/require-node";
 import { getFormatters } from "@/lib/platform/format";
 
-/** Notification kinds whose email catalog copy needs only a title, an actor and a decision. */
-const SIMPLE_KINDS = new Set([
-  "mention.created",
-  "assignment.created",
-  "approval.requested",
-  "approval.decided",
-  "comment.created",
-  "invoice.approved",
-  "incident.reported",
-  "report.delivered",
-  "import.finished",
-  "export.ready",
-]);
+type Translator = ((key: string, values?: Record<string, unknown>) => string) & {
+  has: (key: string) => boolean;
+};
 
 /**
  * Inbox (Section 4.5.2, Section 11.10 rule 5): what needs the viewer (approvals, mentions, assignments)
- * above what is for their information. Each item is approved (A), rejected with a reason (R), marked
- * Done (E) or snoozed (H) right here, without opening the record; J and K move between items.
+ * above what is for their information. Each item reads as a human title and summary (A59-006) and
+ * opens where it belongs; it is approved (A), rejected with a reason (R), marked Done (E) or snoozed
+ * (H) right here, without opening the record; J and K move between items.
  */
 export default async function Page({ params }: PageProps<"/[org]/inbox">) {
   const ctx = await requireNode("inbox", await params);
   const { t, money, dateTime } = await getFormatters(ctx);
-  const email = (await getTranslations("email")) as unknown as ((
-    k: string,
-    v?: Record<string, string>,
-  ) => string) & {
-    has: (k: string) => boolean;
-  };
+  const email = (await getTranslations("email")) as unknown as Translator;
+  const platform = (await getTranslations("platform")) as unknown as Translator;
   const title = t("inbox.title");
   const result = await listInbox(ctx.viewer.db, ctx.org.id);
   if (!result.ok) {
@@ -43,38 +32,24 @@ export default async function Page({ params }: PageProps<"/[org]/inbox">) {
       </TemplateCollection>
     );
   }
-  const describe = (item: InboxItem): { summary: string; detail: string } => {
-    const args = {
-      title: item.args["title"] ?? t("inbox.aRecord"),
-      actorName: item.args["actorName"] ?? t("inbox.someone"),
-      decision: item.args["decision"] ?? "approved",
-    };
-    if (item.approval && item.kind === "approval.requested") {
-      return {
-        summary: t("inbox.approvalSummary", {
-          document: t(`inbox.documents.${item.approval.documentType.replaceAll(" ", "")}`),
-          reference: item.approval.reference ?? "",
-          amount: money(item.approval.amountMinor, item.approval.currency ?? "USD"),
-        }),
-        detail: t("inbox.approvalDetail", {
-          actor: args.actorName,
-          step: item.approval.currentStep,
-        }),
-      };
-    }
-    const key = `kinds.${item.kind}`;
-    const known = email.has(`${key}.subject`);
-    if (SIMPLE_KINDS.has(item.kind) && known) {
-      return { summary: email(`${key}.subject`, args), detail: email(`${key}.body`, args) };
-    }
-    // The kind's label, never its key (gate 16): every notification kind has one in inbox.kinds.
-    return {
-      summary: t("inbox.generic"),
-      detail: known ? t(`inbox.${key}`) : t("inbox.otherKind"),
-    };
+  // Who acted, for notifications that did not store the actor's name (one name resolution, A59-011).
+  const actors = await personNames(
+    ctx.viewer.db,
+    result.data.filter((item) => !item.args["actorName"]).map((item) => item.actorPersonId),
+  );
+  const copy: InboxCopy = {
+    t,
+    email: (key, values) => email(key, values),
+    hasEmail: (key) => email.has(key),
+    hasPlatform: (key) => platform.has(key),
+    money,
   };
   const rows: InboxRow[] = result.data.map((item) => {
-    const text = describe(item);
+    const text = describeInboxItem(item, copy, {
+      org: ctx.org.slug,
+      orgName: ctx.org.name,
+      actorName: item.actorPersonId ? (actors.get(item.actorPersonId) ?? null) : null,
+    });
     return {
       id: item.id,
       section: item.section,
@@ -82,6 +57,7 @@ export default async function Page({ params }: PageProps<"/[org]/inbox">) {
       unread: !item.read,
       summary: text.summary,
       detail: text.detail,
+      href: text.href,
       when: dateTime(item.createdAt),
       approvable: isActionableApproval(item),
     };

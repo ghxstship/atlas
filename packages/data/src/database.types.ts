@@ -55978,6 +55978,13 @@ export type Database = {
           provider: string;
         }[];
       };
+      person_names: {
+        Args: { p_person_ids: string[] };
+        Returns: {
+          full_name: string;
+          person_id: string;
+        }[];
+      };
       point_in_geofence: {
         Args: { p_geofence_id: string; p_latitude: number; p_longitude: number };
         Returns: boolean;
