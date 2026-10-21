@@ -34,6 +34,14 @@ export {
   type ThemePreference,
 } from "./lib/theme.ts";
 export * from "./lib/format.ts";
+export {
+  LiveProvider,
+  useLive,
+  type LiveChange,
+  type LivePacing,
+  type LiveSource,
+  type LiveTopic,
+} from "./lib/live.ts";
 
 export type {
   RecordState,

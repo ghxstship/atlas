@@ -21,6 +21,7 @@
     "documents:verapdf": "node --experimental-strip-types --no-warnings scripts/verapdf-documents.ts"
   },
   "dependencies": {
+    "@supabase/realtime-js": "2.117.3",
     "@supabase/supabase-js": "2.117.3",
     "exceljs": "4.4.0",
     "pdfkit": "0.20.2",

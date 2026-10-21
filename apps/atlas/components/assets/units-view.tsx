@@ -22,6 +22,7 @@ import { ASSET_STATE_TONE, matches, type ListQuery } from "@/lib/assets/views";
 import type { OrgContext } from "@/lib/shell/context";
 import { orgToday } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
+import { LiveRefresh } from "@/components/live/live-refresh";
 
 /**
  * The units collection, shared by Assets > Units and a project's Assets tab (same component, with
@@ -136,75 +137,79 @@ export async function UnitsView({
   const canCreate = can.write && !project && classes.length > 0;
 
   return (
-    <AssetsCollection
-      title={
-        project
-          ? t("assets.project.unitsTitle", { project: project.key })
-          : t("nav.atlas.pages.assets.units")
-      }
-      view={view}
-      views={views}
-      total={units.length}
-      rows={rows}
-      columns={[
-        { key: "assetTag", label: t("assets.fields.assetTag"), type: "code" },
-        { key: "className", label: t("assets.fields.classId") },
-        { key: "state", label: t("assets.fields.state"), type: "state" },
-        { key: "custodian", label: t("assets.fields.custodian") },
-        { key: "project", label: t("assets.fields.projectId"), type: "code" },
-        { key: "homeVenue", label: t("assets.fields.homeVenueId") },
-      ]}
-      {...(units.length > 0 ? { filterOptions: stateOptions(t) } : {})}
-      {...(schedule ? { schedule } : {})}
-      create={
-        canCreate
-          ? {
-              label: t("assets.units.create.open"),
-              dialog: (
-                <NewUnitForm
-                  org={ctx.org.slug}
-                  classes={classOptions}
-                  conditions={pickers.conditions}
-                  venues={pickers.venues}
-                />
-              ),
-            }
-          : null
-      }
-      empty={
-        project
-          ? {
-              sentence: t("assets.project.empty", { project: project.key }),
-              actionLabel: t("assets.project.emptyAction"),
-              href: `/${ctx.org.slug}/assets/custody-ledger`,
-            }
-          : classes.length === 0
+    <>
+      {/* Units update live as custody and state change (Section 11.7, ADR 0044). */}
+      <LiveRefresh topics={[{ table: "asset_units", filter: `org_id=eq.${ctx.org.id}` }]} />
+      <AssetsCollection
+        title={
+          project
+            ? t("assets.project.unitsTitle", { project: project.key })
+            : t("nav.atlas.pages.assets.units")
+        }
+        view={view}
+        views={views}
+        total={units.length}
+        rows={rows}
+        columns={[
+          { key: "assetTag", label: t("assets.fields.assetTag"), type: "code" },
+          { key: "className", label: t("assets.fields.classId") },
+          { key: "state", label: t("assets.fields.state"), type: "state" },
+          { key: "custodian", label: t("assets.fields.custodian") },
+          { key: "project", label: t("assets.fields.projectId"), type: "code" },
+          { key: "homeVenue", label: t("assets.fields.homeVenueId") },
+        ]}
+        {...(units.length > 0 ? { filterOptions: stateOptions(t) } : {})}
+        {...(schedule ? { schedule } : {})}
+        create={
+          canCreate
             ? {
-                sentence: t("assets.units.emptyNoClasses"),
-                actionLabel: t("assets.units.emptyNoClassesAction"),
-                href: `/${ctx.org.slug}/assets/asset-classes`,
-              }
-            : {
-                sentence: t(can.write ? "assets.units.empty" : "assets.units.emptyReadOnly"),
-                actionLabel: t(
-                  can.write ? "assets.units.create.open" : "assets.units.emptyReadOnlyAction",
+                label: t("assets.units.create.open"),
+                dialog: (
+                  <NewUnitForm
+                    org={ctx.org.slug}
+                    classes={classOptions}
+                    conditions={pickers.conditions}
+                    venues={pickers.venues}
+                  />
                 ),
+              }
+            : null
+        }
+        empty={
+          project
+            ? {
+                sentence: t("assets.project.empty", { project: project.key }),
+                actionLabel: t("assets.project.emptyAction"),
                 href: `/${ctx.org.slug}/assets/custody-ledger`,
               }
-      }
-      peek={
-        peekTag
-          ? {
-              title: peekTag,
-              content: record ?? (
-                <p className="m-0 text-text-14 text-text-secondary">
-                  {t("assets.units.notFound", { tag: peekTag })}
-                </p>
-              ),
-            }
-          : null
-      }
-    />
+            : classes.length === 0
+              ? {
+                  sentence: t("assets.units.emptyNoClasses"),
+                  actionLabel: t("assets.units.emptyNoClassesAction"),
+                  href: `/${ctx.org.slug}/assets/asset-classes`,
+                }
+              : {
+                  sentence: t(can.write ? "assets.units.empty" : "assets.units.emptyReadOnly"),
+                  actionLabel: t(
+                    can.write ? "assets.units.create.open" : "assets.units.emptyReadOnlyAction",
+                  ),
+                  href: `/${ctx.org.slug}/assets/custody-ledger`,
+                }
+        }
+        peek={
+          peekTag
+            ? {
+                title: peekTag,
+                content: record ?? (
+                  <p className="m-0 text-text-14 text-text-secondary">
+                    {t("assets.units.notFound", { tag: peekTag })}
+                  </p>
+                ),
+              }
+            : null
+        }
+      />
+    </>
   );
 }
 

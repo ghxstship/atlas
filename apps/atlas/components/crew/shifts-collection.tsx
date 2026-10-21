@@ -59,6 +59,7 @@ import { InlineAlert } from "./ui";
 import { FilterSelect } from "./views-filter-select";
 // The table and calendar views and the drawers render only in some states (A24-009).
 import { DrawerForm, PeekCalendar, PeekTable } from "./lazy";
+import { LiveRefresh } from "@/components/live/live-refresh";
 
 /**
  * Shifts in every view the registry offers (resource schedule, list, table, calendar), for the org
@@ -712,6 +713,8 @@ export async function ShiftsCollection(props: {
         </>
       }
     >
+      {/* Shifts update live as crew accept, swap and get assigned (Section 11.7, ADR 0044). */}
+      <LiveRefresh topics={[{ table: "shifts", filter: `org_id=eq.${crew.orgId}` }]} />
       {clashes.length > 0 ? (
         <InlineAlert tone="warning" title={t("crew.shifts.clashTitle", { count: clashes.length })}>
           {t("crew.shifts.clashBody")}

@@ -5,6 +5,7 @@ import {
   AppShell,
   Breadcrumbs,
   Button,
+  LiveProvider,
   PreferencesProvider,
   Select,
   Sidebar,
@@ -38,6 +39,7 @@ import { toggleFavoriteAction } from "@/lib/settings/favorites-actions";
 import type { Theme } from "@/lib/theme";
 import { AuroraCenter } from "@/components/aurora/aurora-center";
 import { HelpCenter } from "@/components/help/help-center";
+import { atlasLiveSource } from "@/components/live/live-source";
 import { DeferredDropdownMenu, ShellOrgSwitcher } from "./deferred-menus";
 import { onDemand, useOnDemand } from "./on-demand";
 import { broadcast, SessionWatcher } from "./session-watcher";
@@ -366,7 +368,7 @@ export function ShellFrame(props: ShellFrameProps) {
           className="flex min-w-0 flex-col gap-16 pb-(--xos-help-card-space) outline-none [&>*]:shrink-0"
         >
           <PreferencesProvider preferences={displayPreferences}>
-            {props.children}
+            <LiveProvider source={atlasLiveSource}>{props.children}</LiveProvider>
           </PreferencesProvider>
         </div>
       </AppShell>

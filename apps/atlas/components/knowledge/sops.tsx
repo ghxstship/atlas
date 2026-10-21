@@ -19,6 +19,7 @@ import {
 import { CollabPanels } from "@/components/collection-kit/collab";
 import { CollectionView } from "@/components/collection-kit/collection-view";
 import { emptyFor } from "@/components/collection-kit/empty";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import {
   ActionButton,
   EntityForm,
@@ -162,6 +163,7 @@ export async function SopsSection({
         properties={properties(sop)}
         actions={actions(sop)}
       >
+        <LiveRefresh topics={[{ table: "sops", filter: `id=eq.${sop.id}` }]} />
         {hasUnpublishedChanges(sop) ? (
           <InlineAlert tone="info" title={t("sops.changedTitle")}>
             {t("sops.changedBody")}
@@ -348,6 +350,7 @@ export async function SopsSection({
         { key: "mine", label: t("sops.mine") },
       ]}
       rows={rows}
+      live={[{ table: "sops", filter: `org_id=eq.${ctx.org.id}` }]}
       actions={
         canWrite ? (
           <KitLink href={withQuery(path, state, { create: "1" })} variant="primary">

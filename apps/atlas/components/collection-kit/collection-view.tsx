@@ -17,6 +17,7 @@ import {
   TreeView,
   type TreeNode,
   type RecordState,
+  type LiveTopic,
 } from "@xos/ui";
 import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -24,6 +25,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useCopy } from "./use-copy";
 import type { KitBoardColumn, KitChart, KitColumn, KitRow, KitTreeNode, ViewKind } from "./types";
 import { CollectionViews } from "@/components/views/collection-views";
+import { useLiveRefresh } from "@/components/live/live-refresh";
 
 /**
  * The Collection template (Section 11.6) for every A16 list: page header with the view switcher
@@ -45,6 +47,7 @@ export function CollectionView({
   empty,
   actions,
   filters,
+  live,
   children,
 }: {
   title: string;
@@ -63,6 +66,11 @@ export function CollectionView({
   empty: ReactNode;
   actions?: ReactNode;
   filters?: ReactNode;
+  /**
+   * Tables the rows come from, narrowed to the org (`org_id=eq.<id>`): the page rereads when one
+   * changes, so the list updates live (Section 11.7, ADR 0044).
+   */
+  live?: readonly LiveTopic[];
   /** The peek or create drawer, rendered after the body. */
   children?: ReactNode;
 }) {
@@ -71,6 +79,7 @@ export function CollectionView({
   const pathname = usePathname();
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
+  useLiveRefresh(live ?? null);
 
   const href = (changes: Record<string, string | null>): Route => {
     const next = new URLSearchParams(params.toString());

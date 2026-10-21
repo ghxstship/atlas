@@ -7,6 +7,7 @@ import type { OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
 import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
+import { LiveRefresh } from "@/components/live/live-refresh";
 import { CreateRecordDialog } from "./create-record";
 import {
   capabilitySet,
@@ -135,48 +136,59 @@ export async function RecordsPage({
   const label = title ?? t(getNode(sitemap, node).node.label);
   const visibleKinds = fixedKinds ?? meta.kinds.map((k) => k.kind);
 
+  // Records update live (Section 11.7, ADR 0044): the project's when on a project tab, else the org's.
+  const live = [
+    {
+      table: "records",
+      filter: projectId ? `project_id=eq.${projectId}` : `org_id=eq.${ctx.org.id}`,
+    },
+  ];
+
   return (
-    <RecordCollection
-      org={ctx.org.slug}
-      title={label}
-      label={t("work.collection.label", { title: label })}
-      emptyKey={emptyKey}
-      records={records}
-      total={total}
-      views={views}
-      view={view}
-      filters={{
-        q,
-        kinds: fixedKinds ? [] : kinds,
-        states,
-        project: project ? "" : projectFilter,
-        sort,
-      }}
-      kinds={visibleKinds}
-      states={meta.states}
-      projects={project ? [] : meta.projects}
-      boardBy={boardBy ?? "state"}
-      month={month}
-      today={today}
-      timeZone={timeZone}
-      timeline={timeline}
-      canCreate={canCreate}
-      hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
-      create={
-        <CreateRecordDialog
-          org={ctx.org.slug}
-          kinds={fixedKinds ? meta.kinds.filter((k) => fixedKinds.includes(k.kind)) : meta.kinds}
-          projects={meta.projects}
-          people={meta.people}
-          phases={meta.phases}
-          xyzTags={meta.xyzTags}
-          open={param(search, "create") === "1"}
-          {...(fixedKinds?.length === 1 && fixedKinds[0] ? { fixedKind: fixedKinds[0] } : {})}
-          {...(project ? { fixedProjectId: project.id } : {})}
-          {...(createLabel ? { label: createLabel } : {})}
-        />
-      }
-      peek={peek}
-    />
+    <>
+      <LiveRefresh topics={live} />
+      <RecordCollection
+        org={ctx.org.slug}
+        title={label}
+        label={t("work.collection.label", { title: label })}
+        emptyKey={emptyKey}
+        records={records}
+        total={total}
+        views={views}
+        view={view}
+        filters={{
+          q,
+          kinds: fixedKinds ? [] : kinds,
+          states,
+          project: project ? "" : projectFilter,
+          sort,
+        }}
+        kinds={visibleKinds}
+        states={meta.states}
+        projects={project ? [] : meta.projects}
+        boardBy={boardBy ?? "state"}
+        month={month}
+        today={today}
+        timeZone={timeZone}
+        timeline={timeline}
+        canCreate={canCreate}
+        hideKindFilter={fixedKinds !== undefined && fixedKinds.length <= 1}
+        create={
+          <CreateRecordDialog
+            org={ctx.org.slug}
+            kinds={fixedKinds ? meta.kinds.filter((k) => fixedKinds.includes(k.kind)) : meta.kinds}
+            projects={meta.projects}
+            people={meta.people}
+            phases={meta.phases}
+            xyzTags={meta.xyzTags}
+            open={param(search, "create") === "1"}
+            {...(fixedKinds?.length === 1 && fixedKinds[0] ? { fixedKind: fixedKinds[0] } : {})}
+            {...(project ? { fixedProjectId: project.id } : {})}
+            {...(createLabel ? { label: createLabel } : {})}
+          />
+        }
+        peek={peek}
+      />
+    </>
   );
 }
