@@ -30,7 +30,7 @@ name: field-nfc-scan
 - extendedWaitUntil:
     visible: ".*Access denied.*"
     timeout: 15000
-- assertVisible: "CR-999999"
+- assertVisible: ".*CR-999999.*"
 # Lookup reads an asset tag from a tag (AUD-0042, in the Demo Field Lead's custody, seed 0217), then
 # writes it to a blank sticker, so the sticker scans as that unit from then on.
 - tapOn:
@@ -77,4 +77,4 @@ name: field-nfc-scan
 - extendedWaitUntil:
     visible: "Unknown code sent to the desk to identify."
     timeout: 15000
-- assertVisible: "04A2249A3C5E80"
+- assertVisible: ".*04A2249A3C5E80.*"

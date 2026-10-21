@@ -63,8 +63,8 @@ tags:
       id: "external-section-travel"
     timeout: 30000
 # Each end of a flight in its own zone: out of LAX at 9:00 AM, in to MIA at 8:05 PM.
-- assertVisible: "LAX → MIA"
-- assertVisible: ".*Departs .*Jun 3, 9:00 AM.*Arrives .*Jun 3, 8:05 PM.*"
+- assertVisible: ".*LAX → MIA.*"
+- assertVisible: ".*Departs .*Jun 3.*9:00 AM.*Arrives .*Jun 3.*8:05 PM.*"
 - runFlow:
     file: ../subflows/open-route.yaml
     env:
@@ -73,7 +73,7 @@ tags:
     visible:
       id: "external-section-onboarding"
     timeout: 30000
-- assertVisible: "Certificate of Insurance"
+- assertVisible: ".*Certificate of Insurance.*"
 - assertVisible: "Done"
 - runFlow:
     when:

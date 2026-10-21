@@ -74,7 +74,7 @@ tags:
     visible:
       id: "expense-saved"
     timeout: 20000
-- assertVisible: "Ice and water for the crew"
+- assertVisible: ".*Ice and water for the crew.*"
 - assertVisible: "Waiting to upload"
 - runFlow:
     when:

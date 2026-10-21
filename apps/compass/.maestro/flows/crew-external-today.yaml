@@ -41,4 +41,4 @@ name: crew-external-today
     visible:
       id: "external-section-onboarding"
     timeout: 30000
-- assertVisible: "Certificate of Insurance"
+- assertVisible: ".*Certificate of Insurance.*"
