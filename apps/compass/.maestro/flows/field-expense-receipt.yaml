@@ -1,0 +1,102 @@
+appId: pro.ghxstship.compass
+# A92 (A65-011 part 1, Section 4.3 item 11): file an expense from a receipt photo, posted to a budget line,
+# saved offline and filed once on reconnect with its photo. The Demo Producer records expenses on the demo
+# project (finance.expense.write). The Maestro stack runs no Atlas, so Aurora cannot read the receipt and the
+# screen says so; the prefill is covered by test/expenses.test.ts.
+# Named after its file: config.yaml orders flows by name.
+name: field-expense-receipt
+# Goes offline: airplane mode on Android, the network helper on iOS (apps/compass/scripts/maestro-network.ts).
+tags:
+  - airplane-mode
+---
+- runFlow:
+    file: ../subflows/sign-in.yaml
+    env:
+      EMAIL: producer@example.com
+- tapOn:
+    id: "tab-more"
+- scrollUntilVisible:
+    element:
+      id: "more-expenses"
+    timeout: 20000
+- tapOn:
+    id: "more-expenses"
+# The budget lines download with the rest of the project; the add buttons show once they are on the device.
+- extendedWaitUntil:
+    visible:
+      id: "expense-camera"
+    timeout: 60000
+- tapOn:
+    id: "expense-camera"
+# The simulator's capture returns an image without a camera.
+- tapOn:
+    id: "receipt-take"
+- extendedWaitUntil:
+    visible:
+      id: "expense-form"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "expense-aurora-failed|expense-aurora-off|expense-aurora-not-in-plan|expense-aurora-limit"
+    timeout: 60000
+- tapOn:
+    id: "expense-line"
+- tapOn:
+    id: "expense-line-1"
+- tapOn:
+    id: "expense-description"
+- inputText: "Ice and water for the crew"
+- tapOn:
+    id: "expense-amount"
+- inputText: "42.50"
+- hideKeyboard
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: enabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: offline
+      - assertTrue: ${output.network.ok}
+- scrollUntilVisible:
+    element:
+      id: "expense-save"
+    timeout: 20000
+- tapOn:
+    id: "expense-save"
+- extendedWaitUntil:
+    visible:
+      id: "expense-saved"
+    timeout: 20000
+- assertVisible: "Ice and water for the crew"
+- assertVisible: "Waiting to upload"
+- runFlow:
+    when:
+      platform: Android
+    commands:
+      - setAirplaneMode: disabled
+- runFlow:
+    when:
+      platform: iOS
+    commands:
+      - runScript:
+          file: ../scripts/network.js
+          env:
+            STEP: online
+      - assertTrue: ${output.network.ok}
+# The retry backoff grows while the server is away, so the drain may wait for the next attempt.
+- extendedWaitUntil:
+    notVisible: "Waiting to upload"
+    timeout: 120000
+- runScript:
+    file: ../scripts/expense-filed.js
+    env:
+      EMAIL: producer@example.com
+      DESCRIPTION: "Ice and water for the crew"
+- assertTrue: ${output.expense.status == 200 && output.expense.expenses == 1 && output.expense.receipts == 1 && output.expense.amount == 4250}

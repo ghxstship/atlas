@@ -317,7 +317,9 @@ export interface ReceiptReading {
 }
 
 function refusalState(problem: AuroraProblem): Exclude<AuroraState, "reading" | "read"> {
-  if (problem.status === 0) return "offline";
+  // The phone was online but the API did not answer (a dropped connection, Atlas unreachable): say Aurora
+  // could not read it rather than that the phone is offline.
+  if (problem.status === 0) return "failed";
   if (problem.rule === "aurora_feature_off") return "off";
   if (problem.rule === "aurora_not_in_plan") return "not-in-plan";
   if (problem.rule === "plan_limit_exceeded") return "limit";

@@ -1,5 +1,5 @@
 appId: pro.ghxstship.compass
-# Vendor reaches purchase orders and deliveries in Gateway, never internal tools.
+# Vendor sees purchase orders, deliveries and submittals as Compass screens (A92), never internal tools.
 # Named after its file: config.yaml orders flows by name.
 name: vendor-external-scan
 ---
@@ -9,11 +9,22 @@ name: vendor-external-scan
       EMAIL: vendor@example.com
 - tapOn:
     id: "tab-more"
-# Purchase orders, deliveries and submittals open in Gateway, named on one row (finding A59-026).
+# Purchase orders, deliveries and submittals are Compass screens; nothing opens Gateway from the menu.
 - assertVisible:
-    id: "more-open-gateway"
-- assertVisible: ".*Purchase Orders.*Deliveries.*Submittals.*"
-- assertNotVisible:
     id: "more-purchase-orders"
+- assertVisible:
+    id: "more-deliveries"
+- assertVisible:
+    id: "more-submittals"
+- assertNotVisible:
+    id: "more-open-gateway"
 - assertNotVisible:
     id: "more-inspections"
+# The demo vendor's engagement is Complete (seed 0228), so Compass holds none of its project's orders
+# (Section 8.7): the screen says so instead of showing an empty page.
+- tapOn:
+    id: "more-purchase-orders"
+- extendedWaitUntil:
+    visible:
+      id: "external-purchase-orders-empty"
+    timeout: 30000

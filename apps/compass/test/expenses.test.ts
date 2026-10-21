@@ -285,7 +285,7 @@ describe("reading a receipt with Aurora (Section 4.7)", () => {
         problem: { status: 0, rule: null, detail: "Network request failed" },
       }),
     });
-    expect((await readReceipt(away.r, "AAAA", true)).state).toBe("offline");
+    expect((await readReceipt(away.r, "AAAA", true)).state).toBe("failed");
     const silent = reader({
       extract: async () => ({
         ok: true,
