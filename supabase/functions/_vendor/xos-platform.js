@@ -30171,7 +30171,7 @@ var platform_default = {
         ownership_accepted: "Propiedad aceptada",
         ownership_declined: "Propiedad rechazada",
         white_label_reverting: "La marca blanca termina pronto",
-        white_label_reverted: "La marca blanca terminó",
+        white_label_reverted: "Fin de la marca blanca",
       },
       partner: { client_left: "Una organización cliente se fue" },
       recognition: { received: "Reconocimiento recibido" },
