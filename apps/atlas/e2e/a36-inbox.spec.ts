@@ -1,4 +1,4 @@
-import { expect, settle, test } from "./engine-test";
+import { expect, settle, test, type Request } from "./engine-test";
 import { expectAccessibleInBothThemes } from "./a16-support";
 import { apiPost, DEMO_ORG, signInAs } from "./a36-support";
 
@@ -75,6 +75,20 @@ test("journey 57: approve from the notification action, then 20 Inbox items by k
     const items = admin.locator("[data-inbox-item]");
     await expect(items.first()).toBeVisible();
     const startUrl = admin.url();
+    // Each A counts the item at once and sends a quick approval; Next runs server actions one at a
+    // time, so the approvals reach the database after the last key press. The check below waits for
+    // all 20 to come back instead of giving the queue the default 5 seconds (A71).
+    let answered = 0;
+    const allAnswered = new Promise<void>((resolve) => {
+      const count = (request: Request) => {
+        if (request.method() === "POST" && request.postData()?.includes('"action":"approve"')) {
+          answered += 1;
+          if (answered >= 20) resolve();
+        }
+      };
+      admin.on("requestfinished", count);
+      admin.on("requestfailed", count);
+    });
     await items.first().focus();
     const started = Date.now();
     for (let i = 1; i <= 20; i += 1) {
@@ -86,6 +100,7 @@ test("journey 57: approve from the notification action, then 20 Inbox items by k
     const elapsed = Date.now() - started;
     expect(elapsed, `20 approvals took ${elapsed} ms`).toBeLessThan(60_000);
     expect(admin.url()).toBe(startUrl);
+    await allAnswered;
 
     // Every one of the 20 moved to the Owner's step, and none is left waiting on the Admin.
     await expect
