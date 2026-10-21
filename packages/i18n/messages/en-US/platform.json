@@ -624,6 +624,18 @@
       },
       "weather": {
         "alert": "Weather alert"
+      },
+      "opportunity": {
+        "matched": "New opportunity match"
+      },
+      "onboarding": {
+        "item_expiring": "Onboarding item expiring"
+      },
+      "certification": {
+        "expiring": "Certification expiring"
+      },
+      "document": {
+        "expiring": "Document expiring"
       }
     },
     "approvalSummary": "Approve {document} {reference} for {amount}",
