@@ -1,7 +1,8 @@
 "use client";
 
 import { assetStateKey } from "@xos/data/assets";
-import { Button, Input, RefusalNotice, Select, Textarea } from "@xos/ui";
+import { Button, Input, Select, Textarea } from "@xos/ui";
+import { RefusalNotice } from "@/components/refusal-notice";
 import { useState, useTransition } from "react";
 import { custodyScanAction, resolveCodeAction, type ScanLookup } from "@/app/[org]/assets/actions";
 import { useAssetsCopy } from "./copy";

@@ -7,5 +7,16 @@
   "owner": "Owner",
   "unassigned": "Unassigned",
   "due": "Due",
-  "openFullHint": "Open the full page for the record's content, comments and activity."
+  "phase": "Phase",
+  "starts": "Starts",
+  "ends": "Ends",
+  "timeZone": "Time zone",
+  "blocker": "Blocked by",
+  "activity": "Recent activity",
+  "noActivity": "No changes yet.",
+  "stateChange": "Moved from {from} to {to}",
+  "stateSet": "Set to {to}",
+  "byWhen": "{name} · {when}",
+  "system": "Atlas",
+  "openFull": "Open full page"
 }

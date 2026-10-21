@@ -1,4 +1,4 @@
-import { listActivity, type ActivityEntry } from "@xos/data/activity";
+import { labelActivity, listActivity, type ActivityEntry } from "@xos/data/activity";
 import { todayIn } from "@xos/data/calendar";
 import {
   buildAlerts,
@@ -118,6 +118,6 @@ export async function loadHomeTiles(
     openBlockers: readiness.reduce((n, r) => n + r.unmet.length, 0),
     readiness: readiness.slice(0, 5),
     alerts: alerts.slice(0, 5),
-    activity: activity === null ? [] : must(activity, "activity").entries,
+    activity: activity === null ? [] : await labelActivity(db, must(activity, "activity").entries),
   };
 }

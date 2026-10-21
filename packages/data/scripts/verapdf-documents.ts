@@ -3,10 +3,11 @@ import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildDeletionCertificateModel } from "../src/documents/deletion-certificate.ts";
 import { buildDocumentModel } from "../src/documents/generate.ts";
 import { DOCUMENT_KINDS, PAPERS } from "../src/documents/model.ts";
 import { renderDocumentPdf } from "../src/documents/render.ts";
-import { BRAND, FIXTURES, NOW } from "../test/documents/fixtures.ts";
+import { BRAND, DELETION_CERTIFICATE, FIXTURES, NOW } from "../test/documents/fixtures.ts";
 
 /**
  * Section 18 gate 19: renders every Section 11.9 template from fixture data, on US Letter and A4, in
@@ -46,6 +47,20 @@ for (const locale of LOCALES) {
       writeFileSync(join(dir, name), await renderDocumentPdf(model, { paper }), { mode: 0o644 });
       files.push(name);
     }
+  }
+  // The platform's deletion certificate (A79, Section 14.7) goes through the same renderer and gate.
+  const certificate = buildDeletionCertificateModel(DELETION_CERTIFICATE, {
+    locale,
+    messages,
+    recordUrl: "https://atlas.example.test/deletion-certificates/fixture",
+    now: NOW,
+  });
+  for (const paper of PAPERS) {
+    const name = `deletion-certificate.${locale}.${paper}.pdf`;
+    writeFileSync(join(dir, name), await renderDocumentPdf(certificate, { paper }), {
+      mode: 0o644,
+    });
+    files.push(name);
   }
 }
 console.log(`Rendered ${files.length} documents into ${dir}.`);

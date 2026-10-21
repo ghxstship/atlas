@@ -7,6 +7,11 @@ import { z } from "@hono/zod-openapi";
 import { AccountRole, OrgRole, fields } from "@xos/schemas";
 import { defineAdditions } from "../additions.ts";
 import { all, editShape, orNull, removeActions, removeVerbs, setTable } from "../correct.ts";
+import {
+  a79IdentityActions,
+  a79IdentityCapabilities,
+  a79IdentityCorrections,
+} from "./parts/a79.ts";
 import { identityFieldExposure } from "./parts/playbook-field-exposure.ts";
 import {
   workDetailCapabilities,
@@ -42,8 +47,10 @@ const label = (values: readonly [string, ...string[]], description: string) =>
 const TITLE_CASE = /^[A-Z0-9][A-Za-z0-9&'/.()-]*( [A-Za-z0-9&'/.()-]+)*$/;
 
 export const additions = defineAdditions("Identity", {
+  // A79: leaving a partner and checking a custom domain (./parts/a79.ts).
+  actions: { ...a79IdentityActions },
   resources: [...workDetailResources],
-  capabilities: { ...workDetailCapabilities },
+  capabilities: { ...a79IdentityCapabilities, ...workDetailCapabilities },
   corrections: [
     ...workDetailCorrections,
     {
@@ -546,5 +553,6 @@ export const additions = defineAdditions("Identity", {
       }),
     },
     ...identityFieldExposure,
+    ...a79IdentityCorrections,
   ],
 });
