@@ -9346,6 +9346,214 @@ export type Database = {
           },
         ];
       };
+      certified_payroll_projects: {
+        Row: {
+          business_address: string;
+          business_name: string;
+          contract_number: string;
+          contractor_role: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          project_location: string;
+          updated_at: string;
+          updated_by: string | null;
+          wage_determinations: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          business_address: string;
+          business_name: string;
+          contract_number: string;
+          contractor_role?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          project_location: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          wage_determinations: string;
+        };
+        Update: {
+          business_address?: string;
+          business_name?: string;
+          contract_number?: string;
+          contractor_role?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          project_location?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          wage_determinations?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certified_payroll_projects_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      certified_payroll_submissions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          final_submission: boolean;
+          id: string;
+          issued_at: string;
+          issued_by: string | null;
+          org_id: string;
+          payroll_number: number;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          week_ending: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          final_submission?: boolean;
+          id?: string;
+          issued_at?: string;
+          issued_by?: string | null;
+          org_id: string;
+          payroll_number: number;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          week_ending: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          final_submission?: boolean;
+          id?: string;
+          issued_at?: string;
+          issued_by?: string | null;
+          org_id?: string;
+          payroll_number?: number;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          week_ending?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certified_payroll_submissions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_issued_by_fkey";
+            columns: ["issued_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       change_order_lines: {
         Row: {
           budget_line_id: string | null;
@@ -27139,6 +27347,378 @@ export type Database = {
           },
         ];
       };
+      osha_annual_summaries: {
+        Row: {
+          annual_average_employees: number | null;
+          certified_by: string | null;
+          certified_on: string | null;
+          certifier_phone: string | null;
+          certifier_title: string | null;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          establishment_id: string;
+          id: string;
+          log_year: number;
+          org_id: string;
+          total_hours_worked: number | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          annual_average_employees?: number | null;
+          certified_by?: string | null;
+          certified_on?: string | null;
+          certifier_phone?: string | null;
+          certifier_title?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          establishment_id: string;
+          id?: string;
+          log_year: number;
+          org_id: string;
+          total_hours_worked?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          annual_average_employees?: number | null;
+          certified_by?: string | null;
+          certified_on?: string | null;
+          certifier_phone?: string | null;
+          certifier_title?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          establishment_id?: string;
+          id?: string;
+          log_year?: number;
+          org_id?: string;
+          total_hours_worked?: number | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "osha_annual_summaries_certified_by_fkey";
+            columns: ["certified_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_establishment_id_fkey";
+            columns: ["establishment_id"];
+            isOneToOne: false;
+            referencedRelation: "osha_establishments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_annual_summaries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      osha_cases: {
+        Row: {
+          activity_before: string | null;
+          case_number: string;
+          case_type: string;
+          completed_by: string | null;
+          completed_on: string | null;
+          completed_phone: string | null;
+          completed_title: string | null;
+          created_at: string;
+          created_by: string | null;
+          date_hired: string | null;
+          date_of_birth: string | null;
+          days_away: number;
+          days_restricted: number;
+          deleted_at: string | null;
+          description: string;
+          died_on: string | null;
+          emergency_room: boolean | null;
+          employee_locality: string | null;
+          employee_name: string | null;
+          employee_postal_code: string | null;
+          employee_region: string | null;
+          employee_sex: string | null;
+          employee_street: string | null;
+          establishment_id: string;
+          event_location: string;
+          event_time: string | null;
+          event_time_unknown: boolean;
+          facility_locality: string | null;
+          facility_postal_code: string | null;
+          facility_region: string | null;
+          facility_street: string | null;
+          harmful_object: string | null;
+          health_care_professional: string | null;
+          hospitalized_overnight: boolean | null;
+          id: string;
+          incident_id: string | null;
+          injury_date: string;
+          injury_detail: string | null;
+          job_title: string;
+          log_year: number;
+          org_id: string;
+          outcome: string;
+          person_id: string | null;
+          privacy_case: boolean;
+          treatment_facility: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          what_happened: string | null;
+          work_began_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_before?: string | null;
+          case_number?: string;
+          case_type: string;
+          completed_by?: string | null;
+          completed_on?: string | null;
+          completed_phone?: string | null;
+          completed_title?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          date_hired?: string | null;
+          date_of_birth?: string | null;
+          days_away?: number;
+          days_restricted?: number;
+          deleted_at?: string | null;
+          description: string;
+          died_on?: string | null;
+          emergency_room?: boolean | null;
+          employee_locality?: string | null;
+          employee_name?: string | null;
+          employee_postal_code?: string | null;
+          employee_region?: string | null;
+          employee_sex?: string | null;
+          employee_street?: string | null;
+          establishment_id: string;
+          event_location: string;
+          event_time?: string | null;
+          event_time_unknown?: boolean;
+          facility_locality?: string | null;
+          facility_postal_code?: string | null;
+          facility_region?: string | null;
+          facility_street?: string | null;
+          harmful_object?: string | null;
+          health_care_professional?: string | null;
+          hospitalized_overnight?: boolean | null;
+          id?: string;
+          incident_id?: string | null;
+          injury_date: string;
+          injury_detail?: string | null;
+          job_title: string;
+          log_year: number;
+          org_id: string;
+          outcome: string;
+          person_id?: string | null;
+          privacy_case?: boolean;
+          treatment_facility?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          what_happened?: string | null;
+          work_began_at?: string | null;
+        };
+        Update: {
+          activity_before?: string | null;
+          case_number?: string;
+          case_type?: string;
+          completed_by?: string | null;
+          completed_on?: string | null;
+          completed_phone?: string | null;
+          completed_title?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          date_hired?: string | null;
+          date_of_birth?: string | null;
+          days_away?: number;
+          days_restricted?: number;
+          deleted_at?: string | null;
+          description?: string;
+          died_on?: string | null;
+          emergency_room?: boolean | null;
+          employee_locality?: string | null;
+          employee_name?: string | null;
+          employee_postal_code?: string | null;
+          employee_region?: string | null;
+          employee_sex?: string | null;
+          employee_street?: string | null;
+          establishment_id?: string;
+          event_location?: string;
+          event_time?: string | null;
+          event_time_unknown?: boolean;
+          facility_locality?: string | null;
+          facility_postal_code?: string | null;
+          facility_region?: string | null;
+          facility_street?: string | null;
+          harmful_object?: string | null;
+          health_care_professional?: string | null;
+          hospitalized_overnight?: boolean | null;
+          id?: string;
+          incident_id?: string | null;
+          injury_date?: string;
+          injury_detail?: string | null;
+          job_title?: string;
+          log_year?: number;
+          org_id?: string;
+          outcome?: string;
+          person_id?: string | null;
+          privacy_case?: boolean;
+          treatment_facility?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          what_happened?: string | null;
+          work_began_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "osha_cases_completed_by_fkey";
+            columns: ["completed_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_establishment_id_fkey";
+            columns: ["establishment_id"];
+            isOneToOne: false;
+            referencedRelation: "osha_establishments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      osha_establishments: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          industry_description: string | null;
+          locality: string | null;
+          naics_code: string | null;
+          name: string;
+          org_id: string;
+          postal_code: string | null;
+          region_code: string | null;
+          street_address: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          industry_description?: string | null;
+          locality?: string | null;
+          naics_code?: string | null;
+          name: string;
+          org_id: string;
+          postal_code?: string | null;
+          region_code?: string | null;
+          street_address?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          industry_description?: string | null;
+          locality?: string | null;
+          naics_code?: string | null;
+          name?: string;
+          org_id?: string;
+          postal_code?: string | null;
+          region_code?: string | null;
+          street_address?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "osha_establishments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_establishments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_establishments_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       partner_agreements: {
         Row: {
           created_at: string;
@@ -36067,6 +36647,87 @@ export type Database = {
           },
           {
             foreignKeyName: "records_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      registered_apprentices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          labor_classification: string;
+          membership_id: string;
+          org_id: string;
+          program_name: string;
+          progression_level: string | null;
+          registered_with: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          labor_classification: string;
+          membership_id: string;
+          org_id: string;
+          program_name: string;
+          progression_level?: string | null;
+          registered_with: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          labor_classification?: string;
+          membership_id?: string;
+          org_id?: string;
+          program_name?: string;
+          progression_level?: string | null;
+          registered_with?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "registered_apprentices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "registered_apprentices_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "registered_apprentices_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "registered_apprentices_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -53769,6 +54430,27 @@ export type Database = {
         Args: { p_certification_holder_id: string };
         Returns: string;
       };
+      certified_payroll: {
+        Args: { p_final?: boolean; p_project_id: string; p_week_ending: string };
+        Returns: {
+          apprentice: string;
+          currency_code: string;
+          entry_number: number;
+          first_name: string;
+          gross_all_work_minor: number;
+          gross_project_minor: number;
+          identifying_number: string;
+          labor_classification: string;
+          last_name: string;
+          middle_initial: string;
+          overtime_minutes: number[];
+          overtime_rate_minor: number;
+          payroll_number: number;
+          straight_minutes: number[];
+          straight_rate_minor: number;
+          total_minutes: number;
+        }[];
+      };
       check_in_dock_slot: { Args: { p_dock_slot_id: string }; Returns: string };
       check_in_guest: {
         Args: {
@@ -54850,6 +55532,30 @@ export type Database = {
         }[];
       };
       organization_verified: { Args: { p_org_id: string }; Returns: boolean };
+      osha_employment_estimate: {
+        Args: { p_org_id: string; p_year: number };
+        Returns: {
+          annual_average_employees: number;
+          total_hours_worked: number;
+        }[];
+      };
+      osha_summary: {
+        Args: { p_establishment_id: string; p_year: number };
+        Returns: {
+          days_away: number;
+          days_away_cases: number;
+          days_restricted: number;
+          deaths: number;
+          hearing_loss: number;
+          injuries: number;
+          other_cases: number;
+          other_illnesses: number;
+          poisonings: number;
+          respiratory_conditions: number;
+          restricted_cases: number;
+          skin_disorders: number;
+        }[];
+      };
       partner_client_orgs: {
         Args: { p_partner_org_id: string };
         Returns: {
