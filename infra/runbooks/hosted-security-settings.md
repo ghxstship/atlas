@@ -90,13 +90,42 @@ timeout themselves (migration 1330). These steps make the hosted project and the
    SCIM base URL customers enter in their identity provider is
    `<project URL>/functions/v1/scim/v2`; the token is issued by an Admin on Settings, Security
    (it needs step-up and is shown once). Atlas shows both.
-5. **Recovery codes.** Supabase Auth offers MFA recovery codes behind a setting the local CLI cannot
-   turn on yet, so Atlas does not issue them (A54-001 stays open). Until it does, a person who loses
-   every second factor asks an Owner or Admin to contact XOS support, who confirm the person's
-   identity and remove the factor from the dashboard (Authentication > Users > the user > MFA).
+5. **Recovery codes.** XOS issues them itself since A99 (migration 1560, ADR 0055): ten single-use
+   codes per person from Personal settings, Security, usable at the sign-in challenge and in step-up.
+   Leave Supabase Auth's own MFA recovery codes off: XOS's codes and Supabase Auth's would be two
+   sets. A person who loses every second factor and every code still asks an Owner or Admin to
+   contact XOS support, who confirm the person's identity and remove the factor from the dashboard
+   (Authentication > Users > the user > MFA).
 6. **Known limit.** Like the IP allow-list, the org MFA policy, session length and idle timeout are
    enforced where Atlas, the API and Compass check a session, not on direct calls to the Supabase
    endpoint with a session token. The planned fix is the same: route all data access through the API.
+
+## Recovery codes, sessions and OAuth (A99)
+
+Migrations 1560 to 1563 (ADR 0055). Apply to staging, then production:
+
+1. **OAuth 2.1 server.** Authentication > OAuth Server: enable it, set the authorization path to
+   `/oauth/consent`, and leave dynamic client registration off. The local value is
+   `[auth.oauth_server]` in `config.toml`. Apps are registered only in Atlas (Settings,
+   Integrations) or through the `/oauth-apps` API resource; the database creates each app's public
+   client. Without the server, `/oauth/authorize` answers that the app is not registered.
+2. **Site URL.** Authentication > URL Configuration: the Site URL must be the Atlas origin
+   (`https://atlas.ghxstship.tech`), because Supabase Auth sends people to the Site URL plus
+   `/oauth/consent`.
+3. **Refresh-token rotation.** Authentication > Sessions: keep "Detect and revoke compromised
+   refresh tokens" on with the reuse interval at 10 seconds, as `config.toml` sets it. Supabase Auth
+   refuses a refresh token two rotations old; on v2.197.0 it did not revoke the newer ones.
+4. **Endpoints to give app developers.** Authorization `https://atlas.ghxstship.tech/oauth/authorize`
+   (the API host redirects `https://api.ghxstship.tech/oauth/authorize` there) and token
+   `https://atlas.ghxstship.tech/oauth/token`. Apps are public clients: PKCE with S256, no client
+   secret, capability groups in `scope`. Atlas shows both on Settings, Integrations.
+5. **Approximate place on Settings, Security.** Comes from Vercel's `x-vercel-ip-*` headers, read only
+   on Vercel (`VERCEL=1`) and only while `XOS_TRUSTED_PROXY_HOPS` is unset. Behind a CDN or your own
+   proxy the list shows the client address instead.
+6. **Known limits.** A signed-out session's access token still works directly against the Supabase
+   endpoint until it expires (`jwt_expiry`, one hour); Atlas, Gateway and the API refuse it at once.
+   Rows an app reads by the person alone (their own notifications and preferences) are not limited
+   to the app's org. Both close with routing all data access through the API (owner decision 33).
 
 ## Upload virus scanning (A22-011): self-hosted ClamAV
 

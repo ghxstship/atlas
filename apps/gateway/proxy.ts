@@ -1,3 +1,4 @@
+import { touchMySession } from "@xos/data/account-security";
 import {
   CONSENT_COOKIE,
   consentCookieOptions,
@@ -9,9 +10,10 @@ import {
 } from "@xos/data/consent";
 import { tokenAal } from "@xos/data/auth-assurance";
 import { listOrgsAllowingPersonalTokens } from "@xos/data/developer";
+import { requestDevice } from "@xos/data/session-device";
 import { listMyAccounts, listMyEngagementRoleTypes } from "@xos/data/gateway";
 import { findRoute, getNode, isNodeVisible } from "@xos/ia";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { sitemap } from "@/ia/sitemap.generated";
 import { secondFactorRedirect } from "@/lib/auth/assurance";
 import { env, platformHosts } from "@/lib/env";
@@ -43,7 +45,13 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *      every non-essential cookie, is logged server-side and stands in for the banner's choice.
  * Engagement tabs depend on the engagement's role type, which only the page can read, so the
  * proxy checks the engagement node and the page checks the tab. Pages repeat every check.
+ *   5. records the device behind the session at most once a minute, for Settings, Security (A99, migration 1561):
+ *      the client address as clientAddress() reads it, the place the host derived from it, and the user agent.
  */
+
+/** When this device last recorded its session's device (A99): an httpOnly epoch-milliseconds cookie. */
+const DEVICE_SEEN_COOKIE = "xos-device-seen";
+const DEVICE_SEEN_STEP_MS = 60_000;
 
 const NOT_FOUND_PATH = "/auth/not-found";
 
@@ -62,7 +70,7 @@ function isDocumentRequest(request: NextRequest): boolean {
     : dest === "document";
 }
 
-export async function proxy(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest, event?: NextFetchEvent): Promise<NextResponse> {
   const config = env();
   const development = config.NODE_ENV === "development";
   const secureSite = config.GATEWAY_SITE_URL.startsWith("https:");
@@ -184,7 +192,28 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
       }
     }
   }
-  return secure(response());
+  const result = secure(response());
+  const seen = Number(request.cookies.get(DEVICE_SEEN_COOKIE)?.value ?? "0");
+  const now = Date.now();
+  if (user && (!Number.isFinite(seen) || now - seen >= DEVICE_SEEN_STEP_MS || now < seen)) {
+    const touched = touchMySession(db, {
+      surface: "Gateway",
+      ...requestDevice(request.headers, {
+        VERCEL: process.env["VERCEL"],
+        XOS_TRUSTED_PROXY_HOPS: process.env["XOS_TRUSTED_PROXY_HOPS"],
+      }),
+    }).then((outcome) => {
+      if (!outcome.ok) console.error("session device not recorded", outcome.error);
+    });
+    if (event) event.waitUntil(touched);
+    else await touched;
+    // Appended raw, as Atlas does with its last-seen cookie, so server actions see no changed cookie.
+    result.headers.append(
+      "set-cookie",
+      `${DEVICE_SEEN_COOKIE}=${now}; Path=/; Max-Age=86400; HttpOnly; SameSite=Lax${secureSite ? "; Secure" : ""}`,
+    );
+  }
+  return result;
 }
 
 export const config = {

@@ -77,6 +77,14 @@
       "security_changed": {
         "subject": "Cambió la seguridad de tu cuenta",
         "body": "Cambió un ajuste de seguridad de tu cuenta: {change}. Si no fuiste tú, restablece tu contraseña ahora."
+      },
+      "recovery_code_used": {
+        "subject": "Se usó un código de recuperación en tu cuenta",
+        "body": "Alguien inició sesión o confirmó una acción con uno de tus códigos de recuperación. {remaining, plural, =0 {No te quedan códigos: crea un juego nuevo en Seguridad.} one {Te queda # código.} other {Te quedan # códigos.}} Si no fuiste tú, cambia tu contraseña y crea códigos nuevos ahora."
+      },
+      "session_signed_out": {
+        "subject": "{count, plural, one {Se cerró una sesión} other {Se cerraron # sesiones}}",
+        "body": "{count, plural, one {Se cerró una sesión de tu cuenta} other {Se cerraron # sesiones de tu cuenta}} desde Configuración, Seguridad. Si no fuiste tú, cambia tu contraseña y revisa tus sesiones."
       }
     },
     "report": {

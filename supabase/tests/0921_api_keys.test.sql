@@ -7,8 +7,8 @@ set search_path = extensions, public;
 
 select plan(35);
 
--- Creation ----------------------------------------------------------------------------------------------------
-select pg_temp.as_user('bob');
+-- Creation (a key needs step-up since 1562) -------------------------------------------------------------------
+select pg_temp.as_user_stepped_up('bob');
 create temporary table key_a as
   select * from app.create_api_key(pg_temp.id('org_a'), ' Accounting Sync ', array['finance', 'org', 'finance'], now() + interval '90 days');
 grant select on key_a to public;
@@ -24,7 +24,7 @@ select ok((select secret_hash = extensions.digest((select secret from key_a), 's
 select is((select count(*)::integer from app.api_keys k where k.secret_hash::text like '%' || (select right(secret, 16) from key_a) || '%'), 0,
   'the plain secret is stored nowhere in the row');
 
-select pg_temp.as_user('bob');
+select pg_temp.as_user_stepped_up('bob');
 select throws_ok($$select app.create_api_key(pg_temp.id('org_a'), 'Bad', array['finances'], now() + interval '1 day')$$,
   'XR001', 'api_key_scope_unknown: finances is not a capability group.', 'scopes must be capability groups from the registry');
 select throws_ok($$select app.create_api_key(pg_temp.id('org_a'), 'Bad', array[]::text[], now() + interval '1 day')$$,
@@ -40,7 +40,7 @@ select throws_ok($$insert into app.api_keys (org_id, name, scopes, expires_at, p
   '42501', null, 'keys are never inserted directly');
 
 -- Role bands -------------------------------------------------------------------------------------------------
-select pg_temp.as_user('alice');
+select pg_temp.as_user_stepped_up('alice');
 select lives_ok($$select app.create_api_key(pg_temp.id('org_a'), 'Owner Key', array['org'], now() + interval '1 day')$$,
   'an owner creates keys');
 select pg_temp.as_user('carol');
@@ -99,7 +99,7 @@ select throws_ok(format($$update app.api_keys set name = 'Revived' where id = %L
 select pg_temp.as_platform();
 set local role service_role;
 select is((select count(*)::integer from app.authenticate_api_key((select secret from key_a))), 0, 'a revoked key no longer authenticates');
-select pg_temp.as_user('alice');
+select pg_temp.as_user_stepped_up('alice');
 create temporary table key_b as select * from app.create_api_key(pg_temp.id('org_a'), 'Short', array['org'], now() + interval '1 day');
 grant select on key_b to public;
 select pg_temp.as_platform();

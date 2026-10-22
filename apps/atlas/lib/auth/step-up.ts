@@ -14,7 +14,8 @@ import { requireSecondFactor, type StepUpCheck } from "@xos/data/auth-assurance"
 export type StepUpResult = StepUpCheck;
 
 /** What the action is; for example "delete the organization". The refusal from the database names it too. */
-export type StepUpAction = "delete the organization" | "transfer ownership" | "accept ownership";
+export type StepUpAction =
+  "delete the organization" | "transfer ownership" | "accept ownership" | "leave your partner";
 
 export function requireStepUp(db: XosClient, action: StepUpAction): Promise<StepUpResult> {
   void action;
