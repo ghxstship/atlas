@@ -120,8 +120,6 @@
     "empty": "Aún no hay objetivos. Fije una meta para cada cifra que medirá la compuerta 8.",
     "formLabel": "Fijar un objetivo",
     "set": "Fijar objetivo",
-    "change": "Cambiar objetivo",
-    "saved": "Objetivo guardado.",
     "setBy": "Fijado por",
     "withdrawFor": "Retirar el objetivo de {metric}",
     "withdrawTitle": "¿Retirar el objetivo de {metric}?",
@@ -129,7 +127,10 @@
     "attest": "Registrar los objetivos como evidencia de la compuerta 1",
     "attestNote": "{count, plural, one {# objetivo medible registrado.} other {# objetivos medibles registrados.}}",
     "attested": "Los objetivos son evidencia del criterio G1.OBJECTIVES_STATED de la compuerta 1.",
-    "caption": "Objetivos de este proyecto"
+    "caption": "Objetivos de este proyecto",
+    "save": "Guardar objetivo",
+    "formDescription": "Una meta por medida. Si elige una medida que ya tiene objetivo, lo cambia.",
+    "changeHelp": "Esta medida ya tiene un objetivo. Al guardar, lo cambia."
   },
   "gate8": {
     "title": "Medición",
@@ -156,7 +157,6 @@
     "empty": "Aún no hay cifras registradas.",
     "formLabel": "Registrar una cifra",
     "record": "Registrar cifra",
-    "recorded": "Cifra registrada.",
     "recordedBy": "Registrada por",
     "notMeasured": "No se midió",
     "notMeasuredHelp": "Registre que esta cifra no se midió. Aparece como Sin medir, nunca como cero.",
@@ -170,7 +170,8 @@
     "withdrawReason": "Motivo (opcional)",
     "historyEntry": "{kind} por {name}, {date}: de {before} a {after}.",
     "historyReason": "Motivo: {reason}",
-    "caption": "Cifras registradas"
+    "caption": "Cifras registradas",
+    "formDescription": "Registre la cifra del día en cualquier unidad de la medida, o registre que no se midió."
   },
   "coverage": {
     "title": "Medios ganados",
@@ -178,7 +179,6 @@
     "empty": "Aún no hay cobertura registrada.",
     "formLabel": "Agregar cobertura",
     "add": "Agregar cobertura",
-    "added": "Cobertura agregada.",
     "tones": "Tono: {positive} positivas, {neutral} neutrales, {negative} negativas, {unrated} sin calificar.",
     "withdrawFor": "Retirar {title}",
     "withdrawDescription": "La pieza sale de la cantidad de cobertura y del alcance. Puede restaurarla desde la Papelera.",

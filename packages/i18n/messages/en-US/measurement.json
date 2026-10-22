@@ -120,8 +120,6 @@
     "empty": "No objectives yet. Set a target for each figure gate 8 will measure.",
     "formLabel": "Set an objective",
     "set": "Set objective",
-    "change": "Change objective",
-    "saved": "Objective saved.",
     "setBy": "Set by",
     "withdrawFor": "Withdraw the {metric} objective",
     "withdrawTitle": "Withdraw the {metric} objective?",
@@ -129,7 +127,10 @@
     "attest": "Record objectives as gate 1 evidence",
     "attestNote": "{count, plural, one {# measurable objective recorded.} other {# measurable objectives recorded.}}",
     "attested": "The objectives are evidence for gate 1 criterion G1.OBJECTIVES_STATED.",
-    "caption": "Objectives of this project"
+    "caption": "Objectives of this project",
+    "save": "Save objective",
+    "formDescription": "One target per measure. Choosing a measure that has an objective changes it.",
+    "changeHelp": "This measure has an objective. Saving changes it."
   },
   "gate8": {
     "title": "Measurement",
@@ -156,7 +157,6 @@
     "empty": "No figures recorded yet.",
     "formLabel": "Record a figure",
     "record": "Record figure",
-    "recorded": "Figure recorded.",
     "recordedBy": "Recorded by",
     "notMeasured": "Not measured",
     "notMeasuredHelp": "Record that this figure was not measured. It shows as Unmeasured, never as zero.",
@@ -170,7 +170,8 @@
     "withdrawReason": "Reason (optional)",
     "historyEntry": "{kind} by {name}, {date}: {before} to {after}.",
     "historyReason": "Reason: {reason}",
-    "caption": "Recorded figures"
+    "caption": "Recorded figures",
+    "formDescription": "Record the day's figure in any unit of the measure, or record that it was not measured."
   },
   "coverage": {
     "title": "Earned media",
@@ -178,7 +179,6 @@
     "empty": "No coverage recorded yet.",
     "formLabel": "Add coverage",
     "add": "Add coverage",
-    "added": "Coverage added.",
     "tones": "Tone: {positive} positive, {neutral} neutral, {negative} negative, {unrated} unrated.",
     "withdrawFor": "Withdraw {title}",
     "withdrawDescription": "The piece leaves the coverage count and reach. You can restore it from Trash.",

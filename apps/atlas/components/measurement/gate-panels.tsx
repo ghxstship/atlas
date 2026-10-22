@@ -40,9 +40,9 @@ import {
 import {
   AttestButton,
   CorrectFigureDialog,
-  CoverageForm,
-  FigureForm,
-  ObjectiveForm,
+  CoverageDialog,
+  FigureDialog,
+  ObjectiveDialog,
   WithdrawCoverageButton,
   WithdrawFigureDialog,
   WithdrawObjectiveButton,
@@ -229,7 +229,7 @@ export async function ObjectivesPanel({
         />
       )}
       {canEdit ? (
-        <ObjectiveForm
+        <ObjectiveDialog
           org={org}
           projectKey={projectKey}
           metrics={data.catalog.metrics.map((m) => ({
@@ -405,7 +405,7 @@ export async function MeasurementPanel({
           />
         )}
         {canWrite ? (
-          <FigureForm
+          <FigureDialog
             org={org}
             projectKey={projectKey}
             today={data.today}
@@ -459,7 +459,7 @@ export async function MeasurementPanel({
           </>
         )}
         {canWrite ? (
-          <CoverageForm
+          <CoverageDialog
             org={org}
             projectKey={projectKey}
             today={data.today}

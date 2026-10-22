@@ -37,26 +37,34 @@ async function setObjective(
   target: string,
   unit: string,
 ) {
-  const form = page.getByRole("form", { name: "Set an objective" });
-  await form.getByLabel("Measure", { exact: true }).selectOption({ label: metric });
-  await form.getByLabel("Direction").selectOption({ label: direction });
-  await form.getByLabel("Target").fill(target);
-  await form.getByLabel("Unit").selectOption({ label: unit });
-  await form.getByRole("button", { name: /objective$/ }).click();
-  await expect(form.getByRole("status")).toHaveText("Objective saved.");
+  await page
+    .locator('section[aria-labelledby="gate-1"]')
+    .getByRole("button", { name: "Set objective" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Set an objective" });
+  await dialog.getByLabel("Measure", { exact: true }).selectOption({ label: metric });
+  await dialog.getByLabel("Direction").selectOption({ label: direction });
+  await dialog.getByLabel("Target").fill(target);
+  await dialog.getByLabel("Unit").selectOption({ label: unit });
+  await dialog.getByRole("button", { name: "Save objective" }).click();
+  await expect(dialog).toBeHidden();
 }
 
 async function recordFigure(page: Page, metric: string, value: string | null, unit?: string) {
-  const form = page.getByRole("form", { name: "Record a figure" });
-  await form.getByLabel("Measure", { exact: true }).selectOption({ label: metric });
+  await page
+    .locator('section[aria-labelledby="gate-8"]')
+    .getByRole("button", { name: "Record figure" })
+    .click();
+  const dialog = page.getByRole("dialog", { name: "Record a figure" });
+  await dialog.getByLabel("Measure", { exact: true }).selectOption({ label: metric });
   if (value === null) {
-    await form.getByLabel("Not measured").check();
+    await dialog.getByLabel("Not measured").check();
   } else {
-    await form.getByLabel("Figure", { exact: true }).fill(value);
-    if (unit) await form.getByLabel("Unit").selectOption({ label: unit });
+    await dialog.getByLabel("Figure", { exact: true }).fill(value);
+    if (unit) await dialog.getByLabel("Unit").selectOption({ label: unit });
   }
-  await form.getByRole("button", { name: "Record figure" }).click();
-  await expect(form.getByRole("status")).toHaveText("Figure recorded.");
+  await dialog.getByRole("button", { name: "Record figure" }).click();
+  await expect(dialog).toBeHidden();
 }
 
 /** The summary row of a figure in the gate 8 panel or the report. */
@@ -95,6 +103,13 @@ test("objectives at gate 1, figures and earned media at gate 8, Unmeasured never
   const gate8 = page.locator('section[aria-labelledby="gate-8"]');
   await expect(gate8.getByRole("heading", { name: "Measurement" })).toBeVisible();
   await expect(summaryRow(page, "Water Used")).toContainText("Unmeasured");
+  // The dialog loads its form on first open, passes axe and closes with Escape.
+  await gate8.getByRole("button", { name: "Record figure" }).click();
+  const figureDialog = page.getByRole("dialog", { name: "Record a figure" });
+  await expect(figureDialog.getByLabel("Measure", { exact: true })).toBeVisible();
+  await expectAccessible(page);
+  await page.keyboard.press("Escape");
+  await expect(figureDialog).toBeHidden();
   await recordFigure(page, "Waste Generated", "1500", "Kilograms (kg)");
   await recordFigure(page, "Water Used", null);
   // The person's units are imperial by default: 1,500 kg shows as 3,306.93 lb against 4,409.25 lb (2 t).
@@ -123,14 +138,15 @@ test("objectives at gate 1, figures and earned media at gate 8, Unmeasured never
   await expect(summaryRow(page, "Waste Generated")).toContainText("Not Met");
 
   // Earned media coverage: the count and reach come from the pieces.
-  const coverage = page.getByRole("form", { name: "Add coverage" });
+  await gate8.getByRole("button", { name: "Add coverage" }).click();
+  const coverage = page.getByRole("dialog", { name: "Add coverage" });
   await coverage.getByLabel("Headline").fill("Summer Run opens on the bay");
   await coverage.getByLabel("Outlet").fill("Miami Herald");
   await coverage.getByLabel("Link").fill(`https://news.example.test/summer-run-${uniqueId()}`);
   await coverage.getByLabel("Reach").fill("120000");
   await coverage.getByLabel("Tone").selectOption({ label: "Positive" });
   await coverage.getByRole("button", { name: "Add coverage" }).click();
-  await expect(coverage.getByRole("status")).toHaveText("Coverage added.");
+  await expect(coverage).toBeHidden();
   await expect(gate8.getByRole("link", { name: "Summer Run opens on the bay" })).toBeVisible();
   await expect(summaryRow(page, "Earned Media Reach")).toContainText("120,000");
   await expect(summaryRow(page, "Coverage Pieces")).toContainText("1");

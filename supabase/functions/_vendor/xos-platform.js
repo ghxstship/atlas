@@ -9429,8 +9429,6 @@ var measurement_default$1 = {
     empty: "No objectives yet. Set a target for each figure gate 8 will measure.",
     formLabel: "Set an objective",
     set: "Set objective",
-    change: "Change objective",
-    saved: "Objective saved.",
     setBy: "Set by",
     withdrawFor: "Withdraw the {metric} objective",
     withdrawTitle: "Withdraw the {metric} objective?",
@@ -9440,6 +9438,9 @@ var measurement_default$1 = {
       "{count, plural, one {# measurable objective recorded.} other {# measurable objectives recorded.}}",
     attested: "The objectives are evidence for gate 1 criterion G1.OBJECTIVES_STATED.",
     caption: "Objectives of this project",
+    save: "Save objective",
+    formDescription: "One target per measure. Choosing a measure that has an objective changes it.",
+    changeHelp: "This measure has an objective. Saving changes it.",
   },
   gate8: {
     title: "Measurement",
@@ -9467,7 +9468,6 @@ var measurement_default$1 = {
     empty: "No figures recorded yet.",
     formLabel: "Record a figure",
     record: "Record figure",
-    recorded: "Figure recorded.",
     recordedBy: "Recorded by",
     notMeasured: "Not measured",
     notMeasuredHelp:
@@ -9484,6 +9484,8 @@ var measurement_default$1 = {
     historyEntry: "{kind} by {name}, {date}: {before} to {after}.",
     historyReason: "Reason: {reason}",
     caption: "Recorded figures",
+    formDescription:
+      "Record the day's figure in any unit of the measure, or record that it was not measured.",
   },
   coverage: {
     title: "Earned media",
@@ -9492,7 +9494,6 @@ var measurement_default$1 = {
     empty: "No coverage recorded yet.",
     formLabel: "Add coverage",
     add: "Add coverage",
-    added: "Coverage added.",
     tones: "Tone: {positive} positive, {neutral} neutral, {negative} negative, {unrated} unrated.",
     withdrawFor: "Withdraw {title}",
     withdrawDescription:
@@ -27934,8 +27935,6 @@ var measurement_default = {
     empty: "Aún no hay objetivos. Fije una meta para cada cifra que medirá la compuerta 8.",
     formLabel: "Fijar un objetivo",
     set: "Fijar objetivo",
-    change: "Cambiar objetivo",
-    saved: "Objetivo guardado.",
     setBy: "Fijado por",
     withdrawFor: "Retirar el objetivo de {metric}",
     withdrawTitle: "¿Retirar el objetivo de {metric}?",
@@ -27945,6 +27944,9 @@ var measurement_default = {
       "{count, plural, one {# objetivo medible registrado.} other {# objetivos medibles registrados.}}",
     attested: "Los objetivos son evidencia del criterio G1.OBJECTIVES_STATED de la compuerta 1.",
     caption: "Objetivos de este proyecto",
+    save: "Guardar objetivo",
+    formDescription: "Una meta por medida. Si elige una medida que ya tiene objetivo, lo cambia.",
+    changeHelp: "Esta medida ya tiene un objetivo. Al guardar, lo cambia.",
   },
   gate8: {
     title: "Medición",
@@ -27972,7 +27974,6 @@ var measurement_default = {
     empty: "Aún no hay cifras registradas.",
     formLabel: "Registrar una cifra",
     record: "Registrar cifra",
-    recorded: "Cifra registrada.",
     recordedBy: "Registrada por",
     notMeasured: "No se midió",
     notMeasuredHelp:
@@ -27991,6 +27992,8 @@ var measurement_default = {
     historyEntry: "{kind} por {name}, {date}: de {before} a {after}.",
     historyReason: "Motivo: {reason}",
     caption: "Cifras registradas",
+    formDescription:
+      "Registre la cifra del día en cualquier unidad de la medida, o registre que no se midió.",
   },
   coverage: {
     title: "Medios ganados",
@@ -27999,7 +28002,6 @@ var measurement_default = {
     empty: "Aún no hay cobertura registrada.",
     formLabel: "Agregar cobertura",
     add: "Agregar cobertura",
-    added: "Cobertura agregada.",
     tones:
       "Tono: {positive} positivas, {neutral} neutrales, {negative} negativas, {unrated} sin calificar.",
     withdrawFor: "Retirar {title}",
