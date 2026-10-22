@@ -35,11 +35,15 @@ export async function callRpc<T>(
   fn: string,
   args: Record<string, unknown>,
 ): Promise<Result<T>> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    name: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
-  const { data, error } = await rpc(fn, args);
+  // Widened before the call: binding the typed `rpc` instantiates every function of the generated
+  // schema, which passes TypeScript's depth limit once the schema is large enough.
+  const untyped = db as unknown as {
+    rpc(
+      name: string,
+      params: Record<string, unknown>,
+    ): PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
+  };
+  const { data, error } = await untyped.rpc(fn, args);
   return error ? fail(toDataError(error)) : ok(data as T);
 }
 
