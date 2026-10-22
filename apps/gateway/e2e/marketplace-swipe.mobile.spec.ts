@@ -10,7 +10,8 @@ import { DEMO, expectAccessible, signIn, sql } from "./support";
  */
 test.use({ reducedMotion: "reduce" });
 test.setTimeout(180_000);
-const expect = baseExpect.configure({ timeout: 20_000 });
+// Each gesture ends in a server action and a refresh; a loaded dev server can take half a minute for one.
+const expect = baseExpect.configure({ timeout: 60_000 });
 
 /** One horizontal touch swipe across an element, as touch pointer events. */
 async function swipe(page: Page, target: Locator, dx: number): Promise<void> {
@@ -65,6 +66,8 @@ test("swipe right saves and swipe left passes an Explore card, with buttons for 
   await expect.poll(() => savedCount(opp.id)).toBe("1");
   await expect(page).toHaveURL(/\/explore\?/);
 
+  // The row takes the next gesture once the save has settled: its buttons are enabled again.
+  await expect(actions.getByRole("button", { name: "Pass" })).toBeEnabled();
   await swipe(page, page.getByRole("link", { name: opp.title }), -160);
   await expect(page.getByText(`You passed on ${opp.title}.`)).toBeVisible();
   await page.getByRole("button", { name: "Undo" }).click();
