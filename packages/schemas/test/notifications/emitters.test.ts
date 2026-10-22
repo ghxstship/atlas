@@ -42,6 +42,29 @@ function definition(source: string, symbol: string): string | null {
   return source.slice(at, end < 0 ? undefined : end);
 }
 
+function migration(name: string): string {
+  return read(`supabase/migrations/${name}`);
+}
+
+/**
+ * Why an emitter reference no longer names the function's latest definition: the later migrations that redefine it,
+ * where to point instead and whether that definition still sends the kind. Branches merged together meet this when
+ * one redefines a function another's registry entry names. Null when the reference is the latest definition.
+ */
+function staleEmitter(
+  kind: string,
+  name: string,
+  symbol: string,
+  files: readonly string[],
+  source: (name: string) => string,
+): string | null {
+  const later = files.filter((m) => m > name && definition(source(m), symbol) !== null);
+  const latest = later.at(-1);
+  if (latest === undefined) return null;
+  const keeps = definition(source(latest), symbol)?.includes(`'${kind}'`) ?? false;
+  return `${kind}: ${symbol} is redefined in ${later.join(", ")}; point emitted_by at supabase/migrations/${latest}#${symbol}${keeps ? "" : `, which no longer sends ${kind}`}`;
+}
+
 describe("every notification kind is sent or says why not", () => {
   it("covers every registered kind", () => {
     expect([...emission.keys()]).toEqual(registry.kinds.map((k) => k.kind));
@@ -67,10 +90,7 @@ describe("every notification kind is sent or says why not", () => {
           );
           // A later migration that redefines the function must take over the reference, with the kind.
           const name = file.slice("supabase/migrations/".length);
-          const later = migrations.filter(
-            (m) => m > name && definition(read(`supabase/migrations/${m}`), symbol) !== null,
-          );
-          expect(later, `${kind}: ${symbol} is redefined after ${name}`).toEqual([]);
+          expect(staleEmitter(kind, name, symbol, migrations, migration)).toBeNull();
         } else if (symbol !== undefined) {
           expect(source.includes(symbol), `${kind}: ${file} defines ${symbol}`).toBe(true);
         }
@@ -79,6 +99,26 @@ describe("every notification kind is sent or says why not", () => {
       }
     });
   }
+
+  it("names where to point when a merged migration redefines an emitter", () => {
+    // Synthetic migrations, so the case holds whatever the repository's own migrations redefine.
+    const [first, merged] = ["0001_first.sql", "0002_merged_branch.sql"];
+    const symbol = "private.notify_step_approvers";
+    const definitionWith = (body: string) =>
+      `create or replace function ${symbol}(p_instance app.approval_instances)\nreturns void\nas $$\nbegin\n  ${body}\nend;\n$$;\n`;
+    const sends = definitionWith(
+      "perform private.notify(p_instance.org_id, v_person, 'approval.requested');",
+    );
+    const keeps = () => sends;
+    const drops = (name: string) => (name === merged ? definitionWith("return;") : sends);
+    expect(staleEmitter("approval.requested", first, symbol, [first, merged], keeps)).toBe(
+      `approval.requested: ${symbol} is redefined in ${merged}; point emitted_by at supabase/migrations/${merged}#${symbol}`,
+    );
+    expect(staleEmitter("approval.requested", first, symbol, [first, merged], drops)).toMatch(
+      /, which no longer sends approval\.requested$/,
+    );
+    expect(staleEmitter("approval.requested", merged, symbol, [first, merged], keeps)).toBeNull();
+  });
 
   it("defers only the kinds that wait on a recorded decision", () => {
     const deferred = [...emission]
