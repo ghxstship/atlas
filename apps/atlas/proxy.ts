@@ -29,6 +29,10 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *      may not see renders the 404 page with status 404, never 403 (ADR 0006).
  * Pages repeat the visibility check (components/shell/sitemap-page.tsx), so a matcher change can
  * never open a hidden page.
+ *
+ * Every request it runs on gets the route's org in ROUTE_ORG_HEADER, or loses a value the client sent
+ * (lib/shell/route-org.ts). A prefetch, which renders a page ahead of the navigation, gets only that:
+ * no nonce, session refresh, guard or cookie, as when prefetches skipped the proxy entirely.
  */
 
 /** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
@@ -36,11 +40,32 @@ const NOT_FOUND_PATH = "/auth/not-found";
 /** Where a member whose network an org's IP allow-list refuses is sent. */
 const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
+/** A prefetch the router (next/link) or the browser makes ahead of a navigation. */
+function isPrefetch(request: NextRequest): boolean {
+  return (
+    request.headers.has("next-router-prefetch") || request.headers.get("purpose") === "prefetch"
+  );
+}
+
+/** The request's headers with ROUTE_ORG_HEADER set to the route's org, or removed when it names none. */
+function withRouteOrg(request: NextRequest, slug: string | undefined): Headers {
+  const headers = new Headers(request.headers);
+  if (slug) headers.set(ROUTE_ORG_HEADER, slug);
+  else headers.delete(ROUTE_ORG_HEADER);
+  return headers;
+}
+
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = env();
   // The API host (XOS_API_HOST) serves the public API only: no CSRF page check, session refresh,
   // route guard or cookie applies there (lib/api-host.ts).
   if (isApiHost(request.headers.get("host"), config)) return apiHostResponse(request, config);
+  // The org the route names, for the server code that renders before the page has its params.
+  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
+  // A prefetched page negotiates its locale as the page will (i18n/request.ts), and nothing else runs.
+  if (isPrefetch(request)) {
+    return NextResponse.next({ request: { headers: withRouteOrg(request, slug) } });
+  }
   const development = config.NODE_ENV === "development";
   const secureSite = config.ATLAS_SITE_URL.startsWith("https:");
   if (
@@ -61,13 +86,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
     supabaseOrigin: new URL(config.SUPABASE_URL).origin,
     secureSite,
   });
-  // The org the route names, for the server code that renders before the page has its params.
-  const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   /** Request headers for the app, rebuilt after any cookie refresh so they carry the new cookies. */
   const forwardedHeaders = () => {
-    const headers = new Headers(request.headers);
-    if (slug) headers.set(ROUTE_ORG_HEADER, slug);
-    else headers.delete(ROUTE_ORG_HEADER);
+    const headers = withRouteOrg(request, slug);
     headers.set("x-nonce", nonce);
     headers.set("content-security-policy", csp);
     return headers;
@@ -151,14 +172,10 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   return secure(result);
 }
 
+/**
+ * Every page request, prefetches included (they take the light path above). The proxy never sees the
+ * /api/ route handlers or static files, and none of them negotiates a locale.
+ */
 export const config = {
-  matcher: [
-    {
-      source: "/((?!api/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
-      missing: [
-        { type: "header", key: "next-router-prefetch" },
-        { type: "header", key: "purpose", value: "prefetch" },
-      ],
-    },
-  ],
+  matcher: [{ source: "/((?!api/|_next/static|_next/image|favicon.ico|\\.well-known/).*)" }],
 };
