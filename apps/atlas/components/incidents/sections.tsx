@@ -78,6 +78,7 @@ import {
 } from "@/lib/incidents/actions";
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
+import { IncidentOshaPanel } from "@/components/compliance/osha-panels";
 import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
@@ -520,6 +521,7 @@ async function IncidentRecord({
       }
     >
       <DocumentActions org={page.ctx.org.slug} kind="incident-report" id={incident.id} />
+      <IncidentOshaPanel ctx={page.ctx} incidentId={incident.id} members={memberList} />
       {moves.length > 0 && (canDispatch || canWrite) ? (
         <RecordSection id="incident-move" title={t("incidents.moveHeading")}>
           {moves

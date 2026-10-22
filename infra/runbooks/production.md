@@ -180,7 +180,7 @@ supabase functions deploy --project-ref <production-ref>
 supabase secrets list --project-ref <production-ref>   # names only; values never print
 ```
 
-Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
+Set any secret new in this release with `supabase secrets set --project-ref <production-ref> NAME=...` from the owner's secret store. Confirm the worker schedules (`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices`, each every minute; `infra/runbooks/integrations.md`) still exist: `select jobname, schedule from cron.job order by 1;`.
 
 ### 3. Apps
 
@@ -367,6 +367,28 @@ becomes downloadable after the next run.
 
 Renovate proposes new `clamav/clamav` tags. Update ADR 0001 and `infra/scanning/docker-compose.yaml`
 together. Roll hosts one at a time; while one restarts, scans retry with backoff.
+
+## Legal change notices (OWNER)
+
+Section 14.4 needs 30 days' notice before a material change to a legal document or a new subprocessor. Both
+start with one call in the SQL editor of the production project, after the new text is published at `/legal`
+(A82, migrations 1382 and 1383). Each refuses a date less than 30 days ahead and records the notice time from
+the database, which is the evidence of the notice.
+
+```sql
+-- A material change: Atlas asks whoever accepts terms for each org (Org), or Gateway asks each person
+-- who accepted an earlier version (Personal), until they accept the new version.
+select app.announce_legal_change('terms-of-service', '2.0.0', 'Org', '<what changes, in plain words>', date '<effective date>');
+-- Withdraw a notice sent by mistake:
+select app.withdraw_legal_change('terms-of-service', '2.0.0');
+
+-- A Subprocessor List change: emails every confirmed subscriber and every Owner and Admin who has not
+-- opted out; the subprocessor-notices worker sends them.
+select app.queue_subprocessor_notice('<list version>', '<what changes, in plain words>', date '<effective date>');
+```
+
+A subprocessor notice emails real recipients, which `legal/policies/change-management.md` section 5 makes a
+stop condition: the owner approves each one before it is queued.
 
 ## Stripe catalogue (OWNER, test mode)
 

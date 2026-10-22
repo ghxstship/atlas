@@ -53417,6 +53417,221 @@
         "required": ["capability_code", "valid_to", "agreement_reference"],
         "description": "A standing grant to record."
       },
+      "ShareLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ShareLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ShareLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the share link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attachment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the file the link shares.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attachment_version_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Clean version the link opens, set from the file's current version.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "classification": { "$ref": "#/components/schemas/Classification" },
+          "access_code_required": {
+            "type": "boolean",
+            "description": "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+            "example": false
+          },
+          "recipient_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Who the link is for, lowercased. Required for a Confidential file.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for.",
+            "example": "Stage plot for the venue"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes entered; the link locks at 5.",
+            "example": 0
+          },
+          "open_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Successful opens.",
+            "example": 2
+          },
+          "last_opened_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last opened.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "attachment_id",
+          "attachment_version_id",
+          "classification",
+          "access_code_required",
+          "recipient_email",
+          "note",
+          "expires_at",
+          "failed_attempts",
+          "open_count",
+          "last_opened_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links."
+      },
+      "ShareLinkToken": {
+        "type": "object",
+        "properties": {
+          "share_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xshr_[0-9a-f]{64}$",
+            "description": "The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.",
+            "example": "xshr_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": ["string", "null"],
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "classification": { "$ref": "#/components/schemas/Classification" },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["share_link_id", "token", "access_code", "classification", "expires_at"],
+        "description": "A new share link with its token and access code, shown once."
+      },
+      "ShareLinkCreate": {
+        "type": "object",
+        "properties": {
+          "attachment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the file the link shares.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "access_code_required": {
+            "type": "boolean",
+            "description": "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+            "example": false
+          },
+          "recipient_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Who the link is for, lowercased. Required for a Confidential file.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for.",
+            "example": "Stage plot for the venue"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["attachment_id"],
+        "description": "Fields accepted when creating a ShareLink."
+      },
       "PersonCalendarFeedPage": {
         "type": "object",
         "properties": {
@@ -142374,6 +142589,255 @@
                   "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
                 },
                 "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/share-links": {
+      "get": {
+        "operationId": "shareLinks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List share link rows",
+        "description": "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of share link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attachment_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "classification": "Restricted",
+                      "access_code_required": false,
+                      "recipient_email": "alex.rivera@northwindlive.example",
+                      "note": "Stage plot for the venue",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "failed_attempts": 0,
+                      "open_count": 2,
+                      "last_opened_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "shareLinks.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-rpc": "create_share_link",
+        "summary": "Create a share link",
+        "description": "Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "access_code_required": false,
+                "recipient_email": "alex.rivera@northwindlive.example",
+                "note": "Stage plot for the venue",
+                "expires_at": "2026-10-08T14:30:00Z"
+              },
+              "schema": { "$ref": "#/components/schemas/ShareLinkCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "share_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xshr_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "classification": "Restricted",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/share-links/{id}": {
+      "get": {
+        "operationId": "shareLinks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "summary": "Get a share link",
+        "description": "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the share link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the share link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The share link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "classification": "Restricted",
+                  "access_code_required": false,
+                  "recipient_email": "alex.rivera@northwindlive.example",
+                  "note": "Stage plot for the venue",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 2,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/share-links/{id}/revoke": {
+      "post": {
+        "operationId": "shareLinks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-rpc": "revoke_share_link",
+        "summary": "Revoke a share link",
+        "description": "Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the share link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the share link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "classification": "Restricted",
+                  "access_code_required": false,
+                  "recipient_email": "alex.rivera@northwindlive.example",
+                  "note": "Stage plot for the venue",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 2,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLink" }
               }
             }
           },

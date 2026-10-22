@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { minimumAgeConfirmed } from "@xos/data/consent";
 import { TermsForm } from "@/components/auth/forms";
 import { missingSignUpAcceptances } from "@/lib/auth/legal";
 import { safeNext } from "@/lib/auth/redirect";
@@ -28,6 +29,7 @@ export default async function TermsPage({ searchParams }: PageProps<"/auth/terms
     redirect(`/auth/sign-in?next=${encodeURIComponent(here)}` as Route);
   }
   if ((await missingSignUpAcceptances(db)).length === 0) redirect(next as Route);
+  const age = await minimumAgeConfirmed(db);
   const t = await getTranslations("gateway.auth");
   const legalLink = (href: string) =>
     function LegalLink(chunks: ReactNode) {
@@ -50,6 +52,7 @@ export default async function TermsPage({ searchParams }: PageProps<"/auth/terms
       </div>
       <TermsForm
         next={next}
+        askAge={!(age.ok && age.data)}
         termsLabel={t.rich("signUp.terms", {
           terms: legalLink("/legal/worker-terms"),
           privacy: legalLink("/legal/privacy-policy"),
