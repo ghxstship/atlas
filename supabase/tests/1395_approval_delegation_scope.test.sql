@@ -1,14 +1,15 @@
 -- pgTAP: migration 1395, Out of Office delegation for approvals follows what was delegated (RRR-121, audit of A76).
 -- A delegation that covers another capability (timesheets) neither lets the delegate decide or read an away
 -- approver's purchase order steps nor takes the notification away from the approver. A delegation that covers
--- approvals still does. When the away approver's only delegate is the requester, the approver is notified, so the
+-- approvals still does: the delegate decides, and the requester hears the decision (approval.decided). When the away
+-- approver's only delegate is the requester, or already decided an earlier step, the approver is notified, so the
 -- approval never goes unseen.
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(13);
+select plan(18);
 
 -- World: three priced purchase orders and an Active policy whose one step names Bob ---------------------------------
 select pg_temp.as_user('alice');
@@ -33,6 +34,10 @@ with x as (insert into app.purchase_orders (project_id, vendor_id, currency_code
   insert into world select 'po3', id from x;
 insert into app.po_lines (purchase_order_id, line_number, description, budget_line_id, element_id, quantity, unit_price_minor)
   values (pg_temp.id('po3'), 1, 'Barricade.', pg_temp.id('bl'), '0000.01.01-XOS-001', 1, 10000);
+with x as (insert into app.purchase_orders (project_id, vendor_id, currency_code) values (pg_temp.id('prj_a'), pg_temp.id('ven'), 'USD') returning id)
+  insert into world select 'po4', id from x;
+insert into app.po_lines (purchase_order_id, line_number, description, budget_line_id, element_id, quantity, unit_price_minor)
+  values (pg_temp.id('po4'), 1, 'Front-of-house riser.', pg_temp.id('bl'), '0000.01.01-XOS-001', 1, 12000);
 
 select pg_temp.as_user('bob');
 with x as (insert into app.approval_policies (org_id, name, document_type) values (pg_temp.id('org_a'), 'Purchase orders', 'Purchase Order') returning id)
@@ -85,6 +90,14 @@ insert into world values ('ai2', app.request_approval('Purchase Order', pg_temp.
 select pg_temp.as_platform();
 select is((select array_agg(recipient_person_id) from app.notifications where subject_id = pg_temp.id('ai2') and kind = 'approval.requested'),
   array[pg_temp.id('carol')], 'the covering delegate is notified in the away approver''s place');
+select pg_temp.as_user('carol');
+select lives_ok($$select app.decide_approval((select id from world where key = 'ai2'), true, 'Approved while Bob is away.')$$,
+  'the covering delegate decides the away approver''s step');
+select pg_temp.as_platform();
+select is((select approval_state::text from app.approval_instances where id = pg_temp.id('ai2')), 'Approved',
+  'her decision approves the one-step approval');
+select is((select count(*)::int from app.notifications where subject_id = pg_temp.id('ai2') and kind = 'approval.decided' and recipient_person_id = pg_temp.id('alice')), 1,
+  'the requester is told the decision (approval.decided)');
 
 -- The away approver's only delegate requests the approval --------------------------------------------------------
 select pg_temp.as_user('carol');
@@ -96,6 +109,25 @@ select is((select count(*)::int from app.notifications where subject_id = pg_tem
   'and the requester is not');
 select set_eq($$select private.step_approver_person_ids((select id from world where key = 'pol'), 1::smallint, array[(select id from world where key = 'carol')])$$,
   $$values ((select id from world where key = 'bob'))$$, 'an approver whose delegates are all unavailable stays on the list');
+
+-- The away approver's only delegate already decided an earlier step ----------------------------------------------
+select pg_temp.as_user('bob');
+select app.transition_approval_policy(pg_temp.id('pol'), 'Active', 'Retired', 'Two signatures from now on.');
+with x as (insert into app.approval_policies (org_id, name, document_type) values (pg_temp.id('org_a'), 'Purchase orders, signed twice', 'Purchase Order') returning id)
+  insert into world select 'pol2', id from x;
+insert into app.approval_steps (approval_policy_id, step_order, name, approver_membership_id) values
+  (pg_temp.id('pol2'), 1, 'Bob signs off', pg_temp.id('bob@org_a')),
+  (pg_temp.id('pol2'), 2, 'Bob signs again', pg_temp.id('bob@org_a'));
+select app.transition_approval_policy(pg_temp.id('pol2'), 'Draft', 'Active', 'Ready.');
+select pg_temp.as_user('alice');
+insert into world values ('ai4', app.request_approval('Purchase Order', pg_temp.id('po4')));
+select pg_temp.as_user('carol');
+select app.decide_approval(pg_temp.id('ai4'), true, 'First signature, for Bob.');
+select pg_temp.as_platform();
+select is((select count(*)::int from app.notifications where subject_id = pg_temp.id('ai4') and kind = 'approval.requested' and recipient_person_id = pg_temp.id('bob')), 1,
+  'when the delegate already decided step 1, the away approver is asked for step 2');
+select is((select count(*)::int from app.notifications where subject_id = pg_temp.id('ai4') and kind = 'approval.requested' and recipient_person_id = pg_temp.id('carol')), 1,
+  'and the delegate is asked only for the step she could decide');
 
 select * from finish();
 rollback;
