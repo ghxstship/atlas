@@ -135,6 +135,17 @@ export const NOTIFICATION_EMAIL_TEMPLATES: readonly EmailTemplateDefinition[] = 
     transactional: true,
     description: "Acknowledges a data subject request and states its due date.",
   },
+  {
+    code: "subprocessor_confirm",
+    transactional: true,
+    description:
+      "Asks a new subscriber to confirm Subprocessor List change notices (double opt-in).",
+  },
+  {
+    code: "subprocessor_notice",
+    transactional: false,
+    description: "Announces a Subprocessor List change at least 30 days before it applies.",
+  },
 ];
 
 /** The templates index: every notification kind. */

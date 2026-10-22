@@ -113,7 +113,7 @@ supabase functions deploy
 supabase secrets set --env-file ./functions.env
 ```
 
-En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token` e `integration-inbound` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
+En una pila autoalojada, monta `supabase/functions` en el servicio de funciones de Compose. `stripe-webhook`, `inbound-email`, `email-unsubscribe`, `kiosk-punch`, `api-token`, `integration-inbound` y `file-download` autentican a quien las llama por sí mismas y se despliegan sin verificación de JWT, como declara `supabase/config.toml`.
 
 | Secreto                                                   | Lo usa                                                                                                                     |
 | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
@@ -129,7 +129,7 @@ En una pila autoalojada, monta `supabase/functions` en el servicio de funciones 
 
 ### Programa las funciones de trabajo
 
-`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker` y `automation-run` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
+`webhook-dispatch`, `notification-dispatch`, `upload-scan`, `report-run`, `import-run`, `integration-worker`, `subprocessor-notices` y `automation-run` hacen su trabajo cuando se llaman con la clave de rol de servicio. Llama a cada una cada minuto. En Supabase alojado, pg_cron y pg_net pueden hacerlo desde la base de datos, leyendo la clave desde Vault:
 
 ```sql
 select vault.create_secret('<service role key>', 'xos_worker_key');
@@ -144,7 +144,7 @@ select cron.schedule('xos_worker_webhook_dispatch', '* * * * *', $$
 $$);
 ```
 
-Repite para las otras seis funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió. Mientras `import-run` no se ejecute, las importaciones no se leen, mientras `integration-worker` no se ejecute, las integraciones no se sincronizan y las entregas al almacén de datos esperan, y mientras `automation-run` no se ejecute, las automatizaciones dejan sus ejecuciones en cola sin actuar. Las apps de los proveedores y sus secretos de webhook están en `infra/runbooks/integrations.md`.
+Repite para las otras siete funciones, o llámalas desde cualquier programador que ya uses. Mientras `upload-scan` no se ejecute, los adjuntos no se pueden descargar y los archivos de campo y de incorporación solo llegan a quien los subió. Mientras `import-run` no se ejecute, las importaciones no se leen, mientras `integration-worker` no se ejecute, las integraciones no se sincronizan y las entregas al almacén de datos esperan, y mientras `automation-run` no se ejecute, las automatizaciones dejan sus ejecuciones en cola sin actuar. Las apps de los proveedores y sus secretos de webhook están en `infra/runbooks/integrations.md`.
 
 ### Análisis de archivos subidos
 

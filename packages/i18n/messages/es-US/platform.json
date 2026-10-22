@@ -555,6 +555,11 @@
       "assignment": {
         "created": "Nueva asignación"
       },
+      "automation": {
+        "notice": "Mensaje de una automatización",
+        "failed": "Falló una automatización",
+        "paused": "Automatización en pausa"
+      },
       "billing": {
         "payment_failed": "Pago fallido",
         "read_only": "La organización está en modo de solo lectura",
@@ -601,7 +606,7 @@
         "ownership_accepted": "Propiedad aceptada",
         "ownership_declined": "Propiedad rechazada",
         "white_label_reverting": "La marca blanca termina pronto",
-        "white_label_reverted": "La marca blanca terminó"
+        "white_label_reverted": "Marca blanca finalizada"
       },
       "partner": {
         "client_left": "Una organización cliente se fue"

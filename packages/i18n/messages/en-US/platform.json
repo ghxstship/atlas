@@ -555,6 +555,11 @@
       "assignment": {
         "created": "New assignment"
       },
+      "automation": {
+        "notice": "Automation message",
+        "failed": "Automation failed",
+        "paused": "Automation paused"
+      },
       "billing": {
         "payment_failed": "Payment failed",
         "read_only": "Organization is read-only",

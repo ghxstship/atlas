@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { LOCALE_COOKIE, selectableLocales } from "@/i18n/negotiate";
 import { env } from "@/lib/env";
+import { preferenceOptions } from "@/lib/privacy/consent";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { THEME_COOKIE, THEME_PREFERENCES } from "@/lib/theme";
 import { ACTING_COOKIE } from "./standing";
@@ -16,6 +17,7 @@ import { ACTING_COOKIE } from "./standing";
  */
 const YEAR = 60 * 60 * 24 * 365;
 
+/** The acting account (strictly necessary: which account this browser acts for). */
 async function setPreference(name: string, value: string): Promise<void> {
   (await cookies()).set(name, value, {
     path: "/",
@@ -26,9 +28,17 @@ async function setPreference(name: string, value: string): Promise<void> {
   });
 }
 
+/**
+ * Language and theme are Preferences cookies (legal/cookie-policy.md, A65-014): 12 months when the
+ * visitor allowed Preferences, the visit otherwise.
+ */
+async function setPreferenceCookie(name: string, value: string): Promise<void> {
+  (await cookies()).set(name, value, await preferenceOptions());
+}
+
 export async function setLocale(locale: string): Promise<void> {
   const allowed = selectableLocales(process.env.NODE_ENV === "production") as string[];
-  await setPreference(LOCALE_COOKIE, z.enum(allowed as [string, ...string[]]).parse(locale));
+  await setPreferenceCookie(LOCALE_COOKIE, z.enum(allowed as [string, ...string[]]).parse(locale));
 }
 
 export async function setTheme(preference: string): Promise<void> {
@@ -37,7 +47,7 @@ export async function setTheme(preference: string): Promise<void> {
     (await cookies()).delete(THEME_COOKIE);
     return;
   }
-  await setPreference(THEME_COOKIE, value);
+  await setPreferenceCookie(THEME_COOKIE, value);
 }
 
 /** Acts for oneself (`self`) or for one of the person's external accounts. */

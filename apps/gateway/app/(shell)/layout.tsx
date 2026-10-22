@@ -2,6 +2,7 @@ import { listMyEngagements } from "@xos/data/gateway";
 import { cookies, headers } from "next/headers";
 import { negotiatedLocale } from "@/i18n/request";
 import type { ReactNode } from "react";
+import { ReacceptancePrompt } from "@/components/legal/reacceptance-banner";
 import { GatewayFrame } from "@/components/shell/gateway-frame";
 import { ReporterUser } from "@/components/shell/reporter-user";
 import { selectableLocales } from "@/i18n/negotiate";
@@ -22,7 +23,9 @@ import {
 /**
  * Every signed-in Gateway page renders inside the Gateway shell. The navigation comes from the
  * sitemap for the person's standing; the brand is the org's on its custom domain, else the
- * platform's (Section 4.4.7). Only the platform brand links to the docs site's help center.
+ * platform's (Section 4.4.7). Only the platform brand links to the docs site's help center. After a
+ * material change to a document the person accepted, such as the Worker Terms, every page opens with
+ * the re-acceptance prompt (Section 14.4, A82).
  */
 export default async function ShellLayout({ children }: { children: ReactNode }) {
   const path = (await headers()).get("x-gateway-path") ?? "/home";
@@ -75,6 +78,7 @@ export default async function ShellLayout({ children }: { children: ReactNode })
       docsUrl={ctx.brand.kind === "org" ? null : docsSiteUrl(env())}
     >
       <ReporterUser personId={ctx.personId} />
+      <ReacceptancePrompt db={ctx.db} />
       {children}
     </GatewayFrame>
   );

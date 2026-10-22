@@ -30,6 +30,7 @@ import { a79PlatformHandlers } from "./parts/a79.ts";
 import { a84Handlers } from "./parts/a84.ts";
 import { automationHandlers } from "./parts/automations.ts";
 import { workflowHandlers } from "./parts/workflow.ts";
+import { shareLinkHandlers } from "./parts/share-links.ts";
 import { from, handlersFor, rpc, run, tableResource, unwrap } from "./support/table.ts";
 import type { Row } from "./support/table.ts";
 
@@ -264,6 +265,7 @@ export const handlers = defineHandlers("Platform", {
   ...(workflowHandlers as unknown as HandlerSet<"Platform">),
   ...(a36Handlers as unknown as HandlerSet<"Platform">),
   ...(a79PlatformHandlers as unknown as HandlerSet<"Platform">),
+  ...shareLinkHandlers,
   ...(a84Handlers as unknown as HandlerSet<"Platform">),
   ...(automationHandlers as unknown as HandlerSet<"Platform">),
 
