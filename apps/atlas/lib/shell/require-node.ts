@@ -1,6 +1,6 @@
 import { getNode, isNodeVisible, routeParams } from "@xos/ia";
 import { notFound } from "next/navigation";
-import { DATA_PARAMS } from "@/ia/routes.config";
+import { DATA_PARAMS, PAGE_RESOLVED_PARAMS } from "@/ia/routes.config";
 import { getProjectContextFor } from "@/lib/projects/context";
 import { getOrgContext, type OrgContext } from "@/lib/shell/context";
 import { sitemap } from "@/lib/shell/sitemap";
@@ -21,8 +21,11 @@ export async function requireNode(node: string, params: Params): Promise<OrgCont
   // not read answers 404 (invariant 2). Routes naming another data row belong to their module
   // agents: records (A08), saved views (A31) and custom objects (A18). Each owner replaces its
   // page with a lookup; until then those routes answer 404.
-  const rowParams = routeParams(route).filter((p) =>
-    (DATA_PARAMS as readonly string[]).includes(p),
+  // The workspace and team settings pages look their row up themselves (PAGE_RESOLVED_PARAMS).
+  const rowParams = routeParams(route).filter(
+    (p) =>
+      (DATA_PARAMS as readonly string[]).includes(p) &&
+      !(PAGE_RESOLVED_PARAMS as readonly string[]).includes(p),
   );
   if (rowParams.some((p) => p !== "projectKey")) notFound();
   if (rowParams.includes("projectKey") && !(await getProjectContextFor(params))) notFound();

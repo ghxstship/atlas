@@ -67,11 +67,14 @@ export function navContext(input: {
   readonly desktop: boolean;
   /** The person does paid work (finding A59-033); omitted, it holds. */
   readonly paidWork?: boolean;
+  /** An org the person belongs to allows personal API tokens (developer.personal_tokens, A86); omitted, none does. */
+  readonly personalTokens?: boolean;
 }): NavContext {
   const conditions: Condition[] = [];
   if (input.companyAccount) conditions.push("company-account");
   if (input.platformDomain) conditions.push("platform-domain");
   if (input.desktop) conditions.push("desktop");
   if (input.paidWork ?? true) conditions.push("paid-work");
+  if (input.personalTokens === true) conditions.push("org-allows-personal-tokens");
   return { role: input.standing, conditions };
 }

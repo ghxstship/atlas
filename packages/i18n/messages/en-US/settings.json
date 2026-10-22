@@ -268,6 +268,10 @@
     "messageTranslation": {
       "label": "Translate chat messages",
       "help": "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default."
+    },
+    "personalTokens": {
+      "label": "Allow personal API tokens",
+      "help": "Members can create their own API tokens in Personal settings, Developer. A token acts as its member, limited to the areas they choose, and expires within a year. Turning this off stops every token at once."
     }
   },
   "choices": {
@@ -451,10 +455,24 @@
     "teams": "Teams group members who share work. Each team lists its members.",
     "workspaces": "Workspaces divide the org by office or venue group. Override settings for each one here.",
     "accessReviews": "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
+    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app.",
+    "apiKeysAndServiceAccounts": "Let your servers call the XOS API through service accounts and their keys, and decide whether members may create personal tokens.",
+    "webhooks": "Send signed events to your other systems as they happen, and send a delivery again when one fails.",
+    "spendAuthority": "Set how much each role or person may approve, per document type and currency.",
+    "separationOfDuties": "The rules that keep one person from doing both halves of a sensitive act.",
+    "customFields": "Add the fields your records need to projects, venues, vendors and more.",
+    "canonExtensions": "Disciplines and categories your organization adds to the canon.",
+    "dataAndPrivacy": "Answer data requests, place legal holds, and see exports, classification and retention.",
+    "auditLog": "The latest audited changes to access and settings, and the way to the full log.",
+    "automations": "Scheduled reports, recurring work, approval policies and webhooks: what runs without anyone pressing a button.",
+    "connectedApps": "Apps you allowed to act for you, and a way to disconnect them.",
+    "developer": "Personal API tokens for your own scripts in this organization.",
+    "payoutAndTax": "Where organizations pay you and the tax forms you signed.",
+    "workspace": "What this workspace sets differently from the organization, and who works in it.",
+    "team": "Who is on this team. Teams use their workspace's and the organization's settings.",
     "partner": "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
     "usage": "What the organization uses against its plan: seats, field members, projects and engagements.",
-    "templates": "Templates the organization reuses for projects, documents and packets.",
-    "calendarFeeds": "Subscribe to your schedule, or to a project you work on, from any calendar app."
+    "templates": "Templates the organization reuses for projects, documents and packets."
   },
   "accessControls": {
     "saved": "Saved.",

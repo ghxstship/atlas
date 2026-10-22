@@ -70,7 +70,9 @@ function fakeSupabase(
         );
       }
       if (key === "xos_live_bare") return json({ detail: "Refused." }, 422);
-      if (key !== "xos_live_valid") return json({ detail: "unknown" }, 401);
+      if (key !== "xos_live_valid" && key !== "xos_pat_valid") {
+        return json({ detail: "unknown" }, 401);
+      }
       return json({
         access_token: jwt({ sub: SA_USER_ID, org_id: ORG_A.id }),
         token_type: "bearer",
@@ -203,6 +205,13 @@ describe("org session rules: security.mfa_policy and security.session_hours (A77
     await expect(resolve(authenticate, { authorization: `Bearer ${VALID}` })).rejects.toMatchObject(
       { body: { status: 401 } },
     );
+  });
+
+  it("exchanges a personal API token (A86) like an API key", async () => {
+    const { authenticate, exchanges } = fakeSupabase([ORG_A]);
+    const context = await resolve(authenticate, { authorization: "Bearer xos_pat_valid" });
+    expect(context?.credential).toBe("api_key");
+    expect(exchanges.at(-1)).toBe("Bearer xos_pat_valid");
   });
 
   it("never asks for an API key, whose token is a machine credential", async () => {
