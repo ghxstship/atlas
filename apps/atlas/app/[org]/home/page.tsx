@@ -7,6 +7,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { ButtonLink, PageHeader } from "@/components/ui";
 import { requireNode } from "@/lib/shell/require-node";
 import { nodeHref, sitemap } from "@/lib/shell/sitemap";
+import { getOrgTimeZone } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 import { formatAlert } from "@/components/home/format-alert";
 import { HomeTiles } from "@/components/home/home-tiles";
@@ -69,12 +70,19 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
     typeof formatAlert
   >[0];
   const now = new Date();
+  // An overdue record's due date reads on the org's calendar, like the alerts' "today" (A71).
+  const zone = projectTiles ? await getOrgTimeZone(ctx) : "UTC";
   const tileText = projectTiles
     ? {
         alerts: Object.fromEntries(
           projectTiles.alerts.map((a) => [
             a.id,
-            formatAlert(alertT, (date) => format.dateTime(date, { dateStyle: "medium" }), a),
+            formatAlert(
+              alertT,
+              (date, timeZone) => format.dateTime(date, { dateStyle: "medium", timeZone }),
+              a,
+              zone,
+            ),
           ]),
         ),
         times: Object.fromEntries(

@@ -6823,6 +6823,7 @@ export type Database = {
       };
       attachments: {
         Row: {
+          classification: Database["app"]["Enums"]["data_classification"];
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
@@ -6836,6 +6837,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          classification?: Database["app"]["Enums"]["data_classification"];
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -6848,6 +6850,7 @@ export type Database = {
           updated_by?: string | null;
         };
         Update: {
+          classification?: Database["app"]["Enums"]["data_classification"];
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
@@ -9339,6 +9342,214 @@ export type Database = {
           },
           {
             foreignKeyName: "certifications_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      certified_payroll_projects: {
+        Row: {
+          business_address: string;
+          business_name: string;
+          contract_number: string;
+          contractor_role: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          org_id: string;
+          project_id: string;
+          project_location: string;
+          updated_at: string;
+          updated_by: string | null;
+          wage_determinations: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          business_address: string;
+          business_name: string;
+          contract_number: string;
+          contractor_role?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id: string;
+          project_id: string;
+          project_location: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          wage_determinations: string;
+        };
+        Update: {
+          business_address?: string;
+          business_name?: string;
+          contract_number?: string;
+          contractor_role?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          org_id?: string;
+          project_id?: string;
+          project_location?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          wage_determinations?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certified_payroll_projects_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_projects_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      certified_payroll_submissions: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          final_submission: boolean;
+          id: string;
+          issued_at: string;
+          issued_by: string | null;
+          org_id: string;
+          payroll_number: number;
+          project_id: string;
+          updated_at: string;
+          updated_by: string | null;
+          week_ending: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          final_submission?: boolean;
+          id?: string;
+          issued_at?: string;
+          issued_by?: string | null;
+          org_id: string;
+          payroll_number: number;
+          project_id: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          week_ending: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          final_submission?: boolean;
+          id?: string;
+          issued_at?: string;
+          issued_by?: string | null;
+          org_id?: string;
+          payroll_number?: number;
+          project_id?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          week_ending?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "certified_payroll_submissions_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_issued_by_fkey";
+            columns: ["issued_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "gate_criteria_status";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_authority";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "project_billing";
+            referencedColumns: ["project_id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_project_id_fkey";
+            columns: ["project_id"];
+            isOneToOne: false;
+            referencedRelation: "projects";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "certified_payroll_submissions_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -13035,137 +13246,6 @@ export type Database = {
           },
           {
             foreignKeyName: "delegations_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      deletion_certificates: {
-        Row: {
-          attempts: number;
-          basis: string;
-          blocked_reason: string | null;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          deleted_org_id: string;
-          delivered_at: string | null;
-          delivery_message_id: string | null;
-          document_object: string | null;
-          document_sha256: string | null;
-          due_at: string;
-          held_at: string | null;
-          id: string;
-          issued_at: string | null;
-          last_error: string | null;
-          locale: string;
-          locked_at: string | null;
-          locked_by: string | null;
-          org_name: string;
-          org_slug: string;
-          owner_email: string | null;
-          owner_name: string | null;
-          owner_person_id: string | null;
-          purged_at: string | null;
-          requested_at: string;
-          rows_purged: number | null;
-          storage_cleared_at: string | null;
-          storage_objects_deleted: number;
-          tables_purged: number | null;
-          time_zone: string;
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          attempts?: number;
-          basis: string;
-          blocked_reason?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          deleted_org_id: string;
-          delivered_at?: string | null;
-          delivery_message_id?: string | null;
-          document_object?: string | null;
-          document_sha256?: string | null;
-          due_at: string;
-          held_at?: string | null;
-          id?: string;
-          issued_at?: string | null;
-          last_error?: string | null;
-          locale?: string;
-          locked_at?: string | null;
-          locked_by?: string | null;
-          org_name: string;
-          org_slug: string;
-          owner_email?: string | null;
-          owner_name?: string | null;
-          owner_person_id?: string | null;
-          purged_at?: string | null;
-          requested_at: string;
-          rows_purged?: number | null;
-          storage_cleared_at?: string | null;
-          storage_objects_deleted?: number;
-          tables_purged?: number | null;
-          time_zone?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          attempts?: number;
-          basis?: string;
-          blocked_reason?: string | null;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          deleted_org_id?: string;
-          delivered_at?: string | null;
-          delivery_message_id?: string | null;
-          document_object?: string | null;
-          document_sha256?: string | null;
-          due_at?: string;
-          held_at?: string | null;
-          id?: string;
-          issued_at?: string | null;
-          last_error?: string | null;
-          locale?: string;
-          locked_at?: string | null;
-          locked_by?: string | null;
-          org_name?: string;
-          org_slug?: string;
-          owner_email?: string | null;
-          owner_name?: string | null;
-          owner_person_id?: string | null;
-          purged_at?: string | null;
-          requested_at?: string;
-          rows_purged?: number | null;
-          storage_cleared_at?: string | null;
-          storage_objects_deleted?: number;
-          tables_purged?: number | null;
-          time_zone?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "deletion_certificates_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "deletion_certificates_owner_person_id_fkey";
-            columns: ["owner_person_id"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "deletion_certificates_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -26474,108 +26554,17 @@ export type Database = {
           },
         ];
       };
-      org_deletion_requests: {
-        Row: {
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          id: string;
-          org_id: string;
-          reason: string;
-          recover_until: string;
-          recovered_at: string | null;
-          recovered_by: string | null;
-          requested_at: string;
-          requested_by: string;
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          id?: string;
-          org_id: string;
-          reason: string;
-          recover_until: string;
-          recovered_at?: string | null;
-          recovered_by?: string | null;
-          requested_at?: string;
-          requested_by: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          id?: string;
-          org_id?: string;
-          reason?: string;
-          recover_until?: string;
-          recovered_at?: string | null;
-          recovered_by?: string | null;
-          requested_at?: string;
-          requested_by?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "org_deletion_requests_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "org_deletion_requests_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "org_deletion_requests_recovered_by_fkey";
-            columns: ["recovered_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "org_deletion_requests_requested_by_fkey";
-            columns: ["requested_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "org_deletion_requests_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       org_domains: {
         Row: {
           auto_join_role_id: string | null;
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
-          dns_records: NonNullable<Json>;
           hostname: string;
           id: string;
           last_checked_at: string | null;
           org_id: string;
-          provider_ref: string | null;
-          provisioned_at: string | null;
-          provisioning_error: string | null;
-          provisioning_status: Database["app"]["Enums"]["domain_provisioning_status"];
           purpose: Database["app"]["Enums"]["org_domain_purpose"];
-          tls_ready: boolean;
           updated_at: string;
           updated_by: string | null;
           verification_state: Database["app"]["Enums"]["domain_verification_state"];
@@ -26588,17 +26577,11 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
-          dns_records?: NonNullable<Json>;
           hostname: string;
           id?: string;
           last_checked_at?: string | null;
           org_id: string;
-          provider_ref?: string | null;
-          provisioned_at?: string | null;
-          provisioning_error?: string | null;
-          provisioning_status?: Database["app"]["Enums"]["domain_provisioning_status"];
           purpose: Database["app"]["Enums"]["org_domain_purpose"];
-          tls_ready?: boolean;
           updated_at?: string;
           updated_by?: string | null;
           verification_state?: Database["app"]["Enums"]["domain_verification_state"];
@@ -26610,17 +26593,11 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
-          dns_records?: NonNullable<Json>;
           hostname?: string;
           id?: string;
           last_checked_at?: string | null;
           org_id?: string;
-          provider_ref?: string | null;
-          provisioned_at?: string | null;
-          provisioning_error?: string | null;
-          provisioning_status?: Database["app"]["Enums"]["domain_provisioning_status"];
           purpose?: Database["app"]["Enums"]["org_domain_purpose"];
-          tls_ready?: boolean;
           updated_at?: string;
           updated_by?: string | null;
           verification_state?: Database["app"]["Enums"]["domain_verification_state"];
@@ -27667,103 +27644,371 @@ export type Database = {
           },
         ];
       };
-      ownership_transfers: {
+      osha_annual_summaries: {
         Row: {
-          accepted_at: string | null;
-          canceled_at: string | null;
-          canceled_by: string | null;
+          annual_average_employees: number | null;
+          certified_by: string | null;
+          certified_on: string | null;
+          certifier_phone: string | null;
+          certifier_title: string | null;
           created_at: string;
           created_by: string | null;
-          declined_at: string | null;
           deleted_at: string | null;
-          expired_at: string | null;
-          expires_at: string;
-          from_person_id: string;
+          establishment_id: string;
           id: string;
-          offered_at: string;
+          log_year: number;
           org_id: string;
-          previous_owner_outcome: string;
-          to_person_id: string;
+          total_hours_worked: number | null;
           updated_at: string;
           updated_by: string | null;
         };
         ComputedFields: never;
         Insert: {
-          accepted_at?: string | null;
-          canceled_at?: string | null;
-          canceled_by?: string | null;
+          annual_average_employees?: number | null;
+          certified_by?: string | null;
+          certified_on?: string | null;
+          certifier_phone?: string | null;
+          certifier_title?: string | null;
           created_at?: string;
           created_by?: string | null;
-          declined_at?: string | null;
           deleted_at?: string | null;
-          expired_at?: string | null;
-          expires_at: string;
-          from_person_id: string;
+          establishment_id: string;
           id?: string;
-          offered_at?: string;
+          log_year: number;
           org_id: string;
-          previous_owner_outcome?: string;
-          to_person_id: string;
+          total_hours_worked?: number | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Update: {
-          accepted_at?: string | null;
-          canceled_at?: string | null;
-          canceled_by?: string | null;
+          annual_average_employees?: number | null;
+          certified_by?: string | null;
+          certified_on?: string | null;
+          certifier_phone?: string | null;
+          certifier_title?: string | null;
           created_at?: string;
           created_by?: string | null;
-          declined_at?: string | null;
           deleted_at?: string | null;
-          expired_at?: string | null;
-          expires_at?: string;
-          from_person_id?: string;
+          establishment_id?: string;
           id?: string;
-          offered_at?: string;
+          log_year?: number;
           org_id?: string;
-          previous_owner_outcome?: string;
-          to_person_id?: string;
+          total_hours_worked?: number | null;
           updated_at?: string;
           updated_by?: string | null;
         };
         Relationships: [
           {
-            foreignKeyName: "ownership_transfers_canceled_by_fkey";
-            columns: ["canceled_by"];
+            foreignKeyName: "osha_annual_summaries_certified_by_fkey";
+            columns: ["certified_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ownership_transfers_created_by_fkey";
+            foreignKeyName: "osha_annual_summaries_created_by_fkey";
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ownership_transfers_from_person_id_fkey";
-            columns: ["from_person_id"];
+            foreignKeyName: "osha_annual_summaries_establishment_id_fkey";
+            columns: ["establishment_id"];
             isOneToOne: false;
-            referencedRelation: "people";
+            referencedRelation: "osha_establishments";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ownership_transfers_org_id_fkey";
+            foreignKeyName: "osha_annual_summaries_org_id_fkey";
             columns: ["org_id"];
             isOneToOne: false;
             referencedRelation: "organizations";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ownership_transfers_to_person_id_fkey";
-            columns: ["to_person_id"];
+            foreignKeyName: "osha_annual_summaries_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      osha_cases: {
+        Row: {
+          activity_before: string | null;
+          case_number: string;
+          case_type: string;
+          completed_by: string | null;
+          completed_on: string | null;
+          completed_phone: string | null;
+          completed_title: string | null;
+          created_at: string;
+          created_by: string | null;
+          date_hired: string | null;
+          date_of_birth: string | null;
+          days_away: number;
+          days_restricted: number;
+          deleted_at: string | null;
+          description: string;
+          died_on: string | null;
+          emergency_room: boolean | null;
+          employee_locality: string | null;
+          employee_name: string | null;
+          employee_postal_code: string | null;
+          employee_region: string | null;
+          employee_sex: string | null;
+          employee_street: string | null;
+          establishment_id: string;
+          event_location: string;
+          event_time: string | null;
+          event_time_unknown: boolean;
+          facility_locality: string | null;
+          facility_postal_code: string | null;
+          facility_region: string | null;
+          facility_street: string | null;
+          harmful_object: string | null;
+          health_care_professional: string | null;
+          hospitalized_overnight: boolean | null;
+          id: string;
+          incident_id: string | null;
+          injury_date: string;
+          injury_detail: string | null;
+          job_title: string;
+          log_year: number;
+          org_id: string;
+          outcome: string;
+          person_id: string | null;
+          privacy_case: boolean;
+          treatment_facility: string | null;
+          updated_at: string;
+          updated_by: string | null;
+          what_happened: string | null;
+          work_began_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_before?: string | null;
+          case_number?: string;
+          case_type: string;
+          completed_by?: string | null;
+          completed_on?: string | null;
+          completed_phone?: string | null;
+          completed_title?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          date_hired?: string | null;
+          date_of_birth?: string | null;
+          days_away?: number;
+          days_restricted?: number;
+          deleted_at?: string | null;
+          description: string;
+          died_on?: string | null;
+          emergency_room?: boolean | null;
+          employee_locality?: string | null;
+          employee_name?: string | null;
+          employee_postal_code?: string | null;
+          employee_region?: string | null;
+          employee_sex?: string | null;
+          employee_street?: string | null;
+          establishment_id: string;
+          event_location: string;
+          event_time?: string | null;
+          event_time_unknown?: boolean;
+          facility_locality?: string | null;
+          facility_postal_code?: string | null;
+          facility_region?: string | null;
+          facility_street?: string | null;
+          harmful_object?: string | null;
+          health_care_professional?: string | null;
+          hospitalized_overnight?: boolean | null;
+          id?: string;
+          incident_id?: string | null;
+          injury_date: string;
+          injury_detail?: string | null;
+          job_title: string;
+          log_year: number;
+          org_id: string;
+          outcome: string;
+          person_id?: string | null;
+          privacy_case?: boolean;
+          treatment_facility?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          what_happened?: string | null;
+          work_began_at?: string | null;
+        };
+        Update: {
+          activity_before?: string | null;
+          case_number?: string;
+          case_type?: string;
+          completed_by?: string | null;
+          completed_on?: string | null;
+          completed_phone?: string | null;
+          completed_title?: string | null;
+          created_at?: string;
+          created_by?: string | null;
+          date_hired?: string | null;
+          date_of_birth?: string | null;
+          days_away?: number;
+          days_restricted?: number;
+          deleted_at?: string | null;
+          description?: string;
+          died_on?: string | null;
+          emergency_room?: boolean | null;
+          employee_locality?: string | null;
+          employee_name?: string | null;
+          employee_postal_code?: string | null;
+          employee_region?: string | null;
+          employee_sex?: string | null;
+          employee_street?: string | null;
+          establishment_id?: string;
+          event_location?: string;
+          event_time?: string | null;
+          event_time_unknown?: boolean;
+          facility_locality?: string | null;
+          facility_postal_code?: string | null;
+          facility_region?: string | null;
+          facility_street?: string | null;
+          harmful_object?: string | null;
+          health_care_professional?: string | null;
+          hospitalized_overnight?: boolean | null;
+          id?: string;
+          incident_id?: string | null;
+          injury_date?: string;
+          injury_detail?: string | null;
+          job_title?: string;
+          log_year?: number;
+          org_id?: string;
+          outcome?: string;
+          person_id?: string | null;
+          privacy_case?: boolean;
+          treatment_facility?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+          what_happened?: string | null;
+          work_began_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "osha_cases_completed_by_fkey";
+            columns: ["completed_by"];
             isOneToOne: false;
             referencedRelation: "people";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "ownership_transfers_updated_by_fkey";
+            foreignKeyName: "osha_cases_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_establishment_id_fkey";
+            columns: ["establishment_id"];
+            isOneToOne: false;
+            referencedRelation: "osha_establishments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_incident_id_fkey";
+            columns: ["incident_id"];
+            isOneToOne: false;
+            referencedRelation: "incidents";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_person_id_fkey";
+            columns: ["person_id"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_cases_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      osha_establishments: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          industry_description: string | null;
+          locality: string | null;
+          naics_code: string | null;
+          name: string;
+          org_id: string;
+          postal_code: string | null;
+          region_code: string | null;
+          street_address: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          industry_description?: string | null;
+          locality?: string | null;
+          naics_code?: string | null;
+          name: string;
+          org_id: string;
+          postal_code?: string | null;
+          region_code?: string | null;
+          street_address?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          industry_description?: string | null;
+          locality?: string | null;
+          naics_code?: string | null;
+          name?: string;
+          org_id?: string;
+          postal_code?: string | null;
+          region_code?: string | null;
+          street_address?: string | null;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "osha_establishments_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_establishments_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "osha_establishments_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -27990,111 +28235,6 @@ export type Database = {
           },
           {
             foreignKeyName: "partner_default_brands_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      partner_standing_grants: {
-        Row: {
-          agreement_reference: string;
-          capability_code: string;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          ended_at: string | null;
-          ended_by: string | null;
-          id: string;
-          org_id: string;
-          partner_org_id: string;
-          record_grant_id: string;
-          updated_at: string;
-          updated_by: string | null;
-          valid_from: string;
-          valid_to: string;
-        };
-        ComputedFields: never;
-        Insert: {
-          agreement_reference: string;
-          capability_code: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          ended_at?: string | null;
-          ended_by?: string | null;
-          id?: string;
-          org_id: string;
-          partner_org_id: string;
-          record_grant_id: string;
-          updated_at?: string;
-          updated_by?: string | null;
-          valid_from?: string;
-          valid_to: string;
-        };
-        Update: {
-          agreement_reference?: string;
-          capability_code?: string;
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          ended_at?: string | null;
-          ended_by?: string | null;
-          id?: string;
-          org_id?: string;
-          partner_org_id?: string;
-          record_grant_id?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-          valid_from?: string;
-          valid_to?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "partner_standing_grants_capability_code_fkey";
-            columns: ["capability_code"];
-            isOneToOne: false;
-            referencedRelation: "capabilities";
-            referencedColumns: ["code"];
-          },
-          {
-            foreignKeyName: "partner_standing_grants_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "partner_standing_grants_ended_by_fkey";
-            columns: ["ended_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "partner_standing_grants_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "partner_standing_grants_partner_org_id_fkey";
-            columns: ["partner_org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "partner_standing_grants_record_grant_id_fkey";
-            columns: ["record_grant_id"];
-            isOneToOne: false;
-            referencedRelation: "record_grants";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "partner_standing_grants_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -36879,6 +37019,87 @@ export type Database = {
           },
         ];
       };
+      registered_apprentices: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          id: string;
+          labor_classification: string;
+          membership_id: string;
+          org_id: string;
+          program_name: string;
+          progression_level: string | null;
+          registered_with: string;
+          updated_at: string;
+          updated_by: string | null;
+          valid_from: string;
+          valid_to: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          labor_classification: string;
+          membership_id: string;
+          org_id: string;
+          program_name: string;
+          progression_level?: string | null;
+          registered_with: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from: string;
+          valid_to?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          id?: string;
+          labor_classification?: string;
+          membership_id?: string;
+          org_id?: string;
+          program_name?: string;
+          progression_level?: string | null;
+          registered_with?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          valid_from?: string;
+          valid_to?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "registered_apprentices_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "registered_apprentices_membership_id_fkey";
+            columns: ["membership_id"];
+            isOneToOne: false;
+            referencedRelation: "memberships";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "registered_apprentices_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "registered_apprentices_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       report_definitions: {
         Row: {
           chart: Database["app"]["Enums"]["report_chart"];
@@ -40982,6 +41203,122 @@ export type Database = {
           },
         ];
       };
+      share_links: {
+        Row: {
+          access_code_hash: string | null;
+          access_code_required: boolean;
+          attachment_id: string;
+          attachment_version_id: string | null;
+          classification: Database["app"]["Enums"]["data_classification"];
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          expires_at: string | null;
+          failed_attempts: number;
+          id: string;
+          last_opened_at: string | null;
+          note: string | null;
+          open_count: number;
+          org_id: string;
+          recipient_email: string | null;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          token_hash: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          access_code_hash?: string | null;
+          access_code_required?: boolean;
+          attachment_id: string;
+          attachment_version_id?: string | null;
+          classification?: Database["app"]["Enums"]["data_classification"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          failed_attempts?: number;
+          id?: string;
+          last_opened_at?: string | null;
+          note?: string | null;
+          open_count?: number;
+          org_id: string;
+          recipient_email?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          token_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          access_code_hash?: string | null;
+          access_code_required?: boolean;
+          attachment_id?: string;
+          attachment_version_id?: string | null;
+          classification?: Database["app"]["Enums"]["data_classification"];
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          expires_at?: string | null;
+          failed_attempts?: number;
+          id?: string;
+          last_opened_at?: string | null;
+          note?: string | null;
+          open_count?: number;
+          org_id?: string;
+          recipient_email?: string | null;
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          token_hash?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "share_links_attachment_id_fkey";
+            columns: ["attachment_id"];
+            isOneToOne: false;
+            referencedRelation: "attachments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_attachment_version_id_fkey";
+            columns: ["attachment_version_id"];
+            isOneToOne: false;
+            referencedRelation: "attachment_versions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_revoked_by_fkey";
+            columns: ["revoked_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "share_links_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "people";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       shared_reports: {
         Row: {
           created_at: string;
@@ -43796,7 +44133,6 @@ export type Database = {
           plan_code: string;
           seats_grandfathered: boolean;
           subscription_state: Database["app"]["Enums"]["subscription_state"];
-          trial_ends_at: string | null;
           updated_at: string;
           updated_by: string | null;
         };
@@ -43811,7 +44147,6 @@ export type Database = {
           plan_code: string;
           seats_grandfathered?: boolean;
           subscription_state: Database["app"]["Enums"]["subscription_state"];
-          trial_ends_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -43825,7 +44160,6 @@ export type Database = {
           plan_code?: string;
           seats_grandfathered?: boolean;
           subscription_state?: Database["app"]["Enums"]["subscription_state"];
-          trial_ends_at?: string | null;
           updated_at?: string;
           updated_by?: string | null;
         };
@@ -48924,6 +49258,7 @@ export type Database = {
           org_id: string;
           postal_code: string | null;
           street_address: string | null;
+          subdivision_code: string | null;
           time_zone: string;
           updated_at: string;
           updated_by: string | null;
@@ -48943,6 +49278,7 @@ export type Database = {
           org_id: string;
           postal_code?: string | null;
           street_address?: string | null;
+          subdivision_code?: string | null;
           time_zone: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -48959,6 +49295,7 @@ export type Database = {
           org_id?: string;
           postal_code?: string | null;
           street_address?: string | null;
+          subdivision_code?: string | null;
           time_zone?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -50079,78 +50416,6 @@ export type Database = {
           },
           {
             foreignKeyName: "webhook_endpoints_updated_by_fkey";
-            columns: ["updated_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
-      white_label_grace: {
-        Row: {
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          end_reason: string | null;
-          ended_at: string | null;
-          id: string;
-          kept_until: string;
-          org_id: string;
-          plan_from: string;
-          updated_at: string;
-          updated_by: string | null;
-        };
-        ComputedFields: never;
-        Insert: {
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          end_reason?: string | null;
-          ended_at?: string | null;
-          id?: string;
-          kept_until: string;
-          org_id: string;
-          plan_from: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Update: {
-          created_at?: string;
-          created_by?: string | null;
-          deleted_at?: string | null;
-          end_reason?: string | null;
-          ended_at?: string | null;
-          id?: string;
-          kept_until?: string;
-          org_id?: string;
-          plan_from?: string;
-          updated_at?: string;
-          updated_by?: string | null;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "white_label_grace_created_by_fkey";
-            columns: ["created_by"];
-            isOneToOne: false;
-            referencedRelation: "people";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "white_label_grace_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "white_label_grace_plan_from_fkey";
-            columns: ["plan_from"];
-            isOneToOne: false;
-            referencedRelation: "plans";
-            referencedColumns: ["code"];
-          },
-          {
-            foreignKeyName: "white_label_grace_updated_by_fkey";
             columns: ["updated_by"];
             isOneToOne: false;
             referencedRelation: "people";
@@ -54647,7 +54912,6 @@ export type Database = {
       };
       accept_invite_link: { Args: { p_token: string }; Returns: string };
       accept_offer: { Args: { p_offer_id: string }; Returns: undefined };
-      accept_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
       accept_representation: { Args: { p_representation_id: string }; Returns: undefined };
       accept_shared_certification: {
         Args: { p_certification_id: string; p_certification_share_id: string };
@@ -54770,6 +55034,16 @@ export type Database = {
           p_request_id: string;
           p_summary: string;
           p_target_id: string;
+        };
+        Returns: string;
+      };
+      announce_legal_change: {
+        Args: {
+          p_acceptance: string;
+          p_document_slug: string;
+          p_document_version: string;
+          p_effective_on: string;
+          p_summary: string;
         };
         Returns: string;
       };
@@ -54958,7 +55232,6 @@ export type Database = {
         Args: { p_confirm_name: string; p_org_id: string; p_reason: string };
         Returns: string;
       };
-      cancel_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
       cancel_payment: { Args: { p_payment_id: string; p_reason: string }; Returns: string };
       cancel_shift_swap: { Args: { p_reason: string; p_shift_swap_id: string }; Returns: string };
       cancel_time_off: {
@@ -54980,6 +55253,27 @@ export type Database = {
       carry_certification_to_profile: {
         Args: { p_certification_holder_id: string };
         Returns: string;
+      };
+      certified_payroll: {
+        Args: { p_final?: boolean; p_project_id: string; p_week_ending: string };
+        Returns: {
+          apprentice: string;
+          currency_code: string;
+          entry_number: number;
+          first_name: string;
+          gross_all_work_minor: number;
+          gross_project_minor: number;
+          identifying_number: string;
+          labor_classification: string;
+          last_name: string;
+          middle_initial: string;
+          overtime_minutes: number[];
+          overtime_rate_minor: number;
+          payroll_number: number;
+          straight_minutes: number[];
+          straight_rate_minor: number;
+          total_minutes: number;
+        }[];
       };
       check_in_dock_slot: { Args: { p_dock_slot_id: string }; Returns: string };
       check_in_guest: {
@@ -55017,50 +55311,6 @@ export type Database = {
           object_scan_id: string;
           size_bytes: number;
         }[];
-      };
-      claim_deletion_certificates: {
-        Args: { p_limit?: number; p_worker: string };
-        Returns: {
-          attempts: number;
-          basis: string;
-          blocked_reason: string | null;
-          created_at: string;
-          created_by: string | null;
-          deleted_at: string | null;
-          deleted_org_id: string;
-          delivered_at: string | null;
-          delivery_message_id: string | null;
-          document_object: string | null;
-          document_sha256: string | null;
-          due_at: string;
-          held_at: string | null;
-          id: string;
-          issued_at: string | null;
-          last_error: string | null;
-          locale: string;
-          locked_at: string | null;
-          locked_by: string | null;
-          org_name: string;
-          org_slug: string;
-          owner_email: string | null;
-          owner_name: string | null;
-          owner_person_id: string | null;
-          purged_at: string | null;
-          requested_at: string;
-          rows_purged: number | null;
-          storage_cleared_at: string | null;
-          storage_objects_deleted: number;
-          tables_purged: number | null;
-          time_zone: string;
-          updated_at: string;
-          updated_by: string | null;
-        }[];
-        SetofOptions: {
-          from: "*";
-          to: "deletion_certificates";
-          isOneToOne: false;
-          isSetofReturn: true;
-        };
       };
       claim_integration_inbound_event: {
         Args: { p_event_id: string };
@@ -55203,6 +55453,16 @@ export type Database = {
         }[];
       };
       claim_open_shift: { Args: { p_reason?: string; p_shift_id: string }; Returns: string };
+      claim_platform_emails: {
+        Args: { p_limit?: number };
+        Returns: {
+          args: Json;
+          id: string;
+          locale: string;
+          template: string;
+          to_email: string;
+        }[];
+      };
       claim_push_receipts: {
         Args: { p_limit?: number };
         Returns: {
@@ -55312,8 +55572,18 @@ export type Database = {
         Args: { p_delivery_id: string; p_object_prefix: string; p_schema_version: string };
         Returns: undefined;
       };
-      consent_oauth_request: { Args: { p_authorization_id: string }; Returns: string };
+      confirm_minimum_age: { Args: { p_client_ip?: unknown; p_surface: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
+      consume_file_download_ticket: {
+        Args: { p_ticket: string };
+        Returns: {
+          bucket_id: string;
+          content_type: string;
+          filename: string;
+          object_name: string;
+          size_bytes: number;
+        }[];
+      };
       conversation_read_receipts: {
         Args: { p_conversation_id: string };
         Returns: {
@@ -55495,6 +55765,22 @@ export type Database = {
         Args: { p_expires_at?: string; p_name: string; p_org_id: string; p_role_id: string };
         Returns: string;
       };
+      create_share_link: {
+        Args: {
+          p_access_code_required?: boolean;
+          p_attachment_id: string;
+          p_expires_at?: string;
+          p_note?: string;
+          p_recipient_email?: string;
+        };
+        Returns: {
+          access_code: string;
+          classification: Database["app"]["Enums"]["data_classification"];
+          expires_at: string;
+          share_link_id: string;
+          token: string;
+        }[];
+      };
       create_survey: {
         Args: {
           p_audience_kind?: Database["app"]["Enums"]["audience_kind"];
@@ -55612,18 +55898,9 @@ export type Database = {
         };
         Returns: string;
       };
-      decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
-      decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
       delete_my_account: { Args: { p_confirm_email: string }; Returns: Json };
-      deletion_storage_objects: {
-        Args: { p_certificate_id: string };
-        Returns: {
-          bucket_id: string;
-          name: string;
-        }[];
-      };
       disable_project_inbox: { Args: { p_project_id: string }; Returns: undefined };
       discard_inbound_message: {
         Args: { p_inbound_message_id: string; p_reason?: string };
@@ -55634,17 +55911,6 @@ export type Database = {
         Returns: string;
       };
       dispose_lost_item: { Args: { p_item_id: string; p_reason: string }; Returns: string };
-      domains_to_provision: {
-        Args: { p_org_domain_ids: string[] };
-        Returns: {
-          deleted: boolean;
-          hostname: string;
-          id: string;
-          org_id: string;
-          provider_ref: string;
-          purpose: Database["app"]["Enums"]["org_domain_purpose"];
-        }[];
-      };
       door_guest_list: {
         Args: { p_project_id: string; p_search?: string };
         Returns: {
@@ -55695,7 +55961,6 @@ export type Database = {
         };
       };
       end_membership: { Args: { p_membership_id: string }; Returns: undefined };
-      end_standing_grant: { Args: { p_standing_grant_id: string }; Returns: string };
       end_support_session: { Args: { p_support_session_id: string }; Returns: string };
       engaged_guest_list: {
         Args: { p_engagement_id: string };
@@ -55820,6 +56085,10 @@ export type Database = {
         Args: { p_error?: string; p_job_id: string; p_succeeded: boolean };
         Returns: Database["app"]["Enums"]["job_status"];
       };
+      finish_platform_email: {
+        Args: { p_error?: string; p_id: string; p_provider_message_id?: string; p_sent: boolean };
+        Returns: string;
+      };
       finish_report_delivery: {
         Args: {
           p_delivery_id: string;
@@ -55874,12 +56143,6 @@ export type Database = {
         Returns: string;
       };
       generate_permit_requirements: { Args: { p_project_id: string }; Returns: number };
-      generate_recovery_codes: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          code: string;
-        }[];
-      };
       generate_self_billed_invoice: {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
@@ -55981,7 +56244,6 @@ export type Database = {
         }[];
       };
       leave_organization: { Args: { p_org_id: string }; Returns: undefined };
-      leave_partner: { Args: { p_confirm_name: string; p_org_id: string }; Returns: string };
       lock_baseline: { Args: { p_baseline_id: string }; Returns: number };
       log_lost_item: {
         Args: {
@@ -56005,6 +56267,7 @@ export type Database = {
         Returns: string;
       };
       message_translation_enabled: { Args: { p_org_id: string }; Returns: boolean };
+      minimum_age_confirmed: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_access_paths: {
         Args: {
           p_org_id: string;
@@ -56101,33 +56364,12 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
-      my_oauth_access: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          oauth_app_id: string;
-          org_id: string;
-          scopes: string[];
-        }[];
-      };
-      my_oauth_apps: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          app_name: string;
-          grant_id: string;
-          granted_at: string;
-          last_used_at: string;
-          oauth_app_id: string;
-          org_name: string;
-          scopes: string[];
-        }[];
-      };
       my_org_auth_status: {
         Args: { p_org_id: string };
         Returns: {
           idle_timeout_minutes: number;
           mfa_required: boolean;
           mfa_verified: boolean;
-          session_ended: boolean;
           session_expired: boolean;
           session_expires_at: string;
           session_hours: number;
@@ -56142,16 +56384,6 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
-      my_recovery_code_status: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          created_at: string;
-          last_used_at: string;
-          remaining: number;
-          total: number;
-          usable: boolean;
-        }[];
-      };
       my_second_factor_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -56159,29 +56391,6 @@ export type Database = {
           recent_until: string;
           second_factor_at: string;
           session_aal: string;
-        }[];
-      };
-      my_security_events: {
-        Args: { p_limit?: number };
-        Returns: {
-          detail: Json;
-          kind: string;
-          occurred_at: string;
-          this_session: boolean;
-        }[];
-      };
-      my_sessions: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          client_address: string;
-          is_current: boolean;
-          last_active_at: string;
-          place: string;
-          second_factor: boolean;
-          session_id: string;
-          signed_in_at: string;
-          surface: string;
-          user_agent: string;
         }[];
       };
       my_sms_status: {
@@ -56235,36 +56444,9 @@ export type Database = {
           starts_on: string;
         }[];
       };
-      oauth_app_client_ids: {
-        Args: { p_org_id: string };
-        Returns: {
-          auth_client_id: string;
-          oauth_app_id: string;
-        }[];
-      };
-      oauth_consent_request: {
-        Args: { p_authorization_id: string };
-        Returns: {
-          app_name: string;
-          client_id: string;
-          expires_at: string;
-          granted_scopes: string[];
-          oauth_app_id: string;
-          org_id: string;
-          org_name: string;
-          pkce_s256: boolean;
-          redirect_uri: string;
-          restricted_scopes: string[];
-          scopes: string[];
-        }[];
-      };
       object_scan_status: {
         Args: { p_bucket_id: string; p_object_name: string };
         Returns: Database["app"]["Enums"]["scan_status"];
-      };
-      offer_ownership_transfer: {
-        Args: { p_org_id: string; p_previous_owner_outcome?: string; p_to_person_id: string };
-        Returns: string;
       };
       open_account_support_request: {
         Args: {
@@ -56305,23 +56487,6 @@ export type Database = {
           project_id: string;
         }[];
       };
-      org_banner_status: {
-        Args: { p_org_id: string };
-        Returns: {
-          billing_state: string;
-          ownership_expires_at: string;
-          ownership_offered_by: string;
-          ownership_transfer_id: string;
-          past_due_since: string;
-          purge_after: string;
-          read_only_reason: string;
-          read_only_until: string;
-          recover_until: string;
-          trial_ends_at: string;
-          trial_plan: string;
-          white_label_until: string;
-        }[];
-      };
       org_export_tables: {
         Args: { p_org_id: string };
         Returns: {
@@ -56336,15 +56501,31 @@ export type Database = {
           flag_key: string;
         }[];
       };
-      org_trial: {
-        Args: { p_org_id: string };
+      organization_verified: { Args: { p_org_id: string }; Returns: boolean };
+      osha_employment_estimate: {
+        Args: { p_org_id: string; p_year: number };
         Returns: {
-          days_left: number;
-          plan_code: string;
-          trial_ends_at: string;
+          annual_average_employees: number;
+          total_hours_worked: number;
         }[];
       };
-      organization_verified: { Args: { p_org_id: string }; Returns: boolean };
+      osha_summary: {
+        Args: { p_establishment_id: string; p_year: number };
+        Returns: {
+          days_away: number;
+          days_away_cases: number;
+          days_restricted: number;
+          deaths: number;
+          hearing_loss: number;
+          injuries: number;
+          other_cases: number;
+          other_illnesses: number;
+          poisonings: number;
+          respiratory_conditions: number;
+          restricted_cases: number;
+          skin_disorders: number;
+        }[];
+      };
       partner_client_orgs: {
         Args: { p_partner_org_id: string };
         Returns: {
@@ -56396,11 +56577,15 @@ export type Database = {
           provider: string;
         }[];
       };
-      person_names: {
-        Args: { p_person_ids: string[] };
+      pending_legal_reacceptances: {
+        Args: { p_org_id?: string };
         Returns: {
-          full_name: string;
-          person_id: string;
+          document_slug: string;
+          document_version: string;
+          effective_on: string;
+          noticed_at: string;
+          required: boolean;
+          summary: string;
         }[];
       };
       point_in_geofence: {
@@ -56469,7 +56654,6 @@ export type Database = {
         };
         Returns: string;
       };
-      prune_recovery_codes: { Args: Record<PropertyKey, never>; Returns: boolean };
       publish_form_template: {
         Args: { p_reason?: string; p_template_id: string };
         Returns: number;
@@ -56486,6 +56670,10 @@ export type Database = {
       };
       queue_due_report_schedules: { Args: { p_limit?: number }; Returns: number };
       queue_due_warehouse_deliveries: { Args: Record<PropertyKey, never>; Returns: number };
+      queue_subprocessor_notice: {
+        Args: { p_effective_on: string; p_list_version: string; p_summary: string };
+        Returns: number;
+      };
       react_to_feed_post: {
         Args: { p_on?: boolean; p_post_id: string; p_reaction_code: string };
         Returns: boolean;
@@ -56559,18 +56747,6 @@ export type Database = {
         };
         Returns: string;
       };
-      record_deletion_certificate_delivered: {
-        Args: { p_certificate_id: string; p_message_id: string };
-        Returns: undefined;
-      };
-      record_deletion_certificate_issued: {
-        Args: { p_certificate_id: string; p_document_object: string; p_document_sha256: string };
-        Returns: undefined;
-      };
-      record_deletion_storage_cleared: {
-        Args: { p_certificate_id: string; p_deleted: number };
-        Returns: boolean;
-      };
       record_display_key: {
         Args: {
           p_record: Omit<
@@ -56579,18 +56755,6 @@ export type Database = {
           >;
         };
         Returns: string;
-      };
-      record_domain_provisioning: {
-        Args: {
-          p_dns_records?: Json;
-          p_error?: string;
-          p_org_domain_id: string;
-          p_provider_ref?: string;
-          p_status: Database["app"]["Enums"]["domain_provisioning_status"];
-          p_tls_ready?: boolean;
-          p_verified?: boolean;
-        };
-        Returns: Database["app"]["Enums"]["domain_provisioning_status"];
       };
       record_domain_verification: {
         Args: { p_org_domain_id: string; p_verified: boolean };
@@ -56603,6 +56767,14 @@ export type Database = {
           p_reason: Database["app"]["Enums"]["suppression_reason"];
         };
         Returns: undefined;
+      };
+      record_file_download: {
+        Args: { p_attachment_version_id: string };
+        Returns: {
+          classification: Database["app"]["Enums"]["data_classification"];
+          viewer_email: string;
+          watermark: boolean;
+        }[];
       };
       record_gate_arrival: {
         Args: { p_project_id: string; p_shipment_id?: string; p_vehicle_identifier: string };
@@ -56688,10 +56860,6 @@ export type Database = {
           p_provider_message_id?: string;
           p_status: Database["app"]["Enums"]["message_status"];
         };
-        Returns: undefined;
-      };
-      record_oauth_request: {
-        Args: { p_authorization_id: string; p_scopes: string[] };
         Returns: undefined;
       };
       record_object_scan: {
@@ -56846,15 +57014,6 @@ export type Database = {
         };
         Returns: undefined;
       };
-      record_standing_grant: {
-        Args: {
-          p_agreement_reference: string;
-          p_capability_code: string;
-          p_org_id: string;
-          p_valid_to: string;
-        };
-        Returns: string;
-      };
       record_stripe_event: {
         Args: {
           p_event_type: string;
@@ -56910,14 +57069,6 @@ export type Database = {
         Args: { p_delivery_id: string; p_error?: string; p_response_status: number };
         Returns: Database["app"]["Enums"]["delivery_status"];
       };
-      recover_org_deletion: { Args: { p_org_id: string }; Returns: string };
-      redeem_recovery_code: {
-        Args: { p_code: string };
-        Returns: {
-          outcome: string;
-          remaining: number;
-        }[];
-      };
       refresh_file_link: {
         Args: {
           p_external_modified_at: string;
@@ -56943,10 +57094,6 @@ export type Database = {
       };
       reject_expense: { Args: { p_expense_id: string; p_reason: string }; Returns: string };
       reject_requisition: { Args: { p_reason: string; p_requisition_id: string }; Returns: string };
-      release_deletion_certificate: {
-        Args: { p_certificate_id: string; p_error: string };
-        Returns: undefined;
-      };
       release_object_scan: {
         Args: { p_error: string; p_object_scan_id: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -57016,7 +57163,6 @@ export type Database = {
         };
         Returns: string;
       };
-      request_domain_check: { Args: { p_org_domain_id: string }; Returns: string };
       request_engaged_guest: {
         Args: {
           p_engagement_id: string;
@@ -57037,10 +57183,6 @@ export type Database = {
         Returns: string;
       };
       request_import_commit: { Args: { p_import_job_id: string }; Returns: string };
-      request_org_deletion: {
-        Args: { p_confirm_name: string; p_org_id: string; p_reason: string };
-        Returns: string;
-      };
       request_to_join: { Args: { p_message?: string; p_org_id: string }; Returns: string };
       request_warehouse_delivery: { Args: { p_destination_id: string }; Returns: string };
       reset_shortcut_bindings: {
@@ -57162,6 +57304,7 @@ export type Database = {
       revoke_profile_share: { Args: { p_profile_share_id: string }; Returns: undefined };
       revoke_representation: { Args: { p_representation_id: string }; Returns: undefined };
       revoke_self_billing: { Args: { p_engagement_id: string }; Returns: undefined };
+      revoke_share_link: { Args: { p_share_link_id: string }; Returns: string };
       revoke_shared_report: { Args: { p_shared_report_id: string }; Returns: string };
       revoke_work_detail_share: { Args: { p_work_detail_share_id: string }; Returns: undefined };
       rotate_calendar_feed: {
@@ -57325,6 +57468,7 @@ export type Database = {
         };
         Returns: string;
       };
+      set_subprocessor_notice_subscription: { Args: { p_subscribed: boolean }; Returns: boolean };
       set_tax_form_address: {
         Args: {
           p_legal_name: string;
@@ -57437,8 +57581,6 @@ export type Database = {
         Returns: string;
       };
       sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
-      sign_out_my_other_sessions: { Args: Record<PropertyKey, never>; Returns: number };
-      sign_out_my_session: { Args: { p_session_id: string }; Returns: undefined };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {
@@ -57552,6 +57694,13 @@ export type Database = {
         Returns: string;
       };
       submit_timesheet: { Args: { p_reason?: string; p_timesheet_id: string }; Returns: string };
+      subprocessor_notice_subscription: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          eligible: boolean;
+          subscribed: boolean;
+        }[];
+      };
       subscribe_external_account: { Args: { p_account_id: string }; Returns: string };
       survey_results: { Args: { p_survey_id: string }; Returns: Json };
       sync_subscription_from_stripe: {
@@ -57575,15 +57724,6 @@ export type Database = {
           remaining: number;
           reset_seconds: number;
         }[];
-      };
-      touch_my_session: {
-        Args: {
-          p_client_address: string;
-          p_place: string;
-          p_surface: string;
-          p_user_agent: string;
-        };
-        Returns: undefined;
       };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };
@@ -58015,6 +58155,10 @@ export type Database = {
         Returns: Json[];
       };
       withdraw_join_request: { Args: { p_join_request_id: string }; Returns: undefined };
+      withdraw_legal_change: {
+        Args: { p_document_slug: string; p_document_version: string };
+        Returns: boolean;
+      };
       withdraw_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       withdraw_shift_claim: { Args: { p_shift_claim_id: string }; Returns: string };
       work_order_display_key: {
@@ -58145,8 +58289,6 @@ export type Database = {
         | "Nut Free"
         | "Shellfish Free";
       digest_frequency: "Off" | "Daily" | "Weekly";
-      domain_provisioning_status:
-        "Not Started" | "Requested" | "Pending DNS" | "Active" | "Failed" | "Released";
       domain_verification_state: "Pending" | "Verified" | "Failed";
       dsar_request_type:
         | "Access"
@@ -64539,14 +64681,6 @@ export const Constants = {
         "Shellfish Free",
       ],
       digest_frequency: ["Off", "Daily", "Weekly"],
-      domain_provisioning_status: [
-        "Not Started",
-        "Requested",
-        "Pending DNS",
-        "Active",
-        "Failed",
-        "Released",
-      ],
       domain_verification_state: ["Pending", "Verified", "Failed"],
       dsar_request_type: [
         "Access",

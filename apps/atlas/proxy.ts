@@ -2,6 +2,17 @@ import { getCurrentPerson } from "@xos/data";
 import { touchMySession } from "@xos/data/account-security";
 import { requestDevice } from "@xos/data/session-device";
 import { VIEW_AS_COOKIE } from "@xos/data/access";
+import {
+  CONSENT_COOKIE,
+  consentCookieOptions,
+  newVisitorId,
+  parseConsent,
+  preferenceCookieOptions,
+  preferencesAllowed,
+  recordCookieConsent,
+  sendsGpc,
+  serializeConsent,
+} from "@xos/data/consent";
 import { tokenAal, type OrgAuthDecision } from "@xos/data/auth-assurance";
 import { findRoute, getNode } from "@xos/ia";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
@@ -39,7 +50,10 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  *   3. refreshes the Supabase session so tokens renew silently (Section 11.7);
  *   4. guards routes from the sitemap: signed-out visitors go to sign in, and a route the viewer
  *      may not see renders the 404 page with status 404, never 403 (ADR 0006);
- *   5. asks for the second factor (A77, Section 9): a person who holds one verifies it after the
+ *   5. records a Global Privacy Control signal once per browser (Section 14.3, A65-014): the
+ *      signal refuses every non-essential cookie, is logged server-side and stands in for the
+ *      banner's choice.
+ *   6. asks for the second factor (A77, Section 9): a person who holds one verifies it after the
  *      first factor, and an org's security.mfa_policy, security.session_hours and
  *      security.idle_timeout_minutes send the person to verify or sign in again before its pages
  *      (lib/auth/assurance.ts, orgAuthRedirect);
@@ -54,6 +68,21 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
 const NOT_FOUND_PATH = "/auth/not-found";
 /** Where a member whose network an org's IP allow-list refuses is sent. */
 const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
+
+/** A top-level page load, not a server action, an RSC fetch or a prefetch. */
+function isDocumentRequest(request: NextRequest): boolean {
+  if (
+    request.method !== "GET" ||
+    request.headers.has("rsc") ||
+    request.headers.has("next-action")
+  ) {
+    return false;
+  }
+  const dest = request.headers.get("sec-fetch-dest");
+  return dest === null
+    ? (request.headers.get("accept") ?? "").includes("text/html")
+    : dest === "document";
+}
 
 export async function proxy(request: NextRequest, event?: NextFetchEvent): Promise<NextResponse> {
   const config = env();
@@ -88,7 +117,26 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
     headers.set(PATH_HEADER, `${request.nextUrl.pathname}${request.nextUrl.search}`);
     return headers;
   };
+  // Global Privacy Control (Section 14.3): a browser that sends it and has no recorded GPC choice yet.
+  const consent = parseConsent(request.cookies.get(CONSENT_COOKIE)?.value);
+  const gpc = sendsGpc(request.headers);
+  const gpcConsent =
+    gpc && consent?.gpc !== true && isDocumentRequest(request)
+      ? {
+          visitorId: consent?.visitorId ?? newVisitorId(),
+          preferences: false,
+          performance: false,
+          gpc: true,
+        }
+      : null;
   const secure = <T extends NextResponse>(response: T): T => {
+    if (gpcConsent) {
+      response.cookies.set(
+        CONSENT_COOKIE,
+        serializeConsent(gpcConsent),
+        consentCookieOptions(secureSite),
+      );
+    }
     response.headers.set("Content-Security-Policy", csp);
     for (const [name, value] of Object.entries(securityHeaders(secureSite))) {
       response.headers.set(name, value);
@@ -108,6 +156,10 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   );
   const { data } = await db.auth.getUser();
   const user = data.user;
+  if (gpcConsent) {
+    const recorded = await recordCookieConsent(db, gpcConsent);
+    if (!recorded.ok) console.error("Global Privacy Control was not recorded", recorded.error);
+  }
   const path = request.nextUrl.pathname;
   const carry = (target: NextResponse) => {
     for (const cookie of response().cookies.getAll()) target.cookies.set(cookie);
@@ -203,13 +255,12 @@ export async function proxy(request: NextRequest, event?: NextFetchEvent): Promi
   // Remember the org this device opened last, so the entry route returns to it.
   const slug = findRoute(sitemap, request.nextUrl.pathname)?.params["org"];
   if (slug && user && request.cookies.get(LAST_ORG_COOKIE)?.value !== slug) {
-    result.cookies.set(LAST_ORG_COOKIE, slug, {
-      path: "/",
-      sameSite: "lax",
-      httpOnly: true,
-      secure: secureSite,
-      maxAge: 60 * 60 * 24 * 365,
-    });
+    // A Preferences cookie (legal/cookie-policy.md): 12 months with consent, the visit without it.
+    result.cookies.set(
+      LAST_ORG_COOKIE,
+      slug,
+      preferenceCookieOptions(preferencesAllowed(consent, gpc), secureSite),
+    );
   }
   if (user && recordSeen) {
     // The device's last request, for the org idle timeout (security.idle_timeout_minutes). Last,

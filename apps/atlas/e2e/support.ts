@@ -73,6 +73,7 @@ export async function signUp(page: Page, input: { name: string; email: string; n
   await page.getByLabel(/^Full name$/).fill(input.name);
   await page.locator("#signup-email").fill(input.email);
   await page.locator("#signup-password").fill(PASSWORD);
+  await page.locator("#signup-age").check();
   await page.getByRole("button", { name: "Create account" }).click();
 }
 
