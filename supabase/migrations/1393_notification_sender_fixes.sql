@@ -7,7 +7,8 @@
 --   2. Held texts sent as a summary honor a category-scoped SMS suppression, as single texts do.
 --   3. Every notification carries the actorName its copy names. Chat messages, feed posts, surveys, event
 --      invitations, training assignments and recognition passed none, so rendering their push, SMS and email copy
---      ({actorName} sent you a message...) threw, and each delivery ended Failed after five attempts.
+--      ({actorName} sent you a message...) threw, and each delivery ended Failed after five attempts. An emitter
+--      whose actor has no name yet (a requester who never gave one) reads as the org, not as the signed-in person.
 --   4. A held shift change goes once its bypass window opens. Bypass was judged only when the text or push was
 --      created, so a change to a shift 12.5 hours away, made in quiet hours that last longer than that, waited for the
 --      end of quiet hours and could arrive after the shift started. Held texts and deferred pushes now wait no later
@@ -225,11 +226,16 @@ declare
   v_digest timestamptz;
   v_delivery uuid;
 begin
-  -- The copy of most kinds names who acted ({actorName}); an emitter that names nobody gets the signed-in person,
-  -- or the org when a job acts.
-  if nullif(v_args ->> 'actorName', '') is null then
+  -- The copy of most kinds names who acted ({actorName}). An emitter that passes no actorName gets the signed-in
+  -- person, or the org when a job acts. An emitter that names its actor knows who acted, and the signed-in person
+  -- may be someone else (an approver whose decision moves a request to the next step), so an actor with no name
+  -- yet reads as the org, never as whoever is signed in.
+  if not (v_args ? 'actorName') then
     v_args := v_args || jsonb_build_object('actorName', coalesce(
       (select p.full_name from app.people p where p.id = private.current_person_id()),
+      (select o.name from app.organizations o where o.id = p_org_id), ''));
+  elsif nullif(v_args ->> 'actorName', '') is null then
+    v_args := v_args || jsonb_build_object('actorName', coalesce(
       (select o.name from app.organizations o where o.id = p_org_id), ''));
   end if;
   v_bypass := private.bypasses_quiet_hours(p_kind, v_args, now());
@@ -289,7 +295,7 @@ begin
 end;
 $$;
 
-comment on function private.notify(uuid, uuid, text, text, uuid, uuid, jsonb) is 'Creates a notification and its outside deliveries. Its message arguments always carry actorName: the emitter''s, else the signed-in person''s name, else the org''s when a job acts (1393). An active member gets one delivery per channel they receive the category on (their preference, the org default and mandatory categories, 1362). During quiet hours a push waits (Deferred) and a text is held for the member''s summary (1367); only kinds on the bypass list go at once (ADR 0033 decision 35), and a kind with a bypass window waits no later than its opening (1393). Non-urgent email joins the digest when the member chose one. With In App off the notification is recorded already archived. An external party of the org (1131) gets the notification and an Email and a Push delivery as their own preferences allow, at once. Anyone else gets nothing (invariant 3). Returns the notification id, or null.';
+comment on function private.notify(uuid, uuid, text, text, uuid, uuid, jsonb) is 'Creates a notification and its outside deliveries. Its message arguments always carry actorName (1393): the emitter''s; when the emitter passes none, the signed-in person''s name, else the org''s when a job acts; when the emitter''s actor has no name yet, the org''s, never the signed-in person''s, who may not be the actor. An active member gets one delivery per channel they receive the category on (their preference, the org default and mandatory categories, 1362). During quiet hours a push waits (Deferred) and a text is held for the member''s summary (1367); only kinds on the bypass list go at once (ADR 0033 decision 35), and a kind with a bypass window waits no later than its opening (1393). Non-urgent email joins the digest when the member chose one. With In App off the notification is recorded already archived. An external party of the org (1131) gets the notification and an Email and a Push delivery as their own preferences allow, at once. Anyone else gets nothing (invariant 3). Returns the notification id, or null.';
 
 create or replace function app.send_chat_message(
   p_conversation_id uuid,

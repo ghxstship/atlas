@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(41);
+select plan(43);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -130,6 +130,15 @@ select is(pg_temp.actor('dave', 'recognition.received'), 'Carol Nguyen', 'otherw
 select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', null, null, null,
   '{"title": "Catering", "actorName": "Bob Okafor"}');
 select is(pg_temp.actor('dave', 'approval.requested'), 'Bob Okafor', 'an emitter''s own actor is kept');
+-- private.notify_step_approvers passes the requester's full_name, null until they give one, and runs as the approver
+-- whose decision moved the request on; 0580 and 1140 pass an empty name the same way.
+select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'approval.requested', null, null, null,
+  jsonb_build_object('title', 'Barricade rental', 'actorName', null::text));
+select is(pg_temp.actor('dave', 'approval.requested'), 'Northwind Live',
+  'an emitter''s actor with no name yet reads as the org, not as the signed-in person');
+select private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'comment.created', null, null, null,
+  '{"title": "Advance sheet", "actorName": ""}');
+select is(pg_temp.actor('dave', 'comment.created'), 'Northwind Live', 'and so does an empty name');
 select pg_temp.as_platform();
 
 -- 4. A held shift change goes when its bypass window opens ------------------------------------------------------------------
