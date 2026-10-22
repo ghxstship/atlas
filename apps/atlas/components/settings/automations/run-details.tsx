@@ -110,7 +110,9 @@ function RunSteps({
               {s.errorMessage ? <span>{s.errorMessage}</span> : null}
               {s.request ? (
                 <details>
-                  <summary>{t("run.sent")}</summary>
+                  <summary className="flex min-h-24 cursor-pointer items-center">
+                    {t("run.sent")}
+                  </summary>
                   <pre className="m-0 overflow-x-auto whitespace-pre-wrap">
                     {JSON.stringify(s.request, null, 2)}
                   </pre>
@@ -118,7 +120,9 @@ function RunSteps({
               ) : null}
               {s.response ? (
                 <details>
-                  <summary>{t("run.answered")}</summary>
+                  <summary className="flex min-h-24 cursor-pointer items-center">
+                    {t("run.answered")}
+                  </summary>
                   <pre className="m-0 overflow-x-auto whitespace-pre-wrap">
                     {JSON.stringify(s.response, null, 2)}
                   </pre>
@@ -129,7 +133,9 @@ function RunSteps({
         </ol>
       )}
       <details>
-        <summary className="text-text-12">{t("run.event")}</summary>
+        <summary className="flex min-h-24 cursor-pointer items-center text-text-12">
+          {t("run.event")}
+        </summary>
         <pre className="m-0 overflow-x-auto whitespace-pre-wrap text-text-12">
           {JSON.stringify(run.event, null, 2)}
         </pre>

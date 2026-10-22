@@ -162,14 +162,18 @@ test("journey: build an automation, fire its event, see the actions and the run 
 
   // The run history shows the run and its steps.
   await settings(page);
-  const run = page.getByRole("row").filter({ hasText: name }).filter({ hasText: "record.created" });
-  await expect(run.getByText("Succeeded")).toBeVisible();
-  await page
+  const automationRow = page
+    .getByRole("table", { name: "Automations" })
+    .getByRole("row")
+    .filter({ hasText: name });
+  await expect(automationRow.getByText("Succeeded")).toBeVisible();
+  const runRow = page
     .getByRole("table", { name: "Recent automation runs" })
     .getByRole("row")
-    .filter({ hasText: name })
-    .getByRole("button", { name: "Details" })
-    .click();
+    .filter({ hasText: name });
+  await expect(runRow.getByText("Succeeded")).toBeVisible();
+  await expect(runRow.getByText("record.created")).toBeVisible();
+  await runRow.getByRole("button", { name: "Details" }).click();
   const details = page.getByRole("dialog", { name: `Run of ${name}` });
   await expect(details.getByText("comments.postOnSubject")).toBeVisible();
   await expect(details.getByText("automationRuns.notify")).toBeVisible();
