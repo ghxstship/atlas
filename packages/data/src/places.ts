@@ -35,11 +35,15 @@ export async function callRpc<T>(
   fn: string,
   args: Record<string, unknown>,
 ): Promise<Result<T>> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    name: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
-  const { data, error } = await rpc(fn, args);
+  // Typed through `unknown` before `rpc` is read: resolving the generated client's overloads for
+  // `db.rpc.bind` instantiates every function of the generated Database type, past TypeScript's depth.
+  const client = db as unknown as {
+    rpc(
+      name: string,
+      params: Record<string, unknown>,
+    ): PromiseLike<{ data: unknown; error: DatabaseErrorLike | null }>;
+  };
+  const { data, error } = await client.rpc(fn, args);
   return error ? fail(toDataError(error)) : ok(data as T);
 }
 
