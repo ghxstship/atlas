@@ -274,6 +274,20 @@
     "heading": "Solicitud recibida",
     "body": "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}."
   },
+  "subprocessor_confirm": {
+    "subject": "Confirma tu suscripción a los cambios de subencargados de XOS",
+    "heading": "Confirma tu suscripción",
+    "body": "Pediste recibir avisos de cambios en la Lista de subencargados de XOS. Confirma en un plazo de 7 días para empezar a recibirlos.",
+    "ignore": "Si no lo pediste, ignora este correo y no se enviará nada.",
+    "confirm": "Confirmar suscripción"
+  },
+  "subprocessor_notice": {
+    "subject": "La Lista de subencargados de XOS cambia el {effectiveOn, date, long}",
+    "heading": "Lista de subencargados {listVersion}",
+    "intro": "Cambiaremos nuestra Lista de subencargados el {effectiveOn, date, long}, al menos 30 días después de este aviso.",
+    "objection": "Un cliente puede oponerse según la Sección 7.3 del Acuerdo de Tratamiento de Datos.",
+    "review": "Leer la Lista de subencargados"
+  },
   "sms": {
     "message": "{orgName}: {body} {url} Responde STOP para cancelar.",
     "help": "Notificaciones de XOS: novedades sobre tu trabajo de las organizaciones a las que perteneces. La frecuencia de los mensajes varía. Pueden aplicarse tarifas de mensajes y datos. Ayuda: {helpContact}. Responde STOP para cancelar.",

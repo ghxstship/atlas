@@ -63,6 +63,7 @@ describe("listAttachments", () => {
             title: "plot.pdf",
             created_by: "p-dave",
             created_at: "2026-10-14T00:00:00Z",
+            classification: "Confidential",
             attachment_versions: [
               versionRow(1, "Clean"),
               versionRow(3, "Infected"),
@@ -75,6 +76,7 @@ describe("listAttachments", () => {
             title: "new.pdf",
             created_by: "p-dave",
             created_at: "2026-10-13T00:00:00Z",
+            classification: "Internal",
             attachment_versions: null,
           },
         ]),
@@ -86,6 +88,9 @@ describe("listAttachments", () => {
     expect(result.data[0]?.versions.map((v) => v.versionNumber)).toEqual([3, 2, 1]);
     expect(result.data[0]?.current?.versionNumber).toBe(2);
     expect(result.data[1]?.current).toBeNull();
+    // Each version carries its file's classification, which decides how it downloads (Section 8.6).
+    expect(result.data[0]?.classification).toBe("Confidential");
+    expect(result.data[0]?.current?.classification).toBe("Confidential");
     expect(calls[0]?.steps.filter(([m]) => m === "eq")).toEqual([
       ["eq", ["subject_table", "app.documents"]],
       ["eq", ["subject_id", "doc-1"]],
@@ -244,7 +249,10 @@ describe("uploads", () => {
 });
 
 describe("downloads and removal", () => {
-  const version = (status: AttachmentVersion["scanStatus"]): AttachmentVersion => ({
+  const version = (
+    status: AttachmentVersion["scanStatus"],
+    classification: AttachmentVersion["classification"] = "Internal",
+  ): AttachmentVersion => ({
     id: "v1",
     versionNumber: 1,
     objectName: "org/a1/v1/plot.pdf",
@@ -254,6 +262,23 @@ describe("downloads and removal", () => {
     scanStatus: status,
     uploadedBy: null,
     uploadedAt: null,
+    classification,
+  });
+
+  it("sends Confidential and Restricted files through the watermarking route, never a signed URL", async () => {
+    const { db } = withStorage({});
+    expect(await downloadUrl(db, version("Clean", "Confidential"))).toEqual({
+      ok: true,
+      data: "/files/v1",
+    });
+    expect(await downloadUrl(db, version("Clean", "Restricted"))).toEqual({
+      ok: true,
+      data: "/files/v1",
+    });
+    expect(await downloadUrl(db, version("Scanning", "Confidential"))).toEqual({
+      ok: false,
+      error: { kind: "not-found" },
+    });
   });
 
   it("signs links for clean versions only", async () => {

@@ -13,12 +13,15 @@
 // Domains: VERCEL_API_TOKEN with VERCEL_PROJECT_ID_ATLAS and VERCEL_PROJECT_ID_GATEWAY (and VERCEL_TEAM_ID for a
 // team), and RESEND_DOMAINS_API_KEY. A provider left unset records its domains as not set up yet.
 // Every secret is the owner's (infra/runbooks/org-lifecycle.md); none is read anywhere else.
+//
+// The certificate renderer (pdfkit and its fonts) and Resend load only when a certificate is rendered or sent
+// (A85, cold starts).
 import { createClient } from "@supabase/supabase-js";
-import { Resend } from "resend";
 import {
   deletionCertificateCopy,
   documentMessages,
   httpFromFetch,
+  lazyResendClient,
   mailpitMailer,
   readEmailEnv,
   recipientAllowed,
@@ -33,7 +36,7 @@ import {
   vercelHosts,
   type DomainProviders,
   type ReportMailer,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/org-lifecycle.js";
 import { env, hasBearer, json, serve } from "../_shared/runtime.ts";
 
 const optional = (name: string): string | null => {
@@ -51,7 +54,7 @@ function lifecycleMailer(): ReportMailer {
       allowed: emailEnv.XOS_EMAIL_ALLOWLIST,
       deliverToAny: emailEnv.XOS_EMAIL_DELIVER_TO_ANY,
     };
-    return resendMailer(new Resend(emailEnv.RESEND_API_KEY), emailEnv.XOS_EMAIL_FROM, (to) =>
+    return resendMailer(lazyResendClient(emailEnv.RESEND_API_KEY), emailEnv.XOS_EMAIL_FROM, (to) =>
       recipientAllowed(to, policy),
     );
   }

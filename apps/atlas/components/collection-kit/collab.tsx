@@ -46,6 +46,7 @@ export async function CollabPanels({
     sizeBytes: a.current?.sizeBytes ?? null,
     ready: a.current !== null,
     mine: a.createdBy === me,
+    classification: a.classification,
   }));
   return (
     <CollabClient

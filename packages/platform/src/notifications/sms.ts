@@ -1,4 +1,4 @@
-import { formatMessage } from "@xos/email";
+import { formatMessage } from "@xos/email/messages";
 import { z } from "zod";
 import { clip, localeOf, notificationText } from "./copy.ts";
 import type { DeliveryOutcome, Recipient } from "./dispatch.ts";

@@ -1,4 +1,4 @@
-import type { HostResolver } from "@xos/platform";
+import type { HostResolver } from "@xos/platform/webhooks";
 import { PROVIDERS } from "./framework/catalog.ts";
 import { connectorRegistry, type Connector } from "./framework/connector.ts";
 import type { DbClient } from "./framework/db.ts";
