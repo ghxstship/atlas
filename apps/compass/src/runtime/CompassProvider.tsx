@@ -30,10 +30,15 @@ import { downloadAll, type DownloadReport } from "../data/downloader";
 import { IdentityError, resolveIdentity, type ResolvedIdentity } from "../data/identity";
 import { SupabaseUploader } from "../data/uploader";
 import {
+  enqueueApplying,
+  resolveOverQueue,
+  watchQueuedSettings,
+  type QueuedOutbox,
+} from "../domain/queuedSettings";
+import {
   NO_VALUES,
   compassValuesFromRows,
   languageOf,
-  withQueuedSetting,
   type ResolvedValues,
 } from "../domain/settings";
 import { forgetGoogleAccount } from "./google";
@@ -75,6 +80,8 @@ const RESOLVED_KEY = "xos.compass.resolved";
 /** resolve_settings needs an org; the nil uuid returns only the person's own values and the defaults. */
 const NO_ORG = "00000000-0000-0000-0000-000000000000";
 const PROJECT_KEY = "xos.compass.project";
+/** The outbox before the local store opens: nothing is queued. */
+const NO_QUEUE: QueuedOutbox = { all: () => Promise.resolve([]) };
 
 export type Phase =
   | { readonly kind: "starting" }
@@ -172,6 +179,8 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [settings, setSettings] = useState<CompassSettings>(DEFAULT_SETTINGS);
   const [resolvedSettings, setResolvedSettings] = useState<ResolvedValues>(NO_VALUES);
+  /** Bumped when one of the person's queued setting changes leaves the outbox, to resolve again. */
+  const [settledSettings, setSettledSettings] = useState(0);
   const [lastRefresh, setLastRefresh] = useState<DownloadReport | null>(null);
   const [identityAttempt, setIdentityAttempt] = useState(0);
   const [startupError, setStartupError] = useState<string | null>(null);
@@ -336,26 +345,36 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   }, [phase.kind, network.isConnected, refresh]);
 
   // The person's settings and the org's rules for the current project, refreshed when online and kept for
-  // offline use (A65-001).
+  // offline use (A65-001). The person's own changes still in the outbox stay laid over every answer, and once
+  // one leaves the outbox (sent, refused or discarded) the settings resolve again.
   const orgId = resolved?.identity.membershipId ? resolved.orgId : null;
+  useEffect(() => {
+    if (!engine || !store) return undefined;
+    return watchQueuedSettings(store, engine.outbox, () => setSettledSettings((n) => n + 1));
+  }, [engine, store]);
+
   useEffect(() => {
     if (phase.kind !== "ready" || !network.isConnected) return;
     let live = true;
-    void client
-      .rpc("resolve_settings", {
+    void resolveOverQueue(engine?.outbox ?? NO_QUEUE, async () => {
+      const { data, error } = await client.rpc("resolve_settings", {
         p_org_id: orgId ?? NO_ORG,
         ...(projectId && orgId ? { p_project_id: projectId } : {}),
-      })
-      .then(({ data, error }) => {
-        if (!live || error || !Array.isArray(data)) return;
-        const values = compassValuesFromRows(data as Parameters<typeof compassValuesFromRows>[0]);
+      });
+      if (error || !Array.isArray(data)) return null;
+      return compassValuesFromRows(data as Parameters<typeof compassValuesFromRows>[0]);
+    })
+      .then((values) => {
+        if (!live || values === null) return;
         setResolvedSettings(values);
         void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(values)));
-      });
+      })
+      // A resolve that fails keeps the last values; the next network, project or settled change tries again.
+      .catch(() => undefined);
     return () => {
       live = false;
     };
-  }, [client, phase.kind, network.isConnected, orgId, projectId]);
+  }, [client, engine, phase.kind, network.isConnected, orgId, projectId, settledSettings]);
 
   // Compass speaks the language the person or their org chose (locale.language), else the device's (A65-001).
   useEffect(() => {
@@ -365,15 +384,17 @@ export function CompassProvider({ children }: { readonly children: ReactNode }):
   const enqueue = useCallback(
     async (input: MutationInput) => {
       if (!engine) throw new Error("the local store is still opening");
-      const mutation = await engine.outbox.enqueue(input);
-      // A personal setting changed here applies now, before the outbox sends it (me.haptics, A65-001).
-      setResolvedSettings((current) => {
-        const next = withQueuedSetting(current, input);
-        if (next !== current) {
-          void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(next)));
-        }
-        return next;
-      });
+      // A personal setting changed here applies now, in the same render as the screen's own change and before
+      // the outbox write (me.haptics, A65-001), and is kept for offline use.
+      const mutation = await enqueueApplying(engine.outbox, input, (update) =>
+        setResolvedSettings((current) => {
+          const next = update(current);
+          if (next !== current) {
+            void SecureStore.setItemAsync(RESOLVED_KEY, JSON.stringify(Object.fromEntries(next)));
+          }
+          return next;
+        }),
+      );
       void engine.drain();
       return mutation.id;
     },

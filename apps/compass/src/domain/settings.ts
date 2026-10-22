@@ -78,10 +78,11 @@ export function themeOptionsOf(values: ResolvedValues): ThemeOptions {
 }
 
 /**
- * The resolved values with a personal setting the person just changed on this device (a queued
- * set_personal_setting), before the outbox sends it and the next resolve confirms it. A switch bound to a
- * resolved value, such as Haptics (me.haptics), then shows the change at once instead of snapping back.
- * Returns the same map for any other mutation or a key Compass does not read.
+ * The resolved values with a personal setting the person changed on this device (a queued
+ * set_personal_setting), before the outbox sends it and a later resolve confirms it. A switch bound to a
+ * resolved value, such as Haptics (me.haptics), then shows the change at once instead of snapping back;
+ * queuedSettings.ts keeps it there until the server has it. Returns the same map for any other mutation or a
+ * key Compass does not read.
  */
 export function withQueuedSetting(
   values: ResolvedValues,
