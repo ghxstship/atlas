@@ -86,6 +86,15 @@ export function addDays(isoDate: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * The last day of the latest full week before the one holding `today` (an ISO date on the calendar the
+ * week is counted on), for weeks starting on `firstDay` (0 Sunday, 1 Monday): the default week ending of a
+ * weekly report such as the WH-347, Saturday on Sunday weeks and Sunday on Monday weeks.
+ */
+export function lastWeekEnding(today: string, firstDay: number): string {
+  return addDays(weekStartOf(today, firstDay), -1);
+}
+
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export function isIsoDate(value: string | undefined): value is string {
