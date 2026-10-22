@@ -7,6 +7,8 @@ import {
   createTransport,
   readEmailEnv,
 } from "./chunks/email-env.js";
+import { isTemplateCode, sendEmail } from "./chunks/email.js";
+import { isLocale } from "./chunks/i18n-locales.js";
 import {
   clip,
   createSmsProvider,
@@ -18,102 +20,8 @@ import {
   pushStore,
   readSmsEnv,
   smsStore,
-  translator,
 } from "./chunks/platform-notifications-stores.js";
-import { isLocale } from "./chunks/i18n-locales.js";
 import { z } from "zod";
-//#region ../email/src/templates/codes.ts
-/**
- * Every template code, without React. isTemplateCode reads this list, so code that only checks or
- * routes a template never loads React Email; renderEmail loads the templates when it renders (A85,
- * Edge Function cold starts). The tests check it lists exactly the templates in index.tsx.
- */
-var TEMPLATE_CODES = [
-  "notification",
-  "digest",
-  "invite",
-  "report_delivery",
-  "export_ready",
-  "import_finished",
-  "dsar_received",
-];
-//#endregion
-//#region ../email/src/render.ts
-/** True when the code names a template in this package. */
-function isTemplateCode(code) {
-  return TEMPLATE_CODES.includes(code);
-}
-/**
- * Renders a template to semantic HTML and a plain-text part, with every string from the locale's
- * email catalog. Non-transactional email without an unsubscribe link is refused (CAN-SPAM, CASL).
- * React Email and the templates load on the first render rather than with this module, so a worker
- * run that sends nothing never parses them (A85).
- */
-async function renderEmail(code, props, options) {
-  const [{ render }, { templates }] = await Promise.all([
-    import("@react-email/components"),
-    import("./chunks/email-templates.js"),
-  ]);
-  const template = templates[code];
-  if (!template.transactional && options.sender.unsubscribeUrl === void 0)
-    throw new Error(`The ${code} email is not transactional and needs an unsubscribe link`);
-  const t = translator(options.locale, options.timeZone ?? "UTC");
-  const { subject, element } = template.compose(props, {
-    locale: options.locale,
-    t,
-    sender: options.sender,
-    recipientName: options.recipientName,
-  });
-  const [html, text] = await Promise.all([render(element), render(element, { plainText: true })]);
-  return {
-    subject,
-    html,
-    text,
-    transactional: template.transactional,
-  };
-}
-//#endregion
-//#region ../email/src/send.ts
-/**
- * Renders and sends one email. Non-transactional email gets List-Unsubscribe headers for one-click
- * unsubscribe (RFC 8058). Returns the provider message id for app.record_notification_delivery.
- */
-async function sendEmail(request) {
-  const rendered = await renderEmail(request.template, request.props, request);
-  const unsubscribe = request.sender.unsubscribeUrl;
-  const headers =
-    !rendered.transactional && unsubscribe !== void 0
-      ? {
-          "List-Unsubscribe": `<${unsubscribe}>`,
-          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-        }
-      : {};
-  return request.transport.send({
-    from: request.from,
-    to: request.to,
-    subject: rendered.subject,
-    html: rendered.html,
-    text: rendered.text,
-    headers,
-    tags: [
-      {
-        name: "template",
-        value: request.template,
-      },
-      ...(request.deliveryId === void 0
-        ? []
-        : [
-            {
-              name: "delivery_id",
-              value: request.deliveryId,
-            },
-          ]),
-    ],
-    ...(request.replyTo === void 0 ? {} : { replyTo: request.replyTo }),
-    ...(request.deliveryId === void 0 ? {} : { idempotencyKey: `delivery-${request.deliveryId}` }),
-  });
-}
-//#endregion
 //#region src/notifications/dispatch.ts
 var exportReady = z.object({
   exportName: z.string(),

@@ -1135,6 +1135,59 @@ var templates = {
       };
     },
   },
+  subprocessor_confirm: {
+    transactional: true,
+    compose: ({ confirmUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_confirm.subject");
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_confirm.heading"),
+          transactional: true,
+          action: {
+            label: ctx.t("subprocessor_confirm.confirm"),
+            url: confirmUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.body") }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.ignore") }),
+          ],
+        }),
+      };
+    },
+  },
+  subprocessor_notice: {
+    transactional: false,
+    compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_notice.subject", { effectiveOn });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_notice.heading", { listVersion }),
+          transactional: false,
+          action: {
+            label: ctx.t("subprocessor_notice.review"),
+            url: listUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("subprocessor_notice.intro", { effectiveOn }),
+            }),
+            /* @__PURE__ */ jsx(Paragraph, { children: summary }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
+          ],
+        }),
+      };
+    },
+  },
 };
 //#endregion
 export { templates };

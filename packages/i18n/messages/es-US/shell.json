@@ -945,7 +945,8 @@
       "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
       "orgName": "Nombre de la organización",
       "orgSlug": "Dirección web",
-      "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}."
+      "orgSlugHelp": "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
+      "age": "Tengo 16 años o más."
     },
     "or": "o",
     "signIn": {
@@ -1027,7 +1028,8 @@
       "orgSlug": "Usa de 2 a 48 letras minúsculas, números y guiones sencillos.",
       "accept": "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       "slug_taken": "Esa dirección web ya está en uso. Elige otra.",
-      "slug_reserved": "Atlas reserva esa dirección web. Elige otra."
+      "slug_reserved": "Atlas reserva esa dirección web. Elige otra.",
+      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
     },
     "networkRestricted": {
       "title": "Su red no está permitida",

@@ -33,9 +33,8 @@ import {
 } from "@/lib/crew/context";
 import { stateIcon } from "@/lib/crew/states";
 import { addDays, hoursFromMinutes, weekStartOf } from "@/lib/crew/time";
-import { getShellSettings } from "@/lib/shell/org-settings";
 import { nodeHref } from "@/lib/shell/sitemap";
-import { getOrgTimeZone } from "@/lib/shell/time-zone";
+import { getOrgTimeZone, getOrgWeekStart } from "@/lib/shell/time-zone";
 import { getTranslate } from "@/lib/shell/translate";
 
 /**
@@ -212,13 +211,15 @@ export default async function Page({ params, searchParams }: PageProps<"/[org]/c
 
   const canCreate = crew.can("crew.timesheet.submit");
   const members = canSubmitOthers ? await getMembers(crew.ctx) : [];
-  const { preferences } = await getShellSettings(crew.ctx.viewer.db, crew.orgId, null);
   const defaultProject = projectFilter ?? projects[0] ?? null;
-  // A new timesheet covers this week (payroll.week_start) on the default project's calendar (A71): its
-  // days are what the timesheet bills, and in UTC Sunday evening in New York already opened next week's.
+  // A new timesheet covers this week on the default project's calendar (A71): its days are what the
+  // timesheet bills, and in UTC Sunday evening in New York already opened next week's. The week is the
+  // org's payroll week (its own payroll.week_start), never the viewer's: pay periods start on it (1323)
+  // and a pay run pays only timesheets inside a period, so a week on a person's own start could straddle
+  // two periods and go unpaid, or overlap a colleague's timesheet for the same days.
   const week = weekStartOf(
     todayIn(defaultProject?.timeZone ?? (await getOrgTimeZone(crew.ctx))),
-    preferences.weekStart,
+    await getOrgWeekStart(crew.ctx),
   );
   const drawer =
     search["create"] === "1" && canCreate && defaultProject ? (

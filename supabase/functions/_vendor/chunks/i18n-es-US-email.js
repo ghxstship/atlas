@@ -251,6 +251,21 @@ var email_default$1 = {
     heading: "Request received",
     body: "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}.",
   },
+  subprocessor_confirm: {
+    subject: "Confirm your subscription to XOS subprocessor changes",
+    heading: "Confirm your subscription",
+    body: "You asked to hear about changes to the XOS Subprocessor List. Confirm within 7 days to start receiving notices.",
+    ignore: "If you did not ask for this, ignore this email and nothing will be sent.",
+    confirm: "Confirm subscription",
+  },
+  subprocessor_notice: {
+    subject: "XOS Subprocessor List changes on {effectiveOn, date, long}",
+    heading: "Subprocessor List {listVersion}",
+    intro:
+      "We will change our Subprocessor List on {effectiveOn, date, long}, at least 30 days from this notice.",
+    objection: "A customer may object under Section 7.3 of the Data Processing Agreement.",
+    review: "Read the Subprocessor List",
+  },
   sms: {
     message: "{orgName}: {body} {url} Reply STOP to opt out.",
     help: "XOS notifications: updates about your work from the organizations you belong to. Message frequency varies. Message and data rates may apply. Help: {helpContact}. Reply STOP to opt out.",
@@ -515,6 +530,22 @@ var email_default = {
     subject: "Recibimos tu solicitud de {requestType}",
     heading: "Solicitud recibida",
     body: "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirma tu suscripción a los cambios de subencargados de XOS",
+    heading: "Confirma tu suscripción",
+    body: "Pediste recibir avisos de cambios en la Lista de subencargados de XOS. Confirma en un plazo de 7 días para empezar a recibirlos.",
+    ignore: "Si no lo pediste, ignora este correo y no se enviará nada.",
+    confirm: "Confirmar suscripción",
+  },
+  subprocessor_notice: {
+    subject: "La Lista de subencargados de XOS cambia el {effectiveOn, date, long}",
+    heading: "Lista de subencargados {listVersion}",
+    intro:
+      "Cambiaremos nuestra Lista de subencargados el {effectiveOn, date, long}, al menos 30 días después de este aviso.",
+    objection:
+      "Un cliente puede oponerse según la Sección 7.3 del Acuerdo de Tratamiento de Datos.",
+    review: "Leer la Lista de subencargados",
   },
   sms: {
     message: "{orgName}: {body} {url} Responde STOP para cancelar.",

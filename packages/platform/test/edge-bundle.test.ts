@@ -30,7 +30,7 @@ const graph = (fn: string) => {
  * Functions that load nothing but the shared core (_vendor/core.js through _shared) and so have no entry
  * of their own. Every other function directory must have packages/platform/edge/entries/<fn>.ts.
  */
-const CORE_ONLY: readonly string[] = ["api-token", "email-unsubscribe"];
+const CORE_ONLY: readonly string[] = ["api-token", "email-unsubscribe", "file-download"];
 
 /**
  * The npm packages each function loads when it boots, and the ones it loads only when a request needs
@@ -40,6 +40,7 @@ const CORE_ONLY: readonly string[] = ["api-token", "email-unsubscribe"];
 const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   "api-token": { boot: [], lazy: [] },
   "email-unsubscribe": { boot: [], lazy: [] },
+  "file-download": { boot: ["@supabase/supabase-js"], lazy: [] },
   "import-run": { boot: ["@supabase/supabase-js"], lazy: ["exceljs"] },
   "inbound-email": { boot: ["zod"], lazy: [] },
   "integration-inbound": { boot: ["@supabase/supabase-js"], lazy: [] },
@@ -57,6 +58,10 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
   scim: { boot: ["@supabase/supabase-js"], lazy: [] },
   "sms-webhook": { boot: ["intl-messageformat", "zod"], lazy: [] },
   "stripe-webhook": { boot: ["stripe"], lazy: [] },
+  "subprocessor-notices": {
+    boot: ["intl-messageformat", "zod"],
+    lazy: ["@react-email/components", "react/jsx-runtime", "resend"],
+  },
   "upload-scan": { boot: ["@supabase/supabase-js"], lazy: [] },
   "webhook-dispatch": { boot: [], lazy: [] },
 };
@@ -69,6 +74,7 @@ const PACKAGES: Record<string, { boot: string[]; lazy: string[] }> = {
 const BOOT_BUDGET_KB: Record<string, number> = {
   "api-token": 70,
   "email-unsubscribe": 64,
+  "file-download": 64,
   "import-run": 120,
   "inbound-email": 64,
   "integration-inbound": 130,
@@ -80,6 +86,7 @@ const BOOT_BUDGET_KB: Record<string, number> = {
   scim: 92,
   "sms-webhook": 128,
   "stripe-webhook": 84,
+  "subprocessor-notices": 115,
   "upload-scan": 100,
   "webhook-dispatch": 70,
 };

@@ -262,11 +262,15 @@ export function untypedRpc<T>(
   name: string,
   args: Record<string, unknown>,
 ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }> {
-  const rpc = db.rpc.bind(db) as unknown as (
-    fn: string,
-    params: Record<string, unknown>,
-  ) => PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
-  return rpc(name, args);
+  // Cast the client, not `db.rpc.bind(db)`: inferring bind over the generated schema's overloads is too
+  // deep for TypeScript once the schema grows. Calling it as a method keeps `this` as the client.
+  const client = db as unknown as {
+    rpc(
+      fn: string,
+      params: Record<string, unknown>,
+    ): PromiseLike<{ data: T | null; error: Parameters<typeof toDataError>[0] | null }>;
+  };
+  return client.rpc(name, args);
 }
 
 /**

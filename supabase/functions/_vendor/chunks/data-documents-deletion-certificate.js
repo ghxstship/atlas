@@ -1721,6 +1721,7 @@ async function renderDocumentPdf(model, options) {
   return new Promise((resolve, reject) => {
     const pdfOptions = {
       size: SIZES[options.paper],
+      layout: options.orientation ?? "portrait",
       margins: {
         top: MARGIN,
         left: MARGIN,
@@ -1738,6 +1739,7 @@ async function renderDocumentPdf(model, options) {
         Title: model.title,
         Author: model.brand.legalEntity ?? model.brand.name,
         Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+        ...(model.watermark ? { Keywords: model.watermark.text } : {}),
         Creator: "XOS",
         Producer: "XOS",
         CreationDate: new Date(model.facts.generatedAtIso),
@@ -1923,6 +1925,14 @@ var Renderer = class {
       y: fy + 2,
       width: factsWidth,
     });
+    if (model.watermark) {
+      this.style("semibold", 6.5, MUTED);
+      this.text(this.root, "P", model.watermark.text, {
+        x: factsX,
+        y: doc.y + 2,
+        width: factsWidth,
+      });
+    }
     const factsBottom = doc.y;
     const qrX = this.left + this.width - QR_SIZE;
     const matrix = qrMatrix(facts.recordUrl);
@@ -1962,6 +1972,9 @@ var Renderer = class {
         doc.y += 4;
         this.text(this.root, "H2", block.text);
         doc.y += 4;
+        return;
+      case "image":
+        this.image(block.bytes, block.alt);
         return;
       case "paragraph": {
         const size = block.size === "large" ? 22 : BODY;
@@ -2006,6 +2019,35 @@ var Renderer = class {
         this.table(block.caption, block.columns, block.rows, block.footer ?? [], false);
         return;
     }
+  }
+  /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
+  image(bytes, alt) {
+    const { doc } = this;
+    if (!isEmbeddableImage(bytes)) return;
+    const buffer = Buffer.from(bytes);
+    const opened = doc.openImage(buffer);
+    const room = () => this.bottom - doc.y;
+    const fullPage = this.bottom - doc.page.margins.top;
+    const scale = Math.min(1, this.width / opened.width, fullPage / opened.height);
+    const height = opened.height * scale;
+    if (height > room()) {
+      doc.addPage();
+      doc.x = this.left;
+      doc.y = doc.page.margins.top;
+    }
+    const width = opened.width * scale;
+    const x = this.left + (this.width - width) / 2;
+    const y = doc.y;
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(alt) }, () => {
+        doc.image(buffer, x, y, {
+          width,
+          height,
+        });
+      }),
+    );
+    doc.x = this.left;
+    doc.y = y + height + GAP;
   }
   /**
    * A table with a caption, a header row of TH cells scoped to their column (or, for fields, a TH
@@ -2146,8 +2188,33 @@ var Renderer = class {
           },
         );
       }, "Pagination");
+      if (model.watermark) this.watermark(model.watermark.text);
       doc.page.margins.bottom = bottomMargin;
     }
+  }
+  /**
+   * The Section 8.6 watermark across the page: light, diagonal, and an artifact, since the header
+   * already carries the same text in the reading order.
+   */
+  watermark(text) {
+    const { doc } = this;
+    const value = this.safe(text);
+    const cx = doc.page.width / 2;
+    const cy = doc.page.height / 2;
+    const span = Math.hypot(doc.page.width, doc.page.height) * 0.7;
+    const size = Math.max(9, Math.min(26, span / (Math.max(value.length, 1) * 0.56)));
+    this.artifact(() => {
+      doc.save();
+      doc.opacity(0.16);
+      this.style("semibold", size, MUTED);
+      doc.rotate(-32, { origin: [cx, cy] });
+      doc.text(value, cx - span / 2, cy - size / 2, {
+        width: span,
+        align: "center",
+        lineBreak: false,
+      });
+      doc.restore();
+    });
   }
 };
 //#endregion
