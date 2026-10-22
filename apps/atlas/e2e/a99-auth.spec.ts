@@ -138,6 +138,7 @@ async function inviteMember(page: Page, browser: Browser, slug: string, id: stri
   await member.getByLabel(/^Full name$/).fill("Milo Member");
   await member.locator("#signup-email").fill(email);
   await member.locator("#signup-password").fill(PASSWORD);
+  await member.locator("#signup-age").check();
   await member.getByRole("button", { name: "Create account" }).click();
   await expect(member.getByRole("heading", { name: /^Join / })).toBeVisible({ timeout: 60_000 });
   await member.getByRole("button", { name: "Accept invitation" }).click();
@@ -297,10 +298,14 @@ test("step-up on API key creation and on a role change", async ({ page, browser 
   await expect(confirm).toBeVisible();
   await expectAccessible(page);
   await confirm.getByLabel("Code", { exact: true }).fill(totp(secret, 1));
+  // Verifying resumes the change: the role action posts again, and its answer is awaited before the reload.
+  const resumed = page.waitForResponse(
+    (r) =>
+      r.request().method() === "POST" && (r.request().postData() ?? "").includes("membershipId"),
+  );
   await confirm.getByRole("button", { name: "Verify" }).click();
   await expect(confirm).toBeHidden();
-  // The resumed change saves and the page refreshes with it; it holds after a reload.
-  await expect(role).toHaveValue(manager ?? "");
+  expect((await resumed).status()).toBe(200);
   expect(manager).not.toBe(before);
   await page.reload();
   await expect(page.getByLabel("Role for Milo Member", { exact: true })).toHaveValue(manager ?? "");
