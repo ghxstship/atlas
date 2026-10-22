@@ -14362,7 +14362,7 @@ var settings_default$1 = {
     },
     weekStart: {
       label: "Week starts on",
-      help: "The first day of the week on calendars and timesheets.",
+      help: "The first day of the week on calendars. The org's choice also starts its pay periods, timesheets and overtime weeks.",
     },
     marketplaceVisibility: {
       label: "Marketplace visibility",
@@ -32761,7 +32761,7 @@ var settings_default = {
     },
     weekStart: {
       label: "La semana empieza el",
-      help: "El primer día de la semana en calendarios y hojas de horas.",
+      help: "El primer día de la semana en los calendarios. La elección de la organización también marca el inicio de sus periodos de pago, hojas de horas y semanas de horas extra.",
     },
     marketplaceVisibility: {
       label: "Visibilidad en el mercado",

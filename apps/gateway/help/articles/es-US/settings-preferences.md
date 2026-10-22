@@ -13,7 +13,7 @@ Preferencias contiene tus valores personales:
 - **Formato de fecha**: seguir el idioma, o año-mes-día en todas partes.
 - **Unidades** de distancia, peso y superficie.
 - **Tema**: sistema, claro u oscuro.
-- **La semana empieza** el domingo o el lunes, en calendarios y hojas de horas.
+- **La semana empieza** el domingo o el lunes, en tus calendarios. Las hojas de horas y los periodos de pago siguen la semana de la organización.
 - **Traducir mensajes** escritos en otro idioma.
 
 Algunos ajustes de aquí solo se aplican en Atlas, como la página de inicio, la densidad y el perfil de trabajo.
