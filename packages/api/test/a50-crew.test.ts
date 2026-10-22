@@ -7,7 +7,13 @@
  */
 import { describe, expect, it } from "vitest";
 import { handlers as crew } from "../src/handlers/crew.ts";
-import { contractApp, expectContract, testContext } from "./support/contract.ts";
+import { etagOf } from "../src/runtime/etag.ts";
+import {
+  contractApp,
+  documentedResponse,
+  expectContract,
+  testContext,
+} from "./support/contract.ts";
 import { memoryDb, refusal, requests, success, tenantRow } from "./support/memory-db.ts";
 import type { MemoryDb, Row } from "./support/memory-db.ts";
 import { sample } from "./support/samples.ts";
@@ -389,13 +395,29 @@ describe("Crew: shifts and swaps", () => {
       claim: unknown;
     };
     expect(claimed).toMatchObject({ membership_id: MEMBER, shift_state: "Accepted", claim: null });
+    // The response keeps the shift's ETag, so a later update can send it in If-Match.
+    expect(claim.headers.get("ETag")).toBe(etagOf(claimed));
     expect((await http.post(`/shifts/${SHIFT}/claim`)).status).toBe(422);
     // Approval: the shift stays open and the response names the claim a supervisor decides.
     const waiting = await success(http.post(`/shifts/${WAITING_SHIFT}/claim`));
-    expect(await expectContract(waiting, "shifts.claim")).toMatchObject({
+    const open = await expectContract(waiting, "shifts.claim");
+    expect(open).toMatchObject({
       membership_id: null,
       shift_state: "Published",
       claim: { id: CLAIM, claim_state: "Requested" },
+    });
+    expect(waiting.headers.get("ETag")).toBe(etagOf(open));
+    // The contract documents the ETag, and its example is a claim that waits on an open shift.
+    const documented = documentedResponse("shifts.claim", 200) as {
+      headers: Record<string, unknown>;
+      content: Record<string, { example: Record<string, unknown> }>;
+    };
+    expect(Object.keys(documented.headers)).toContain("ETag");
+    expect(documented.content["application/json"]?.example).toMatchObject({
+      membership_id: null,
+      engagement_id: null,
+      shift_state: "Published",
+      claim: { claim_state: "Requested" },
     });
     const again = await http.post(`/shifts/${WAITING_SHIFT}/claim`);
     expect(again.status).toBe(422);
