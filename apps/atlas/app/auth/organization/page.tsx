@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { minimumAgeConfirmed } from "@xos/data/consent";
 import { listSubscribableAccounts } from "@xos/data/identity";
 import { OrganizationForm } from "@/components/auth/forms";
 import { SubscribeAccounts } from "@/components/auth/subscribe-account";
@@ -23,7 +24,11 @@ export default async function OrganizationPage() {
   const t = await getTranslations("shell.auth.organization");
   const [terms, dpa] = ownerSignupDocuments();
   // Journey 60: company accounts the person owns in Gateway start Atlas as the same organization.
-  const accounts = await listSubscribableAccounts(await createServerSupabase());
+  const db = await createServerSupabase();
+  const [accounts, age] = await Promise.all([
+    listSubscribableAccounts(db),
+    minimumAgeConfirmed(db),
+  ]);
   if (!terms || !dpa) {
     throw new Error("legal/index.yaml must list the Terms of Service and the DPA for Owners.");
   }
@@ -41,6 +46,7 @@ export default async function OrganizationPage() {
       <OrganizationForm
         terms={{ href: `/legal/${terms.slug}`, title: terms.title }}
         dpa={{ href: `/legal/${dpa.slug}`, title: dpa.title }}
+        askAge={!(age.ok && age.data)}
       />
     </div>
   );

@@ -7214,6 +7214,41 @@ export interface Components {
   SettingValuePage: { data: Array<Components["SettingValue"]>; next_cursor: string | null };
   SettingValueUpdate: { value?: string | number | boolean };
   SettleClaimRequest: { returned: boolean; note?: string };
+  ShareLink: {
+    id: string;
+    org_id: string;
+    created_at: string;
+    created_by: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    attachment_id: string;
+    attachment_version_id: string | null;
+    classification: Components["Classification"];
+    access_code_required: boolean;
+    recipient_email: string | null;
+    note: string | null;
+    expires_at: string | null;
+    failed_attempts: number;
+    open_count: number;
+    last_opened_at: string | null;
+    revoked_at: string | null;
+    revoked_by: string | null;
+  };
+  ShareLinkCreate: {
+    attachment_id: string;
+    access_code_required?: boolean;
+    recipient_email?: string | null;
+    note?: string | null;
+    expires_at?: string | null;
+  };
+  ShareLinkPage: { data: Array<Components["ShareLink"]>; next_cursor: string | null };
+  ShareLinkToken: {
+    share_link_id: string;
+    token: string;
+    access_code: string | null;
+    classification: Components["Classification"];
+    expires_at: string | null;
+  };
   SharedAccessibilityNeeds: {
     accessibility_needs: Array<Components["AccessibilityNeed"]>;
     accessibility_notes: string | null;
@@ -24583,6 +24618,48 @@ export interface Operations {
     body: undefined;
     responses: { 200: Components["PartnerStandingGrant"] };
   };
+  "shareLinks.list": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: {
+      limit?: Components["Limit"];
+      cursor?: Components["Cursor"];
+      fields?: Components["Fields"];
+      sort?: Components["Sort"];
+      filter?: Components["Filter"];
+    };
+    body: undefined;
+    responses: { 200: Components["ShareLinkPage"] };
+  };
+  "shareLinks.create": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links";
+    params: Record<string, never>;
+    query: Record<string, never>;
+    body: Components["ShareLinkCreate"];
+    responses: { 201: Components["ShareLinkToken"] };
+  };
+  "shareLinks.get": {
+    module: "Platform";
+    method: "get";
+    path: "/share-links/{id}";
+    params: { id: string };
+    query: { fields?: Components["Fields"] };
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
+  "shareLinks.revoke": {
+    module: "Platform";
+    method: "post";
+    path: "/share-links/{id}/revoke";
+    params: { id: string };
+    query: Record<string, never>;
+    body: undefined;
+    responses: { 200: Components["ShareLink"] };
+  };
   "personCalendarFeeds.list": {
     module: "Platform";
     method: "get";
@@ -27768,6 +27845,10 @@ export interface ModuleOperations {
     | "partnerStandingGrants.get"
     | "partnerStandingGrants.record"
     | "partnerStandingGrants.end"
+    | "shareLinks.list"
+    | "shareLinks.create"
+    | "shareLinks.get"
+    | "shareLinks.revoke"
     | "personCalendarFeeds.list"
     | "personCalendarFeeds.create"
     | "personCalendarFeeds.get"

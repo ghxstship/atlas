@@ -1,5 +1,5 @@
 import { labelActivity, listActivity, type ActivityEntry } from "@xos/data/activity";
-import { todayIn } from "@xos/data/calendar";
+import { addCalendarDays, startOfDayIn, todayIn } from "@xos/data/calendar";
 import {
   buildAlerts,
   type Alert,
@@ -88,6 +88,18 @@ export interface HomeTilesData {
   readonly activity: ActivityEntry[];
 }
 
+/**
+ * Today on a calendar as the instants it starts and ends: Home's "due today" window on the org's
+ * calendar (A71), not the server's UTC day, which in New York starts at 20:00 the evening before.
+ */
+export function todayWindow(zone: string, now: Date = new Date()): { from: Date; to: Date } {
+  const today = todayIn(zone, now);
+  return {
+    from: new Date(startOfDayIn(today, zone)),
+    to: new Date(startOfDayIn(addCalendarDays(today, 1), zone)),
+  };
+}
+
 /** The Home dashboard tiles (Section 4.2 Home): counts, gate readiness, alerts and recent activity. */
 export async function loadHomeTiles(
   ctx: OrgContext,
@@ -95,9 +107,7 @@ export async function loadHomeTiles(
 ): Promise<HomeTilesData> {
   const db = ctx.viewer.db;
   const personId = ctx.viewer.person?.id ?? null;
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start.getTime() + 86_400_000);
+  const { from: start, to: end } = todayWindow(await getOrgTimeZone(ctx), now);
   const canFeed = ctx.capabilities.has("activity.feed.read");
   const readiness = await loadReadiness(ctx);
   const [projects, alerts, due, activity] = await Promise.all([

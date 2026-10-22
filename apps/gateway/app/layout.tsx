@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { cookies, headers } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
+import { CookieBanner } from "@/components/privacy/cookie-banner";
 import { ThemeFollower, XOSProvider } from "@/components/ui";
 import { localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
@@ -57,6 +58,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             {...(overrides ? { messages: overrides } : {})}
           >
             {preference === "system" ? <ThemeFollower /> : null}
+            <CookieBanner />
             {children}
           </XOSProvider>
         </NextIntlClientProvider>

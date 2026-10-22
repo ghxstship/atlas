@@ -3716,6 +3716,362 @@ var compass_default$1 = {
     },
   },
 };
+var compliance_default$1 = {
+  classification: {
+    label: "Classification",
+    help: "Decides who may download the file, whether it may be shared by link, and whether copies carry the viewer's email.",
+    levels: {
+      Public: "Public",
+      Internal: "Internal",
+      Confidential: "Confidential",
+      Restricted: "Restricted",
+    },
+    save: "Save classification",
+    saved: "Classification saved.",
+    rules: {
+      Public: "Anyone may get a link, with or without an expiry.",
+      Internal: "Links need an expiry date within 90 days.",
+      Confidential:
+        "Links need an expiry within 30 days, an access code and the recipient's email. Downloads carry the viewer's email and the time.",
+      Restricted:
+        "Never shared by link. Downloads need the restricted export capability and a second sign-in factor.",
+    },
+  },
+  share: {
+    toggle: "Share",
+    hide: "Hide sharing",
+    title: "Share {name}",
+    loading: "Loading links…",
+    links: "Links",
+    noLinks: "No links yet.",
+    create: {
+      heading: "New link",
+      expiresOn: "Expires on",
+      expiresHelp: "The link stops opening at the end of this day. Up to {days} days ahead.",
+      noExpiry: "Leave empty for a link that never expires.",
+      accessCode: "Ask for a 6-digit access code",
+      accessCodeForced: "Confidential files always ask for an access code.",
+      recipient: "Recipient's email",
+      recipientHelp: "Their email is printed on every page they download.",
+      note: "What is it for?",
+      submit: "Create link",
+      restricted: "Restricted files are never shared by link.",
+    },
+    created: {
+      heading: "Link created",
+      copyOnce: "Copy the link and the code now. They are shown only once.",
+      link: "Link",
+      code: "Access code",
+      codeHelp: "Send the code separately from the link.",
+      copy: "Copy",
+      copied: "Copied",
+    },
+    row: {
+      expires: "Expires {date}",
+      never: "Never expires",
+      opened: "{count, plural, =0 {Not opened yet} one {Opened once} other {Opened # times}}",
+      codeRequired: "Access code",
+      for: "For {email}",
+      revoked: "Revoked",
+      locked: "Locked after 5 wrong codes",
+      expired: "Expired",
+      revoke: "Revoke",
+      made: "Made {date}",
+    },
+    errors: {
+      share_link_restricted: "Restricted files are never shared by link.",
+      share_link_confidential:
+        "Sharing a Confidential file needs the export capability for Confidential data.",
+      share_link_recipient: "Enter the recipient's email. The watermark carries it.",
+      share_link_recipient_format: "Enter a valid email address.",
+      share_link_watermark_unsupported:
+        "This Confidential file cannot carry the viewer watermark, so it cannot be shared by link. Only PNG and JPEG images can.",
+      share_link_expiry: "Choose an expiry date.",
+      share_link_expiry_range: "Choose a date after today and within the limit.",
+      share_link_file: "Wait until the file has scanned clean.",
+      attachment_classification_lower:
+        "Only the person who added the file, or someone who may set classifications, can lower it.",
+      org_read_only: "This organization is read-only.",
+      notFound: "This file is no longer available.",
+      unexpected: "Something went wrong. Try again.",
+    },
+  },
+  open: {
+    title: "Shared file",
+    intro: "Someone shared a file with you. Open it below.",
+    accessCode: "Access code",
+    accessCodeHelp: "Enter the 6-digit code if you received one with the link.",
+    submit: "Open file",
+    watermark: "Confidential images download as a PDF that shows your email and the time.",
+    refusals: {
+      share_link_invalid: "This link does not work. It may have been revoked or mistyped.",
+      share_link_locked:
+        "This link is locked after too many wrong codes. Ask the sender for a new one.",
+      share_link_expired: "This link has expired. Ask the sender for a new one.",
+      share_link_reclassified: "This file can no longer be shared this way. Ask the sender.",
+      share_link_access_code_required: "Enter the access code that came with the link.",
+      share_link_access_code: "That code is not right. After 5 wrong codes the link locks.",
+      share_link_rate_limited:
+        "Too many attempts from your network. Wait 10 minutes and try again.",
+    },
+  },
+  download: {
+    download_confidential:
+      "Downloading a Confidential file needs the export capability for Confidential data.",
+    download_restricted: "Downloading a Restricted file needs the restricted export capability.",
+    step_up_required:
+      "Downloading a Restricted file needs a second sign-in factor. Sign in again with your second factor, then try again.",
+    notFound: "This file is not available.",
+  },
+  cookies: {
+    title: "Cookies",
+    body: "We use cookies to keep you signed in and to remember this choice. With your permission we also remember your language, theme and last workspace for 12 months instead of this visit. We use no advertising or tracking cookies.",
+    policy: "Cookie Policy",
+    settingsLink: "Cookie settings",
+    acceptAll: "Accept all",
+    rejectAll: "Reject all",
+    choose: "Choose cookies",
+    necessary: "Strictly necessary: sign-in, security and this choice. Always on.",
+    preferences:
+      "Preferences: remember your language, theme, workspace and last organization for 12 months.",
+    performance:
+      "Performance: page timing and error reports. We set no performance cookies today; your choice applies if we ever add one.",
+    save: "Save choices",
+    settingsTitle: "Cookie settings",
+    settingsLead:
+      "Choose which cookies Atlas may set in this browser. Your choice is also kept on our servers as a record.",
+    gpc: "Your browser sends Global Privacy Control. We treat it as a refusal of every cookie that is not strictly necessary, so the choices below stay off while it is on.",
+    categories: "Categories",
+    current: {
+      none: "You have not chosen yet.",
+      choice: "Your choice: Preferences {preferences}, Performance {performance}.",
+      on: "on",
+      off: "off",
+    },
+    table: {
+      caption: "Cookies Atlas sets",
+      name: "Name",
+      category: "Category",
+      purpose: "What it does",
+      categories: {
+        necessary: "Strictly necessary",
+        preferences: "Preferences",
+      },
+      purposes: {
+        session: "Keeps you signed in for your organization's session lifetime.",
+        consent: "Remembers this choice for 12 months.",
+        viewAs: "Keeps a View as preview an Admin started, for up to an hour.",
+        locale: "Remembers the language you chose.",
+        theme: "Remembers the light or dark theme you chose.",
+        workspace: "Remembers the workspace filter you chose.",
+        lastOrg: "Opens the organization you used last.",
+        acting: "Remembers the account this browser acts for.",
+      },
+    },
+    gatewayBody:
+      "We use cookies to keep you signed in and to remember this choice. With your permission we also remember your language and theme for 12 months instead of this visit. We use no advertising or tracking cookies.",
+    gatewayPreferences: "Preferences: remember your language and theme for 12 months.",
+    gatewaySettingsLead:
+      "Choose which cookies Gateway may set in this browser. Your choice is also kept on our servers as a record.",
+    gatewayTableCaption: "Cookies Gateway sets",
+  },
+  subprocessors: {
+    title: "Change notices",
+    lead: "Get an email at least 30 days before we add or replace a subprocessor.",
+    email: "Email",
+    emailHelp: "We send one email to confirm. Nothing else is sent until you confirm.",
+    subscribe: "Subscribe",
+    members:
+      "Owners and Admins of a customer organization get these notices without subscribing and can turn them off in Settings, Notifications.",
+    confirmTitle: "Confirm your subscription",
+    confirmLead: "Confirm that you want Subprocessor List change notices at this address.",
+    confirm: "Confirm subscription",
+    unsubscribeTitle: "Unsubscribe from change notices",
+    unsubscribeLead: "Stop Subprocessor List change notices at this address.",
+    unsubscribe: "Unsubscribe",
+    notices: {
+      subscribed: "Check your email and confirm within 7 days to start receiving notices.",
+      invalid: "Enter an email address, such as name@example.com.",
+      failed: "We could not take your subscription. Try again in a few minutes.",
+      confirmed: "You are subscribed. We will email you at least 30 days before a change.",
+      "confirm-failed":
+        "This link has expired or was already used. Subscribe again to get a new one.",
+      unsubscribed: "You are unsubscribed. You will not get more change notices.",
+      "unsubscribe-failed":
+        "This link is not valid. Use the unsubscribe link in the most recent notice.",
+    },
+    settings: {
+      title: "Subprocessor List changes",
+      lead: "As an Owner or Admin, you get an email at least 30 days before we add or replace a subprocessor.",
+      label: "Email me about Subprocessor List changes",
+      save: "Save",
+    },
+  },
+  reacceptance: {
+    banner: {
+      upcoming: "{title}: a new version takes effect on {date}. Accept it for {org} before then.",
+      required: "{title}: a new version took effect on {date}. Accept it for {org}.",
+      review: "Review and accept in Settings, Legal",
+    },
+    personal: {
+      upcoming: "{title}: a new version takes effect on {date}",
+      required: "{title}: a new version took effect on {date}",
+    },
+    settings: {
+      title: "Changes to accept",
+      lead: "We changed these documents. Read what changes and accept the new version for {org}.",
+      item: "{title} {version}",
+      takesEffect: "Takes effect {date}. Announced {noticed}.",
+      inEffect: "In effect since {date}. Announced {noticed}.",
+      accept: "Accept {title} {version}",
+      read: "Read the new version",
+    },
+  },
+  osha: {
+    title: "OSHA recordkeeping",
+    lead: "Each establishment keeps a Form 300 log and posts a Form 300A summary from February 1 to April 30. Cases are recorded from the incident they came from.",
+    none: "No establishments yet. Add the place your crews report to.",
+    year: "{year}",
+    log: "Form 300 log, {year}",
+    summary: "Form 300A summary, {year}",
+    pdf: "PDF",
+    csv: "CSV",
+    summaryForm: "Employment figures and certification, {year}",
+    estimate:
+      "From time entries and payroll: {hours} hours worked, {employees} employees on average. Use these or the figures from your own records.",
+    employees: "Annual average number of employees",
+    hours: "Total hours worked by all employees",
+    executiveTitle: "Company executive's title",
+    phone: "Phone",
+    certify:
+      "I certify that I have examined this summary and that, to the best of my knowledge, the entries are true, accurate, and complete. I am a company executive.",
+    saveSummary: "Save summary",
+    summarySaved: "Summary for {year} saved.",
+    certifiedBy: "Certified by {name} on {date}.",
+    add: "Add an establishment",
+    addSubmit: "Add establishment",
+    added: "{name} added.",
+    cases: "OSHA recordable cases",
+    noCases: "No recordable case from this incident.",
+    caseLine: "Case {number} ({year}): {name}, {outcome}",
+    privacyCase: "Privacy case",
+    form301: "Form 301",
+    needsEstablishment: "Record a case once the org has an OSHA establishment.",
+    addEstablishment: "Add one in Settings, Locations and Venues",
+    record: "Record an OSHA case",
+    recordSubmit: "Record case",
+    recorded: "Case recorded.",
+    form301Details: "Form 301 details",
+    outcomes: {
+      Death: "Death",
+      "Days away from work": "Days away from work",
+      "Job transfer or restriction": "Job transfer or restriction",
+      "Other recordable case": "Other recordable case",
+    },
+    types: {
+      Injury: "Injury",
+      "Skin disorder": "Skin disorder",
+      "Respiratory condition": "Respiratory condition",
+      Poisoning: "Poisoning",
+      "Hearing loss": "Hearing loss",
+      "All other illnesses": "All other illnesses",
+    },
+    fields: {
+      name: "Establishment name",
+      street: "Street",
+      city: "City",
+      state: "State",
+      stateHelp: "Two letters, such as FL.",
+      zip: "ZIP code",
+      naics: "NAICS code, if known",
+      industry: "Industry description",
+      establishment: "Establishment",
+      person: "Employee",
+      notMember: "Not a member of the org",
+      employeeName: "Employee's full name",
+      employeeNameHelp: "Only when the employee is not a member of the org.",
+      privacy: 'Privacy concern case: print "privacy case" in place of the name on the log',
+      jobTitle: "Job title",
+      injuryDate: "Date of injury or onset of illness",
+      eventLocation: "Where the event occurred",
+      description:
+        "Injury or illness, parts of body affected, and the object or substance that caused it",
+      outcome: "Most serious outcome",
+      daysAway: "Days away from work",
+      daysRestricted: "Days on job transfer or restriction",
+      daysHelp: "Stop counting at 180 days in total.",
+      caseType: "Injury or illness type",
+      employeeStreet: "Employee's street",
+      employeeCity: "Employee's city",
+      employeeState: "Employee's state",
+      employeeZip: "Employee's ZIP code",
+      dateOfBirth: "Date of birth",
+      dateHired: "Date hired",
+      sex: "Male or female, as Form 301 asks",
+      male: "Male",
+      female: "Female",
+      unanswered: "Not answered",
+      professional: "Physician or other health care professional",
+      facility: "Facility where treatment was given away from the worksite",
+      facilityStreet: "Facility street",
+      facilityCity: "Facility city",
+      facilityState: "Facility state",
+      facilityZip: "Facility ZIP code",
+      emergencyRoom: "Treated in an emergency room",
+      hospitalized: "Hospitalized overnight as an in-patient",
+      yes: "Yes",
+      no: "No",
+      workBegan: "Time the employee began work",
+      eventTime: "Time of event",
+      timeUnknown: "The time of the event cannot be determined",
+      activityBefore: "What the employee was doing just before the incident",
+      whatHappened: "What happened",
+      injuryDetail: "The injury or illness: part of the body and how it was affected",
+      harmfulObject: "Object or substance that directly harmed the employee",
+      noPii: "No names, phone numbers or other identifying information.",
+      diedOn: "Date of death, if the employee died",
+      completedTitle: "Your title",
+      completedPhone: "Your phone",
+    },
+  },
+  wh347: {
+    title: "Certified payroll (WH-347)",
+    lead: "For projects under the Davis-Bacon and Related Acts: enter the project's contract details once, then issue each week's certified payroll from approved time.",
+    none: "No project has WH-347 details yet.",
+    headerLine: "Contract {contract}, wage determination {wd}",
+    weekEnding: "Week ending date",
+    final: "Final certified payroll for this project",
+    pdf: "Issue as PDF",
+    csv: "Issue as CSV",
+    stepUp:
+      "Certified payrolls carry Restricted pay rates: issuing one needs the restricted export capability and a recent two-step sign-in. Deductions and net pay come from your payroll provider.",
+    headerForm: "Enter or change a project's WH-347 details",
+    saveHeader: "Save details",
+    saved: "Details saved.",
+    refused: "This certified payroll was not issued.",
+    refusals: {
+      step_up_required: "Sign in again with your second step, then issue the certified payroll.",
+      export_restricted:
+        "Issuing a certified payroll needs the restricted export capability. Ask an Owner.",
+      certified_payroll_header_missing:
+        "Enter the project's contract and wage determination numbers first.",
+    },
+    fields: {
+      project: "Project",
+      contractNumber: "Project or contract number",
+      wageDeterminations: "Wage determination numbers",
+      wageDeterminationsHelp:
+        "Every wage determination and revision number that applies, such as FL20270001 Mod 2.",
+      contractorRole: "Prime contractor or subcontractor",
+      prime: "Prime contractor",
+      sub: "Subcontractor",
+      businessName: "Legal business name",
+      businessAddress: "Business address",
+      projectLocation: "Project location",
+      projectLocationHelp: "The full address, or at least the county and state.",
+    },
+  },
+};
 var credentials_default$1 = {
   categories: {
     active: "Live credentials",
@@ -4750,6 +5106,7 @@ var documents_default$1 = {
     qrAlt: "QR code that opens record {key} for anyone with access",
     logoAlt: "{name} logo",
     page: "Page {page} of {total}",
+    watermark: "Downloaded by {email} on {time}",
   },
   common: {
     amount: "Amount",
@@ -5009,6 +5366,193 @@ var documents_default$1 = {
       "Encrypted backups made before the deletion age out on their own schedule. They are kept only for disaster recovery and are not used to restore a deleted organization.",
     keep: "Keep this certificate for your records. Its id is {id}.",
   },
+  sharedImage: {
+    title: "Shared file {name}",
+    file: "File",
+    qrAlt: "QR code that opens the share link again",
+    alt: "{name}, shared by {org}",
+  },
+  compliance: {
+    form: "Form",
+    qrAlt: "QR code that opens {form} in XOS",
+  },
+  osha: {
+    year: "Year",
+    establishment: {
+      caption: "Establishment information",
+      name: "Establishment name",
+      street: "Street",
+      city: "City",
+      state: "State",
+      zip: "ZIP",
+      industry: "Industry description",
+      naics: "North American Industrial Classification (NAICS)",
+    },
+    log: {
+      title: "OSHA Form 300: Log of Work-Related Injuries and Illnesses, {name}, {year}",
+      key: "OSHA 300 {year}",
+      caption: "Log of Work-Related Injuries and Illnesses, {year}",
+      attention:
+        "Attention: This form contains information relating to employee health and must be used in a manner that protects the confidentiality of employees to the extent possible while the information is being used for occupational safety and health purposes.",
+      privacyCase: "privacy case",
+      pageTotals: "Page totals",
+      empty: "No recordable cases on this log for the year.",
+      transfer:
+        "Be sure to transfer these totals to the Summary page (Form 300A) before you post it.",
+      columns: {
+        0: "(A) Case no.",
+        1: "(B) Employee's name",
+        2: "(C) Job title",
+        3: "(D) Date of injury or onset of illness",
+        4: "(E) Where the event occurred",
+        5: "(F) Injury or illness, parts of body affected, and object or substance",
+        6: "(G) Death",
+        7: "(H) Days away from work",
+        8: "(I) Job transfer or restriction",
+        9: "(J) Other recordable cases",
+        10: "(K) Days away",
+        11: "(L) Days on transfer or restriction",
+        12: "(M1) Injury",
+        13: "(M2) Skin disorder",
+        14: "(M3) Respiratory condition",
+        15: "(M4) Poisoning",
+        16: "(M5) Hearing loss",
+        17: "(M6) All other illnesses",
+      },
+    },
+    summary: {
+      title: "Title",
+      key: "OSHA 300A {year}",
+      intro:
+        "All establishments covered by Part 1904 must complete this Summary page, even if no work-related injuries or illnesses occurred during the year. Employees, former employees, and their representatives have the right to review the OSHA Form 300 in its entirety. They also have limited access to the OSHA Form 301 or its equivalent (29 CFR 1904.35).",
+      cases: "Number of cases",
+      deaths: "(G) Total number of deaths",
+      daysAwayCases: "(H) Total number of cases with days away from work",
+      restrictedCases: "(I) Total number of cases with job transfer or restriction",
+      otherCases: "(J) Total number of other recordable cases",
+      days: "Number of days",
+      daysAway: "(K) Total number of days away from work",
+      daysRestricted: "(L) Total number of days of job transfer or restriction",
+      types: "Injury and illness types",
+      injuries: "(M1) Injuries",
+      skinDisorders: "(M2) Skin disorders",
+      respiratory: "(M3) Respiratory conditions",
+      poisonings: "(M4) Poisonings",
+      hearingLoss: "(M5) Hearing loss",
+      otherIllnesses: "(M6) All other illnesses",
+      employment: "Employment information",
+      averageEmployees: "Annual average number of employees",
+      hoursWorked: "Total hours worked by all employees last year",
+      certify:
+        "Knowingly falsifying this document may result in a fine. I certify that I have examined this document and that to the best of my knowledge the entries are true, accurate, and complete.",
+      signHere: "Sign here",
+      executive: "Company executive",
+      phone: "Phone",
+      date: "Date",
+      post: "Post this Summary page from February 1 to April 30 of the year following the year covered by the form.",
+    },
+    case: {
+      title301: "OSHA Form 301: Injury and Illness Incident Report, case {number}, {name}",
+      key: "OSHA 301 {year}-{number}",
+      attention:
+        "Attention: This form contains information relating to employee health and must be used in a manner that protects the confidentiality of employees to the extent possible while the information is being used for occupational safety and health purposes.",
+      employee: "Information about the employee",
+      physician: "Information about the physician or other health care professional",
+      case: "Information about the case",
+      completed: "Completed by",
+      completedBy: "Completed by",
+      title: "Title",
+      phone: "Phone",
+      date: "Date",
+      yes: "Yes",
+      no: "No",
+      timeUnknown: "Time cannot be determined",
+      sex: {
+        Male: "Male",
+        Female: "Female",
+      },
+      items: {
+        1: "1) Full name",
+        2: "2) Street, city, state, ZIP",
+        3: "3) Date of birth",
+        4: "4) Date hired",
+        5: "5) Male or female",
+        6: "6) Name of physician or other health care professional",
+        7: "7) If treatment was given away from the worksite, where was it given?",
+        8: "8) Was employee treated in an emergency room?",
+        9: "9) Was employee hospitalized overnight as an in-patient?",
+        10: "10) Case number from the Log",
+        11: "11) Date of injury or illness",
+        12: "12) Time employee began work",
+        13: "13) Time of event",
+        14: "14) What was the employee doing just before the incident occurred?",
+        15: "15) What happened?",
+        16: "16) What was the injury or illness?",
+        17: "17) What object or substance directly harmed the employee?",
+        18: "18) If the employee died, when did death occur?",
+      },
+    },
+  },
+  wh347: {
+    title: "WH-347 Certified Payroll No. {number}, {project}",
+    key: "WH-347 No. {number}, week ending {week}",
+    header: "Davis-Bacon and Related Acts weekly certified payroll",
+    projectName: "Project name",
+    contractNumber: "Project No. or Contract No.",
+    payrollNumber: "Certified Payroll No.",
+    contractor: "Prime contractor or subcontractor",
+    businessName: "Prime contractor's or subcontractor's business name",
+    businessAddress: "Prime contractor's or subcontractor's business address",
+    projectLocation: "Project location",
+    wageDeterminations: "Wage Determination No.",
+    weekEnding: "Week ending date",
+    final: "Submission of final DBRA certified payroll form",
+    yes: "Yes",
+    no: "No",
+    roles: {
+      "Prime contractor": "Prime contractor",
+      Subcontractor: "Subcontractor",
+    },
+    caption: "Workers, hours and pay for the week",
+    st: "ST",
+    ot: "OT",
+    columns: {
+      entry: "(1A) Worker entry no.",
+      name: "(1B to 1D) Worker name",
+      identifying: "(1E) Worker identifying no.",
+      apprentice: "(2) J or RA",
+      classification: "(3) Labor classification",
+      type: "ST or OT",
+      total: "(5) Total hours",
+      rate: "(6A) Hourly wage rate",
+      gross: "(7A) Gross amount earned",
+      grossAll: "(7B) Gross amount earned for all work",
+    },
+    empty: "No hours were worked on this project in the week.",
+    provider:
+      "Columns 6B (total fringe benefit credit), 6C (payment in lieu of fringe benefits), 8 (deductions) and 9 (net pay) come from the payroll provider and are not held in XOS. Complete them from the provider's payroll register before certifying.",
+    statement: {
+      heading: "Statement of Compliance",
+      official: "Certifying official",
+      name: "Certifying official's name",
+      date: "Date",
+      paid: "I paid or supervised the payment of the laborers or mechanics working on the above project during the stated time period. I certify the following:",
+      correct:
+        "The payroll information submitted with this statement is correct and complete for the above project during the above period, and the wage and fringe benefit rates paid to the workers, including credit taken for the reasonably anticipated costs of a bona fide fringe benefit plan, fund or program, are not less than the applicable wage and fringe benefits rates for the classification(s) of work actually performed, as specified in the wage determination(s) incorporated into the contract.",
+      records:
+        "All regular payrolls and all other basic records that the contractor is required to maintain for this payroll period are complete and accurate and will be made available upon request from the agency or the Department of Labor.",
+      classifications:
+        "The classifications reported for each laborer or mechanic are the classification(s) of work that each worker actually performed.",
+      apprentices:
+        'Any workers paid as apprentices during the above period are duly registered in a bona fide apprenticeship program registered with the Office of Apprenticeship, Employment and Training Administration, United States Department of Labor ("OA"), or a State Apprenticeship Agency ("SAA") recognized by Department of Labor.',
+      fringe:
+        "Fringe benefits have been paid in cash and/or to bona fide fringe benefit plans, funds, or programs.",
+      wages:
+        "All workers on the project have been paid the full weekly wages earned, and no rebates or deductions have been or will be made either directly or indirectly, other than permissible deductions as defined in 29 CFR part 3.",
+      warning:
+        "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts.",
+    },
+  },
 };
 var email_default$1 = {
   common: {
@@ -5260,6 +5804,21 @@ var email_default$1 = {
     subject: "We received your {requestType} request",
     heading: "Request received",
     body: "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirm your subscription to XOS subprocessor changes",
+    heading: "Confirm your subscription",
+    body: "You asked to hear about changes to the XOS Subprocessor List. Confirm within 7 days to start receiving notices.",
+    ignore: "If you did not ask for this, ignore this email and nothing will be sent.",
+    confirm: "Confirm subscription",
+  },
+  subprocessor_notice: {
+    subject: "XOS Subprocessor List changes on {effectiveOn, date, long}",
+    heading: "Subprocessor List {listVersion}",
+    intro:
+      "We will change our Subprocessor List on {effectiveOn, date, long}, at least 30 days from this notice.",
+    objection: "A customer may object under Section 7.3 of the Data Processing Agreement.",
+    review: "Read the Subprocessor List",
   },
   sms: {
     message: "{orgName}: {body} {url} Reply STOP to opt out.",
@@ -7317,6 +7876,7 @@ var gateway_default$1 = {
       password: "Password",
       passwordHelp:
         "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
+      age: "I am 16 or older.",
     },
     or: "or",
     usePassword: "Use a password",
@@ -7399,6 +7959,7 @@ var gateway_default$1 = {
       passwordContext:
         "Choose a password that does not contain your name, your email or a product name such as Gateway.",
       terms: "Accept the Worker Terms to create your account: tick the box above the button.",
+      age: "Confirm that you are 16 or older. XOS accounts are for people 16 and over.",
     },
   },
   work: {
@@ -8744,253 +9305,6 @@ var logistics_default$1 = {
     },
   },
 };
-var measurement_default$1 = {
-  unmeasured: "Unmeasured",
-  unrated: "Unrated",
-  noObjective: "No objective",
-  system: "System",
-  actions: "Actions",
-  cancel: "Cancel",
-  withdraw: "Withdraw",
-  byOn: "{name}, {date}",
-  benchmark: "Canon benchmark: {value} ({item})",
-  tags: "Reported against {tags}",
-  ticketing: "Ticketing imports: {scanned} scanned of {sold} sold.",
-  ticketingSold: "Ticketing imports: {sold} sold. The source reported no scans.",
-  units: {
-    kg: "{value} kg",
-    t: "{value} t",
-    lb: "{value} lb",
-    short_ton: "{value} short tons",
-    l: "{value} L",
-    m3: "{value} m³",
-    gal: "{value} gal",
-    kwh: "{value} kWh",
-    mwh: "{value} MWh",
-    kg_co2e: "{value} kg CO2e",
-    t_co2e: "{value} t CO2e",
-    count: "{value}",
-    percent: "{value}%",
-  },
-  unitNames: {
-    kg: "Kilograms (kg)",
-    t: "Metric tons (t)",
-    lb: "Pounds (lb)",
-    short_ton: "Short tons",
-    l: "Liters (L)",
-    m3: "Cubic meters (m³)",
-    gal: "US gallons (gal)",
-    kwh: "Kilowatt-hours (kWh)",
-    mwh: "Megawatt-hours (MWh)",
-    kg_co2e: "Kilograms of CO2e",
-    t_co2e: "Metric tons of CO2e",
-    count: "Count",
-    percent: "Percent (%)",
-  },
-  metrics: {
-    waste_generated: "Waste Generated",
-    waste_diverted: "Waste Diverted",
-    energy_used: "Energy Used",
-    water_used: "Water Used",
-    transport_emissions: "Transport Emissions",
-    attendance: "Attendance",
-    online_audience: "Online Audience",
-    earned_media_items: "Coverage Pieces",
-    earned_media_reach: "Earned Media Reach",
-    positive_sentiment: "Positive Sentiment",
-  },
-  families: {
-    sustainability: "Sustainability",
-    audience: "Audience",
-    earnedMedia: "Earned Media",
-    sentiment: "Sentiment",
-  },
-  directions: {
-    atLeast: "At Least",
-    atMost: "At Most",
-  },
-  outcomes: {
-    met: "Met",
-    notMet: "Not Met",
-    incomplete: "Incomplete",
-    unmeasured: "Unmeasured",
-  },
-  sources: {
-    manual: "Manual",
-    import: "Import",
-    integration: "Integration",
-  },
-  mediums: {
-    online: "Online",
-    print: "Print",
-    broadcast: "Broadcast",
-    podcast: "Podcast",
-    social: "Social",
-  },
-  tones: {
-    positive: "Positive",
-    neutral: "Neutral",
-    negative: "Negative",
-  },
-  corrections: {
-    corrected: "Corrected",
-    withdrawn: "Withdrawn",
-    restored: "Restored",
-  },
-  fields: {
-    metric: "Measure",
-    direction: "Direction",
-    target: "Target",
-    unit: "Unit",
-    note: "Note",
-    measuredOn: "Day",
-    value: "Figure",
-    source: "Source",
-    sourceReference: "Source reference",
-    sourceReferenceHelp: "Such as a hauler's invoice, a meter reading or a file name.",
-    sourceUri: "Source link",
-    reason: "Reason",
-    headline: "Headline",
-    outlet: "Outlet",
-    medium: "Medium",
-    publishedOn: "Ran on",
-    url: "Link",
-    reach: "Reach",
-    reachHelp:
-      "Readers, viewers or listeners the outlet reports. Leave it blank when they report none.",
-    tone: "Tone",
-  },
-  objectives: {
-    title: "Objectives",
-    description: "Measurable targets for this project. Gate 8 measures against them.",
-    locked:
-      "Gate 1 has passed. Only a gate approver can change these objectives, and every change is logged.",
-    empty: "No objectives yet. Set a target for each figure gate 8 will measure.",
-    formLabel: "Set an objective",
-    set: "Set objective",
-    change: "Change objective",
-    saved: "Objective saved.",
-    setBy: "Set by",
-    withdrawFor: "Withdraw the {metric} objective",
-    withdrawTitle: "Withdraw the {metric} objective?",
-    withdrawDescription: "Gate 8 stops measuring against it.",
-    attest: "Record objectives as gate 1 evidence",
-    attestNote:
-      "{count, plural, one {# measurable objective recorded.} other {# measurable objectives recorded.}}",
-    attested: "The objectives are evidence for gate 1 criterion G1.OBJECTIVES_STATED.",
-    caption: "Objectives of this project",
-  },
-  gate8: {
-    title: "Measurement",
-    description:
-      "Audience, earned media, sentiment and sustainability figures against the objectives set at gate 1. A figure nobody measured shows as Unmeasured, never zero.",
-    openReport: "Open the measurement report",
-    attest: "Record measurement as gate 8 evidence",
-    attestNote: "{met} of {count, plural, one {# objective} other {# objectives}} met.",
-    attested: "The measurement is evidence for gate 8 criterion G8.MEASUREMENT_REPORTED.",
-  },
-  summary: {
-    caption: "Objectives against measured figures",
-    family: "Family",
-    metric: "Measure",
-    objective: "Objective",
-    measured: "Measured",
-    unmeasuredCount: "Unmeasured entries",
-    outcome: "Outcome",
-    lastMeasured: "Last measured",
-    setAs: "Set as {target}",
-    unmeasuredBeside: "{count, plural, one {# entry unmeasured} other {# entries unmeasured}}",
-  },
-  figures: {
-    title: "Measured figures",
-    empty: "No figures recorded yet.",
-    formLabel: "Record a figure",
-    record: "Record figure",
-    recorded: "Figure recorded.",
-    recordedBy: "Recorded by",
-    notMeasured: "Not measured",
-    notMeasuredHelp:
-      "Record that this figure was not measured. It shows as Unmeasured, never as zero.",
-    correct: "Correct",
-    correctFor: "Correct {metric} for {date}",
-    correctDescription: "The figure before and after, and your reason, go in the correction log.",
-    saveCorrection: "Save correction",
-    reasonHelp:
-      "Say why the figure changes, such as a weighbridge ticket that replaces an estimate.",
-    withdrawFor: "Withdraw {metric} for {date}",
-    withdrawDescription: "The figure leaves the totals. The withdrawal goes in the correction log.",
-    withdrawReason: "Reason (optional)",
-    historyEntry: "{kind} by {name}, {date}: {before} to {after}.",
-    historyReason: "Reason: {reason}",
-    caption: "Recorded figures",
-  },
-  coverage: {
-    title: "Earned media",
-    description:
-      "Coverage of the project, each piece sourced, dated and linked. The coverage count and reach come from these pieces.",
-    empty: "No coverage recorded yet.",
-    formLabel: "Add coverage",
-    add: "Add coverage",
-    added: "Coverage added.",
-    tones: "Tone: {positive} positive, {neutral} neutral, {negative} negative, {unrated} unrated.",
-    withdrawFor: "Withdraw {title}",
-    withdrawDescription:
-      "The piece leaves the coverage count and reach. You can restore it from Trash.",
-    caption: "Coverage pieces",
-  },
-  report: {
-    summary: "Summary",
-    objectives: "Objectives",
-    openOutcomes: "Open",
-    openCaption: "{incomplete} incomplete, {unmeasured} unmeasured",
-    projectLead: "Objectives are set at gate 1 and figures are recorded at gate 8.",
-    openGates: "Open {project} gates",
-    projectCaption: "Objectives against measured figures for {project}",
-    chartTitle: "Objectives by outcome",
-    orgChartTitle: "Objectives by outcome and project",
-    byProject: "By project",
-    byMetric: "Across projects",
-    orgFigure: "Total, or mean for sentiment",
-    mean: "Mean {figure}",
-    partialProjects:
-      "{count, plural, one {# project has} other {# projects have}} unmeasured entries",
-    projectsMeasured: "Projects measured",
-    projectsUnmeasured: "Projects unmeasured",
-    empty: "No objectives or figures yet. Set objectives on a project's Gates tab at gate 1.",
-    emptyAction: "Browse projects",
-    byProjectCaption: "Objectives by project",
-    byMetricCaption: "Figures across projects",
-  },
-  errors: {
-    invalid: "Check the highlighted fields.",
-    required: "Enter a value.",
-    tooLong: "This is too long.",
-    number: "Enter a number.",
-    wholeNumber: "Enter a whole number.",
-    date: "Enter a day.",
-    url: "Enter a link that starts with https://.",
-    conflict:
-      "This is already recorded: one live objective per figure, and one coverage piece per link.",
-    "not-found": "This is gone or you cannot change it. Refresh the page.",
-    unexpected: "Something went wrong. Try again.",
-    refused: "The change was refused ({rule}).",
-    measurement_unit_dimension: "That unit does not measure this figure. Choose one of its units.",
-    measurement_unit_required: "Choose the unit of the figure.",
-    measurement_out_of_range:
-      "That figure is outside what this measure takes, such as a share above 100 percent.",
-    measurement_whole_count: "A count is a whole number.",
-    measurement_in_future: "A figure is measured on or before today on the project's calendar.",
-    measurement_metric_derived:
-      "Earned media figures come from the coverage pieces. Add coverage instead.",
-    measurement_correction_reason: "Say why the figure is corrected.",
-    project_objectives_locked: "Gate 1 has passed. Only a gate approver can change its objectives.",
-    project_objective_immutable: "An objective keeps its figure. Withdraw it and set another.",
-    project_measurement_immutable:
-      "A figure keeps its project, measure and source. Withdraw it and record another.",
-    earned_media_in_future: "Coverage runs on or before today on the project's calendar.",
-    earned_media_item_immutable: "Coverage stays with its project.",
-  },
-};
 var myWork_default$1 = {
   title: "My Work",
   label: "My work",
@@ -9202,7 +9516,6 @@ var nav_default$1 = {
         purchaseOrderExposure: "Purchase Order Exposure",
         incidents: "Incidents",
         finalCostReport: "Final Cost Report",
-        measurement: "Objectives and Measurement",
         savedReports: "Saved Reports",
         builder: "Report Builder",
         dashboards: "Dashboards",
@@ -14049,7 +14362,7 @@ var settings_default$1 = {
     },
     weekStart: {
       label: "Week starts on",
-      help: "The first day of the week on calendars and timesheets.",
+      help: "The first day of the week on calendars. The org's choice also starts its pay periods, timesheets and overtime weeks.",
     },
     marketplaceVisibility: {
       label: "Marketplace visibility",
@@ -14856,6 +15169,7 @@ var shell_default$1 = {
       orgName: "Organization name",
       orgSlug: "Web address",
       orgSlugHelp: "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
+      age: "I am 16 or older.",
     },
     or: "or",
     signIn: {
@@ -14954,6 +15268,7 @@ var shell_default$1 = {
       accept: "Accept the Terms of Service and the Data Processing Agreement to continue.",
       slug_taken: "That web address is already in use. Choose another.",
       slug_reserved: "That web address is reserved by Atlas. Choose another.",
+      age: "Confirm that you are 16 or older. XOS accounts are for people 16 and over.",
     },
     networkRestricted: {
       title: "Your network is not allowed",
@@ -21657,6 +21972,377 @@ var compass_default = {
     },
   },
 };
+var compliance_default = {
+  classification: {
+    label: "Clasificación",
+    help: "Decide quién puede descargar el archivo, si se puede compartir por enlace y si las copias llevan el correo de quien lo ve.",
+    levels: {
+      Public: "Público",
+      Internal: "Interno",
+      Confidential: "Confidencial",
+      Restricted: "Restringido",
+    },
+    save: "Guardar clasificación",
+    saved: "Clasificación guardada.",
+    rules: {
+      Public: "Cualquiera puede recibir un enlace, con o sin vencimiento.",
+      Internal: "Los enlaces necesitan una fecha de vencimiento dentro de 90 días.",
+      Confidential:
+        "Los enlaces necesitan un vencimiento dentro de 30 días, un código de acceso y el correo del destinatario. Las descargas llevan el correo de quien lo ve y la hora.",
+      Restricted:
+        "Nunca se comparte por enlace. Las descargas necesitan la capacidad de exportación restringida y un segundo factor de inicio de sesión.",
+    },
+  },
+  share: {
+    toggle: "Compartir",
+    hide: "Ocultar uso compartido",
+    title: "Compartir {name}",
+    loading: "Cargando enlaces…",
+    links: "Enlaces",
+    noLinks: "Todavía no hay enlaces.",
+    create: {
+      heading: "Nuevo enlace",
+      expiresOn: "Vence el",
+      expiresHelp:
+        "El enlace deja de abrirse al final de este día. Hasta {days} días a partir de hoy.",
+      noExpiry: "Déjalo vacío para un enlace que nunca vence.",
+      accessCode: "Pedir un código de acceso de 6 dígitos",
+      accessCodeForced: "Los archivos confidenciales siempre piden un código de acceso.",
+      recipient: "Correo del destinatario",
+      recipientHelp: "Su correo se imprime en cada página que descargue.",
+      note: "¿Para qué es?",
+      submit: "Crear enlace",
+      restricted: "Los archivos restringidos nunca se comparten por enlace.",
+    },
+    created: {
+      heading: "Enlace creado",
+      copyOnce: "Copia el enlace y el código ahora. Solo se muestran una vez.",
+      link: "Enlace",
+      code: "Código de acceso",
+      codeHelp: "Envía el código por separado del enlace.",
+      copy: "Copiar",
+      copied: "Copiado",
+    },
+    row: {
+      expires: "Vence el {date}",
+      never: "Nunca vence",
+      opened:
+        "{count, plural, =0 {Aún no se ha abierto} one {Abierto una vez} other {Abierto # veces}}",
+      codeRequired: "Código de acceso",
+      for: "Para {email}",
+      revoked: "Revocado",
+      locked: "Bloqueado tras 5 códigos incorrectos",
+      expired: "Vencido",
+      revoke: "Revocar",
+      made: "Creado el {date}",
+    },
+    errors: {
+      share_link_restricted: "Los archivos restringidos nunca se comparten por enlace.",
+      share_link_confidential:
+        "Compartir un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
+      share_link_recipient: "Escribe el correo del destinatario. La marca de agua lo lleva.",
+      share_link_recipient_format: "Escribe un correo válido.",
+      share_link_watermark_unsupported:
+        "Este archivo confidencial no puede llevar la marca de agua, así que no se puede compartir por enlace. Solo pueden las imágenes PNG y JPEG.",
+      share_link_expiry: "Elige una fecha de vencimiento.",
+      share_link_expiry_range: "Elige una fecha posterior a hoy y dentro del límite.",
+      share_link_file: "Espera a que el análisis del archivo termine sin problemas.",
+      attachment_classification_lower:
+        "Solo quien agregó el archivo, o alguien que pueda fijar clasificaciones, puede bajarla.",
+      org_read_only: "Esta organización es de solo lectura.",
+      notFound: "Este archivo ya no está disponible.",
+      unexpected: "Algo salió mal. Inténtalo de nuevo.",
+    },
+  },
+  open: {
+    title: "Archivo compartido",
+    intro: "Alguien compartió un archivo contigo. Ábrelo abajo.",
+    accessCode: "Código de acceso",
+    accessCodeHelp: "Escribe el código de 6 dígitos si lo recibiste con el enlace.",
+    submit: "Abrir archivo",
+    watermark:
+      "Las imágenes confidenciales se descargan como un PDF que muestra tu correo y la hora.",
+    refusals: {
+      share_link_invalid:
+        "Este enlace no funciona. Puede que lo hayan revocado o que esté mal escrito.",
+      share_link_locked:
+        "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
+      share_link_expired: "Este enlace venció. Pide uno nuevo a quien lo envió.",
+      share_link_reclassified:
+        "Este archivo ya no se puede compartir así. Consulta a quien lo envió.",
+      share_link_access_code_required: "Escribe el código de acceso que llegó con el enlace.",
+      share_link_access_code:
+        "Ese código no es correcto. Tras 5 códigos incorrectos el enlace se bloquea.",
+      share_link_rate_limited:
+        "Demasiados intentos desde tu red. Espera 10 minutos e inténtalo de nuevo.",
+    },
+  },
+  download: {
+    download_confidential:
+      "Descargar un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
+    download_restricted:
+      "Descargar un archivo restringido necesita la capacidad de exportación restringida.",
+    step_up_required:
+      "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
+    notFound: "Este archivo no está disponible.",
+  },
+  cookies: {
+    title: "Cookies",
+    body: "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma, tema y último espacio de trabajo durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    policy: "Política de cookies",
+    settingsLink: "Configuración de cookies",
+    acceptAll: "Aceptar todas",
+    rejectAll: "Rechazar todas",
+    choose: "Elegir cookies",
+    necessary:
+      "Estrictamente necesarias: inicio de sesión, seguridad y esta elección. Siempre activas.",
+    preferences:
+      "Preferencias: recordar tu idioma, tema, espacio de trabajo y última organización durante 12 meses.",
+    performance:
+      "Rendimiento: tiempos de página e informes de errores. Hoy no usamos cookies de rendimiento; tu elección se aplica si alguna vez agregamos una.",
+    save: "Guardar elección",
+    settingsTitle: "Configuración de cookies",
+    settingsLead:
+      "Elige qué cookies puede usar Atlas en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    gpc: "Tu navegador envía Global Privacy Control. Lo tratamos como un rechazo de toda cookie que no sea estrictamente necesaria, así que las opciones de abajo quedan desactivadas mientras esté activo.",
+    categories: "Categorías",
+    current: {
+      none: "Todavía no has elegido.",
+      choice: "Tu elección: Preferencias {preferences}, Rendimiento {performance}.",
+      on: "activadas",
+      off: "desactivadas",
+    },
+    table: {
+      caption: "Cookies que usa Atlas",
+      name: "Nombre",
+      category: "Categoría",
+      purpose: "Para qué sirve",
+      categories: {
+        necessary: "Estrictamente necesaria",
+        preferences: "Preferencias",
+      },
+      purposes: {
+        session: "Mantiene tu sesión iniciada durante el tiempo que fija tu organización.",
+        consent: "Recuerda esta elección durante 12 meses.",
+        viewAs:
+          "Mantiene una vista previa Ver como que inició un administrador, hasta por una hora.",
+        locale: "Recuerda el idioma que elegiste.",
+        theme: "Recuerda el tema claro u oscuro que elegiste.",
+        workspace: "Recuerda el filtro de espacio de trabajo que elegiste.",
+        lastOrg: "Abre la organización que usaste por última vez.",
+        acting: "Recuerda la cuenta por la que actúa este navegador.",
+      },
+    },
+    gatewayBody:
+      "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma y tema durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    gatewayPreferences: "Preferencias: recordar tu idioma y tema durante 12 meses.",
+    gatewaySettingsLead:
+      "Elige qué cookies puede usar Gateway en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    gatewayTableCaption: "Cookies que usa Gateway",
+  },
+  subprocessors: {
+    title: "Avisos de cambios",
+    lead: "Recibe un correo al menos 30 días antes de que agreguemos o reemplacemos un subencargado.",
+    email: "Correo electrónico",
+    emailHelp: "Enviamos un correo para confirmar. No se envía nada más hasta que confirmes.",
+    subscribe: "Suscribirse",
+    members:
+      "Los Propietarios y Administradores de una organización cliente reciben estos avisos sin suscribirse y pueden desactivarlos en Configuración, Notificaciones.",
+    confirmTitle: "Confirma tu suscripción",
+    confirmLead:
+      "Confirma que quieres recibir avisos de cambios en la Lista de subencargados en esta dirección.",
+    confirm: "Confirmar suscripción",
+    unsubscribeTitle: "Cancelar los avisos de cambios",
+    unsubscribeLead:
+      "Deja de recibir avisos de cambios en la Lista de subencargados en esta dirección.",
+    unsubscribe: "Cancelar suscripción",
+    notices: {
+      subscribed:
+        "Revisa tu correo y confirma en un plazo de 7 días para empezar a recibir avisos.",
+      invalid: "Escribe una dirección de correo, como nombre@ejemplo.com.",
+      failed: "No pudimos registrar tu suscripción. Inténtalo de nuevo en unos minutos.",
+      confirmed: "Ya estás suscrito. Te escribiremos al menos 30 días antes de un cambio.",
+      "confirm-failed":
+        "Este enlace venció o ya se usó. Suscríbete de nuevo para recibir uno nuevo.",
+      unsubscribed: "Cancelaste la suscripción. No recibirás más avisos de cambios.",
+      "unsubscribe-failed":
+        "Este enlace no es válido. Usa el enlace para cancelar del aviso más reciente.",
+    },
+    settings: {
+      title: "Cambios en la Lista de subencargados",
+      lead: "Como Propietario o Administrador, recibes un correo al menos 30 días antes de que agreguemos o reemplacemos un subencargado.",
+      label: "Enviarme un correo sobre cambios en la Lista de subencargados",
+      save: "Guardar",
+    },
+  },
+  reacceptance: {
+    banner: {
+      upcoming:
+        "{title}: una nueva versión entra en vigor el {date}. Acéptala para {org} antes de esa fecha.",
+      required: "{title}: una nueva versión entró en vigor el {date}. Acéptala para {org}.",
+      review: "Revisa y acepta en Configuración, Legal",
+    },
+    personal: {
+      upcoming: "{title}: una nueva versión entra en vigor el {date}",
+      required: "{title}: una nueva versión entró en vigor el {date}",
+    },
+    settings: {
+      title: "Cambios por aceptar",
+      lead: "Cambiamos estos documentos. Lee qué cambia y acepta la nueva versión para {org}.",
+      item: "{title} {version}",
+      takesEffect: "Entra en vigor el {date}. Anunciado el {noticed}.",
+      inEffect: "En vigor desde el {date}. Anunciado el {noticed}.",
+      accept: "Aceptar {title} {version}",
+      read: "Leer la nueva versión",
+    },
+  },
+  osha: {
+    title: "Registros de OSHA",
+    lead: "Cada establecimiento lleva un registro del Formulario 300 y publica un resumen del Formulario 300A del 1 de febrero al 30 de abril. Los casos se registran desde el incidente del que vienen.",
+    none: "Todavía no hay establecimientos. Agrega el lugar al que se reportan tus equipos.",
+    year: "{year}",
+    log: "Registro del Formulario 300, {year}",
+    summary: "Resumen del Formulario 300A, {year}",
+    pdf: "PDF",
+    csv: "CSV",
+    summaryForm: "Datos de empleo y certificación, {year}",
+    estimate:
+      "Según los registros de tiempo y la nómina: {hours} horas trabajadas y {employees} empleados en promedio. Usa estos datos o los de tus propios registros.",
+    employees: "Número promedio anual de empleados",
+    hours: "Total de horas trabajadas por todos los empleados",
+    executiveTitle: "Cargo del ejecutivo de la empresa",
+    phone: "Teléfono",
+    certify:
+      "Certifico que examiné este resumen y que, a mi leal saber y entender, los datos son verdaderos, exactos y completos. Soy ejecutivo de la empresa.",
+    saveSummary: "Guardar resumen",
+    summarySaved: "Resumen de {year} guardado.",
+    certifiedBy: "Certificado por {name} el {date}.",
+    add: "Agregar un establecimiento",
+    addSubmit: "Agregar establecimiento",
+    added: "{name} agregado.",
+    cases: "Casos registrables de OSHA",
+    noCases: "Ningún caso registrable de este incidente.",
+    caseLine: "Caso {number} ({year}): {name}, {outcome}",
+    privacyCase: "Caso de privacidad",
+    form301: "Formulario 301",
+    needsEstablishment: "Registra un caso cuando la organización tenga un establecimiento de OSHA.",
+    addEstablishment: "Agrega uno en Configuración, Ubicaciones y lugares",
+    record: "Registrar un caso de OSHA",
+    recordSubmit: "Registrar caso",
+    recorded: "Caso registrado.",
+    form301Details: "Detalles del Formulario 301",
+    outcomes: {
+      Death: "Muerte",
+      "Days away from work": "Días de ausencia del trabajo",
+      "Job transfer or restriction": "Traslado o restricción laboral",
+      "Other recordable case": "Otro caso registrable",
+    },
+    types: {
+      Injury: "Lesión",
+      "Skin disorder": "Trastorno de la piel",
+      "Respiratory condition": "Afección respiratoria",
+      Poisoning: "Envenenamiento",
+      "Hearing loss": "Pérdida auditiva",
+      "All other illnesses": "Todas las demás enfermedades",
+    },
+    fields: {
+      name: "Nombre del establecimiento",
+      street: "Calle",
+      city: "Ciudad",
+      state: "Estado",
+      stateHelp: "Dos letras, como FL.",
+      zip: "Código postal",
+      naics: "Código NAICS, si lo conoces",
+      industry: "Descripción de la industria",
+      establishment: "Establecimiento",
+      person: "Empleado",
+      notMember: "No es miembro de la organización",
+      employeeName: "Nombre completo del empleado",
+      employeeNameHelp: "Solo si el empleado no es miembro de la organización.",
+      privacy:
+        'Caso de privacidad: imprimir "caso de privacidad" en lugar del nombre en el registro',
+      jobTitle: "Puesto",
+      injuryDate: "Fecha de la lesión o del inicio de la enfermedad",
+      eventLocation: "Dónde ocurrió el evento",
+      description:
+        "Lesión o enfermedad, partes del cuerpo afectadas y el objeto o sustancia que la causó",
+      outcome: "Resultado más grave",
+      daysAway: "Días de ausencia del trabajo",
+      daysRestricted: "Días de traslado o restricción laboral",
+      daysHelp: "Deja de contar al llegar a 180 días en total.",
+      caseType: "Tipo de lesión o enfermedad",
+      employeeStreet: "Calle del empleado",
+      employeeCity: "Ciudad del empleado",
+      employeeState: "Estado del empleado",
+      employeeZip: "Código postal del empleado",
+      dateOfBirth: "Fecha de nacimiento",
+      dateHired: "Fecha de contratación",
+      sex: "Masculino o femenino, como pide el Formulario 301",
+      male: "Masculino",
+      female: "Femenino",
+      unanswered: "Sin respuesta",
+      professional: "Médico u otro profesional de la salud",
+      facility: "Centro donde se dio el tratamiento fuera del lugar de trabajo",
+      facilityStreet: "Calle del centro",
+      facilityCity: "Ciudad del centro",
+      facilityState: "Estado del centro",
+      facilityZip: "Código postal del centro",
+      emergencyRoom: "Atendido en una sala de emergencias",
+      hospitalized: "Hospitalizado durante la noche como paciente internado",
+      yes: "Sí",
+      no: "No",
+      workBegan: "Hora en que el empleado empezó a trabajar",
+      eventTime: "Hora del evento",
+      timeUnknown: "No se puede determinar la hora del evento",
+      activityBefore: "Qué hacía el empleado justo antes del incidente",
+      whatHappened: "Qué pasó",
+      injuryDetail: "La lesión o enfermedad: parte del cuerpo y cómo se afectó",
+      harmfulObject: "Objeto o sustancia que dañó directamente al empleado",
+      noPii: "Sin nombres, números de teléfono ni otros datos que identifiquen a alguien.",
+      diedOn: "Fecha de muerte, si el empleado murió",
+      completedTitle: "Tu cargo",
+      completedPhone: "Tu teléfono",
+    },
+  },
+  wh347: {
+    title: "Nómina certificada (WH-347)",
+    lead: "Para proyectos bajo la Ley Davis-Bacon y leyes relacionadas: ingresa una vez los datos del contrato del proyecto y emite cada semana la nómina certificada a partir del tiempo aprobado.",
+    none: "Ningún proyecto tiene todavía datos del WH-347.",
+    headerLine: "Contrato {contract}, determinación salarial {wd}",
+    weekEnding: "Fecha de fin de semana",
+    final: "Nómina certificada final de este proyecto",
+    pdf: "Emitir en PDF",
+    csv: "Emitir en CSV",
+    stepUp:
+      "Las nóminas certificadas contienen tarifas de pago restringidas: emitir una requiere la capacidad de exportación restringida y un inicio de sesión reciente en dos pasos. Las deducciones y el pago neto vienen de tu proveedor de nómina.",
+    headerForm: "Ingresar o cambiar los datos del WH-347 de un proyecto",
+    saveHeader: "Guardar datos",
+    saved: "Datos guardados.",
+    refused: "Esta nómina certificada no se emitió.",
+    refusals: {
+      step_up_required:
+        "Vuelve a iniciar sesión con tu segundo paso y emite la nómina certificada.",
+      export_restricted:
+        "Emitir una nómina certificada requiere la capacidad de exportación restringida. Pídela a un Propietario.",
+      certified_payroll_header_missing:
+        "Primero ingresa los números de contrato y de determinación salarial del proyecto.",
+    },
+    fields: {
+      project: "Proyecto",
+      contractNumber: "Número de proyecto o de contrato",
+      wageDeterminations: "Números de determinación salarial",
+      wageDeterminationsHelp:
+        "Todos los números de determinación salarial y de revisión que apliquen, como FL20270001 Mod 2.",
+      contractorRole: "Contratista principal o subcontratista",
+      prime: "Contratista principal",
+      sub: "Subcontratista",
+      businessName: "Nombre legal de la empresa",
+      businessAddress: "Dirección de la empresa",
+      projectLocation: "Ubicación del proyecto",
+      projectLocationHelp: "La dirección completa o, al menos, el condado y el estado.",
+    },
+  },
+};
 var credentials_default = {
   categories: {
     active: "Credenciales vigentes",
@@ -22725,6 +23411,7 @@ var documents_default = {
     qrAlt: "Código QR que abre el registro {key} para quien tenga acceso",
     logoAlt: "Logotipo de {name}",
     page: "Página {page} de {total}",
+    watermark: "Descargado por {email} el {time}",
   },
   common: {
     amount: "Importe",
@@ -22985,6 +23672,195 @@ var documents_default = {
       "Las copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario. Solo se conservan para recuperación ante desastres y no se usan para restaurar una organización eliminada.",
     keep: "Conserve este certificado en sus archivos. Su id es {id}.",
   },
+  sharedImage: {
+    title: "Archivo compartido {name}",
+    file: "Archivo",
+    qrAlt: "Código QR que vuelve a abrir el enlace compartido",
+    alt: "{name}, compartido por {org}",
+  },
+  compliance: {
+    form: "Formulario",
+    qrAlt: "Código QR que abre {form} en XOS",
+  },
+  osha: {
+    year: "Año",
+    establishment: {
+      caption: "Información del establecimiento",
+      name: "Nombre del establecimiento",
+      street: "Calle",
+      city: "Ciudad",
+      state: "Estado",
+      zip: "Código postal",
+      industry: "Descripción de la industria",
+      naics: "Clasificación Industrial de América del Norte (NAICS)",
+    },
+    log: {
+      title:
+        "Formulario 300 de OSHA: Registro de lesiones y enfermedades relacionadas con el trabajo, {name}, {year}",
+      key: "OSHA 300 {year}",
+      caption: "Registro de lesiones y enfermedades relacionadas con el trabajo, {year}",
+      attention:
+        "Atención: este formulario contiene información sobre la salud de los empleados y debe usarse de manera que proteja su confidencialidad en la mayor medida posible mientras se usa con fines de seguridad y salud ocupacional.",
+      privacyCase: "caso de privacidad",
+      pageTotals: "Totales de la página",
+      empty: "No hay casos registrables en este registro para el año.",
+      transfer:
+        "Asegúrate de pasar estos totales a la página de Resumen (Formulario 300A) antes de publicarla.",
+      columns: {
+        0: "(A) N.º de caso",
+        1: "(B) Nombre del empleado",
+        2: "(C) Puesto",
+        3: "(D) Fecha de la lesión o del inicio de la enfermedad",
+        4: "(E) Dónde ocurrió el evento",
+        5: "(F) Lesión o enfermedad, partes del cuerpo afectadas y objeto o sustancia",
+        6: "(G) Muerte",
+        7: "(H) Días de ausencia del trabajo",
+        8: "(I) Traslado o restricción laboral",
+        9: "(J) Otros casos registrables",
+        10: "(K) Días de ausencia",
+        11: "(L) Días de traslado o restricción",
+        12: "(M1) Lesión",
+        13: "(M2) Trastorno de la piel",
+        14: "(M3) Afección respiratoria",
+        15: "(M4) Envenenamiento",
+        16: "(M5) Pérdida auditiva",
+        17: "(M6) Todas las demás enfermedades",
+      },
+    },
+    summary: {
+      title: "Cargo",
+      key: "OSHA 300A {year}",
+      intro:
+        "Todos los establecimientos cubiertos por la Parte 1904 deben completar esta página de Resumen, aunque no haya habido lesiones ni enfermedades relacionadas con el trabajo durante el año. Los empleados, los exempleados y sus representantes tienen derecho a revisar el Formulario 300 de OSHA completo y un acceso limitado al Formulario 301 o su equivalente (29 CFR 1904.35).",
+      cases: "Número de casos",
+      deaths: "(G) Número total de muertes",
+      daysAwayCases: "(H) Número total de casos con días de ausencia del trabajo",
+      restrictedCases: "(I) Número total de casos con traslado o restricción laboral",
+      otherCases: "(J) Número total de otros casos registrables",
+      days: "Número de días",
+      daysAway: "(K) Número total de días de ausencia del trabajo",
+      daysRestricted: "(L) Número total de días de traslado o restricción laboral",
+      types: "Tipos de lesiones y enfermedades",
+      injuries: "(M1) Lesiones",
+      skinDisorders: "(M2) Trastornos de la piel",
+      respiratory: "(M3) Afecciones respiratorias",
+      poisonings: "(M4) Envenenamientos",
+      hearingLoss: "(M5) Pérdida auditiva",
+      otherIllnesses: "(M6) Todas las demás enfermedades",
+      employment: "Información de empleo",
+      averageEmployees: "Número promedio anual de empleados",
+      hoursWorked: "Total de horas trabajadas por todos los empleados el año pasado",
+      certify:
+        "Falsificar este documento a sabiendas puede dar lugar a una multa. Certifico que examiné este documento y que, a mi leal saber y entender, los datos son verdaderos, exactos y completos.",
+      signHere: "Firma aquí",
+      executive: "Ejecutivo de la empresa",
+      phone: "Teléfono",
+      date: "Fecha",
+      post: "Publica esta página de Resumen del 1 de febrero al 30 de abril del año siguiente al que cubre el formulario.",
+    },
+    case: {
+      title301:
+        "Formulario 301 de OSHA: Informe de incidente de lesión o enfermedad, caso {number}, {name}",
+      key: "OSHA 301 {year}-{number}",
+      attention:
+        "Atención: este formulario contiene información sobre la salud de los empleados y debe usarse de manera que proteja su confidencialidad en la mayor medida posible mientras se usa con fines de seguridad y salud ocupacional.",
+      employee: "Información sobre el empleado",
+      physician: "Información sobre el médico u otro profesional de la salud",
+      case: "Información sobre el caso",
+      completed: "Completado por",
+      completedBy: "Completado por",
+      title: "Cargo",
+      phone: "Teléfono",
+      date: "Fecha",
+      yes: "Sí",
+      no: "No",
+      timeUnknown: "No se puede determinar la hora",
+      sex: {
+        Male: "Masculino",
+        Female: "Femenino",
+      },
+      items: {
+        1: "1) Nombre completo",
+        2: "2) Calle, ciudad, estado, código postal",
+        3: "3) Fecha de nacimiento",
+        4: "4) Fecha de contratación",
+        5: "5) Masculino o femenino",
+        6: "6) Nombre del médico u otro profesional de la salud",
+        7: "7) Si el tratamiento se dio fuera del lugar de trabajo, ¿dónde se dio?",
+        8: "8) ¿El empleado fue atendido en una sala de emergencias?",
+        9: "9) ¿El empleado fue hospitalizado durante la noche como paciente internado?",
+        10: "10) Número de caso del Registro",
+        11: "11) Fecha de la lesión o enfermedad",
+        12: "12) Hora en que el empleado empezó a trabajar",
+        13: "13) Hora del evento",
+        14: "14) ¿Qué hacía el empleado justo antes del incidente?",
+        15: "15) ¿Qué pasó?",
+        16: "16) ¿Cuál fue la lesión o enfermedad?",
+        17: "17) ¿Qué objeto o sustancia dañó directamente al empleado?",
+        18: "18) Si el empleado murió, ¿cuándo ocurrió la muerte?",
+      },
+    },
+  },
+  wh347: {
+    title: "WH-347 Nómina certificada N.º {number}, {project}",
+    key: "WH-347 N.º {number}, semana que termina el {week}",
+    header: "Nómina semanal certificada de la Ley Davis-Bacon y leyes relacionadas",
+    projectName: "Nombre del proyecto",
+    contractNumber: "N.º de proyecto o de contrato",
+    payrollNumber: "N.º de nómina certificada",
+    contractor: "Contratista principal o subcontratista",
+    businessName: "Nombre comercial del contratista principal o subcontratista",
+    businessAddress: "Dirección comercial del contratista principal o subcontratista",
+    projectLocation: "Ubicación del proyecto",
+    wageDeterminations: "N.º de determinación salarial",
+    weekEnding: "Fecha de fin de semana",
+    final: "Presentación del formulario final de nómina certificada DBRA",
+    yes: "Sí",
+    no: "No",
+    roles: {
+      "Prime contractor": "Contratista principal",
+      Subcontractor: "Subcontratista",
+    },
+    caption: "Trabajadores, horas y pago de la semana",
+    st: "TN",
+    ot: "HE",
+    columns: {
+      entry: "(1A) N.º de entrada del trabajador",
+      name: "(1B a 1D) Nombre del trabajador",
+      identifying: "(1E) N.º de identificación del trabajador",
+      apprentice: "(2) J o RA",
+      classification: "(3) Clasificación laboral",
+      type: "TN o HE",
+      total: "(5) Total de horas",
+      rate: "(6A) Tarifa por hora",
+      gross: "(7A) Monto bruto ganado",
+      grossAll: "(7B) Monto bruto ganado por todo el trabajo",
+    },
+    empty: "No se trabajaron horas en este proyecto durante la semana.",
+    provider:
+      "Las columnas 6B (crédito total por beneficios complementarios), 6C (pago en lugar de beneficios complementarios), 8 (deducciones) y 9 (pago neto) provienen del proveedor de nómina y XOS no las guarda. Complétalas con el registro de nómina del proveedor antes de certificar.",
+    statement: {
+      heading: "Declaración de cumplimiento",
+      official: "Funcionario que certifica",
+      name: "Nombre del funcionario que certifica",
+      date: "Fecha",
+      paid: "Pagué o supervisé el pago de los obreros o mecánicos que trabajaron en el proyecto indicado durante el período señalado. Certifico lo siguiente:",
+      correct:
+        "La información de nómina presentada con esta declaración es correcta y completa para el proyecto y el período indicados, y las tarifas de salario y beneficios complementarios pagadas a los trabajadores, incluido el crédito tomado por los costos razonablemente previstos de un plan, fondo o programa de beneficios complementarios de buena fe, no son menores que las tarifas aplicables a las clasificaciones del trabajo realizado, según las determinaciones salariales incorporadas al contrato.",
+      records:
+        "Todas las nóminas ordinarias y demás registros básicos que el contratista debe mantener para este período de nómina están completos y son exactos, y se pondrán a disposición de la agencia o del Departamento de Trabajo cuando los pidan.",
+      classifications:
+        "Las clasificaciones informadas para cada obrero o mecánico son las clasificaciones del trabajo que cada trabajador realizó.",
+      apprentices:
+        'Todo trabajador pagado como aprendiz durante el período indicado está debidamente inscrito en un programa de aprendizaje de buena fe registrado en la Oficina de Aprendizaje de la Administración de Empleo y Capacitación del Departamento de Trabajo de los Estados Unidos ("OA") o en una Agencia Estatal de Aprendizaje ("SAA") reconocida por el Departamento de Trabajo.',
+      fringe:
+        "Los beneficios complementarios se pagaron en efectivo o a planes, fondos o programas de beneficios complementarios de buena fe.",
+      wages:
+        "A todos los trabajadores del proyecto se les pagó el salario semanal completo ganado, y no se hicieron ni se harán reembolsos ni deducciones, directa o indirectamente, salvo las deducciones permitidas según 29 CFR parte 3.",
+      warning:
+        "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal.",
+    },
+  },
 };
 var email_default = {
   common: {
@@ -23236,6 +24112,22 @@ var email_default = {
     subject: "Recibimos tu solicitud de {requestType}",
     heading: "Solicitud recibida",
     body: "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirma tu suscripción a los cambios de subencargados de XOS",
+    heading: "Confirma tu suscripción",
+    body: "Pediste recibir avisos de cambios en la Lista de subencargados de XOS. Confirma en un plazo de 7 días para empezar a recibirlos.",
+    ignore: "Si no lo pediste, ignora este correo y no se enviará nada.",
+    confirm: "Confirmar suscripción",
+  },
+  subprocessor_notice: {
+    subject: "La Lista de subencargados de XOS cambia el {effectiveOn, date, long}",
+    heading: "Lista de subencargados {listVersion}",
+    intro:
+      "Cambiaremos nuestra Lista de subencargados el {effectiveOn, date, long}, al menos 30 días después de este aviso.",
+    objection:
+      "Un cliente puede oponerse según la Sección 7.3 del Acuerdo de Tratamiento de Datos.",
+    review: "Leer la Lista de subencargados",
   },
   sms: {
     message: "{orgName}: {body} {url} Responde STOP para cancelar.",
@@ -25205,6 +26097,7 @@ var gateway_default = {
       password: "Contraseña",
       passwordHelp:
         "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
+      age: "Tengo 16 años o más.",
     },
     or: "o",
     usePassword: "Usar contraseña",
@@ -25290,6 +26183,7 @@ var gateway_default = {
         "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
       terms:
         "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
+      age: "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante.",
     },
   },
   work: {
@@ -26667,260 +27561,6 @@ var logistics_default = {
     },
   },
 };
-var measurement_default = {
-  unmeasured: "Sin medir",
-  unrated: "Sin calificar",
-  noObjective: "Sin objetivo",
-  system: "Sistema",
-  actions: "Acciones",
-  cancel: "Cancelar",
-  withdraw: "Retirar",
-  byOn: "{name}, {date}",
-  benchmark: "Referencia del canon: {value} ({item})",
-  tags: "Se informa frente a {tags}",
-  ticketing: "Importaciones de boletería: {scanned} escaneados de {sold} vendidos.",
-  ticketingSold: "Importaciones de boletería: {sold} vendidos. La fuente no informó escaneos.",
-  units: {
-    kg: "{value} kg",
-    t: "{value} t",
-    lb: "{value} lb",
-    short_ton: "{value} toneladas cortas",
-    l: "{value} L",
-    m3: "{value} m³",
-    gal: "{value} gal",
-    kwh: "{value} kWh",
-    mwh: "{value} MWh",
-    kg_co2e: "{value} kg CO2e",
-    t_co2e: "{value} t CO2e",
-    count: "{value}",
-    percent: "{value} %",
-  },
-  unitNames: {
-    kg: "Kilogramos (kg)",
-    t: "Toneladas métricas (t)",
-    lb: "Libras (lb)",
-    short_ton: "Toneladas cortas",
-    l: "Litros (L)",
-    m3: "Metros cúbicos (m³)",
-    gal: "Galones estadounidenses (gal)",
-    kwh: "Kilovatios hora (kWh)",
-    mwh: "Megavatios hora (MWh)",
-    kg_co2e: "Kilogramos de CO2e",
-    t_co2e: "Toneladas métricas de CO2e",
-    count: "Cantidad",
-    percent: "Porcentaje (%)",
-  },
-  metrics: {
-    waste_generated: "Residuos generados",
-    waste_diverted: "Residuos desviados",
-    energy_used: "Energía consumida",
-    water_used: "Agua consumida",
-    transport_emissions: "Emisiones de transporte",
-    attendance: "Asistencia",
-    online_audience: "Audiencia en línea",
-    earned_media_items: "Piezas de cobertura",
-    earned_media_reach: "Alcance en medios ganados",
-    positive_sentiment: "Sentimiento positivo",
-  },
-  families: {
-    sustainability: "Sostenibilidad",
-    audience: "Audiencia",
-    earnedMedia: "Medios ganados",
-    sentiment: "Sentimiento",
-  },
-  directions: {
-    atLeast: "Al menos",
-    atMost: "Como máximo",
-  },
-  outcomes: {
-    met: "Cumplido",
-    notMet: "No cumplido",
-    incomplete: "Incompleto",
-    unmeasured: "Sin medir",
-  },
-  sources: {
-    manual: "Manual",
-    import: "Importación",
-    integration: "Integración",
-  },
-  mediums: {
-    online: "En línea",
-    print: "Impreso",
-    broadcast: "Radio y televisión",
-    podcast: "Pódcast",
-    social: "Redes sociales",
-  },
-  tones: {
-    positive: "Positivo",
-    neutral: "Neutral",
-    negative: "Negativo",
-  },
-  corrections: {
-    corrected: "Corregida",
-    withdrawn: "Retirada",
-    restored: "Restaurada",
-  },
-  fields: {
-    metric: "Medida",
-    direction: "Dirección",
-    target: "Meta",
-    unit: "Unidad",
-    note: "Nota",
-    measuredOn: "Día",
-    value: "Cifra",
-    source: "Fuente",
-    sourceReference: "Referencia de la fuente",
-    sourceReferenceHelp:
-      "Por ejemplo, la factura del transportista, una lectura del medidor o el nombre de un archivo.",
-    sourceUri: "Enlace a la fuente",
-    reason: "Motivo",
-    headline: "Titular",
-    outlet: "Medio",
-    medium: "Tipo de medio",
-    publishedOn: "Publicado el",
-    url: "Enlace",
-    reach: "Alcance",
-    reachHelp:
-      "Lectores, espectadores u oyentes que informa el medio. Déjelo en blanco si no informa ninguno.",
-    tone: "Tono",
-  },
-  objectives: {
-    title: "Objetivos",
-    description: "Metas medibles de este proyecto. La compuerta 8 mide frente a ellas.",
-    locked:
-      "La compuerta 1 ya se pasó. Solo quien aprueba compuertas puede cambiar estos objetivos, y cada cambio queda registrado.",
-    empty: "Aún no hay objetivos. Fije una meta para cada cifra que medirá la compuerta 8.",
-    formLabel: "Fijar un objetivo",
-    set: "Fijar objetivo",
-    change: "Cambiar objetivo",
-    saved: "Objetivo guardado.",
-    setBy: "Fijado por",
-    withdrawFor: "Retirar el objetivo de {metric}",
-    withdrawTitle: "¿Retirar el objetivo de {metric}?",
-    withdrawDescription: "La compuerta 8 deja de medir frente a él.",
-    attest: "Registrar los objetivos como evidencia de la compuerta 1",
-    attestNote:
-      "{count, plural, one {# objetivo medible registrado.} other {# objetivos medibles registrados.}}",
-    attested: "Los objetivos son evidencia del criterio G1.OBJECTIVES_STATED de la compuerta 1.",
-    caption: "Objetivos de este proyecto",
-  },
-  gate8: {
-    title: "Medición",
-    description:
-      "Cifras de audiencia, medios ganados, sentimiento y sostenibilidad frente a los objetivos fijados en la compuerta 1. Una cifra que nadie midió aparece como Sin medir, nunca como cero.",
-    openReport: "Abrir el informe de medición",
-    attest: "Registrar la medición como evidencia de la compuerta 8",
-    attestNote: "{met} de {count, plural, one {# objetivo} other {# objetivos}} cumplidos.",
-    attested: "La medición es evidencia del criterio G8.MEASUREMENT_REPORTED de la compuerta 8.",
-  },
-  summary: {
-    caption: "Objetivos frente a cifras medidas",
-    family: "Familia",
-    metric: "Medida",
-    objective: "Objetivo",
-    measured: "Medido",
-    unmeasuredCount: "Entradas sin medir",
-    outcome: "Resultado",
-    lastMeasured: "Última medición",
-    setAs: "Fijado como {target}",
-    unmeasuredBeside: "{count, plural, one {# entrada sin medir} other {# entradas sin medir}}",
-  },
-  figures: {
-    title: "Cifras medidas",
-    empty: "Aún no hay cifras registradas.",
-    formLabel: "Registrar una cifra",
-    record: "Registrar cifra",
-    recorded: "Cifra registrada.",
-    recordedBy: "Registrada por",
-    notMeasured: "No se midió",
-    notMeasuredHelp:
-      "Registre que esta cifra no se midió. Aparece como Sin medir, nunca como cero.",
-    correct: "Corregir",
-    correctFor: "Corregir {metric} del {date}",
-    correctDescription:
-      "La cifra antes y después, y su motivo, quedan en el registro de correcciones.",
-    saveCorrection: "Guardar corrección",
-    reasonHelp:
-      "Diga por qué cambia la cifra, por ejemplo un ticket de báscula que reemplaza una estimación.",
-    withdrawFor: "Retirar {metric} del {date}",
-    withdrawDescription:
-      "La cifra sale de los totales. El retiro queda en el registro de correcciones.",
-    withdrawReason: "Motivo (opcional)",
-    historyEntry: "{kind} por {name}, {date}: de {before} a {after}.",
-    historyReason: "Motivo: {reason}",
-    caption: "Cifras registradas",
-  },
-  coverage: {
-    title: "Medios ganados",
-    description:
-      "Cobertura del proyecto, cada pieza con su fuente, fecha y enlace. La cantidad de piezas y el alcance salen de estas piezas.",
-    empty: "Aún no hay cobertura registrada.",
-    formLabel: "Agregar cobertura",
-    add: "Agregar cobertura",
-    added: "Cobertura agregada.",
-    tones:
-      "Tono: {positive} positivas, {neutral} neutrales, {negative} negativas, {unrated} sin calificar.",
-    withdrawFor: "Retirar {title}",
-    withdrawDescription:
-      "La pieza sale de la cantidad de cobertura y del alcance. Puede restaurarla desde la Papelera.",
-    caption: "Piezas de cobertura",
-  },
-  report: {
-    summary: "Resumen",
-    objectives: "Objetivos",
-    openOutcomes: "Abiertos",
-    openCaption: "{incomplete} incompletos, {unmeasured} sin medir",
-    projectLead:
-      "Los objetivos se fijan en la compuerta 1 y las cifras se registran en la compuerta 8.",
-    openGates: "Abrir las compuertas de {project}",
-    projectCaption: "Objetivos frente a cifras medidas de {project}",
-    chartTitle: "Objetivos por resultado",
-    orgChartTitle: "Objetivos por resultado y proyecto",
-    byProject: "Por proyecto",
-    byMetric: "Entre proyectos",
-    orgFigure: "Total, o promedio para el sentimiento",
-    mean: "Promedio {figure}",
-    partialProjects:
-      "{count, plural, one {# proyecto tiene} other {# proyectos tienen}} entradas sin medir",
-    projectsMeasured: "Proyectos medidos",
-    projectsUnmeasured: "Proyectos sin medir",
-    empty:
-      "Aún no hay objetivos ni cifras. Fije los objetivos en la pestaña Compuertas de un proyecto, en la compuerta 1.",
-    emptyAction: "Ver proyectos",
-    byProjectCaption: "Objetivos por proyecto",
-    byMetricCaption: "Cifras entre proyectos",
-  },
-  errors: {
-    invalid: "Revise los campos marcados.",
-    required: "Ingrese un valor.",
-    tooLong: "Es demasiado largo.",
-    number: "Ingrese un número.",
-    wholeNumber: "Ingrese un número entero.",
-    date: "Ingrese un día.",
-    url: "Ingrese un enlace que empiece con https://.",
-    conflict:
-      "Esto ya está registrado: un objetivo vigente por cifra y una pieza de cobertura por enlace.",
-    "not-found": "Ya no existe o no puede cambiarlo. Actualice la página.",
-    unexpected: "Algo salió mal. Inténtelo de nuevo.",
-    refused: "Se rechazó el cambio ({rule}).",
-    measurement_unit_dimension: "Esa unidad no mide esta cifra. Elija una de sus unidades.",
-    measurement_unit_required: "Elija la unidad de la cifra.",
-    measurement_out_of_range:
-      "Esa cifra está fuera de lo que admite esta medida, como una proporción mayor que 100 por ciento.",
-    measurement_whole_count: "Una cantidad es un número entero.",
-    measurement_in_future: "Una cifra se mide hoy o antes según el calendario del proyecto.",
-    measurement_metric_derived:
-      "Las cifras de medios ganados salen de las piezas de cobertura. Agregue cobertura.",
-    measurement_correction_reason: "Diga por qué se corrige la cifra.",
-    project_objectives_locked:
-      "La compuerta 1 ya se pasó. Solo quien aprueba compuertas puede cambiar sus objetivos.",
-    project_objective_immutable: "Un objetivo conserva su cifra. Retírelo y fije otro.",
-    project_measurement_immutable:
-      "Una cifra conserva su proyecto, medida y fuente. Retírela y registre otra.",
-    earned_media_in_future: "La cobertura se publica hoy o antes según el calendario del proyecto.",
-    earned_media_item_immutable: "La cobertura se queda con su proyecto.",
-  },
-};
 var myWork_default = {
   title: "Mi trabajo",
   label: "Mi trabajo",
@@ -27133,7 +27773,6 @@ var nav_default = {
         purchaseOrderExposure: "Exposición de órdenes de compra",
         incidents: "Incidentes",
         finalCostReport: "Informe de costo final",
-        measurement: "Objetivos y medición",
         savedReports: "Informes guardados",
         builder: "Generador de informes",
         dashboards: "Tableros",
@@ -30020,7 +30659,7 @@ var platform_default = {
         ownership_accepted: "Propiedad aceptada",
         ownership_declined: "Propiedad rechazada",
         white_label_reverting: "La marca blanca termina pronto",
-        white_label_reverted: "La marca blanca terminó",
+        white_label_reverted: "Marca blanca finalizada",
       },
       partner: { client_left: "Una organización cliente se fue" },
       recognition: { received: "Reconocimiento recibido" },
@@ -32122,7 +32761,7 @@ var settings_default = {
     },
     weekStart: {
       label: "La semana empieza el",
-      help: "El primer día de la semana en calendarios y hojas de horas.",
+      help: "El primer día de la semana en los calendarios. La elección de la organización también marca el inicio de sus periodos de pago, hojas de horas y semanas de horas extra.",
     },
     marketplaceVisibility: {
       label: "Visibilidad en el mercado",
@@ -32940,6 +33579,7 @@ var shell_default = {
       orgName: "Nombre de la organización",
       orgSlug: "Dirección web",
       orgSlugHelp: "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
+      age: "Tengo 16 años o más.",
     },
     or: "o",
     signIn: {
@@ -33041,6 +33681,7 @@ var shell_default = {
         "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       slug_taken: "Esa dirección web ya está en uso. Elige otra.",
       slug_reserved: "Atlas reserva esa dirección web. Elige otra.",
+      age: "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante.",
     },
     networkRestricted: {
       title: "Su red no está permitida",
@@ -37383,6 +38024,7 @@ var enUS = {
   authSecurity: authSecurity_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
+  compliance: compliance_default$1,
   credentials: credentials_default$1,
   crew: crew_default$1,
   docs: docs_default$1,
@@ -37399,7 +38041,6 @@ var enUS = {
   integrations: integrations_default$1,
   knowledge: knowledge_default$1,
   logistics: logistics_default$1,
-  measurement: measurement_default$1,
   myWork: myWork_default$1,
   nav: nav_default$1,
   opportunities: opportunities_default$1,
@@ -37441,6 +38082,7 @@ var esUS = {
   authSecurity: authSecurity_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
+  compliance: compliance_default,
   credentials: credentials_default,
   crew: crew_default,
   docs: docs_default,
@@ -37457,7 +38099,6 @@ var esUS = {
   integrations: integrations_default,
   knowledge: knowledge_default,
   logistics: logistics_default,
-  measurement: measurement_default,
   myWork: myWork_default,
   nav: nav_default,
   opportunities: opportunities_default,
@@ -38676,6 +39317,59 @@ var templates = {
       };
     },
   },
+  subprocessor_confirm: {
+    transactional: true,
+    compose: ({ confirmUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_confirm.subject");
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_confirm.heading"),
+          transactional: true,
+          action: {
+            label: ctx.t("subprocessor_confirm.confirm"),
+            url: confirmUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.body") }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.ignore") }),
+          ],
+        }),
+      };
+    },
+  },
+  subprocessor_notice: {
+    transactional: false,
+    compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_notice.subject", { effectiveOn });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_notice.heading", { listVersion }),
+          transactional: false,
+          action: {
+            label: ctx.t("subprocessor_notice.review"),
+            url: listUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("subprocessor_notice.intro", { effectiveOn }),
+            }),
+            /* @__PURE__ */ jsx(Paragraph, { children: summary }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
+          ],
+        }),
+      };
+    },
+  },
 };
 //#endregion
 //#region ../email/src/render.ts
@@ -38746,6 +39440,111 @@ async function sendEmail(request) {
     ...(request.replyTo === void 0 ? {} : { replyTo: request.replyTo }),
     ...(request.deliveryId === void 0 ? {} : { idempotencyKey: `delivery-${request.deliveryId}` }),
   });
+}
+//#endregion
+//#region src/legal/platform-emails.ts
+function str$2(value, what) {
+  if (typeof value !== "string" || value.length === 0) throw new Error(`Missing ${what}`);
+  return value;
+}
+/** The Subprocessor List page, and its confirmation and unsubscribe links. */
+function subprocessorLinks(appUrl) {
+  const list = new URL("/legal/subprocessors", appUrl);
+  return {
+    list: list.toString(),
+    confirm: (token) => `${list.toString()}?confirm=${encodeURIComponent(token)}`,
+    unsubscribe: (token) => `${list.toString()}?unsubscribe=${encodeURIComponent(token)}`,
+  };
+}
+/** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
+async function dispatchPlatformEmails(store, transport, options, limit = 25) {
+  const claims = await store.claim(limit);
+  const links = subprocessorLinks(options.appUrl);
+  let sent = 0;
+  let failed = 0;
+  for (const claim of claims)
+    try {
+      const unsubscribeToken =
+        typeof claim.args["unsubscribe_token"] === "string"
+          ? claim.args["unsubscribe_token"]
+          : null;
+      const sender = {
+        orgName: options.senderName,
+        postalAddress: options.postalAddress,
+        preferencesUrl: options.appUrl,
+        ...(unsubscribeToken ? { unsubscribeUrl: links.unsubscribe(unsubscribeToken) } : {}),
+      };
+      const common = {
+        transport,
+        locale: claim.locale,
+        timeZone: "UTC",
+        sender,
+        recipientName: claim.to,
+        from: options.from,
+        to: claim.to,
+        deliveryId: claim.id,
+      };
+      const result =
+        claim.template === "subprocessor_confirm"
+          ? await sendEmail({
+              ...common,
+              template: "subprocessor_confirm",
+              props: {
+                confirmUrl: links.confirm(str$2(claim.args["confirm_token"], "confirm_token")),
+              },
+            })
+          : await sendEmail({
+              ...common,
+              template: "subprocessor_notice",
+              props: {
+                listVersion: str$2(claim.args["list_version"], "list_version"),
+                summary: str$2(claim.args["summary"], "summary"),
+                effectiveOn: /* @__PURE__ */ new Date(
+                  `${str$2(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                ),
+                listUrl: links.list,
+              },
+            });
+      await store.finish(claim.id, true, result.providerMessageId, null);
+      sent += 1;
+    } catch (error) {
+      failed += 1;
+      await store.finish(
+        claim.id,
+        false,
+        null,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  return {
+    attempted: claims.length,
+    sent,
+    failed,
+  };
+}
+/** PlatformEmailStore over the service-role database seam (app.claim_platform_emails, 1382). */
+function platformEmailStore(db) {
+  return {
+    async claim(limit) {
+      return ((await db.rpc("claim_platform_emails", { p_limit: limit })) ?? []).map((r) => ({
+        id: str$2(r["id"], "id"),
+        template: str$2(r["template"], "template"),
+        to: str$2(r["to_email"], "to_email"),
+        locale: typeof r["locale"] === "string" && isLocale(r["locale"]) ? r["locale"] : "en-US",
+        args: r["args"] ?? {},
+      }));
+    },
+    async finish(id, sent, providerMessageId, error) {
+      return String(
+        await db.rpc("finish_platform_email", {
+          p_id: id,
+          p_sent: sent,
+          p_provider_message_id: providerMessageId,
+          p_error: error,
+        }),
+      );
+    },
+  };
 }
 //#endregion
 //#region src/notifications/dispatch.ts
@@ -39364,7 +40163,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1369_notification_kind_seed.sql"
+"supabase/migrations/1387_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -45846,6 +46645,7 @@ async function renderDocumentPdf(model, options) {
   return new Promise((resolve, reject) => {
     const pdfOptions = {
       size: SIZES[options.paper],
+      layout: options.orientation ?? "portrait",
       margins: {
         top: MARGIN,
         left: MARGIN,
@@ -45863,6 +46663,7 @@ async function renderDocumentPdf(model, options) {
         Title: model.title,
         Author: model.brand.legalEntity ?? model.brand.name,
         Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+        ...(model.watermark ? { Keywords: model.watermark.text } : {}),
         Creator: "XOS",
         Producer: "XOS",
         CreationDate: new Date(model.facts.generatedAtIso),
@@ -46048,6 +46849,14 @@ var Renderer = class {
       y: fy + 2,
       width: factsWidth,
     });
+    if (model.watermark) {
+      this.style("semibold", 6.5, MUTED);
+      this.text(this.root, "P", model.watermark.text, {
+        x: factsX,
+        y: doc.y + 2,
+        width: factsWidth,
+      });
+    }
     const factsBottom = doc.y;
     const qrX = this.left + this.width - QR_SIZE;
     const matrix = qrMatrix(facts.recordUrl);
@@ -46087,6 +46896,9 @@ var Renderer = class {
         doc.y += 4;
         this.text(this.root, "H2", block.text);
         doc.y += 4;
+        return;
+      case "image":
+        this.image(block.bytes, block.alt);
         return;
       case "paragraph": {
         const size = block.size === "large" ? 22 : BODY;
@@ -46131,6 +46943,35 @@ var Renderer = class {
         this.table(block.caption, block.columns, block.rows, block.footer ?? [], false);
         return;
     }
+  }
+  /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
+  image(bytes, alt) {
+    const { doc } = this;
+    if (!isEmbeddableImage(bytes)) return;
+    const buffer = Buffer.from(bytes);
+    const opened = doc.openImage(buffer);
+    const room = () => this.bottom - doc.y;
+    const fullPage = this.bottom - doc.page.margins.top;
+    const scale = Math.min(1, this.width / opened.width, fullPage / opened.height);
+    const height = opened.height * scale;
+    if (height > room()) {
+      doc.addPage();
+      doc.x = this.left;
+      doc.y = doc.page.margins.top;
+    }
+    const width = opened.width * scale;
+    const x = this.left + (this.width - width) / 2;
+    const y = doc.y;
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(alt) }, () => {
+        doc.image(buffer, x, y, {
+          width,
+          height,
+        });
+      }),
+    );
+    doc.x = this.left;
+    doc.y = y + height + GAP;
   }
   /**
    * A table with a caption, a header row of TH cells scoped to their column (or, for fields, a TH
@@ -46271,8 +47112,33 @@ var Renderer = class {
           },
         );
       }, "Pagination");
+      if (model.watermark) this.watermark(model.watermark.text);
       doc.page.margins.bottom = bottomMargin;
     }
+  }
+  /**
+   * The Section 8.6 watermark across the page: light, diagonal, and an artifact, since the header
+   * already carries the same text in the reading order.
+   */
+  watermark(text) {
+    const { doc } = this;
+    const value = this.safe(text);
+    const cx = doc.page.width / 2;
+    const cy = doc.page.height / 2;
+    const span = Math.hypot(doc.page.width, doc.page.height) * 0.7;
+    const size = Math.max(9, Math.min(26, span / (Math.max(value.length, 1) * 0.56)));
+    this.artifact(() => {
+      doc.save();
+      doc.opacity(0.16);
+      this.style("semibold", size, MUTED);
+      doc.rotate(-32, { origin: [cx, cy] });
+      doc.text(value, cx - span / 2, cy - size / 2, {
+        width: span,
+        align: "center",
+        lineBreak: false,
+      });
+      doc.restore();
+    });
   }
 };
 //#endregion
@@ -54526,6 +55392,7 @@ export {
   createTransport,
   deletionCertificateCopy,
   dispatchEmail,
+  dispatchPlatformEmails,
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
@@ -54566,6 +55433,7 @@ export {
   passThroughScanner,
   planForLookupKey,
   planRegistry,
+  platformEmailStore,
   pushEnvSchema,
   pushMessage,
   pushStore,
@@ -54609,6 +55477,7 @@ export {
   staticAccessToken,
   stripQuotedText,
   stripeTrialEnd,
+  subprocessorLinks,
   supabaseAuthAdmin,
   supabaseCommunicationSource,
   supabaseDb,

@@ -56,6 +56,8 @@ let userMetadata: Record<string, unknown>;
 let accepted: { document_slug: string }[];
 /** Acceptances written through app.record_legal_acceptances. */
 let recorded: Record<string, unknown>[];
+/** Age confirmations written through app.confirm_minimum_age (migration 1381). */
+let ages: Record<string, unknown>[];
 
 function json(body: unknown): Response {
   return new Response(JSON.stringify(body), { headers: { "content-type": "application/json" } });
@@ -90,6 +92,7 @@ beforeEach(() => {
   userMetadata = { full_name: "Sam Rivera" };
   accepted = [];
   recorded = [];
+  ages = [];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = new URL(input instanceof Request ? input.url : String(input));
     if (url.origin !== SUPABASE) throw new Error(`unexpected request to ${url.origin}`);
@@ -105,6 +108,11 @@ beforeEach(() => {
     if (url.pathname === "/rest/v1/rpc/record_legal_acceptances") {
       recorded.push(JSON.parse(String(init?.body)));
       return json(1);
+    }
+    if (url.pathname === "/rest/v1/rpc/minimum_age_confirmed") return json(ages.length > 0);
+    if (url.pathname === "/rest/v1/rpc/confirm_minimum_age") {
+      ages.push(JSON.parse(String(init?.body)));
+      return json("2026-10-20T10:00:00Z");
     }
     throw new Error(`unexpected request to ${url.pathname}`);
   });
@@ -260,14 +268,17 @@ describe("Gateway: the Worker Terms for an account Google created (A59-025)", ()
     const unticked = new FormData();
     unticked.set("next", "/auth/claim");
     expect(await acceptSignUpTerms({}, unticked)).toEqual({
-      fieldErrors: { acceptTerms: "terms" },
+      fieldErrors: { acceptTerms: "terms", ageConfirmed: "age" },
     });
     expect(recorded).toEqual([]);
 
     const ticked = new FormData();
     ticked.set("next", "/auth/claim");
     ticked.set("acceptTerms", "yes");
+    ticked.set("ageConfirmed", "16");
     await expect(acceptSignUpTerms({}, ticked)).rejects.toMatchObject({ url: "/auth/claim" });
+    // A Google account confirms "16 or older" here, since no form asked before (A65-014).
+    expect(ages).toEqual([{ p_surface: "Gateway" }]);
     expect(recorded).toEqual([
       {
         p_org_id: null,

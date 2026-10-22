@@ -1491,7 +1491,8 @@
       "fullName": "Nombre completo",
       "email": "Correo electrónico",
       "password": "Contraseña",
-      "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos."
+      "passwordHelp": "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
+      "age": "Tengo 16 años o más."
     },
     "or": "o",
     "usePassword": "Usar contraseña",
@@ -1562,7 +1563,8 @@
       "email": "Escribe un correo como nombre@empresa.com.",
       "password": "Escribe una contraseña de al menos 12 caracteres con letras y números.",
       "passwordContext": "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
-      "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón."
+      "terms": "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
+      "age": "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante."
     }
   },
   "work": {
