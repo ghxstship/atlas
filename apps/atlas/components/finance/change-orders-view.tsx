@@ -11,6 +11,7 @@ import {
   type ChangeOrder,
 } from "@xos/data/finance";
 import { getNode } from "@xos/ia";
+import { changeOrderAsk } from "@/lib/aurora/finance-ask";
 import type { FinancePage } from "@/lib/finance/context";
 import { getFinanceCopy } from "@/lib/finance/copy";
 import { iconState } from "@/lib/finance/states";
@@ -305,6 +306,7 @@ export async function ChangeOrdersView({ page }: { page: FinancePage }) {
       }))}
       detail={detail}
       sheet={sheet}
+      ask={changeOrderAsk(page, c)}
     />
   );
 }

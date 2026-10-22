@@ -27,6 +27,10 @@ export interface CatalogField {
   readonly name: string;
   readonly type: "string" | "number" | "date" | "boolean" | "enum" | "uuid";
   readonly values?: readonly string[];
+  /** What the field means, in a sentence, when its name alone does not say (A95). */
+  readonly description?: string;
+  /** The only operators the field takes, when it does not take them all (a page's own filters). */
+  readonly ops?: readonly FilterOperator[];
 }
 
 export interface FilterCollection {
@@ -83,6 +87,9 @@ export function validateFilter(
   for (const condition of filter.conditions) {
     const field = fields.get(condition.field);
     if (!field) return `${filter.collection} has no field named ${condition.field}.`;
+    if (field.ops && !field.ops.includes(condition.op)) {
+      return `${field.name} cannot be filtered with ${condition.op}.`;
+    }
     const values = condition.op === "in" ? condition.value.split(",") : [condition.value];
     for (const value of values) {
       if (condition.op === "is_null") {
@@ -120,6 +127,7 @@ export async function buildFilter(
       "Task: turn the person's sentence into a filter on exactly one collection from the catalog.",
       `Today is ${ctx.today} in ${input.timeZone}. Resolve relative dates such as "this month" into YYYY-MM-DD bounds with gte and lte.`,
       "Use only collections, fields and enum values from the catalog, spelled exactly. For in, join values with commas.",
+      "A field's description says what it means. When a field lists ops, use only those operators on it.",
       "Name the view in Title Case, at most 6 words. When the sentence asks for something the catalog cannot express, answer with no_answer and say what is missing.",
     ].join("\n\n");
     const result = await callTool({

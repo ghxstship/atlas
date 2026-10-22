@@ -9,6 +9,7 @@ import {
 } from "@xos/data";
 import { networkAccess } from "@xos/data/access-controls";
 import { getOrgAuthStatus, orgAuthDecision, type OrgAuthDecision } from "@xos/data/auth-assurance";
+import { orgAllowsPersonalTokens } from "@xos/data/developer";
 import { getPersona, listDisabledModules } from "@xos/data/settings";
 import type { Condition, NavContext } from "@xos/ia";
 import { LAST_SEEN_COOKIE, parseLastSeen } from "@/lib/auth/assurance";
@@ -27,6 +28,26 @@ export interface Membership {
   readonly nav: NavContext;
   /** The persona the person chose for this org (Preferences), or null to follow the role. */
   readonly persona: string | null;
+}
+
+/**
+ * The org setting that allows personal API tokens (Section 4.5.6 personal settings item 15, migration 1432).
+ * While it is off, Personal settings, Developer is not in the sitemap for the org's members.
+ */
+export const PERSONAL_TOKENS_SETTING = "developer.personal_tokens";
+
+/** The sitemap conditions of a request in an org, from the device and what the org allows. */
+export function membershipConditions(input: {
+  readonly desktop: boolean;
+  readonly partner: boolean;
+  /** developer.personal_tokens is on and the plan has the api_keys feature (app.org_allows_personal_tokens). */
+  readonly personalTokens: boolean;
+}): Condition[] {
+  const conditions: Condition[] = [];
+  if (input.desktop) conditions.push("desktop");
+  if (input.partner) conditions.push("partner-org");
+  if (input.personalTokens) conditions.push("org-allows-personal-tokens");
+  return conditions;
 }
 
 /** Desktop unless the client hints or the user agent say mobile (the `desktop` condition). */
@@ -73,7 +94,7 @@ export async function resolveMembership(
     if (org.error.kind === "not-found") return null;
     throw new Error(`Cannot read organization ${slug}: ${JSON.stringify(org.error)}`);
   }
-  const [network, capabilities, partner, disabled, persona, session] = await Promise.all([
+  const [network, capabilities, partner, disabled, persona, session, tokens] = await Promise.all([
     networkAccess(db, org.data.id, clientIp(headers)),
     listRoleCapabilities(
       db,
@@ -83,6 +104,7 @@ export async function resolveMembership(
     listDisabledModules(db, org.data.id),
     getPersona(db, org.data.id),
     getOrgAuthStatus(db, org.data.id),
+    orgAllowsPersonalTokens(db, org.data.id),
   ]);
   if (!network.ok)
     throw new Error(`Cannot check the IP allow-list: ${JSON.stringify(network.error)}`);
@@ -113,10 +135,15 @@ export async function resolveMembership(
   if (!disabled.ok)
     throw new Error(`Cannot read module switches: ${JSON.stringify(disabled.error)}`);
   if (!persona.ok) throw new Error(`Cannot read the persona: ${JSON.stringify(persona.error)}`);
+  if (!tokens.ok) {
+    throw new Error(`Cannot read ${PERSONAL_TOKENS_SETTING}: ${JSON.stringify(tokens.error)}`);
+  }
   const role = org.data.bestBand === null ? null : systemRoleForBand(org.data.bestBand);
-  const conditions: Condition[] = [];
-  if (isDesktopRequest(headers)) conditions.push("desktop");
-  if (partner.data) conditions.push("partner-org");
+  const conditions = membershipConditions({
+    desktop: isDesktopRequest(headers),
+    partner: partner.data,
+    personalTokens: tokens.data,
+  });
   return {
     org: org.data,
     role,

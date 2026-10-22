@@ -268,6 +268,10 @@
     "messageTranslation": {
       "label": "Traducir mensajes del chat",
       "help": "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada."
+    },
+    "personalTokens": {
+      "label": "Permitir tokens personales de API",
+      "help": "Los miembros pueden crear sus propios tokens de API en Configuración personal, Desarrollador. Un token actúa como su miembro, limitado a las áreas que elija, y vence en menos de un año. Si lo desactiva, todos los tokens dejan de funcionar al instante."
     }
   },
   "choices": {
@@ -451,10 +455,24 @@
     "teams": "Los equipos agrupan a los miembros que comparten trabajo. Cada equipo muestra sus miembros.",
     "workspaces": "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     "accessReviews": "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
+    "calendarFeeds": "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
+    "apiKeysAndServiceAccounts": "Permita que sus servidores llamen a la API de XOS mediante cuentas de servicio y sus claves, y decida si los miembros pueden crear tokens personales.",
+    "webhooks": "Envíe eventos firmados a sus otros sistemas en cuanto ocurren y vuelva a enviar una entrega cuando falle.",
+    "spendAuthority": "Fije cuánto puede aprobar cada rol o persona, por tipo de documento y moneda.",
+    "separationOfDuties": "Las reglas que impiden que una misma persona realice las dos mitades de un acto sensible.",
+    "customFields": "Agregue los campos que necesitan sus registros a proyectos, recintos, proveedores y más.",
+    "canonExtensions": "Disciplinas y categorías que su organización agrega al canon.",
+    "dataAndPrivacy": "Responda solicitudes de datos, aplique retenciones legales y consulte exportaciones, clasificación y retención.",
+    "auditLog": "Los últimos cambios auditados de acceso y configuración, y el acceso al registro completo.",
+    "automations": "Informes programados, trabajo recurrente, políticas de aprobación y webhooks: lo que funciona sin que nadie pulse un botón.",
+    "connectedApps": "Aplicaciones a las que permitió actuar en su nombre, y la forma de desconectarlas.",
+    "developer": "Tokens personales de API para sus propios scripts en esta organización.",
+    "payoutAndTax": "Dónde le pagan las organizaciones y los formularios fiscales que firmó.",
+    "workspace": "Lo que este espacio de trabajo configura distinto de la organización, y quién trabaja en él.",
+    "team": "Quién forma parte de este equipo. Los equipos usan la configuración de su espacio de trabajo y de la organización.",
     "partner": "Las organizaciones cliente de tu agencia socia, las condiciones mayoristas y el acceso a la Consola de socio.",
     "usage": "Lo que la organización usa frente a su plan: asientos, miembros de campo, proyectos y contrataciones.",
-    "templates": "Plantillas que la organización reutiliza para proyectos, documentos y paquetes.",
-    "calendarFeeds": "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario."
+    "templates": "Plantillas que la organización reutiliza para proyectos, documentos y paquetes."
   },
   "accessControls": {
     "saved": "Guardado.",

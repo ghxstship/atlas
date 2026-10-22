@@ -14,6 +14,7 @@ import {
   withdrawZoneAccess,
   CATEGORY_CODE,
 } from "@xos/data/credentials";
+import { resolveScanIntake } from "@xos/data/scan-intake";
 import { revalidatePath } from "next/cache";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -288,6 +289,27 @@ export async function setMatrixCellAction(input: {
 }
 
 // Scans ------------------------------------------------------------------------------------------
+
+/**
+ * Dismisses an unknown scanned code from the intake queue with a note (0367): needs
+ * credentials.scan.write on the scan's project, and a scan is resolved once (A95).
+ */
+export async function dismissScanIntakeAction(
+  _: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const ctx = await contextFor(form);
+  const parsed = z
+    .object({ scanId: z.uuid(), note: z.string().trim().min(1).max(1000) })
+    .safeParse({ scanId: form.get("scanId"), note: form.get("note") });
+  if (!parsed.success) return { error: "dismissInput" };
+  const result = await resolveScanIntake(ctx.viewer.db, parsed.data.scanId, {
+    resolution: "Dismissed",
+    note: parsed.data.note,
+  });
+  if (!result.ok) return failed(result.error);
+  return done(ctx.org.slug);
+}
 
 export async function recordScanAction(_: ActionState, form: FormData): Promise<ActionState> {
   const ctx = await contextFor(form);

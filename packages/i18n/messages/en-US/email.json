@@ -77,6 +77,14 @@
       "security_changed": {
         "subject": "Your account security changed",
         "body": "A security setting on your account changed: {change}. If this was not you, reset your password now."
+      },
+      "recovery_code_used": {
+        "subject": "A recovery code was used on your account",
+        "body": "Someone signed in or confirmed an action with one of your recovery codes. {remaining, plural, =0 {You have no codes left: make a new set in Security.} one {You have # code left.} other {You have # codes left.}} If this was not you, change your password and make new codes now."
+      },
+      "session_signed_out": {
+        "subject": "{count, plural, one {A session was signed out} other {# sessions were signed out}}",
+        "body": "{count, plural, one {A session on your account was signed out} other {# sessions on your account were signed out}} from Settings, Security. If this was not you, change your password and check your sessions."
       }
     },
     "report": {

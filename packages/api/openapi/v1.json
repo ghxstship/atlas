@@ -48731,8 +48731,58 @@
           "time_zone": {
             "type": "string",
             "pattern": "^[A-Za-z_]+(\\/[A-Za-z0-9_+-]+)*$",
-            "description": "IANA time zone the local time was entered in.",
+            "description": "Time zone the caller works in. Relative dates such as this month or overdue resolve on the org's calendar (its locale.time_zone setting), never on UTC.",
             "example": "America/New_York"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "maxLength": 64,
+                  "pattern": "^[a-z][a-z0-9_.]*$",
+                  "description": "Filter name as the page's query string writes it.",
+                  "example": "overdue"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["string", "number", "date", "boolean", "enum"],
+                  "description": "Value type.",
+                  "example": "boolean"
+                },
+                "values": {
+                  "type": "array",
+                  "items": { "type": "string", "minLength": 1, "maxLength": 200 },
+                  "maxItems": 200,
+                  "description": "The values an enum filter takes.",
+                  "example": ["Issued", "Approved"]
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300,
+                  "description": "What the filter means, in a sentence.",
+                  "example": "Unpaid invoices past their due date on the org's calendar."
+                },
+                "ops": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": ["eq", "ne", "lt", "lte", "gt", "gte", "in", "is_null", "contains"]
+                  },
+                  "minItems": 1,
+                  "description": "The only operators the filter takes.",
+                  "example": ["eq"]
+                }
+              },
+              "required": ["name", "type"]
+            },
+            "minItems": 1,
+            "maxItems": 40,
+            "description": "A page's own filters, offered instead of the API fields of the first collection: names, types, values and operators only, never record data. Restricted columns are never offered.",
+            "example": [{ "name": "overdue", "type": "boolean", "ops": ["eq"] }]
           }
         },
         "required": ["sentence", "collections", "time_zone"],
@@ -48957,6 +49007,111 @@
         },
         "required": ["code", "description", "candidates"],
         "description": "An unknown scanned code to bind."
+      },
+      "AuroraPreview": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/AuroraPreviewRecord" },
+            "description": "Each record the request names, in order, with the gate readiness a gate summary adds.",
+            "example": []
+          },
+          "vocabulary_terms": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Verbiage library terms a draft follows.",
+            "example": 12
+          }
+        },
+        "required": ["records", "vocabulary_terms"],
+        "description": "What a drafting or summary request would send to the model, read and scrubbed exactly as the request would be. No model is called and nothing is metered."
+      },
+      "AuroraPreviewRecord": {
+        "type": "object",
+        "properties": {
+          "collection": {
+            "type": "string",
+            "description": "Collection of the record.",
+            "example": "change-orders"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "sent": {
+            "type": "boolean",
+            "description": "False when the record cannot be read or its whole table is never sent to a model.",
+            "example": true
+          },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Fields that would be sent.",
+            "example": ["title", "reason"]
+          },
+          "withheld": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Fields left out: Restricted columns and masked values.",
+            "example": ["agreed_rate_minor"]
+          },
+          "data": {
+            "type": ["object", "null"],
+            "additionalProperties": {},
+            "description": "The values that would be sent; null when nothing of the record is sent.",
+            "example": { "title": "Extra rigging points", "reason": null }
+          }
+        },
+        "required": ["collection", "id", "sent", "fields", "withheld", "data"],
+        "description": "One record as a model would see it."
+      },
+      "AuroraPreviewRequest": {
+        "type": "object",
+        "properties": {
+          "feature": {
+            "type": "string",
+            "enum": ["drafting", "summaries"],
+            "description": "The feature whose request is previewed.",
+            "example": "drafting"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["record_activity", "project_week", "gate_readiness"],
+            "description": "For summaries, what is summarized.",
+            "example": "gate_readiness"
+          },
+          "subject_collection": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$",
+            "description": "For summaries, the collection summarized.",
+            "example": "projects"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record or project summarized.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "collection": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+                "id": { "type": "string", "format": "uuid" }
+              },
+              "required": ["collection", "id"]
+            },
+            "maxItems": 100,
+            "description": "The records the request names: a draft's context or a summary's items, read with the caller's permissions.",
+            "example": [{ "collection": "sops", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+          }
+        },
+        "required": ["feature", "items"],
+        "description": "A drafting or summary request to preview before it is sent."
       },
       "AiSuggestionPage": {
         "type": "object",
@@ -136146,7 +136301,8 @@
               "example": {
                 "sentence": "blocked permits for Miami shows this month",
                 "collections": ["permits"],
-                "time_zone": "America/New_York"
+                "time_zone": "America/New_York",
+                "fields": [{ "name": "overdue", "type": "boolean", "ops": ["eq"] }]
               },
               "schema": { "$ref": "#/components/schemas/AuroraFilterRequest" }
             }
@@ -136516,6 +136672,54 @@
                   ]
                 },
                 "schema": { "$ref": "#/components/schemas/AuroraResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/aurora/preview": {
+      "post": {
+        "operationId": "aurora.preview",
+        "tags": ["Settings"],
+        "x-xos-table": "app.ai_settings",
+        "x-xos-capability": "home.dashboard.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["home"] }],
+        "summary": "Preview what a request would send",
+        "description": "Reads the records a drafting or summary request names, as the request would (the caller's permissions, Restricted columns, masked values and excluded tables removed), and returns what would be sent. A gate readiness summary adds the project's gate criteria. No model is called and nothing is metered (A95). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "feature": "drafting",
+                "kind": "gate_readiness",
+                "subject_collection": "projects",
+                "subject_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "items": [{ "collection": "sops", "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" }]
+              },
+              "schema": { "$ref": "#/components/schemas/AuroraPreviewRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": { "records": [], "vocabulary_terms": 12 },
+                "schema": { "$ref": "#/components/schemas/AuroraPreview" }
               }
             }
           },

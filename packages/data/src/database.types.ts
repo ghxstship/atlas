@@ -56137,6 +56137,7 @@ export type Database = {
         Returns: undefined;
       };
       confirm_minimum_age: { Args: { p_client_ip?: unknown; p_surface: string }; Returns: string };
+      consent_oauth_request: { Args: { p_authorization_id: string }; Returns: string };
       consent_to_case_study: { Args: { p_case_study_id: string }; Returns: undefined };
       consume_file_download_ticket: {
         Args: { p_ticket: string };
@@ -56462,6 +56463,7 @@ export type Database = {
         };
         Returns: string;
       };
+      decline_oauth_request: { Args: { p_authorization_id: string }; Returns: undefined };
       decline_offer: { Args: { p_offer_id: string; p_reason: string }; Returns: undefined };
       decline_ownership_transfer: { Args: { p_transfer_id: string }; Returns: string };
       delete_chat_message: { Args: { p_message_id: string }; Returns: string };
@@ -56727,6 +56729,12 @@ export type Database = {
         Returns: string;
       };
       generate_permit_requirements: { Args: { p_project_id: string }; Returns: number };
+      generate_recovery_codes: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          code: string;
+        }[];
+      };
       generate_self_billed_invoice: {
         Args: { p_engagement_id: string; p_period_end: string; p_period_start: string };
         Returns: string;
@@ -56949,12 +56957,33 @@ export type Database = {
         }[];
       };
       my_notification_time_zone: { Args: { p_org_id: string }; Returns: string };
+      my_oauth_access: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          oauth_app_id: string;
+          org_id: string;
+          scopes: string[];
+        }[];
+      };
+      my_oauth_apps: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          app_name: string;
+          grant_id: string;
+          granted_at: string;
+          last_used_at: string;
+          oauth_app_id: string;
+          org_name: string;
+          scopes: string[];
+        }[];
+      };
       my_org_auth_status: {
         Args: { p_org_id: string };
         Returns: {
           idle_timeout_minutes: number;
           mfa_required: boolean;
           mfa_verified: boolean;
+          session_ended: boolean;
           session_expired: boolean;
           session_expires_at: string;
           session_hours: number;
@@ -56969,6 +56998,16 @@ export type Database = {
           project_role: Database["app"]["Enums"]["project_role"];
         }[];
       };
+      my_recovery_code_status: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          created_at: string;
+          last_used_at: string;
+          remaining: number;
+          total: number;
+          usable: boolean;
+        }[];
+      };
       my_second_factor_status: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -56976,6 +57015,29 @@ export type Database = {
           recent_until: string;
           second_factor_at: string;
           session_aal: string;
+        }[];
+      };
+      my_security_events: {
+        Args: { p_limit?: number };
+        Returns: {
+          detail: Json;
+          kind: string;
+          occurred_at: string;
+          this_session: boolean;
+        }[];
+      };
+      my_sessions: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          client_address: string;
+          is_current: boolean;
+          last_active_at: string;
+          place: string;
+          second_factor: boolean;
+          session_id: string;
+          signed_in_at: string;
+          surface: string;
+          user_agent: string;
         }[];
       };
       my_sms_status: {
@@ -57027,6 +57089,29 @@ export type Database = {
         Returns: {
           ends_on: string;
           starts_on: string;
+        }[];
+      };
+      oauth_app_client_ids: {
+        Args: { p_org_id: string };
+        Returns: {
+          auth_client_id: string;
+          oauth_app_id: string;
+        }[];
+      };
+      oauth_consent_request: {
+        Args: { p_authorization_id: string };
+        Returns: {
+          app_name: string;
+          client_id: string;
+          expires_at: string;
+          granted_scopes: string[];
+          oauth_app_id: string;
+          org_id: string;
+          org_name: string;
+          pkce_s256: boolean;
+          redirect_uri: string;
+          restricted_scopes: string[];
+          scopes: string[];
         }[];
       };
       object_scan_status: {
@@ -57275,6 +57360,7 @@ export type Database = {
         };
         Returns: string;
       };
+      prune_recovery_codes: { Args: Record<PropertyKey, never>; Returns: boolean };
       publish_form_template: {
         Args: { p_reason?: string; p_template_id: string };
         Returns: number;
@@ -57507,6 +57593,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      record_oauth_request: {
+        Args: { p_authorization_id: string; p_scopes: string[] };
+        Returns: undefined;
+      };
       record_object_scan: {
         Args: { p_clean: boolean; p_detail?: string; p_object_scan_id: string };
         Returns: Database["app"]["Enums"]["scan_status"];
@@ -57724,6 +57814,13 @@ export type Database = {
         Returns: Database["app"]["Enums"]["delivery_status"];
       };
       recover_org_deletion: { Args: { p_org_id: string }; Returns: string };
+      redeem_recovery_code: {
+        Args: { p_code: string };
+        Returns: {
+          outcome: string;
+          remaining: number;
+        }[];
+      };
       refresh_file_link: {
         Args: {
           p_external_modified_at: string;
@@ -58245,6 +58342,8 @@ export type Database = {
         Returns: string;
       };
       sign_off_inspection: { Args: { p_inspection_id: string }; Returns: string };
+      sign_out_my_other_sessions: { Args: Record<PropertyKey, never>; Returns: number };
+      sign_out_my_session: { Args: { p_session_id: string }; Returns: undefined };
       start_break_glass: {
         Args: { p_org_id: string; p_reason: string };
         Returns: {
@@ -58388,6 +58487,15 @@ export type Database = {
           remaining: number;
           reset_seconds: number;
         }[];
+      };
+      touch_my_session: {
+        Args: {
+          p_client_address: string;
+          p_place: string;
+          p_surface: string;
+          p_user_agent: string;
+        };
+        Returns: undefined;
       };
       track_permit_requirement: {
         Args: { p_requirement_id: string; p_title?: string };

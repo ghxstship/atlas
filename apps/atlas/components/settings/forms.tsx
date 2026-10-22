@@ -2,7 +2,7 @@
 
 import { Button, Dialog, InlineAlert, Input, Select } from "@xos/ui";
 import { useFormatter, useTranslations } from "next-intl";
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import {
   inviteMemberAction,
   removeMemberAction,
@@ -13,6 +13,7 @@ import {
 } from "@/app/[org]/settings/actions";
 
 import { keepInputOnSubmit } from "@/components/collection-kit/keep-input";
+import { useStepUp } from "@/components/auth/security/step-up";
 /** Client forms for the org settings pages; each keeps typed input after a failed submit. */
 
 type Translate = (key: string, values?: Record<string, string | number>) => string;
@@ -26,7 +27,10 @@ const INITIAL: SettingsState = {};
 
 function MemberError({ state }: { state: SettingsState }) {
   const t = useCopy("shell.settings.members.errors");
-  return state.error ? <InlineAlert tone="danger">{t(state.error)}</InlineAlert> : null;
+  // A step-up refusal opens the step-up dialog instead of an alert (A99, S9-08).
+  return state.error && state.error !== "step_up_required" ? (
+    <InlineAlert tone="danger">{t(state.error)}</InlineAlert>
+  ) : null;
 }
 
 // General ---------------------------------------------------------------------------------------
@@ -196,8 +200,20 @@ export function MemberRoleSelect({
   disabled: boolean;
 }) {
   const t = useCopy("shell.settings.members");
+  const stepUp = useStepUp();
   const [state, action] = useActionState(setMemberRoleAction, INITIAL);
   const [, startTransition] = useTransition();
+  // A role change asks for step-up (A99, S9-08): a refusal opens the dialog, and verifying submits the change again.
+  const last = useRef<FormData | null>(null);
+  const seen = useRef(state);
+  useEffect(() => {
+    if (state === seen.current) return;
+    seen.current = state;
+    const form = last.current;
+    if (state.error === "step_up_required" && form) {
+      stepUp.request(() => startTransition(() => action(form)));
+    }
+  }, [state, stepUp, action]);
   return (
     <div className="flex flex-col gap-4">
       <Select
@@ -211,10 +227,12 @@ export function MemberRoleSelect({
           form.set("org", org);
           form.set("membershipId", membershipId);
           form.set("roleId", event.target.value);
+          last.current = form;
           startTransition(() => action(form));
         }}
       />
       <MemberError state={state} />
+      {stepUp.dialog}
     </div>
   );
 }

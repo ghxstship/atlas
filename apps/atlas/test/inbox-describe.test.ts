@@ -51,6 +51,9 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
     reason: "Owner locked out by the allow-list",
   },
   "account.security_changed": { change: "password" },
+  // A99's account notices (1560, 1561), as private.notify_account stores them.
+  "account.recovery_code_used": { remaining: "9" },
+  "account.session_signed_out": { count: "2" },
   "announcement.posted": { title: "Wristband Change Friday" },
   "approval.requested": { title: "Purchase Order 41", actorName: "Demo Producer" },
   "approval.decided": { title: "Purchase Order 41", actorName: "Demo Admin", decision: "approved" },

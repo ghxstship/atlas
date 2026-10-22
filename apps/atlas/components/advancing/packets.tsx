@@ -443,6 +443,18 @@ async function PacketPage({
           sections={packet.sections}
           canEdit={can.write}
           sent={sent}
+          draftContext={[
+            { collection: "advance-packets", id: packet.id, label: packet.title },
+            ...(project
+              ? [
+                  {
+                    collection: "projects",
+                    id: project.id,
+                    label: `${project.key} · ${project.name}`,
+                  },
+                ]
+              : []),
+          ]}
         />
       </Panel>
       <Panel id="packet-recipients" title={t("advancing.recipients.title")}>

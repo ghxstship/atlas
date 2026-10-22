@@ -62,6 +62,7 @@ import {
 import { can, chooseView, type ModulePage } from "@/lib/operations/context";
 import { instantToLocal } from "@/lib/operations/time";
 import { AccessMatrixEditor, CredentialBadge } from "./client";
+import { ScanIntakeQueue } from "./scan-intake";
 import { DocumentActions } from "@/components/documents/document-actions";
 
 /**
@@ -1161,6 +1162,7 @@ export async function ScanLogSection({ page }: { page: ModulePage }) {
           </ActionForm>
         </RecordSection>
       ) : null}
+      <ScanIntakeQueue page={page} />
       {scans.length === 0 ? (
         <EmptyStateLink
           icon="ScanLine"

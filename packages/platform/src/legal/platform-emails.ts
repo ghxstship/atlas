@@ -1,5 +1,5 @@
 import { sendEmail, type EmailTransport, type Sender } from "@xos/email";
-import { isLocale, type Locale } from "@xos/i18n";
+import { isLocale, type Locale } from "@xos/i18n/locales";
 import type { PlatformDb } from "../stores.ts";
 
 /**
