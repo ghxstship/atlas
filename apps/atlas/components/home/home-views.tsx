@@ -310,15 +310,18 @@ export function AlertsView({
   views,
   view,
   projectsHref,
+  timeZone,
 }: {
   org: string;
   alerts: readonly Alert[];
   views: readonly string[];
   view: string;
   projectsHref: string;
+  /** The org's time zone (getOrgTimeZone): an overdue record's due date is shown on its calendar. */
+  timeZone: string;
 }) {
   const t = useTranslations("home.alerts");
-  const text = useAlertText();
+  const text = useAlertText(timeZone);
   const router = useRouter();
   if (alerts.length === 0) {
     return <Empty sentence={t("empty")} action={t("emptyAction")} href={projectsHref} />;

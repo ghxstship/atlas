@@ -150,7 +150,9 @@ test("an account Google created accepts the Worker Terms before going on", async
 
   await page.getByRole("button", { name: "Continue" }).click();
   await expect(page.getByText("Accept the Worker Terms to create your account")).toBeVisible();
-  await page.getByRole("checkbox").check();
+  await page.locator("#terms-accept").check();
+  // Google asked nothing, so the age is confirmed here (A82, Sections 14.3 and 14.9).
+  await page.locator("#terms-age").check();
   await page.getByRole("button", { name: "Continue" }).click();
   await page.waitForURL((url) => url.pathname === CLAIM);
 

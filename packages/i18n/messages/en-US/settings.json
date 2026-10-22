@@ -172,7 +172,7 @@
     },
     "weekStart": {
       "label": "Week starts on",
-      "help": "The first day of the week on calendars and timesheets."
+      "help": "The first day of the week on calendars. The org's choice also starts its pay periods, timesheets and overtime weeks."
     },
     "marketplaceVisibility": {
       "label": "Marketplace visibility",

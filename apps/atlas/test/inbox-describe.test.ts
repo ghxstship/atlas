@@ -57,19 +57,6 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "assignment.created": { title: "NWS-12 Production Meeting" },
   "billing.payment_failed": { days: "3" },
   "billing.read_only": {},
-  "billing.trial_ending": { days: "3" },
-  "billing.trial_ended": {},
-  "organization.deletion_requested": { recover_until: "2026-10-28T12:00:00Z" },
-  "organization.deletion_recovered": {},
-  "organization.ownership_offered": {
-    actorName: "Demo Owner",
-    expires_at: "2026-10-28T12:00:00Z",
-  },
-  "organization.ownership_accepted": { actorName: "Demo Admin" },
-  "organization.ownership_declined": { actorName: "Demo Admin" },
-  "organization.white_label_reverting": { until: "2026-11-30T00:00:00Z" },
-  "organization.white_label_reverted": {},
-  "partner.client_left": { org: "Tidewater Events" },
   "comment.created": { title: "NWS-12 Production Meeting" },
   "event.invited": { title: "Show Day Safety Briefing", startsAt: "2026-10-21T09:00:00+00:00" },
   "export.ready": { title: "Records export" },
@@ -90,6 +77,31 @@ const ARGS: Readonly<Record<string, Record<string, string>>> = {
   "survey.opened": { title: "Load-In Pulse", anonymous: "true" },
   "training.assigned": { title: "Rigging Basics for Crew", due_on: "2026-10-27" },
   "weather.alert": { level: "Monitor", hazard: "Wind", reading: "24" },
+  // A79's org lifecycle kinds (1350 to 1355), as their notify calls store them (dates as epoch milliseconds).
+  "billing.trial_ending": { days: "3", plan: "pro", ends_at: "1795000000000" },
+  "billing.trial_ended": { plan: "pro" },
+  "organization.deletion_requested": { recover_until: "1795000000000" },
+  "organization.deletion_recovered": {},
+  "organization.ownership_offered": { expires_at: "1795000000000" },
+  "organization.ownership_accepted": { actorName: "Dana Reyes" },
+  "organization.ownership_declined": { actorName: "Dana Reyes" },
+  "organization.white_label_reverting": { plan: "pro", until: "1795000000000" },
+  "organization.white_label_reverted": { plan: "pro", until: "1795000000000" },
+  "partner.client_left": { org: "Tidewater Events" },
+  // A89: marketplace matches and expiry reminders (1462, 1463).
+  "opportunity.matched": {
+    title: "Festival Truss Riggers",
+    orgName: "Demo Productions",
+    searchName: "Truss calls",
+    count: "1",
+  },
+  "onboarding.item_expiring": {
+    title: "Certificate of Insurance",
+    days: "7",
+    expiresOn: "2026-10-28",
+  },
+  "certification.expiring": { title: "First Aid", days: "30", expiresOn: "2026-11-20" },
+  "document.expiring": { kind: "passport", title: "passport", days: "1", expiresOn: "2026-10-22" },
 };
 
 function kindsOf(tree: Tree, prefix = ""): string[] {

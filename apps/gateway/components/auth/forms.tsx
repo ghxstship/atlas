@@ -139,6 +139,34 @@ export function SignInForm({ next, initial = "link" }: { next: string; initial?:
 }
 
 /**
+ * "I am 16 or older" (Section 14.3, 14.9; Terms of Service 3.2), asked wherever an account is
+ * created or first used; the action records it (migration 1381).
+ */
+function AgeConfirmation({ id, state }: { id: string; state: FormState }) {
+  const t = useAuthCopy();
+  const error = state.fieldErrors?.["ageConfirmed"];
+  return (
+    <div className="flex flex-col gap-4">
+      <Checkbox
+        id={id}
+        name="ageConfirmed"
+        value="16"
+        required
+        defaultChecked={state.values?.["ageConfirmed"] === "16"}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        label={<span className="text-text-13">{t("fields.age")}</span>}
+      />
+      {error ? (
+        <p id={`${id}-error`} className="m-0 text-text-13 text-danger-text">
+          {t("errors.age")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * Create an account: name, Email, the Worker Terms (accepted) and the Privacy Policy (read), then
  * the link (primary) or, on request, a password. Nothing is created until the terms box is ticked.
  */
@@ -221,6 +249,7 @@ export function SignUpForm({
           </p>
         ) : null}
       </div>
+      <AgeConfirmation id="signup-age" state={state} />
       <Submit pending={password ? passwordPending : linkPending}>
         {t(password ? "signUp.submit" : "signIn.magicLink")}
       </Submit>
@@ -233,7 +262,16 @@ export function SignUpForm({
  * The Worker Terms for an account a provider created (ADR 0036): the same box as on the sign-up
  * form, then on to where the person was going.
  */
-export function TermsForm({ next, termsLabel }: { next: string; termsLabel: ReactNode }) {
+export function TermsForm({
+  next,
+  termsLabel,
+  askAge = true,
+}: {
+  next: string;
+  termsLabel: ReactNode;
+  /** The person has not confirmed they are 16 or older yet. */
+  askAge?: boolean;
+}) {
   const t = useAuthCopy();
   const [state, action, pending] = useActionState(acceptSignUpTerms, INITIAL);
   const termsError = fieldError(t, state, "acceptTerms");
@@ -258,6 +296,7 @@ export function TermsForm({ next, termsLabel }: { next: string; termsLabel: Reac
           </p>
         ) : null}
       </div>
+      {askAge ? <AgeConfirmation id="terms-age" state={state} /> : null}
       <Submit pending={pending}>{t("terms.submit")}</Submit>
     </form>
   );

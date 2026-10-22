@@ -36,16 +36,7 @@ const NEEDS: Readonly<Record<string, readonly string[]>> = {
   "weather.alert": ["level", "hazard", "reading"],
   "account.security_changed": ["change"],
   "billing.payment_failed": ["days"],
-  // A79's lifecycle notices (batch-c 7269cdf5).
-  "billing.trial_ending": ["days"],
-  "organization.deletion_requested": ["recover_until"],
-  "organization.ownership_offered": ["expires_at"],
-  "organization.white_label_reverting": ["until"],
-  "partner.client_left": ["org"],
 };
-
-/** Arguments the copy formats as dates (`{until, date, long}`); the notification stores them as ISO text. */
-const DATE_ARGS = ["startsAt", "recover_until", "expires_at", "until"] as const;
 
 /** Where a notification's subject opens, by the table it names (paths under /{org}). */
 const TARGETS: Readonly<Record<string, string>> = {
@@ -104,11 +95,9 @@ function values(
   for (const need of NEEDS[item.kind] ?? []) {
     if (a[need] === undefined) return null;
   }
-  for (const name of DATE_ARGS) {
-    const value = date(a[name]);
-    if (value) out[name] = value;
-    else delete out[name];
-  }
+  const startsAt = date(a["startsAt"]);
+  if (startsAt) out["startsAt"] = startsAt;
+  else delete out["startsAt"];
   if (a["days"] !== undefined) out["days"] = Number(a["days"]);
   return out;
 }

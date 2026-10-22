@@ -3716,6 +3716,362 @@ var compass_default$1 = {
     },
   },
 };
+var compliance_default$1 = {
+  classification: {
+    label: "Classification",
+    help: "Decides who may download the file, whether it may be shared by link, and whether copies carry the viewer's email.",
+    levels: {
+      Public: "Public",
+      Internal: "Internal",
+      Confidential: "Confidential",
+      Restricted: "Restricted",
+    },
+    save: "Save classification",
+    saved: "Classification saved.",
+    rules: {
+      Public: "Anyone may get a link, with or without an expiry.",
+      Internal: "Links need an expiry date within 90 days.",
+      Confidential:
+        "Links need an expiry within 30 days, an access code and the recipient's email. Downloads carry the viewer's email and the time.",
+      Restricted:
+        "Never shared by link. Downloads need the restricted export capability and a second sign-in factor.",
+    },
+  },
+  share: {
+    toggle: "Share",
+    hide: "Hide sharing",
+    title: "Share {name}",
+    loading: "Loading links…",
+    links: "Links",
+    noLinks: "No links yet.",
+    create: {
+      heading: "New link",
+      expiresOn: "Expires on",
+      expiresHelp: "The link stops opening at the end of this day. Up to {days} days ahead.",
+      noExpiry: "Leave empty for a link that never expires.",
+      accessCode: "Ask for a 6-digit access code",
+      accessCodeForced: "Confidential files always ask for an access code.",
+      recipient: "Recipient's email",
+      recipientHelp: "Their email is printed on every page they download.",
+      note: "What is it for?",
+      submit: "Create link",
+      restricted: "Restricted files are never shared by link.",
+    },
+    created: {
+      heading: "Link created",
+      copyOnce: "Copy the link and the code now. They are shown only once.",
+      link: "Link",
+      code: "Access code",
+      codeHelp: "Send the code separately from the link.",
+      copy: "Copy",
+      copied: "Copied",
+    },
+    row: {
+      expires: "Expires {date}",
+      never: "Never expires",
+      opened: "{count, plural, =0 {Not opened yet} one {Opened once} other {Opened # times}}",
+      codeRequired: "Access code",
+      for: "For {email}",
+      revoked: "Revoked",
+      locked: "Locked after 5 wrong codes",
+      expired: "Expired",
+      revoke: "Revoke",
+      made: "Made {date}",
+    },
+    errors: {
+      share_link_restricted: "Restricted files are never shared by link.",
+      share_link_confidential:
+        "Sharing a Confidential file needs the export capability for Confidential data.",
+      share_link_recipient: "Enter the recipient's email. The watermark carries it.",
+      share_link_recipient_format: "Enter a valid email address.",
+      share_link_watermark_unsupported:
+        "This Confidential file cannot carry the viewer watermark, so it cannot be shared by link. Only PNG and JPEG images can.",
+      share_link_expiry: "Choose an expiry date.",
+      share_link_expiry_range: "Choose a date after today and within the limit.",
+      share_link_file: "Wait until the file has scanned clean.",
+      attachment_classification_lower:
+        "Only the person who added the file, or someone who may set classifications, can lower it.",
+      org_read_only: "This organization is read-only.",
+      notFound: "This file is no longer available.",
+      unexpected: "Something went wrong. Try again.",
+    },
+  },
+  open: {
+    title: "Shared file",
+    intro: "Someone shared a file with you. Open it below.",
+    accessCode: "Access code",
+    accessCodeHelp: "Enter the 6-digit code if you received one with the link.",
+    submit: "Open file",
+    watermark: "Confidential images download as a PDF that shows your email and the time.",
+    refusals: {
+      share_link_invalid: "This link does not work. It may have been revoked or mistyped.",
+      share_link_locked:
+        "This link is locked after too many wrong codes. Ask the sender for a new one.",
+      share_link_expired: "This link has expired. Ask the sender for a new one.",
+      share_link_reclassified: "This file can no longer be shared this way. Ask the sender.",
+      share_link_access_code_required: "Enter the access code that came with the link.",
+      share_link_access_code: "That code is not right. After 5 wrong codes the link locks.",
+      share_link_rate_limited:
+        "Too many attempts from your network. Wait 10 minutes and try again.",
+    },
+  },
+  download: {
+    download_confidential:
+      "Downloading a Confidential file needs the export capability for Confidential data.",
+    download_restricted: "Downloading a Restricted file needs the restricted export capability.",
+    step_up_required:
+      "Downloading a Restricted file needs a second sign-in factor. Sign in again with your second factor, then try again.",
+    notFound: "This file is not available.",
+  },
+  cookies: {
+    title: "Cookies",
+    body: "We use cookies to keep you signed in and to remember this choice. With your permission we also remember your language, theme and last workspace for 12 months instead of this visit. We use no advertising or tracking cookies.",
+    policy: "Cookie Policy",
+    settingsLink: "Cookie settings",
+    acceptAll: "Accept all",
+    rejectAll: "Reject all",
+    choose: "Choose cookies",
+    necessary: "Strictly necessary: sign-in, security and this choice. Always on.",
+    preferences:
+      "Preferences: remember your language, theme, workspace and last organization for 12 months.",
+    performance:
+      "Performance: page timing and error reports. We set no performance cookies today; your choice applies if we ever add one.",
+    save: "Save choices",
+    settingsTitle: "Cookie settings",
+    settingsLead:
+      "Choose which cookies Atlas may set in this browser. Your choice is also kept on our servers as a record.",
+    gpc: "Your browser sends Global Privacy Control. We treat it as a refusal of every cookie that is not strictly necessary, so the choices below stay off while it is on.",
+    categories: "Categories",
+    current: {
+      none: "You have not chosen yet.",
+      choice: "Your choice: Preferences {preferences}, Performance {performance}.",
+      on: "on",
+      off: "off",
+    },
+    table: {
+      caption: "Cookies Atlas sets",
+      name: "Name",
+      category: "Category",
+      purpose: "What it does",
+      categories: {
+        necessary: "Strictly necessary",
+        preferences: "Preferences",
+      },
+      purposes: {
+        session: "Keeps you signed in for your organization's session lifetime.",
+        consent: "Remembers this choice for 12 months.",
+        viewAs: "Keeps a View as preview an Admin started, for up to an hour.",
+        locale: "Remembers the language you chose.",
+        theme: "Remembers the light or dark theme you chose.",
+        workspace: "Remembers the workspace filter you chose.",
+        lastOrg: "Opens the organization you used last.",
+        acting: "Remembers the account this browser acts for.",
+      },
+    },
+    gatewayBody:
+      "We use cookies to keep you signed in and to remember this choice. With your permission we also remember your language and theme for 12 months instead of this visit. We use no advertising or tracking cookies.",
+    gatewayPreferences: "Preferences: remember your language and theme for 12 months.",
+    gatewaySettingsLead:
+      "Choose which cookies Gateway may set in this browser. Your choice is also kept on our servers as a record.",
+    gatewayTableCaption: "Cookies Gateway sets",
+  },
+  subprocessors: {
+    title: "Change notices",
+    lead: "Get an email at least 30 days before we add or replace a subprocessor.",
+    email: "Email",
+    emailHelp: "We send one email to confirm. Nothing else is sent until you confirm.",
+    subscribe: "Subscribe",
+    members:
+      "Owners and Admins of a customer organization get these notices without subscribing and can turn them off in Settings, Notifications.",
+    confirmTitle: "Confirm your subscription",
+    confirmLead: "Confirm that you want Subprocessor List change notices at this address.",
+    confirm: "Confirm subscription",
+    unsubscribeTitle: "Unsubscribe from change notices",
+    unsubscribeLead: "Stop Subprocessor List change notices at this address.",
+    unsubscribe: "Unsubscribe",
+    notices: {
+      subscribed: "Check your email and confirm within 7 days to start receiving notices.",
+      invalid: "Enter an email address, such as name@example.com.",
+      failed: "We could not take your subscription. Try again in a few minutes.",
+      confirmed: "You are subscribed. We will email you at least 30 days before a change.",
+      "confirm-failed":
+        "This link has expired or was already used. Subscribe again to get a new one.",
+      unsubscribed: "You are unsubscribed. You will not get more change notices.",
+      "unsubscribe-failed":
+        "This link is not valid. Use the unsubscribe link in the most recent notice.",
+    },
+    settings: {
+      title: "Subprocessor List changes",
+      lead: "As an Owner or Admin, you get an email at least 30 days before we add or replace a subprocessor.",
+      label: "Email me about Subprocessor List changes",
+      save: "Save",
+    },
+  },
+  reacceptance: {
+    banner: {
+      upcoming: "{title}: a new version takes effect on {date}. Accept it for {org} before then.",
+      required: "{title}: a new version took effect on {date}. Accept it for {org}.",
+      review: "Review and accept in Settings, Legal",
+    },
+    personal: {
+      upcoming: "{title}: a new version takes effect on {date}",
+      required: "{title}: a new version took effect on {date}",
+    },
+    settings: {
+      title: "Changes to accept",
+      lead: "We changed these documents. Read what changes and accept the new version for {org}.",
+      item: "{title} {version}",
+      takesEffect: "Takes effect {date}. Announced {noticed}.",
+      inEffect: "In effect since {date}. Announced {noticed}.",
+      accept: "Accept {title} {version}",
+      read: "Read the new version",
+    },
+  },
+  osha: {
+    title: "OSHA recordkeeping",
+    lead: "Each establishment keeps a Form 300 log and posts a Form 300A summary from February 1 to April 30. Cases are recorded from the incident they came from.",
+    none: "No establishments yet. Add the place your crews report to.",
+    year: "{year}",
+    log: "Form 300 log, {year}",
+    summary: "Form 300A summary, {year}",
+    pdf: "PDF",
+    csv: "CSV",
+    summaryForm: "Employment figures and certification, {year}",
+    estimate:
+      "From time entries and payroll: {hours} hours worked, {employees} employees on average. Use these or the figures from your own records.",
+    employees: "Annual average number of employees",
+    hours: "Total hours worked by all employees",
+    executiveTitle: "Company executive's title",
+    phone: "Phone",
+    certify:
+      "I certify that I have examined this summary and that, to the best of my knowledge, the entries are true, accurate, and complete. I am a company executive.",
+    saveSummary: "Save summary",
+    summarySaved: "Summary for {year} saved.",
+    certifiedBy: "Certified by {name} on {date}.",
+    add: "Add an establishment",
+    addSubmit: "Add establishment",
+    added: "{name} added.",
+    cases: "OSHA recordable cases",
+    noCases: "No recordable case from this incident.",
+    caseLine: "Case {number} ({year}): {name}, {outcome}",
+    privacyCase: "Privacy case",
+    form301: "Form 301",
+    needsEstablishment: "Record a case once the org has an OSHA establishment.",
+    addEstablishment: "Add one in Settings, Locations and Venues",
+    record: "Record an OSHA case",
+    recordSubmit: "Record case",
+    recorded: "Case recorded.",
+    form301Details: "Form 301 details",
+    outcomes: {
+      Death: "Death",
+      "Days away from work": "Days away from work",
+      "Job transfer or restriction": "Job transfer or restriction",
+      "Other recordable case": "Other recordable case",
+    },
+    types: {
+      Injury: "Injury",
+      "Skin disorder": "Skin disorder",
+      "Respiratory condition": "Respiratory condition",
+      Poisoning: "Poisoning",
+      "Hearing loss": "Hearing loss",
+      "All other illnesses": "All other illnesses",
+    },
+    fields: {
+      name: "Establishment name",
+      street: "Street",
+      city: "City",
+      state: "State",
+      stateHelp: "Two letters, such as FL.",
+      zip: "ZIP code",
+      naics: "NAICS code, if known",
+      industry: "Industry description",
+      establishment: "Establishment",
+      person: "Employee",
+      notMember: "Not a member of the org",
+      employeeName: "Employee's full name",
+      employeeNameHelp: "Only when the employee is not a member of the org.",
+      privacy: 'Privacy concern case: print "privacy case" in place of the name on the log',
+      jobTitle: "Job title",
+      injuryDate: "Date of injury or onset of illness",
+      eventLocation: "Where the event occurred",
+      description:
+        "Injury or illness, parts of body affected, and the object or substance that caused it",
+      outcome: "Most serious outcome",
+      daysAway: "Days away from work",
+      daysRestricted: "Days on job transfer or restriction",
+      daysHelp: "Stop counting at 180 days in total.",
+      caseType: "Injury or illness type",
+      employeeStreet: "Employee's street",
+      employeeCity: "Employee's city",
+      employeeState: "Employee's state",
+      employeeZip: "Employee's ZIP code",
+      dateOfBirth: "Date of birth",
+      dateHired: "Date hired",
+      sex: "Male or female, as Form 301 asks",
+      male: "Male",
+      female: "Female",
+      unanswered: "Not answered",
+      professional: "Physician or other health care professional",
+      facility: "Facility where treatment was given away from the worksite",
+      facilityStreet: "Facility street",
+      facilityCity: "Facility city",
+      facilityState: "Facility state",
+      facilityZip: "Facility ZIP code",
+      emergencyRoom: "Treated in an emergency room",
+      hospitalized: "Hospitalized overnight as an in-patient",
+      yes: "Yes",
+      no: "No",
+      workBegan: "Time the employee began work",
+      eventTime: "Time of event",
+      timeUnknown: "The time of the event cannot be determined",
+      activityBefore: "What the employee was doing just before the incident",
+      whatHappened: "What happened",
+      injuryDetail: "The injury or illness: part of the body and how it was affected",
+      harmfulObject: "Object or substance that directly harmed the employee",
+      noPii: "No names, phone numbers or other identifying information.",
+      diedOn: "Date of death, if the employee died",
+      completedTitle: "Your title",
+      completedPhone: "Your phone",
+    },
+  },
+  wh347: {
+    title: "Certified payroll (WH-347)",
+    lead: "For projects under the Davis-Bacon and Related Acts: enter the project's contract details once, then issue each week's certified payroll from approved time.",
+    none: "No project has WH-347 details yet.",
+    headerLine: "Contract {contract}, wage determination {wd}",
+    weekEnding: "Week ending date",
+    final: "Final certified payroll for this project",
+    pdf: "Issue as PDF",
+    csv: "Issue as CSV",
+    stepUp:
+      "Certified payrolls carry Restricted pay rates: issuing one needs the restricted export capability and a recent two-step sign-in. Deductions and net pay come from your payroll provider.",
+    headerForm: "Enter or change a project's WH-347 details",
+    saveHeader: "Save details",
+    saved: "Details saved.",
+    refused: "This certified payroll was not issued.",
+    refusals: {
+      step_up_required: "Sign in again with your second step, then issue the certified payroll.",
+      export_restricted:
+        "Issuing a certified payroll needs the restricted export capability. Ask an Owner.",
+      certified_payroll_header_missing:
+        "Enter the project's contract and wage determination numbers first.",
+    },
+    fields: {
+      project: "Project",
+      contractNumber: "Project or contract number",
+      wageDeterminations: "Wage determination numbers",
+      wageDeterminationsHelp:
+        "Every wage determination and revision number that applies, such as FL20270001 Mod 2.",
+      contractorRole: "Prime contractor or subcontractor",
+      prime: "Prime contractor",
+      sub: "Subcontractor",
+      businessName: "Legal business name",
+      businessAddress: "Business address",
+      projectLocation: "Project location",
+      projectLocationHelp: "The full address, or at least the county and state.",
+    },
+  },
+};
 var credentials_default$1 = {
   categories: {
     active: "Live credentials",
@@ -4750,6 +5106,7 @@ var documents_default$1 = {
     qrAlt: "QR code that opens record {key} for anyone with access",
     logoAlt: "{name} logo",
     page: "Page {page} of {total}",
+    watermark: "Downloaded by {email} on {time}",
   },
   common: {
     amount: "Amount",
@@ -5009,6 +5366,193 @@ var documents_default$1 = {
       "Encrypted backups made before the deletion age out on their own schedule. They are kept only for disaster recovery and are not used to restore a deleted organization.",
     keep: "Keep this certificate for your records. Its id is {id}.",
   },
+  sharedImage: {
+    title: "Shared file {name}",
+    file: "File",
+    qrAlt: "QR code that opens the share link again",
+    alt: "{name}, shared by {org}",
+  },
+  compliance: {
+    form: "Form",
+    qrAlt: "QR code that opens {form} in XOS",
+  },
+  osha: {
+    year: "Year",
+    establishment: {
+      caption: "Establishment information",
+      name: "Establishment name",
+      street: "Street",
+      city: "City",
+      state: "State",
+      zip: "ZIP",
+      industry: "Industry description",
+      naics: "North American Industrial Classification (NAICS)",
+    },
+    log: {
+      title: "OSHA Form 300: Log of Work-Related Injuries and Illnesses, {name}, {year}",
+      key: "OSHA 300 {year}",
+      caption: "Log of Work-Related Injuries and Illnesses, {year}",
+      attention:
+        "Attention: This form contains information relating to employee health and must be used in a manner that protects the confidentiality of employees to the extent possible while the information is being used for occupational safety and health purposes.",
+      privacyCase: "privacy case",
+      pageTotals: "Page totals",
+      empty: "No recordable cases on this log for the year.",
+      transfer:
+        "Be sure to transfer these totals to the Summary page (Form 300A) before you post it.",
+      columns: {
+        0: "(A) Case no.",
+        1: "(B) Employee's name",
+        2: "(C) Job title",
+        3: "(D) Date of injury or onset of illness",
+        4: "(E) Where the event occurred",
+        5: "(F) Injury or illness, parts of body affected, and object or substance",
+        6: "(G) Death",
+        7: "(H) Days away from work",
+        8: "(I) Job transfer or restriction",
+        9: "(J) Other recordable cases",
+        10: "(K) Days away",
+        11: "(L) Days on transfer or restriction",
+        12: "(M1) Injury",
+        13: "(M2) Skin disorder",
+        14: "(M3) Respiratory condition",
+        15: "(M4) Poisoning",
+        16: "(M5) Hearing loss",
+        17: "(M6) All other illnesses",
+      },
+    },
+    summary: {
+      title: "Title",
+      key: "OSHA 300A {year}",
+      intro:
+        "All establishments covered by Part 1904 must complete this Summary page, even if no work-related injuries or illnesses occurred during the year. Employees, former employees, and their representatives have the right to review the OSHA Form 300 in its entirety. They also have limited access to the OSHA Form 301 or its equivalent (29 CFR 1904.35).",
+      cases: "Number of cases",
+      deaths: "(G) Total number of deaths",
+      daysAwayCases: "(H) Total number of cases with days away from work",
+      restrictedCases: "(I) Total number of cases with job transfer or restriction",
+      otherCases: "(J) Total number of other recordable cases",
+      days: "Number of days",
+      daysAway: "(K) Total number of days away from work",
+      daysRestricted: "(L) Total number of days of job transfer or restriction",
+      types: "Injury and illness types",
+      injuries: "(M1) Injuries",
+      skinDisorders: "(M2) Skin disorders",
+      respiratory: "(M3) Respiratory conditions",
+      poisonings: "(M4) Poisonings",
+      hearingLoss: "(M5) Hearing loss",
+      otherIllnesses: "(M6) All other illnesses",
+      employment: "Employment information",
+      averageEmployees: "Annual average number of employees",
+      hoursWorked: "Total hours worked by all employees last year",
+      certify:
+        "Knowingly falsifying this document may result in a fine. I certify that I have examined this document and that to the best of my knowledge the entries are true, accurate, and complete.",
+      signHere: "Sign here",
+      executive: "Company executive",
+      phone: "Phone",
+      date: "Date",
+      post: "Post this Summary page from February 1 to April 30 of the year following the year covered by the form.",
+    },
+    case: {
+      title301: "OSHA Form 301: Injury and Illness Incident Report, case {number}, {name}",
+      key: "OSHA 301 {year}-{number}",
+      attention:
+        "Attention: This form contains information relating to employee health and must be used in a manner that protects the confidentiality of employees to the extent possible while the information is being used for occupational safety and health purposes.",
+      employee: "Information about the employee",
+      physician: "Information about the physician or other health care professional",
+      case: "Information about the case",
+      completed: "Completed by",
+      completedBy: "Completed by",
+      title: "Title",
+      phone: "Phone",
+      date: "Date",
+      yes: "Yes",
+      no: "No",
+      timeUnknown: "Time cannot be determined",
+      sex: {
+        Male: "Male",
+        Female: "Female",
+      },
+      items: {
+        1: "1) Full name",
+        2: "2) Street, city, state, ZIP",
+        3: "3) Date of birth",
+        4: "4) Date hired",
+        5: "5) Male or female",
+        6: "6) Name of physician or other health care professional",
+        7: "7) If treatment was given away from the worksite, where was it given?",
+        8: "8) Was employee treated in an emergency room?",
+        9: "9) Was employee hospitalized overnight as an in-patient?",
+        10: "10) Case number from the Log",
+        11: "11) Date of injury or illness",
+        12: "12) Time employee began work",
+        13: "13) Time of event",
+        14: "14) What was the employee doing just before the incident occurred?",
+        15: "15) What happened?",
+        16: "16) What was the injury or illness?",
+        17: "17) What object or substance directly harmed the employee?",
+        18: "18) If the employee died, when did death occur?",
+      },
+    },
+  },
+  wh347: {
+    title: "WH-347 Certified Payroll No. {number}, {project}",
+    key: "WH-347 No. {number}, week ending {week}",
+    header: "Davis-Bacon and Related Acts weekly certified payroll",
+    projectName: "Project name",
+    contractNumber: "Project No. or Contract No.",
+    payrollNumber: "Certified Payroll No.",
+    contractor: "Prime contractor or subcontractor",
+    businessName: "Prime contractor's or subcontractor's business name",
+    businessAddress: "Prime contractor's or subcontractor's business address",
+    projectLocation: "Project location",
+    wageDeterminations: "Wage Determination No.",
+    weekEnding: "Week ending date",
+    final: "Submission of final DBRA certified payroll form",
+    yes: "Yes",
+    no: "No",
+    roles: {
+      "Prime contractor": "Prime contractor",
+      Subcontractor: "Subcontractor",
+    },
+    caption: "Workers, hours and pay for the week",
+    st: "ST",
+    ot: "OT",
+    columns: {
+      entry: "(1A) Worker entry no.",
+      name: "(1B to 1D) Worker name",
+      identifying: "(1E) Worker identifying no.",
+      apprentice: "(2) J or RA",
+      classification: "(3) Labor classification",
+      type: "ST or OT",
+      total: "(5) Total hours",
+      rate: "(6A) Hourly wage rate",
+      gross: "(7A) Gross amount earned",
+      grossAll: "(7B) Gross amount earned for all work",
+    },
+    empty: "No hours were worked on this project in the week.",
+    provider:
+      "Columns 6B (total fringe benefit credit), 6C (payment in lieu of fringe benefits), 8 (deductions) and 9 (net pay) come from the payroll provider and are not held in XOS. Complete them from the provider's payroll register before certifying.",
+    statement: {
+      heading: "Statement of Compliance",
+      official: "Certifying official",
+      name: "Certifying official's name",
+      date: "Date",
+      paid: "I paid or supervised the payment of the laborers or mechanics working on the above project during the stated time period. I certify the following:",
+      correct:
+        "The payroll information submitted with this statement is correct and complete for the above project during the above period, and the wage and fringe benefit rates paid to the workers, including credit taken for the reasonably anticipated costs of a bona fide fringe benefit plan, fund or program, are not less than the applicable wage and fringe benefits rates for the classification(s) of work actually performed, as specified in the wage determination(s) incorporated into the contract.",
+      records:
+        "All regular payrolls and all other basic records that the contractor is required to maintain for this payroll period are complete and accurate and will be made available upon request from the agency or the Department of Labor.",
+      classifications:
+        "The classifications reported for each laborer or mechanic are the classification(s) of work that each worker actually performed.",
+      apprentices:
+        'Any workers paid as apprentices during the above period are duly registered in a bona fide apprenticeship program registered with the Office of Apprenticeship, Employment and Training Administration, United States Department of Labor ("OA"), or a State Apprenticeship Agency ("SAA") recognized by Department of Labor.',
+      fringe:
+        "Fringe benefits have been paid in cash and/or to bona fide fringe benefit plans, funds, or programs.",
+      wages:
+        "All workers on the project have been paid the full weekly wages earned, and no rebates or deductions have been or will be made either directly or indirectly, other than permissible deductions as defined in 29 CFR part 3.",
+      warning:
+        "The willful falsification of any of the above statements may subject the contractor or subcontractor to civil or criminal prosecution (see section 1001 of title 18 and section 3729 of title 31 of the United States Code), as well as debarment from future federal and federally-assisted contracts.",
+    },
+  },
 };
 var email_default$1 = {
   common: {
@@ -5260,6 +5804,21 @@ var email_default$1 = {
     subject: "We received your {requestType} request",
     heading: "Request received",
     body: "{orgName} received your {requestType} request on {receivedAt, date, long} and will respond by {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirm your subscription to XOS subprocessor changes",
+    heading: "Confirm your subscription",
+    body: "You asked to hear about changes to the XOS Subprocessor List. Confirm within 7 days to start receiving notices.",
+    ignore: "If you did not ask for this, ignore this email and nothing will be sent.",
+    confirm: "Confirm subscription",
+  },
+  subprocessor_notice: {
+    subject: "XOS Subprocessor List changes on {effectiveOn, date, long}",
+    heading: "Subprocessor List {listVersion}",
+    intro:
+      "We will change our Subprocessor List on {effectiveOn, date, long}, at least 30 days from this notice.",
+    objection: "A customer may object under Section 7.3 of the Data Processing Agreement.",
+    review: "Read the Subprocessor List",
   },
   sms: {
     message: "{orgName}: {body} {url} Reply STOP to opt out.",
@@ -6171,16 +6730,6 @@ var gateway_default$1 = {
       slug_reserved: "That web address is reserved. Choose another.",
       cross_org_reference:
         "That document belongs to another organization. Upload it again for this one.",
-      personal_tokens_off: "That organization does not allow personal API tokens anymore.",
-      personal_token_scope_not_held:
-        "A token can only use areas you hold a capability in. Clear the others.",
-      personal_token_limit: "You already have 10 active tokens there. Revoke one first.",
-      personal_token_expiry: "Choose an expiry within one year.",
-      personal_token_revoked: "This token is already revoked.",
-      step_up_required: "Confirm it is you with your second factor, then try again.",
-      sole_account_owner:
-        "A company account keeps at least one Account Owner. Make someone else an Account Owner first.",
-      notification_channel_outside: "A company sets Email and Push only.",
     },
   },
   common: {
@@ -7263,13 +7812,6 @@ var gateway_default$1 = {
         unexpected: "Something went wrong. Try again.",
       },
     },
-    surfaces: {
-      errors: {
-        jurisdiction: "Choose a jurisdiction from the list.",
-        category: "Choose a category from the list.",
-        member: "Choose a team member.",
-      },
-    },
   },
   shell: {
     skip: "Skip to content",
@@ -7334,6 +7876,7 @@ var gateway_default$1 = {
       password: "Password",
       passwordHelp:
         "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
+      age: "I am 16 or older.",
     },
     or: "or",
     usePassword: "Use a password",
@@ -7416,6 +7959,7 @@ var gateway_default$1 = {
       passwordContext:
         "Choose a password that does not contain your name, your email or a product name such as Gateway.",
       terms: "Accept the Worker Terms to create your account: tick the box above the button.",
+      age: "Confirm that you are 16 or older. XOS accounts are for people 16 and over.",
     },
   },
   work: {
@@ -9138,8 +9682,6 @@ var nav_default$1 = {
       auditLog: "Audit Log",
       legal: "Legal",
       dangerZone: "Danger Zone",
-      workspace: "Workspace",
-      team: "Team",
     },
     personal: {
       profile: "Profile",
@@ -13820,7 +14362,7 @@ var settings_default$1 = {
     },
     weekStart: {
       label: "Week starts on",
-      help: "The first day of the week on calendars and timesheets.",
+      help: "The first day of the week on calendars. The org's choice also starts its pay periods, timesheets and overtime weeks.",
     },
     marketplaceVisibility: {
       label: "Marketplace visibility",
@@ -13906,10 +14448,6 @@ var settings_default$1 = {
     messageTranslation: {
       label: "Translate chat messages",
       help: "Members can read a chat message in their own language. Messages are sent to Google Cloud Translation, a subprocessor, and each translation is kept for the conversation. Off by default.",
-    },
-    personalTokens: {
-      label: "Allow personal API tokens",
-      help: "Members can create their own API tokens in Personal settings, Developer. A token acts as its member, limited to the areas they choose, and expires within a year. Turning this off stops every token at once.",
     },
   },
   choices: {
@@ -14099,31 +14637,13 @@ var settings_default$1 = {
       "Workspaces divide the org by office or venue group. Override settings for each one here.",
     accessReviews:
       "Each quarter, managers confirm or remove every member's role. Set how unreviewed access is handled.",
-    calendarFeeds:
-      "Subscribe to your schedule, or to a project you work on, from any calendar app.",
-    apiKeysAndServiceAccounts:
-      "Let your servers call the XOS API through service accounts and their keys, and decide whether members may create personal tokens.",
-    webhooks:
-      "Send signed events to your other systems as they happen, and send a delivery again when one fails.",
-    spendAuthority: "Set how much each role or person may approve, per document type and currency.",
-    separationOfDuties: "The rules that keep one person from doing both halves of a sensitive act.",
-    customFields: "Add the fields your records need to projects, venues, vendors and more.",
-    canonExtensions: "Disciplines and categories your organization adds to the canon.",
-    dataAndPrivacy:
-      "Answer data requests, place legal holds, and see exports, classification and retention.",
-    auditLog: "The latest audited changes to access and settings, and the way to the full log.",
-    automations:
-      "Scheduled reports, recurring work, approval policies and webhooks: what runs without anyone pressing a button.",
-    connectedApps: "Apps you allowed to act for you, and a way to disconnect them.",
-    developer: "Personal API tokens for your own scripts in this organization.",
-    payoutAndTax: "Where organizations pay you and the tax forms you signed.",
-    workspace: "What this workspace sets differently from the organization, and who works in it.",
-    team: "Who is on this team. Teams use their workspace's and the organization's settings.",
     partner:
       "Your partner agency's client orgs, wholesale terms and the way into the Partner console.",
     usage:
       "What the organization uses against its plan: seats, field members, projects and engagements.",
     templates: "Templates the organization reuses for projects, documents and packets.",
+    calendarFeeds:
+      "Subscribe to your schedule, or to a project you work on, from any calendar app.",
   },
   accessControls: {
     saved: "Saved.",
@@ -14480,600 +15000,6 @@ var settings_default$1 = {
   },
   notInEffect: "Saved, but not in effect yet.",
 };
-var settingsSurfaces_default$1 = {
-  active: "Active",
-  revoked: "Revoked",
-  expired: "Expired",
-  revoke: "Revoke",
-  remove: "Remove",
-  cancel: "Cancel",
-  choose: "Choose one",
-  someone: "Someone",
-  scopesList: "Areas: {scopes}",
-  lastUsed: "Last used {date}",
-  neverUsed: "Never used",
-  fields: {
-    name: "Name",
-    description: "Description",
-    scopes: "Areas it may use",
-    expires: "Expires",
-    reason: "Reason",
-  },
-  expiry: {
-    days: "In {count, plural, one {# day} other {# days}}",
-    never: "Never expires",
-    until: "Expires {date}",
-  },
-  plan: {
-    apiKeys: "API keys and service accounts need the Pro plan or above.",
-    webhooks: "Webhooks need the Pro plan or above.",
-    billing: "See plans",
-  },
-  secret: {
-    copy: "Copy",
-    copied: "Copied",
-    key: {
-      title: "Copy this key now",
-      body: "This is the only time the key is shown. Store it in your server's secret store; we keep only a fingerprint of it.",
-      field: "API key",
-    },
-    token: {
-      title: "Copy this token now",
-      body: "This is the only time the token is shown. It acts as you, limited to the areas you chose. Keep it private.",
-      field: "Personal API token",
-    },
-    webhook: {
-      title: "Copy the signing secret now",
-      body: "Use it to check the XOS-Signature header of each delivery. This is the only time it is shown.",
-      field: "Signing secret",
-    },
-  },
-  serviceAccounts: {
-    title: "Service accounts",
-    description:
-      "A service account is a member for your servers. API keys act as one, with the role you give it.",
-    none: "No service accounts yet.",
-    created: "Created {date}",
-    retire: "Retire",
-    retireConfirm: {
-      title: "Retire {name}?",
-      body: "Its API keys stop working at once and its membership ends. This cannot be undone.",
-      confirm: "Retire account",
-    },
-    add: "Add a service account",
-    addSubmit: "Add service account",
-    added: "Service account added.",
-    role: "Role",
-    roleHelp: "Choose a role you hold every capability of. The Owner role is never offered.",
-  },
-  apiKeys: {
-    title: "API keys",
-    description:
-      "Keys let your servers call the XOS API as a service account. Each key is limited to the areas you choose and expires within a year.",
-    none: "No API keys yet.",
-    actsAs: "Acts as {account}",
-    noAccount: "no service account (cannot call the API)",
-    retiredAccount: "a retired service account",
-    revokeConfirm: {
-      title: "Revoke {name}?",
-      body: "Requests with this key fail from now on. Create a new key to replace it.",
-      confirm: "Revoke key",
-    },
-    add: "Create an API key",
-    addSubmit: "Create key",
-    account: "Service account",
-    needsAccount: "Add a service account first: every key acts as one.",
-    scopesHelp:
-      "Areas are capability groups. The key can never do more than its service account's role allows.",
-  },
-  tokens: {
-    title: "Personal API tokens",
-    description:
-      "A token lets your own scripts call the XOS API as you, in this organization, limited to the areas you choose.",
-    none: "You have no tokens here.",
-    off: "Your organization does not allow personal API tokens. An Admin can turn them on in Settings, API Keys and Service Accounts.",
-    add: "Create a token",
-    addSubmit: "Create token",
-    scopesHelp:
-      "Only areas you hold a capability in are offered. The token can never do more than you can.",
-    revokeConfirm: {
-      title: "Revoke {name}?",
-      body: "Scripts using this token stop working at once.",
-      confirm: "Revoke token",
-    },
-    orgTitle: "Members' personal tokens",
-    orgOn: "Members may create personal tokens. You can revoke any of them.",
-    orgOff:
-      "Personal tokens are off, so none of these work. Turn on Allow personal API tokens above to let members create them.",
-    orgNone: "No member has a personal token.",
-    owner: "Held by {name}",
-  },
-  webhooks: {
-    title: "Webhook endpoints",
-    description:
-      "XOS sends a signed POST to each endpoint when an event it subscribes to happens, and retries for up to 72 hours.",
-    none: "No endpoints yet.",
-    needsCapability: "Only people who manage webhooks see the endpoints.",
-    paused: "Paused",
-    pause: "Pause",
-    resume: "Resume",
-    events: "{count, plural, one {# event} other {# events}}: {events}",
-    removeConfirm: {
-      title: "Remove this endpoint?",
-      body: "{url} gets no further deliveries. Its delivery history stays.",
-      confirm: "Remove endpoint",
-    },
-    add: "Add an endpoint",
-    addSubmit: "Add endpoint",
-    url: "Endpoint URL",
-    urlHelp: "A public HTTPS address. Private and internal hosts are refused.",
-    eventTypes: "Events",
-  },
-  deliveries: {
-    title: "Recent deliveries",
-    description:
-      "The last 20 deliveries to your endpoints. Send one again to deliver the same event as a new delivery.",
-    none: "No deliveries yet.",
-    attempts: "{count, plural, one {# attempt} other {# attempts}}",
-    response: "Response {status}",
-    replay: "Sent again",
-    send: "Send again",
-    status: {
-      Pending: "Pending",
-      Delivering: "Delivering",
-      Delivered: "Delivered",
-      Retrying: "Retrying",
-      Expired: "Gave up",
-    },
-  },
-  spend: {
-    title: "Spend limits",
-    description:
-      "Who may approve how much, per document type and currency. Approvals above a limit are refused, and amounts above the dual approval line need a second approver.",
-    none: "No limits yet, so nobody can approve spend documents.",
-    roleHolder: "Everyone with the {role} role",
-    upTo: "Up to {amount}",
-    dualAbove: "Two approvers above {amount}",
-    oneApprover: "One approver",
-    narrowed: "Limited to one account or cost center",
-    selfGrant:
-      "Nobody can set a limit that applies to themselves, so the Owner role's limit is set by another Owner.",
-    removeConfirm: {
-      title: "Remove this limit?",
-      body: "{holder} can no longer approve under it. A removed limit cannot be restored.",
-      confirm: "Remove limit",
-    },
-    add: "Add a limit",
-    addSubmit: "Add limit",
-    added: "Limit added.",
-    holder: "Who",
-    documentType: "Document type",
-    currency: "Currency",
-    limit: "Limit",
-    dual: "Second approver above",
-    dualHelp: "Leave blank for one approver at every amount.",
-  },
-  documentTypes: {
-    PurchaseOrder: "Purchase order",
-    ChangeOrder: "Change order",
-    Expense: "Expense",
-    InvoiceApproval: "Invoice approval",
-    Contract: "Contract",
-    PayrollRun: "Payroll run",
-    Requisition: "Requisition",
-  },
-  sod: {
-    title: "Rules every organization keeps",
-    description:
-      "Separation of duties: one person never does both halves of these acts. The database enforces each rule, for every organization.",
-    enforcedOn: "Checked on {where}",
-    tighten: "No rule can be loosened. Approval policies add more approvers where you need them.",
-  },
-  customFields: {
-    title: "Custom fields",
-    description:
-      "Fields your organization adds to built-in records, such as projects and venues. Values are typed and checked.",
-    none: "No custom fields yet.",
-    required: "Required",
-    filterable: "Filterable",
-    noChoices: "No choices yet",
-    choices: "Choices: {choices}",
-    removeConfirm: {
-      title: "Remove {label}?",
-      body: "The field leaves every record. Values already entered are kept for the retention period.",
-      confirm: "Remove field",
-    },
-    addChoiceFor: "Add a choice to {label}",
-    addChoice: "Add choice",
-    choiceLabel: "New choice",
-    add: "Add a field",
-    addSubmit: "Add field",
-    added: "Field added.",
-    target: "Records",
-    label: "Label",
-    key: "Key",
-    keyHelp:
-      "Used by the API and imports. Leave blank to make one from the label. It never changes.",
-    type: "Type",
-    typeHelp: "The type never changes once the field exists.",
-    requiredLabel: "Required on every record",
-    filterableLabel: "Filterable in views",
-    filterableHelp: "Adds an index so views can filter by it.",
-    types: {
-      Text: "Text",
-      Number: "Number",
-      Money: "Money",
-      Date: "Date",
-      Timestamp: "Date and time",
-      Boolean: "Yes or no",
-      Choice: "Choice",
-      Person: "Person",
-      Email: "Email",
-      URL: "Web address",
-    },
-    targets: {
-      records: "Records",
-      projects: "Projects",
-      vendors: "Vendors",
-      venues: "Venues",
-      counterparties: "Counterparties",
-      asset_units: "Asset units",
-      purchase_orders: "Purchase orders",
-      invoices: "Invoices",
-      incidents: "Incidents",
-    },
-  },
-  canon: {
-    title: "Your organization's extensions",
-    description:
-      "Disciplines and categories your organization adds to the canon. Members propose them on the Canon page and another person decides.",
-    counts:
-      "{approved} approved, {proposed} waiting for a decision, {closed} rejected or withdrawn.",
-    none: "No extensions approved or waiting yet.",
-    under: "Under {parent}",
-    open: "Propose and decide extensions on the Canon page",
-    states: {
-      Proposed: "Waiting",
-      Approved: "Approved",
-      Rejected: "Rejected",
-      Withdrawn: "Withdrawn",
-    },
-    levels: {
-      Discipline: "Discipline",
-      Category: "Category",
-    },
-  },
-  automations: {
-    title: "What runs on its own",
-    description:
-      "Work your organization set to happen without anyone pressing a button. Each is managed where it lives.",
-    recurring:
-      "{count, plural, =0 {No recurring records} one {# recurring record} other {# recurring records}}",
-    recurringHelp: "Records that repeat on a schedule.",
-    policies:
-      "{count, plural, =0 {No active approval policies} one {# active approval policy} other {# active approval policies}}",
-    policiesHelp: "Route documents to the right approvers in order.",
-    webhooks:
-      "{count, plural, =0 {No live webhook endpoints} one {# live webhook endpoint} other {# live webhook endpoints}}",
-    webhooksHelp: "Tell your other systems when events happen.",
-    manage: "Manage",
-    reportsTitle: "Scheduled report deliveries",
-    reportsDescription: "Reports emailed on a schedule, in the time zone each schedule names.",
-    noReports: "No scheduled reports you can see.",
-    untitled: "Untitled report",
-    nextRun: "Next {date}",
-    openReports: "Open reports",
-    cadence: {
-      Daily: "Daily",
-      Weekly: "Weekly",
-      Monthly: "Monthly",
-    },
-  },
-  departments: {
-    title: "Departments and disciplines in use",
-    description:
-      "Choose the canon departments and disciplines your organization works in. Department pickers then offer only these.",
-    all: "None chosen yet, so every department is offered.",
-    chosen:
-      "{departments, plural, one {# department} other {# departments}} and {disciplines, plural, one {# discipline} other {# disciplines}} in use.",
-    departments: "Departments",
-    departmentsHelp: "Clearing a department also clears its disciplines.",
-    disciplinesOf: "{name}: {count, plural, one {# discipline} other {# disciplines}}",
-    disciplines: "Disciplines in {name}",
-    option: "{name} · {code}",
-    extensionsTitle: "Your discipline extensions",
-    extensionsDescription: "Approved extensions are in use by definition.",
-    noExtensions: "No approved discipline extensions.",
-    toExtensions: "See canon extensions",
-  },
-  locations: {
-    title: "New venue defaults",
-    description:
-      "What a new venue starts with. People can still change them for each venue; venues already saved keep their own.",
-    jurisdiction: "Jurisdiction",
-    jurisdictionHelp: "Decides which permit and code questions apply.",
-    noJurisdiction: "The first in the list",
-    unpopulated: "{id} (not populated yet)",
-    timeZone: "Time zone",
-    timeZoneHelp: "Times typed for the venue are read in it.",
-    browserZone: "The time zone of the person's device",
-    toVenues: "Open venues",
-  },
-  usage: {
-    metersTitle: "Metered usage",
-    metersDescription:
-      "Counted per billing month (UTC). The open month grows until it closes and is reported.",
-    metersHidden: "Only people who can read usage see the meters.",
-    openMonth: "{month} so far",
-    closedMonth: "{month}, closed",
-    meters: {
-      field_members: "Field members",
-      external_engagements: "External engagements",
-      emails_sent: "Emails sent",
-      sms_segments: "Text message segments",
-      push_sent: "Push notifications sent",
-      api_requests: "API requests",
-      storage_bytes: "Storage",
-      ai_tokens: "Aurora tokens",
-    },
-    units: {
-      member: "{count, plural, one {{formatted} member} other {{formatted} members}}",
-      engagement: "{count, plural, one {{formatted} engagement} other {{formatted} engagements}}",
-      message: "{count, plural, one {{formatted} message} other {{formatted} messages}}",
-      segment: "{count, plural, one {{formatted} segment} other {{formatted} segments}}",
-      request: "{count, plural, one {{formatted} request} other {{formatted} requests}}",
-      byte_day: "{count, plural, one {{formatted} byte-day} other {{formatted} byte-days}}",
-      token: "{count, plural, one {{formatted} token} other {{formatted} tokens}}",
-    },
-  },
-  privacy: {
-    requestsTitle: "Data requests",
-    requestsDescription:
-      "Requests from people to see, correct, move or erase their data. Each is due 30 days after it arrives, 90 if you extend it.",
-    requestsHidden: "Only people who manage data requests see them.",
-    noRequests: "No data requests.",
-    overdue: "Overdue",
-    received: "Received {date}",
-    due: "Due {date}",
-    moveTo: "{state}",
-    moveTitle: "Move this request to {state}?",
-    moveBody: "Say why. The reason is kept with the request's history.",
-    moveConfirm: "Move request",
-    states: {
-      Received: "Received",
-      Verifying: "Verifying identity",
-      InProgress: "In progress",
-      Extended: "Extended",
-      Completed: "Completed",
-      Refused: "Refused",
-      Withdrawn: "Withdrawn",
-    },
-    types: {
-      Access: "Access to data",
-      Rectification: "Correction",
-      Erasure: "Erasure",
-      Restriction: "Restriction of use",
-      Portability: "Portability",
-      Objection: "Objection",
-      OptOutofSale: "Opt out of sale",
-    },
-    holdsTitle: "Legal holds",
-    holdsDescription:
-      "A hold keeps data from being purged or deleted while a matter is open. It is never edited, only released.",
-    holdsHidden: "Only people who manage legal holds see them.",
-    noHolds: "No legal holds.",
-    inForce: "In force",
-    released: "Released",
-    allTables: "All of the organization's data",
-    placed: "Placed {date}",
-    releasedOn: "Released {date}",
-    release: "Release",
-    releaseTitle: "Release the hold for {matter}?",
-    releaseBody:
-      "Normal retention applies again from now. A released hold cannot be placed again; place a new one if needed.",
-    placeHold: "Place a legal hold",
-    placeSubmit: "Place hold",
-    matter: "Matter",
-    matterHelp: "The case or request the hold is for.",
-    table: "Data held",
-    exportsTitle: "Exports",
-    exportsDescription:
-      "The full organization archive and exports of views. A Restricted column needs a second factor to export.",
-    noExports: "No exports yet.",
-    archive: "Full organization archive",
-    archiveSize: "{tables} tables, {rows} rows",
-    toArchive: "Download the full archive from the Danger Zone",
-    classificationTitle: "Data classification",
-    classificationDescription:
-      "Every column is classified. The class decides who may read and export it.",
-    classCounts:
-      "{public} Public, {internal} Internal, {confidential} Confidential and {restricted} Restricted columns.",
-    restrictedColumns: "Restricted columns",
-    readBy: "Read with {capability}",
-    classes: {
-      Public: "Public",
-      Internal: "Internal",
-      Confidential: "Confidential",
-      Restricted: "Restricted",
-    },
-    retentionTitle: "Retention",
-    retentionDescription:
-      "How long the platform keeps each kind of data before it is purged, unless a legal hold keeps it.",
-    keptFor: "Kept {period}",
-    retentionMore:
-      "{count} tables have a retention period; these are the ones people ask about most.",
-    toMessageRetention: "Message retention is set in Communication",
-  },
-  audit: {
-    title: "Latest audit events",
-    description: "Every sensitive change is recorded with who made it and from where.",
-    hidden: "Only people who can read the audit log see its events.",
-    none: "No audit events yet.",
-    redacted: "Personal data redacted",
-    retention: "Audit events are kept for seven years.",
-    open: "Open the full audit log",
-    actors: {
-      Person: "A person",
-      Service: "A service",
-      System: "The system",
-    },
-  },
-  connectedApps: {
-    title: "Connected apps",
-    description:
-      "Apps you allowed to act for you. Each can do only what you can, in the areas you approved.",
-    none: "You have not connected any apps.",
-    registeredBy: "Registered by {org}",
-    granted: "Allowed {date}",
-    revokeConfirm: {
-      title: "Disconnect {app}?",
-      body: "The app can no longer act for you. Connect it again to give it access.",
-      confirm: "Disconnect",
-    },
-    toIntegrations: "Your organization's integrations",
-  },
-  payout: {
-    title: "Payout details",
-    description:
-      "Where each organization pays you. Details are entered with that organization's payment provider; only the last four digits show here.",
-    none: "No payout details on file.",
-    last4: "Ending in {last4}",
-    providers: {
-      StripeConnect: "Stripe Connect",
-      AccountingSystem: "The organization's accounting system",
-    },
-  },
-  tax: {
-    title: "Tax forms",
-    description:
-      "Forms you signed for organizations that pay you. They are signed during onboarding for an engagement.",
-    none: "No tax forms signed.",
-    signed: "Signed {date}",
-  },
-  workspace: {
-    open: "Open the {name} settings page",
-    members: "Members",
-    noMembers: "Nobody is assigned to this workspace yet.",
-    back: "All workspaces",
-  },
-  team: {
-    members: "Members",
-    noMembers: "Nobody is on this team yet.",
-    settings: "Team settings",
-    settingsNone:
-      "No setting is set per team yet: a team follows its workspace and the organization. Team audiences in feeds, schedules and notifications use this team's members.",
-    back: "All teams",
-  },
-  errors: {
-    refused: "This change is not allowed.",
-    denied: "You cannot do this here.",
-    conflict: "That name or key is already in use.",
-    invalid: "Something entered is not valid. Check the fields and try again.",
-    unexpected: "That did not save. Try again in a moment.",
-    fields: "Check the highlighted fields.",
-    plan_feature_required: "Your plan does not include this. See Billing and Plan.",
-    api_key_scope_unknown: "One of the areas is not a capability group.",
-    api_key_expiry_invalid: "Choose an expiry within one year.",
-    api_key_revoked: "This key is already revoked.",
-    api_key_service_account_invalid: "Choose a service account of this organization.",
-    service_account_role_unknown:
-      "Choose a role you hold every capability of; never the Owner role.",
-    service_account_owner_role: "A service account cannot take the Owner role.",
-    service_account_name_invalid: "Name the service account in 1 to 200 characters.",
-    service_account_expiry_invalid: "Choose an expiry in the future.",
-    grant_exceeds_holder: "You can only give a role whose every capability you hold.",
-    role_band: "You cannot give a role above your own.",
-    personal_tokens_off: "Your organization does not allow personal API tokens.",
-    personal_token_name: "Name the token in 1 to 200 characters.",
-    personal_token_scopes: "Choose at least one area the token may use.",
-    personal_token_scope_not_held: "A token can only use areas you hold a capability in.",
-    personal_token_expiry: "Choose an expiry within one year.",
-    personal_token_limit: "You already have 10 active tokens here. Revoke one first.",
-    personal_token_revoked: "This token is already revoked.",
-    step_up_required: "Confirm it is you with your second factor, then try again.",
-    webhook_events_required: "Choose at least one event.",
-    webhook_private_host: "Use a public HTTPS address; private and internal hosts are refused.",
-    webhook_delivery_not_in_flight: "This delivery cannot be sent again now.",
-    sod_self_grant: "You cannot set a limit that applies to yourself. Ask another Owner or Admin.",
-    custom_field_type_immutable: "A field's type never changes. Add a new field instead.",
-    custom_field_key_immutable: "A field's key never changes. Add a new field instead.",
-    plan_limit_exceeded: "Your plan's limit is reached. See Billing and Plan.",
-    dsar_transition_not_allowed: "A request cannot move to that state from where it is.",
-    dsar_state_conflict: "Someone moved this request first. Reload to see where it is.",
-    transition_reason_required: "Say why.",
-    legal_hold_table_unknown: "Choose data that has a retention period.",
-    legal_hold_released: "This hold is already released.",
-    legal_hold_immutable: "A hold is never edited, only released.",
-    department_unknown: "One of the departments is not in the canon.",
-    discipline_unknown: "One of the disciplines is not in the canon.",
-    discipline_department_not_in_use: "Choose a discipline's department too.",
-    jurisdiction_unknown: "Choose a jurisdiction from the canon.",
-    time_zone_unknown: "Choose a time zone from the list.",
-  },
-  fieldErrors: {
-    name: "Enter a name of up to 200 characters.",
-    roleId: "Choose a role.",
-    expiresIn: "Choose when it expires.",
-    serviceAccountId: "Choose a service account.",
-    scopes: "Choose at least one area.",
-    url: "Enter a public address that starts with https://.",
-    description: "Use up to 300 characters.",
-    events: "Choose at least one event.",
-    holder: "Choose who the limit is for.",
-    documentType: "Choose a document type.",
-    currency: "Choose a currency.",
-    limit: "Enter an amount, for example 2500 or 2500.00.",
-    dualAbove: "Enter an amount, or leave it blank.",
-    target: "Choose the records the field goes on.",
-    label: "Enter a label of up to 100 characters.",
-    key: "Use lowercase letters, digits and underscores, starting with a letter.",
-    dataType: "Choose a type.",
-    fieldId: "Choose a field.",
-    next: "Choose where the request goes next.",
-    reason: "Say why, in up to 500 characters.",
-    matter: "Name the matter in up to 300 characters.",
-    table: "Choose data from the list.",
-  },
-  gateway: {
-    disconnect: "Disconnect",
-    noTokens: "You have no personal API tokens.",
-    tokensOff: "None of your organizations allows personal API tokens.",
-    tokenFor: "New token for {org}",
-    regions: "Service regions",
-    regionsHelp:
-      "Where your company works, as canon jurisdictions. Organizations filter by them when they look for vendors.",
-    noRegions: "No service regions yet.",
-    addRegion: "Add region",
-    jurisdiction: "Jurisdiction",
-    capabilities: "Capabilities",
-    capabilitiesHelp:
-      "What your company offers, as canon categories. They show on your public company profile.",
-    noCapabilities: "No capabilities yet.",
-    addCapability: "Add capability",
-    category: "Category",
-    added: "Added.",
-    defaultsHelp:
-      "What your team members receive from the organizations they work with until they choose for themselves.",
-    saveDefaults: "Save defaults",
-    defaultsSaved: "Defaults saved.",
-    defaultsOwn: "Each person's own choice in Settings, Notifications always wins.",
-    defaultsReadOnly:
-      "An Account Owner or Admin sets these. Your own choice in Settings, Notifications always wins.",
-    owners: "Account Owners",
-    makeOwner: "Make an Account Owner",
-    madeOwner: "They are now an Account Owner.",
-    member: "Team member",
-    makeOwnerHelp: "To hand ownership over, make someone an Account Owner, then step down.",
-    stepDown: "Step down as Account Owner",
-    lastOwner:
-      "You are the only Account Owner. Make someone else an Account Owner before you step down or leave.",
-    leaveTitle: "Leave the company account",
-    leaveBody:
-      "You lose access to the company's engagements, documents and payouts at once. Your own profile stays.",
-    leave: "Leave {name}",
-    closeTitle: "Close the company account",
-  },
-};
 var shell_default$1 = {
   atlas: {
     name: "Atlas",
@@ -15243,6 +15169,7 @@ var shell_default$1 = {
       orgName: "Organization name",
       orgSlug: "Web address",
       orgSlugHelp: "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
+      age: "I am 16 or older.",
     },
     or: "or",
     signIn: {
@@ -15341,6 +15268,7 @@ var shell_default$1 = {
       accept: "Accept the Terms of Service and the Data Processing Agreement to continue.",
       slug_taken: "That web address is already in use. Choose another.",
       slug_reserved: "That web address is reserved by Atlas. Choose another.",
+      age: "Confirm that you are 16 or older. XOS accounts are for people 16 and over.",
     },
     networkRestricted: {
       title: "Your network is not allowed",
@@ -22044,6 +21972,377 @@ var compass_default = {
     },
   },
 };
+var compliance_default = {
+  classification: {
+    label: "Clasificación",
+    help: "Decide quién puede descargar el archivo, si se puede compartir por enlace y si las copias llevan el correo de quien lo ve.",
+    levels: {
+      Public: "Público",
+      Internal: "Interno",
+      Confidential: "Confidencial",
+      Restricted: "Restringido",
+    },
+    save: "Guardar clasificación",
+    saved: "Clasificación guardada.",
+    rules: {
+      Public: "Cualquiera puede recibir un enlace, con o sin vencimiento.",
+      Internal: "Los enlaces necesitan una fecha de vencimiento dentro de 90 días.",
+      Confidential:
+        "Los enlaces necesitan un vencimiento dentro de 30 días, un código de acceso y el correo del destinatario. Las descargas llevan el correo de quien lo ve y la hora.",
+      Restricted:
+        "Nunca se comparte por enlace. Las descargas necesitan la capacidad de exportación restringida y un segundo factor de inicio de sesión.",
+    },
+  },
+  share: {
+    toggle: "Compartir",
+    hide: "Ocultar uso compartido",
+    title: "Compartir {name}",
+    loading: "Cargando enlaces…",
+    links: "Enlaces",
+    noLinks: "Todavía no hay enlaces.",
+    create: {
+      heading: "Nuevo enlace",
+      expiresOn: "Vence el",
+      expiresHelp:
+        "El enlace deja de abrirse al final de este día. Hasta {days} días a partir de hoy.",
+      noExpiry: "Déjalo vacío para un enlace que nunca vence.",
+      accessCode: "Pedir un código de acceso de 6 dígitos",
+      accessCodeForced: "Los archivos confidenciales siempre piden un código de acceso.",
+      recipient: "Correo del destinatario",
+      recipientHelp: "Su correo se imprime en cada página que descargue.",
+      note: "¿Para qué es?",
+      submit: "Crear enlace",
+      restricted: "Los archivos restringidos nunca se comparten por enlace.",
+    },
+    created: {
+      heading: "Enlace creado",
+      copyOnce: "Copia el enlace y el código ahora. Solo se muestran una vez.",
+      link: "Enlace",
+      code: "Código de acceso",
+      codeHelp: "Envía el código por separado del enlace.",
+      copy: "Copiar",
+      copied: "Copiado",
+    },
+    row: {
+      expires: "Vence el {date}",
+      never: "Nunca vence",
+      opened:
+        "{count, plural, =0 {Aún no se ha abierto} one {Abierto una vez} other {Abierto # veces}}",
+      codeRequired: "Código de acceso",
+      for: "Para {email}",
+      revoked: "Revocado",
+      locked: "Bloqueado tras 5 códigos incorrectos",
+      expired: "Vencido",
+      revoke: "Revocar",
+      made: "Creado el {date}",
+    },
+    errors: {
+      share_link_restricted: "Los archivos restringidos nunca se comparten por enlace.",
+      share_link_confidential:
+        "Compartir un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
+      share_link_recipient: "Escribe el correo del destinatario. La marca de agua lo lleva.",
+      share_link_recipient_format: "Escribe un correo válido.",
+      share_link_watermark_unsupported:
+        "Este archivo confidencial no puede llevar la marca de agua, así que no se puede compartir por enlace. Solo pueden las imágenes PNG y JPEG.",
+      share_link_expiry: "Elige una fecha de vencimiento.",
+      share_link_expiry_range: "Elige una fecha posterior a hoy y dentro del límite.",
+      share_link_file: "Espera a que el análisis del archivo termine sin problemas.",
+      attachment_classification_lower:
+        "Solo quien agregó el archivo, o alguien que pueda fijar clasificaciones, puede bajarla.",
+      org_read_only: "Esta organización es de solo lectura.",
+      notFound: "Este archivo ya no está disponible.",
+      unexpected: "Algo salió mal. Inténtalo de nuevo.",
+    },
+  },
+  open: {
+    title: "Archivo compartido",
+    intro: "Alguien compartió un archivo contigo. Ábrelo abajo.",
+    accessCode: "Código de acceso",
+    accessCodeHelp: "Escribe el código de 6 dígitos si lo recibiste con el enlace.",
+    submit: "Abrir archivo",
+    watermark:
+      "Las imágenes confidenciales se descargan como un PDF que muestra tu correo y la hora.",
+    refusals: {
+      share_link_invalid:
+        "Este enlace no funciona. Puede que lo hayan revocado o que esté mal escrito.",
+      share_link_locked:
+        "Este enlace está bloqueado tras demasiados códigos incorrectos. Pide uno nuevo a quien lo envió.",
+      share_link_expired: "Este enlace venció. Pide uno nuevo a quien lo envió.",
+      share_link_reclassified:
+        "Este archivo ya no se puede compartir así. Consulta a quien lo envió.",
+      share_link_access_code_required: "Escribe el código de acceso que llegó con el enlace.",
+      share_link_access_code:
+        "Ese código no es correcto. Tras 5 códigos incorrectos el enlace se bloquea.",
+      share_link_rate_limited:
+        "Demasiados intentos desde tu red. Espera 10 minutos e inténtalo de nuevo.",
+    },
+  },
+  download: {
+    download_confidential:
+      "Descargar un archivo confidencial necesita la capacidad de exportación de datos confidenciales.",
+    download_restricted:
+      "Descargar un archivo restringido necesita la capacidad de exportación restringida.",
+    step_up_required:
+      "Descargar un archivo restringido necesita un segundo factor de inicio de sesión. Vuelve a iniciar sesión con tu segundo factor e inténtalo de nuevo.",
+    notFound: "Este archivo no está disponible.",
+  },
+  cookies: {
+    title: "Cookies",
+    body: "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma, tema y último espacio de trabajo durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    policy: "Política de cookies",
+    settingsLink: "Configuración de cookies",
+    acceptAll: "Aceptar todas",
+    rejectAll: "Rechazar todas",
+    choose: "Elegir cookies",
+    necessary:
+      "Estrictamente necesarias: inicio de sesión, seguridad y esta elección. Siempre activas.",
+    preferences:
+      "Preferencias: recordar tu idioma, tema, espacio de trabajo y última organización durante 12 meses.",
+    performance:
+      "Rendimiento: tiempos de página e informes de errores. Hoy no usamos cookies de rendimiento; tu elección se aplica si alguna vez agregamos una.",
+    save: "Guardar elección",
+    settingsTitle: "Configuración de cookies",
+    settingsLead:
+      "Elige qué cookies puede usar Atlas en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    gpc: "Tu navegador envía Global Privacy Control. Lo tratamos como un rechazo de toda cookie que no sea estrictamente necesaria, así que las opciones de abajo quedan desactivadas mientras esté activo.",
+    categories: "Categorías",
+    current: {
+      none: "Todavía no has elegido.",
+      choice: "Tu elección: Preferencias {preferences}, Rendimiento {performance}.",
+      on: "activadas",
+      off: "desactivadas",
+    },
+    table: {
+      caption: "Cookies que usa Atlas",
+      name: "Nombre",
+      category: "Categoría",
+      purpose: "Para qué sirve",
+      categories: {
+        necessary: "Estrictamente necesaria",
+        preferences: "Preferencias",
+      },
+      purposes: {
+        session: "Mantiene tu sesión iniciada durante el tiempo que fija tu organización.",
+        consent: "Recuerda esta elección durante 12 meses.",
+        viewAs:
+          "Mantiene una vista previa Ver como que inició un administrador, hasta por una hora.",
+        locale: "Recuerda el idioma que elegiste.",
+        theme: "Recuerda el tema claro u oscuro que elegiste.",
+        workspace: "Recuerda el filtro de espacio de trabajo que elegiste.",
+        lastOrg: "Abre la organización que usaste por última vez.",
+        acting: "Recuerda la cuenta por la que actúa este navegador.",
+      },
+    },
+    gatewayBody:
+      "Usamos cookies para mantener tu sesión iniciada y recordar esta elección. Con tu permiso también recordamos tu idioma y tema durante 12 meses en lugar de solo esta visita. No usamos cookies de publicidad ni de seguimiento.",
+    gatewayPreferences: "Preferencias: recordar tu idioma y tema durante 12 meses.",
+    gatewaySettingsLead:
+      "Elige qué cookies puede usar Gateway en este navegador. Tu elección también se guarda en nuestros servidores como registro.",
+    gatewayTableCaption: "Cookies que usa Gateway",
+  },
+  subprocessors: {
+    title: "Avisos de cambios",
+    lead: "Recibe un correo al menos 30 días antes de que agreguemos o reemplacemos un subencargado.",
+    email: "Correo electrónico",
+    emailHelp: "Enviamos un correo para confirmar. No se envía nada más hasta que confirmes.",
+    subscribe: "Suscribirse",
+    members:
+      "Los Propietarios y Administradores de una organización cliente reciben estos avisos sin suscribirse y pueden desactivarlos en Configuración, Notificaciones.",
+    confirmTitle: "Confirma tu suscripción",
+    confirmLead:
+      "Confirma que quieres recibir avisos de cambios en la Lista de subencargados en esta dirección.",
+    confirm: "Confirmar suscripción",
+    unsubscribeTitle: "Cancelar los avisos de cambios",
+    unsubscribeLead:
+      "Deja de recibir avisos de cambios en la Lista de subencargados en esta dirección.",
+    unsubscribe: "Cancelar suscripción",
+    notices: {
+      subscribed:
+        "Revisa tu correo y confirma en un plazo de 7 días para empezar a recibir avisos.",
+      invalid: "Escribe una dirección de correo, como nombre@ejemplo.com.",
+      failed: "No pudimos registrar tu suscripción. Inténtalo de nuevo en unos minutos.",
+      confirmed: "Ya estás suscrito. Te escribiremos al menos 30 días antes de un cambio.",
+      "confirm-failed":
+        "Este enlace venció o ya se usó. Suscríbete de nuevo para recibir uno nuevo.",
+      unsubscribed: "Cancelaste la suscripción. No recibirás más avisos de cambios.",
+      "unsubscribe-failed":
+        "Este enlace no es válido. Usa el enlace para cancelar del aviso más reciente.",
+    },
+    settings: {
+      title: "Cambios en la Lista de subencargados",
+      lead: "Como Propietario o Administrador, recibes un correo al menos 30 días antes de que agreguemos o reemplacemos un subencargado.",
+      label: "Enviarme un correo sobre cambios en la Lista de subencargados",
+      save: "Guardar",
+    },
+  },
+  reacceptance: {
+    banner: {
+      upcoming:
+        "{title}: una nueva versión entra en vigor el {date}. Acéptala para {org} antes de esa fecha.",
+      required: "{title}: una nueva versión entró en vigor el {date}. Acéptala para {org}.",
+      review: "Revisa y acepta en Configuración, Legal",
+    },
+    personal: {
+      upcoming: "{title}: una nueva versión entra en vigor el {date}",
+      required: "{title}: una nueva versión entró en vigor el {date}",
+    },
+    settings: {
+      title: "Cambios por aceptar",
+      lead: "Cambiamos estos documentos. Lee qué cambia y acepta la nueva versión para {org}.",
+      item: "{title} {version}",
+      takesEffect: "Entra en vigor el {date}. Anunciado el {noticed}.",
+      inEffect: "En vigor desde el {date}. Anunciado el {noticed}.",
+      accept: "Aceptar {title} {version}",
+      read: "Leer la nueva versión",
+    },
+  },
+  osha: {
+    title: "Registros de OSHA",
+    lead: "Cada establecimiento lleva un registro del Formulario 300 y publica un resumen del Formulario 300A del 1 de febrero al 30 de abril. Los casos se registran desde el incidente del que vienen.",
+    none: "Todavía no hay establecimientos. Agrega el lugar al que se reportan tus equipos.",
+    year: "{year}",
+    log: "Registro del Formulario 300, {year}",
+    summary: "Resumen del Formulario 300A, {year}",
+    pdf: "PDF",
+    csv: "CSV",
+    summaryForm: "Datos de empleo y certificación, {year}",
+    estimate:
+      "Según los registros de tiempo y la nómina: {hours} horas trabajadas y {employees} empleados en promedio. Usa estos datos o los de tus propios registros.",
+    employees: "Número promedio anual de empleados",
+    hours: "Total de horas trabajadas por todos los empleados",
+    executiveTitle: "Cargo del ejecutivo de la empresa",
+    phone: "Teléfono",
+    certify:
+      "Certifico que examiné este resumen y que, a mi leal saber y entender, los datos son verdaderos, exactos y completos. Soy ejecutivo de la empresa.",
+    saveSummary: "Guardar resumen",
+    summarySaved: "Resumen de {year} guardado.",
+    certifiedBy: "Certificado por {name} el {date}.",
+    add: "Agregar un establecimiento",
+    addSubmit: "Agregar establecimiento",
+    added: "{name} agregado.",
+    cases: "Casos registrables de OSHA",
+    noCases: "Ningún caso registrable de este incidente.",
+    caseLine: "Caso {number} ({year}): {name}, {outcome}",
+    privacyCase: "Caso de privacidad",
+    form301: "Formulario 301",
+    needsEstablishment: "Registra un caso cuando la organización tenga un establecimiento de OSHA.",
+    addEstablishment: "Agrega uno en Configuración, Ubicaciones y lugares",
+    record: "Registrar un caso de OSHA",
+    recordSubmit: "Registrar caso",
+    recorded: "Caso registrado.",
+    form301Details: "Detalles del Formulario 301",
+    outcomes: {
+      Death: "Muerte",
+      "Days away from work": "Días de ausencia del trabajo",
+      "Job transfer or restriction": "Traslado o restricción laboral",
+      "Other recordable case": "Otro caso registrable",
+    },
+    types: {
+      Injury: "Lesión",
+      "Skin disorder": "Trastorno de la piel",
+      "Respiratory condition": "Afección respiratoria",
+      Poisoning: "Envenenamiento",
+      "Hearing loss": "Pérdida auditiva",
+      "All other illnesses": "Todas las demás enfermedades",
+    },
+    fields: {
+      name: "Nombre del establecimiento",
+      street: "Calle",
+      city: "Ciudad",
+      state: "Estado",
+      stateHelp: "Dos letras, como FL.",
+      zip: "Código postal",
+      naics: "Código NAICS, si lo conoces",
+      industry: "Descripción de la industria",
+      establishment: "Establecimiento",
+      person: "Empleado",
+      notMember: "No es miembro de la organización",
+      employeeName: "Nombre completo del empleado",
+      employeeNameHelp: "Solo si el empleado no es miembro de la organización.",
+      privacy:
+        'Caso de privacidad: imprimir "caso de privacidad" en lugar del nombre en el registro',
+      jobTitle: "Puesto",
+      injuryDate: "Fecha de la lesión o del inicio de la enfermedad",
+      eventLocation: "Dónde ocurrió el evento",
+      description:
+        "Lesión o enfermedad, partes del cuerpo afectadas y el objeto o sustancia que la causó",
+      outcome: "Resultado más grave",
+      daysAway: "Días de ausencia del trabajo",
+      daysRestricted: "Días de traslado o restricción laboral",
+      daysHelp: "Deja de contar al llegar a 180 días en total.",
+      caseType: "Tipo de lesión o enfermedad",
+      employeeStreet: "Calle del empleado",
+      employeeCity: "Ciudad del empleado",
+      employeeState: "Estado del empleado",
+      employeeZip: "Código postal del empleado",
+      dateOfBirth: "Fecha de nacimiento",
+      dateHired: "Fecha de contratación",
+      sex: "Masculino o femenino, como pide el Formulario 301",
+      male: "Masculino",
+      female: "Femenino",
+      unanswered: "Sin respuesta",
+      professional: "Médico u otro profesional de la salud",
+      facility: "Centro donde se dio el tratamiento fuera del lugar de trabajo",
+      facilityStreet: "Calle del centro",
+      facilityCity: "Ciudad del centro",
+      facilityState: "Estado del centro",
+      facilityZip: "Código postal del centro",
+      emergencyRoom: "Atendido en una sala de emergencias",
+      hospitalized: "Hospitalizado durante la noche como paciente internado",
+      yes: "Sí",
+      no: "No",
+      workBegan: "Hora en que el empleado empezó a trabajar",
+      eventTime: "Hora del evento",
+      timeUnknown: "No se puede determinar la hora del evento",
+      activityBefore: "Qué hacía el empleado justo antes del incidente",
+      whatHappened: "Qué pasó",
+      injuryDetail: "La lesión o enfermedad: parte del cuerpo y cómo se afectó",
+      harmfulObject: "Objeto o sustancia que dañó directamente al empleado",
+      noPii: "Sin nombres, números de teléfono ni otros datos que identifiquen a alguien.",
+      diedOn: "Fecha de muerte, si el empleado murió",
+      completedTitle: "Tu cargo",
+      completedPhone: "Tu teléfono",
+    },
+  },
+  wh347: {
+    title: "Nómina certificada (WH-347)",
+    lead: "Para proyectos bajo la Ley Davis-Bacon y leyes relacionadas: ingresa una vez los datos del contrato del proyecto y emite cada semana la nómina certificada a partir del tiempo aprobado.",
+    none: "Ningún proyecto tiene todavía datos del WH-347.",
+    headerLine: "Contrato {contract}, determinación salarial {wd}",
+    weekEnding: "Fecha de fin de semana",
+    final: "Nómina certificada final de este proyecto",
+    pdf: "Emitir en PDF",
+    csv: "Emitir en CSV",
+    stepUp:
+      "Las nóminas certificadas contienen tarifas de pago restringidas: emitir una requiere la capacidad de exportación restringida y un inicio de sesión reciente en dos pasos. Las deducciones y el pago neto vienen de tu proveedor de nómina.",
+    headerForm: "Ingresar o cambiar los datos del WH-347 de un proyecto",
+    saveHeader: "Guardar datos",
+    saved: "Datos guardados.",
+    refused: "Esta nómina certificada no se emitió.",
+    refusals: {
+      step_up_required:
+        "Vuelve a iniciar sesión con tu segundo paso y emite la nómina certificada.",
+      export_restricted:
+        "Emitir una nómina certificada requiere la capacidad de exportación restringida. Pídela a un Propietario.",
+      certified_payroll_header_missing:
+        "Primero ingresa los números de contrato y de determinación salarial del proyecto.",
+    },
+    fields: {
+      project: "Proyecto",
+      contractNumber: "Número de proyecto o de contrato",
+      wageDeterminations: "Números de determinación salarial",
+      wageDeterminationsHelp:
+        "Todos los números de determinación salarial y de revisión que apliquen, como FL20270001 Mod 2.",
+      contractorRole: "Contratista principal o subcontratista",
+      prime: "Contratista principal",
+      sub: "Subcontratista",
+      businessName: "Nombre legal de la empresa",
+      businessAddress: "Dirección de la empresa",
+      projectLocation: "Ubicación del proyecto",
+      projectLocationHelp: "La dirección completa o, al menos, el condado y el estado.",
+    },
+  },
+};
 var credentials_default = {
   categories: {
     active: "Credenciales vigentes",
@@ -23112,6 +23411,7 @@ var documents_default = {
     qrAlt: "Código QR que abre el registro {key} para quien tenga acceso",
     logoAlt: "Logotipo de {name}",
     page: "Página {page} de {total}",
+    watermark: "Descargado por {email} el {time}",
   },
   common: {
     amount: "Importe",
@@ -23372,6 +23672,195 @@ var documents_default = {
       "Las copias de seguridad cifradas hechas antes de la eliminación caducan según su propio calendario. Solo se conservan para recuperación ante desastres y no se usan para restaurar una organización eliminada.",
     keep: "Conserve este certificado en sus archivos. Su id es {id}.",
   },
+  sharedImage: {
+    title: "Archivo compartido {name}",
+    file: "Archivo",
+    qrAlt: "Código QR que vuelve a abrir el enlace compartido",
+    alt: "{name}, compartido por {org}",
+  },
+  compliance: {
+    form: "Formulario",
+    qrAlt: "Código QR que abre {form} en XOS",
+  },
+  osha: {
+    year: "Año",
+    establishment: {
+      caption: "Información del establecimiento",
+      name: "Nombre del establecimiento",
+      street: "Calle",
+      city: "Ciudad",
+      state: "Estado",
+      zip: "Código postal",
+      industry: "Descripción de la industria",
+      naics: "Clasificación Industrial de América del Norte (NAICS)",
+    },
+    log: {
+      title:
+        "Formulario 300 de OSHA: Registro de lesiones y enfermedades relacionadas con el trabajo, {name}, {year}",
+      key: "OSHA 300 {year}",
+      caption: "Registro de lesiones y enfermedades relacionadas con el trabajo, {year}",
+      attention:
+        "Atención: este formulario contiene información sobre la salud de los empleados y debe usarse de manera que proteja su confidencialidad en la mayor medida posible mientras se usa con fines de seguridad y salud ocupacional.",
+      privacyCase: "caso de privacidad",
+      pageTotals: "Totales de la página",
+      empty: "No hay casos registrables en este registro para el año.",
+      transfer:
+        "Asegúrate de pasar estos totales a la página de Resumen (Formulario 300A) antes de publicarla.",
+      columns: {
+        0: "(A) N.º de caso",
+        1: "(B) Nombre del empleado",
+        2: "(C) Puesto",
+        3: "(D) Fecha de la lesión o del inicio de la enfermedad",
+        4: "(E) Dónde ocurrió el evento",
+        5: "(F) Lesión o enfermedad, partes del cuerpo afectadas y objeto o sustancia",
+        6: "(G) Muerte",
+        7: "(H) Días de ausencia del trabajo",
+        8: "(I) Traslado o restricción laboral",
+        9: "(J) Otros casos registrables",
+        10: "(K) Días de ausencia",
+        11: "(L) Días de traslado o restricción",
+        12: "(M1) Lesión",
+        13: "(M2) Trastorno de la piel",
+        14: "(M3) Afección respiratoria",
+        15: "(M4) Envenenamiento",
+        16: "(M5) Pérdida auditiva",
+        17: "(M6) Todas las demás enfermedades",
+      },
+    },
+    summary: {
+      title: "Cargo",
+      key: "OSHA 300A {year}",
+      intro:
+        "Todos los establecimientos cubiertos por la Parte 1904 deben completar esta página de Resumen, aunque no haya habido lesiones ni enfermedades relacionadas con el trabajo durante el año. Los empleados, los exempleados y sus representantes tienen derecho a revisar el Formulario 300 de OSHA completo y un acceso limitado al Formulario 301 o su equivalente (29 CFR 1904.35).",
+      cases: "Número de casos",
+      deaths: "(G) Número total de muertes",
+      daysAwayCases: "(H) Número total de casos con días de ausencia del trabajo",
+      restrictedCases: "(I) Número total de casos con traslado o restricción laboral",
+      otherCases: "(J) Número total de otros casos registrables",
+      days: "Número de días",
+      daysAway: "(K) Número total de días de ausencia del trabajo",
+      daysRestricted: "(L) Número total de días de traslado o restricción laboral",
+      types: "Tipos de lesiones y enfermedades",
+      injuries: "(M1) Lesiones",
+      skinDisorders: "(M2) Trastornos de la piel",
+      respiratory: "(M3) Afecciones respiratorias",
+      poisonings: "(M4) Envenenamientos",
+      hearingLoss: "(M5) Pérdida auditiva",
+      otherIllnesses: "(M6) Todas las demás enfermedades",
+      employment: "Información de empleo",
+      averageEmployees: "Número promedio anual de empleados",
+      hoursWorked: "Total de horas trabajadas por todos los empleados el año pasado",
+      certify:
+        "Falsificar este documento a sabiendas puede dar lugar a una multa. Certifico que examiné este documento y que, a mi leal saber y entender, los datos son verdaderos, exactos y completos.",
+      signHere: "Firma aquí",
+      executive: "Ejecutivo de la empresa",
+      phone: "Teléfono",
+      date: "Fecha",
+      post: "Publica esta página de Resumen del 1 de febrero al 30 de abril del año siguiente al que cubre el formulario.",
+    },
+    case: {
+      title301:
+        "Formulario 301 de OSHA: Informe de incidente de lesión o enfermedad, caso {number}, {name}",
+      key: "OSHA 301 {year}-{number}",
+      attention:
+        "Atención: este formulario contiene información sobre la salud de los empleados y debe usarse de manera que proteja su confidencialidad en la mayor medida posible mientras se usa con fines de seguridad y salud ocupacional.",
+      employee: "Información sobre el empleado",
+      physician: "Información sobre el médico u otro profesional de la salud",
+      case: "Información sobre el caso",
+      completed: "Completado por",
+      completedBy: "Completado por",
+      title: "Cargo",
+      phone: "Teléfono",
+      date: "Fecha",
+      yes: "Sí",
+      no: "No",
+      timeUnknown: "No se puede determinar la hora",
+      sex: {
+        Male: "Masculino",
+        Female: "Femenino",
+      },
+      items: {
+        1: "1) Nombre completo",
+        2: "2) Calle, ciudad, estado, código postal",
+        3: "3) Fecha de nacimiento",
+        4: "4) Fecha de contratación",
+        5: "5) Masculino o femenino",
+        6: "6) Nombre del médico u otro profesional de la salud",
+        7: "7) Si el tratamiento se dio fuera del lugar de trabajo, ¿dónde se dio?",
+        8: "8) ¿El empleado fue atendido en una sala de emergencias?",
+        9: "9) ¿El empleado fue hospitalizado durante la noche como paciente internado?",
+        10: "10) Número de caso del Registro",
+        11: "11) Fecha de la lesión o enfermedad",
+        12: "12) Hora en que el empleado empezó a trabajar",
+        13: "13) Hora del evento",
+        14: "14) ¿Qué hacía el empleado justo antes del incidente?",
+        15: "15) ¿Qué pasó?",
+        16: "16) ¿Cuál fue la lesión o enfermedad?",
+        17: "17) ¿Qué objeto o sustancia dañó directamente al empleado?",
+        18: "18) Si el empleado murió, ¿cuándo ocurrió la muerte?",
+      },
+    },
+  },
+  wh347: {
+    title: "WH-347 Nómina certificada N.º {number}, {project}",
+    key: "WH-347 N.º {number}, semana que termina el {week}",
+    header: "Nómina semanal certificada de la Ley Davis-Bacon y leyes relacionadas",
+    projectName: "Nombre del proyecto",
+    contractNumber: "N.º de proyecto o de contrato",
+    payrollNumber: "N.º de nómina certificada",
+    contractor: "Contratista principal o subcontratista",
+    businessName: "Nombre comercial del contratista principal o subcontratista",
+    businessAddress: "Dirección comercial del contratista principal o subcontratista",
+    projectLocation: "Ubicación del proyecto",
+    wageDeterminations: "N.º de determinación salarial",
+    weekEnding: "Fecha de fin de semana",
+    final: "Presentación del formulario final de nómina certificada DBRA",
+    yes: "Sí",
+    no: "No",
+    roles: {
+      "Prime contractor": "Contratista principal",
+      Subcontractor: "Subcontratista",
+    },
+    caption: "Trabajadores, horas y pago de la semana",
+    st: "TN",
+    ot: "HE",
+    columns: {
+      entry: "(1A) N.º de entrada del trabajador",
+      name: "(1B a 1D) Nombre del trabajador",
+      identifying: "(1E) N.º de identificación del trabajador",
+      apprentice: "(2) J o RA",
+      classification: "(3) Clasificación laboral",
+      type: "TN o HE",
+      total: "(5) Total de horas",
+      rate: "(6A) Tarifa por hora",
+      gross: "(7A) Monto bruto ganado",
+      grossAll: "(7B) Monto bruto ganado por todo el trabajo",
+    },
+    empty: "No se trabajaron horas en este proyecto durante la semana.",
+    provider:
+      "Las columnas 6B (crédito total por beneficios complementarios), 6C (pago en lugar de beneficios complementarios), 8 (deducciones) y 9 (pago neto) provienen del proveedor de nómina y XOS no las guarda. Complétalas con el registro de nómina del proveedor antes de certificar.",
+    statement: {
+      heading: "Declaración de cumplimiento",
+      official: "Funcionario que certifica",
+      name: "Nombre del funcionario que certifica",
+      date: "Fecha",
+      paid: "Pagué o supervisé el pago de los obreros o mecánicos que trabajaron en el proyecto indicado durante el período señalado. Certifico lo siguiente:",
+      correct:
+        "La información de nómina presentada con esta declaración es correcta y completa para el proyecto y el período indicados, y las tarifas de salario y beneficios complementarios pagadas a los trabajadores, incluido el crédito tomado por los costos razonablemente previstos de un plan, fondo o programa de beneficios complementarios de buena fe, no son menores que las tarifas aplicables a las clasificaciones del trabajo realizado, según las determinaciones salariales incorporadas al contrato.",
+      records:
+        "Todas las nóminas ordinarias y demás registros básicos que el contratista debe mantener para este período de nómina están completos y son exactos, y se pondrán a disposición de la agencia o del Departamento de Trabajo cuando los pidan.",
+      classifications:
+        "Las clasificaciones informadas para cada obrero o mecánico son las clasificaciones del trabajo que cada trabajador realizó.",
+      apprentices:
+        'Todo trabajador pagado como aprendiz durante el período indicado está debidamente inscrito en un programa de aprendizaje de buena fe registrado en la Oficina de Aprendizaje de la Administración de Empleo y Capacitación del Departamento de Trabajo de los Estados Unidos ("OA") o en una Agencia Estatal de Aprendizaje ("SAA") reconocida por el Departamento de Trabajo.',
+      fringe:
+        "Los beneficios complementarios se pagaron en efectivo o a planes, fondos o programas de beneficios complementarios de buena fe.",
+      wages:
+        "A todos los trabajadores del proyecto se les pagó el salario semanal completo ganado, y no se hicieron ni se harán reembolsos ni deducciones, directa o indirectamente, salvo las deducciones permitidas según 29 CFR parte 3.",
+      warning:
+        "La falsificación intencional de cualquiera de las declaraciones anteriores puede exponer al contratista o subcontratista a un proceso civil o penal (consulta la sección 1001 del título 18 y la sección 3729 del título 31 del Código de los Estados Unidos), así como a la inhabilitación para futuros contratos federales y con asistencia federal.",
+    },
+  },
 };
 var email_default = {
   common: {
@@ -23623,6 +24112,22 @@ var email_default = {
     subject: "Recibimos tu solicitud de {requestType}",
     heading: "Solicitud recibida",
     body: "{orgName} recibió tu solicitud de {requestType} el {receivedAt, date, long} y responderá a más tardar el {dueAt, date, long}.",
+  },
+  subprocessor_confirm: {
+    subject: "Confirma tu suscripción a los cambios de subencargados de XOS",
+    heading: "Confirma tu suscripción",
+    body: "Pediste recibir avisos de cambios en la Lista de subencargados de XOS. Confirma en un plazo de 7 días para empezar a recibirlos.",
+    ignore: "Si no lo pediste, ignora este correo y no se enviará nada.",
+    confirm: "Confirmar suscripción",
+  },
+  subprocessor_notice: {
+    subject: "La Lista de subencargados de XOS cambia el {effectiveOn, date, long}",
+    heading: "Lista de subencargados {listVersion}",
+    intro:
+      "Cambiaremos nuestra Lista de subencargados el {effectiveOn, date, long}, al menos 30 días después de este aviso.",
+    objection:
+      "Un cliente puede oponerse según la Sección 7.3 del Acuerdo de Tratamiento de Datos.",
+    review: "Leer la Lista de subencargados",
   },
   sms: {
     message: "{orgName}: {body} {url} Responde STOP para cancelar.",
@@ -24425,16 +24930,6 @@ var gateway_default = {
       slug_reserved: "Esa dirección web está reservada. Elige otra.",
       cross_org_reference:
         "Ese documento pertenece a otra organización. Vuelve a subirlo para esta.",
-      personal_tokens_off: "Esa organización ya no permite tokens personales de API.",
-      personal_token_scope_not_held:
-        "Un token solo puede usar áreas en las que tiene alguna capacidad. Desmarque las demás.",
-      personal_token_limit: "Ya tiene 10 tokens activos allí. Revoque uno primero.",
-      personal_token_expiry: "Elija un vencimiento dentro de un año.",
-      personal_token_revoked: "Este token ya está revocado.",
-      step_up_required: "Confirme su identidad con su segundo factor y vuelva a intentarlo.",
-      sole_account_owner:
-        "Una cuenta de empresa conserva al menos un Propietario. Nombre primero a otra persona Propietario.",
-      notification_channel_outside: "Una empresa solo configura Correo electrónico y Push.",
     },
   },
   common: {
@@ -25538,13 +26033,6 @@ var gateway_default = {
         unexpected: "Algo salió mal. Inténtelo de nuevo.",
       },
     },
-    surfaces: {
-      errors: {
-        jurisdiction: "Elija una jurisdicción de la lista.",
-        category: "Elija una categoría de la lista.",
-        member: "Elija un miembro del equipo.",
-      },
-    },
   },
   shell: {
     skip: "Saltar al contenido",
@@ -25609,6 +26097,7 @@ var gateway_default = {
       password: "Contraseña",
       passwordHelp:
         "Al menos 12 caracteres, con letras y números. Evita tu nombre, tu correo y los nombres de productos.",
+      age: "Tengo 16 años o más.",
     },
     or: "o",
     usePassword: "Usar contraseña",
@@ -25694,6 +26183,7 @@ var gateway_default = {
         "Elige una contraseña que no contenga tu nombre, tu correo ni un nombre de producto como Gateway.",
       terms:
         "Acepta los Términos para trabajadores para crear tu cuenta: marca la casilla sobre el botón.",
+      age: "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante.",
     },
   },
   work: {
@@ -27449,8 +27939,6 @@ var nav_default = {
       auditLog: "Registro de auditoría",
       legal: "Legal",
       dangerZone: "Zona de peligro",
-      workspace: "Espacio de trabajo",
-      team: "Equipo",
     },
     personal: {
       profile: "Perfil",
@@ -30171,7 +30659,7 @@ var platform_default = {
         ownership_accepted: "Propiedad aceptada",
         ownership_declined: "Propiedad rechazada",
         white_label_reverting: "La marca blanca termina pronto",
-        white_label_reverted: "Fin de la marca blanca",
+        white_label_reverted: "Marca blanca finalizada",
       },
       partner: { client_left: "Una organización cliente se fue" },
       recognition: { received: "Reconocimiento recibido" },
@@ -32273,7 +32761,7 @@ var settings_default = {
     },
     weekStart: {
       label: "La semana empieza el",
-      help: "El primer día de la semana en calendarios y hojas de horas.",
+      help: "El primer día de la semana en los calendarios. La elección de la organización también marca el inicio de sus periodos de pago, hojas de horas y semanas de horas extra.",
     },
     marketplaceVisibility: {
       label: "Visibilidad en el mercado",
@@ -32359,10 +32847,6 @@ var settings_default = {
     messageTranslation: {
       label: "Traducir mensajes del chat",
       help: "Los miembros pueden leer un mensaje del chat en su propio idioma. Los mensajes se envían a Google Cloud Translation, un subencargado, y cada traducción se guarda para la conversación. Desactivado de forma predeterminada.",
-    },
-    personalTokens: {
-      label: "Permitir tokens personales de API",
-      help: "Los miembros pueden crear sus propios tokens de API en Configuración personal, Desarrollador. Un token actúa como su miembro, limitado a las áreas que elija, y vence en menos de un año. Si lo desactiva, todos los tokens dejan de funcionar al instante.",
     },
   },
   choices: {
@@ -32556,36 +33040,13 @@ var settings_default = {
       "Los espacios de trabajo dividen la organización por oficina o grupo de recintos. Reemplaza aquí los ajustes de cada uno.",
     accessReviews:
       "Cada trimestre, los responsables confirman o quitan el rol de cada miembro. Define qué pasa con el acceso no revisado.",
-    calendarFeeds:
-      "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
-    apiKeysAndServiceAccounts:
-      "Permita que sus servidores llamen a la API de XOS mediante cuentas de servicio y sus claves, y decida si los miembros pueden crear tokens personales.",
-    webhooks:
-      "Envíe eventos firmados a sus otros sistemas en cuanto ocurren y vuelva a enviar una entrega cuando falle.",
-    spendAuthority: "Fije cuánto puede aprobar cada rol o persona, por tipo de documento y moneda.",
-    separationOfDuties:
-      "Las reglas que impiden que una misma persona realice las dos mitades de un acto sensible.",
-    customFields:
-      "Agregue los campos que necesitan sus registros a proyectos, recintos, proveedores y más.",
-    canonExtensions: "Disciplinas y categorías que su organización agrega al canon.",
-    dataAndPrivacy:
-      "Responda solicitudes de datos, aplique retenciones legales y consulte exportaciones, clasificación y retención.",
-    auditLog:
-      "Los últimos cambios auditados de acceso y configuración, y el acceso al registro completo.",
-    automations:
-      "Informes programados, trabajo recurrente, políticas de aprobación y webhooks: lo que funciona sin que nadie pulse un botón.",
-    connectedApps:
-      "Aplicaciones a las que permitió actuar en su nombre, y la forma de desconectarlas.",
-    developer: "Tokens personales de API para sus propios scripts en esta organización.",
-    payoutAndTax: "Dónde le pagan las organizaciones y los formularios fiscales que firmó.",
-    workspace:
-      "Lo que este espacio de trabajo configura distinto de la organización, y quién trabaja en él.",
-    team: "Quién forma parte de este equipo. Los equipos usan la configuración de su espacio de trabajo y de la organización.",
     partner:
       "Las organizaciones cliente de tu agencia socia, las condiciones mayoristas y el acceso a la Consola de socio.",
     usage:
       "Lo que la organización usa frente a su plan: asientos, miembros de campo, proyectos y contrataciones.",
     templates: "Plantillas que la organización reutiliza para proyectos, documentos y paquetes.",
+    calendarFeeds:
+      "Suscríbase a su horario, o a un proyecto en el que trabaja, desde cualquier aplicación de calendario.",
   },
   accessControls: {
     saved: "Guardado.",
@@ -32949,609 +33410,6 @@ var settings_default = {
   },
   notInEffect: "Se guarda, pero todavía no se aplica.",
 };
-var settingsSurfaces_default = {
-  active: "Activo",
-  revoked: "Revocado",
-  expired: "Vencido",
-  revoke: "Revocar",
-  remove: "Quitar",
-  cancel: "Cancelar",
-  choose: "Elija una opción",
-  someone: "Alguien",
-  scopesList: "Áreas: {scopes}",
-  lastUsed: "Último uso: {date}",
-  neverUsed: "Nunca se usó",
-  fields: {
-    name: "Nombre",
-    description: "Descripción",
-    scopes: "Áreas que puede usar",
-    expires: "Vence",
-    reason: "Motivo",
-  },
-  expiry: {
-    days: "En {count, plural, one {# día} other {# días}}",
-    never: "No vence",
-    until: "Vence el {date}",
-  },
-  plan: {
-    apiKeys: "Las claves de API y las cuentas de servicio requieren el plan Pro o superior.",
-    webhooks: "Los webhooks requieren el plan Pro o superior.",
-    billing: "Ver planes",
-  },
-  secret: {
-    copy: "Copiar",
-    copied: "Copiado",
-    key: {
-      title: "Copie esta clave ahora",
-      body: "Esta es la única vez que se muestra la clave. Guárdela en el almacén de secretos de su servidor; solo conservamos una huella de ella.",
-      field: "Clave de API",
-    },
-    token: {
-      title: "Copie este token ahora",
-      body: "Esta es la única vez que se muestra el token. Actúa en su nombre, limitado a las áreas que eligió. Manténgalo en privado.",
-      field: "Token personal de API",
-    },
-    webhook: {
-      title: "Copie el secreto de firma ahora",
-      body: "Úselo para comprobar el encabezado XOS-Signature de cada entrega. Esta es la única vez que se muestra.",
-      field: "Secreto de firma",
-    },
-  },
-  serviceAccounts: {
-    title: "Cuentas de servicio",
-    description:
-      "Una cuenta de servicio es un miembro para sus servidores. Las claves de API actúan como ella, con el rol que le asigne.",
-    none: "Todavía no hay cuentas de servicio.",
-    created: "Creada el {date}",
-    retire: "Retirar",
-    retireConfirm: {
-      title: "¿Retirar {name}?",
-      body: "Sus claves de API dejan de funcionar al instante y su membresía termina. No se puede deshacer.",
-      confirm: "Retirar cuenta",
-    },
-    add: "Agregar una cuenta de servicio",
-    addSubmit: "Agregar cuenta de servicio",
-    added: "Cuenta de servicio agregada.",
-    role: "Rol",
-    roleHelp:
-      "Elija un rol del que tenga todas las capacidades. Nunca se ofrece el rol de Propietario.",
-  },
-  apiKeys: {
-    title: "Claves de API",
-    description:
-      "Las claves permiten que sus servidores llamen a la API de XOS como una cuenta de servicio. Cada clave se limita a las áreas que elija y vence en menos de un año.",
-    none: "Todavía no hay claves de API.",
-    actsAs: "Actúa como {account}",
-    noAccount: "ninguna cuenta de servicio (no puede llamar a la API)",
-    retiredAccount: "una cuenta de servicio retirada",
-    revokeConfirm: {
-      title: "¿Revocar {name}?",
-      body: "Las solicitudes con esta clave fallarán a partir de ahora. Cree una clave nueva para reemplazarla.",
-      confirm: "Revocar clave",
-    },
-    add: "Crear una clave de API",
-    addSubmit: "Crear clave",
-    account: "Cuenta de servicio",
-    needsAccount: "Primero agregue una cuenta de servicio: cada clave actúa como una.",
-    scopesHelp:
-      "Las áreas son grupos de capacidades. La clave nunca puede hacer más de lo que permite el rol de su cuenta de servicio.",
-  },
-  tokens: {
-    title: "Tokens personales de API",
-    description:
-      "Un token permite que sus propios scripts llamen a la API de XOS en su nombre, en esta organización, limitado a las áreas que elija.",
-    none: "No tiene tokens aquí.",
-    off: "Su organización no permite tokens personales de API. Un administrador puede activarlos en Configuración, Claves de API y cuentas de servicio.",
-    add: "Crear un token",
-    addSubmit: "Crear token",
-    scopesHelp:
-      "Solo se ofrecen las áreas en las que tiene alguna capacidad. El token nunca puede hacer más que usted.",
-    revokeConfirm: {
-      title: "¿Revocar {name}?",
-      body: "Los scripts que usan este token dejan de funcionar al instante.",
-      confirm: "Revocar token",
-    },
-    orgTitle: "Tokens personales de los miembros",
-    orgOn: "Los miembros pueden crear tokens personales. Puede revocar cualquiera de ellos.",
-    orgOff:
-      "Los tokens personales están desactivados, así que ninguno funciona. Active Permitir tokens personales de API arriba para que los miembros puedan crearlos.",
-    orgNone: "Ningún miembro tiene un token personal.",
-    owner: "Pertenece a {name}",
-  },
-  webhooks: {
-    title: "Puntos de conexión de webhooks",
-    description:
-      "XOS envía un POST firmado a cada punto de conexión cuando ocurre un evento al que está suscrito, y reintenta durante hasta 72 horas.",
-    none: "Todavía no hay puntos de conexión.",
-    needsCapability: "Solo quienes administran webhooks ven los puntos de conexión.",
-    paused: "En pausa",
-    pause: "Pausar",
-    resume: "Reanudar",
-    events: "{count, plural, one {# evento} other {# eventos}}: {events}",
-    removeConfirm: {
-      title: "¿Quitar este punto de conexión?",
-      body: "{url} no recibirá más entregas. Su historial de entregas se conserva.",
-      confirm: "Quitar punto de conexión",
-    },
-    add: "Agregar un punto de conexión",
-    addSubmit: "Agregar punto de conexión",
-    url: "URL del punto de conexión",
-    urlHelp: "Una dirección HTTPS pública. Se rechazan los hosts privados e internos.",
-    eventTypes: "Eventos",
-  },
-  deliveries: {
-    title: "Entregas recientes",
-    description:
-      "Las últimas 20 entregas a sus puntos de conexión. Vuelva a enviar una para entregar el mismo evento como una entrega nueva.",
-    none: "Todavía no hay entregas.",
-    attempts: "{count, plural, one {# intento} other {# intentos}}",
-    response: "Respuesta {status}",
-    replay: "Reenviada",
-    send: "Enviar de nuevo",
-    status: {
-      Pending: "Pendiente",
-      Delivering: "Entregando",
-      Delivered: "Entregada",
-      Retrying: "Reintentando",
-      Expired: "Abandonada",
-    },
-  },
-  spend: {
-    title: "Límites de gasto",
-    description:
-      "Quién puede aprobar cuánto, por tipo de documento y moneda. Se rechazan las aprobaciones por encima de un límite, y los importes por encima de la línea de doble aprobación necesitan un segundo aprobador.",
-    none: "Todavía no hay límites, así que nadie puede aprobar documentos de gasto.",
-    roleHolder: "Todos con el rol {role}",
-    upTo: "Hasta {amount}",
-    dualAbove: "Dos aprobadores por encima de {amount}",
-    oneApprover: "Un aprobador",
-    narrowed: "Limitado a una cuenta o centro de costos",
-    selfGrant:
-      "Nadie puede fijar un límite que se aplique a sí mismo, así que el límite del rol de Propietario lo fija otro Propietario.",
-    removeConfirm: {
-      title: "¿Quitar este límite?",
-      body: "{holder} ya no podrá aprobar con él. Un límite quitado no se puede restaurar.",
-      confirm: "Quitar límite",
-    },
-    add: "Agregar un límite",
-    addSubmit: "Agregar límite",
-    added: "Límite agregado.",
-    holder: "Quién",
-    documentType: "Tipo de documento",
-    currency: "Moneda",
-    limit: "Límite",
-    dual: "Segundo aprobador por encima de",
-    dualHelp: "Déjelo en blanco para un solo aprobador en cualquier importe.",
-  },
-  documentTypes: {
-    PurchaseOrder: "Orden de compra",
-    ChangeOrder: "Orden de cambio",
-    Expense: "Gasto",
-    InvoiceApproval: "Aprobación de factura",
-    Contract: "Contrato",
-    PayrollRun: "Ejecución de nómina",
-    Requisition: "Solicitud de personal",
-  },
-  sod: {
-    title: "Reglas que cumple toda organización",
-    description:
-      "Separación de funciones: una misma persona nunca realiza las dos mitades de estos actos. La base de datos aplica cada regla, para toda organización.",
-    enforcedOn: "Se comprueba en {where}",
-    tighten:
-      "Ninguna regla se puede flexibilizar. Las políticas de aprobación agregan más aprobadores donde los necesite.",
-  },
-  customFields: {
-    title: "Campos personalizados",
-    description:
-      "Campos que su organización agrega a registros integrados, como proyectos y recintos. Los valores tienen tipo y se comprueban.",
-    none: "Todavía no hay campos personalizados.",
-    required: "Obligatorio",
-    filterable: "Filtrable",
-    noChoices: "Todavía no hay opciones",
-    choices: "Opciones: {choices}",
-    removeConfirm: {
-      title: "¿Quitar {label}?",
-      body: "El campo desaparece de todos los registros. Los valores ya ingresados se conservan durante el período de retención.",
-      confirm: "Quitar campo",
-    },
-    addChoiceFor: "Agregar una opción a {label}",
-    addChoice: "Agregar opción",
-    choiceLabel: "Nueva opción",
-    add: "Agregar un campo",
-    addSubmit: "Agregar campo",
-    added: "Campo agregado.",
-    target: "Registros",
-    label: "Etiqueta",
-    key: "Clave",
-    keyHelp:
-      "La usan la API y las importaciones. Déjela en blanco para crearla a partir de la etiqueta. Nunca cambia.",
-    type: "Tipo",
-    typeHelp: "El tipo nunca cambia una vez creado el campo.",
-    requiredLabel: "Obligatorio en todos los registros",
-    filterableLabel: "Filtrable en las vistas",
-    filterableHelp: "Agrega un índice para que las vistas puedan filtrar por él.",
-    types: {
-      Text: "Texto",
-      Number: "Número",
-      Money: "Dinero",
-      Date: "Fecha",
-      Timestamp: "Fecha y hora",
-      Boolean: "Sí o no",
-      Choice: "Opción",
-      Person: "Persona",
-      Email: "Correo electrónico",
-      URL: "Dirección web",
-    },
-    targets: {
-      records: "Registros",
-      projects: "Proyectos",
-      vendors: "Proveedores",
-      venues: "Recintos",
-      counterparties: "Contrapartes",
-      asset_units: "Unidades de activos",
-      purchase_orders: "Órdenes de compra",
-      invoices: "Facturas",
-      incidents: "Incidentes",
-    },
-  },
-  canon: {
-    title: "Las extensiones de su organización",
-    description:
-      "Disciplinas y categorías que su organización agrega al canon. Los miembros las proponen en la página Canon y otra persona decide.",
-    counts:
-      "{approved} aprobadas, {proposed} en espera de decisión, {closed} rechazadas o retiradas.",
-    none: "Todavía no hay extensiones aprobadas ni en espera.",
-    under: "Bajo {parent}",
-    open: "Proponga y decida extensiones en la página Canon",
-    states: {
-      Proposed: "En espera",
-      Approved: "Aprobada",
-      Rejected: "Rechazada",
-      Withdrawn: "Retirada",
-    },
-    levels: {
-      Discipline: "Disciplina",
-      Category: "Categoría",
-    },
-  },
-  automations: {
-    title: "Lo que funciona por sí solo",
-    description:
-      "Trabajo que su organización configuró para que ocurra sin que nadie pulse un botón. Cada uno se administra donde está.",
-    recurring:
-      "{count, plural, =0 {Ningún registro recurrente} one {# registro recurrente} other {# registros recurrentes}}",
-    recurringHelp: "Registros que se repiten según un calendario.",
-    policies:
-      "{count, plural, =0 {Ninguna política de aprobación activa} one {# política de aprobación activa} other {# políticas de aprobación activas}}",
-    policiesHelp: "Envían los documentos a los aprobadores correctos en orden.",
-    webhooks:
-      "{count, plural, =0 {Ningún webhook activo} one {# webhook activo} other {# webhooks activos}}",
-    webhooksHelp: "Avisan a sus otros sistemas cuando ocurren eventos.",
-    manage: "Administrar",
-    reportsTitle: "Entregas programadas de informes",
-    reportsDescription:
-      "Informes enviados por correo según un calendario, en la zona horaria que indica cada programación.",
-    noReports: "No hay informes programados que pueda ver.",
-    untitled: "Informe sin título",
-    nextRun: "Próximo: {date}",
-    openReports: "Abrir informes",
-    cadence: {
-      Daily: "Diario",
-      Weekly: "Semanal",
-      Monthly: "Mensual",
-    },
-  },
-  departments: {
-    title: "Departamentos y disciplinas en uso",
-    description:
-      "Elija los departamentos y disciplinas del canon en los que trabaja su organización. Los selectores de departamento ofrecerán solo estos.",
-    all: "Todavía no se eligió ninguno, así que se ofrecen todos los departamentos.",
-    chosen:
-      "{departments, plural, one {# departamento} other {# departamentos}} y {disciplines, plural, one {# disciplina} other {# disciplinas}} en uso.",
-    departments: "Departamentos",
-    departmentsHelp: "Al desmarcar un departamento también se desmarcan sus disciplinas.",
-    disciplinesOf: "{name}: {count, plural, one {# disciplina} other {# disciplinas}}",
-    disciplines: "Disciplinas de {name}",
-    option: "{name} · {code}",
-    extensionsTitle: "Sus extensiones de disciplina",
-    extensionsDescription: "Las extensiones aprobadas están en uso por definición.",
-    noExtensions: "No hay extensiones de disciplina aprobadas.",
-    toExtensions: "Ver extensiones del canon",
-  },
-  locations: {
-    title: "Valores predeterminados de recintos nuevos",
-    description:
-      "Con qué empieza un recinto nuevo. Se pueden cambiar para cada recinto; los recintos ya guardados conservan los suyos.",
-    jurisdiction: "Jurisdicción",
-    jurisdictionHelp: "Determina qué preguntas de permisos y normas aplican.",
-    noJurisdiction: "La primera de la lista",
-    unpopulated: "{id} (aún sin datos)",
-    timeZone: "Zona horaria",
-    timeZoneHelp: "Las horas ingresadas para el recinto se leen en ella.",
-    browserZone: "La zona horaria del dispositivo de la persona",
-    toVenues: "Abrir recintos",
-  },
-  usage: {
-    metersTitle: "Uso medido",
-    metersDescription:
-      "Se cuenta por mes de facturación (UTC). El mes abierto crece hasta que se cierra y se informa.",
-    metersHidden: "Solo quienes pueden ver el uso ven los medidores.",
-    openMonth: "{month} hasta ahora",
-    closedMonth: "{month}, cerrado",
-    meters: {
-      field_members: "Miembros de campo",
-      external_engagements: "Contrataciones externas",
-      emails_sent: "Correos enviados",
-      sms_segments: "Segmentos de mensajes de texto",
-      push_sent: "Notificaciones push enviadas",
-      api_requests: "Solicitudes a la API",
-      storage_bytes: "Almacenamiento",
-      ai_tokens: "Tokens de Aurora",
-    },
-    units: {
-      member: "{count, plural, one {{formatted} miembro} other {{formatted} miembros}}",
-      engagement:
-        "{count, plural, one {{formatted} contratación} other {{formatted} contrataciones}}",
-      message: "{count, plural, one {{formatted} mensaje} other {{formatted} mensajes}}",
-      segment: "{count, plural, one {{formatted} segmento} other {{formatted} segmentos}}",
-      request: "{count, plural, one {{formatted} solicitud} other {{formatted} solicitudes}}",
-      byte_day: "{count, plural, one {{formatted} byte-día} other {{formatted} bytes-día}}",
-      token: "{count, plural, one {{formatted} token} other {{formatted} tokens}}",
-    },
-  },
-  privacy: {
-    requestsTitle: "Solicitudes de datos",
-    requestsDescription:
-      "Solicitudes de personas para ver, corregir, trasladar o borrar sus datos. Cada una vence 30 días después de recibirse, 90 si la prorroga.",
-    requestsHidden: "Solo quienes administran solicitudes de datos las ven.",
-    noRequests: "No hay solicitudes de datos.",
-    overdue: "Vencida",
-    received: "Recibida el {date}",
-    due: "Vence el {date}",
-    moveTo: "{state}",
-    moveTitle: "¿Pasar esta solicitud a {state}?",
-    moveBody: "Indique el motivo. Se guarda en el historial de la solicitud.",
-    moveConfirm: "Pasar solicitud",
-    states: {
-      Received: "Recibida",
-      Verifying: "Verificando identidad",
-      InProgress: "En curso",
-      Extended: "Prorrogada",
-      Completed: "Completada",
-      Refused: "Rechazada",
-      Withdrawn: "Retirada",
-    },
-    types: {
-      Access: "Acceso a datos",
-      Rectification: "Corrección",
-      Erasure: "Supresión",
-      Restriction: "Limitación del uso",
-      Portability: "Portabilidad",
-      Objection: "Oposición",
-      OptOutofSale: "Exclusión de la venta",
-    },
-    holdsTitle: "Retenciones legales",
-    holdsDescription:
-      "Una retención impide que se purguen o eliminen datos mientras un asunto está abierto. Nunca se edita, solo se levanta.",
-    holdsHidden: "Solo quienes administran retenciones legales las ven.",
-    noHolds: "No hay retenciones legales.",
-    inForce: "Vigente",
-    released: "Levantada",
-    allTables: "Todos los datos de la organización",
-    placed: "Aplicada el {date}",
-    releasedOn: "Levantada el {date}",
-    release: "Levantar",
-    releaseTitle: "¿Levantar la retención de {matter}?",
-    releaseBody:
-      "La retención normal vuelve a aplicarse desde ahora. Una retención levantada no se puede volver a aplicar; aplique una nueva si hace falta.",
-    placeHold: "Aplicar una retención legal",
-    placeSubmit: "Aplicar retención",
-    matter: "Asunto",
-    matterHelp: "El caso o la solicitud al que corresponde la retención.",
-    table: "Datos retenidos",
-    exportsTitle: "Exportaciones",
-    exportsDescription:
-      "El archivo completo de la organización y las exportaciones de vistas. Una columna Restringida necesita un segundo factor para exportarse.",
-    noExports: "Todavía no hay exportaciones.",
-    archive: "Archivo completo de la organización",
-    archiveSize: "{tables} tablas, {rows} filas",
-    toArchive: "Descargue el archivo completo desde la Zona de peligro",
-    classificationTitle: "Clasificación de datos",
-    classificationDescription:
-      "Cada columna está clasificada. La clase determina quién puede leerla y exportarla.",
-    classCounts:
-      "{public} columnas Públicas, {internal} Internas, {confidential} Confidenciales y {restricted} Restringidas.",
-    restrictedColumns: "Columnas restringidas",
-    readBy: "Se lee con {capability}",
-    classes: {
-      Public: "Pública",
-      Internal: "Interna",
-      Confidential: "Confidencial",
-      Restricted: "Restringida",
-    },
-    retentionTitle: "Retención",
-    retentionDescription:
-      "Cuánto tiempo conserva la plataforma cada tipo de dato antes de purgarlo, salvo que una retención legal lo conserve.",
-    keptFor: "Se conserva {period}",
-    retentionMore: "{count} tablas tienen un período de retención; estas son las más consultadas.",
-    toMessageRetention: "La retención de mensajes se configura en Comunicación",
-  },
-  audit: {
-    title: "Eventos de auditoría más recientes",
-    description: "Cada cambio sensible se registra con quién lo hizo y desde dónde.",
-    hidden: "Solo quienes pueden leer el registro de auditoría ven sus eventos.",
-    none: "Todavía no hay eventos de auditoría.",
-    redacted: "Datos personales ocultos",
-    retention: "Los eventos de auditoría se conservan durante siete años.",
-    open: "Abrir el registro de auditoría completo",
-    actors: {
-      Person: "Una persona",
-      Service: "Un servicio",
-      System: "El sistema",
-    },
-  },
-  connectedApps: {
-    title: "Aplicaciones conectadas",
-    description:
-      "Aplicaciones a las que permitió actuar en su nombre. Cada una solo puede hacer lo que usted puede, en las áreas que aprobó.",
-    none: "No ha conectado ninguna aplicación.",
-    registeredBy: "Registrada por {org}",
-    granted: "Permitida el {date}",
-    revokeConfirm: {
-      title: "¿Desconectar {app}?",
-      body: "La aplicación ya no podrá actuar en su nombre. Vuelva a conectarla para darle acceso.",
-      confirm: "Desconectar",
-    },
-    toIntegrations: "Integraciones de su organización",
-  },
-  payout: {
-    title: "Datos de pago",
-    description:
-      "Dónde le paga cada organización. Los datos se ingresan con el proveedor de pagos de esa organización; aquí solo se muestran los últimos cuatro dígitos.",
-    none: "No hay datos de pago registrados.",
-    last4: "Terminada en {last4}",
-    providers: {
-      StripeConnect: "Stripe Connect",
-      AccountingSystem: "El sistema contable de la organización",
-    },
-  },
-  tax: {
-    title: "Formularios fiscales",
-    description:
-      "Formularios que firmó para las organizaciones que le pagan. Se firman durante la incorporación a una contratación.",
-    none: "No ha firmado formularios fiscales.",
-    signed: "Firmado el {date}",
-  },
-  workspace: {
-    open: "Abrir la página de configuración de {name}",
-    members: "Miembros",
-    noMembers: "Todavía no hay nadie asignado a este espacio de trabajo.",
-    back: "Todos los espacios de trabajo",
-  },
-  team: {
-    members: "Miembros",
-    noMembers: "Todavía no hay nadie en este equipo.",
-    settings: "Configuración del equipo",
-    settingsNone:
-      "Todavía no hay configuraciones por equipo: un equipo sigue a su espacio de trabajo y a la organización. Las audiencias de equipo en publicaciones, horarios y notificaciones usan los miembros de este equipo.",
-    back: "Todos los equipos",
-  },
-  errors: {
-    refused: "Este cambio no está permitido.",
-    denied: "No puede hacer esto aquí.",
-    conflict: "Ese nombre o esa clave ya están en uso.",
-    invalid: "Algo de lo ingresado no es válido. Revise los campos e inténtelo de nuevo.",
-    unexpected: "No se guardó. Inténtelo de nuevo en un momento.",
-    fields: "Revise los campos señalados.",
-    plan_feature_required: "Su plan no incluye esto. Consulte Facturación y plan.",
-    api_key_scope_unknown: "Una de las áreas no es un grupo de capacidades.",
-    api_key_expiry_invalid: "Elija un vencimiento dentro de un año.",
-    api_key_revoked: "Esta clave ya está revocada.",
-    api_key_service_account_invalid: "Elija una cuenta de servicio de esta organización.",
-    service_account_role_unknown:
-      "Elija un rol del que tenga todas las capacidades; nunca el rol de Propietario.",
-    service_account_owner_role: "Una cuenta de servicio no puede tener el rol de Propietario.",
-    service_account_name_invalid: "Ponga a la cuenta de servicio un nombre de 1 a 200 caracteres.",
-    service_account_expiry_invalid: "Elija un vencimiento en el futuro.",
-    grant_exceeds_holder: "Solo puede asignar un rol del que tenga todas las capacidades.",
-    role_band: "No puede asignar un rol superior al suyo.",
-    personal_tokens_off: "Su organización no permite tokens personales de API.",
-    personal_token_name: "Ponga al token un nombre de 1 a 200 caracteres.",
-    personal_token_scopes: "Elija al menos un área que pueda usar el token.",
-    personal_token_scope_not_held:
-      "Un token solo puede usar áreas en las que usted tiene alguna capacidad.",
-    personal_token_expiry: "Elija un vencimiento dentro de un año.",
-    personal_token_limit: "Ya tiene 10 tokens activos aquí. Revoque uno primero.",
-    personal_token_revoked: "Este token ya está revocado.",
-    step_up_required: "Confirme su identidad con su segundo factor y vuelva a intentarlo.",
-    webhook_events_required: "Elija al menos un evento.",
-    webhook_private_host:
-      "Use una dirección HTTPS pública; se rechazan los hosts privados e internos.",
-    webhook_delivery_not_in_flight: "Esta entrega no se puede volver a enviar ahora.",
-    sod_self_grant:
-      "No puede fijar un límite que se aplique a usted. Pídaselo a otro Propietario o administrador.",
-    custom_field_type_immutable:
-      "El tipo de un campo nunca cambia. Agregue un campo nuevo en su lugar.",
-    custom_field_key_immutable:
-      "La clave de un campo nunca cambia. Agregue un campo nuevo en su lugar.",
-    plan_limit_exceeded: "Se alcanzó el límite de su plan. Consulte Facturación y plan.",
-    dsar_transition_not_allowed: "Una solicitud no puede pasar a ese estado desde el actual.",
-    dsar_state_conflict: "Alguien movió esta solicitud antes. Vuelva a cargar para ver dónde está.",
-    transition_reason_required: "Indique el motivo.",
-    legal_hold_table_unknown: "Elija datos que tengan un período de retención.",
-    legal_hold_released: "Esta retención ya está levantada.",
-    legal_hold_immutable: "Una retención nunca se edita, solo se levanta.",
-    department_unknown: "Uno de los departamentos no está en el canon.",
-    discipline_unknown: "Una de las disciplinas no está en el canon.",
-    discipline_department_not_in_use: "Elija también el departamento de cada disciplina.",
-    jurisdiction_unknown: "Elija una jurisdicción del canon.",
-    time_zone_unknown: "Elija una zona horaria de la lista.",
-  },
-  fieldErrors: {
-    name: "Ingrese un nombre de hasta 200 caracteres.",
-    roleId: "Elija un rol.",
-    expiresIn: "Elija cuándo vence.",
-    serviceAccountId: "Elija una cuenta de servicio.",
-    scopes: "Elija al menos un área.",
-    url: "Ingrese una dirección pública que empiece por https://.",
-    description: "Use hasta 300 caracteres.",
-    events: "Elija al menos un evento.",
-    holder: "Elija para quién es el límite.",
-    documentType: "Elija un tipo de documento.",
-    currency: "Elija una moneda.",
-    limit: "Ingrese un importe, por ejemplo 2500 o 2500.00.",
-    dualAbove: "Ingrese un importe o déjelo en blanco.",
-    target: "Elija los registros a los que se agrega el campo.",
-    label: "Ingrese una etiqueta de hasta 100 caracteres.",
-    key: "Use minúsculas, dígitos y guiones bajos, empezando por una letra.",
-    dataType: "Elija un tipo.",
-    fieldId: "Elija un campo.",
-    next: "Elija el siguiente estado de la solicitud.",
-    reason: "Indique el motivo, en hasta 500 caracteres.",
-    matter: "Indique el asunto en hasta 300 caracteres.",
-    table: "Elija datos de la lista.",
-  },
-  gateway: {
-    disconnect: "Desconectar",
-    noTokens: "No tiene tokens personales de API.",
-    tokensOff: "Ninguna de sus organizaciones permite tokens personales de API.",
-    tokenFor: "Nuevo token para {org}",
-    regions: "Regiones de servicio",
-    regionsHelp:
-      "Dónde trabaja su empresa, como jurisdicciones del canon. Las organizaciones filtran por ellas al buscar proveedores.",
-    noRegions: "Todavía no hay regiones de servicio.",
-    addRegion: "Agregar región",
-    jurisdiction: "Jurisdicción",
-    capabilities: "Capacidades",
-    capabilitiesHelp:
-      "Lo que ofrece su empresa, como categorías del canon. Aparecen en el perfil público de su empresa.",
-    noCapabilities: "Todavía no hay capacidades.",
-    addCapability: "Agregar capacidad",
-    category: "Categoría",
-    added: "Agregado.",
-    defaultsHelp:
-      "Lo que reciben los miembros de su equipo de las organizaciones con las que trabajan hasta que elijan por sí mismos.",
-    saveDefaults: "Guardar valores predeterminados",
-    defaultsSaved: "Valores predeterminados guardados.",
-    defaultsOwn: "La elección de cada persona en Configuración, Notificaciones siempre prevalece.",
-    defaultsReadOnly:
-      "Los fija un Propietario o administrador de la cuenta. Su propia elección en Configuración, Notificaciones siempre prevalece.",
-    owners: "Propietarios de la cuenta",
-    makeOwner: "Nombrar Propietario de la cuenta",
-    madeOwner: "Ahora es Propietario de la cuenta.",
-    member: "Miembro del equipo",
-    makeOwnerHelp:
-      "Para traspasar la propiedad, nombre a alguien Propietario de la cuenta y luego renuncie.",
-    stepDown: "Dejar de ser Propietario de la cuenta",
-    lastOwner:
-      "Es el único Propietario de la cuenta. Nombre a otra persona Propietario antes de renunciar o salir.",
-    leaveTitle: "Salir de la cuenta de la empresa",
-    leaveBody:
-      "Pierde al instante el acceso a las contrataciones, los documentos y los pagos de la empresa. Su perfil propio se conserva.",
-    leave: "Salir de {name}",
-    closeTitle: "Cerrar la cuenta de la empresa",
-  },
-};
 var shell_default = {
   atlas: {
     name: "Atlas",
@@ -33721,6 +33579,7 @@ var shell_default = {
       orgName: "Nombre de la organización",
       orgSlug: "Dirección web",
       orgSlugHelp: "Letras minúsculas, números y guiones. Tu dirección de Atlas es /{slug}.",
+      age: "Tengo 16 años o más.",
     },
     or: "o",
     signIn: {
@@ -33822,6 +33681,7 @@ var shell_default = {
         "Acepta los Términos del Servicio y el Acuerdo de Tratamiento de Datos para continuar.",
       slug_taken: "Esa dirección web ya está en uso. Elige otra.",
       slug_reserved: "Atlas reserva esa dirección web. Elige otra.",
+      age: "Confirma que tienes 16 años o más. Las cuentas de XOS son para personas de 16 años en adelante.",
     },
     networkRestricted: {
       title: "Su red no está permitida",
@@ -38164,6 +38024,7 @@ var enUS = {
   authSecurity: authSecurity_default$1,
   canonBrowser: canonBrowser_default$1,
   compass: compass_default$1,
+  compliance: compliance_default$1,
   credentials: credentials_default$1,
   crew: crew_default$1,
   docs: docs_default$1,
@@ -38198,7 +38059,6 @@ var enUS = {
   savedViews: savedViews_default$1,
   schedule: schedule_default$1,
   settings: settings_default$1,
-  settingsSurfaces: settingsSurfaces_default$1,
   shell: shell_default$1,
   shipmentTracking: shipmentTracking_default$1,
   show: show_default$1,
@@ -38222,6 +38082,7 @@ var esUS = {
   authSecurity: authSecurity_default,
   canonBrowser: canonBrowser_default,
   compass: compass_default,
+  compliance: compliance_default,
   credentials: credentials_default,
   crew: crew_default,
   docs: docs_default,
@@ -38256,7 +38117,6 @@ var esUS = {
   savedViews: savedViews_default,
   schedule: schedule_default,
   settings: settings_default,
-  settingsSurfaces: settingsSurfaces_default,
   shell: shell_default,
   shipmentTracking: shipmentTracking_default,
   show: show_default,
@@ -39457,6 +39317,59 @@ var templates = {
       };
     },
   },
+  subprocessor_confirm: {
+    transactional: true,
+    compose: ({ confirmUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_confirm.subject");
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_confirm.heading"),
+          transactional: true,
+          action: {
+            label: ctx.t("subprocessor_confirm.confirm"),
+            url: confirmUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.body") }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_confirm.ignore") }),
+          ],
+        }),
+      };
+    },
+  },
+  subprocessor_notice: {
+    transactional: false,
+    compose: ({ listVersion, summary, effectiveOn, listUrl }, ctx) => {
+      const subject = ctx.t("subprocessor_notice.subject", { effectiveOn });
+      return {
+        subject,
+        element: /* @__PURE__ */ jsxs(Layout, {
+          locale: ctx.locale,
+          t: ctx.t,
+          sender: ctx.sender,
+          preview: subject,
+          heading: ctx.t("subprocessor_notice.heading", { listVersion }),
+          transactional: false,
+          action: {
+            label: ctx.t("subprocessor_notice.review"),
+            url: listUrl,
+          },
+          children: [
+            /* @__PURE__ */ jsx(Paragraph, {
+              children: ctx.t("subprocessor_notice.intro", { effectiveOn }),
+            }),
+            /* @__PURE__ */ jsx(Paragraph, { children: summary }),
+            /* @__PURE__ */ jsx(Paragraph, { children: ctx.t("subprocessor_notice.objection") }),
+          ],
+        }),
+      };
+    },
+  },
 };
 //#endregion
 //#region ../email/src/render.ts
@@ -39527,6 +39440,111 @@ async function sendEmail(request) {
     ...(request.replyTo === void 0 ? {} : { replyTo: request.replyTo }),
     ...(request.deliveryId === void 0 ? {} : { idempotencyKey: `delivery-${request.deliveryId}` }),
   });
+}
+//#endregion
+//#region src/legal/platform-emails.ts
+function str$2(value, what) {
+  if (typeof value !== "string" || value.length === 0) throw new Error(`Missing ${what}`);
+  return value;
+}
+/** The Subprocessor List page, and its confirmation and unsubscribe links. */
+function subprocessorLinks(appUrl) {
+  const list = new URL("/legal/subprocessors", appUrl);
+  return {
+    list: list.toString(),
+    confirm: (token) => `${list.toString()}?confirm=${encodeURIComponent(token)}`,
+    unsubscribe: (token) => `${list.toString()}?unsubscribe=${encodeURIComponent(token)}`,
+  };
+}
+/** Claims due platform emails, sends each and records the outcome. A failure is recorded, never dropped. */
+async function dispatchPlatformEmails(store, transport, options, limit = 25) {
+  const claims = await store.claim(limit);
+  const links = subprocessorLinks(options.appUrl);
+  let sent = 0;
+  let failed = 0;
+  for (const claim of claims)
+    try {
+      const unsubscribeToken =
+        typeof claim.args["unsubscribe_token"] === "string"
+          ? claim.args["unsubscribe_token"]
+          : null;
+      const sender = {
+        orgName: options.senderName,
+        postalAddress: options.postalAddress,
+        preferencesUrl: options.appUrl,
+        ...(unsubscribeToken ? { unsubscribeUrl: links.unsubscribe(unsubscribeToken) } : {}),
+      };
+      const common = {
+        transport,
+        locale: claim.locale,
+        timeZone: "UTC",
+        sender,
+        recipientName: claim.to,
+        from: options.from,
+        to: claim.to,
+        deliveryId: claim.id,
+      };
+      const result =
+        claim.template === "subprocessor_confirm"
+          ? await sendEmail({
+              ...common,
+              template: "subprocessor_confirm",
+              props: {
+                confirmUrl: links.confirm(str$2(claim.args["confirm_token"], "confirm_token")),
+              },
+            })
+          : await sendEmail({
+              ...common,
+              template: "subprocessor_notice",
+              props: {
+                listVersion: str$2(claim.args["list_version"], "list_version"),
+                summary: str$2(claim.args["summary"], "summary"),
+                effectiveOn: /* @__PURE__ */ new Date(
+                  `${str$2(claim.args["effective_on"], "effective_on")}T12:00:00Z`,
+                ),
+                listUrl: links.list,
+              },
+            });
+      await store.finish(claim.id, true, result.providerMessageId, null);
+      sent += 1;
+    } catch (error) {
+      failed += 1;
+      await store.finish(
+        claim.id,
+        false,
+        null,
+        error instanceof Error ? error.message : String(error),
+      );
+    }
+  return {
+    attempted: claims.length,
+    sent,
+    failed,
+  };
+}
+/** PlatformEmailStore over the service-role database seam (app.claim_platform_emails, 1382). */
+function platformEmailStore(db) {
+  return {
+    async claim(limit) {
+      return ((await db.rpc("claim_platform_emails", { p_limit: limit })) ?? []).map((r) => ({
+        id: str$2(r["id"], "id"),
+        template: str$2(r["template"], "template"),
+        to: str$2(r["to_email"], "to_email"),
+        locale: typeof r["locale"] === "string" && isLocale(r["locale"]) ? r["locale"] : "en-US",
+        args: r["args"] ?? {},
+      }));
+    },
+    async finish(id, sent, providerMessageId, error) {
+      return String(
+        await db.rpc("finish_platform_email", {
+          p_id: id,
+          p_sent: sent,
+          p_provider_message_id: providerMessageId,
+          p_error: error,
+        }),
+      );
+    },
+  };
 }
 //#endregion
 //#region src/notifications/dispatch.ts
@@ -40145,7 +40163,7 @@ z.strictObject({
   categories: z.array(categorySchema).min(1),
   kinds: z.array(kindSchema).min(1),
 });
-"supabase/migrations/1369_notification_kind_seed.sql"
+"supabase/migrations/1387_notification_kind_seed.sql"
   .replace("supabase/migrations/", "supabase/tests/")
   .replace(/\.sql$/, ".test.sql");
 //#endregion
@@ -46627,6 +46645,7 @@ async function renderDocumentPdf(model, options) {
   return new Promise((resolve, reject) => {
     const pdfOptions = {
       size: SIZES[options.paper],
+      layout: options.orientation ?? "portrait",
       margins: {
         top: MARGIN,
         left: MARGIN,
@@ -46644,6 +46663,7 @@ async function renderDocumentPdf(model, options) {
         Title: model.title,
         Author: model.brand.legalEntity ?? model.brand.name,
         Subject: `${model.facts.recordKey} v${model.facts.templateVersion}`,
+        ...(model.watermark ? { Keywords: model.watermark.text } : {}),
         Creator: "XOS",
         Producer: "XOS",
         CreationDate: new Date(model.facts.generatedAtIso),
@@ -46829,6 +46849,14 @@ var Renderer = class {
       y: fy + 2,
       width: factsWidth,
     });
+    if (model.watermark) {
+      this.style("semibold", 6.5, MUTED);
+      this.text(this.root, "P", model.watermark.text, {
+        x: factsX,
+        y: doc.y + 2,
+        width: factsWidth,
+      });
+    }
     const factsBottom = doc.y;
     const qrX = this.left + this.width - QR_SIZE;
     const matrix = qrMatrix(facts.recordUrl);
@@ -46868,6 +46896,9 @@ var Renderer = class {
         doc.y += 4;
         this.text(this.root, "H2", block.text);
         doc.y += 4;
+        return;
+      case "image":
+        this.image(block.bytes, block.alt);
         return;
       case "paragraph": {
         const size = block.size === "large" ? 22 : BODY;
@@ -46912,6 +46943,35 @@ var Renderer = class {
         this.table(block.caption, block.columns, block.rows, block.footer ?? [], false);
         return;
     }
+  }
+  /** A PNG or JPEG fitted to the page width and the space left, as a Figure with alternative text. */
+  image(bytes, alt) {
+    const { doc } = this;
+    if (!isEmbeddableImage(bytes)) return;
+    const buffer = Buffer.from(bytes);
+    const opened = doc.openImage(buffer);
+    const room = () => this.bottom - doc.y;
+    const fullPage = this.bottom - doc.page.margins.top;
+    const scale = Math.min(1, this.width / opened.width, fullPage / opened.height);
+    const height = opened.height * scale;
+    if (height > room()) {
+      doc.addPage();
+      doc.x = this.left;
+      doc.y = doc.page.margins.top;
+    }
+    const width = opened.width * scale;
+    const x = this.left + (this.width - width) / 2;
+    const y = doc.y;
+    this.root.add(
+      doc.struct("Figure", { alt: this.safe(alt) }, () => {
+        doc.image(buffer, x, y, {
+          width,
+          height,
+        });
+      }),
+    );
+    doc.x = this.left;
+    doc.y = y + height + GAP;
   }
   /**
    * A table with a caption, a header row of TH cells scoped to their column (or, for fields, a TH
@@ -47052,8 +47112,33 @@ var Renderer = class {
           },
         );
       }, "Pagination");
+      if (model.watermark) this.watermark(model.watermark.text);
       doc.page.margins.bottom = bottomMargin;
     }
+  }
+  /**
+   * The Section 8.6 watermark across the page: light, diagonal, and an artifact, since the header
+   * already carries the same text in the reading order.
+   */
+  watermark(text) {
+    const { doc } = this;
+    const value = this.safe(text);
+    const cx = doc.page.width / 2;
+    const cy = doc.page.height / 2;
+    const span = Math.hypot(doc.page.width, doc.page.height) * 0.7;
+    const size = Math.max(9, Math.min(26, span / (Math.max(value.length, 1) * 0.56)));
+    this.artifact(() => {
+      doc.save();
+      doc.opacity(0.16);
+      this.style("semibold", size, MUTED);
+      doc.rotate(-32, { origin: [cx, cy] });
+      doc.text(value, cx - span / 2, cy - size / 2, {
+        width: span,
+        align: "center",
+        lineBreak: false,
+      });
+      doc.restore();
+    });
   }
 };
 //#endregion
@@ -55307,6 +55392,7 @@ export {
   createTransport,
   deletionCertificateCopy,
   dispatchEmail,
+  dispatchPlatformEmails,
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
@@ -55347,6 +55433,7 @@ export {
   passThroughScanner,
   planForLookupKey,
   planRegistry,
+  platformEmailStore,
   pushEnvSchema,
   pushMessage,
   pushStore,
@@ -55390,6 +55477,7 @@ export {
   staticAccessToken,
   stripQuotedText,
   stripeTrialEnd,
+  subprocessorLinks,
   supabaseAuthAdmin,
   supabaseCommunicationSource,
   supabaseDb,
