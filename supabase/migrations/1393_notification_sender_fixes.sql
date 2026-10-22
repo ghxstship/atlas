@@ -11,7 +11,9 @@
 --   4. A held shift change goes once its bypass window opens. Bypass was judged only when the text or push was
 --      created, so a change to a shift 12.5 hours away, made in quiet hours that last longer than that, waited for the
 --      end of quiet hours and could arrive after the shift started. Held texts and deferred pushes now wait no later
---      than the shift's startsAt less the window, and the summary releases a held text whose window has opened.
+--      than the shift's startsAt less the window, and the summary releases a held text whose window has opened. The
+--      release retires the text's queue row, and private.hold_sms_for_summary retires a settled one, so a released
+--      text held again (its shift started before a retry) never breaks the queue's unique key and every SMS claim.
 --   5. Senders read the recipient's language and time zone in the org through app.recipient_setting. The platform
 --      read personal_setting_values directly with no deleted_at filter, no org and no order, so a cleared language or
 --      zone could still apply, a value kept for another org could win, the org's locale.language and its lock never
@@ -101,15 +103,17 @@ begin
       v_quiet := private.sms_quiet_until(v_group.membership_id, v_project, now());
       if v_quiet is not null then
         -- A held text whose bypass window has opened since (a shift now starting within 12 hours) leaves the summary
-        -- and goes on its own through app.claim_notification_deliveries (1393).
+        -- and goes on its own through app.claim_notification_deliveries (1393). Its queue row is retired (soft
+        -- deleted), not marked sent: should the shift start before the text goes (a retry or an outage) while the
+        -- member is still in quiet hours, the sender holds it again, and the delivery's one live row must be a new one.
         with released as (
           update app.notification_deliveries d set message_status = 'Queued', deliver_after = now()
           from app.notifications n
           where d.id = any (v_ids) and n.id = d.notification_id and n.created_at = d.notification_created_at
             and private.bypasses_quiet_hours(n.kind, n.message_args, now())
           returning d.id)
-        update app.sms_summary_queue set sent_at = now()
-        where notification_delivery_id in (select r.id from released r) and sent_at is null;
+        update app.sms_summary_queue set deleted_at = now()
+        where notification_delivery_id in (select r.id from released r) and sent_at is null and deleted_at is null;
         -- The rest wait for the end of quiet hours, or for their own bypass window when it opens sooner.
         update app.sms_summary_queue q
         set due_at = case when o.opens > now() and o.opens < v_quiet then o.opens else v_quiet end
@@ -117,7 +121,7 @@ begin
               from app.notification_deliveries d
               join app.notifications n on n.id = d.notification_id and n.created_at = d.notification_created_at
               where d.id = any (v_ids)) o
-        where q.notification_delivery_id = o.id and q.sent_at is null;
+        where q.notification_delivery_id = o.id and q.sent_at is null and q.deleted_at is null;
         continue;
       end if;
       if v_address is null then
@@ -401,7 +405,8 @@ end;
 $$;
 comment on function private.notify_feed_post(uuid) is 'Publishes a due feed post once: stamps notified_at, emits feed_post.published and notifies the audience (a department included, 1365) of announcements, polls and posts that need acknowledgment, naming the post''s author (1393).';
 
--- 4. A held shift change goes when its bypass window opens (claim_notification_deliveries from 1367) -------------------
+-- 4. A held shift change goes when its bypass window opens (claim_notification_deliveries and hold_sms_for_summary from
+-- 1367) -----------------------------------------------------------------------------------------------------------------
 
 create or replace function private.quiet_hours_bypass_opens(p_kind text, p_message_args jsonb)
 returns timestamptz
@@ -428,6 +433,31 @@ end;
 $$;
 
 comment on function private.quiet_hours_bypass_opens(text, jsonb) is 'When a kind with a bypass window (a shift change, ADR 0033 decision 35) starts to bypass quiet hours: its startsAt argument less the window. Null for a kind that always or never bypasses, or with no readable startsAt. Held texts and deferred pushes wait no later than this (1393).';
+
+create or replace function private.hold_sms_for_summary(p_delivery_id uuid, p_created timestamptz, p_membership_id uuid, p_until timestamptz)
+returns void
+language plpgsql
+volatile
+security definer
+set search_path = ''
+as $$
+begin
+  update app.notification_deliveries set message_status = 'Digest', deliver_after = p_until
+  where id = p_delivery_id and notification_created_at = p_created;
+  -- A text held again after its row was settled (a released shift change whose shift started before it went) retires
+  -- the settled row first, so the insert below never meets sms_summary_queue_delivery_key and fails the whole claim.
+  update app.sms_summary_queue set deleted_at = now()
+  where notification_delivery_id = p_delivery_id and sent_at is not null and deleted_at is null;
+  update app.sms_summary_queue set due_at = p_until
+  where notification_delivery_id = p_delivery_id and sent_at is null and deleted_at is null;
+  if not found then
+    insert into app.sms_summary_queue (notification_delivery_id, notification_created_at, membership_id, due_at)
+    values (p_delivery_id, p_created, p_membership_id, p_until);
+  end if;
+end;
+$$;
+
+comment on function private.hold_sms_for_summary(uuid, timestamptz, uuid, timestamptz) is 'Holds an SMS delivery for the member''s next summary (status Digest, never claimed on its own) until quiet hours end. A text held again after its queue row was settled gets a new live row; the settled one is retired (1393).';
 
 create or replace function app.claim_notification_deliveries(p_channel app.notification_channel, p_limit integer default 50)
 returns table (
@@ -649,7 +679,7 @@ begin
   if p_status = 'Failed' and v_attempts < 5 then
     update app.notification_deliveries set last_error = left(p_error, 2000) where id = any (p_delivery_ids);
     update app.sms_summary_queue set due_at = now() + private.webhook_retry_delay(v_attempts)
-    where notification_delivery_id = any (p_delivery_ids) and sent_at is null;
+    where notification_delivery_id = any (p_delivery_ids) and sent_at is null and deleted_at is null;
     return;
   end if;
   update app.notification_deliveries
@@ -658,7 +688,8 @@ begin
     last_error = left(p_error, 2000),
     sent_at = case when p_status = 'Sent' then coalesce(sent_at, now()) else sent_at end
   where id = any (p_delivery_ids);
-  update app.sms_summary_queue set sent_at = now() where notification_delivery_id = any (p_delivery_ids) and sent_at is null;
+  update app.sms_summary_queue set sent_at = now()
+  where notification_delivery_id = any (p_delivery_ids) and sent_at is null and deleted_at is null;
   if p_status = 'Sent' then
     perform private.record_usage(v_org, 'sms_segments', greatest(coalesce(p_segments, 1), 1), p_delivery_ids[1]);
   end if;
@@ -678,6 +709,7 @@ revoke all on function app.send_chat_message(uuid, text, app.chat_message_kind, 
 grant execute on function app.send_chat_message(uuid, text, app.chat_message_kind, text) to authenticated, service_role;
 revoke all on function private.notify_feed_post(uuid) from public, anon, authenticated;
 revoke all on function private.quiet_hours_bypass_opens(text, jsonb) from public, anon, authenticated;
+revoke all on function private.hold_sms_for_summary(uuid, timestamptz, uuid, timestamptz) from public, anon, authenticated;
 revoke all on function app.claim_notification_deliveries(app.notification_channel, integer) from public, anon, authenticated;
 grant execute on function app.claim_notification_deliveries(app.notification_channel, integer) to service_role;
 revoke all on function app.recipient_setting(uuid, uuid, text) from public, anon, authenticated;

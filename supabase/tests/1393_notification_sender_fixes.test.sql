@@ -9,7 +9,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(32);
+select plan(41);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -167,6 +167,57 @@ select is((select count(*)::integer from app.claim_sms_summaries() s where s.rec
 select is((pg_temp.sms((select id from n where key = 'shift_window'))).message_status::text, 'Queued', 'and is queued on its own');
 select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50) c where c.recipient_person_id = pg_temp.id('frank')), 1,
   'the sender claims it at once, inside quiet hours');
+
+-- A released text whose shift starts before it goes (a send that failed is retried after startsAt, or the sender was
+-- down) is held again while Frank is still in quiet hours. Its released queue row was retired, so holding it opens a
+-- new one, and the claim goes on to everyone else's texts instead of failing on the queue's unique key every time.
+insert into n values ('shift_late', private.notify(pg_temp.id('org_a'), pg_temp.id('frank'), 'shift.changed', null, null, null,
+  jsonb_build_object('title', 'Strike', 'startsAt', now() + interval '12 hours 30 minutes')));
+set local session_replication_role = replica;
+update app.notifications set message_args = jsonb_set(message_args, '{startsAt}', to_jsonb(now() + interval '11 hours 30 minutes'))
+where id = (select id from n where key = 'shift_late');
+set local session_replication_role = origin;
+update app.sms_summary_queue set due_at = now() - interval '1 minute'
+where notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_late'))).id;
+select is((select count(*)::integer from app.claim_sms_summaries() s where s.recipient_person_id = pg_temp.id('frank')), 0,
+  'a second shift change is released the same way');
+select is((select concat_ws('|', count(*) filter (where q.deleted_at is null), count(*) filter (where q.sent_at is not null))
+           from app.sms_summary_queue q where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_late'))).id),
+  '0|0', 'its queue row is retired, not marked sent');
+select is((select count(*)::integer from app.claim_notification_deliveries('SMS', 50) c where c.delivery_id = (pg_temp.sms((select id from n where key = 'shift_late'))).id), 1,
+  'the sender claims it');
+select app.record_notification_delivery((pg_temp.sms((select id from n where key = 'shift_late'))).id, 'Failed', null, '503 Service Unavailable');
+set local session_replication_role = replica;
+update app.notifications set message_args = jsonb_set(message_args, '{startsAt}', to_jsonb(now() - interval '5 minutes'))
+where id = (select id from n where key = 'shift_late');
+set local session_replication_role = origin;
+update app.notification_deliveries set deliver_after = now() - interval '1 second'
+where id = (pg_temp.sms((select id from n where key = 'shift_late'))).id;
+insert into n values ('dave_day', private.notify(pg_temp.id('org_a'), pg_temp.id('dave'), 'account.security_changed', null, null, null,
+  '{"change": "password"}'));
+select lives_ok($$select * from app.claim_notification_deliveries('SMS', 50)$$,
+  'the retry, after the shift started and inside quiet hours, does not fail the claim');
+select is((select concat_ws('|', d.message_status, (d.deliver_after = now() + interval '10 hours')::text) from app.notification_deliveries d
+           where d.id = (pg_temp.sms((select id from n where key = 'shift_late'))).id), 'Digest|true',
+  'the text is held for the summary again');
+select is((select string_agg(concat_ws('|', (q.due_at = now() + interval '10 hours')::text, (q.sent_at is null)::text), ',')
+           from app.sms_summary_queue q
+           where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_late'))).id and q.deleted_at is null),
+  'true|true', 'in one new live queue row, due when quiet hours end');
+select is((pg_temp.sms((select id from n where key = 'dave_day'))).attempt_count::integer, 1,
+  'and the same claim sends the texts that came after it');
+
+-- A queue row settled before a text is held again (as the release once left it) is retired, not a duplicate.
+insert into n values ('shift_settled', private.notify(pg_temp.id('org_a'), pg_temp.id('frank'), 'shift.changed', null, null, null,
+  jsonb_build_object('title', 'Doors', 'startsAt', now() + interval '40 hours')));
+update app.sms_summary_queue set sent_at = now()
+where notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_settled'))).id;
+select lives_ok(format($$select private.hold_sms_for_summary(%L, %L, %L, %L)$$,
+  (pg_temp.sms((select id from n where key = 'shift_settled'))).id, (pg_temp.sms((select id from n where key = 'shift_settled'))).notification_created_at,
+  pg_temp.id('frank@org_a'), now() + interval '10 hours'), 'holding a text with a settled queue row does not fail');
+select is((select concat_ws('|', count(*) filter (where q.deleted_at is null and q.sent_at is null), count(*) filter (where q.deleted_at is not null))
+           from app.sms_summary_queue q where q.notification_delivery_id = (pg_temp.sms((select id from n where key = 'shift_settled'))).id),
+  '1|1', 'it opens one live row and retires the settled one');
 
 -- 5. A recipient's language and zone in the org, live values only -------------------------------------------------------
 create function pg_temp.profile(p_person text, p_org text) returns text
