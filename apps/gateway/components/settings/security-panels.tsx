@@ -328,7 +328,9 @@ function SessionsBlock({
               cancel={t(`${P}.sessions.cancel`)}
             />
           ) : (
-            <p className="m-0 text-text-13 text-text-secondary">{t(`${P}.sessions.none`)}</p>
+            <p role="status" className="m-0 text-text-13 text-text-secondary">
+              {t(`${P}.sessions.none`)}
+            </p>
           )}
         </>
       )}

@@ -54,7 +54,7 @@ select pg_temp.as_user('bob');
 insert into app.oauth_apps (org_id, name, redirect_uri)
 values (pg_temp.id('org_a'), 'Ledger Sync', 'https://ledger.example.test/callback');
 select pg_temp.as_platform();
-insert into world select 'app', a.id from app.oauth_apps a where a.name = 'Ledger Sync';
+insert into world select 'app', a.id from app.oauth_apps a where a.name = 'Ledger Sync' and a.org_id = pg_temp.id('org_a');
 insert into world select 'client', c.auth_client_id from private.oauth_app_clients c where c.oauth_app_id = pg_temp.id('app');
 
 select isnt(pg_temp.id('client'), null, 'a registered app gets a Supabase Auth client');

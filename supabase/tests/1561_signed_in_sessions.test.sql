@@ -8,7 +8,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0200_identity_world.psql
 
-select plan(31);
+select plan(32);
 
 create function pg_temp.new_session(p_user text, p_key text, p_age interval default interval '1 hour',
   p_client uuid default null) returns uuid
@@ -73,7 +73,8 @@ select is((select host(client_address) from private.session_devices where sessio
 select is((select client_address from private.session_devices where session_id = pg_temp.id('phone')), null,
   'text that is not an address is kept as unknown');
 select is((select place from private.session_devices where session_id = pg_temp.id('phone')), 'Porto', 'control characters are dropped');
-select is((select count(*)::int from private.session_devices), 2,
+select is(private.safe_inet('::ffff:198.51.100.8'), '198.51.100.8'::inet, 'an IPv4 client seen through an IPv6 socket is kept as IPv4');
+select is((select count(*)::int from private.session_devices where user_id = pg_temp.id('alice_user')), 2,
   'an unknown surface, an API key and a session that no longer exists record nothing');
 
 -- Listing ---------------------------------------------------------------------------------------------------------------

@@ -55,8 +55,15 @@ language plpgsql
 immutable
 set search_path = ''
 as $$
+declare
+  v_host text;
 begin
-  return host(btrim(p_value)::inet)::inet;
+  v_host := host(btrim(p_value)::inet);
+  -- An IPv4 client seen through an IPv6 socket (::ffff:a.b.c.d) is stored as the IPv4 address it is.
+  if v_host ~ '^::ffff:[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' then
+    v_host := substr(v_host, 8);
+  end if;
+  return v_host::inet;
 exception
   when invalid_text_representation or data_exception then
     return null;

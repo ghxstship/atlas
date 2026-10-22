@@ -216,7 +216,9 @@ async function SessionsPanel({ ctx }: SettingsPanelProps) {
         })}
       </ul>
       {others.length === 0 ? (
-        <p className="m-0 text-text-13 text-text-secondary">{t(`${P}.sessions.none`)}</p>
+        <p role="status" className="m-0 text-text-13 text-text-secondary">
+          {t(`${P}.sessions.none`)}
+        </p>
       ) : (
         <ConfirmAction
           action={signOutOtherSessionsAction}
