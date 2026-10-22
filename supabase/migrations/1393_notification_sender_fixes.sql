@@ -18,7 +18,8 @@
 --   5. Senders read the recipient's language and time zone in the org through app.recipient_setting. The platform
 --      read personal_setting_values directly with no deleted_at filter, no org and no order, so a cleared language or
 --      zone could still apply, a value kept for another org could win, the org's locale.language and its lock never
---      applied, and a missing zone fell back to UTC.
+--      applied, and a missing zone fell back to UTC. An org that locks locale.time_zone now gives every member its
+--      zone (private.recipient_time_zone ignored the lock).
 --   6. A sent text counts its billed segments toward the sms_segments meter, not one per text. The sender passes the
 --      count (Twilio's, else computed from the encoded body) to record_notification_delivery and record_sms_summary.
 
@@ -582,7 +583,37 @@ $$;
 
 comment on function app.claim_notification_deliveries(app.notification_channel, integer) is 'Worker API (service role): claims due deliveries of a channel with SKIP LOCKED. Quiet hours are checked again unless the kind is on the bypass list (ADR 0033 decision 35): a push waits until they end (Deferred), a text is held for the member''s summary (1367), in both cases no later than the opening of the kind''s bypass window, as for a shift starting within 12 hours (1393). Suppresses, with the reason, any delivery whose recipient neither belongs to the org nor works with it as an external party, has no verified address, is suppressed, lacks SMS consent or has no device. Push rows list the devices not yet pushed for the delivery (push_devices). A claimed delivery becomes due again after 10 minutes unless its outcome is recorded.';
 
--- 5. A recipient's own language and time zone --------------------------------------------------------------------------
+-- 5. A recipient's own language and time zone (private.recipient_time_zone from 1367) -------------------------------
+
+create or replace function private.recipient_time_zone(p_org_id uuid, p_person_id uuid, p_project_id uuid)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select coalesce(
+    (select s.time_zone from app.notification_settings s join app.memberships m on m.id = s.membership_id
+     where m.org_id = p_org_id and m.person_id = p_person_id and s.deleted_at is null and m.deleted_at is null
+     order by s.updated_at desc limit 1),
+    -- A locked organization zone wins over every lower scope (Section 4.5.6): the person's own and the projects' (1393).
+    (select v.value_text from app.setting_values v
+     where v.org_id = p_org_id and v.setting_key = 'locale.time_zone' and v.scope_kind = 'Organization'
+       and v.scope_id = p_org_id and v.locked and v.deleted_at is null),
+    (select pv.value_text from app.personal_setting_values pv
+     where pv.person_id = p_person_id and pv.setting_key = 'locale.time_zone' and pv.deleted_at is null
+       and (pv.org_id is null or pv.org_id = p_org_id)
+     order by pv.org_id nulls last limit 1),
+    (select pr.time_zone from app.projects pr where pr.id = p_project_id and pr.org_id = p_org_id),
+    (select pr.time_zone from app.engagements e join app.projects pr on pr.id = e.project_id
+     where e.person_id = p_person_id and e.org_id = p_org_id and e.deleted_at is null
+     order by (e.engagement_state = 'Active') desc, e.start_date desc nulls last limit 1),
+    (select v.value_text from app.setting_values v
+     where v.setting_key = 'locale.time_zone' and v.scope_kind = 'Organization' and v.scope_id = p_org_id and v.deleted_at is null),
+    (select pr.time_zone from app.projects pr where pr.org_id = p_org_id and pr.deleted_at is null order by pr.created_at desc, pr.id desc limit 1));
+$$;
+
+comment on function private.recipient_time_zone(uuid, uuid, uuid) is 'The time zone a person is reached in by an org (ADR 0033 decision 35), never UTC by default: their notification settings zone (the zone of their quiet hours), the org''s locale.time_zone when it is locked (1393), their own locale.time_zone, the zone of the project the notification is about, their engagement''s project zone, the org''s own locale.time_zone, then the org''s newest project. Null only for an org with no zone and no project.';
 
 create or replace function app.recipient_setting(p_person_id uuid, p_org_id uuid, p_setting_key text)
 returns text
@@ -593,7 +624,12 @@ set search_path = ''
 as $$
   select case
     when p_setting_key = 'locale.time_zone' and p_org_id is not null then
-      private.recipient_time_zone(p_org_id, p_person_id, null)
+      -- A locked organization zone is everyone's locale.time_zone in the org: copy shows times in it, even to a member
+      -- whose quiet hours keep a zone of their own.
+      coalesce((select v.value_text from app.setting_values v
+                where v.org_id = p_org_id and v.setting_key = 'locale.time_zone' and v.scope_kind = 'Organization'
+                  and v.scope_id = p_org_id and v.locked and v.deleted_at is null),
+        private.recipient_time_zone(p_org_id, p_person_id, null))
     when p_setting_key = 'locale.language' and p_org_id is not null then
       private.setting_text(p_org_id, 'locale.language', null, null, p_person_id)
     else
@@ -605,7 +641,7 @@ as $$
   end;
 $$;
 
-comment on function app.recipient_setting(uuid, uuid, text) is 'Sender API (service role): a person''s value of a personal setting as an org renders email, push and SMS to them (1393): their live value kept for this org over the one for every org, cleared (soft-deleted) values ignored; with no org, only the value for every org. In an org, locale.language is the one the org gives them (private.setting_text: a locked organization value, else their own, else the org''s, else en-US), and locale.time_zone the zone the org reaches them in (private.recipient_time_zone: their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. Otherwise null when they have none.';
+comment on function app.recipient_setting(uuid, uuid, text) is 'Sender API (service role): a person''s value of a personal setting as an org renders email, push and SMS to them (1393): their live value kept for this org over the one for every org, cleared (soft-deleted) values ignored; with no org, only the value for every org. In an org, locale.language is the one the org gives them (private.setting_text: a locked organization value, else their own, else the org''s, else en-US), and locale.time_zone the org''s zone when the org locks it, else the zone the org reaches them in (private.recipient_time_zone: their notification zone, their live locale.time_zone, then their projects'' and the org''s zones), never UTC by default. Otherwise null when they have none.';
 
 -- 6. Texts count their billed segments (record_notification_delivery from 0520, record_sms_summary from 1367) -----------
 
@@ -718,6 +754,7 @@ revoke all on function private.quiet_hours_bypass_opens(text, jsonb) from public
 revoke all on function private.hold_sms_for_summary(uuid, timestamptz, uuid, timestamptz) from public, anon, authenticated;
 revoke all on function app.claim_notification_deliveries(app.notification_channel, integer) from public, anon, authenticated;
 grant execute on function app.claim_notification_deliveries(app.notification_channel, integer) to service_role;
+revoke all on function private.recipient_time_zone(uuid, uuid, uuid) from public, anon, authenticated;
 revoke all on function app.recipient_setting(uuid, uuid, text) from public, anon, authenticated;
 grant execute on function app.recipient_setting(uuid, uuid, text) to service_role;
 revoke all on function app.record_notification_delivery(uuid, app.message_status, text, text, integer) from public, anon, authenticated;

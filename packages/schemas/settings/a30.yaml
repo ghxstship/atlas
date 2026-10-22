@@ -674,7 +674,7 @@ settings:
     help: settings.fields.oooReply.help
     pages: { personal: me.out-of-office }
     enforced_by:
-      - consumer: supabase/migrations/1325_out_of_office.sql#app.send_chat_message
+      - consumer: supabase/migrations/1393_notification_sender_fixes.sql#app.send_chat_message
         test: supabase/tests/1325_out_of_office.test.sql
 
   # Personal: keyboard shortcuts -------------------------------------------------------------------------------------------

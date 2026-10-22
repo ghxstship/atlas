@@ -1,7 +1,8 @@
 -- pgTAP: migration 1393, fixes to the notification dispatcher and the SMS senders (RRR-125): a Twilio status callback
 -- settles every held text a summary carried; held texts honor a category-scoped SMS suppression; every notification
--- names its actor; a held shift change goes once its bypass window opens; senders read the recipient's language and
--- zone in the org, live values only; texts count their billed segments. Zones are pinned with Etc/GMT offsets where
+-- names its actor, and an actor with no name reads as the org; a held shift change goes once its bypass window opens,
+-- and a released one held again never fails the sender's claim; senders read the recipient's language and zone in the
+-- org, live values only, and a locked org zone wins; texts count their billed segments. Zones are pinned with Etc/GMT offsets where
 -- it is now night (inside 21:00 to 08:00) or day, or with quiet hours relative to now, so the suite never depends on
 -- the clock.
 begin;
@@ -9,7 +10,7 @@ create extension if not exists pgtap with schema extensions;
 set search_path = extensions, public;
 \ir 0300_domain_world.psql
 
-select plan(43);
+select plan(48);
 
 -- A fixed-offset zone where it is now night (22:00 to 06:00) or day (10:00 to 16:00).
 create function pg_temp.zone(p_night boolean) returns text
@@ -292,6 +293,27 @@ select is(pg_temp.usage((select delivery_ids[1] from s3)), 'sms_segments 4', 'a 
 select app.record_notification_delivery((pg_temp.sms((select id from n where key = 'shift_later'))).id, 'Sent', 'SM-1393-zero', null, 0);
 select is(pg_temp.usage((pg_temp.sms((select id from n where key = 'shift_later'))).id), 'sms_segments 1',
   'a text never counts less than one segment');
+
+-- 7. An org that locks its time zone ----------------------------------------------------------------------------------------
+select pg_temp.as_user('erin');
+select app.set_personal_setting('locale.time_zone', null, 'Asia/Tokyo');
+select pg_temp.as_user('bob');
+select app.set_setting(pg_temp.id('org_a'), 'locale.time_zone', 'Organization', pg_temp.id('org_a'), 'America/Chicago', p_locked => true);
+select pg_temp.as_platform();
+select is(app.recipient_setting(pg_temp.id('erin'), pg_temp.id('org_a'), 'locale.time_zone'), 'America/Chicago',
+  'an org that locks its zone writes times to everyone in it in that zone, over their own');
+select is(private.recipient_time_zone(pg_temp.id('org_a'), pg_temp.id('erin'), null), 'America/Chicago',
+  'and measures their default quiet hours in it');
+select is(app.recipient_setting(pg_temp.id('dave'), pg_temp.id('org_a'), 'locale.time_zone'), 'America/Chicago',
+  'times are in it even for a member whose quiet hours keep a zone of their own');
+select is(private.recipient_time_zone(pg_temp.id('org_a'), pg_temp.id('dave'), null),
+  (select s.time_zone from app.notification_settings s where s.membership_id = pg_temp.id('dave@org_a')),
+  'whose quiet hours stay in that zone');
+select pg_temp.as_user('bob');
+select app.set_setting(pg_temp.id('org_a'), 'locale.time_zone', 'Organization', pg_temp.id('org_a'), 'America/Chicago', p_locked => false);
+select pg_temp.as_platform();
+select is(app.recipient_setting(pg_temp.id('erin'), pg_temp.id('org_a'), 'locale.time_zone'), 'Asia/Tokyo',
+  'once unlocked, the person''s own zone applies again');
 
 select * from finish();
 rollback;
