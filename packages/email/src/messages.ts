@@ -1,11 +1,20 @@
 import { IntlMessageFormat } from "intl-messageformat";
-import { getMessages, type Locale } from "@xos/i18n";
+import type { Locale } from "@xos/i18n/locales";
+import enUS from "@xos/i18n/messages/en-US/email.json" with { type: "json" };
+import esUS from "@xos/i18n/messages/es-US/email.json" with { type: "json" };
 
 /** Values an ICU message argument accepts. */
 export type MessageValue = string | number | Date;
 export type MessageArgs = Readonly<Record<string, MessageValue>>;
 
 type Tree = { readonly [key: string]: string | Tree };
+
+/**
+ * The email namespace of each locale's catalog, read from its own file: email code loads this
+ * namespace only, never the whole catalog of every surface (A85, Edge Function cold starts). The
+ * catalog check keeps es-US to exactly the keys of en-US.
+ */
+const catalogs: Readonly<Record<Locale, Tree>> = { "en-US": enUS, "es-US": esUS };
 
 function lookup(tree: Tree, path: readonly string[]): string | undefined {
   let node: string | Tree | undefined = tree;
@@ -18,7 +27,7 @@ function lookup(tree: Tree, path: readonly string[]): string | undefined {
 
 /** The `email` namespace of a locale's catalog: the only home of email copy (Section 3.15). */
 export function emailCatalog(locale: Locale): Tree {
-  const catalog = (getMessages(locale) as unknown as Tree)["email"];
+  const catalog = catalogs[locale] as Tree | undefined;
   if (typeof catalog !== "object") throw new Error(`The ${locale} catalog has no email namespace`);
   return catalog;
 }

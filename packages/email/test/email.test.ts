@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { locales } from "@xos/i18n";
 import {
@@ -15,12 +15,12 @@ import {
   recipientAllowed,
   renderEmail,
   sendEmail,
-  templates,
   type ResendClient,
   type Sender,
   type TemplateCode,
   type TemplateProps,
 } from "../src/index.ts";
+import { templates } from "../src/templates/index.tsx";
 import { color, layout, radius, space, stroke, text } from "../src/theme.ts";
 
 const sender: Sender = {
@@ -78,6 +78,15 @@ const samples: { readonly [C in TemplateCode]: TemplateProps[C] } = {
     receivedAt: when,
     dueAt: new Date("2026-12-03T15:30:00Z"),
   },
+  subprocessor_confirm: {
+    confirmUrl: "https://atlas.xos.test/legal/subprocessors?confirm=xspn_test",
+  },
+  subprocessor_notice: {
+    listVersion: "1.1.0",
+    summary: "Adds Example Mail Inc. (United States) to receive inbound email for project inboxes.",
+    effectiveOn: new Date("2026-12-01T12:00:00Z"),
+    listUrl: "https://atlas.xos.test/legal/subprocessors",
+  },
 };
 
 /** Notification kinds seeded in migrations 0520 and 0560, the database side of the catalog. */
@@ -96,22 +105,25 @@ function seededKinds(): string[] {
   return [...base, ...billing];
 }
 
-/** Template codes seeded in private.email_templates. */
+/** Template codes seeded in private.email_templates, by 0520 and by later migrations (1382). */
 function seededTemplates(): Map<string, boolean> {
-  const sql = readFileSync(
-    new URL("../../../supabase/migrations/0520_notifications.sql", import.meta.url),
-    "utf8",
-  );
-  const block = sql.slice(
-    sql.indexOf("insert into private.email_templates"),
-    sql.indexOf("create table private.notification_templates"),
-  );
-  return new Map(
-    [...block.matchAll(/\('([a-z_]+)', '[^']*(?:''[^']*)*', (true|false)\)/g)].map((m) => [
-      m[1] ?? "",
-      m[2] === "true",
-    ]),
-  );
+  const dir = new URL("../../../supabase/migrations/", import.meta.url);
+  const out = new Map<string, boolean>();
+  for (const file of readdirSync(dir)
+    .filter((f) => f.endsWith(".sql"))
+    .sort()) {
+    const sql = readFileSync(new URL(file, dir), "utf8");
+    let at = sql.indexOf("insert into private.email_templates");
+    while (at !== -1) {
+      const end = sql.indexOf(";", at);
+      const block = sql.slice(at, end);
+      for (const m of block.matchAll(/\('([a-z_]+)', '[^']*(?:''[^']*)*', (true|false)\)/g)) {
+        out.set(m[1] ?? "", m[2] === "true");
+      }
+      at = sql.indexOf("insert into private.email_templates", end);
+    }
+  }
+  return out;
 }
 
 describe("theme", () => {

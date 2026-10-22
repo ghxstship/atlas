@@ -1,5 +1,5 @@
-import { formatMessage, type MessageArgs } from "@xos/email";
-import { isLocale, type Locale } from "@xos/i18n";
+import { formatMessage, type MessageArgs } from "@xos/email/messages";
+import { isLocale, type Locale } from "@xos/i18n/locales";
 import { copyKeys } from "@xos/schemas/notifications";
 
 /** An ISO 8601 instant, which message arguments carry for `{x, date}` and `{x, time}` formats. */

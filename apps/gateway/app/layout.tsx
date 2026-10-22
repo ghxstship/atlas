@@ -7,6 +7,7 @@ import appIcon from "@xos/ui/brand/app-icon.svg";
 import favicon from "@xos/ui/brand/favicon.svg";
 import { themeColors } from "@xos/ui/pwa";
 import { PwaRuntime } from "@/components/pwa/pwa-runtime";
+import { CookieBanner } from "@/components/privacy/cookie-banner";
 import { ThemeFollower, XOSProvider } from "@/components/ui";
 import { localeDirection } from "@/i18n/negotiate";
 import { clientMessages, negotiatedLocale, uiMessages } from "@/i18n/request";
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             {...(overrides ? { messages: overrides } : {})}
           >
             {preference === "system" ? <ThemeFollower /> : null}
+            <CookieBanner />
             {children}
             <PwaRuntime analytics={analytics} />
           </XOSProvider>

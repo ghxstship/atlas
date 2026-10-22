@@ -14,9 +14,10 @@
 //     XOS_SMS_DELIVER_TO_ANY=true; recorded otherwise. Twilio posts delivery status to sms-webhook. Texts held by
 //     quiet hours go out as one summary per member and org when the quiet hours end (ADR 0033 decision 35).
 // One channel failing never stops the others: its error is logged and reported in the answer.
+// React Email, the templates and Resend load only when an email is rendered or sent (A85), so the many runs
+// with nothing due boot without them.
 import {
   checkPushReceipts,
-  createLogger,
   createPushClient,
   createSmsProvider,
   createWebPushClient,
@@ -25,7 +26,6 @@ import {
   dispatchPush,
   dispatchSms,
   dispatchSmsSummaries,
-  identityFromEnv,
   notificationStore,
   pushStore,
   readEmailEnv,
@@ -34,7 +34,8 @@ import {
   readWebPushEnv,
   smsStore,
   webPushStore,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/notification-dispatch.js";
+import { createLogger, identityFromEnv } from "../_vendor/core.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 const logger = createLogger(identityFromEnv("edge.notification-dispatch", Deno.env.toObject()));
