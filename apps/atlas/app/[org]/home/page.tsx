@@ -12,7 +12,6 @@ import { getTranslate } from "@/lib/shell/translate";
 import { formatAlert } from "@/components/home/format-alert";
 import { HomeTiles } from "@/components/home/home-tiles";
 import { loadHomeTiles } from "@/lib/home/data";
-import { getOrgTimeZone } from "@/lib/shell/time-zone";
 
 /**
  * Home (Dashboard template, Section 11.6). A new org sees the first-run checklist of Section 11.7
@@ -70,8 +69,7 @@ export default async function HomePage({ params }: PageProps<"/[org]/home">) {
     typeof formatAlert
   >[0];
   const now = new Date();
-  // An overdue record's due date reads on the org's calendar, like the alerts' "today" (A71).
-  const zone = projectTiles ? await getOrgTimeZone(ctx) : "UTC";
+  // An overdue record's due date reads on the org's calendar (zone, above), like the alerts' "today" (A71).
   const tileText = projectTiles
     ? {
         alerts: Object.fromEntries(
