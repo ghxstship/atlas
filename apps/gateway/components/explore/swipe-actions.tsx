@@ -72,6 +72,7 @@ export function SwipeActions({
   const [error, setError] = useState(false);
   const origin = useRef<{ x: number; y: number; id: number } | null>(null);
   const dragged = useRef(false);
+  const travel = useRef(0);
   const [touch, setTouch] = useState(false);
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export function SwipeActions({
   function onPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (event.pointerType !== "touch" || pending) return;
     origin.current = { x: event.clientX, y: event.clientY, id: event.pointerId };
+    travel.current = 0;
     dragged.current = false;
   }
 
@@ -128,11 +130,15 @@ export function SwipeActions({
     if (!dragged.current && (Math.abs(x) < 12 || Math.abs(x) < Math.abs(y))) return;
     dragged.current = true;
     const allowed = (x > 0 && right) || (x < 0 && left) ? x : 0;
-    setDx(Math.max(-MAX_DRAG, Math.min(MAX_DRAG, allowed)));
+    travel.current = Math.max(-MAX_DRAG, Math.min(MAX_DRAG, allowed));
+    setDx(travel.current);
   }
 
   function onPointerEnd() {
-    const travelled = dx;
+    // The ref, not the dx state: a fast swipe ends before React renders the last move, so the state
+    // this handler closed over can still read 0.
+    const travelled = travel.current;
+    travel.current = 0;
     origin.current = null;
     setDx(0);
     if (travelled >= THRESHOLD) run(right);
