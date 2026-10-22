@@ -463,6 +463,54 @@ var NOTIFICATION_KINDS = [
       body: "kinds.help_request.assigned.body",
     },
   },
+  {
+    kind: "opportunity.matched",
+    category: "opportunities",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "Push"],
+    copy: {
+      subject: "kinds.opportunity.matched.subject",
+      body: "kinds.opportunity.matched.body",
+    },
+  },
+  {
+    kind: "onboarding.item_expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.onboarding.item_expiring.subject",
+      body: "kinds.onboarding.item_expiring.body",
+    },
+  },
+  {
+    kind: "certification.expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.certification.expiring.subject",
+      body: "kinds.certification.expiring.body",
+    },
+  },
+  {
+    kind: "document.expiring",
+    category: "expiry_reminders",
+    emailTemplate: "notification",
+    pushCategory: null,
+    quietHoursBypass: null,
+    channels: ["In App", "Email", "SMS", "Push"],
+    copy: {
+      subject: "kinds.document.expiring.subject",
+      body: "kinds.document.expiring.body",
+    },
+  },
 ];
 //#endregion
 //#region ../schemas/src/notifications/model.ts
