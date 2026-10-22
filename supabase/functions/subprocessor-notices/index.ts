@@ -9,7 +9,7 @@ import {
   dispatchPlatformEmails,
   platformEmailStore,
   readEmailEnv,
-} from "../_vendor/xos-platform.js";
+} from "../_vendor/subprocessor-notices.js";
 import { env, hasBearer, json, serve, serviceDb } from "../_shared/runtime.ts";
 
 serve(async (request) => {

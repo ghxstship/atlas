@@ -1,8 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import {
-  deletionCertificateFileName,
-  type DeletionCertificateData,
-} from "./documents/deletion-certificate.ts";
+import { deletionCertificateFileName } from "./documents/deletion-certificate-name.ts";
+import type { DeletionCertificateData } from "./documents/deletion-certificate.ts";
 import { DELETION_CERTIFICATES_BUCKET } from "./org-lifecycle.ts";
 import type { ReportMailer } from "./report-deliveries.ts";
 
