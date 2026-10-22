@@ -62,7 +62,10 @@ test("the command menu lists recents, reads operators and reaches a setting in o
   await expect(records.getByRole("option").first()).toContainText("Special Event Permit");
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/peek=NWS-9/, { timeout: 60_000 });
+  const peek = page.getByRole("dialog", { name: "Special Event Permit" });
+  await expect(peek).toBeVisible({ timeout: 60_000 });
   await page.keyboard.press("Escape");
+  await expect(peek).toBeHidden({ timeout: 30_000 });
 
   // A quoted phrase and a minus word: "load in" without the Stage Load-In Complete milestone.
   menu = await openMenu(page);
@@ -74,13 +77,11 @@ test("the command menu lists recents, reads operators and reaches a setting in o
   await expect(menu.getByText("Stagehand · Load-in")).toBeVisible();
 
   // An operator the menu does not understand says so.
-  await page.keyboard.press("ControlOrMeta+a");
-  await page.keyboard.type("before:someday");
+  await menu.getByRole("combobox").fill("before:someday");
   await expect(menu.getByText("before:someday is not understood")).toBeVisible();
 
   // Any setting in one search: "time zone" opens Localization with the field focused.
-  await page.keyboard.press("ControlOrMeta+a");
-  await page.keyboard.type("time zone");
+  await menu.getByRole("combobox").fill("time zone");
   const settings = menu.getByRole("group", { name: "Settings" });
   await expect(settings.getByRole("option").first()).toContainText("Time zone", {
     timeout: 60_000,
@@ -108,10 +109,12 @@ test("operator hints fill the search field and the menu passes axe in both theme
     await expect(hint).toBeVisible();
     await expectAccessible(page);
     if (theme === "dark") {
-      // Keyboard only: arrow past the recent items to the first hint and press Enter; the menu stays
-      // open with type: in the search field.
-      const recents = await menu.getByRole("group", { name: "Recent" }).getByRole("option").count();
-      for (let i = 0; i < recents; i += 1) await page.keyboard.press("ArrowDown");
+      // Keyboard only: the first hint, then Enter; the menu stays open with type: in the search field.
+      // The server's recent items and actions come first; arrow down until the first hint is highlighted.
+      await expect(menu.getByRole("group", { name: "Recent" })).toBeVisible({ timeout: 60_000 });
+      for (let i = 0; i < 80 && (await hint.getAttribute("aria-selected")) !== "true"; i += 1) {
+        await page.keyboard.press("ArrowDown");
+      }
       await expect(hint).toHaveAttribute("aria-selected", "true");
       await page.keyboard.press("Enter");
       await expect(menu.getByRole("combobox")).toHaveValue("type:");
@@ -166,8 +169,10 @@ test("semantic search finds a document by meaning once an Admin turns it on", as
     await expect(box).toBeFocused({ timeout: 60_000 });
     if ((await box.isChecked()) !== on) {
       await page.keyboard.press("Space");
-      await page.getByRole("button", { name: "Save" }).click();
-      await expect(page.getByText("Saved")).toBeVisible({ timeout: 60_000 });
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      await expect(page.getByRole("status").filter({ hasText: /^Saved\.?$/ })).toBeVisible({
+        timeout: 60_000,
+      });
     }
   };
 
@@ -194,15 +199,18 @@ test("semantic search finds a document by meaning once an Admin turns it on", as
         .then(() => true)
         .catch(() => false);
       if (found) break;
-      await page.keyboard.press("ControlOrMeta+a");
-      await page.keyboard.type(query);
+      await menu.getByRole("combobox").fill(query);
     }
     const hit = documents.getByRole("option", { name: new RegExp(title) });
     await expect(hit).toContainText("Related");
     await page.keyboard.press("Escape");
-  } finally {
-    await toggle(false);
+
     // Turning it off retires the org's vectors on the next worker pass.
+    await toggle(false);
     expect((await worker()).retired).toBeGreaterThan(0);
+  } finally {
+    // Leave the shared seed as it was even when a step above failed, without hiding that failure.
+    await toggle(false).catch(() => undefined);
+    await worker().catch(() => undefined);
   }
 });

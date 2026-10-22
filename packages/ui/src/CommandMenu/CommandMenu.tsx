@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from "react";
+import { useState, type ReactElement, type ReactNode } from "react";
 import { Command } from "cmdk";
 import { Dialog as RDialog } from "radix-ui";
 import type {
@@ -62,12 +62,26 @@ function Palette({
   const selected = groups.flatMap((g) =>
     g.items.filter((i) => i.selected).map((i) => itemValue(g.label, i)),
   )[0];
+  // With server results (filter off) nothing re-ranks the list, so a new search, or new results for it,
+  // move the highlight to the first item, and Enter runs what the person sees first.
+  const lead =
+    selected ?? groups.flatMap((g) => g.items.map((i) => itemValue(g.label, i)))[0] ?? "";
+  const [highlight, setHighlight] = useState(lead);
+  const [highlightFor, setHighlightFor] = useState(`${search}\u0000${lead}`);
+  if (!filter && highlightFor !== `${search}\u0000${lead}`) {
+    setHighlightFor(`${search}\u0000${lead}`);
+    setHighlight(lead);
+  }
   return (
     <Command
       label={label ?? t("command.label")}
       shouldFilter={filter}
       loop
-      {...(selected ? { defaultValue: selected } : {})}
+      {...(filter
+        ? selected
+          ? { defaultValue: selected }
+          : {}
+        : { value: highlight, onValueChange: setHighlight })}
       className={cx(panelClass, "xos-anim-dialog w-(--ui-command) overflow-hidden")}
     >
       <div className="flex items-center gap-8 h-(--ui-cmd-input) px-16 border-b border-border-subtle text-text-14">

@@ -483,6 +483,32 @@ describe("CommandMenu", () => {
     expect(within(dialog).getByText("Filters: type:")).toBeTruthy();
     await expectAccessible(document.body);
   });
+
+  it("moves the highlight to the first of new server results, so Enter runs it", async () => {
+    const openRecent = vi.fn();
+    const openPermit = vi.fn();
+    function App() {
+      const [query, setQuery] = useStateHook("");
+      const groups: CommandMenuProps["groups"] =
+        query === ""
+          ? [{ label: "Recent", items: [{ label: "Production Meeting", onSelect: openRecent }] }]
+          : [
+              {
+                label: "Records",
+                items: [{ label: "Special Event Permit", onSelect: openPermit }],
+              },
+            ];
+      return <CommandMenu filter={false} query={query} onQueryChange={setQuery} groups={groups} />;
+    }
+    render(<App />);
+    await userEvent.type(screen.getByRole("combobox"), "permit");
+    expect(
+      screen.getByRole("option", { name: "Special Event Permit" }).getAttribute("aria-selected"),
+    ).toBe("true");
+    await userEvent.keyboard("{Enter}");
+    expect(openPermit).toHaveBeenCalled();
+    expect(openRecent).not.toHaveBeenCalled();
+  });
 });
 
 describe("Tabs, SegmentedControl and Accordion", () => {
