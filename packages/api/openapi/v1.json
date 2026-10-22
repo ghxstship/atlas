@@ -34571,6 +34571,20 @@
         "required": ["name", "slug", "owner_email"],
         "description": "Creates a client organization under the caller's partner organization (Section 4.6.1)."
       },
+      "LeavePartnerRequest": {
+        "type": "object",
+        "properties": {
+          "confirm_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The org's name, typed exactly.",
+            "example": "Tidewater Events"
+          }
+        },
+        "required": ["confirm_name"],
+        "description": "Confirmation of leaving the partner."
+      },
       "MembershipPage": {
         "type": "object",
         "properties": {
@@ -35963,6 +35977,29 @@
             "format": "uuid",
             "description": "Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.",
             "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "provisioning_status": {
+            "type": "string",
+            "enum": ["Not Started", "Requested", "Pending DNS", "Active", "Failed", "Released"],
+            "description": "Where the domain stands at its provider.",
+            "example": "Pending DNS"
+          },
+          "dns_records": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DomainDnsRecord" },
+            "description": "DNS records to publish for the provider."
+          },
+          "tls_ready": {
+            "type": "boolean",
+            "description": "True once the provider issued the TLS certificate.",
+            "example": false
+          },
+          "provisioning_error": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Why the latest provisioning step failed.",
+            "example": "Vercel returned 400"
           }
         },
         "required": [
@@ -35977,9 +36014,48 @@
           "verification_state",
           "verification_token",
           "last_checked_at",
-          "auto_join_role_id"
+          "auto_join_role_id",
+          "provisioning_status",
+          "dns_records",
+          "tls_ready",
+          "provisioning_error"
         ],
         "description": "A verified email domain with automatic join and a default role."
+      },
+      "DomainDnsRecord": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10,
+            "description": "DNS record type.",
+            "example": "CNAME"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 253,
+            "description": "Host the record is published at.",
+            "example": "atlas.northwindlive.example"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "description": "Record value.",
+            "example": "cname.vercel-dns.com"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20,
+            "description": "What the record is for: routing, verification, spf, dkim, dmarc or receiving.",
+            "example": "routing"
+          }
+        },
+        "required": ["type", "name", "value", "purpose"],
+        "description": "A DNS record the org publishes for a custom domain's provider."
       },
       "VerifiedDomainCreate": {
         "type": "object",
@@ -36874,6 +36950,12 @@
             "description": "Subscription status as Stripe reports it; read_only after the grace period.",
             "example": "trialing"
           },
+          "trial_ends_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the subscription's trial ends; null when it never had one.",
+            "example": "2026-10-08T14:30:00Z"
+          },
           "extra_seats": {
             "type": "integer",
             "minimum": 0,
@@ -36895,6 +36977,7 @@
           "updated_by",
           "plan_code",
           "subscription_state",
+          "trial_ends_at",
           "extra_seats",
           "seats_grandfathered"
         ],
@@ -52601,6 +52684,1190 @@
         },
         "required": ["period_start"],
         "description": "The month to bill."
+      },
+      "OwnershipTransferPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OwnershipTransfer" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "OwnershipTransfer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the ownership transfer.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "from_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Owner who offered the org.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "to_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member the org is offered to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "previous_owner_outcome": {
+            "type": "string",
+            "enum": ["admin", "leave"],
+            "description": "What happens to the Owner who offered on acceptance.",
+            "example": "admin"
+          },
+          "offered_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the offer was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When an unanswered offer lapses, 7 days after it was made.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "accepted_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the member accepted and became an Owner.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "declined_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the member declined.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "canceled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When an Owner withdrew the offer.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "canceled_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Owner who withdrew it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "expired_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the lifecycle job lapsed the unanswered offer.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "from_person_id",
+          "to_person_id",
+          "previous_owner_outcome",
+          "offered_at",
+          "expires_at",
+          "accepted_at",
+          "declined_at",
+          "canceled_at",
+          "canceled_by",
+          "expired_at"
+        ],
+        "description": "An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited."
+      },
+      "OwnershipTransferOfferRequest": {
+        "type": "object",
+        "properties": {
+          "to_person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the member to offer the org to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "previous_owner_outcome": {
+            "type": "string",
+            "enum": ["admin", "leave"],
+            "description": "What happens to the offering Owner on acceptance.",
+            "example": "admin"
+          }
+        },
+        "required": ["to_person_id", "previous_owner_outcome"],
+        "description": "An ownership offer."
+      },
+      "OrgDeletionRequestPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/OrgDeletionRequest" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "OrgDeletionRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org deletion request.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the org is deleted, in the Owner's words.",
+            "example": "We are closing down."
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the Owner asked for deletion.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "recover_until": {
+            "type": "string",
+            "format": "date-time",
+            "description": "End of the 7-day recovery window.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "requested_by": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the Owner who asked for deletion.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "recovered_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When an Owner recovered the org.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "recovered_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the Owner who recovered it.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "reason",
+          "requested_at",
+          "recover_until",
+          "requested_by",
+          "recovered_at",
+          "recovered_by"
+        ],
+        "description": "An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate."
+      },
+      "OrgDeletionRequestCreate": {
+        "type": "object",
+        "properties": {
+          "confirm_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "The org's name, typed exactly.",
+            "example": "Harbor Lights Productions"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Why the org is deleted.",
+            "example": "We are closing down."
+          }
+        },
+        "required": ["confirm_name", "reason"],
+        "description": "A deletion request."
+      },
+      "DeletionCertificatePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/DeletionCertificate" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "DeletionCertificate": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the deletion certificate.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "deleted_org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Id the deleted org had.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "Name of the org when it was deleted.",
+            "example": "Harbor Lights Productions"
+          },
+          "org_slug": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Web address of the org when it was deleted.",
+            "example": "harbor-lights"
+          },
+          "basis": {
+            "type": "string",
+            "enum": ["cancellation", "deletion_request"],
+            "description": "Day 90 of a cancellation, or the end of a deletion request's recovery window.",
+            "example": "cancellation"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the Owner canceled or asked for deletion.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "due_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the data became due for deletion.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "purged_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When every row of the org was deleted.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "tables_purged": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Tables rows were deleted from.",
+            "example": 41
+          },
+          "rows_purged": {
+            "type": ["integer", "null"],
+            "minimum": 0,
+            "description": "Rows deleted.",
+            "example": 1820
+          },
+          "storage_objects_deleted": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Stored files deleted.",
+            "example": 12
+          },
+          "document_sha256": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 64,
+            "description": "SHA-256 of the certificate PDF.",
+            "example": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"
+          },
+          "issued_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the certificate PDF was stored.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "delivered_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the certificate was emailed to the former Owner.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "deleted_org_id",
+          "org_name",
+          "org_slug",
+          "basis",
+          "requested_at",
+          "due_at",
+          "purged_at",
+          "tables_purged",
+          "rows_purged",
+          "storage_objects_deleted",
+          "document_sha256",
+          "issued_at",
+          "delivered_at"
+        ],
+        "description": "The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas."
+      },
+      "PartnerStandingGrantPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PartnerStandingGrant" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "PartnerStandingGrant": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the partner standing grant.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "partner_org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the partner org whose staff may read.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "capability_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "The scope: one read capability a support session may grant.",
+            "example": "org.settings.read"
+          },
+          "agreement_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The clause of the agreement that provides the grant.",
+            "example": "Partner agreement, clause 7.2"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access began.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When access ends on its own.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "record_grant_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the org-level record grant the standing grant issued.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "ended_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When someone ended the grant early.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "ended_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who ended it early.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "partner_org_id",
+          "capability_code",
+          "agreement_reference",
+          "valid_from",
+          "valid_to",
+          "record_grant_id",
+          "ended_at",
+          "ended_by"
+        ],
+        "description": "A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one."
+      },
+      "PartnerStandingGrantRecordRequest": {
+        "type": "object",
+        "properties": {
+          "capability_code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$",
+            "description": "The read capability the grant covers.",
+            "example": "org.settings.read"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the grant ends, within a year.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "agreement_reference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300,
+            "description": "The clause of the agreement.",
+            "example": "Partner agreement, clause 7.2"
+          }
+        },
+        "required": ["capability_code", "valid_to", "agreement_reference"],
+        "description": "A standing grant to record."
+      },
+      "ShareLinkPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ShareLink" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ShareLink": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the share link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attachment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the file the link shares.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "attachment_version_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Clean version the link opens, set from the file's current version.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "classification": { "$ref": "#/components/schemas/Classification" },
+          "access_code_required": {
+            "type": "boolean",
+            "description": "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+            "example": false
+          },
+          "recipient_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Who the link is for, lowercased. Required for a Confidential file.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for.",
+            "example": "Stage plot for the venue"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "failed_attempts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Wrong access codes entered; the link locks at 5.",
+            "example": 0
+          },
+          "open_count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Successful opens.",
+            "example": 2
+          },
+          "last_opened_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was last opened.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link was revoked; it never opens again.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "revoked_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who revoked the link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "attachment_id",
+          "attachment_version_id",
+          "classification",
+          "access_code_required",
+          "recipient_email",
+          "note",
+          "expires_at",
+          "failed_attempts",
+          "open_count",
+          "last_opened_at",
+          "revoked_at",
+          "revoked_by"
+        ],
+        "description": "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links."
+      },
+      "ShareLinkToken": {
+        "type": "object",
+        "properties": {
+          "share_link_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The new link.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token": {
+            "type": "string",
+            "pattern": "^xshr_[0-9a-f]{64}$",
+            "description": "The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.",
+            "example": "xshr_0000000000000000000000000000000000000000000000000000000000000000"
+          },
+          "access_code": {
+            "type": ["string", "null"],
+            "pattern": "^[0-9]{6}$",
+            "description": "The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.",
+            "example": "042424"
+          },
+          "classification": { "$ref": "#/components/schemas/Classification" },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link stops opening.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["share_link_id", "token", "access_code", "classification", "expires_at"],
+        "description": "A new share link with its token and access code, shown once."
+      },
+      "ShareLinkCreate": {
+        "type": "object",
+        "properties": {
+          "attachment_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the file the link shares.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "access_code_required": {
+            "type": "boolean",
+            "description": "True when the link asks for a 6-digit access code; always true for a Confidential file.",
+            "example": false
+          },
+          "recipient_email": {
+            "type": ["string", "null"],
+            "format": "email",
+            "description": "Who the link is for, lowercased. Required for a Confidential file.",
+            "example": "alex.rivera@northwindlive.example"
+          },
+          "note": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "What the link is for.",
+            "example": "Stage plot for the venue"
+          },
+          "expires_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": ["attachment_id"],
+        "description": "Fields accepted when creating a ShareLink."
+      },
+      "PersonCalendarFeedPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonCalendarFeed" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "PersonCalendarFeed": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person calendar feed.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "person_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the person who owns the feed; always the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "token_hint": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4,
+            "description": "Last four characters of the token.",
+            "example": "a1b2"
+          },
+          "last_accessed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Last time a calendar fetched the feed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "rotated_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the token was last replaced.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "created_at",
+          "updated_at",
+          "person_id",
+          "token_hint",
+          "last_accessed_at",
+          "rotated_at"
+        ],
+        "description": "A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good."
+      },
+      "ProjectInboxPage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/ProjectInbox" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "ProjectInbox": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project inbox.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the inbox belongs to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "local_part": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 63,
+            "description": "Part before the @ of the receiving domain: the project key and a random suffix.",
+            "example": "nwl-0a1b2c3d4e"
+          },
+          "disabled_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the address stopped accepting mail.",
+            "example": "2026-10-08T14:30:00Z"
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "project_id",
+          "local_part",
+          "disabled_at"
+        ],
+        "description": "A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled."
+      },
+      "ProjectInboxCreate": {
+        "type": "object",
+        "properties": {
+          "project_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the project the inbox is for.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "required": ["project_id"],
+        "description": "The project to give an inbox."
+      },
+      "InboundMessagePage": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/InboundMessage" },
+            "description": "Items on this page, in the documented default order."
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page; null on the last page.",
+            "example": "eyJpZCI6IjAxOTJmMWUyIn0"
+          }
+        },
+        "required": ["data", "next_cursor"],
+        "description": "One page of results with a cursor to the next page."
+      },
+      "InboundMessage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the inbound message.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "org_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the owning organization, derived from the parent row and never accepted from the caller.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was created.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "created_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who created the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the row was last updated.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "updated_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who last updated the row.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": ["Project Inbox", "Reply"],
+            "description": "What the mail was sent to.",
+            "example": "Project Inbox"
+          },
+          "inbound_address_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the project inbox the mail was sent to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "from_address": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 320,
+            "description": "Sender address.",
+            "example": "rigging@bayside-audio.test"
+          },
+          "subject_line": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 998,
+            "description": "Subject.",
+            "example": "Rigging plot v4"
+          },
+          "body_text": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 20000,
+            "description": "Plain-text body with quoted text stripped.",
+            "example": "Updated plot attached."
+          },
+          "dkim_verified": {
+            "type": "boolean",
+            "description": "True when the sender's DKIM signature verified.",
+            "example": true
+          },
+          "inbound_status": {
+            "type": "string",
+            "enum": ["Received", "Verified", "Filed", "Rejected"],
+            "description": "Processing status.",
+            "example": "Verified"
+          },
+          "rejection_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the mail was rejected.",
+            "example": "DKIM failed."
+          },
+          "received_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the mail arrived.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "filed_document_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the document the mail was filed as.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "filed_record_id": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the record of the project the mail was filed to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "filed_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who filed the mail.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "filed_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the mail was filed.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "discarded_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the mail was discarded.",
+            "example": "2026-10-08T14:30:00Z"
+          },
+          "discarded_by": {
+            "type": ["string", "null"],
+            "format": "uuid",
+            "description": "Identifier of the person who discarded the mail.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          },
+          "discard_reason": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the mail was discarded.",
+            "example": "Spam."
+          }
+        },
+        "required": [
+          "id",
+          "org_id",
+          "created_at",
+          "created_by",
+          "updated_at",
+          "updated_by",
+          "purpose",
+          "inbound_address_id",
+          "from_address",
+          "subject_line",
+          "body_text",
+          "dkim_verified",
+          "inbound_status",
+          "rejection_reason",
+          "received_at",
+          "filed_document_id",
+          "filed_record_id",
+          "filed_by",
+          "filed_at",
+          "discarded_at",
+          "discarded_by",
+          "discard_reason"
+        ],
+        "description": "Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason."
+      },
+      "InboundMessageFileRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "description": "Document title; the subject when omitted.",
+            "example": "Rigging plot v4"
+          },
+          "record_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Identifier of the record of the project to file the mail to.",
+            "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+          }
+        },
+        "description": "How to file the mail."
+      },
+      "InboundMessageDiscardRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Why the mail is discarded.",
+            "example": "Spam."
+          }
+        },
+        "description": "Why the mail is discarded."
       },
       "WorkforceGroupPage": {
         "type": "object",
@@ -112233,7 +113500,7 @@
         "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
         "x-xos-rpc": "app.create_organization",
         "summary": "Create an organization",
-        "description": "Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "description": "Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
         "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
@@ -112441,6 +113708,58 @@
                   "invite_token": "xinv_3f9a1c0d7e2b4a6f8c1d0e9b7a5c3f1e"
                 },
                 "schema": { "$ref": "#/components/schemas/CreateClientOrganizationResult" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/organizations/leave-partner": {
+      "post": {
+        "operationId": "organizations.leavePartner",
+        "tags": ["Identity"],
+        "x-xos-table": "app.organizations",
+        "x-xos-capability": "org.billing.manage",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "leave_partner",
+        "summary": "Leave the partner",
+        "description": "The client Owner (org.billing.manage) types the bound org's name; the org leaves its partner and becomes a direct customer (app.leave_partner). Its rendered brand becomes its own, the partner's support sessions and standing grants end, and billing moves to the org as a 14-day trial of the same plan that stays once a card is added. Data and members are untouched. An org without a partner answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "confirm_name": "Tidewater Events" },
+              "schema": { "$ref": "#/components/schemas/LeavePartnerRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "name": "Northwind Live",
+                  "slug": "northwind-live",
+                  "parent_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "organization_type": "For-Profit"
+                },
+                "schema": { "$ref": "#/components/schemas/Organization" }
               }
             }
           },
@@ -115114,7 +116433,18 @@
                       "verification_state": "Pending",
                       "verification_token": "xos-verify=6f1c2d",
                       "last_checked_at": "2026-10-08T14:30:00Z",
-                      "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                      "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "provisioning_status": "Pending DNS",
+                      "dns_records": [
+                        {
+                          "type": "CNAME",
+                          "name": "atlas.northwindlive.example",
+                          "value": "cname.vercel-dns.com",
+                          "purpose": "routing"
+                        }
+                      ],
+                      "tls_ready": false,
+                      "provisioning_error": "Vercel returned 400"
                     }
                   ],
                   "next_cursor": null
@@ -115173,7 +116503,18 @@
                   "verification_state": "Pending",
                   "verification_token": "xos-verify=6f1c2d",
                   "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -115234,7 +116575,18 @@
                   "verification_state": "Pending",
                   "verification_token": "xos-verify=6f1c2d",
                   "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -115301,7 +116653,18 @@
                   "verification_state": "Pending",
                   "verification_token": "xos-verify=6f1c2d",
                   "last_checked_at": "2026-10-08T14:30:00Z",
-                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
                 },
                 "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
               }
@@ -115342,6 +116705,80 @@
           "204": { "description": "The verified domain moved to Trash." },
           "401": { "$ref": "#/components/responses/Unauthorized" },
           "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/verified-domains/{id}/check": {
+      "post": {
+        "operationId": "verifiedDomains.check",
+        "tags": ["Identity"],
+        "x-xos-table": "app.org_domains",
+        "x-xos-capability": "org.white_label.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "request_domain_check",
+        "summary": "Check a custom domain again",
+        "description": "Queues the provider worker for a custom Atlas, Gateway or sending domain (app.request_domain_check): provisioning again when it never reached the provider, otherwise checking DNS verification and TLS now. Verified domains answer 422 (domain_not_provisioned). Returns the domain. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the verified domain.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the verified domain.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "hostname": "gateway.northwindlive.example",
+                  "purpose": "Atlas",
+                  "verification_state": "Pending",
+                  "verification_token": "xos-verify=6f1c2d",
+                  "last_checked_at": "2026-10-08T14:30:00Z",
+                  "auto_join_role_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "provisioning_status": "Pending DNS",
+                  "dns_records": [
+                    {
+                      "type": "CNAME",
+                      "name": "atlas.northwindlive.example",
+                      "value": "cname.vercel-dns.com",
+                      "purpose": "routing"
+                    }
+                  ],
+                  "tls_ready": false,
+                  "provisioning_error": "Vercel returned 400"
+                },
+                "schema": { "$ref": "#/components/schemas/VerifiedDomain" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }
         }
@@ -116616,6 +118053,7 @@
                       "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                       "plan_code": "pro",
                       "subscription_state": "trialing",
+                      "trial_ends_at": "2026-10-08T14:30:00Z",
                       "extra_seats": 3,
                       "seats_grandfathered": false
                     }
@@ -116676,6 +118114,7 @@
                   "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
                   "plan_code": "pro",
                   "subscription_state": "trialing",
+                  "trial_ends_at": "2026-10-08T14:30:00Z",
                   "extra_seats": 3,
                   "seats_grandfathered": false
                 },
@@ -132159,6 +133598,58 @@
         }
       }
     },
+    "/calendar-feeds/{id}/rotate": {
+      "post": {
+        "operationId": "calendarFeeds.rotate",
+        "tags": ["Platform"],
+        "x-xos-table": "app.calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.rotate_calendar_feed",
+        "summary": "Get a new link for a calendar feed",
+        "description": "Replaces the token of one of the caller's feeds (app.rotate_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once; a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the calendar feed.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "feed_token": "cal_9fQ2mX4vT7kL1pR8"
+                },
+                "schema": { "$ref": "#/components/schemas/CalendarFeedToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
     "/trash": {
       "get": {
         "operationId": "trashItems.list",
@@ -139900,6 +141391,2063 @@
           },
           "400": { "$ref": "#/components/responses/BadRequest" },
           "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers": {
+      "get": {
+        "operationId": "ownershipTransfers.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["offered_at"], "numeric": false, "descending": true },
+        "summary": "List ownership transfer rows",
+        "description": "An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns a cursor page of ownership transfer rows the caller may see. The default order is `offered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of ownership transfer rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "previous_owner_outcome": "admin",
+                      "offered_at": "2026-10-08T14:30:00Z",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "accepted_at": "2026-10-08T14:30:00Z",
+                      "declined_at": "2026-10-08T14:30:00Z",
+                      "canceled_at": "2026-10-08T14:30:00Z",
+                      "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "expired_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransferPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}": {
+      "get": {
+        "operationId": "ownershipTransfers.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an ownership transfer",
+        "description": "An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns one ownership transfer with its `ETag`. A ownership transfer the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The ownership transfer.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/offer": {
+      "post": {
+        "operationId": "ownershipTransfers.offer",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.ownership.transfer",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "offer_ownership_transfer",
+        "summary": "Offer ownership of the organization",
+        "description": "An Owner (org.ownership.transfer) with step-up offers the bound org to another active member who is not an Owner (app.offer_ownership_transfer), choosing whether they become an Admin or leave on acceptance. One open offer per org; it lapses after 7 days. Without a recent second factor the call answers 422 step_up_required; an API key answers step_up_session_only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "previous_owner_outcome": "admin"
+              },
+              "schema": { "$ref": "#/components/schemas/OwnershipTransferOfferRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}/accept": {
+      "post": {
+        "operationId": "ownershipTransfers.accept",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "accept_ownership_transfer",
+        "summary": "Accept ownership",
+        "description": "The member the org was offered to accepts with step-up, so a second factor (app.accept_ownership_transfer): they become an Owner, then the old Owner becomes an Admin (or leaves) and loses the Owner role, so the org keeps an Owner at every step (invariant 4). An answered, withdrawn or lapsed offer answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}/decline": {
+      "post": {
+        "operationId": "ownershipTransfers.decline",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.members.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "decline_ownership_transfer",
+        "summary": "Decline ownership",
+        "description": "The member the org was offered to declines (app.decline_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/ownership-transfers/{id}/cancel": {
+      "post": {
+        "operationId": "ownershipTransfers.cancel",
+        "tags": ["Platform"],
+        "x-xos-table": "app.ownership_transfers",
+        "x-xos-capability": "org.ownership.transfer",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "cancel_ownership_transfer",
+        "summary": "Withdraw an ownership offer",
+        "description": "The Owner who offered, or any Owner, withdraws an open offer (app.cancel_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the ownership transfer.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the ownership transfer.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "to_person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "previous_owner_outcome": "admin",
+                  "offered_at": "2026-10-08T14:30:00Z",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "accepted_at": "2026-10-08T14:30:00Z",
+                  "declined_at": "2026-10-08T14:30:00Z",
+                  "canceled_at": "2026-10-08T14:30:00Z",
+                  "canceled_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "expired_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/OwnershipTransfer" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests": {
+      "get": {
+        "operationId": "orgDeletionRequests.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["requested_at"], "numeric": false, "descending": true },
+        "summary": "List org deletion request rows",
+        "description": "An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns a cursor page of org deletion request rows the caller may see. The default order is `requested_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of org deletion request rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "reason": "We are closing down.",
+                      "requested_at": "2026-10-08T14:30:00Z",
+                      "recover_until": "2026-10-08T14:30:00Z",
+                      "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "recovered_at": "2026-10-08T14:30:00Z",
+                      "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequestPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests/{id}": {
+      "get": {
+        "operationId": "orgDeletionRequests.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get an org deletion request",
+        "description": "An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns one org deletion request with its `ETag`. A org deletion request the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the org deletion request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the org deletion request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The org deletion request.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "We are closing down.",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "recover_until": "2026-10-08T14:30:00Z",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "recovered_at": "2026-10-08T14:30:00Z",
+                  "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests/request": {
+      "post": {
+        "operationId": "orgDeletionRequests.request",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.organization.delete",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "request_org_deletion",
+        "summary": "Ask to delete the organization",
+        "description": "The Owner (org.organization.delete) with step-up types the bound org's name and a reason (app.request_org_deletion). The subscription ends, the org is read-only at once, every Owner is told, and the data is deleted after 7 days unless an Owner recovers it. A partner with clients and an org under a legal hold are refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "confirm_name": "Harbor Lights Productions",
+                "reason": "We are closing down."
+              },
+              "schema": { "$ref": "#/components/schemas/OrgDeletionRequestCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "We are closing down.",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "recover_until": "2026-10-08T14:30:00Z",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "recovered_at": "2026-10-08T14:30:00Z",
+                  "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/org-deletion-requests/{id}/recover": {
+      "post": {
+        "operationId": "orgDeletionRequests.recover",
+        "tags": ["Platform"],
+        "x-xos-table": "app.org_deletion_requests",
+        "x-xos-capability": "org.organization.delete",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "recover_org_deletion",
+        "summary": "Recover the organization",
+        "description": "An Owner recovers the org within the 7-day window (app.recover_org_deletion): writes work again and, unless the org is also canceled, it restarts on the Access plan. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the org deletion request.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the org deletion request.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "reason": "We are closing down.",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "recover_until": "2026-10-08T14:30:00Z",
+                  "requested_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "recovered_at": "2026-10-08T14:30:00Z",
+                  "recovered_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/OrgDeletionRequest" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/deletion-certificates": {
+      "get": {
+        "operationId": "deletionCertificates.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.deletion_certificates",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["due_at"], "numeric": false, "descending": true },
+        "summary": "List deletion certificate rows",
+        "description": "The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns a cursor page of deletion certificate rows the caller may see. The default order is `due_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of deletion certificate rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "deleted_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_name": "Harbor Lights Productions",
+                      "org_slug": "harbor-lights",
+                      "basis": "cancellation",
+                      "requested_at": "2026-10-08T14:30:00Z",
+                      "due_at": "2026-10-08T14:30:00Z",
+                      "purged_at": "2026-10-08T14:30:00Z",
+                      "tables_purged": 41,
+                      "rows_purged": 1820,
+                      "storage_objects_deleted": 12,
+                      "document_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+                      "issued_at": "2026-10-08T14:30:00Z",
+                      "delivered_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/DeletionCertificatePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/deletion-certificates/{id}": {
+      "get": {
+        "operationId": "deletionCertificates.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.deletion_certificates",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get a deletion certificate",
+        "description": "The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns one deletion certificate with its `ETag`. A deletion certificate the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the deletion certificate.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the deletion certificate.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The deletion certificate.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "deleted_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_name": "Harbor Lights Productions",
+                  "org_slug": "harbor-lights",
+                  "basis": "cancellation",
+                  "requested_at": "2026-10-08T14:30:00Z",
+                  "due_at": "2026-10-08T14:30:00Z",
+                  "purged_at": "2026-10-08T14:30:00Z",
+                  "tables_purged": 41,
+                  "rows_purged": 1820,
+                  "storage_objects_deleted": 12,
+                  "document_sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+                  "issued_at": "2026-10-08T14:30:00Z",
+                  "delivered_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/DeletionCertificate" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants": {
+      "get": {
+        "operationId": "partnerStandingGrants.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-order": { "by": ["valid_from"], "numeric": false, "descending": true },
+        "summary": "List partner standing grant rows",
+        "description": "A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns a cursor page of partner standing grant rows the caller may see. The default order is `valid_from` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of partner standing grant rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "capability_code": "org.settings.read",
+                      "agreement_reference": "Partner agreement, clause 7.2",
+                      "valid_from": "2026-10-08T14:30:00Z",
+                      "valid_to": "2026-10-08T14:30:00Z",
+                      "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "ended_at": "2026-10-08T14:30:00Z",
+                      "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrantPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants/{id}": {
+      "get": {
+        "operationId": "partnerStandingGrants.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.settings.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "summary": "Get a partner standing grant",
+        "description": "A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns one partner standing grant with its `ETag`. A partner standing grant the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the partner standing grant.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the partner standing grant.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The partner standing grant.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "org.settings.read",
+                  "agreement_reference": "Partner agreement, clause 7.2",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants/record": {
+      "post": {
+        "operationId": "partnerStandingGrants.record",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.support_session.grant",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "record_standing_grant",
+        "summary": "Record a standing partner grant",
+        "description": "The client Owner (org.support_session.grant) records a grant the partner and client agreement provides (app.record_standing_grant): one read capability a support session may grant, an expiry within a year and the clause. A scope outside those, an expiry past a year and an org without a partner answer 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "capability_code": "org.settings.read",
+                "valid_to": "2026-10-08T14:30:00Z",
+                "agreement_reference": "Partner agreement, clause 7.2"
+              },
+              "schema": { "$ref": "#/components/schemas/PartnerStandingGrantRecordRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "org.settings.read",
+                  "agreement_reference": "Partner agreement, clause 7.2",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/partner-standing-grants/{id}/end": {
+      "post": {
+        "operationId": "partnerStandingGrants.end",
+        "tags": ["Platform"],
+        "x-xos-table": "app.partner_standing_grants",
+        "x-xos-capability": "org.support_session.grant",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["org"] }],
+        "x-xos-rpc": "end_standing_grant",
+        "summary": "End a standing partner grant",
+        "description": "Ends a standing grant early (app.end_standing_grant): the client's Owner or the partner's staff with org.partner.manage. An ended grant answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the partner standing grant.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the partner standing grant.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "partner_org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "capability_code": "org.settings.read",
+                  "agreement_reference": "Partner agreement, clause 7.2",
+                  "valid_from": "2026-10-08T14:30:00Z",
+                  "valid_to": "2026-10-08T14:30:00Z",
+                  "record_grant_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "ended_at": "2026-10-08T14:30:00Z",
+                  "ended_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/PartnerStandingGrant" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/share-links": {
+      "get": {
+        "operationId": "shareLinks.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List share link rows",
+        "description": "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of share link rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "attachment_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "classification": "Restricted",
+                      "access_code_required": false,
+                      "recipient_email": "alex.rivera@northwindlive.example",
+                      "note": "Stage plot for the venue",
+                      "expires_at": "2026-10-08T14:30:00Z",
+                      "failed_attempts": 0,
+                      "open_count": 2,
+                      "last_opened_at": "2026-10-08T14:30:00Z",
+                      "revoked_at": "2026-10-08T14:30:00Z",
+                      "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLinkPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "shareLinks.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-rpc": "create_share_link",
+        "summary": "Create a share link",
+        "description": "Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                "access_code_required": false,
+                "recipient_email": "alex.rivera@northwindlive.example",
+                "note": "Stage plot for the venue",
+                "expires_at": "2026-10-08T14:30:00Z"
+              },
+              "schema": { "$ref": "#/components/schemas/ShareLinkCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "share_link_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token": "xshr_0000000000000000000000000000000000000000000000000000000000000000",
+                  "access_code": "042424",
+                  "classification": "Restricted",
+                  "expires_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLinkToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/share-links/{id}": {
+      "get": {
+        "operationId": "shareLinks.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "summary": "Get a share link",
+        "description": "A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the share link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the share link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The share link.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "classification": "Restricted",
+                  "access_code_required": false,
+                  "recipient_email": "alex.rivera@northwindlive.example",
+                  "note": "Stage plot for the venue",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 2,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/share-links/{id}/revoke": {
+      "post": {
+        "operationId": "shareLinks.revoke",
+        "tags": ["Platform"],
+        "x-xos-table": "app.share_links",
+        "x-xos-capability": "data.export.run",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["data"] }],
+        "x-xos-rpc": "revoke_share_link",
+        "summary": "Revoke a share link",
+        "description": "Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the share link.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the share link.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "attachment_version_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "classification": "Restricted",
+                  "access_code_required": false,
+                  "recipient_email": "alex.rivera@northwindlive.example",
+                  "note": "Stage plot for the venue",
+                  "expires_at": "2026-10-08T14:30:00Z",
+                  "failed_attempts": 0,
+                  "open_count": 2,
+                  "last_opened_at": "2026-10-08T14:30:00Z",
+                  "revoked_at": "2026-10-08T14:30:00Z",
+                  "revoked_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+                },
+                "schema": { "$ref": "#/components/schemas/ShareLink" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/person-calendar-feeds": {
+      "get": {
+        "operationId": "personCalendarFeeds.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List person calendar feed rows",
+        "description": "A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of person calendar feed rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "token_hint": "a1b2",
+                      "last_accessed_at": "2026-10-08T14:30:00Z",
+                      "rotated_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/PersonCalendarFeedPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "personCalendarFeeds.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.create_person_calendar_feed",
+        "summary": "Create a personal calendar feed",
+        "description": "Creates the caller's own feed across every org they work with (app.create_person_calendar_feed) and returns its token once. At most 20 live feeds (calendar_feed_limit: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "feed_token": "cal_9fQ2mX4vT7kL1pR8"
+                },
+                "schema": { "$ref": "#/components/schemas/CalendarFeedToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/person-calendar-feeds/{id}": {
+      "get": {
+        "operationId": "personCalendarFeeds.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Get a person calendar feed",
+        "description": "A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns one person calendar feed with its `ETag`. A person calendar feed the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the person calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the person calendar feed.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The person calendar feed.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "person_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "token_hint": "a1b2",
+                  "last_accessed_at": "2026-10-08T14:30:00Z",
+                  "rotated_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/PersonCalendarFeed" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "delete": {
+        "operationId": "personCalendarFeeds.delete",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "summary": "Delete a person calendar feed",
+        "description": "A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Soft-deletes the person calendar feed: it moves to Trash and can be restored for its table's retention period.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the person calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the person calendar feed.",
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": { "description": "The person calendar feed moved to Trash." },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/person-calendar-feeds/{id}/rotate": {
+      "post": {
+        "operationId": "personCalendarFeeds.rotate",
+        "tags": ["Platform"],
+        "x-xos-table": "app.person_calendar_feeds",
+        "x-xos-capability": "me.calendar_feeds.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["me"] }],
+        "x-xos-rpc": "app.rotate_person_calendar_feed",
+        "summary": "Get a new link for a personal calendar feed",
+        "description": "Replaces the feed's token (app.rotate_person_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the person calendar feed.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the person calendar feed.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "calendar_feed_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "feed_token": "cal_9fQ2mX4vT7kL1pR8"
+                },
+                "schema": { "$ref": "#/components/schemas/CalendarFeedToken" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-inboxes": {
+      "get": {
+        "operationId": "projectInboxes.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_addresses",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-order": { "by": ["created_at"], "numeric": false },
+        "summary": "List project inbox rows",
+        "description": "A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of project inbox rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "local_part": "nwl-0a1b2c3d4e",
+                      "disabled_at": "2026-10-08T14:30:00Z"
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectInboxPage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      },
+      "post": {
+        "operationId": "projectInboxes.create",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_addresses",
+        "x-xos-capability": "projects.settings.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "app.create_project_inbox",
+        "summary": "Create a project's inbox address",
+        "description": "Returns the project's live inbox address, creating it when there is none (app.create_project_inbox, projects.settings.write on the project). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f" },
+              "schema": { "$ref": "#/components/schemas/ProjectInboxCreate" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "local_part": "nwl-0a1b2c3d4e",
+                  "disabled_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectInbox" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-inboxes/{id}": {
+      "get": {
+        "operationId": "projectInboxes.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_addresses",
+        "x-xos-capability": "projects.project.read",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "summary": "Get a project inbox",
+        "description": "A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns one project inbox with its `ETag`. A project inbox the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project inbox.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project inbox.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The project inbox.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "local_part": "nwl-0a1b2c3d4e",
+                  "disabled_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectInbox" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-inboxes/{id}/replace": {
+      "post": {
+        "operationId": "projectInboxes.replace",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_addresses",
+        "x-xos-capability": "projects.settings.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "app.replace_project_inbox",
+        "summary": "Replace a project's inbox address",
+        "description": "Disables the address and returns the project's new one (app.replace_project_inbox). Mail to the old address is no longer accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project inbox.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project inbox.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "local_part": "nwl-0a1b2c3d4e",
+                  "disabled_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectInbox" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/project-inboxes/{id}/disable": {
+      "post": {
+        "operationId": "projectInboxes.disable",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_addresses",
+        "x-xos-capability": "projects.settings.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["projects"] }],
+        "x-xos-rpc": "app.disable_project_inbox",
+        "summary": "Turn off a project's inbox",
+        "description": "Stops the address accepting mail (app.disable_project_inbox). Mail already received stays; a disabled address never comes back. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the project inbox.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the project inbox.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "project_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "local_part": "nwl-0a1b2c3d4e",
+                  "disabled_at": "2026-10-08T14:30:00Z"
+                },
+                "schema": { "$ref": "#/components/schemas/ProjectInbox" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/inbound-messages": {
+      "get": {
+        "operationId": "inboundMessages.list",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_messages",
+        "x-xos-capability": "knowledge.document.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-order": { "by": ["received_at"], "numeric": false, "descending": true },
+        "summary": "List inbound message rows",
+        "description": "Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.",
+        "parameters": [
+          { "$ref": "#/components/parameters/Limit" },
+          { "$ref": "#/components/parameters/Cursor" },
+          { "$ref": "#/components/parameters/Fields" },
+          { "$ref": "#/components/parameters/Sort" },
+          { "$ref": "#/components/parameters/Filter" }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of inbound message rows.",
+            "headers": {
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "data": [
+                    {
+                      "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "created_at": "2026-10-08T14:30:00Z",
+                      "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "updated_at": "2026-10-08T14:30:00Z",
+                      "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "purpose": "Project Inbox",
+                      "inbound_address_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "from_address": "rigging@bayside-audio.test",
+                      "subject_line": "Rigging plot v4",
+                      "body_text": "Updated plot attached.",
+                      "dkim_verified": true,
+                      "inbound_status": "Verified",
+                      "rejection_reason": "DKIM failed.",
+                      "received_at": "2026-10-08T14:30:00Z",
+                      "filed_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "filed_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "filed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "filed_at": "2026-10-08T14:30:00Z",
+                      "discarded_at": "2026-10-08T14:30:00Z",
+                      "discarded_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                      "discard_reason": "Spam."
+                    }
+                  ],
+                  "next_cursor": null
+                },
+                "schema": { "$ref": "#/components/schemas/InboundMessagePage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/inbound-messages/{id}": {
+      "get": {
+        "operationId": "inboundMessages.get",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_messages",
+        "x-xos-capability": "knowledge.document.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "summary": "Get an inbound message",
+        "description": "Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns one inbound message with its `ETag`. A inbound message the caller may not see returns 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the inbound message.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the inbound message.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/Fields" }
+        ],
+        "responses": {
+          "200": {
+            "description": "The inbound message.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purpose": "Project Inbox",
+                  "inbound_address_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_address": "rigging@bayside-audio.test",
+                  "subject_line": "Rigging plot v4",
+                  "body_text": "Updated plot attached.",
+                  "dkim_verified": true,
+                  "inbound_status": "Verified",
+                  "rejection_reason": "DKIM failed.",
+                  "received_at": "2026-10-08T14:30:00Z",
+                  "filed_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_at": "2026-10-08T14:30:00Z",
+                  "discarded_at": "2026-10-08T14:30:00Z",
+                  "discarded_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "discard_reason": "Spam."
+                },
+                "schema": { "$ref": "#/components/schemas/InboundMessage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/inbound-messages/{id}/file": {
+      "post": {
+        "operationId": "inboundMessages.file",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_messages",
+        "x-xos-capability": "knowledge.document.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "app.file_inbound_message",
+        "summary": "File inbound mail as a document",
+        "description": "Files verified project inbox mail as a Document record of the project, optionally to a record of the project the caller can open (app.file_inbound_message); the subject, sender and text are posted as a comment on the document and the record. Mail is filed once (inbound_message_triaged: 422); unverified mail is refused (inbound_message_unverified: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the inbound message.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the inbound message.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": {
+                "title": "Rigging plot v4",
+                "record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+              },
+              "schema": { "$ref": "#/components/schemas/InboundMessageFileRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purpose": "Project Inbox",
+                  "inbound_address_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_address": "rigging@bayside-audio.test",
+                  "subject_line": "Rigging plot v4",
+                  "body_text": "Updated plot attached.",
+                  "dkim_verified": true,
+                  "inbound_status": "Verified",
+                  "rejection_reason": "DKIM failed.",
+                  "received_at": "2026-10-08T14:30:00Z",
+                  "filed_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_at": "2026-10-08T14:30:00Z",
+                  "discarded_at": "2026-10-08T14:30:00Z",
+                  "discarded_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "discard_reason": "Spam."
+                },
+                "schema": { "$ref": "#/components/schemas/InboundMessage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
+          "409": { "$ref": "#/components/responses/Conflict" },
+          "422": { "$ref": "#/components/responses/Unprocessable" },
+          "429": { "$ref": "#/components/responses/TooManyRequests" }
+        }
+      }
+    },
+    "/inbound-messages/{id}/discard": {
+      "post": {
+        "operationId": "inboundMessages.discard",
+        "tags": ["Platform"],
+        "x-xos-table": "app.inbound_messages",
+        "x-xos-capability": "knowledge.document.write",
+        "security": [{ "bearerJwt": [] }, { "apiKey": [] }, { "oauth2": ["knowledge"] }],
+        "x-xos-rpc": "app.discard_inbound_message",
+        "summary": "Discard inbound mail",
+        "description": "Discards project inbox mail with an optional reason (app.discard_inbound_message). The mail is kept and the audit ledger records who discarded it and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identifier of the inbound message.",
+              "example": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f"
+            },
+            "required": true,
+            "description": "Identifier of the inbound message.",
+            "name": "id",
+            "in": "path"
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "example": { "reason": "Spam." },
+              "schema": { "$ref": "#/components/schemas/InboundMessageDiscardRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The result.",
+            "headers": {
+              "ETag": { "$ref": "#/components/headers/ETag" },
+              "RateLimit-Limit": { "$ref": "#/components/headers/RateLimit-Limit" },
+              "RateLimit-Remaining": { "$ref": "#/components/headers/RateLimit-Remaining" },
+              "RateLimit-Reset": { "$ref": "#/components/headers/RateLimit-Reset" }
+            },
+            "content": {
+              "application/json": {
+                "example": {
+                  "id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "org_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "created_at": "2026-10-08T14:30:00Z",
+                  "created_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "updated_at": "2026-10-08T14:30:00Z",
+                  "updated_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "purpose": "Project Inbox",
+                  "inbound_address_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "from_address": "rigging@bayside-audio.test",
+                  "subject_line": "Rigging plot v4",
+                  "body_text": "Updated plot attached.",
+                  "dkim_verified": true,
+                  "inbound_status": "Verified",
+                  "rejection_reason": "DKIM failed.",
+                  "received_at": "2026-10-08T14:30:00Z",
+                  "filed_document_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_record_id": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "filed_at": "2026-10-08T14:30:00Z",
+                  "discarded_at": "2026-10-08T14:30:00Z",
+                  "discarded_by": "0192f1e2-7c3a-7b4d-9e8f-1a2b3c4d5e6f",
+                  "discard_reason": "Spam."
+                },
+                "schema": { "$ref": "#/components/schemas/InboundMessage" }
+              }
+            }
+          },
+          "400": { "$ref": "#/components/responses/BadRequest" },
+          "401": { "$ref": "#/components/responses/Unauthorized" },
+          "404": { "$ref": "#/components/responses/NotFound" },
           "409": { "$ref": "#/components/responses/Conflict" },
           "422": { "$ref": "#/components/responses/Unprocessable" },
           "429": { "$ref": "#/components/responses/TooManyRequests" }

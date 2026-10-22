@@ -865,6 +865,7 @@ __all__ = [
     "CreateOrganizationRequest",
     "CreateClientOrganizationResult",
     "CreateClientOrganizationRequest",
+    "LeavePartnerRequest",
     "MembershipPage",
     "Membership",
     "MembershipRolePage",
@@ -909,6 +910,7 @@ __all__ = [
     "AcceptInviteResult",
     "VerifiedDomainPage",
     "VerifiedDomain",
+    "DomainDnsRecord",
     "VerifiedDomainCreate",
     "VerifiedDomainUpdate",
     "OffboardingChecklistPage",
@@ -1315,6 +1317,30 @@ __all__ = [
     "WholesaleStatementPage",
     "WholesaleStatement",
     "WholesaleBillingRequest",
+    "OwnershipTransferPage",
+    "OwnershipTransfer",
+    "OwnershipTransferOfferRequest",
+    "OrgDeletionRequestPage",
+    "OrgDeletionRequest",
+    "OrgDeletionRequestCreate",
+    "DeletionCertificatePage",
+    "DeletionCertificate",
+    "PartnerStandingGrantPage",
+    "PartnerStandingGrant",
+    "PartnerStandingGrantRecordRequest",
+    "ShareLinkPage",
+    "ShareLink",
+    "ShareLinkToken",
+    "ShareLinkCreate",
+    "PersonCalendarFeedPage",
+    "PersonCalendarFeed",
+    "ProjectInboxPage",
+    "ProjectInbox",
+    "ProjectInboxCreate",
+    "InboundMessagePage",
+    "InboundMessage",
+    "InboundMessageFileRequest",
+    "InboundMessageDiscardRequest",
     "WorkforceGroupPage",
     "WorkforceGroup",
     "WorkforceGroupCreate",
@@ -14629,6 +14655,13 @@ class CreateClientOrganizationRequest(_CreateClientOrganizationRequestRequired, 
     plan_code: str
 
 
+class LeavePartnerRequest(TypedDict):
+    """Confirmation of leaving the partner."""
+
+    #: The org's name, typed exactly.
+    confirm_name: str
+
+
 class MembershipPage(TypedDict):
     """One page of results with a cursor to the next page."""
 
@@ -15185,6 +15218,27 @@ class VerifiedDomain(TypedDict):
     last_checked_at: Optional[str]
     #: Identifier of the role a person with a confirmed address at this verified domain receives on joining automatically; null turns automatic join off.
     auto_join_role_id: Optional[str]
+    #: Where the domain stands at its provider.
+    provisioning_status: Literal["Not Started", "Requested", "Pending DNS", "Active", "Failed", "Released"]
+    #: DNS records to publish for the provider.
+    dns_records: List[DomainDnsRecord]
+    #: True once the provider issued the TLS certificate.
+    tls_ready: bool
+    #: Why the latest provisioning step failed.
+    provisioning_error: Optional[str]
+
+
+class DomainDnsRecord(TypedDict):
+    """A DNS record the org publishes for a custom domain's provider."""
+
+    #: DNS record type.
+    type: str
+    #: Host the record is published at.
+    name: str
+    #: Record value.
+    value: str
+    #: What the record is for: routing, verification, spf, dkim, dmarc or receiving.
+    purpose: str
 
 
 class _VerifiedDomainCreateRequired(TypedDict):
@@ -15534,6 +15588,8 @@ class Subscription(TypedDict):
     plan_code: str
     #: Subscription status as Stripe reports it; read_only after the grace period.
     subscription_state: Literal["trialing", "active", "past_due", "read_only", "canceled"]
+    #: When the subscription's trial ends; null when it never had one.
+    trial_ends_at: Optional[str]
     #: Seats bought above the plan's seat allowance.
     extra_seats: int
     #: True when the subscription keeps unlimited seats from before plans had seat limits, until its plan changes.
@@ -21408,6 +21464,429 @@ class WholesaleBillingRequest(TypedDict):
 
     #: First day of the month to bill.
     period_start: str
+
+
+class OwnershipTransferPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OwnershipTransfer]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OwnershipTransfer(TypedDict):
+    """An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited."""
+
+    #: Identifier of the ownership transfer.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the Owner who offered the org.
+    from_person_id: str
+    #: Identifier of the member the org is offered to.
+    to_person_id: str
+    #: What happens to the Owner who offered on acceptance.
+    previous_owner_outcome: Literal["admin", "leave"]
+    #: When the offer was made.
+    offered_at: str
+    #: When an unanswered offer lapses, 7 days after it was made.
+    expires_at: str
+    #: When the member accepted and became an Owner.
+    accepted_at: Optional[str]
+    #: When the member declined.
+    declined_at: Optional[str]
+    #: When an Owner withdrew the offer.
+    canceled_at: Optional[str]
+    #: Identifier of the Owner who withdrew it.
+    canceled_by: Optional[str]
+    #: When the lifecycle job lapsed the unanswered offer.
+    expired_at: Optional[str]
+
+
+class OwnershipTransferOfferRequest(TypedDict):
+    """An ownership offer."""
+
+    #: Identifier of the member to offer the org to.
+    to_person_id: str
+    #: What happens to the offering Owner on acceptance.
+    previous_owner_outcome: Literal["admin", "leave"]
+
+
+class OrgDeletionRequestPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[OrgDeletionRequest]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class OrgDeletionRequest(TypedDict):
+    """An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate."""
+
+    #: Identifier of the org deletion request.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Why the org is deleted, in the Owner's words.
+    reason: str
+    #: When the Owner asked for deletion.
+    requested_at: str
+    #: End of the 7-day recovery window.
+    recover_until: str
+    #: Identifier of the Owner who asked for deletion.
+    requested_by: str
+    #: When an Owner recovered the org.
+    recovered_at: Optional[str]
+    #: Identifier of the Owner who recovered it.
+    recovered_by: Optional[str]
+
+
+class OrgDeletionRequestCreate(TypedDict):
+    """A deletion request."""
+
+    #: The org's name, typed exactly.
+    confirm_name: str
+    #: Why the org is deleted.
+    reason: str
+
+
+class DeletionCertificatePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[DeletionCertificate]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class DeletionCertificate(TypedDict):
+    """The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas."""
+
+    #: Identifier of the deletion certificate.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Id the deleted org had.
+    deleted_org_id: str
+    #: Name of the org when it was deleted.
+    org_name: str
+    #: Web address of the org when it was deleted.
+    org_slug: str
+    #: Day 90 of a cancellation, or the end of a deletion request's recovery window.
+    basis: Literal["cancellation", "deletion_request"]
+    #: When the Owner canceled or asked for deletion.
+    requested_at: str
+    #: When the data became due for deletion.
+    due_at: str
+    #: When every row of the org was deleted.
+    purged_at: Optional[str]
+    #: Tables rows were deleted from.
+    tables_purged: Optional[int]
+    #: Rows deleted.
+    rows_purged: Optional[int]
+    #: Stored files deleted.
+    storage_objects_deleted: int
+    #: SHA-256 of the certificate PDF.
+    document_sha256: Optional[str]
+    #: When the certificate PDF was stored.
+    issued_at: Optional[str]
+    #: When the certificate was emailed to the former Owner.
+    delivered_at: Optional[str]
+
+
+class PartnerStandingGrantPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PartnerStandingGrant]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PartnerStandingGrant(TypedDict):
+    """A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one."""
+
+    #: Identifier of the partner standing grant.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the partner org whose staff may read.
+    partner_org_id: str
+    #: The scope: one read capability a support session may grant.
+    capability_code: str
+    #: The clause of the agreement that provides the grant.
+    agreement_reference: str
+    #: When access began.
+    valid_from: str
+    #: When access ends on its own.
+    valid_to: str
+    #: Identifier of the org-level record grant the standing grant issued.
+    record_grant_id: str
+    #: When someone ended the grant early.
+    ended_at: Optional[str]
+    #: Identifier of the person who ended it early.
+    ended_by: Optional[str]
+
+
+class PartnerStandingGrantRecordRequest(TypedDict):
+    """A standing grant to record."""
+
+    #: The read capability the grant covers.
+    capability_code: str
+    #: When the grant ends, within a year.
+    valid_to: str
+    #: The clause of the agreement.
+    agreement_reference: str
+
+
+class ShareLinkPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ShareLink]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ShareLink(TypedDict):
+    """A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links."""
+
+    #: Identifier of the share link.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the file the link shares.
+    attachment_id: str
+    #: Clean version the link opens, set from the file's current version.
+    attachment_version_id: Optional[str]
+    classification: Classification
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+    #: Wrong access codes entered; the link locks at 5.
+    failed_attempts: int
+    #: Successful opens.
+    open_count: int
+    #: When the link was last opened.
+    last_opened_at: Optional[str]
+    #: When the link was revoked; it never opens again.
+    revoked_at: Optional[str]
+    #: Identifier of the person who revoked the link.
+    revoked_by: Optional[str]
+
+
+class ShareLinkToken(TypedDict):
+    """A new share link with its token and access code, shown once."""
+
+    #: The new link.
+    share_link_id: str
+    #: The link token. The link is `{Atlas origin}/share/{token}`. Shown once; only its hash is stored.
+    token: str
+    #: The 6-digit access code, or null when the link asks for none. Shown once; send it apart from the link.
+    access_code: Optional[str]
+    classification: Classification
+    #: When the link stops opening.
+    expires_at: Optional[str]
+
+
+class _ShareLinkCreateRequired(TypedDict):
+    #: Identifier of the file the link shares.
+    attachment_id: str
+
+
+class ShareLinkCreate(_ShareLinkCreateRequired, total=False):
+    """Fields accepted when creating a ShareLink."""
+
+    #: True when the link asks for a 6-digit access code; always true for a Confidential file.
+    access_code_required: bool
+    #: Who the link is for, lowercased. Required for a Confidential file.
+    recipient_email: Optional[str]
+    #: What the link is for.
+    note: Optional[str]
+    #: When the link stops opening: within 90 days, 30 for a Confidential file. Null only for a Public file.
+    expires_at: Optional[str]
+
+
+class PersonCalendarFeedPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[PersonCalendarFeed]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class PersonCalendarFeed(TypedDict):
+    """A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good."""
+
+    #: Identifier of the person calendar feed.
+    id: str
+    #: When the row was created.
+    created_at: str
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who owns the feed; always the caller.
+    person_id: str
+    #: Last four characters of the token.
+    token_hint: str
+    #: Last time a calendar fetched the feed.
+    last_accessed_at: Optional[str]
+    #: When the token was last replaced.
+    rotated_at: Optional[str]
+
+
+class ProjectInboxPage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[ProjectInbox]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class ProjectInbox(TypedDict):
+    """A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled."""
+
+    #: Identifier of the project inbox.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: Identifier of the project the inbox belongs to.
+    project_id: str
+    #: Part before the @ of the receiving domain: the project key and a random suffix.
+    local_part: str
+    #: When the address stopped accepting mail.
+    disabled_at: Optional[str]
+
+
+class ProjectInboxCreate(TypedDict):
+    """The project to give an inbox."""
+
+    #: Identifier of the project the inbox is for.
+    project_id: str
+
+
+class InboundMessagePage(TypedDict):
+    """One page of results with a cursor to the next page."""
+
+    #: Items on this page, in the documented default order.
+    data: List[InboundMessage]
+    #: Opaque cursor for the next page; null on the last page.
+    next_cursor: Optional[str]
+
+
+class InboundMessage(TypedDict):
+    """Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason."""
+
+    #: Identifier of the inbound message.
+    id: str
+    #: Identifier of the owning organization, derived from the parent row and never accepted from the caller.
+    org_id: str
+    #: When the row was created.
+    created_at: str
+    #: Identifier of the person who created the row.
+    created_by: Optional[str]
+    #: When the row was last updated.
+    updated_at: str
+    #: Identifier of the person who last updated the row.
+    updated_by: Optional[str]
+    #: What the mail was sent to.
+    purpose: Literal["Project Inbox", "Reply"]
+    #: Identifier of the project inbox the mail was sent to.
+    inbound_address_id: Optional[str]
+    #: Sender address.
+    from_address: str
+    #: Subject.
+    subject_line: Optional[str]
+    #: Plain-text body with quoted text stripped.
+    body_text: Optional[str]
+    #: True when the sender's DKIM signature verified.
+    dkim_verified: bool
+    #: Processing status.
+    inbound_status: Literal["Received", "Verified", "Filed", "Rejected"]
+    #: Why the mail was rejected.
+    rejection_reason: Optional[str]
+    #: When the mail arrived.
+    received_at: str
+    #: Identifier of the document the mail was filed as.
+    filed_document_id: Optional[str]
+    #: Identifier of the record of the project the mail was filed to.
+    filed_record_id: Optional[str]
+    #: Identifier of the person who filed the mail.
+    filed_by: Optional[str]
+    #: When the mail was filed.
+    filed_at: Optional[str]
+    #: When the mail was discarded.
+    discarded_at: Optional[str]
+    #: Identifier of the person who discarded the mail.
+    discarded_by: Optional[str]
+    #: Why the mail was discarded.
+    discard_reason: Optional[str]
+
+
+class InboundMessageFileRequest(TypedDict, total=False):
+    """How to file the mail."""
+
+    #: Document title; the subject when omitted.
+    title: str
+    #: Identifier of the record of the project to file the mail to.
+    record_id: str
+
+
+class InboundMessageDiscardRequest(TypedDict, total=False):
+    """Why the mail is discarded."""
+
+    #: Why the mail is discarded.
+    reason: str
 
 
 class WorkforceGroupPage(TypedDict):

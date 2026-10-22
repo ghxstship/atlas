@@ -113,7 +113,7 @@
     "hideReason": "Why are you hiding this post?",
     "hiddenTitle": "This post is hidden",
     "reactions": "Reactions",
-    "reaction": "{name} {count}",
+    "reaction": "{name}, {count}",
     "reactionNames": {
       "thumbs_up": "Thumbs up",
       "heart": "Heart",
@@ -129,7 +129,9 @@
     "pickOne": "Choose one",
     "pollResults": "Poll results",
     "pollLine": "{label}: {votes, plural, one {# vote} other {# votes}} ({percent}%)",
-    "yourVote": "(your vote)"
+    "yourVote": "(your vote)",
+    "more": "More",
+    "moreFor": "More actions for {title}"
   },
   "surveys": {
     "title": "Surveys",
@@ -418,7 +420,7 @@
     "agenda": "Agenda",
     "organizer": "Organizer",
     "rsvps": "RSVPs",
-    "rsvpCounts": "{Going} going, {Maybe} maybe, {Declined} declined",
+    "rsvpCounts": "{going} going, {maybe} maybe, {declined} declined",
     "rsvp": {
       "Going": "Going",
       "Maybe": "Maybe",
@@ -482,7 +484,7 @@
     "title": "Chat",
     "what": "your conversations",
     "conversations": "Conversations",
-    "empty": "No conversations yet. Find someone in the directory to message.",
+    "empty": "No conversations yet. Message a teammate to start one.",
     "untitled": "Conversation",
     "unread": "{count} new",
     "noMessages": "No messages yet",
@@ -513,7 +515,8 @@
       "Photo": "Photo",
       "File": "File",
       "Voice": "Voice note"
-    }
+    },
+    "emptyAction": "Message a teammate"
   },
   "recognition": {
     "title": "Recognition",
@@ -718,7 +721,8 @@
     "credentialHelp": "Scan or type the badge number when the guest has one.",
     "admittedLine": "Admitted with {plusOnes, plural, =0 {no plus-ones} one {# plus-one} other {# plus-ones}} at {door}.",
     "checkedInCount": "Checked in of {expected}",
-    "peopleIn": "People in"
+    "peopleIn": "People in",
+    "emptyAction": "Open the guest list"
   },
   "lostFound": {
     "title": "Lost and Found",
@@ -998,7 +1002,7 @@
       },
       "when": "{start} to {end}",
       "whenAt": "{start} to {end} · {location}",
-      "counts": "{Going} going, {Maybe} maybe, {Declined} not going"
+      "counts": "{going} going, {maybe} maybe, {declined} not going"
     },
     "forms": {
       "submit": "Submit Form",

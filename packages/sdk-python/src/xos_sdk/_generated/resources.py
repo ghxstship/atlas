@@ -428,6 +428,8 @@ if TYPE_CHECKING:
         DelegationCreate,
         DelegationPage,
         DelegationUpdate,
+        DeletionCertificate,
+        DeletionCertificatePage,
         DeptCode,
         DirectConversationRequest,
         DirectoryEntryPage,
@@ -578,6 +580,10 @@ if TYPE_CHECKING:
         ImportMappingProfileUpdate,
         ImportRowResult,
         ImportRowResultPage,
+        InboundMessage,
+        InboundMessageDiscardRequest,
+        InboundMessageFileRequest,
+        InboundMessagePage,
         Incident,
         IncidentCloseRequest,
         IncidentCreate,
@@ -668,6 +674,7 @@ if TYPE_CHECKING:
         KioskDevicePage,
         KioskDeviceUpdate,
         KnowledgeSourcePage,
+        LeavePartnerRequest,
         ListingReport,
         ListingReportCreate,
         ListingReportPage,
@@ -765,6 +772,9 @@ if TYPE_CHECKING:
         OrgBrandingCreate,
         OrgBrandingPage,
         OrgBrandingUpdate,
+        OrgDeletionRequest,
+        OrgDeletionRequestCreate,
+        OrgDeletionRequestPage,
         OrgExport,
         OrgExportCreate,
         OrgExportPage,
@@ -793,6 +803,12 @@ if TYPE_CHECKING:
         OrganizationUpdate,
         OvertimeRule,
         OvertimeRulePage,
+        OwnershipTransfer,
+        OwnershipTransferOfferRequest,
+        OwnershipTransferPage,
+        PartnerStandingGrant,
+        PartnerStandingGrantPage,
+        PartnerStandingGrantRecordRequest,
         PassportReveal,
         PassportRevealRequest,
         PayPeriod,
@@ -830,6 +846,8 @@ if TYPE_CHECKING:
         PermitTrackRequest,
         PermitTransitionRequest,
         Person,
+        PersonCalendarFeed,
+        PersonCalendarFeedPage,
         PersonPage,
         PersonProfile,
         PersonProfileCreate,
@@ -892,6 +910,9 @@ if TYPE_CHECKING:
         ProjectAuthority,
         ProjectAuthorityPage,
         ProjectCreate,
+        ProjectInbox,
+        ProjectInboxCreate,
+        ProjectInboxPage,
         ProjectPage,
         ProjectPhaseTransition,
         ProjectPhaseTransitionPage,
@@ -1095,6 +1116,10 @@ if TYPE_CHECKING:
         SettingValuePage,
         SettingValueUpdate,
         SettleClaimRequest,
+        ShareLink,
+        ShareLinkCreate,
+        ShareLinkPage,
+        ShareLinkToken,
         SharedWorkDetails,
         Shift,
         ShiftCreate,
@@ -22549,7 +22574,7 @@ class OrganizationsResource(Resource):
     ) -> ApiResponse[Organization]:
         """Create an organization
 
-        Creates an organization on the Access plan with the caller as its Owner, in one transaction, through `app.create_organization`. A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+        Creates an organization with the caller as its Owner, in one transaction, through `app.create_organization`. It starts a 14-day Pro trial with no card and moves to the Access plan when the trial ends unless a card is added (Section 14.7). A reserved or taken slug is refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
 
         ``POST /organizations`` (operation ``organizations.create``).
         Requires the capability ``me.account.write``.
@@ -22604,6 +22629,22 @@ class OrganizationsResource(Resource):
         Requires the capability ``org.partner.manage``.
         """
         return self._client.request(OPERATIONS["organizations.createClient"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def leave_partner(
+        self,
+        body: LeavePartnerRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[Organization]:
+        """Leave the partner
+
+        The client Owner (org.billing.manage) types the bound org's name; the org leaves its partner and becomes a direct customer (app.leave_partner). Its rendered brand becomes its own, the partner's support sessions and standing grants end, and billing moves to the org as a 14-day trial of the same plan that stays once a card is added. Data and members are untouched. An org without a partner answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /organizations/leave-partner`` (operation ``organizations.leavePartner``).
+        Requires the capability ``org.billing.manage``.
+        """
+        return self._client.request(OPERATIONS["organizations.leavePartner"], body=body, idempotency_key=idempotency_key, options=options)
 
 
 class MembershipsResource(Resource):
@@ -23817,6 +23858,22 @@ class VerifiedDomainsResource(Resource):
         Requires the capability ``org.security.write``.
         """
         return self._client.request(OPERATIONS["verifiedDomains.delete"], path={"id": id}, options=options)
+
+    def check(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[VerifiedDomain]:
+        """Check a custom domain again
+
+        Queues the provider worker for a custom Atlas, Gateway or sending domain (app.request_domain_check): provisioning again when it never reached the provider, otherwise checking DNS verification and TLS now. Verified domains answer 422 (domain_not_provisioned). Returns the domain. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /verified-domains/{id}/check`` (operation ``verifiedDomains.check``).
+        Requires the capability ``org.white_label.write``.
+        """
+        return self._client.request(OPERATIONS["verifiedDomains.check"], path={"id": id}, idempotency_key=idempotency_key, options=options)
 
 
 class OffboardingChecklistsResource(Resource):
@@ -30571,6 +30628,22 @@ class CalendarFeedsResource(Resource):
         """
         return self._client.request(OPERATIONS["calendarFeeds.delete"], path={"id": id}, options=options)
 
+    def rotate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedToken]:
+        """Get a new link for a calendar feed
+
+        Replaces the token of one of the caller's feeds (app.rotate_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once; a revoked feed is not found. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /calendar-feeds/{id}/rotate`` (operation ``calendarFeeds.rotate``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["calendarFeeds.rotate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
 
 class TrashItemsResource(Resource):
     """Operations on ``trashItems``, in the Platform module."""
@@ -33529,6 +33602,766 @@ class WholesaleStatementsResource(Resource):
         Requires the capability ``org.billing.manage``.
         """
         return self._client.request(OPERATIONS["wholesaleStatements.run"], body=body, idempotency_key=idempotency_key, options=options)
+
+
+class OwnershipTransfersResource(Resource):
+    """Operations on ``ownershipTransfers``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[OwnershipTransfer]:
+        """List ownership transfer rows
+
+        An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns a cursor page of ownership transfer rows the caller may see. The default order is `offered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /ownership-transfers`` (operation ``ownershipTransfers.list``).
+        Requires the capability ``org.members.read``.
+        """
+        return self._client.request_page(OPERATIONS["ownershipTransfers.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[OwnershipTransfer]:
+        """List ownership transfer rows
+
+        An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns a cursor page of ownership transfer rows the caller may see. The default order is `offered_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /ownership-transfers`` (operation ``ownershipTransfers.list``).
+        Requires the capability ``org.members.read``.
+        """
+        return self._client.paginate(OPERATIONS["ownershipTransfers.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OwnershipTransfer]:
+        """Get an ownership transfer
+
+        An Owner's offer to hand the org to another active member (1352, Section 14.7). The member accepts with step-up (a second factor) within 7 days; the old Owner then becomes an Admin, or leaves, and the org keeps an Owner at every step. Written only by the transfer actions; audited. Returns one ownership transfer with its `ETag`. A ownership transfer the caller may not see returns 404.
+
+        ``GET /ownership-transfers/{id}`` (operation ``ownershipTransfers.get``).
+        Requires the capability ``org.members.read``.
+        """
+        return self._client.request(OPERATIONS["ownershipTransfers.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def offer(
+        self,
+        body: OwnershipTransferOfferRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OwnershipTransfer]:
+        """Offer ownership of the organization
+
+        An Owner (org.ownership.transfer) with step-up offers the bound org to another active member who is not an Owner (app.offer_ownership_transfer), choosing whether they become an Admin or leave on acceptance. One open offer per org; it lapses after 7 days. Without a recent second factor the call answers 422 step_up_required; an API key answers step_up_session_only. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ownership-transfers/offer`` (operation ``ownershipTransfers.offer``).
+        Requires the capability ``org.ownership.transfer``.
+        """
+        return self._client.request(OPERATIONS["ownershipTransfers.offer"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def accept(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OwnershipTransfer]:
+        """Accept ownership
+
+        The member the org was offered to accepts with step-up, so a second factor (app.accept_ownership_transfer): they become an Owner, then the old Owner becomes an Admin (or leaves) and loses the Owner role, so the org keeps an Owner at every step (invariant 4). An answered, withdrawn or lapsed offer answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ownership-transfers/{id}/accept`` (operation ``ownershipTransfers.accept``).
+        Requires the capability ``org.members.read``.
+        """
+        return self._client.request(OPERATIONS["ownershipTransfers.accept"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def decline(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OwnershipTransfer]:
+        """Decline ownership
+
+        The member the org was offered to declines (app.decline_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ownership-transfers/{id}/decline`` (operation ``ownershipTransfers.decline``).
+        Requires the capability ``org.members.read``.
+        """
+        return self._client.request(OPERATIONS["ownershipTransfers.decline"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def cancel(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OwnershipTransfer]:
+        """Withdraw an ownership offer
+
+        The Owner who offered, or any Owner, withdraws an open offer (app.cancel_ownership_transfer). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /ownership-transfers/{id}/cancel`` (operation ``ownershipTransfers.cancel``).
+        Requires the capability ``org.ownership.transfer``.
+        """
+        return self._client.request(OPERATIONS["ownershipTransfers.cancel"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class OrgDeletionRequestsResource(Resource):
+    """Operations on ``orgDeletionRequests``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[OrgDeletionRequest]:
+        """List org deletion request rows
+
+        An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns a cursor page of org deletion request rows the caller may see. The default order is `requested_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /org-deletion-requests`` (operation ``orgDeletionRequests.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request_page(OPERATIONS["orgDeletionRequests.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[OrgDeletionRequest]:
+        """List org deletion request rows
+
+        An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns a cursor page of org deletion request rows the caller may see. The default order is `requested_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /org-deletion-requests`` (operation ``orgDeletionRequests.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.paginate(OPERATIONS["orgDeletionRequests.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OrgDeletionRequest]:
+        """Get an org deletion request
+
+        An Owner's request to delete the org (1351, Section 14.7), separate from cancellation: made with step-up and the typed name, it ends the subscription and makes the org read-only at once; an Owner may recover it for 7 days, after which the data is deleted and the Owner receives a deletion certificate. Returns one org deletion request with its `ETag`. A org deletion request the caller may not see returns 404.
+
+        ``GET /org-deletion-requests/{id}`` (operation ``orgDeletionRequests.get``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request(OPERATIONS["orgDeletionRequests.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def request(
+        self,
+        body: OrgDeletionRequestCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OrgDeletionRequest]:
+        """Ask to delete the organization
+
+        The Owner (org.organization.delete) with step-up types the bound org's name and a reason (app.request_org_deletion). The subscription ends, the org is read-only at once, every Owner is told, and the data is deleted after 7 days unless an Owner recovers it. A partner with clients and an org under a legal hold are refused with 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /org-deletion-requests/request`` (operation ``orgDeletionRequests.request``).
+        Requires the capability ``org.organization.delete``.
+        """
+        return self._client.request(OPERATIONS["orgDeletionRequests.request"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def recover(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[OrgDeletionRequest]:
+        """Recover the organization
+
+        An Owner recovers the org within the 7-day window (app.recover_org_deletion): writes work again and, unless the org is also canceled, it restarts on the Access plan. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /org-deletion-requests/{id}/recover`` (operation ``orgDeletionRequests.recover``).
+        Requires the capability ``org.organization.delete``.
+        """
+        return self._client.request(OPERATIONS["orgDeletionRequests.recover"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class DeletionCertificatesResource(Resource):
+    """Operations on ``deletionCertificates``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[DeletionCertificate]:
+        """List deletion certificate rows
+
+        The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns a cursor page of deletion certificate rows the caller may see. The default order is `due_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /deletion-certificates`` (operation ``deletionCertificates.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request_page(OPERATIONS["deletionCertificates.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[DeletionCertificate]:
+        """List deletion certificate rows
+
+        The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns a cursor page of deletion certificate rows the caller may see. The default order is `due_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /deletion-certificates`` (operation ``deletionCertificates.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.paginate(OPERATIONS["deletionCertificates.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[DeletionCertificate]:
+        """Get a deletion certificate
+
+        The record of an org whose data was deleted (1351, Section 14.7), kept after the org is gone. Read only by the former Owner it was issued to. The PDF itself is downloaded from Atlas. Returns one deletion certificate with its `ETag`. A deletion certificate the caller may not see returns 404.
+
+        ``GET /deletion-certificates/{id}`` (operation ``deletionCertificates.get``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request(OPERATIONS["deletionCertificates.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+
+class PartnerStandingGrantsResource(Resource):
+    """Operations on ``partnerStandingGrants``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[PartnerStandingGrant]:
+        """List partner standing grant rows
+
+        A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns a cursor page of partner standing grant rows the caller may see. The default order is `valid_from` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /partner-standing-grants`` (operation ``partnerStandingGrants.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request_page(OPERATIONS["partnerStandingGrants.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[PartnerStandingGrant]:
+        """List partner standing grant rows
+
+        A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns a cursor page of partner standing grant rows the caller may see. The default order is `valid_from` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /partner-standing-grants`` (operation ``partnerStandingGrants.list``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.paginate(OPERATIONS["partnerStandingGrants.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PartnerStandingGrant]:
+        """Get a partner standing grant
+
+        A standing grant of the partner and client agreement (1354, Section 4.6.1): the client Owner lets the partner's staff read one area of the client org until an expiry within a year, citing the clause. Each issues an org-level record grant; either side may end it early. Partner staff never write through one. Returns one partner standing grant with its `ETag`. A partner standing grant the caller may not see returns 404.
+
+        ``GET /partner-standing-grants/{id}`` (operation ``partnerStandingGrants.get``).
+        Requires the capability ``org.settings.read``.
+        """
+        return self._client.request(OPERATIONS["partnerStandingGrants.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def record(
+        self,
+        body: PartnerStandingGrantRecordRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PartnerStandingGrant]:
+        """Record a standing partner grant
+
+        The client Owner (org.support_session.grant) records a grant the partner and client agreement provides (app.record_standing_grant): one read capability a support session may grant, an expiry within a year and the clause. A scope outside those, an expiry past a year and an org without a partner answer 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /partner-standing-grants/record`` (operation ``partnerStandingGrants.record``).
+        Requires the capability ``org.support_session.grant``.
+        """
+        return self._client.request(OPERATIONS["partnerStandingGrants.record"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def end(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PartnerStandingGrant]:
+        """End a standing partner grant
+
+        Ends a standing grant early (app.end_standing_grant): the client's Owner or the partner's staff with org.partner.manage. An ended grant answers 422. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /partner-standing-grants/{id}/end`` (operation ``partnerStandingGrants.end``).
+        Requires the capability ``org.support_session.grant``.
+        """
+        return self._client.request(OPERATIONS["partnerStandingGrants.end"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class ShareLinksResource(Resource):
+    """Operations on ``shareLinks``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ShareLink]:
+        """List share link rows
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /share-links`` (operation ``shareLinks.list``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request_page(OPERATIONS["shareLinks.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ShareLink]:
+        """List share link rows
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /share-links`` (operation ``shareLinks.list``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.paginate(OPERATIONS["shareLinks.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ShareLinkCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLinkToken]:
+        """Create a share link
+
+        Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /share-links`` (operation ``shareLinks.create``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLink]:
+        """Get a share link
+
+        A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.
+
+        ``GET /share-links/{id}`` (operation ``shareLinks.get``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def revoke(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ShareLink]:
+        """Revoke a share link
+
+        Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /share-links/{id}/revoke`` (operation ``shareLinks.revoke``).
+        Requires the capability ``data.export.run``.
+        """
+        return self._client.request(OPERATIONS["shareLinks.revoke"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class PersonCalendarFeedsResource(Resource):
+    """Operations on ``personCalendarFeeds``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[PersonCalendarFeed]:
+        """List person calendar feed rows
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /person-calendar-feeds`` (operation ``personCalendarFeeds.list``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request_page(OPERATIONS["personCalendarFeeds.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[PersonCalendarFeed]:
+        """List person calendar feed rows
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns a cursor page of person calendar feed rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /person-calendar-feeds`` (operation ``personCalendarFeeds.list``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.paginate(OPERATIONS["personCalendarFeeds.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedToken]:
+        """Create a personal calendar feed
+
+        Creates the caller's own feed across every org they work with (app.create_person_calendar_feed) and returns its token once. At most 20 live feeds (calendar_feed_limit: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /person-calendar-feeds`` (operation ``personCalendarFeeds.create``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.create"], idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[PersonCalendarFeed]:
+        """Get a person calendar feed
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Returns one person calendar feed with its `ETag`. A person calendar feed the caller may not see returns 404.
+
+        ``GET /person-calendar-feeds/{id}`` (operation ``personCalendarFeeds.get``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def delete(
+        self,
+        id: str,
+        *,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[None]:
+        """Delete a person calendar feed
+
+        A person's own iCalendar feed across every org they work with through an engagement (1410): their published shifts and the meetings, milestones and deadlines shared with them. Only a hash of the token is kept; the token is shown once by personCalendarFeeds.create and personCalendarFeeds.rotate, and deleting the feed revokes it for good. Soft-deletes the person calendar feed: it moves to Trash and can be restored for its table's retention period.
+
+        ``DELETE /person-calendar-feeds/{id}`` (operation ``personCalendarFeeds.delete``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.delete"], path={"id": id}, options=options)
+
+    def rotate(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[CalendarFeedToken]:
+        """Get a new link for a personal calendar feed
+
+        Replaces the feed's token (app.rotate_person_calendar_feed) and returns the new one once. The old subscription URL answers 404 at once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /person-calendar-feeds/{id}/rotate`` (operation ``personCalendarFeeds.rotate``).
+        Requires the capability ``me.calendar_feeds.write``.
+        """
+        return self._client.request(OPERATIONS["personCalendarFeeds.rotate"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class ProjectInboxesResource(Resource):
+    """Operations on ``projectInboxes``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[ProjectInbox]:
+        """List project inbox rows
+
+        A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /project-inboxes`` (operation ``projectInboxes.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request_page(OPERATIONS["projectInboxes.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[ProjectInbox]:
+        """List project inbox rows
+
+        A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns a cursor page of project inbox rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /project-inboxes`` (operation ``projectInboxes.list``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.paginate(OPERATIONS["projectInboxes.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def create(
+        self,
+        body: ProjectInboxCreate,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Create a project's inbox address
+
+        Returns the project's live inbox address, creating it when there is none (app.create_project_inbox, projects.settings.write on the project). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-inboxes`` (operation ``projectInboxes.create``).
+        Requires the capability ``projects.settings.write``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.create"], body=body, idempotency_key=idempotency_key, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Get a project inbox
+
+        A project inbox address (0550, 1411): mail forwarded to `<local_part>@<receiving domain>` lands as inbound mail of the project for a coordinator to file. One live address per project; it is never edited, only replaced or disabled. Returns one project inbox with its `ETag`. A project inbox the caller may not see returns 404.
+
+        ``GET /project-inboxes/{id}`` (operation ``projectInboxes.get``).
+        Requires the capability ``projects.project.read``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def replace(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Replace a project's inbox address
+
+        Disables the address and returns the project's new one (app.replace_project_inbox). Mail to the old address is no longer accepted. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-inboxes/{id}/replace`` (operation ``projectInboxes.replace``).
+        Requires the capability ``projects.settings.write``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.replace"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+    def disable(
+        self,
+        id: str,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[ProjectInbox]:
+        """Turn off a project's inbox
+
+        Stops the address accepting mail (app.disable_project_inbox). Mail already received stays; a disabled address never comes back. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /project-inboxes/{id}/disable`` (operation ``projectInboxes.disable``).
+        Requires the capability ``projects.settings.write``.
+        """
+        return self._client.request(OPERATIONS["projectInboxes.disable"], path={"id": id}, idempotency_key=idempotency_key, options=options)
+
+
+class InboundMessagesResource(Resource):
+    """Operations on ``inboundMessages``, in the Platform module."""
+
+    def list(
+        self,
+        *,
+        limit: Optional[int] = None,
+        cursor: Optional[str] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Page[InboundMessage]:
+        """List inbound message rows
+
+        Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        ``GET /inbound-messages`` (operation ``inboundMessages.list``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request_page(OPERATIONS["inboundMessages.list"], query={"limit": limit, "cursor": cursor, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def list_all(
+        self,
+        *,
+        limit: Optional[int] = None,
+        fields: FieldsArg = None,
+        sort: SortArg = None,
+        filter: Optional[Filter] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> Iterator[InboundMessage]:
+        """List inbound message rows
+
+        Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns a cursor page of inbound message rows the caller may see. The default order is `received_at` descending, newest first. Supports sparse fieldsets and the filter grammar.
+
+        Iterates every item across all pages, following ``next_cursor``.
+
+        ``GET /inbound-messages`` (operation ``inboundMessages.list``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.paginate(OPERATIONS["inboundMessages.list"], query={"limit": limit, "fields": fields, "sort": sort, "filter": filter}, options=options)
+
+    def get(
+        self,
+        id: str,
+        *,
+        fields: FieldsArg = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InboundMessage]:
+        """Get an inbound message
+
+        Mail received (0550, 1411): forwarded to a project inbox, or a reply to a notification email. People who file documents on the project read its inbox mail; a person reads their own replies. Project inbox mail is filed once, as a Document record of the project, or discarded with a reason. Returns one inbound message with its `ETag`. A inbound message the caller may not see returns 404.
+
+        ``GET /inbound-messages/{id}`` (operation ``inboundMessages.get``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["inboundMessages.get"], path={"id": id}, query={"fields": fields}, options=options)
+
+    def file(
+        self,
+        id: str,
+        body: InboundMessageFileRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InboundMessage]:
+        """File inbound mail as a document
+
+        Files verified project inbox mail as a Document record of the project, optionally to a record of the project the caller can open (app.file_inbound_message); the subject, sender and text are posted as a comment on the document and the record. Mail is filed once (inbound_message_triaged: 422); unverified mail is refused (inbound_message_unverified: 422). Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /inbound-messages/{id}/file`` (operation ``inboundMessages.file``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["inboundMessages.file"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
+
+    def discard(
+        self,
+        id: str,
+        body: InboundMessageDiscardRequest,
+        *,
+        idempotency_key: Optional[str] = None,
+        options: Optional[RequestOptions] = None,
+    ) -> ApiResponse[InboundMessage]:
+        """Discard inbound mail
+
+        Discards project inbox mail with an optional reason (app.discard_inbound_message). The mail is kept and the audit ledger records who discarded it and when. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+
+        ``POST /inbound-messages/{id}/discard`` (operation ``inboundMessages.discard``).
+        Requires the capability ``knowledge.document.write``.
+        """
+        return self._client.request(OPERATIONS["inboundMessages.discard"], path={"id": id}, body=body, idempotency_key=idempotency_key, options=options)
 
 
 class WorkforceGroupsResource(Resource):

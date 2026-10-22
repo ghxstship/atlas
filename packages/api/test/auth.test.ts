@@ -35,7 +35,12 @@ const VALID = jwt({});
 
 function fakeSupabase(
   orgs: (typeof ORG_A)[],
-  options: { person?: boolean; allowedIps?: readonly string[] } = {},
+  options: {
+    person?: boolean;
+    allowedIps?: readonly string[];
+    /** The row app.my_org_auth_status answers (migration 1330); a session that meets every rule by default. */
+    sessionRules?: { mfa_required?: boolean; mfa_verified?: boolean; session_expired?: boolean };
+  } = {},
 ) {
   const calls: string[] = [];
   const exchanges: string[] = [];
@@ -93,6 +98,17 @@ function fakeSupabase(
       const enforced = list !== undefined;
       const allowed = list === undefined || list.includes(body.p_ip ?? "");
       return json([{ enforced, allowed, covered: allowed }]);
+    }
+    if (url.pathname === "/rest/v1/rpc/my_org_auth_status") {
+      return json([
+        {
+          mfa_required: false,
+          mfa_verified: false,
+          session_expired: false,
+          session_expires_at: null,
+          ...options.sessionRules,
+        },
+      ]);
     }
     return json({ message: `unexpected ${url.pathname}` }, 500);
   };
@@ -165,6 +181,37 @@ describe("bearer session tokens", () => {
     expect(context?.org).toBeNull();
     expect(() => requireOrg(context as RequestContext)).toThrow(ApiProblem);
     expect(() => requirePerson(context as RequestContext)).toThrow(ApiProblem);
+  });
+});
+
+describe("org session rules: security.mfa_policy and security.session_hours (A77, migration 1330)", () => {
+  it("refuses a session the org's MFA policy asks a second factor of, and admits a verified one", async () => {
+    const owed = fakeSupabase([ORG_A], { sessionRules: { mfa_required: true } });
+    const refused = resolve(owed.authenticate, { authorization: `Bearer ${VALID}` });
+    await expect(refused).rejects.toBeInstanceOf(ApiProblem);
+    await expect(refused).rejects.toMatchObject({ body: { status: 401 } });
+    const verified = fakeSupabase([ORG_A], {
+      sessionRules: { mfa_required: true, mfa_verified: true },
+    });
+    expect(
+      (await resolve(verified.authenticate, { authorization: `Bearer ${VALID}` }))?.org?.id,
+    ).toBe(ORG_A.id);
+  });
+
+  it("refuses a session older than the org's lifetime", async () => {
+    const { authenticate } = fakeSupabase([ORG_A], { sessionRules: { session_expired: true } });
+    await expect(resolve(authenticate, { authorization: `Bearer ${VALID}` })).rejects.toMatchObject(
+      { body: { status: 401 } },
+    );
+  });
+
+  it("never asks for an API key, whose token is a machine credential", async () => {
+    const { authenticate, calls } = fakeSupabase([ORG_A], {
+      sessionRules: { mfa_required: true },
+    });
+    const context = await resolve(authenticate, { authorization: "Bearer xos_live_valid" });
+    expect(context?.credential).toBe("api_key");
+    expect(calls.some((c) => c.startsWith("/rest/v1/rpc/my_org_auth_status"))).toBe(false);
   });
 });
 

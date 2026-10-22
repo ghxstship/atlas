@@ -945,7 +945,8 @@
       "passwordHelp": "At least 12 characters, with letters and numbers. Avoid your name, your email and product names.",
       "orgName": "Organization name",
       "orgSlug": "Web address",
-      "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}."
+      "orgSlugHelp": "Lowercase letters, numbers and hyphens. Your Atlas address is /{slug}.",
+      "age": "I am 16 or older."
     },
     "or": "or",
     "signIn": {
@@ -959,7 +960,8 @@
       "title": "Create your Atlas account",
       "submit": "Create account",
       "haveAccount": "Already have an account?",
-      "toSignIn": "Sign in"
+      "toSignIn": "Sign in",
+      "magicLink": "Email me a sign-up link"
     },
     "providers": {
       "continueWith": "Continue with {provider}",
@@ -991,7 +993,10 @@
         "seat_limit_reached": "This organization has no seat left for your role. Ask its Owner to buy extra seats or upgrade the plan, then open the invitation again.",
         "seat_limit_upgrade": "This organization has no seat left for your role. Ask its Owner to upgrade the plan, then open the invitation again."
       },
-      "home": "Go to Atlas"
+      "home": "Go to Atlas",
+      "closedTitle": "This invitation link is not valid any more",
+      "closedBody": "It may have expired, been used already, or been replaced by a newer invitation. Ask the person who invited you to send a new one. If you already have an account, you can still sign in.",
+      "signIn": "Sign in"
     },
     "signOut": "Sign out",
     "session": {
@@ -1023,7 +1028,8 @@
       "orgSlug": "Use 2 to 48 lowercase letters, numbers and single hyphens.",
       "accept": "Accept the Terms of Service and the Data Processing Agreement to continue.",
       "slug_taken": "That web address is already in use. Choose another.",
-      "slug_reserved": "That web address is reserved by Atlas. Choose another."
+      "slug_reserved": "That web address is reserved by Atlas. Choose another.",
+      "age": "Confirm that you are 16 or older. XOS accounts are for people 16 and over."
     },
     "networkRestricted": {
       "title": "Your network is not allowed",
@@ -1048,7 +1054,7 @@
   },
   "chrome": {
     "search": "Search",
-    "searchHint": "Search pages and settings",
+    "searchHint": "Search records, people, pages and actions",
     "favoritesEmpty": "Pin projects, saved views and records to keep them here.",
     "organizations": "Organizations",
     "createOrganization": "Create organization",
@@ -1170,6 +1176,55 @@
         "sole_owner": "You are the only Owner of {org}. Make someone else Owner before you leave.",
         "unexpected": "Something went wrong on our side. Try again in a moment."
       }
+    },
+    "partnerConsole": {
+      "title": "Partner console",
+      "lead": "{org} is a partner agency. Create client orgs and set their plans, give them a default brand, and see usage and wholesale billing in the Partner console.",
+      "clientOrgs": "Client orgs",
+      "discount": "Wholesale discount",
+      "createFirst": "Create your first client org",
+      "open": "Open the Partner console"
+    },
+    "usagePanel": {
+      "title": "Usage now",
+      "lead": "What {org} uses today against the {plan} plan.",
+      "leadNoPlan": "What {org} uses today.",
+      "seats": "Seats",
+      "field": "Field members",
+      "projects": "Active projects",
+      "engagements": "Open external engagements",
+      "unlimited": "{used} (no limit on this plan)",
+      "ofLimit": "{used} of {limit}",
+      "members": "View members",
+      "billing": "Billing and plan"
+    },
+    "templatesPanel": {
+      "title": "Project templates",
+      "lead": "Templates the org starts projects from. Create, version and apply them on Projects, Templates.",
+      "empty": "No project templates yet. Save one from a project you want to repeat.",
+      "line": "Version {version} · {items, plural, one {# item} other {# items}} · {projects, plural, =0 {no projects yet} one {# project} other {# projects}}",
+      "open": "Open project templates"
+    }
+  },
+  "refusalOutcome": {
+    "REFUSE": "Refused",
+    "NO_ANSWER": "No answer",
+    "UNRATIFIED": "Not ratified"
+  },
+  "commandMenu": {
+    "groups": {
+      "actions": "Actions",
+      "records": "Records",
+      "people": "People"
+    },
+    "incident": "Incident",
+    "actions": {
+      "newProject": "New project",
+      "newRecord": "New record",
+      "reportIncident": "Report incident",
+      "approveTimesheets": "Approve timesheets",
+      "openApprovals": "Open approvals",
+      "openInbox": "Open Inbox"
     }
   },
   "create": {

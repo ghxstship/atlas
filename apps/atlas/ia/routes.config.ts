@@ -8,8 +8,16 @@
 export const DELEGATED: Readonly<Record<string, string>> = {
   "advance-form": "Served by Gateway (servedBy: gateway, ADR 0006 item 5).",
   "agreement-signing": "Served by Gateway (servedBy: gateway, ADR 0006 item 5).",
-  "calendar-feed":
-    "A route handler at /ical/{feedToken}.ics owned by A18 (calendar feeds, Section 4.6.5).",
+};
+
+/**
+ * Sitemap nodes Atlas serves with a route handler whose file cannot mirror the route, because a
+ * Next segment cannot carry a fixed suffix (ADR 0040 item 1). `/ical/{feedToken}.ics` is served by
+ * `app/ical/[feedFile]/route.ts`, which takes the whole file name and answers 404 unless it is
+ * `<token>.ics`. Gate 15 checks each file exists and counts it as the node's route file.
+ */
+export const ROUTE_HANDLER_FILES: Readonly<Record<string, string>> = {
+  "calendar-feed": "app/ical/[feedFile]/route.ts",
 };
 
 /**
@@ -30,10 +38,25 @@ export const SHELL_ROUTES: Readonly<Record<string, string>> = {
   "/auth/network-restricted":
     "Auth template: an org's IP allow-list refused this network; an Owner may take emergency access (A52).",
   "/auth/invite/{token}": "Auth template: preview and accept an invitation.",
+  "/auth/mfa":
+    "Auth template: the second factor after the first, or setting one up an org requires (A77).",
+  "/auth/session-ended":
+    "Auth template: an org's session lifetime or idle timeout ended the session; sign in again (A77).",
+  "/auth/sso": "Auth template: Enterprise single sign-on by work email domain (A77).",
   "/{org}/export":
     "Route handler: the full org export archive for the Owner (A36, Section 14.7 and 14.8).",
   "/{org}/documents/{kind}/{id}":
     "Route handler: a generated document as tagged PDF/UA (Section 11.9, ADR 0031).",
+  "/{org}/deletion-certificates/{id}":
+    "Route handler: a deletion certificate PDF for the former Owner it was issued to (A79, Section 14.7).",
+  "/{org}/forms/{form}/{id}":
+    "Route handler: OSHA Forms 300, 300A and 301 and the WH-347 certified payroll as PDF/UA or CSV (Section 14.5, A82).",
+  "/share/{token}":
+    "Auth template: opens a share link with its access code; no session needed (Section 8.6, A82).",
+  "/share/{token}/file":
+    "Route handler: opens a share link and sends the file, watermarked when Confidential (Section 8.6).",
+  "/files/{version}":
+    "Route handler: a Confidential or Restricted file, logged, held to the export capability and watermarked (Section 8.6).",
   "/api/v1/openapi.json": "Public API: the generated OpenAPI document (A04, ADR 0005 item 3).",
   "/api/v1/{...path}": "Public API: every v1 operation, served by the @xos/api Hono app (A04R).",
   "/api/client-errors": "Route handler: browser error reports, forwarded to Sentry (ADR 0025).",

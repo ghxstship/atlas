@@ -7,10 +7,12 @@ import {
   runImportJobs,
   UnreadableUploadError,
   validateRow,
+  type DetectedSheet,
   type ImportJobKind,
   type ImportStore,
   type TargetLookups,
 } from "../src/import-worker.ts";
+import type { SheetsFetch } from "../src/import-sheets.ts";
 
 type Row = Record<string, unknown>;
 
@@ -63,7 +65,24 @@ function lookups(writes: Row[]): TargetLookups {
   };
 }
 
-function memoryStore(csv: string, targetCode = "counterparties", source = "CSV") {
+const PLAYBOOK = {
+  columns: [
+    { sheet: "Vendor Directory", header: "COMPANY", target: "app.organizations.name" },
+    {
+      sheet: "Vendor Directory",
+      header: "COUNTERPARTY TYPE",
+      target: "app.counterparties.counterparty_type",
+    },
+    { sheet: "Asset Inventory", header: "RECORD ID", target: "app.asset_units.asset_tag" },
+    { sheet: "Asset Inventory", header: "LOCATION ID", target: "app.asset_units.home_venue_id" },
+  ],
+  sheets: [
+    { sheet: "Vendor Directory", entity: "app.vendors" },
+    { sheet: "Asset Inventory", entity: "app.asset_units" },
+  ],
+};
+
+function memoryStore(csv: string | Uint8Array, targetCode = "counterparties", source = "CSV") {
   const writes: Row[] = [];
   const queue: { kind: ImportJobKind; jobId: string; subjectId: string; attempts: number }[] = [
     { kind: "import.detect", jobId: "q1", subjectId: "j1", attempts: 0 },
@@ -77,11 +96,18 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
     filename: "c.csv",
     status: "Uploaded",
     profileId: null as string | null,
+    sheetName: null as string | null,
+    sourceUrl: null as string | null,
+    failureCode: null as string | null,
   };
+  const sheets: DetectedSheet[] = [];
+  const saved: { path: string; bytes: Uint8Array }[] = [];
+  const drive = { credential: null as string | null };
   const columns: {
     index: number;
     header: string;
     suggested: string | null;
+    source: string | null;
     fieldName: string | null;
   }[] = [];
   const rows: {
@@ -113,7 +139,7 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
     scanStatus: async () => scan.status,
     async download() {
       scan.downloads += 1;
-      return new TextEncoder().encode(csv);
+      return typeof csv === "string" ? new TextEncoder().encode(csv) : csv;
     },
     targetFields: async (t) => FIELDS[t] ?? [],
     profileMapping: async () => new Map(),
@@ -122,8 +148,35 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
     },
     async insertColumns(_id, _sheet, cols) {
       cols.forEach((c, i) =>
-        columns.push({ index: i, header: c.header, suggested: c.suggested, fieldName: null }),
+        columns.push({
+          index: i,
+          header: c.header,
+          suggested: c.suggested,
+          source: c.source ?? null,
+          fieldName: null,
+        }),
       );
+    },
+    async insertSheets(_id, list) {
+      sheets.push(...list);
+    },
+    async setSheet(_id, name) {
+      job.sheetName = name;
+    },
+    playbook: async () => PLAYBOOK,
+    importTargets: async () =>
+      Object.entries(FIELDS).map(([code, f]) => ({
+        code,
+        fields: f.map((x) => x.name),
+        required: f.filter((x) => x.required).map((x) => x.name),
+      })),
+    driveCredential: async () => drive.credential,
+    async saveUpload(path, bytes) {
+      saved.push({ path, bytes });
+    },
+    async failImport(_id, code) {
+      job.status = "Failed";
+      job.failureCode = code;
     },
     mappedColumns: async () => columns.map((c) => ({ index: c.index, fieldName: c.fieldName })),
     async recordRow(input) {
@@ -172,6 +225,9 @@ function memoryStore(csv: string, targetCode = "counterparties", source = "CSV")
     store,
     scan,
     job,
+    sheets,
+    saved,
+    drive,
     columns,
     rows,
     issues,
@@ -443,8 +499,206 @@ describe("spreadsheet files", () => {
     const empty = new ExcelJS.Workbook();
     const none = await readSheet("XLSX", "e.xlsx", new Uint8Array(await empty.xlsx.writeBuffer()));
     expect(none.rows).toEqual([]);
-    await expect(readSheet("Google Sheets", "x", new Uint8Array())).rejects.toBeInstanceOf(
+    await expect(readSheet("XLS", "x", new Uint8Array())).rejects.toBeInstanceOf(
       UnreadableUploadError,
+    );
+  });
+});
+
+async function playbookWorkbook(): Promise<Uint8Array> {
+  const workbook = new ExcelJS.Workbook();
+  workbook.addWorksheet("Cover Page").addRow([]);
+  const vendors = workbook.addWorksheet("Vendor Directory");
+  vendors.addRow(["VENDOR ID", "COMPANY", "COUNTERPARTY TYPE"]);
+  vendors.addRow(["V-1", "Harbor Sound Rental", "Sponsor"]);
+  vendors.addRow(["V-2", "Bayfront Catering", ""]);
+  const assets = workbook.addWorksheet("Asset Inventory");
+  assets.addRow(["RECORD ID", "CLASS", "LOCATION ID"]);
+  assets.addRow(["A-9", "Truss", "Pier 9"]);
+  const notes = workbook.addWorksheet("Notes");
+  notes.addRow(["Anything", "Else"]);
+  notes.addRow(["x", "y"]);
+  return new Uint8Array(await workbook.xlsx.writeBuffer());
+}
+
+describe("every sheet of a workbook (A65-025)", () => {
+  it("records each sheet with its range and proposed target, and maps the first sheet with data", async () => {
+    const s = memoryStore(await playbookWorkbook(), "counterparties", "XLSX");
+    await runImportJobs(s.store, "w");
+    expect(s.job.status).toBe("Mapped");
+    expect(s.job.sheetName).toBe("Vendor Directory");
+    expect(
+      s.sheets.map((x) => [
+        x.name,
+        x.index,
+        x.headerRow,
+        x.dataRowCount,
+        x.proposedTarget,
+        x.proposedFromPlaybook,
+      ]),
+    ).toEqual([
+      ["Cover Page", 0, null, 0, null, false],
+      ["Vendor Directory", 1, 1, 2, "counterparties", true],
+      ["Asset Inventory", 2, 1, 1, "asset_units", true],
+      ["Notes", 3, 1, 1, null, false],
+    ]);
+    expect(s.columns.map((c) => [c.header, c.suggested, c.source])).toEqual([
+      ["VENDOR ID", null, null],
+      ["COMPANY", "name", "Playbook"],
+      ["COUNTERPARTY TYPE", "counterparty_type", "Playbook"],
+    ]);
+    s.confirm({});
+    await runImportJobs(s.store, "w");
+    expect(s.rows.map((r) => `${r.rowNumber}:${r.state}`)).toEqual(["2:Valid", "3:Valid"]);
+  });
+
+  it("reads the sheet an import started from a detected sheet names, without listing sheets again", async () => {
+    const s = memoryStore(await playbookWorkbook(), "asset_units", "XLSX");
+    s.job.sheetName = "Asset Inventory";
+    await runImportJobs(s.store, "w");
+    expect(s.sheets).toEqual([]);
+    expect(s.columns.map((c) => [c.header, c.suggested, c.source])).toEqual([
+      ["RECORD ID", "asset_tag", "Playbook"],
+      ["CLASS", "asset_class_id", "Header"],
+      ["LOCATION ID", "home_venue_id", "Playbook"],
+    ]);
+    s.confirm({});
+    await runImportJobs(s.store, "w");
+    expect(s.rows.map((r) => `${r.rowNumber}:${r.state}`)).toEqual(["2:Valid"]);
+  });
+
+  it("fails a step whose sheet is no longer in the file", async () => {
+    const s = memoryStore(await playbookWorkbook(), "asset_units", "XLSX");
+    s.job.sheetName = "Gone";
+    s.job.status = "Mapped";
+    s.queue.push({ kind: "import.validate", jobId: "q9", subjectId: "j1", attempts: 0 });
+    s.queue.splice(0, 1);
+    const results = await runImportJobs(s.store, "w");
+    expect(results[0]?.error).toContain("no longer in the file");
+  });
+});
+
+describe("Google Sheets links (A65-025)", () => {
+  const link = "https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit";
+  const fake = (routes: Record<string, { status: number; body: unknown }>) => {
+    const calls: { url: string; auth: string | undefined }[] = [];
+    const sheetsFetch: SheetsFetch = async (url, init) => {
+      calls.push({ url, auth: init.headers["authorization"] });
+      const key = Object.keys(routes).find((k) => url.includes(k));
+      const route = key === undefined ? { status: 599, body: {} } : routes[key];
+      return { status: route?.status ?? 599, json: async () => route?.body };
+    };
+    return { sheetsFetch, calls };
+  };
+  function sheetsJob() {
+    const s = memoryStore("", "venues", "Google Sheets");
+    s.job.sourceUrl = link;
+    s.job.path = "p/u.xlsx";
+    s.scan.status = null;
+    s.queue.splice(0, s.queue.length, {
+      kind: "import.fetch",
+      jobId: "q1",
+      subjectId: "j1",
+      attempts: 0,
+    });
+    return s;
+  }
+
+  it("reads every sheet through the Drive connection and saves it for scanning", async () => {
+    const s = sheetsJob();
+    s.drive.credential = JSON.stringify({ access_token: "ya29-fixture" });
+    const f = fake({
+      "?fields=": {
+        status: 200,
+        body: {
+          properties: { title: "Tour" },
+          sheets: [
+            { properties: { title: "Venues", index: 0 } },
+            { properties: { title: "Chart", index: 1, sheetType: "OBJECT" } },
+          ],
+        },
+      },
+      "values:batchGet": {
+        status: 200,
+        body: {
+          valueRanges: [
+            {
+              values: [
+                ["Venue", "City"],
+                ["Pier 9", "Miami"],
+              ],
+            },
+          ],
+        },
+      },
+    });
+    const results = await runImportJobs(s.store, "w", 10, { sheetsFetch: f.sheetsFetch });
+    expect(results[0]?.status).toBe("Succeeded");
+    expect(f.calls.every((c) => c.auth === "Bearer ya29-fixture")).toBe(true);
+    expect(f.calls[1]?.url).toContain("ranges=%27Venues%27");
+    expect(s.saved).toHaveLength(1);
+    expect(s.saved[0]?.path).toBe("p/u.xlsx");
+    const read = await readSheet("Google Sheets", "Tour", s.saved[0]?.bytes ?? new Uint8Array());
+    expect(read).toEqual({
+      name: "Venues",
+      rows: [
+        ["Venue", "City"],
+        ["Pier 9", "Miami"],
+      ],
+    });
+    expect(s.job.status).toBe("Uploaded");
+  });
+
+  it("fails the import with a reason when the sheet is not shared, missing or Drive is not connected", async () => {
+    const notConnected = sheetsJob();
+    await runImportJobs(notConnected.store, "w", 10, { sheetsFetch: fake({}).sheetsFetch });
+    expect(notConnected.job).toMatchObject({
+      status: "Failed",
+      failureCode: "google_drive_not_connected",
+    });
+
+    for (const [status, code] of [
+      [403, "google_sheet_not_shared"],
+      [404, "google_sheet_not_found"],
+      [401, "google_drive_credential_refused"],
+    ] as const) {
+      const s = sheetsJob();
+      s.drive.credential = "ya29-plain-token";
+      await runImportJobs(s.store, "w", 10, {
+        sheetsFetch: fake({ "?fields=": { status, body: {} } }).sheetsFetch,
+      });
+      expect(s.job).toMatchObject({ status: "Failed", failureCode: code });
+      expect(s.saved).toHaveLength(0);
+    }
+    const empty = sheetsJob();
+    empty.drive.credential = "ya29-plain-token";
+    await runImportJobs(empty.store, "w", 10, {
+      sheetsFetch: fake({ "?fields=": { status: 200, body: { sheets: [] } } }).sheetsFetch,
+    });
+    expect(empty.job.failureCode).toBe("google_sheet_empty");
+  });
+
+  it("retries an outage and records the reason once attempts are used up", async () => {
+    const s = sheetsJob();
+    s.drive.credential = "ya29-plain-token";
+    const results = await runImportJobs(s.store, "w", 10, {
+      sheetsFetch: fake({ "?fields=": { status: 503, body: {} } }).sheetsFetch,
+    });
+    expect(results[0]).toMatchObject({ status: "Failed" });
+    expect(s.job).toMatchObject({ status: "Failed", failureCode: "google_sheet_unavailable" });
+  });
+
+  it("does nothing for a link already saved, or for a job that is not a waiting link", async () => {
+    const saved = sheetsJob();
+    saved.scan.status = "Scanning";
+    await runImportJobs(saved.store, "w", 10, { sheetsFetch: fake({}).sheetsFetch });
+    expect(saved.saved).toHaveLength(0);
+    const upload = sheetsJob();
+    upload.job.source = "CSV";
+    expect((await runImportJobs(upload.store, "w"))[0]?.status).toBe("Succeeded");
+    const noReader = sheetsJob();
+    expect((await runImportJobs(noReader.store, "w"))[0]?.error).toContain(
+      "no Google Sheets reader",
     );
   });
 });

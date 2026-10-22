@@ -1,0 +1,4 @@
+# A61 (RRR-106): the curated feed reaction glyphs (Section 11.10 item 8).
+Heart
+Laugh
+PartyPopper

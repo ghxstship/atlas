@@ -1,6 +1,6 @@
 import {
   getMyOrganization,
-  hasClientOrganizations,
+  isPartnerOrganization,
   listRoleCapabilities,
   systemRoleForBand,
   type MyOrganization,
@@ -8,8 +8,10 @@ import {
   type XosClient,
 } from "@xos/data";
 import { networkAccess } from "@xos/data/access-controls";
+import { getOrgAuthStatus, orgAuthDecision, type OrgAuthDecision } from "@xos/data/auth-assurance";
 import { getPersona, listDisabledModules } from "@xos/data/settings";
 import type { Condition, NavContext } from "@xos/ia";
+import { LAST_SEEN_COOKIE, parseLastSeen } from "@/lib/auth/assurance";
 import { clientIp } from "@/lib/auth/legal";
 
 /**
@@ -33,11 +35,27 @@ export function isDesktopRequest(headers: Headers): boolean {
   return !/Mobi|Android|iPhone|iPad/i.test(headers.get("user-agent") ?? "");
 }
 
+/** One cookie from a request's Cookie header. */
+function cookieValue(headers: Headers, name: string): string | undefined {
+  for (const part of (headers.get("cookie") ?? "").split(";")) {
+    const index = part.indexOf("=");
+    if (index > 0 && part.slice(0, index).trim() === name) return part.slice(index + 1).trim();
+  }
+  return undefined;
+}
+
 /**
  * Null when the org does not exist, the person holds no active membership in it, or the org's IP
  * allow-list refuses the address the request came from (Section 9, migration 1201); then
  * `onRestricted` is called, so the proxy can explain the refusal instead of answering 404. An org
  * that never turned its allow-list on admits every address.
+ *
+ * Also null when the session does not meet the org's security settings (A77, migration 1330): a
+ * second factor its MFA policy asks of the person's role, its session lifetime or its idle timeout.
+ * Then `auth.onRequired` gets the reason, so the proxy sends the person to verify or sign in again.
+ * Server actions resolve their org here too, so an action naming another org meets the same rules.
+ * The device's last request comes from the `xos-last-seen` cookie unless `auth.lastSeenAt` gives it
+ * (the proxy reads it before it records this request).
  */
 export async function resolveMembership(
   db: XosClient,
@@ -45,27 +63,48 @@ export async function resolveMembership(
   slug: string,
   headers: Headers,
   onRestricted?: () => void,
+  auth?: {
+    readonly onRequired?: (decision: OrgAuthDecision) => void;
+    readonly lastSeenAt?: number | null;
+  },
 ): Promise<Membership | null> {
   const org = await getMyOrganization(db, personId, slug);
   if (!org.ok) {
     if (org.error.kind === "not-found") return null;
     throw new Error(`Cannot read organization ${slug}: ${JSON.stringify(org.error)}`);
   }
-  const [network, capabilities, partner, disabled, persona] = await Promise.all([
+  const [network, capabilities, partner, disabled, persona, session] = await Promise.all([
     networkAccess(db, org.data.id, clientIp(headers)),
     listRoleCapabilities(
       db,
       org.data.roles.map((r) => r.id),
     ),
-    hasClientOrganizations(db, org.data.id),
+    isPartnerOrganization(db, org.data.id),
     listDisabledModules(db, org.data.id),
     getPersona(db, org.data.id),
+    getOrgAuthStatus(db, org.data.id),
   ]);
   if (!network.ok)
     throw new Error(`Cannot check the IP allow-list: ${JSON.stringify(network.error)}`);
   if (!network.data.allowed) {
     onRestricted?.();
     return null;
+  }
+  if (!session.ok) {
+    throw new Error(`Cannot read the org's session rules: ${JSON.stringify(session.error)}`);
+  }
+  if (session.data) {
+    const decision = orgAuthDecision(session.data, {
+      lastSeenAt:
+        auth?.lastSeenAt !== undefined
+          ? auth.lastSeenAt
+          : parseLastSeen(cookieValue(headers, LAST_SEEN_COOKIE)),
+      now: Date.now(),
+    });
+    if (decision !== "ok") {
+      auth?.onRequired?.(decision);
+      return null;
+    }
   }
   if (!capabilities.ok) {
     throw new Error(`Cannot read capabilities: ${JSON.stringify(capabilities.error)}`);
