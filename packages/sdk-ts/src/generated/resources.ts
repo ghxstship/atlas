@@ -812,6 +812,9 @@ import type {
   SettingValueCreate,
   SettingValueUpdate,
   SettleClaimRequest,
+  ShareLink,
+  ShareLinkCreate,
+  ShareLinkToken,
   SharedWorkDetails,
   Shift,
   ShiftCreate,
@@ -36420,6 +36423,98 @@ export class PartnerStandingGrantsResource extends $Resource {
   end(id: string, options?: $MutationOptions): Promise<$ApiResponse<PartnerStandingGrant>> {
     return this.client.request<PartnerStandingGrant>(
       $OPERATIONS["partnerStandingGrants.end"],
+      { path: { id } },
+      options,
+    );
+  }
+}
+
+/**
+ * Operations on `shareLinks`, in the Platform module.
+ *
+ * Custom objects, imports and exports, approvals, comments, notifications, saved views, trash and templates (Sections 4.6 and 4.10).
+ */
+export class ShareLinksResource extends $Resource {
+  /**
+   * List share link rows
+   *
+   * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * `GET /share-links` (operation `shareLinks.list`).
+   * Requires the capability `data.export.run`.
+   */
+  list(params?: $ListParams<ShareLink>, options?: $RequestOptions): Promise<$Page<ShareLink>> {
+    return this.client.requestPage<ShareLink>(
+      $OPERATIONS["shareLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * List share link rows
+   *
+   * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns a cursor page of share link rows the caller may see. The default order is `created_at` ascending. Supports sparse fieldsets and the filter grammar.
+   *
+   * Iterates every item across all pages, following `next_cursor`.
+   *
+   * `GET /share-links` (operation `shareLinks.list`).
+   * Requires the capability `data.export.run`.
+   */
+  listAll(
+    params?: $ListAllParams<ShareLink>,
+    options?: $RequestOptions,
+  ): AsyncGenerator<ShareLink, void, undefined> {
+    return this.client.paginate<ShareLink>(
+      $OPERATIONS["shareLinks.list"],
+      { query: params },
+      options,
+    );
+  }
+
+  /**
+   * Create a share link
+   *
+   * Makes a link to the current clean version of a file the caller can read, through app.create_share_link. The database applies Section 8.6: Public files may omit `expires_at`; Internal files need one within 90 days; Confidential files need `data.export.confidential`, `expires_at` within 30 days and `recipient_email`, and always get an access code; Restricted files are refused (422 `share_link_restricted`). A Confidential PDF, or an image other than PNG or JPEG, cannot carry the viewer watermark and is refused (422 `share_link_watermark_unsupported`). Answers 201 with the token and access code, shown once. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /share-links` (operation `shareLinks.create`).
+   * Requires the capability `data.export.run`.
+   */
+  create(body: ShareLinkCreate, options?: $MutationOptions): Promise<$ApiResponse<ShareLinkToken>> {
+    return this.client.request<ShareLinkToken>($OPERATIONS["shareLinks.create"], { body }, options);
+  }
+
+  /**
+   * Get a share link
+   *
+   * A link that opens one clean version of a file without an account (Section 8.6). Public files may have a link without an expiry; Internal links need an expiry within 90 days; Confidential links need an expiry within 30 days, an access code and the recipient's email, which the watermark on every downloaded page carries; Restricted files never get a link. The token and the access code are returned once by `shareLinks.create` and stored only as hashes, so they never appear here. Anyone who can read the file reads its links. Returns one share link with its `ETag`. A share link the caller may not see returns 404.
+   *
+   * `GET /share-links/{id}` (operation `shareLinks.get`).
+   * Requires the capability `data.export.run`.
+   */
+  get(
+    id: string,
+    params?: $FieldsParams<ShareLink>,
+    options?: $RequestOptions,
+  ): Promise<$ApiResponse<ShareLink>> {
+    return this.client.request<ShareLink>(
+      $OPERATIONS["shareLinks.get"],
+      { path: { id }, query: params },
+      options,
+    );
+  }
+
+  /**
+   * Revoke a share link
+   *
+   * Revokes the link through app.revoke_share_link so it never opens again. The person who made it may revoke it, and so may anyone holding `data.export.confidential` in the org. Revoking a revoked link answers it unchanged. Requires `Idempotency-Key`; a replay returns the original response. A rule that refuses the request returns 422 with `refusal` and `reason`.
+   *
+   * `POST /share-links/{id}/revoke` (operation `shareLinks.revoke`).
+   * Requires the capability `data.export.run`.
+   */
+  revoke(id: string, options?: $MutationOptions): Promise<$ApiResponse<ShareLink>> {
+    return this.client.request<ShareLink>(
+      $OPERATIONS["shareLinks.revoke"],
       { path: { id } },
       options,
     );

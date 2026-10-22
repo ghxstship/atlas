@@ -38,7 +38,7 @@ export function TextField({
   min,
   wide,
 }: Common & {
-  type?: "text" | "number" | "datetime-local" | "url";
+  type?: "text" | "number" | "datetime-local" | "date" | "time" | "tel" | "url";
   defaultValue?: string | number;
   maxLength?: number;
   min?: number;

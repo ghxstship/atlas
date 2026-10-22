@@ -31,7 +31,9 @@ describe("findFormsThatLoseInput", () => {
     const get = `<form method="get" action={path}><input name="q" /></form>`;
     const buttons = `<form action={a}><input type="hidden" name="id" value={id} /><Button type="submit" /></form>`;
     const spread = `<form action={a} {...keep}><Textarea name="t" /></form>`;
-    for (const source of [keeps, spread, get, buttons])
+    const url = '<form method="post" action={`/share/${token}/file`}><input name="code" /></form>';
+    const settled = `<form action={save} data-keep-input="not-refusable"><input type="checkbox" name="p" /></form>`;
+    for (const source of [keeps, spread, get, buttons, url, settled])
       expect(findFormsThatLoseInput("b.tsx", source)).toEqual([]);
   });
 
