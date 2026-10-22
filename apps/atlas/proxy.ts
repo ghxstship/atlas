@@ -35,11 +35,6 @@ import { createProxySupabase } from "@/lib/supabase/proxy";
  * no nonce, session refresh, guard or cookie, as when prefetches skipped the proxy entirely.
  */
 
-/** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
-const NOT_FOUND_PATH = "/auth/not-found";
-/** Where a member whose network an org's IP allow-list refuses is sent. */
-const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
-
 /** A prefetch the router (next/link) or the browser makes ahead of a navigation. */
 function isPrefetch(request: NextRequest): boolean {
   return (
@@ -54,6 +49,11 @@ function withRouteOrg(request: NextRequest, slug: string | undefined): Headers {
   else headers.delete(ROUTE_ORG_HEADER);
   return headers;
 }
+
+/** A path no route serves; rewriting to it renders app/not-found.tsx with status 404. */
+const NOT_FOUND_PATH = "/auth/not-found";
+/** Where a member whose network an org's IP allow-list refuses is sent. */
+const NETWORK_RESTRICTED_PATH = "/auth/network-restricted";
 
 export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = env();
@@ -177,5 +177,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
  * /api/ route handlers or static files, and none of them negotiates a locale.
  */
 export const config = {
-  matcher: [{ source: "/((?!api/|_next/static|_next/image|favicon.ico|\\.well-known/).*)" }],
+  matcher: [
+    {
+      source: "/((?!api/|_next/static|_next/image|favicon.ico|\\.well-known/).*)",
+    },
+  ],
 };
